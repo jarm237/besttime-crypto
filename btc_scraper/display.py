@@ -231,6 +231,88 @@ def make_missed_signals_table(analysis_results: dict[str, dict]) -> Table | None
     return table
 
 
+def make_min_capital_table(analysis_results: dict[str, dict]) -> Table:
+    """
+    Tính vốn tối thiểu nên giao dịch cho mỗi coin dựa trên TP/SL % thực tế
+    so sánh với phí Binance Spot (0.2% round-trip) và Futures (0.1% round-trip).
+    Mục tiêu: phí giao dịch không vượt quá 20% lợi nhuận TP1.
+    """
+    FEE_SPOT = 0.20        # % round-trip Spot standard
+    FEE_SPOT_BNB = 0.15   # % round-trip Spot có BNB
+    FEE_FUTURES = 0.10    # % round-trip Futures taker
+    TARGET_PROFIT_USD = 5.0  # lợi nhuận ròng mục tiêu tối thiểu ($)
+
+    table = Table(
+        title="[bold cyan]VỐN TỐI THIỂU NÊN GIAO DỊCH (theo phí Binance)[/]",
+        box=box.ROUNDED,
+        border_style="cyan",
+        header_style="bold cyan",
+        show_lines=True,
+    )
+
+    table.add_column("Coin",           style="bold yellow", justify="center")
+    table.add_column("SL%",            justify="right")
+    table.add_column("TP1%",           justify="right")
+    table.add_column("Net TP1 (Spot)", justify="right")
+    table.add_column("Min Spot ($)",   justify="right", style="bright_white")
+    table.add_column("Min +BNB ($)",   justify="right", style="cyan")
+    table.add_column("Min Futures ($)",justify="right", style="bright_green")
+    table.add_column("Đánh giá",       justify="center")
+
+    for key, ana in analysis_results.items():
+        coin, _ = key.split(":")
+        tp_sl = ana.get("tp_sl", {})
+        entry = tp_sl.get("entry", 0.0)
+        sl    = tp_sl.get("sl", 0.0)
+        tp1   = tp_sl.get("tp1", 0.0)
+
+        if entry <= 0 or sl <= 0 or tp1 <= 0:
+            table.add_row(coin, "-", "-", "-", "-", "-", "-", "[dim]Thiếu dữ liệu[/dim]")
+            continue
+
+        sl_pct  = abs(entry - sl)  / entry * 100
+        tp1_pct = abs(tp1  - entry) / entry * 100
+
+        net_spot     = tp1_pct - FEE_SPOT
+        net_spot_bnb = tp1_pct - FEE_SPOT_BNB
+        net_futures  = tp1_pct - FEE_FUTURES
+
+        def _min_usdt(net_pct: float) -> str:
+            if net_pct <= 0:
+                return "[red]Không hiệu quả[/red]"
+            val = TARGET_PROFIT_USD / (net_pct / 100)
+            return f"[bold]${val:,.0f}[/bold]"
+
+        # Đánh giá hiệu quả phí
+        fee_ratio = FEE_SPOT / tp1_pct * 100 if tp1_pct > 0 else 999
+        if fee_ratio < 15:
+            rating = "[bold bright_green]✅ Tốt[/]"
+        elif fee_ratio < 30:
+            rating = "[bold yellow]⚠️ Chấp nhận[/]"
+        else:
+            rating = "[bold red]❌ Phí cao[/]"
+
+        net_str = f"{net_spot:+.3f}%" if net_spot > 0 else f"[red]{net_spot:+.3f}%[/red]"
+
+        table.add_row(
+            coin,
+            f"{sl_pct:.3f}%",
+            f"{tp1_pct:.3f}%",
+            net_str,
+            _min_usdt(net_spot),
+            _min_usdt(net_spot_bnb),
+            _min_usdt(net_futures),
+            rating,
+        )
+
+    # Chú thích
+    table.caption = (
+        f"[dim]Phí Spot: 0.1%/lệnh (0.2% round-trip) | Spot+BNB: 0.075% (0.15%) | "
+        f"Futures taker: 0.05% (0.1%) | Mục tiêu lãi ròng ≥ ${TARGET_PROFIT_USD:.0f}/lệnh[/dim]"
+    )
+    return table
+
+
 def print_all(results: dict[str, dict[str, list[dict]]], analysis_results: dict[str, dict]):
     """
     In dữ liệu phân tích.
@@ -278,3 +360,8 @@ def print_all(results: dict[str, dict[str, list[dict]]], analysis_results: dict[
         console.print()
     else:
         console.print("[dim]>> Khong co tin hieu Mua/Ban nao bi bo lo trong 30 phut qua.[/dim]\n")
+
+    # In bảng vốn tối thiểu khuyến nghị
+    min_cap_table = make_min_capital_table(analysis_results)
+    console.print(min_cap_table)
+    console.print()
