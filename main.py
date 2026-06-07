@@ -99,15 +99,16 @@ def main():
     console.print(f"\n[bold yellow]*** Multi-coin Trading Signals Scraper ***[/]")
     console.print(f"[dim]Coins: {', '.join(COINS)} | Nguồn: Binance - Bybit - OKX[/dim]\n")
 
+    # Lên lịch chạy định kỳ
+    if not args.once:
+        schedule.every(FETCH_INTERVAL_MINUTES).minutes.do(fetch_and_display)
+        console.print(f"[dim]>> Len lich cap nhat moi {FETCH_INTERVAL_MINUTES} phut. Nhan Ctrl+C de dung.[/dim]\n")
+
     # Lấy dữ liệu ngay lập tức
     fetch_and_display()
 
     if args.once:
         return
-
-    # Lên lịch chạy định kỳ
-    schedule.every(FETCH_INTERVAL_MINUTES).minutes.do(fetch_and_display)
-    console.print(f"[dim]>> Len lich cap nhat moi {FETCH_INTERVAL_MINUTES} phut. Nhan Ctrl+C de dung.[/dim]\n")
 
     try:
         while True:
