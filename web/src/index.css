@@ -272,3 +272,48 @@ select.form-control {
 .signal-buy { color: var(--green); font-weight: 600; }
 .signal-sell { color: var(--red); font-weight: 600; }
 .signal-neutral { color: var(--text-secondary); }
+
+/* Markdown Formatting */
+.ai-markdown {
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.ai-markdown p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.ai-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-markdown strong {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.ai-markdown ul {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.ai-markdown li {
+  margin-bottom: 0.5rem;
+}
+
+.ai-markdown h1, 
+.ai-markdown h2, 
+.ai-markdown h3 {
+  color: #fff;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.ai-markdown h1 { font-size: 1.25rem; }
+.ai-markdown h2 { font-size: 1.1rem; }
+.ai-markdown h3 { font-size: 1rem; }
+

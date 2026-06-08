@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LineChart, Activity, Briefcase, Plus, X, RefreshCw, Crosshair, TrendingUp, TrendingDown, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './index.css';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -486,8 +487,12 @@ function App() {
                 {aiAnalysis?.timestamp > 0 && <div className="text-sm text-secondary">Cập nhật lúc: {new Date(aiAnalysis.timestamp * 1000).toLocaleString()}</div>}
               </div>
             </div>
-            <div className="text-sm leading-relaxed text-slate-300 whitespace-pre-wrap font-mono" style={{ padding: '1rem', background: 'rgba(0,0,0,0.4)', borderRadius: '0.5rem' }}>
-              {aiAnalysis?.report || 'Đang chờ dữ liệu phân tích...'}
+            <div className="text-sm leading-relaxed text-slate-300 ai-markdown" style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.4)', borderRadius: '0.5rem' }}>
+              {aiAnalysis?.report ? (
+                <ReactMarkdown>{aiAnalysis.report}</ReactMarkdown>
+              ) : (
+                'Đang chờ dữ liệu phân tích...'
+              )}
             </div>
           </div>
         )}
