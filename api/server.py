@@ -31,6 +31,7 @@ class PositionCreate(BaseModel):
     entry_price: float
     direction: Literal["LONG", "SHORT"] = "LONG"
     note: str = ""
+    invested_usdt: float = 0.0
 
 class PositionClose(BaseModel):
     sell_price: float
@@ -57,7 +58,8 @@ def add_position(pos: PositionCreate):
             coin=pos.coin,
             entry_price=pos.entry_price,
             direction=pos.direction,
-            note=pos.note
+            note=pos.note,
+            invested_usdt=pos.invested_usdt
         )
         return {"status": "success", "position": new_pos}
     except ValueError as e:

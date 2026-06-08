@@ -62,6 +62,7 @@ def add_position(
     entry_price: float,
     direction: Literal["LONG", "SHORT"] = "LONG",
     note: str = "",
+    invested_usdt: float = 0.0,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -87,6 +88,7 @@ def add_position(
         "coin": coin,
         "direction": direction.upper(),
         "entry_price": float(entry_price),
+        "invested_usdt": float(invested_usdt),
         "entry_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "status": "open",
         "note": note,
@@ -157,12 +159,18 @@ def close_position(coin: str, sell_price: float) -> dict:
     elif pnl_pct < -0.1:
         result = "LOSS"
 
+    invested_usdt = pos.get("invested_usdt", 0.0)
+    pnl_usd_actual = invested_usdt * (pnl_pct / 100)
+    received_usdt = invested_usdt + pnl_usd_actual
+
     closed_data = {
         **pos,
         "sell_price": float(sell_price),
         "exit_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "pnl_pct": round(pnl_pct, 4),
         "pnl_usd_per_1000": round(1000 * pnl_pct / 100, 2),
+        "pnl_usd_actual": round(pnl_usd_actual, 2),
+        "received_usdt": round(received_usdt, 2),
         "r_multiplier": r_mult,
         "hold_hours": hold_hours,
         "result": result,
@@ -352,11 +360,13 @@ def get_performance_summary() -> dict:
     profit_factor = (
         abs(sum(t["pnl_pct"] for t in wins)) / abs(sum(t["pnl_pct"] for t in losses))
         if losses and sum(t["pnl_pct"] for t in losses) != 0
-        else float("inf")
+        else None
     )
 
     r_values = [t["r_multiplier"] for t in closed if t.get("r_multiplier") is not None]
     avg_r = sum(r_values) / len(r_values) if r_values else None
+    
+    total_pnl_usd_actual = sum(t.get("pnl_usd_actual", 0.0) for t in closed)
 
     # Tính max consecutive losses
     consec = max_consec = 0
@@ -374,9 +384,10 @@ def get_performance_summary() -> dict:
         "win_rate_pct": round(win_rate, 2),
         "avg_win_pct": round(avg_win, 3),
         "avg_loss_pct": round(avg_loss, 3),
-        "profit_factor": round(profit_factor, 2),
+        "profit_factor": round(profit_factor, 2) if profit_factor is not None else None,
         "avg_r_multiplier": round(avg_r, 2) if avg_r is not None else None,
         "total_pnl_pct": round(total_pnl, 3),
         "pnl_per_1000_usd": round(total_pnl * 10, 2),
+        "total_pnl_usd_actual": round(total_pnl_usd_actual, 2),
         "max_consecutive_losses": max_consec,
     }

@@ -3,3 +3,5 @@ schedule
 rich
 dotenv
 google-genai
+fastapi
+uvicorn

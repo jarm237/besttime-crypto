@@ -1,20 +1,23 @@
 [
   {
-    "coin": "BTC",
+    "coin": "ZEC",
     "direction": "LONG",
-    "entry_price": 68000.0,
-    "entry_time": "2026-06-08 14:30",
+    "entry_price": 436.98,
+    "entry_time": "2026-06-08 18:38",
     "status": "closed",
-    "note": "Tín hiệu SFP",
-    "last_signal": null,
-    "last_price": null,
-    "last_checked": null,
-    "sell_price": 70000.0,
-    "exit_time": "2026-06-08 14:31",
-    "pnl_pct": 2.9412,
-    "pnl_usd_per_1000": 29.41,
-    "r_multiplier": null,
-    "hold_hours": 0.0,
-    "result": "WIN"
+    "note": "",
+    "last_signal": "NEUTRAL (BEARISH-CAUTION)",
+    "last_price": 423.46,
+    "last_checked": "2026-06-08 19:31",
+    "suggested_sl": 430.7291,
+    "suggested_tp1": 402.2584,
+    "suggested_tp2": 381.0568,
+    "sell_price": 419.76,
+    "exit_time": "2026-06-08 19:34",
+    "pnl_pct": -3.9407,
+    "pnl_usd_per_1000": -39.41,
+    "r_multiplier": -2.75,
+    "hold_hours": 0.9,
+    "result": "LOSS"
   }
 ]

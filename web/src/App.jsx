@@ -18,7 +18,7 @@ function App() {
   const [showCloseModal, setShowCloseModal] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(null);
 
-  const [newPos, setNewPos] = useState({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '' });
+  const [newPos, setNewPos] = useState({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '' });
   const [closePrice, setClosePrice] = useState('');
 
   const fetchData = async () => {
@@ -59,10 +59,11 @@ function App() {
     try {
       await axios.post(`${API_BASE}/positions`, {
         ...newPos,
-        entry_price: parseFloat(newPos.entry_price)
+        entry_price: parseFloat(newPos.entry_price),
+        invested_usdt: parseFloat(newPos.invested_usdt || 0)
       });
       setShowAddModal(false);
-      setNewPos({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '' });
+      setNewPos({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '' });
       fetchData();
     } catch (err) {
       alert(err.response?.data?.detail || 'Error adding position');
@@ -185,6 +186,11 @@ function App() {
                 <div className="flex justify-between mb-1">
                   <span>Entry:</span> <span className="text-primary font-mono">${pos.entry_price}</span>
                 </div>
+                {pos.invested_usdt > 0 && (
+                  <div className="flex justify-between mb-1">
+                    <span>Vốn:</span> <span className="text-primary font-mono">${pos.invested_usdt}</span>
+                  </div>
+                )}
                 <div className="flex justify-between mb-1">
                   <span>Current:</span> <span className="text-primary font-mono">${currentPrice}</span>
                 </div>
@@ -517,6 +523,10 @@ function App() {
                 </div>
                 <div className="text-secondary mt-4">Max Drawdown (Chuỗi Thua)</div>
                 <div className="text-xl font-bold text-red">{performance.max_consecutive_losses || 0} lệnh</div>
+                <div className="text-secondary mt-4">Lãi/Lỗ Thực Tế (USDT)</div>
+                <div className={`text-xl font-bold ${performance.total_pnl_usd_actual >= 0 ? 'text-green' : 'text-red'}`}>
+                  {performance.total_pnl_usd_actual > 0 ? '+' : ''}${performance.total_pnl_usd_actual || 0}
+                </div>
               </div>
             </div>
           </div>
@@ -542,6 +552,10 @@ function App() {
               <div className="form-group">
                 <label className="form-label">Giá Khớp Lệnh (Entry)</label>
                 <input required type="number" step="any" className="form-control" value={newPos.entry_price} onChange={e => setNewPos({...newPos, entry_price: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Số vốn bỏ ra (USDT)</label>
+                <input type="number" step="any" className="form-control" value={newPos.invested_usdt} onChange={e => setNewPos({...newPos, invested_usdt: e.target.value})} placeholder="VD: 100" />
               </div>
               <div className="form-group">
                 <label className="form-label">Hướng (Spot = LONG)</label>
