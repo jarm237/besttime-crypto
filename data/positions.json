@@ -3,6 +3,7 @@
     "coin": "ZEC",
     "direction": "LONG",
     "entry_price": 436.98,
+    "invested_usdt": 200.0,
     "entry_time": "2026-06-08 18:38",
     "status": "closed",
     "note": "",
@@ -16,6 +17,8 @@
     "exit_time": "2026-06-08 19:34",
     "pnl_pct": -3.9407,
     "pnl_usd_per_1000": -39.41,
+    "pnl_usd_actual": -7.88,
+    "received_usdt": 192.12,
     "r_multiplier": -2.75,
     "hold_hours": 0.9,
     "result": "LOSS"
