@@ -23,16 +23,22 @@ Mở terminal ở thư mục dự án và chạy các lệnh sau:
 Khi bạn vừa khớp lệnh trên sàn, hãy khai báo vào hệ thống để Bot bắt đầu theo dõi:
 
 ```bash
-./scripts/manage_positions.py add <COIN> <GIÁ_ENTRY> <HƯỚNG> -n "<Ghi chú>"
+./scripts/manage_positions.py add <COIN> <GIÁ_ENTRY> [HƯỚNG] -n "<Ghi chú>"
 ```
 - `<COIN>`: Tên đồng coin (VD: `BTC`, `ETH`).
-- `<GIÁ_ENTRY>`: Giá vào lệnh (VD: `68000`).
-- `<HƯỚNG>`: `LONG` hoặc `SHORT`.
+- `<GIÁ_ENTRY>`: Giá mua / vào lệnh (VD: `68000`).
+- `[HƯỚNG]`: (Tuỳ chọn) `LONG` hoặc `SHORT`. **Mặc định là `LONG` (Dành cho giao dịch Spot).**
 - `-n`: (Tuỳ chọn) Ghi chú lý do vào lệnh.
 
-**Ví dụ:**
+**Ví dụ (Giao dịch Spot):**
+Chỉ cần nhập Coin và Giá Mua (tự động hiểu là LONG):
 ```bash
-./scripts/manage_positions.py add BTC 68000 LONG -n "Tín hiệu SFP khung 15m"
+./scripts/manage_positions.py add BTC 68000 -n "Mua Spot tích luỹ"
+```
+
+**Ví dụ (Đánh Futures SHORT):**
+```bash
+./scripts/manage_positions.py add ETH 3500 SHORT -n "Tín hiệu SFP bắt đỉnh"
 ```
 
 *Lưu ý: Nếu có biến động giá chạm SL hoặc TP, hoặc bot phát hiện tín hiệu đảo chiều, bot sẽ tự động nhắn tin cảnh báo trên Telegram (Cấp độ 🚨 Khẩn cấp hoặc ⚠️ Xem xét).*

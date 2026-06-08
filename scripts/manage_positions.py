@@ -116,7 +116,7 @@ def main():
     parser_add = subparsers.add_parser("add", help="Thêm vị thế đang mở mới")
     parser_add.add_argument("coin", help="Tên coin (vd: BTC)")
     parser_add.add_argument("entry_price", type=float, help="Giá vào lệnh")
-    parser_add.add_argument("direction", choices=["LONG", "SHORT"], help="Hướng vị thế")
+    parser_add.add_argument("direction", nargs="?", choices=["LONG", "SHORT"], default="LONG", help="Hướng vị thế (mặc định: LONG cho Spot)")
     parser_add.add_argument("--note", "-n", default="", help="Ghi chú thêm")
     
     # Command: close
