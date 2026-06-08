@@ -1,5 +1,5 @@
-requests==2.32.3
-schedule==1.2.2
-rich==13.9.4
-dotenv==1.0.1
+requests
+schedule
+rich
+dotenv
 google-genai

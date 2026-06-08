@@ -24,9 +24,10 @@ from btc_scraper.exchanges import binance, bybit, okx
 from btc_scraper.exchanges.binance import fetch_ohlcv_multi_tf
 from btc_scraper.analysis import analyze_market
 from btc_scraper.display import print_all
-from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply
+from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.config import COINS, FETCH_INTERVAL_MINUTES
+from btc_scraper import position_tracker
 
 console = Console()
 
@@ -115,6 +116,14 @@ def fetch_and_display():
 
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)
+
+    # Đánh giá các vị thế đang mở và gửi khuyến nghị lên Telegram
+    try:
+        recs = position_tracker.evaluate_positions(analysis)
+        if recs:
+            send_position_recommendations(recs)
+    except Exception as e:
+        console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 
     # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
     message_id = send_signals_alert(analysis)

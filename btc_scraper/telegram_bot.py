@@ -238,3 +238,44 @@ def send_ai_reply(ai_report: str, reply_to_message_id: int | None = None) -> Non
 
         ai_header = "🤖 NHAN DINH GEMINI AI (tiep theo):\n" + "-" * 30 + "\n"
         first_chunk = False
+
+
+def send_position_recommendations(recommendations: list[dict]) -> None:
+    """
+    Gửi thông báo cập nhật về các vị thế đang mở qua Telegram.
+    """
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID or not recommendations:
+        return
+
+    import html
+    message_lines = ["🛡️ <b>[CẬP NHẬT VỊ THẾ ĐANG MỞ]</b> 🛡️\n"]
+
+    for rec in recommendations:
+        coin = rec["coin"]
+        direction = rec["direction"]
+        pnl = rec["pnl_pct"]
+        urgency = rec["urgency"]
+        action = rec["action"] if "action" in rec else rec["recommendation"]
+        
+        # Biểu tượng mức độ khẩn cấp
+        icon = "🟢"
+        if urgency == "HIGH":
+            icon = "🚨"
+        elif urgency == "MEDIUM":
+            icon = "⚠️"
+        
+        # PnL color
+        pnl_text = f"lãi +{pnl:.2f}%" if pnl > 0 else f"lỗ {pnl:.2f}%"
+        
+        escaped_action = html.escape(action)
+        escaped_reason = html.escape(rec["recommendation_reason"])
+        
+        line = (
+            f"{icon} <b>{coin}</b> ({direction}): {pnl_text}\n"
+            f"  👉 <b>{escaped_action}</b>\n"
+            f"  <i>{escaped_reason}</i>\n"
+        )
+        message_lines.append(line)
+
+    message = "\n".join(message_lines)
+    send_telegram_message(message, parse_mode="HTML")

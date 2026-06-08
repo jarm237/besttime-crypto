@@ -46,8 +46,8 @@ def calculate_tp_sl(
     bb_upper: float,
     bb_middle: float,
     bb_lower: float,
-    atr_sl_mult: float = 1.5,
-    atr_tp_mult: float = 2.5,
+    atr_sl_mult: float = 1.2,
+    atr_tp_mult: float = 3.5,
 ) -> dict:
     """
     Tính mức Entry, Take Profit (TP1, TP2) và Stop Loss (SL) dựa trên:
@@ -69,12 +69,12 @@ def calculate_tp_sl(
     entry = close
 
     if is_buy:
-        # SL: mức support hoặc ATR*mult (lấy mức nào cao hơn = bảo vệ tốt hơn)
+        # SL: mức support hoặc ATR*mult (lấy mức cao hơn = gần giá hơn = thắt chặt hơn)
         sl_atr  = entry - atr_sl_mult * atr
         sl_sup  = support * 0.998 if support > 0 else sl_atr  # buffer 0.2% dưới support
-        sl = max(sl_atr, sl_sup)  # chọn mức cao hơn (gần giá hơn = thắt chặt hơn)
+        sl = max(sl_atr, sl_sup)  # chọn mức cao hơn (gần giá hơn = thắt chặt rủi ro)
         if sl >= entry:
-            sl = entry - atr_sl_mult * atr  # fallback ATR nếu support quá cao
+            sl = entry - atr_sl_mult * atr
 
         # TP1: BB Middle hoặc ATR*mult (lấy mức nhỏ hơn = bảo thủ)
         tp1_bb  = bb_middle if bb_middle > entry else 0.0
@@ -90,10 +90,10 @@ def calculate_tp_sl(
         method = "ATR+Support+BB (Long)"
 
     elif is_sell:
-        # SL: resistance hoặc ATR*mult (lấy mức thấp hơn = gần giá hơn)
+        # SL: resistance hoặc ATR*mult (lấy mức thấp hơn = gần giá hơn = thắt chặt rủi ro)
         sl_atr  = entry + atr_sl_mult * atr
         sl_res  = resistance * 1.002 if resistance > 0 else sl_atr
-        sl = min(sl_atr, sl_res)
+        sl = min(sl_atr, sl_res)  # chọn mức thấp hơn (gần giá hơn)
         if sl <= entry:
             sl = entry + atr_sl_mult * atr
 
@@ -439,8 +439,20 @@ def analyze_market(candles: list[dict]) -> dict:
     )
     is_bullish_candle = current_close > current_open   # Nến xanh — xác nhận lực mua
 
-    # Xác định Hỗ trợ / Kháng cự từ mức thấp/cao nhất trong 50 nến gần đây
-    recent_candles_50 = candles[-50:] if len(candles) >= 50 else candles
+    # Tránh spam tín hiệu pullback liên tục
+    prev_in_pullback_zone = False
+    if len(candles) >= 2:
+        prev_close = candles[-2]["close"]
+        prev_sma50 = candles[-2].get("sma50", 0.0)
+        prev_ema21 = candles[-2].get("ema21", 0.0)
+        prev_in_pullback_zone = (
+            prev_sma50 > 0
+            and prev_ema21 > 0
+            and prev_sma50 * 0.99 <= prev_close <= prev_ema21
+        )
+
+    # Xác định Hỗ trợ / Kháng cự từ 50 nến trước đó (loại bỏ nến hiện tại để tính SFP chính xác)
+    recent_candles_50 = candles[-51:-1] if len(candles) >= 51 else candles[:-1]
     support = min(c["low"] for c in recent_candles_50) if recent_candles_50 else 0.0
     resistance = max(c["high"] for c in recent_candles_50) if recent_candles_50 else 0.0
 
@@ -448,16 +460,18 @@ def analyze_market(candles: list[dict]) -> dict:
     # Bull SFP (bắt đáy): nến hiện tại xuyên râu xuống dưới support rồi đóng cửa trên support
     sfp_bull = (
         support > 0
-        and current_low < support          # râu nến quét qua đáy support
+        and current_low < support          # râu nến quét qua đáy support cũ
         and current_close > support        # nhưng đóng cửa quay lại trên support
         and current_rsi < 45              # xác nhận vùng giá thấp
     )
     # Bear SFP (bắt đỉnh): nến xuyên râu lên trên resistance rồi đóng cửa dưới resistance
+    # CHỈ hợp lệ trong Bear Market (đang dưới SMA200) — trong Bull Market thường là fakeout!
     sfp_bear = (
         resistance > 0
-        and current_high > resistance      # râu nến quét qua đỉnh resistance
+        and current_high > resistance      # râu nến quét qua đỉnh resistance cũ
         and current_close < resistance     # nhưng đóng cửa quay lại dưới resistance
         and current_rsi > 55              # xác nhận vùng giá cao
+        and below_sma200                  # Chỉ SELL SFP trong bear market
     )
     
     # Đóng gói lịch sử 8 nến gần nhất để gửi cho AI
@@ -722,6 +736,7 @@ def analyze_market(candles: list[dict]) -> dict:
     if (
         ema_bearish_active
         and in_pullback_zone
+        and not prev_in_pullback_zone  # Chỉ kích hoạt khi mới bước vào pullback zone, tránh spam
         and is_bullish_candle          # Nến xanh xác nhận lực mua tại vùng hỗ trợ
         and sma50_uptrend
         and above_sma200
@@ -734,16 +749,19 @@ def analyze_market(candles: list[dict]) -> dict:
             f"nen xanh xac nhan | SMA50 doc len | SMA200 phia duoi | Chandelier=BULL"
         )
 
-    # Trailing Stop: đóng cửa thủng SMA50 khi SMA50 đang dốc xuống
+    # Trailing Stop: chỉ kích hoạt NGAY LÚC giá vừa xuyên thủng SMA50 (prev ở trên, hiện ở dưới)
+    prev_above_sma50 = (sma50_list[-2] > 0) and (close_prices[-2] > sma50_list[-2]) if len(close_prices) >= 2 else False
     if (
         ema_bearish_active
         and not above_sma50
+        and prev_above_sma50           # Vừa xuyên xuống dưới SMA50 (1 lần duy nhất)
         and sma50_downtrend
+        and below_sma200               # Chỉ SELL khi đang trong bear market thực sự
         and current_sma50 > 0
     ):
         return _finalize(
             "SELL (Break-SMA50)",
-            f"Gia dong cua xuyen thung SMA50 ({current_sma50:.2f}) — trailing stop kich hoat!"
+            f"Gia XUYEN THU'NG SMA50 ({current_sma50:.2f}) trong Bear Market (duoi SMA200) — trailing stop kich hoat!"
         )
 
     # ─── LỚP 3: TRẠNG THÁI XU HƯỚNG (Trend-following với đầy đủ context) ─────
@@ -780,3 +798,265 @@ def analyze_market(candles: list[dict]) -> dict:
                 "NEUTRAL (BEARISH-CAUTION)",
                 f"EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han{chandelier_tag}"
             )
+
+
+def analyze_all_market(candles: list[dict]) -> list[dict]:
+    """
+    Phân tích toàn bộ dữ liệu lịch sử nến và tạo danh sách kết quả phân tích cho từng nến.
+    Dùng cho backtesting hiệu năng cao (O(N) thay vì O(N^2)).
+    """
+    if not candles or "error" in candles[0]:
+        return []
+
+    close_prices = [c["close"] for c in candles]
+    n = len(candles)
+    if n < 200:
+        return []
+
+    # Tính toán toàn bộ chỉ báo một lần duy nhất
+    rsi_list = calculate_rsi(close_prices, 14)
+    ema9_list = calculate_ema(close_prices, 9)
+    ema21_list = calculate_ema(close_prices, 21)
+    sma50_list = calculate_sma(close_prices, 50)
+    sma200_list = calculate_sma(close_prices, 200)
+    macd_list, macd_sig_list, macd_hist_list = calculate_macd(close_prices, 12, 26, 9)
+    bb_up_list, bb_mid_list, bb_low_list = calculate_bollinger_bands(close_prices, 20, 2)
+    atr_list = calculate_atr(candles, 14)
+    vol_sma_list = calculate_volume_sma(candles, 20)
+    chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
+
+    # Đưa các chỉ báo vào nến
+    for i in range(n):
+        candles[i]["rsi"] = rsi_list[i]
+        candles[i]["ema9"] = ema9_list[i]
+        candles[i]["ema21"] = ema21_list[i]
+        candles[i]["sma50"] = sma50_list[i]
+        candles[i]["sma200"] = sma200_list[i]
+        candles[i]["macd"] = macd_list[i]
+        candles[i]["macd_signal"] = macd_sig_list[i]
+        candles[i]["macd_hist"] = macd_hist_list[i]
+        candles[i]["bb_upper"] = bb_up_list[i]
+        candles[i]["bb_middle"] = bb_mid_list[i]
+        candles[i]["bb_lower"] = bb_low_list[i]
+        candles[i]["atr"] = atr_list[i] if i < len(atr_list) else 0.0
+        candles[i]["vol_sma20"] = vol_sma_list[i]
+        candles[i]["chandelier"] = chandelier_list[i]
+
+    results = []
+
+    # Chạy từ 200 nến để đủ dữ liệu SMA200
+    for i in range(200, n):
+        current_rsi = rsi_list[i]
+        current_ema9 = ema9_list[i]
+        current_ema21 = ema21_list[i]
+        current_sma50 = sma50_list[i]
+        current_sma200 = sma200_list[i]
+        current_macd = macd_list[i]
+        current_macd_signal = macd_sig_list[i]
+        current_macd_hist = macd_hist_list[i]
+        current_bb_upper = bb_up_list[i]
+        current_bb_middle = bb_mid_list[i]
+        current_bb_lower = bb_low_list[i]
+        current_atr = atr_list[i]
+        current_close = close_prices[i]
+        current_open  = candles[i]["open"]
+        current_high  = candles[i]["high"]
+        current_low   = candles[i]["low"]
+        current_volume = candles[i].get("volume", 0.0)
+        current_vol_sma = vol_sma_list[i]
+        chandelier_state = chandelier_list[i]
+
+        prev_rsi = rsi_list[i - 1]
+        rsi_turning_up   = (prev_rsi <= 30) and (current_rsi > 30)
+        rsi_turning_down = (prev_rsi >= 70) and (current_rsi < 70)
+
+        vol_spike = (current_vol_sma > 0) and (current_volume > current_vol_sma * 1.3)
+
+        above_sma200 = (current_sma200 > 0) and (current_close > current_sma200)
+        below_sma200 = (current_sma200 > 0) and (current_close < current_sma200)
+
+        sma50_prev5   = sma50_list[i - 6] if i >= 6 else 0.0
+        sma50_uptrend   = (current_sma50 > 0) and (current_sma50 > sma50_prev5)
+        sma50_downtrend = (current_sma50 > 0) and (current_sma50 < sma50_prev5)
+        above_sma50 = (current_sma50 > 0) and (current_close > current_sma50)
+
+        sma50_lower_bound = current_sma50 * 0.99
+        in_pullback_zone = (
+            current_sma50 > 0
+            and current_ema21 > 0
+            and sma50_lower_bound <= current_close <= current_ema21
+        )
+        is_bullish_candle = current_close > current_open
+
+        # Chặn spam Pullback-Zone: chỉ kích hoạt khi mới bước vào zone
+        prev_close_val = close_prices[i - 1]
+        prev_sma50_val = sma50_list[i - 1]
+        prev_ema21_val_pb = ema21_list[i - 1]
+        prev_in_pullback_zone = (
+            prev_sma50_val > 0
+            and prev_ema21_val_pb > 0
+            and prev_sma50_val * 0.99 <= prev_close_val <= prev_ema21_val_pb
+        )
+
+        # Support / Resistance: dùng 50 nến LỊCH SỬ (loại nến hiện tại) để SFP chính xác
+        window_50 = candles[i - 50 : i]   # [i-50, i-1] — không bao gồm nến i
+        support = min(c["low"] for c in window_50)
+        resistance = max(c["high"] for c in window_50)
+
+        sfp_bull = (
+            support > 0
+            and current_low < support          # wick quét qua đáy lịch sử
+            and current_close > support        # đóng cửa trở lại trên support
+            and current_rsi < 45
+        )
+        sfp_bear = (
+            resistance > 0
+            and current_high > resistance      # wick quét qua đỉnh lịch sử
+            and current_close < resistance     # đóng cửa trở lại dưới resistance
+            and current_rsi > 55
+            and below_sma200                  # Chỉ SELL SFP trong bear market
+        )
+
+        # Chặn spam Break-SMA50: chỉ kích hoạt ngay lúc giá vừa xuyên xuống dưới SMA50
+        prev_close_val_sma50 = close_prices[i - 1]
+        prev_sma50_val_break = sma50_list[i - 1]
+        prev_above_sma50 = (
+            prev_sma50_val_break > 0
+            and prev_close_val_sma50 > prev_sma50_val_break
+        )
+
+        prev_ema9 = ema9_list[i - 1]
+        prev_ema21 = ema21_list[i - 1]
+        ema_golden_cross = (prev_ema9 <= prev_ema21) and (current_ema9 > current_ema21)
+        ema_death_cross  = (prev_ema9 >= prev_ema21) and (current_ema9 < current_ema21)
+        ema_bearish_active = current_ema9 < current_ema21
+        chandelier_blocks_buy = (chandelier_state == "BEAR")
+
+        sig = "NEUTRAL"
+        reason = ""
+
+        # Áp dụng logic quyết định tín hiệu (y hệt analyze_market)
+        if rsi_turning_up:
+            vol_note = " + Volume Spike (dong tien lon do day)" if vol_spike else " (volume trung binh - can them xac nhan)"
+            if above_sma200 and not chandelier_blocks_buy:
+                sig = "STRONG BUY (Confirmed Reversal)"
+                reason = f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note} | Tren SMA200"
+            else:
+                sig = "BUY (Counter-Trend Reversal - High Risk)"
+                reason = f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note}" + (" | Chandelier=BEAR: rui ro cao!" if chandelier_blocks_buy else "") + (" | Ben duoi SMA200 - CAUTION" if not above_sma200 else "")
+        elif rsi_turning_down:
+            vol_note = " + Volume Spike (xa hang manh)" if vol_spike else " (volume trung binh)"
+            sig = "STRONG SELL (Confirmed Reversal)"
+            reason = f"RSI cat xuong duoi 70 (dao chieu tu Overbought){vol_note}" + (" | Ben tren SMA200 - co the chi la dieu chinh" if above_sma200 else "")
+        elif sfp_bull and not chandelier_blocks_buy:
+            sig = "BUY (SFP-Liquidity-Sweep)"
+            reason = f"Quet thanh khoan day: wick xuyen SL duoi {support:.2f} roi dong cua tren support | RSI={current_rsi:.1f}" + (" | Bull Market (SMA200 xac nhan)" if above_sma200 else " | Bear Market - rui ro cao hon")
+        elif sfp_bear:
+            sig = "SELL (SFP-Liquidity-Sweep)"
+            reason = f"Quet thanh khoan dinh: wick vuot {resistance:.2f} roi dong cua duoi resistance | RSI={current_rsi:.1f}" + (" | Bear Market (SMA200 xac nhan)" if below_sma200 else " | Bull Market - co the chi la fakeout")
+        elif ema_golden_cross:
+            if chandelier_blocks_buy:
+                sig = "WEAK BUY (Crossover-Blocked)"
+                reason = "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!"
+            elif above_sma200:
+                sig = "BUY (Crossover)"
+                reason = "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)"
+            elif current_sma200 > 0:
+                sig = "WEAK BUY (Crossover)"
+                reason = "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap!"
+            else:
+                sig = "BUY (Crossover)"
+                reason = "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)"
+        elif ema_death_cross:
+            if below_sma200:
+                sig = "SELL (Crossover)"
+                reason = "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)"
+            elif current_sma200 > 0:
+                sig = "WEAK SELL (Crossover)"
+                reason = "EMA9 cat xuong EMA21 NHUNG gia tren SMA200 — co the chi la dieu chinh"
+            else:
+                sig = "SELL (Crossover)"
+                reason = "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)"
+        elif (
+            ema_bearish_active
+            and in_pullback_zone
+            and not prev_in_pullback_zone   # Mới bước vào zone — tránh spam liên tiếp
+            and is_bullish_candle
+            and sma50_uptrend
+            and above_sma200
+            and not chandelier_blocks_buy
+            and current_rsi < 55
+        ):
+            sig = "BUY (Pullback-Zone)"
+            reason = f"Gia dieu chinh vao vung EMA21({current_ema21:.2f})-SMA50({current_sma50:.2f}), nen xanh xac nhan | SMA50 doc len | SMA200 phia duoi | Chandelier=BULL"
+        elif (
+            ema_bearish_active
+            and not above_sma50
+            and prev_above_sma50       # Vừa xuyên xuống dưới SMA50 (chỉ 1 lần)
+            and sma50_downtrend
+            and below_sma200           # Chỉ SELL khi đang trong bear market thực sự
+            and current_sma50 > 0
+        ):
+            sig = "SELL (Break-SMA50)"
+            reason = f"Gia XUYEN THU'NG SMA50 ({current_sma50:.2f}) trong Bear Market (duoi SMA200) — trailing stop kich hoat!"
+        else:
+            # Neutral states
+            chandelier_tag = f" | Chandelier={chandelier_state}"
+            if current_ema9 > current_ema21:
+                if above_sma200 and sma50_uptrend and not chandelier_blocks_buy:
+                    sig = "NEUTRAL (BULLISH)"
+                    reason = f"Xu huong tang manh: EMA9>EMA21, tren SMA50+SMA200{chandelier_tag}"
+                elif above_sma200:
+                    sig = "NEUTRAL (BULLISH)"
+                    reason = f"Xu huong tang: EMA9>EMA21, tren SMA200 (SMA50 chua xac nhan){chandelier_tag}"
+                else:
+                    sig = "NEUTRAL (BULLISH-CAUTION)"
+                    reason = f"EMA9>EMA21 nhung duoi SMA200 — thi truong lon van giam{chandelier_tag}"
+            else:
+                if below_sma200 and sma50_downtrend:
+                    sig = "NEUTRAL (BEARISH)"
+                    reason = f"Xu huong giam manh: EMA9<EMA21, duoi SMA50+SMA200{chandelier_tag}"
+                elif below_sma200:
+                    sig = "NEUTRAL (BEARISH)"
+                    reason = f"Xu huong giam: EMA9<EMA21, duoi SMA200{chandelier_tag}"
+                else:
+                    sig = "NEUTRAL (BEARISH-CAUTION)"
+                    reason = f"EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han{chandelier_tag}"
+
+        tp_sl_dict = calculate_tp_sl(
+            close       = current_close,
+            signal      = sig,
+            atr         = current_atr,
+            support     = support,
+            resistance  = resistance,
+            bb_upper    = current_bb_upper,
+            bb_middle   = current_bb_middle,
+            bb_lower    = current_bb_lower,
+        )
+
+        results.append({
+            "time": candles[i]["time"],
+            "close": current_close,
+            "open": current_open,
+            "high": current_high,
+            "low": current_low,
+            "rsi": current_rsi,
+            "ema9": current_ema9,
+            "ema21": current_ema21,
+            "sma50": current_sma50,
+            "sma200": current_sma200,
+            "macd_hist": current_macd_hist,
+            "bb_upper": current_bb_upper,
+            "bb_middle": current_bb_middle,
+            "bb_lower": current_bb_lower,
+            "atr": current_atr,
+            "support": support,
+            "resistance": resistance,
+            "signal": sig,
+            "reason": reason,
+            "tp_sl": tp_sl_dict,
+            "chandelier": chandelier_state,
+            "vol_spike": vol_spike,
+        })
+
+    return results
