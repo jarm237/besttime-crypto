@@ -97,6 +97,8 @@ def send_signals_alert(analysis_results: dict[str, dict], ai_report: str = None)
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         return
 
+    import html
+
     # Lọc ra các coin có tín hiệu hành động (BUY/SELL)
     active_signals = []
     neutral_signals = []
@@ -121,7 +123,9 @@ def send_signals_alert(analysis_results: dict[str, dict], ai_report: str = None)
         elif "SELL" in sig:
             emoji = "🔴"
             
-        line = f"{emoji} <b>{coin}</b>: <b>{sig}</b> giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{ana['reason']}</i>"
+        escaped_sig = html.escape(sig)
+        escaped_reason = html.escape(ana.get("reason", ""))
+        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b> giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
         
         tp_sl = ana.get("tp_sl", {})
         if ("BUY" in sig or "SELL" in sig) and tp_sl:
@@ -160,8 +164,9 @@ def send_signals_alert(analysis_results: dict[str, dict], ai_report: str = None)
                 ms_tp1_str = f"{ms_tp_sl.get('tp1', 0.0):{ms_val_format}}"
                 ms_tp2_str = f"{ms_tp_sl.get('tp2', 0.0):{ms_val_format}}"
                 
+                escaped_ms_sig = html.escape(ms_sig)
                 ms_line = (
-                    f"{ms_emoji} <b>{coin}</b> (Bỏ lỡ {ms['age_minutes']}p trước): <b>{ms_sig}</b>\n"
+                    f"{ms_emoji} <b>{coin}</b> (Bỏ lỡ {ms['age_minutes']}p trước): <b>{escaped_ms_sig}</b>\n"
                     f"  Entry cũ: <code>{ms_entry_str}</code> | Giá hiện tại: <code>{price_str}</code>\n"
                     f"  SL: <code>{ms_sl_str}</code> | TP1: <code>{ms_tp1_str}</code> (R:R {ms_tp_sl.get('rr1', 0.0)}) | TP2: <code>{ms_tp2_str}</code> (R:R {ms_tp_sl.get('rr2', 0.0)})"
                 )
