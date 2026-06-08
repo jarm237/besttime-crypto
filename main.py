@@ -69,6 +69,14 @@ def ai_worker():
                 send_ai_reply(ai_report, reply_to_message_id=message_id)
             else:
                 send_ai_reply(ai_report)
+                
+            # Lưu AI report cho web dashboard
+            import json, os, time
+            data_dir = os.path.join(os.path.dirname(__file__), "data")
+            os.makedirs(data_dir, exist_ok=True)
+            with open(os.path.join(data_dir, "latest_ai_analysis.json"), "w", encoding="utf-8") as f:
+                json.dump({"timestamp": time.time(), "report": ai_report}, f, ensure_ascii=False)
+                
         except Exception as e:
             console.print(f"\n[bold red][AI Worker Error] Loi phan tich hoac gui Telegram: {e}[/bold red]")
         finally:

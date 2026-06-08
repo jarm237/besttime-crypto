@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LineChart, Activity, Briefcase, Plus, X, RefreshCw, Crosshair, TrendingUp, TrendingDown } from 'lucide-react';
+import { LineChart, Activity, Briefcase, Plus, X, RefreshCw, Crosshair, TrendingUp, TrendingDown, Bot } from 'lucide-react';
 import './index.css';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -11,6 +11,7 @@ function App() {
   const [positions, setPositions] = useState([]);
   const [performance, setPerformance] = useState({});
   const [availableCoins, setAvailableCoins] = useState(['BTC', 'ETH', 'SOL', 'BNB', 'XRP']);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(null);
@@ -22,15 +23,17 @@ function App() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [sigRes, posRes, perfRes, confRes] = await Promise.all([
+      const [sigRes, posRes, perfRes, confRes, aiRes] = await Promise.all([
         axios.get(`${API_BASE}/market-signals`).catch(() => ({ data: { signals: {} } })),
         axios.get(`${API_BASE}/positions`).catch(() => ({ data: { positions: [] } })),
         axios.get(`${API_BASE}/performance`).catch(() => ({ data: { performance: {} } })),
-        axios.get(`${API_BASE}/config`).catch(() => ({ data: { coins: [] } }))
+        axios.get(`${API_BASE}/config`).catch(() => ({ data: { coins: [] } })),
+        axios.get(`${API_BASE}/ai-analysis`).catch(() => ({ data: { report: 'Lỗi tải dữ liệu AI', timestamp: 0 } }))
       ]);
       setSignals(sigRes.data.signals || {});
       setPositions(posRes.data.positions || []);
       setPerformance(perfRes.data.performance || {});
+      setAiAnalysis(aiRes.data);
       if (confRes.data.coins && confRes.data.coins.length > 0) {
         setAvailableCoins(confRes.data.coins);
         setNewPos(prev => ({ 
@@ -231,6 +234,13 @@ function App() {
     const riskLabel = rr > 2 ? 'THẤP' : rr < 1 ? 'CAO' : 'TRUNG BÌNH';
     const riskDesc = rr > 2 ? 'Quản trị vốn tốt' : rr < 1 ? 'Rủi ro cao' : 'Quản trị vốn chặt chẽ';
 
+    const slDistPct = Math.abs((data.tp_sl?.entry || 0) - (data.tp_sl?.sl || 0)) / (data.tp_sl?.entry || 1);
+    const minCapital = slDistPct > 0 ? Math.ceil(Math.max(50, 500 * slDistPct)) : 0;
+
+    const tpDistPct = Math.abs((data.tp_sl?.tp1 || 0) - (data.tp_sl?.entry || 0)) / (data.tp_sl?.entry || 1);
+    const netProfitPct = tpDistPct - 0.002; // assume 0.2% round trip fee
+    const capitalFor5Net = netProfitPct > 0 ? Math.ceil(5 / netProfitPct) : 0;
+
     // Confidence score
     let score = 50;
     if (isBuy) { score += data.trend_context?.above_sma200 ? 15 : -10; score += data.trend_context?.chandelier === 'BULL' ? 10 : -10; score += data.rsi < 40 ? 10 : 0; score += data.macd_hist > 0 ? 5 : 0; }
@@ -360,16 +370,18 @@ function App() {
                   <span>🎯</span> KẾ HOẠCH KHUYẾN NGHỊ (TP/SL)
                 </div>
                 {[
-                  ['Mức vào lệnh (Entry):', data.tp_sl?.entry?.toFixed(2), '#f8fafc'],
-                  ['Cắt lỗ (Stop Loss):', data.tp_sl?.sl?.toFixed(2), '#ef4444'],
-                  ['Chốt lời 1 (TP1):', data.tp_sl?.tp1?.toFixed(2), '#22c55e'],
-                  ['Chốt lời 2 (TP2):', data.tp_sl?.tp2?.toFixed(2), '#22c55e'],
-                  ['Phương pháp:', data.tp_sl?.method || 'ATR-Based', '#94a3b8'],
-                ].map(([label, val, color], i) => (
-                  <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:'0.65rem', marginBottom:'0.65rem', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                  ['Mức vào lệnh (Entry):', data.tp_sl?.entry?.toFixed(2), '#f8fafc', true],
+                  ['Cắt lỗ (Stop Loss):', data.tp_sl?.sl?.toFixed(2), '#ef4444', true],
+                  ['Chốt lời 1 (TP1):', data.tp_sl?.tp1?.toFixed(2), '#22c55e', true],
+                  ['Chốt lời 2 (TP2):', data.tp_sl?.tp2?.toFixed(2), '#22c55e', true],
+                  ['Vốn tài khoản (Rủi ro 2%):', minCapital > 0 ? minCapital.toString() : 'Tuỳ chọn', '#e2e8f0', minCapital > 0],
+                  ['Vốn vào lệnh (Lãi ≥ $5):', capitalFor5Net > 0 ? capitalFor5Net.toString() : 'N/A', '#e2e8f0', capitalFor5Net > 0],
+                  ['Phương pháp:', data.tp_sl?.method || 'ATR-Based', '#94a3b8', false],
+                ].map(([label, val, color, isDollar], i) => (
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:'0.65rem', marginBottom:'0.65rem', borderBottom: i < 6 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                     <span style={{ color:'#94a3b8', fontSize:'0.85rem' }}>{label}</span>
                     <div style={{ display:'flex', alignItems:'center', gap:'0.6rem' }}>
-                      <span style={{ fontFamily:'monospace', fontWeight:600, color, fontSize:'0.9rem' }}>{val ? `$${val}` : val}</span>
+                      <span style={{ fontFamily:'monospace', fontWeight:600, color, fontSize:'0.9rem' }}>{isDollar && val ? `$${val}` : val}</span>
                       {i === 2 && data.tp_sl?.rr1 && <span style={{ color:'#64748b', fontSize:'0.75rem' }}>(RR: {data.tp_sl.rr1}R)</span>}
                       {i === 3 && data.tp_sl?.rr2 && <span style={{ color:'#64748b', fontSize:'0.75rem' }}>(RR: {data.tp_sl.rr2}R)</span>}
                     </div>
@@ -445,12 +457,10 @@ function App() {
             <div className="stat-value">{performance.win_rate_pct !== undefined ? `${performance.win_rate_pct}%` : 'N/A'}</div>
           </div>
         </div>
-        <div className="glass-panel">
+        <div className="glass-panel" style={{ cursor: 'pointer', border: activeTab === 'ai' ? '1px solid var(--accent)' : '' }} onClick={() => setActiveTab('ai')}>
           <div className="stat-card">
-            <div className="stat-title">Profit Factor</div>
-            <div className={`stat-value ${performance.profit_factor >= 1 ? 'text-green' : 'text-red'}`}>
-              {performance.profit_factor !== undefined ? performance.profit_factor : 'N/A'}
-            </div>
+            <div className="stat-title flex items-center gap-2"><Bot size={16} /> Gemini AI</div>
+            <div className="stat-value text-blue-400">Phân Tích</div>
           </div>
         </div>
       </div>
@@ -460,10 +470,27 @@ function App() {
           {activeTab === 'market' && <><Activity size={20} className="text-accent"/> Live Market Signals</>}
           {activeTab === 'positions' && <><Crosshair size={20} className="text-accent"/> Open Positions</>}
           {activeTab === 'perf' && <><Briefcase size={20} className="text-accent"/> Strategy Performance</>}
+          {activeTab === 'ai' && <><Bot size={20} className="text-accent"/> Gemini AI Insights</>}
         </h2>
 
         {activeTab === 'market' && renderMarketSignals()}
         {activeTab === 'positions' && renderPositions()}
+        {activeTab === 'ai' && (
+          <div className="p-6 bg-black/20 rounded-xl border border-blue-500/30">
+            <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-4">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                <Bot size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-blue-400">Phân tích thị trường từ Gemini</h3>
+                {aiAnalysis?.timestamp > 0 && <div className="text-sm text-secondary">Cập nhật lúc: {new Date(aiAnalysis.timestamp * 1000).toLocaleString()}</div>}
+              </div>
+            </div>
+            <div className="text-sm leading-relaxed text-slate-300 whitespace-pre-wrap font-mono" style={{ padding: '1rem', background: 'rgba(0,0,0,0.4)', borderRadius: '0.5rem' }}>
+              {aiAnalysis?.report || 'Đang chờ dữ liệu phân tích...'}
+            </div>
+          </div>
+        )}
         {activeTab === 'perf' && (
           <div className="grid grid-cols-1 md:grid-cols-2">
             <div>

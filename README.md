@@ -107,6 +107,20 @@ GEMINI_API_KEY=your_gemini_api_key_here
 ### Bước 3: Chạy các dịch vụ
 
 Để hệ thống hoạt động đầy đủ tính năng, bạn cần mở **3 tab Terminal** và chạy song song 3 dịch vụ dưới đây (nhớ kích hoạt `source venv/bin/activate` ở các tab chạy Python):
+## 🚀 Hướng Dẫn Chạy Toàn Bộ Hệ Thống (Mới)
+
+Để thuận tiện nhất, bạn có thể chạy **cả 3 luồng (Bot, API, Web)** cùng một lúc trên một Terminal duy nhất bằng lệnh:
+
+```bash
+./start.sh
+```
+*(Nếu báo lỗi phân quyền, hãy chạy `chmod +x start.sh` một lần trước)*
+
+Để tắt toàn bộ hệ thống, chỉ cần nhấn `Ctrl + C` tại Terminal đó.
+
+---
+
+### Chạy Thủ Công Từng Phần (Tuỳ chọn)
 
 **1. Chạy Bot Cốt Lõi (Tab 1)**
 Tiến trình này sẽ chạy liên tục, tự động quét thị trường mỗi 15 phút.

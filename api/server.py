@@ -35,6 +35,14 @@ class PositionCreate(BaseModel):
 class PositionClose(BaseModel):
     sell_price: float
 
+@app.get("/api/ai-analysis")
+def get_ai_analysis():
+    try:
+        with open("data/latest_ai_analysis.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"timestamp": 0, "report": "Chưa có dữ liệu phân tích từ Gemini AI. Vui lòng chờ..."}
+
 @app.get("/api/positions")
 def get_positions():
     """Lấy danh sách các vị thế đang mở."""
