@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Danh sách các coin cần theo dõi (tự động ghép cặp USDT/USDT-spot)
-COINS = ["BTC", "ETH", "BNB", "SOL", "ZEC"]
+COINS = ["BTC", "ETH", "BNB", "SOL", "ZEC", "XRP", "DOGE", "WLD", "XLM", "NEAR"]
 
 INTERVAL = "15m"            # Khung nến 15 phút
 LIMIT = 100                  # Số nến lấy mỗi lần (cần tối thiểu 30-50 để tính RSI/EMA chính xác)
