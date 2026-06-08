@@ -70,7 +70,61 @@ Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses
 
 ---
 
-## Cài đặt và Chạy Bot
-1. Cài đặt các thư viện: `pip install -r requirements.txt` (nếu có)
-2. Thiết lập cấu hình Telegram & API Keys trong thư mục `config.py` hoặc `.env`
-3. Khởi chạy Bot: `python main.py`
+## Cài đặt và Khởi chạy Hệ thống
+
+Hệ thống BestTime Crypto hiện tại bao gồm 3 thành phần chính:
+1. **Tiến trình Bot cốt lõi (Core Bot):** Lấy dữ liệu, phân tích tín hiệu, và gửi cảnh báo Telegram.
+2. **Backend API:** Cung cấp dữ liệu kết quả phân tích cho giao diện Web.
+3. **Web Dashboard:** Giao diện trực quan để xem tín hiệu và quản lý vị thế.
+
+### Bước 1: Cài đặt thư viện (Python & Node.js)
+Cài đặt môi trường cho Bot và Backend:
+```bash
+# Khởi tạo và kích hoạt môi trường ảo (khuyến nghị)
+python3 -m venv venv
+source venv/bin/activate
+
+# Cài đặt các thư viện Python
+pip install -r requirements.txt
+pip install fastapi uvicorn
+```
+
+Cài đặt môi trường cho Web Frontend:
+```bash
+cd web
+npm install
+cd ..
+```
+
+### Bước 2: Thiết lập cấu hình
+Tạo file `.env` ở thư mục gốc của dự án và điền các khóa API:
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### Bước 3: Chạy các dịch vụ
+
+Để hệ thống hoạt động đầy đủ tính năng, bạn cần mở **3 tab Terminal** và chạy song song 3 dịch vụ dưới đây (nhớ kích hoạt `source venv/bin/activate` ở các tab chạy Python):
+
+**1. Chạy Bot Cốt Lõi (Tab 1)**
+Tiến trình này sẽ chạy liên tục, tự động quét thị trường mỗi 15 phút.
+```bash
+python main.py
+```
+
+**2. Chạy Backend API (Tab 2)**
+Khởi động máy chủ FastAPI cung cấp dữ liệu cho Web (chạy ở cổng 8000).
+```bash
+python api/server.py
+```
+
+**3. Chạy Web Dashboard (Tab 3)**
+Khởi động giao diện Web (chạy ở cổng 3000).
+```bash
+cd web
+npm run dev -- --port 3000 --host
+```
+
+Sau khi hoàn tất, mở trình duyệt và truy cập: **[http://localhost:3000](http://localhost:3000)** để sử dụng bảng điều khiển.

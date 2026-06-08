@@ -117,6 +117,16 @@ def fetch_and_display():
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)
 
+    # Lưu lại signals mới nhất để Web Dashboard đọc
+    try:
+        import os, json
+        data_dir = os.path.join(os.path.dirname(__file__), "data")
+        os.makedirs(data_dir, exist_ok=True)
+        with open(os.path.join(data_dir, "latest_signals.json"), "w", encoding="utf-8") as f:
+            json.dump(analysis, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        console.print(f"[dim red]Không thể lưu latest_signals.json: {e}[/dim red]")
+
     # Đánh giá các vị thế đang mở và gửi khuyến nghị lên Telegram
     try:
         recs = position_tracker.evaluate_positions(analysis)
