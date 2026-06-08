@@ -8,8 +8,10 @@ This file serves as a **Skill and Instructions Guide** for AI agents (such as Go
 
 A Python-based multi-coin OHLCV scraper, technical analyzer, and automated signal bot.
 - **Data Sources:** Binance (spot/spot-USDT pair by default).
-- **Core Loop:** Scheduled updates (configured by default every 15 minutes) fetching market data, computing indicators, analyzing signals, running Gemini AI analysis, and broadcasting alerts to Telegram.
+- **Core Loop:** Scheduled updates at fixed clock minutes (+1 minute offset, e.g., 01, 16, 31, 46) fetching market data, computing indicators, analyzing signals, running Gemini AI analysis, and broadcasting alerts to Telegram.
+- **Position Tracking:** Includes a manual position tracker (`./pos`) that monitors user's open trades and automatically alerts on SL, TP, or trend reversals.
 - **Robustness:** Includes an auto-restart wrapper with exponential backoff for network drops, and scheduler recovery.
+- **Backtesting:** Features an institutional-grade backtesting environment (`backtest.py`) with customizable filters, SL/TP multipliers, and detailed PnL/Expectancy reporting.
 
 ---
 
@@ -56,6 +58,9 @@ The bot implements a robust **5-Layer Filtering Strategy** inside `analyze_marke
 - [btc_scraper/config.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/config.py): Config settings (`COINS`, `INTERVAL`, `LIMIT`).
 - [btc_scraper/telegram_bot.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py): Telegram message broadcaster.
 - [btc_scraper/ai_analyst.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ai_analyst.py): Gemini AI prompts and integration.
+- [btc_scraper/position_tracker.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py): Tracks manual open/closed positions and generates trade recommendations.
+- [scripts/manage_positions.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/manage_positions.py) (via `./pos`): CLI tool for users to add, close, and view positions, and check strategy performance.
+- [backtest.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest.py): Vectorized backtesting script to validate signals on historical data.
 
 ---
 
@@ -82,7 +87,21 @@ GEMINI_API_KEY=your_gemini_api_key
 ### 3. Adding New Coins
 Modify the list `COINS` in `btc_scraper/config.py`.
 
-### 4. Code Standards & Guidelines
+### 4. Position Tracking (Manual)
+To manage positions tracked by the bot:
+- Add: `./pos add BTC 68000` (defaults to LONG, used for Spot) or `./pos add ETH 3500 SHORT`
+- List open: `./pos list`
+- Close: `./pos close BTC 70000`
+- View Performance: `./pos perf`
+
+### 5. Running Backtests
+To test signal logic against historical data:
+```bash
+python backtest.py
+```
+This will output a performance report (Win Rate, Drawdown, Profit Factor) and dump trade logs to `logs/backtest_trades.csv`.
+
+### 6. Code Standards & Guidelines
 - Do NOT introduce dependency on `pandas` or compiled `ta-lib` unless requested.
 - Maintain error logs and Rich console alerts.
 - Keep the auto-restart wrappers intact when modifying the main run loop.
