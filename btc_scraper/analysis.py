@@ -439,6 +439,11 @@ def analyze_market(candles: list[dict]) -> dict:
     )
     is_bullish_candle = current_close > current_open   # Nến xanh — xác nhận lực mua
 
+    # Xác định Hỗ trợ / Kháng cự từ mức thấp/cao nhất trong 50 nến gần đây
+    recent_candles_50 = candles[-50:] if len(candles) >= 50 else candles
+    support = min(c["low"] for c in recent_candles_50) if recent_candles_50 else 0.0
+    resistance = max(c["high"] for c in recent_candles_50) if recent_candles_50 else 0.0
+
     # ── SFP (Swing Failure Pattern): Quét thanh khoản đỉnh/đáy 50 phiên ──────
     # Bull SFP (bắt đáy): nến hiện tại xuyên râu xuống dưới support rồi đóng cửa trên support
     sfp_bull = (
@@ -454,11 +459,6 @@ def analyze_market(candles: list[dict]) -> dict:
         and current_close < resistance     # nhưng đóng cửa quay lại dưới resistance
         and current_rsi > 55              # xác nhận vùng giá cao
     )
-    
-    # Xác định Hỗ trợ / Kháng cự từ mức thấp/cao nhất trong 50 nến gần đây
-    recent_candles_50 = candles[-50:] if len(candles) >= 50 else candles
-    support = min(c["low"] for c in recent_candles_50) if recent_candles_50 else 0.0
-    resistance = max(c["high"] for c in recent_candles_50) if recent_candles_50 else 0.0
     
     # Đóng gói lịch sử 8 nến gần nhất để gửi cho AI
     history = []
