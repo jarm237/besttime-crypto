@@ -11,6 +11,9 @@ import schedule
 from rich.console import Console
 from rich.panel import Panel
 
+import queue
+import threading
+
 # Buoc stdout sang UTF-8 de hien thi tieng Viet va ky tu dac biet
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -21,7 +24,7 @@ from btc_scraper.exchanges import binance, bybit, okx
 from btc_scraper.exchanges.binance import fetch_ohlcv_multi_tf
 from btc_scraper.analysis import analyze_market
 from btc_scraper.display import print_all
-from btc_scraper.telegram_bot import send_signals_alert
+from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.config import COINS, FETCH_INTERVAL_MINUTES
 
@@ -32,6 +35,43 @@ MAX_RETRIES = 5               # Số lần retry tối đa liên tiếp trước
 BASE_BACKOFF = 10             # Thời gian chờ ban đầu (giây) khi gặp lỗi
 MAX_BACKOFF = 300             # Thời gian chờ tối đa (giây) = 5 phút
 SCHEDULER_RESTART_WAIT = 15  # Thời gian chờ (giây) trước khi restart scheduler
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# ─── Queue & Background AI Worker ─────────────────────────────────────────────
+ai_queue: queue.Queue = queue.Queue()
+
+def ai_worker():
+    """
+    Background worker nhặt dữ liệu phân tích từ hàng đợi, gọi Gemini AI và 
+    gửi reply nhận định lên Telegram mà không ảnh hưởng tới luồng Core.
+    """
+    while True:
+        item = ai_queue.get()
+        if item is None:
+            break
+        analysis, mtf_analysis, message_id = item
+        try:
+            console.print("\n[bold yellow]🤖 [AI Worker] Đang gửi dữ liệu phân tích lên Gemini AI...[/bold yellow]")
+            ai_report = analyze_with_gemini(analysis, mtf_analysis)
+            
+            # Hiển thị ở local console
+            console.print(Panel(
+                ai_report,
+                title="[bold yellow]Gemini AI Analyst Report[/]",
+                border_style="yellow",
+                expand=True
+            ))
+            
+            # Gửi tin nhắn reply bổ trợ trên Telegram
+            if message_id:
+                send_ai_reply(ai_report, reply_to_message_id=message_id)
+            else:
+                send_ai_reply(ai_report)
+        except Exception as e:
+            console.print(f"\n[bold red][AI Worker Error] Loi phan tich hoac gui Telegram: {e}[/bold red]")
+        finally:
+            ai_queue.task_done()
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -76,19 +116,11 @@ def fetch_and_display():
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)
 
-    # 3. Phân tích nhận định bằng AI Gemini
-    console.print("\n[bold yellow]🤖 Đang gửi dữ liệu phân tích lên Gemini AI...[/bold yellow]")
-    ai_report = analyze_with_gemini(analysis, mtf_analysis)
+    # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
+    message_id = send_signals_alert(analysis)
 
-    console.print(Panel(
-        ai_report,
-        title="[bold yellow]Gemini AI Analyst Report[/]",
-        border_style="yellow",
-        expand=True
-    ))
-
-    # Gửi tin nhắn thông báo kèm báo cáo AI về Telegram
-    send_signals_alert(analysis, ai_report)
+    # 4. Đẩy phân tích đa khung thời gian vào Queue cho Luồng AI xử lý ngầm
+    ai_queue.put((analysis, mtf_analysis, message_id))
 
 
 def fetch_and_display_with_retry():
@@ -170,10 +202,18 @@ def main():
             f"Nhấn Ctrl+C để dừng.[/dim]\n"
         )
 
+    # Khởi động worker thread chạy ngầm (daemon)
+    worker = threading.Thread(target=ai_worker, daemon=True)
+    worker.start()
+
     # Lấy dữ liệu ngay lập tức (cũng có retry)
     fetch_and_display_with_retry()
 
     if args.once:
+        # Nếu chỉ chạy 1 lần, đợi hàng đợi AI hoàn thành trước khi thoát
+        if not ai_queue.empty():
+            console.print("\n[dim]Đang đợi AI Worker hoàn thành phân tích...[/dim]")
+            ai_queue.join()
         return
 
     try:

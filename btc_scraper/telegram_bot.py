@@ -6,30 +6,39 @@ import requests
 from btc_scraper.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 
-def send_telegram_message(text: str, parse_mode: str = "HTML") -> bool:
+def send_telegram_message(
+    text: str,
+    parse_mode: str = "HTML",
+    reply_to_message_id: int | None = None,
+) -> int | None:
     """
-    Gửi tin nhắn về Telegram. parse_mode có thể là 'HTML', 'Markdown' hoặc None (plain text).
-    Trả về True nếu gửi thành công, False nếu thất bại.
+    Gửi tin nhắn về Telegram.
+    - parse_mode: 'HTML', 'Markdown' hoặc None (plain text).
+    - reply_to_message_id: message_id của tin nhắn gốc để gửi dưới dạng reply/thread.
+    Trả về message_id (int) nếu thành công, None nếu thất bại.
     """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return False
-        
+        return None
+
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": text,
-        "disable_web_page_preview": True
+        "disable_web_page_preview": True,
     }
     if parse_mode:
         payload["parse_mode"] = parse_mode
-    
+    if reply_to_message_id:
+        payload["reply_to_message_id"] = reply_to_message_id
+
     try:
         resp = requests.post(url, json=payload, timeout=10)
         resp.raise_for_status()
-        return True
+        data = resp.json()
+        return data.get("result", {}).get("message_id")
     except Exception as e:
         print(f"\n[Warning] Khong the gui tin nhan Telegram: {e}")
-        return False
+        return None
 
 
 
@@ -89,13 +98,14 @@ def _build_min_capital_section(analysis_results: dict[str, dict]) -> str:
     return header + "\n" + "\n".join(rows) + "\n" + note
 
 
-def send_signals_alert(analysis_results: dict[str, dict], ai_report: str = None):
+def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
 
     """
-    Phân tích các tín hiệu và tạo tin nhắn gửi về Telegram kèm theo nhận định từ AI.
+    [LUỒNG CORE] Phân tích tín hiệu và gửi ngay về Telegram (< 1 giây).
+    Trả về message_id của tin nhắn vừa gửi để background worker có thể reply AI sau.
     """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return
+        return None
 
     import html
 
@@ -197,20 +207,34 @@ def send_signals_alert(analysis_results: dict[str, dict], ai_report: str = None)
         message_lines.append(min_cap_lines)
 
     message = "\n".join(message_lines)
-    send_telegram_message(message, parse_mode="HTML")
+    message_id = send_telegram_message(message, parse_mode="HTML")
+    return message_id
 
 
-    # Gửi báo cáo AI riêng dưới dạng plain text (tránh xung đột Markdown vs HTML)
-    if ai_report and not ai_report.startswith("[Warning]") and not ai_report.startswith("[Loi AI Analyst]"):
-        # Giới hạn 4000 ký tự để không vượt giới hạn Telegram
-        ai_header = "🤖 NHAN DINH GEMINI AI:\n" + "-" * 30 + "\n"
-        remainText = len(ai_report)
-        while (remainText > 0): 
-            if (remainText > 3900):
-                send_telegram_message(ai_header + ai_report[:3900], parse_mode=None)
-                ai_header = "🤖 NHAN DINH GEMINI AI (tiep theo):\n" + "-" * 30 + "\n"
-                ai_report = ai_report[3900:]
-                remainText = len(ai_report)
-            else:
-                send_telegram_message(ai_header + ai_report, parse_mode=None)
-                remainText = 0
+def send_ai_reply(ai_report: str, reply_to_message_id: int | None = None) -> None:
+    """
+    [LUỒNG AI - BACKGROUND] Gửi nhận định Gemini AI về Telegram.
+    - Nếu có reply_to_message_id: gửi dưới dạng reply của tin nhắn signal gốc.
+    - Nếu gặp lỗi bất kỳ (429, 503, network): log ra stdout và bỏ qua.
+    """
+    if not ai_report:
+        return
+    if ai_report.startswith("[Warning]") or ai_report.startswith("[Loi AI Analyst]") or ai_report.startswith("[Tạm dừng]"):
+        print(f"[AI Worker] Bỏ qua gửi Telegram do AI báo lỗi: {ai_report[:80]}...")
+        return
+
+    # Giới hạn 4000 ký tự mỗi tin để không vượt giới hạn Telegram
+    ai_header = "🤖 NHAN DINH GEMINI AI:\n" + "-" * 30 + "\n"
+    first_chunk = True
+    remaining = ai_report
+
+    while remaining:
+        chunk = remaining[:3900]
+        remaining = remaining[3900:]
+
+        # Chỉ reply vào tin nhắn gốc cho phần đầu tiên; các phần tiếp theo gửi thường
+        rid = reply_to_message_id if first_chunk else None
+        send_telegram_message(ai_header + chunk, parse_mode=None, reply_to_message_id=rid)
+
+        ai_header = "🤖 NHAN DINH GEMINI AI (tiep theo):\n" + "-" * 30 + "\n"
+        first_chunk = False
