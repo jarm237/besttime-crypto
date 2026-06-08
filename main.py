@@ -172,7 +172,7 @@ def run_scheduler():
     while True:
         try:
             schedule.run_pending()
-            time.sleep(10)
+            time.sleep(1)  # Giảm sleep xuống 1s để kích hoạt đúng giờ chính xác hơn
         except KeyboardInterrupt:
             raise  # Truyền lên để main() xử lý
         except Exception as exc:
@@ -205,9 +205,15 @@ def main():
 
     # Lên lịch chạy định kỳ (dùng wrapper có retry)
     if not args.once:
-        schedule.every(FETCH_INTERVAL_MINUTES).minutes.do(fetch_and_display_with_retry)
+        # Dùng giờ tĩnh trên đồng hồ, cộng thêm 1 phút (ví dụ: 01, 16, 31, 46) 
+        # để chắc chắn nến đã đóng cửa hoàn toàn trên sàn giao dịch.
+        interval = max(1, FETCH_INTERVAL_MINUTES)
+        minutes_to_run = [(m + 1) % 60 for m in range(0, 60, interval)]
+        for m in minutes_to_run:
+            schedule.every().hour.at(f"{m:02d}:00").do(fetch_and_display_with_retry)
+            
         console.print(
-            f"[dim]>> Lên lịch cập nhật mỗi {FETCH_INTERVAL_MINUTES} phút. "
+            f"[dim]>> Lên lịch cập nhật chính xác vào các phút: {minutes_to_run} mỗi giờ. "
             f"Nhấn Ctrl+C để dừng.[/dim]\n"
         )
 
