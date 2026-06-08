@@ -23,7 +23,7 @@ Mở terminal ở thư mục dự án và chạy các lệnh sau:
 Khi bạn vừa khớp lệnh trên sàn, hãy khai báo vào hệ thống để Bot bắt đầu theo dõi:
 
 ```bash
-./scripts/manage_positions.py add <COIN> <GIÁ_ENTRY> [HƯỚNG] -n "<Ghi chú>"
+./pos add <COIN> <GIÁ_ENTRY> [HƯỚNG] -n "<Ghi chú>"
 ```
 - `<COIN>`: Tên đồng coin (VD: `BTC`, `ETH`).
 - `<GIÁ_ENTRY>`: Giá mua / vào lệnh (VD: `68000`).
@@ -33,12 +33,12 @@ Khi bạn vừa khớp lệnh trên sàn, hãy khai báo vào hệ thống để
 **Ví dụ (Giao dịch Spot):**
 Chỉ cần nhập Coin và Giá Mua (tự động hiểu là LONG):
 ```bash
-./scripts/manage_positions.py add BTC 68000 -n "Mua Spot tích luỹ"
+./pos add BTC 68000 -n "Mua Spot tích luỹ"
 ```
 
 **Ví dụ (Đánh Futures SHORT):**
 ```bash
-./scripts/manage_positions.py add ETH 3500 SHORT -n "Tín hiệu SFP bắt đỉnh"
+./pos add ETH 3500 SHORT -n "Tín hiệu SFP bắt đỉnh"
 ```
 
 *Lưu ý: Nếu có biến động giá chạm SL hoặc TP, hoặc bot phát hiện tín hiệu đảo chiều, bot sẽ tự động nhắn tin cảnh báo trên Telegram (Cấp độ 🚨 Khẩn cấp hoặc ⚠️ Xem xét).*
@@ -46,25 +46,25 @@ Chỉ cần nhập Coin và Giá Mua (tự động hiểu là LONG):
 #### 2. Xem danh sách các vị thế đang mở
 Liệt kê toàn bộ các lệnh hiện đang được theo dõi:
 ```bash
-./scripts/manage_positions.py list
+./pos list
 ```
 
 #### 3. Đóng vị thế
 Khi bạn đã chốt lời hoặc cắt lỗ trên sàn, hãy ghi nhận giá đóng lệnh vào hệ thống để tính tỷ suất sinh lời (PnL) và chỉ số hiệu suất:
 ```bash
-./scripts/manage_positions.py close <COIN> <GIÁ_BÁN>
+./pos close <COIN> <GIÁ_BÁN>
 ```
 
 **Ví dụ:**
 ```bash
-./scripts/manage_positions.py close BTC 70000
+./pos close BTC 70000
 ```
 *(Lệnh sẽ trả về mức % lãi/lỗ và rủi ro/lợi nhuận R-multiplier).*
 
 #### 4. Đánh giá hiệu suất chiến lược (Performance)
 Xem tổng hợp kết quả của tất cả các lệnh đã đóng để đánh giá xem chiến lược giao dịch của bạn có đang hiệu quả không:
 ```bash
-./scripts/manage_positions.py perf
+./pos perf
 ```
 Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`.
 

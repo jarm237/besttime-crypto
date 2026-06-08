@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Wrapper script để gọi manage_positions.py ngắn gọn hơn
+# Ví dụ: ./pos list
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+python3 "$DIR/scripts/manage_positions.py" "$@"
