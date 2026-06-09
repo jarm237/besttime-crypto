@@ -1,169 +1,191 @@
 # besttime-crypto
 
-Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích tín hiệu kỹ thuật (Trading) qua thuật toán và báo cáo qua Telegram, kết hợp AI Gemini để phân tích nhận định thị trường.
+Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích tín hiệu kỹ thuật qua **6 lớp lọc thuật toán**, kết hợp **Gemini AI** để đưa ra nhận định thị trường đa khung thời gian, tích hợp **Fear & Greed Index** và **RAG từ lịch sử giao dịch** — gửi cảnh báo qua Telegram theo thời gian thực.
 
 ## Tính năng
-- Quét dữ liệu tự động cho danh sách các coin (BTC, ETH, SOL...).
-- Nhận định xu hướng dựa trên EMA, SMA, Bollinger Bands, RSI, ADX và Choppiness Index.
-- Phân tích đa khung thời gian với HTF Trend Source (1h / 4h / 1d) để lọc tín hiệu 15m.
-- Tìm kiếm cơ hội vào lệnh bằng mô hình Swing Failure Pattern (SFP) và Pullback/EMA signals.
-- Quản lý ATR-based Stop Loss, ATR Shock filter và đánh giá rủi ro thị trường.
-- **Quản lý vị thế thủ công (Position Tracker)**: Nhập vị thế đã giao dịch, bot sẽ liên tục giám sát và đưa ra khuyến nghị Chốt Lời / Cắt Lỗ qua Telegram theo thời gian thực.
-- Gửi báo cáo phân tích tự động qua tin nhắn Telegram.
+
+- **Quét đa coin tự động** cho danh sách cấu hình (BTC, ETH, BNB, SOL, XRP...) mỗi 15 phút.
+- **Phân tích kỹ thuật 6 lớp lọc** bằng Python thuần: RSI, EMA, SMA, MACD, Bollinger Bands, ATR, Chandelier Exit, Volume SMA, SFP.
+- **Phân tích đa khung thời gian (MTF)**: Thu thập thêm nến 1h / 4h / 1d để gửi cho Gemini AI đánh giá xu hướng lớn hơn.
+- **Fear & Greed Index (Lớp 6)**: Lấy từ `alternative.me/fng`, cache 1h. Tự động hạ cấp tín hiệu BUY khi Extreme Fear, hạ cấp SELL khi Extreme Greed.
+- **Gemini AI Analyst**: Tổng hợp toàn bộ tín hiệu 15m + MTF + sentiment + lịch sử giao dịch (RAG) để đưa ra nhận định thị trường bằng tiếng Việt.
+- **Quản lý vị thế thủ công (Position Tracker)**: Nhập lệnh đã khớp, bot tự động giám sát và gửi khuyến nghị Chốt Lời / Cắt Lỗ qua Telegram mỗi 5 phút.
+- **Web Dashboard**: Giao diện trực quan xem tín hiệu và AI report tại `http://localhost:3000`.
+- **Backtest**: Script `backtest_eval.py` đánh giá chất lượng tín hiệu theo win rate, Profit Factor và hold period tối ưu.
+- **Telegram Alerts**: Gửi bảng tín hiệu + AI report tự động sau mỗi chu kỳ quét.
+
+---
+
+## Backtest (Kết quả đã xác minh)
+
+Trên **8.000 điểm dữ liệu** (1000 nến 15m × 10 coin):
+
+| Loại tín hiệu | Win Rate | Profit Factor | Hold tối ưu |
+|---------------|---------|---------------|------------|
+| **STRONG BUY** | **70.5%** | **2.95** | **1h (4 nến)** |
+| **STRONG SELL** | **66.4%** | **2.92** | **6h (24 nến)** |
+| WEAK BUY | ~35% | 0.24 | ❌ Không có edge |
 
 ---
 
 ## Quản lý Vị thế (Position Tracker)
 
-Công cụ `manage_positions.py` giúp bạn lưu lại các vị thế giao dịch thủ công. Sau khi lưu, ở mỗi lần quét tiếp theo, Bot sẽ tự động kiểm tra xem giá đã chạm mức Cắt Lỗ (SL), Chốt Lời (TP), hoặc có tín hiệu đảo chiều nguy hiểm hay không, và gửi cảnh báo trực tiếp qua Telegram.
+Công cụ CLI `./pos` giúp ghi nhận và theo dõi vị thế giao dịch. Bot tự động kiểm tra TP/SL và tín hiệu đảo chiều sau mỗi lần quét.
 
-### Cú pháp sử dụng CLI
-
-Mở terminal ở thư mục dự án và chạy các lệnh sau:
-
-#### 1. Thêm vị thế mới (Add Position)
-Khi bạn vừa khớp lệnh trên sàn, hãy khai báo vào hệ thống để Bot bắt đầu theo dõi:
+### Cú pháp CLI
 
 ```bash
-./pos add <COIN> <GIÁ_ENTRY> [HƯỚNG] -n "<Ghi chú>"
-```
-- `<COIN>`: Tên đồng coin (VD: `BTC`, `ETH`).
-- `<GIÁ_ENTRY>`: Giá mua / vào lệnh (VD: `68000`).
-- `[HƯỚNG]`: (Tuỳ chọn) `LONG` hoặc `SHORT`. **Mặc định là `LONG` (Dành cho giao dịch Spot).**
-- `-n`: (Tuỳ chọn) Ghi chú lý do vào lệnh.
-
-**Ví dụ (Giao dịch Spot):**
-Chỉ cần nhập Coin và Giá Mua (tự động hiểu là LONG):
-```bash
+# Thêm vị thế LONG (Spot) — nhập coin và giá mua
 ./pos add BTC 68000 -n "Mua Spot tích luỹ"
-```
 
-**Ví dụ (Đánh Futures SHORT):**
-```bash
+# Thêm vị thế SHORT (Futures)
 ./pos add ETH 3500 SHORT -n "Tín hiệu SFP bắt đỉnh"
-```
 
-*Lưu ý: Nếu có biến động giá chạm SL hoặc TP, hoặc bot phát hiện tín hiệu đảo chiều, bot sẽ tự động nhắn tin cảnh báo trên Telegram (Cấp độ 🚨 Khẩn cấp hoặc ⚠️ Xem xét).*
+# Thêm vị thế kèm số vốn thực tế (để tính PnL USD chính xác)
+./pos add BNB 595 --usdt 200
 
-#### 2. Xem danh sách các vị thế đang mở
-Liệt kê toàn bộ các lệnh hiện đang được theo dõi:
-```bash
+# Xem danh sách vị thế đang mở
 ./pos list
-```
 
-#### 3. Đóng vị thế
-Khi bạn đã chốt lời hoặc cắt lỗ trên sàn, hãy ghi nhận giá đóng lệnh vào hệ thống để tính tỷ suất sinh lời (PnL) và chỉ số hiệu suất:
-```bash
-./pos close <COIN> <GIÁ_BÁN>
-```
-
-**Ví dụ:**
-```bash
+# Đóng vị thế và ghi nhận PnL
 ./pos close BTC 70000
-```
-*(Lệnh sẽ trả về mức % lãi/lỗ và rủi ro/lợi nhuận R-multiplier).*
 
-#### 4. Đánh giá hiệu suất chiến lược (Performance)
-Xem tổng hợp kết quả của tất cả các lệnh đã đóng để đánh giá xem chiến lược giao dịch của bạn có đang hiệu quả không:
-```bash
+# Xem tổng hợp hiệu suất chiến lược (Win Rate, Profit Factor, R)
 ./pos perf
 ```
-Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`.
+
+Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
+- 🚨 Giá chạm **Stop Loss**
+- 🎯 Giá đạt **TP1 hoặc TP2**
+- ⚠️ Xuất hiện **tín hiệu đảo chiều** ngược hướng vị thế
 
 ---
 
-## Cài đặt và Khởi chạy Hệ thống
+## Cài đặt và Khởi chạy
 
-Hệ thống BestTime Crypto hiện tại bao gồm 3 thành phần chính:
-1. **Tiến trình Bot cốt lõi (Core Bot):** Lấy dữ liệu, phân tích tín hiệu, và gửi cảnh báo Telegram.
-2. **Backend API:** Cung cấp dữ liệu kết quả phân tích cho giao diện Web.
-3. **Web Dashboard:** Giao diện trực quan để xem tín hiệu và quản lý vị thế.
+Hệ thống gồm 3 thành phần chạy song song:
+1. **Bot cốt lõi** (`main.py`) — Quét tín hiệu, gọi AI, gửi Telegram.
+2. **Backend API** (`api/server.py`) — FastAPI phục vụ dữ liệu cho Web Dashboard (cổng 8000).
+3. **Web Dashboard** (`web/`) — Giao diện Vue 3 (cổng 3000).
 
-### Bước 1: Cài đặt thư viện (Python & Node.js)
-Cài đặt môi trường cho Bot và Backend:
+### Bước 1: Cài đặt môi trường
+
 ```bash
-# Khởi tạo và kích hoạt môi trường ảo (khuyến nghị)
-python3 -m venv venv
-source venv/bin/activate
-
-# Cài đặt các thư viện Python
+# Python dependencies (Bot + API)
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-pip install fastapi uvicorn
-```
 
-Cài đặt môi trường cho Web Frontend:
-```bash
+# Node.js dependencies (Web Dashboard)
 cd web
 npm install
 cd ..
 ```
 
-### Bước 2: Thiết lập cấu hình
-Tạo file `.env` ở thư mục gốc của dự án và điền các khóa API:
+### Bước 2: Cấu hình `.env`
+
+Tạo file `.env` ở thư mục gốc:
+
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here
-# Gemini API hỗ trợ nhiều key để round-robin và tránh hết quota nhanh
-GEMINI_API_KEY_1=your_gemini_api_key_here
-GEMINI_API_KEY_2=your_optional_second_key_here
-GEMINI_API_KEY_3=your_optional_third_key_here
+
+# Gemini AI — hỗ trợ nhiều key để round-robin tránh hết quota
+GEMINI_API_KEY_1=your_gemini_api_key
+GEMINI_API_KEY_2=optional_second_key
+GEMINI_API_KEY_3=optional_third_key
 ```
 
-### Bước 3: Chạy các dịch vụ
+### Bước 3: Khởi chạy toàn bộ hệ thống
 
-Để hệ thống hoạt động đầy đủ tính năng, bạn cần mở **3 tab Terminal** và chạy song song 3 dịch vụ dưới đây (nhớ kích hoạt `source venv/bin/activate` ở các tab chạy Python):
-## 🚀 Hướng Dẫn Chạy Toàn Bộ Hệ Thống (Mới)
-
-Để thuận tiện nhất, bạn có thể chạy **cả 3 luồng (Bot, API, Web)** cùng một lúc trên một Terminal duy nhất bằng lệnh:
+**Cách nhanh nhất** — chạy cả 3 dịch vụ bằng một lệnh:
 
 ```bash
 ./start.sh
+# Windows: .\start.ps1
 ```
-*(Nếu báo lỗi phân quyền, hãy chạy `chmod +x start.sh` một lần trước)*
 
-Để tắt toàn bộ hệ thống, chỉ cần nhấn `Ctrl + C` tại Terminal đó.
+Nhấn `Ctrl + C` để tắt toàn bộ.
 
 ---
 
-### Chạy Thủ Công Từng Phần (Tuỳ chọn)
+### Chạy thủ công từng phần
 
-**1. Chạy Bot Cốt Lõi (Tab 1)**
-Tiến trình này sẽ chạy liên tục với 2 luồng quét:
-- **Quét tổng quát (mỗi 15 phút):** Lấy toàn bộ dữ liệu, phân tích AI và tìm kiếm cơ hội.
-- **Quét khẩn cấp (mỗi 5 phút xen kẽ):** Liên tục theo dõi các vị thế đang mở (nếu có) để phát hiện chạm Stop Loss/Take Profit ngay lập tức mà không gọi AI nhằm tiết kiệm quota.
+**Tab 1 — Bot cốt lõi:**
 ```bash
 python main.py
 ```
+- Quét tổng quát mỗi 15 phút: lấy dữ liệu, phân tích, gọi AI, gửi Telegram.
+- Quét khẩn cấp mỗi 5 phút: chỉ theo dõi coin đang có vị thế mở.
 
-**2. Chạy Backend API (Tab 2)**
-Khởi động máy chủ FastAPI cung cấp dữ liệu cho Web (chạy ở cổng 8000).
+**Tab 2 — Backend API:**
 ```bash
 python api/server.py
 ```
 
-**3. Chạy Web Dashboard (Tab 3)**
-Khởi động giao diện Web (chạy ở cổng 3000).
+**Tab 3 — Web Dashboard:**
 ```bash
 cd web
 npm run dev -- --port 3000 --host
 ```
 
-Sau khi hoàn tất, mở trình duyệt và truy cập: **[http://localhost:3000](http://localhost:3000)** để sử dụng bảng điều khiển.
+Truy cập: **[http://localhost:3000](http://localhost:3000)**
+
+---
+
+## Chạy Backtest
+
+```bash
+# Đánh giá chất lượng tín hiệu (win rate, profit factor, hold period)
+python -X utf8 backtest_eval.py
+
+# Backtest đầy đủ với báo cáo PnL chi tiết
+python backtest.py
+```
 
 ---
 
 ## Chạy Unit Test
 
-Hệ thống đã bổ sung kiểm thử đơn vị cho các thành phần phân tích và bộ lọc.
-
-Chạy toàn bộ kiểm thử bằng `pytest`:
-
 ```bash
 pytest
+pytest tests/test_analysis.py   # Chỉ test module phân tích
 ```
 
-Hoặc chạy riêng các test phân tích:
+---
 
-```bash
-pytest tests/test_analysis.py
+## Cấu trúc Dự án
+
+```
+besttime-crypto/
+├── main.py                      # Entry point + scheduler + AI worker thread
+├── backtest.py                  # Full historical backtest
+├── backtest_eval.py             # Signal quality evaluator (win rate × hold period)
+├── trading_strategies_summary.md # Tài liệu công thức và chiến lược kỹ thuật
+├── requirements.txt
+├── .env                         # API keys (không commit)
+├── btc_scraper/
+│   ├── config.py               # COINS, INTERVAL, LIMIT, API keys
+│   ├── analysis.py             # Indicators + 6-layer signal logic + TP/SL
+│   ├── sentiment.py            # Fear & Greed Index (cached)
+│   ├── ai_analyst.py           # Gemini AI prompt builder (MTF + RAG)
+│   ├── position_tracker.py     # Position management + performance metrics
+│   ├── telegram_bot.py         # Telegram broadcaster
+│   ├── display.py              # Rich terminal table rendering
+│   └── exchanges/
+│       └── binance.py          # Binance OHLCV API
+├── api/
+│   └── server.py               # FastAPI backend (port 8000)
+├── web/                        # Vue 3 / Vite frontend (port 3000)
+├── data/
+│   ├── positions.json          # Open + closed positions store
+│   ├── latest_signals.json     # Latest analysis snapshot (read by Web)
+│   └── latest_ai_analysis.json # Latest Gemini AI report (read by Web)
+├── logs/
+│   └── closed_positions.json   # Append-only closed trade log (RAG source)
+├── scripts/
+│   └── manage_positions.py     # CLI backend for ./pos
+├── tests/
+│   └── test_analysis.py        # Unit tests
+└── pos                         # ./pos CLI shortcut script
 ```

@@ -1,109 +1,169 @@
 # Multi-coin OHLCV Scraper & Analyzer - AI Agent Skill Guide
 
-This file serves as a **Skill and Instructions Guide** for AI agents (such as Google Antigravity, Claude Code, or Copilot) interacting with this codebase. It provides system context, architecture details, and step-by-step workflows for maintaining, running, and expanding the project.
+This file serves as a **Skill and Instructions Guide** for AI agents (such as Google Antigravity, Claude, or Copilot) interacting with this codebase. It provides system context, architecture details, and step-by-step workflows for maintaining, running, and expanding the project.
 
 ---
 
 ## 📋 Project Overview
 
-A Python-based multi-coin OHLCV scraper, technical analyzer, and automated signal bot.
-- **Data Sources:** Binance (spot/spot-USDT pair by default).
-- **Core Loop:** Scheduled updates running two tracks:
-  1. **General scan (every 15 mins, e.g., 01, 16, 31, 46):** Fetches full market data, computes indicators, analyzes signals, runs Gemini AI analysis, and broadcasts general alerts.
-  2. **Focused scan (every 5 mins, e.g., 06, 11, 21, 26):** Specifically tracks open positions to immediately alert on TP/SL hits or strong reversals without using AI quota.
-- **Position Tracking:** Includes a manual position tracker (`./pos`) that monitors user's open trades and automatically alerts on SL, TP, or trend reversals.
-- **Robustness:** Includes an auto-restart wrapper with exponential backoff for network drops, and scheduler recovery.
-- **Backtesting:** Features an institutional-grade backtesting environment (`backtest.py`) with customizable filters, SL/TP multipliers, and detailed PnL/Expectancy reporting.
+A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and automated signal bot.
+
+- **Data Source:** Binance Public API (`/api/v3/klines`) — no API key required.
+- **Timeframes:** Primary 15m for signals; 1h / 4h / 1d fetched for Gemini AI multi-timeframe context.
+- **Coins tracked:** Configurable via `btc_scraper/config.py` → `COINS` list.
+- **Core Loop:** Two-track scheduler:
+  1. **General scan (every 15 mins, offset +1 min after close):** Fetches all coins, computes all indicators, sends Telegram signal alert, enqueues Gemini AI analysis in background thread.
+  2. **Focused scan (every 5 mins, interleaved):** Only fetches coins with open positions — evaluates TP/SL hits and reversal warnings without calling AI to save quota.
+- **Robustness:** Auto-restart with exponential backoff (`BASE_BACKOFF=10s`, `MAX_BACKOFF=300s`, `MAX_RETRIES=5`) for network errors; scheduler crash recovery.
 
 ---
 
 ## 🛠️ Technology Stack & Dependencies
 
 - **Runtime:** Python 3.10+
-- **Key Packages:**
-  - `schedule` - Task scheduling.
-  - `rich` - Beautiful terminal output rendering.
-  - `requests` / standard library modules (e.g., `math`, `time`).
-  - *No Pandas or `ta-lib` are used.* All technical indicators are implemented in pure Python within `btc_scraper/analysis.py` for maximum speed and simplicity.
+- **Key Packages** (`requirements.txt`):
+  - `requests` — HTTP calls to Binance API.
+  - `schedule` — Cron-style task scheduling.
+  - `rich` — Beautiful terminal output rendering.
+  - `python-dotenv` — `.env` file loading.
+  - `google-genai` — Gemini AI (Flash model) integration.
+  - `fastapi` + `uvicorn` — Backend REST API for Web Dashboard.
+  - `pytest` + `httpx` — Unit testing.
+  - *No Pandas, no ta-lib.* All indicators are pure Python in `btc_scraper/analysis.py`.
+- **Frontend:** Vue 3 / Vite in `web/`, served at port 3000.
 
 ---
 
-## 📈 Technical Analysis & Signals (`analysis.py`)
+## 📁 Key Files & Modules
 
-The bot implements a robust **5-Layer Filtering Strategy** inside `analyze_market(candles)`:
+> **Đường dẫn theo môi trường:**
+> - 🐧 **Ubuntu**: `/home/tran-huynh/Workspaces/Personal/besttime-crypto/`
+> - 🪟 **Windows**: `d:/Workspaces/Vọc vạch/`
 
-### Lớp -1: Chandelier Exit (ATR Filter)
-- Calculated using ATR (period 22, multiplier 3.0).
-- If Chandelier state is `BEAR`, all BUY orders are blocked (except emergency SFP).
-
-### Lớp 0: RSI Reversal (Volume Confirmed)
-- Triggers when RSI crosses the oversold threshold (`RSI < 30` cuts up) or overbought threshold (`RSI > 70` cuts down).
-- Enhanced with **Volume Spike** confirmation (volume > 1.3x of 20-period SMA).
-
-### Lớp 0.5: Swing Failure Pattern (SFP)
-- Smart Money indicator: scans if the price sweeped the 50-period High/Low (liquidity grab) and closed inside the range.
-
-### Lớp 1: EMA Crossover (SMA 200 Filtered)
-- Golden/Death Cross of **EMA 9** and **EMA 21**.
-- Executed only if confirmed by the major trend of **SMA 200** (above = Bull Market, below = Bear Market).
-
-### Lớp 2: Pullback to SMA 50 Zone
-- Activates when short-term trend is down (`EMA 9 < EMA 21`) but price pulls back into the buffer zone between `EMA 21` and `SMA 50` (up to -1% below SMA50) in an uptrend, confirmed by a bullish candle.
-- **Trailing Stop:** Activates if the price closes below SMA 50 while SMA 50 is sloping downwards.
-
----
-
-## ⚙️ Project Configuration & Files
-
-- [main.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/main.py): App entry point, scheduling loop, and crash recovery.
-- [btc_scraper/analysis.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/analysis.py): Pure Python technical indicator calculations (RSI, EMA, SMA, ATR, Bollinger Bands, MACD, Chandelier Exit) and signal logic.
-- [btc_scraper/config.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/config.py): Config settings (`COINS`, `INTERVAL`, `LIMIT`).
-- [btc_scraper/telegram_bot.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py): Telegram message broadcaster.
-- [btc_scraper/ai_analyst.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ai_analyst.py): Gemini AI prompts and integration.
-- [btc_scraper/position_tracker.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py): Tracks manual open/closed positions and generates trade recommendations.
-- [scripts/manage_positions.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/manage_positions.py) (via `./pos`): CLI tool for users to add, close, and view positions, and check strategy performance.
-- [backtest.py](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest.py): Vectorized backtesting script to validate signals on historical data.
+| File | 🐧 Ubuntu | 🪟 Windows | Purpose |
+|------|-----------|-----------|---------|
+| `main.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/main.py) | [Windows](file:///d:/Workspaces/Vọc vạch/main.py) | Entry point, scheduler, AI worker thread, position evaluation loop |
+| `btc_scraper/config.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/config.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/config.py) | `COINS`, `INTERVAL`, `LIMIT`, API keys (round-robin Gemini keys) |
+| `btc_scraper/analysis.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/analysis.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/analysis.py) | All indicator math + 6-layer signal logic + TP/SL formula |
+| `btc_scraper/sentiment.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/sentiment.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/sentiment.py) | Fear & Greed Index from alternative.me (cached 1h) |
+| `btc_scraper/ai_analyst.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ai_analyst.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ai_analyst.py) | Gemini AI prompt builder — MTF data, sentiment, RAG from closed trades |
+| `btc_scraper/position_tracker.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/position_tracker.py) | Open/closed position management, TP/SL evaluation, performance metrics |
+| `btc_scraper/exchanges/binance.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/exchanges/binance.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/exchanges/binance.py) | Binance OHLCV fetcher (`fetch_ohlcv`, `fetch_ohlcv_tf`, `fetch_ohlcv_multi_tf`) |
+| `btc_scraper/telegram_bot.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/telegram_bot.py) | Telegram broadcaster (signals, AI report, position recommendations) |
+| `api/server.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/api/server.py) | [Windows](file:///d:/Workspaces/Vọc vạch/api/server.py) | FastAPI REST backend — serves `latest_signals.json` and `latest_ai_analysis.json` |
+| `backtest.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest.py) | Full vectorized backtesting with custom filters and PnL reporting |
+| `backtest_eval.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest_eval.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest_eval.py) | Signal quality evaluator: win rate × hold period × parameter variants |
+| `scripts/manage_positions.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/manage_positions.py) | [Windows](file:///d:/Workspaces/Vọc vạch/scripts/manage_positions.py) | CLI backend for `./pos add/list/close/perf` |
+| `data/positions.json` | — | — | Live positions store (open + closed) |
+| `data/latest_signals.json` | — | — | Latest analysis snapshot per coin (read by Web Dashboard) |
+| `data/latest_ai_analysis.json` | — | — | Latest Gemini AI report (read by Web Dashboard) |
+| `logs/closed_positions.json` | — | — | Append-only closed trade log (RAG source for AI prompts) |
+| `trading_strategies_summary.md` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/trading_strategies_summary.md) | [Windows](file:///d:/Workspaces/Vọc vạch/trading_strategies_summary.md) | Full indicator formulas and signal logic documentation |
 
 ---
 
-## 🚀 How to Guide (AI Tasks)
+## 📈 Technical Analysis & Signal Logic (`analysis.py`)
 
-### 1. Running the Scraper
-To run the bot in continuous daemon mode:
+The bot uses a **6-Layer Filtering Strategy** inside `analyze_market(candles)`.
+All indicators are pure Python — no external libraries.
+
+### Indicators Computed
+| Indicator | Params | Algorithm |
+|-----------|--------|-----------|
+| ATR | period=14 | Wilder's Smoothing |
+| RSI | period=14 | Wilder's Smoothing |
+| EMA | 9, 21 | Standard EMA (`k = 2/(N+1)`) |
+| SMA | 50, 200 | Sliding window O(N) |
+| MACD | 12, 26, 9 | EMA(12) − EMA(26), Signal=EMA(9) |
+| Bollinger Bands | period=20, std=2 | Population std dev |
+| Volume SMA | period=20 | SMA of volume |
+| Chandelier Exit | period=22, mult=3.0 | ATR-based trend filter |
+
+### 6-Layer Signal Decision
+1. **SMA 200 Trend Filter** — Bull (`Close > SMA200`) vs Bear
+2. **SMA 50 Pullback Zone** — BUY when price dips into EMA21–SMA50 band on uptrend
+3. **EMA 9/21 Crossover** — Golden/Death Cross with SMA200 confirmation
+4. **Chandelier Exit** — Blocks BUY when state = BEAR
+5. **Volume Spike + SFP** — Volume > 1.3× SMA20; Sweep False Pivot on 50-bar S/R
+6. **Fear & Greed Sentiment** — Extreme Fear (<−0.6) downgrades STRONG BUY → WEAK; Extreme Greed (>+0.6) downgrades STRONG SELL → WEAK
+
+### Backtest-Verified Performance (8,000 candles, 10 coins, 15m)
+| Signal Type | Win Rate | Profit Factor | Best Hold |
+|-------------|---------|---------------|-----------|
+| STRONG BUY | 70.5% | 2.95 | 1h (4 candles) |
+| STRONG SELL | 66.4% | 2.92 | 6h (24 candles) |
+| WEAK BUY | ~35% | 0.24 | ❌ No edge |
+| WEAK SELL | ~25% | 0.54 | ❌ Use as warning only |
+
+### TP/SL Formula
+- **SL (BUY):** `max(Entry − 1.2×ATR, Support × 0.998)`
+- **TP1 (BUY):** `min(BB_Middle, Entry + 3.5×ATR)` ← currently being evaluated for reduction to 2.0×
+- **TP2 (BUY):** `min(Resistance×0.998, BB_Upper×0.998, Entry + 7.0×ATR)`
+- Mirror logic for SELL.
+
+---
+
+## 🤖 Gemini AI Integration (`ai_analyst.py`)
+
+The AI analyst receives a rich prompt including:
+1. **15m signal table** for all coins (signal, RSI, EMA, support/resistance, TP/SL)
+2. **Multi-timeframe analysis** (1h, 4h, 1d signals for each coin)
+3. **Sentiment string** — Fear & Greed raw value + label
+4. **RAG block** — Recent closed trades per coin: Win Rate, Avg PnL, last 3 trades, directional stats
+5. **Open positions** — Current LONG/SHORT positions and their PnL status
+
+Output: A structured Vietnamese-language market analysis report sent to Telegram.
+
+---
+
+## 🚀 How-to Guide (AI Tasks)
+
+### Running the Bot
 ```bash
-python main.py
-```
-To run it once and exit immediately (useful for testing/dry-runs):
-```bash
-python main.py --once
+python main.py          # Continuous daemon mode
+python main.py --once   # Single scan then exit
 ```
 
-### 2. Environment Variables (.env)
-Required keys in `.env` at the root of the project:
+### Running Backtest Evaluation
+```bash
+python -X utf8 backtest_eval.py   # Signal quality evaluation (win rate, PF per type)
+python backtest.py                 # Full historical backtest with PnL report
+```
+
+### Environment Variables (`.env`)
 ```env
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_CHAT_ID=your_telegram_chat_id
-GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_KEY_1=your_gemini_api_key
+GEMINI_API_KEY_2=optional_second_key    # Round-robin for quota management
+GEMINI_API_KEY_3=optional_third_key
 ```
 
-### 3. Adding New Coins
-Modify the list `COINS` in `btc_scraper/config.py`.
-
-### 4. Position Tracking (Manual)
-To manage positions tracked by the bot:
-- Add: `./pos add BTC 68000` (defaults to LONG, used for Spot) or `./pos add ETH 3500 SHORT`
-- List open: `./pos list`
-- Close: `./pos close BTC 70000`
-- View Performance: `./pos perf`
-
-### 5. Running Backtests
-To test signal logic against historical data:
+### Position Management CLI
 ```bash
-python backtest.py
+./pos add BTC 68000            # Add LONG position (Spot)
+./pos add ETH 3500 SHORT       # Add SHORT position
+./pos list                     # List open positions
+./pos close BTC 70000          # Close position and record PnL
+./pos perf                     # Performance summary (Win Rate, Profit Factor, R)
 ```
-This will output a performance report (Win Rate, Drawdown, Profit Factor) and dump trade logs to `logs/backtest_trades.csv`.
 
-### 6. Code Standards & Guidelines
-- Do NOT introduce dependency on `pandas` or compiled `ta-lib` unless requested.
-- Maintain error logs and Rich console alerts.
-- Keep the auto-restart wrappers intact when modifying the main run loop.
+### Adding New Coins
+Edit `COINS` list in [`btc_scraper/config.py`](file:///d:/Workspaces/Vọc vạch/btc_scraper/config.py). Coins must have a `USDT` pair on Binance.
+
+### Running Tests
+```bash
+pytest
+pytest tests/test_analysis.py  # Analysis module tests only
+```
+
+---
+
+## ⚠️ Code Standards & Constraints
+
+- **No pandas / ta-lib** — keep all indicators in pure Python.
+- **No new network dependencies** — use `urllib` or `requests` only (already in requirements).
+- **Preserve auto-restart wrappers** in `main.py` when modifying the run loop.
+- **UTF-8 everywhere** — `sys.stdout.reconfigure(encoding='utf-8')` is at the top of `main.py`. When running inline Python scripts, use `python -X utf8 script.py`.
+- **Sentiment cache** — `sentiment.py` caches the F&G result for 1h to avoid hammering the API.
+- **Positions file** — `data/positions.json` stores both open and closed entries. `logs/closed_positions.json` is the append-only closed log used for RAG.

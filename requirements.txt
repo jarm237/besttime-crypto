@@ -1,8 +1,9 @@
 requests
 schedule
 rich
-dotenv
+python-dotenv
 google-genai
 fastapi
 uvicorn
 pytest
+httpx
