@@ -42,62 +42,6 @@ def send_telegram_message(
 
 
 
-def _build_min_capital_section(analysis_results: dict[str, dict]) -> str:
-    """
-    Tạo section HTML tóm tắt vốn tối thiểu nên giao dịch cho từng coin.
-    Dựa trên TP1% thực tế và phí Binance Spot (0.2% round-trip).
-    """
-    FEE_SPOT     = 0.20   # % round-trip Spot standard
-    FEE_SPOT_BNB = 0.15   # % round-trip Spot có BNB
-    FEE_FUTURES  = 0.10   # % round-trip Futures taker
-    TARGET_USD   = 5.0    # lợi nhuận ròng mục tiêu ($)
-
-    rows = []
-    for key, ana in analysis_results.items():
-        coin, _ = key.split(":")
-        tp_sl = ana.get("tp_sl", {})
-        entry = tp_sl.get("entry", 0.0)
-        sl    = tp_sl.get("sl", 0.0)
-        tp1   = tp_sl.get("tp1", 0.0)
-
-        if entry <= 0 or sl <= 0 or tp1 <= 0:
-            continue
-
-        sl_pct  = abs(entry - sl)  / entry * 100
-        tp1_pct = abs(tp1 - entry) / entry * 100
-        net_spot = tp1_pct - FEE_SPOT
-        net_bnb  = tp1_pct - FEE_SPOT_BNB
-        net_fut  = tp1_pct - FEE_FUTURES
-
-        def _fmt(net: float) -> str:
-            if net <= 0:
-                return "❌ Kém"
-            val = TARGET_USD / (net / 100)
-            return f"${val:,.0f}"
-
-        fee_ratio = FEE_SPOT / tp1_pct * 100 if tp1_pct > 0 else 999
-        if fee_ratio < 15:
-            icon = "✅"
-        elif fee_ratio < 30:
-            icon = "⚠️"
-        else:
-            icon = "❌"
-
-        rows.append(
-            f"{icon} <b>{coin}</b>: SL={sl_pct:.2f}% TP1={tp1_pct:.2f}%  "
-            f"| Spot: <code>{_fmt(net_spot)}</code> "
-            f"| +BNB: <code>{_fmt(net_bnb)}</code> "
-            f"| Fut: <code>{_fmt(net_fut)}</code>"
-        )
-
-    if not rows:
-        return ""
-
-    header = "\n\n💰 <b>VỐN TỐI THIỂU KHUYẾN NGHỊ (lãi ≥ $5 sau phí):</b>"
-    note   = "<i>Spot 0.1%/lệnh | +BNB 0.075% | Futures 0.05%</i>"
-    return header + "\n" + "\n".join(rows) + "\n" + note
-
-
 def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
 
     """
@@ -156,6 +100,24 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
                 f"  👉 <b>TP1</b>: <code>{tp1_str}</code> (R:R {rr1_val}) | <b>TP2</b>: <code>{tp2_str}</code> (R:R {rr2_val})"
             )
             
+            if entry_val > 0 and sl_val > 0 and tp1_val > 0:
+                tp1_pct = abs(tp1_val - entry_val) / entry_val * 100
+                TARGET_USD = 5.0
+                FEE_SPOT = 0.20
+                FEE_SPOT_BNB = 0.15
+                FEE_FUTURES = 0.10
+                
+                net_spot = tp1_pct - FEE_SPOT
+                net_bnb = tp1_pct - FEE_SPOT_BNB
+                net_fut = tp1_pct - FEE_FUTURES
+                
+                def _fmt(net: float) -> str:
+                    if net <= 0:
+                        return "❌"
+                    return f"${TARGET_USD / (net / 100):,.0f}"
+                
+                line += f"\n  💰 <b>Vốn tối thiểu (lãi ≥$5)</b>: Spot <code>{_fmt(net_spot)}</code> | +BNB <code>{_fmt(net_bnb)}</code> | Fut <code>{_fmt(net_fut)}</code>"
+            
         if "BUY" in sig or "SELL" in sig:
             active_signals.append(line)
         else:
@@ -200,11 +162,6 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
     if neutral_signals:
         message_lines.append("\n📈 <b>Trạng thái thị trường:</b>")
         message_lines.extend(neutral_signals)
-
-    # Thêm section vốn tối thiểu
-    min_cap_lines = _build_min_capital_section(analysis_results)
-    if min_cap_lines:
-        message_lines.append(min_cap_lines)
 
     message = "\n".join(message_lines)
     message_id = send_telegram_message(message, parse_mode="HTML")
@@ -256,6 +213,8 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
         pnl = rec["pnl_pct"]
         urgency = rec["urgency"]
         action = rec["action"] if "action" in rec else rec["recommendation"]
+        current_price = rec.get("current_price", 0.0)
+        entry_price = rec.get("entry_price", 0.0)
         
         # Biểu tượng mức độ khẩn cấp
         icon = "🟢"
@@ -267,12 +226,19 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
         # PnL color
         pnl_text = f"lãi +{pnl:.2f}%" if pnl > 0 else f"lỗ {pnl:.2f}%"
         
+        val_format = ",.4f" if current_price > 0 and current_price < 10 else ",.2f"
+        current_price_str = f"{current_price:{val_format}}" if current_price > 0 else "N/A"
+        
+        entry_val_format = ",.4f" if entry_price > 0 and entry_price < 10 else ",.2f"
+        entry_price_str = f"{entry_price:{entry_val_format}}" if entry_price > 0 else "N/A"
+        
         escaped_action = html.escape(action)
         escaped_reason = html.escape(rec["recommendation_reason"])
         
         line = (
             f"{icon} <b>{coin}</b> ({direction}): {pnl_text}\n"
             f"  👉 <b>{escaped_action}</b>\n"
+            f"  💰 Entry: <code>{entry_price_str}</code> | Hiện tại: <code>{current_price_str}</code>\n"
             f"  <i>{escaped_reason}</i>\n"
         )
         message_lines.append(line)

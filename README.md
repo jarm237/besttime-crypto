@@ -123,7 +123,9 @@ GEMINI_API_KEY=your_gemini_api_key_here
 ### Chạy Thủ Công Từng Phần (Tuỳ chọn)
 
 **1. Chạy Bot Cốt Lõi (Tab 1)**
-Tiến trình này sẽ chạy liên tục, tự động quét thị trường mỗi 15 phút.
+Tiến trình này sẽ chạy liên tục với 2 luồng quét:
+- **Quét tổng quát (mỗi 15 phút):** Lấy toàn bộ dữ liệu, phân tích AI và tìm kiếm cơ hội.
+- **Quét khẩn cấp (mỗi 5 phút xen kẽ):** Liên tục theo dõi các vị thế đang mở (nếu có) để phát hiện chạm Stop Loss/Take Profit ngay lập tức mà không gọi AI nhằm tiết kiệm quota.
 ```bash
 python main.py
 ```

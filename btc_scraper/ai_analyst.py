@@ -267,6 +267,7 @@ def _build_mtf_block(coin: str, mtf_data: dict[str, dict]) -> str:
 def analyze_with_gemini(
     analysis_results: dict[str, dict],
     mtf_analysis: dict[str, dict] | None = None,
+    open_positions: list[dict] | None = None,
 ) -> str:
     """
     Gửi dữ liệu nến và chỉ số kỹ thuật lên Gemini API.
@@ -298,32 +299,53 @@ def analyze_with_gemini(
                 + "\n\n".join(mtf_blocks)
             )
 
+        positions_str = ""
+        if open_positions:
+            pos_blocks = []
+            for p in open_positions:
+                coin = p.get("coin", "N/A")
+                direction = p.get("direction", "N/A")
+                entry = p.get("entry_price", 0.0)
+                sl = p.get("suggested_sl", "N/A")
+                tp1 = p.get("suggested_tp1", "N/A")
+                tp2 = p.get("suggested_tp2", "N/A")
+                pnl = p.get("pnl_pct", 0.0)
+                pos_blocks.append(f"- {coin} ({direction}): Entry={_format_price(entry)}, Hien tai lo/lai={pnl:+.2f}%, SL={sl}, TP1={tp1}, TP2={tp2}")
+            
+            positions_str = (
+                "\n\n=== DANH SACH VI THE DANG MO (OPEN POSITIONS) ===\n"
+                + "\n".join(pos_blocks)
+            )
+
         prompt = (
             "Ban la mot chuyen gia phan tich ky thuat crypto va giao dich tan tan cap cao. "
             "Ban da co kinh nghiem nhieu nam voi cac chi bao RSI, EMA, MACD va Bollinger Bands.\n\n"
             "Duoi day la du lieu ky thuat THUC TE, cap nhat nhat cua cac dong coin tren san giao dich:\n\n"
             "--- DU LIEU KHUNG 15 PHUT (ngan han, giao dich scalp/intraday) ---\n"
             f"{market_data_str}"
-            f"{mtf_str}\n\n"
+            f"{mtf_str}"
+            f"{positions_str}\n\n"
             "Nhiem vu cua ban (phan tich bang tieng Viet):\n\n"
-            "1. **Xu huong Da Khung** (QUAN TRONG): Ket hop tin hieu 1d -> 4h -> 1h -> 15m de xac dinh huong chinh:\n"
+            "1. **Danh gia cac vi the dang mo** (NEU CO): Voi moi vi the dang mo, dua tren phan tich ky thuat hien tai (dac biet la 15m va 1h), "
+            "hay dua ra loi khuyen: Nen GIU (Hold), CAT LO (Cut loss) hay CHOT LOI (Take profit). Giai thich ngan gon ly do.\n\n"
+            "2. **Xu huong Da Khung** (QUAN TRONG): Ket hop tin hieu 1d -> 4h -> 1h -> 15m de xac dinh huong chinh:\n"
             "   - Neu 1d va 4h cung bullish: uu tien tim diem BUY o khung nho.\n"
             "   - Neu 1d va 4h cung bearish: uu tien tim diem SELL/SHORT o khung nho.\n"
             "   - Neu cac khung mau thuan: chua ro xu huong, nen dung ngoai quan sat.\n\n"
-            "2. **Nhan dinh thi truong tong quan** (2-3 cau): Xu huong chung la Bullish hay Bearish? "
+            "3. **Nhan dinh thi truong tong quan** (2-3 cau): Xu huong chung la Bullish hay Bearish? "
             "Tam ly thi truong dang the nao? (FOMO, so hai, on dinh?)\n\n"
-            "3. **Phan tich tung coin** (15m + ket hop 1h/4h/1d):\n"
+            "4. **Phan tich tung coin** (15m + ket hop 1h/4h/1d):\n"
             "   - EMA Crossover: EMA9 va EMA21 dang hoi tu hay phan ky? Co tin hieu giao cat sap xay ra khong?\n"
             "   - MACD Histogram: Dang tang hay giam? Momentum dang manh len hay yeu di?\n"
             "   - Bollinger Bands: Gia dang o vi tri nao? Bi ngan chan boi Upper/Lower band khong?\n"
             "   - RSI: Muc do qua mua/qua ban (ca tren 15m va 1h/4h)?\n"
             "   - Ho tro / Khang cu: Gia co dang gan cac vung quan trong khong?\n\n"
-            "4. **Co hoi Mua/Ban cu the** (QUAN TRONG NHAT):\n"
+            "5. **Co hoi Mua/Ban cu the** (QUAN TRONG NHAT):\n"
             "   - Chi ra ROI NHAT 1-2 co hoi ro rang nhat, da duoc xac nhan boi nhieu khung thoi gian (neu co).\n"
             "   - Moi co hoi phai bao gom: Hanh dong (BUY/SELL/HOLD), Khung thoi gian chuan, Ly do cu the, "
             "Gia tham khao Entry, Target (chot loi), Stop Loss (cat lo).\n"
             "   - Co the su dung truc tiep cac muc entry, sl, tp1, tp2 da duoc tinh toan san o muc 'Khuyen nghi TP/SL' hoac tu dieu chinh neu thay can thiet dua tren phan tich da khung.\n"
-            "   - Dac biet xem xet cac tin hieu da bi bo qua trong 30p qua (neu co). Neu mot tin hieu van co trang thai 'Running (Van con hieu luc)' va gia hien tai van dang gan vung Entry cu, hay danh gia xem co the gia nhap muon (late entry) duoc khong.\n"
+            "   - Dac biet xem xet cac tin hieu da bi bo qua trong 30p qua (neu co). Neu mot tin hieu van co trang thai 'Running (Van con hieu luc)' va gia hien tai van dang gan vung Entry cu, hay danh gia xem co the gia gia nhap muon (late entry) duoc khong.\n"
             "   - Neu khong co co hoi ro rang, hay giai thich vi sao va khuyen nen dung ngoai quan sat.\n\n"
             "Luu y quan trong:\n"
             "- Viet bang tieng Viet, ngan gon va suc tich (khoang 300-400 tu).\n"

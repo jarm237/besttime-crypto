@@ -51,10 +51,15 @@ def ai_worker():
         item = ai_queue.get()
         if item is None:
             break
-        analysis, mtf_analysis, message_id = item
+        if len(item) == 4:
+            analysis, mtf_analysis, open_positions, message_id = item
+        else:
+            analysis, mtf_analysis, message_id = item
+            open_positions = []
+            
         try:
             console.print("\n[bold yellow]🤖 [AI Worker] Đang gửi dữ liệu phân tích lên Gemini AI...[/bold yellow]")
-            ai_report = analyze_with_gemini(analysis, mtf_analysis)
+            ai_report = analyze_with_gemini(analysis, mtf_analysis, open_positions)
             
             # Hiển thị ở local console
             console.print(Panel(
@@ -146,8 +151,51 @@ def fetch_and_display():
     # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
     message_id = send_signals_alert(analysis)
 
-    # 4. Đẩy phân tích đa khung thời gian vào Queue cho Luồng AI xử lý ngầm
-    ai_queue.put((analysis, mtf_analysis, message_id))
+    # 4. Đẩy phân tích đa khung thời gian và vị thế mở vào Queue cho Luồng AI xử lý ngầm
+    open_positions = position_tracker.get_open_positions()
+    ai_queue.put((analysis, mtf_analysis, open_positions, message_id))
+
+def fetch_and_analyze_open_positions_only():
+    """Lấy dữ liệu và phân tích chỉ cho các coin đang có vị thế mở (quét khẩn cấp mỗi 5 phút). Không gọi AI."""
+    open_positions = position_tracker.get_open_positions()
+    if not open_positions:
+        return
+        
+    coins_to_check = list(set([p["coin"] for p in open_positions]))
+    console.print(f"[dim]Đang quét khẩn cấp các vị thế mở ({', '.join(coins_to_check)})...[/dim]")
+    
+    analysis = {}
+    
+    for coin in coins_to_check:
+        binance_candles = binance.fetch_ohlcv(coin)
+        ana = analyze_market(binance_candles)
+        if binance_candles and "error" not in binance_candles[0]:
+            ana["close"] = binance_candles[-1]["close"]
+        else:
+            ana["close"] = 0.0
+        analysis[f"{coin}:Binance"] = ana
+            
+    try:
+        recs = position_tracker.evaluate_positions(analysis)
+        if recs:
+            send_position_recommendations(recs)
+    except Exception as e:
+        console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
+
+def fetch_and_analyze_open_positions_only_with_retry():
+    attempt = 0
+    while attempt <= MAX_RETRIES:
+        try:
+            fetch_and_analyze_open_positions_only()
+            return
+        except KeyboardInterrupt:
+            raise
+        except Exception as exc:
+            attempt += 1
+            backoff = min(BASE_BACKOFF * (2 ** (attempt - 1)), MAX_BACKOFF)
+            if attempt > MAX_RETRIES:
+                return
+            time.sleep(backoff)
 
 
 def fetch_and_display_with_retry():
@@ -226,13 +274,17 @@ def main():
         # Dùng giờ tĩnh trên đồng hồ, cộng thêm 1 phút (ví dụ: 01, 16, 31, 46) 
         # để chắc chắn nến đã đóng cửa hoàn toàn trên sàn giao dịch.
         interval = max(1, FETCH_INTERVAL_MINUTES)
-        minutes_to_run = [(m + 1) % 60 for m in range(0, 60, interval)]
-        for m in minutes_to_run:
+        general_minutes = [(m + 1) % 60 for m in range(0, 60, interval)]
+        focused_minutes = [(m + 1) % 60 for m in range(0, 60, 5) if (m + 1) % 60 not in general_minutes]
+        
+        for m in general_minutes:
             schedule.every().hour.at(f"{m:02d}:00").do(fetch_and_display_with_retry)
             
+        for m in focused_minutes:
+            schedule.every().hour.at(f"{m:02d}:00").do(fetch_and_analyze_open_positions_only_with_retry)
+            
         console.print(
-            f"[dim]>> Lên lịch cập nhật chính xác vào các phút: {minutes_to_run} mỗi giờ. "
-            f"Nhấn Ctrl+C để dừng.[/dim]\n"
+            f"[dim]>> Lên lịch tổng quát vào: {general_minutes} | Quét khẩn cấp vị thế mở vào: {focused_minutes}. Nhấn Ctrl+C để dừng.[/dim]\n"
         )
 
     # Khởi động worker thread chạy ngầm (daemon)

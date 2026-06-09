@@ -8,7 +8,9 @@ This file serves as a **Skill and Instructions Guide** for AI agents (such as Go
 
 A Python-based multi-coin OHLCV scraper, technical analyzer, and automated signal bot.
 - **Data Sources:** Binance (spot/spot-USDT pair by default).
-- **Core Loop:** Scheduled updates at fixed clock minutes (+1 minute offset, e.g., 01, 16, 31, 46) fetching market data, computing indicators, analyzing signals, running Gemini AI analysis, and broadcasting alerts to Telegram.
+- **Core Loop:** Scheduled updates running two tracks:
+  1. **General scan (every 15 mins, e.g., 01, 16, 31, 46):** Fetches full market data, computes indicators, analyzes signals, runs Gemini AI analysis, and broadcasts general alerts.
+  2. **Focused scan (every 5 mins, e.g., 06, 11, 21, 26):** Specifically tracks open positions to immediately alert on TP/SL hits or strong reversals without using AI quota.
 - **Position Tracking:** Includes a manual position tracker (`./pos`) that monitors user's open trades and automatically alerts on SL, TP, or trend reversals.
 - **Robustness:** Includes an auto-restart wrapper with exponential backoff for network drops, and scheduler recovery.
 - **Backtesting:** Features an institutional-grade backtesting environment (`backtest.py`) with customizable filters, SL/TP multipliers, and detailed PnL/Expectancy reporting.
