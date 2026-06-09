@@ -12,6 +12,8 @@ import os
 from datetime import datetime
 from typing import Literal
 
+from btc_scraper.analysis import calculate_tp_sl
+
 POSITIONS_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "positions.json")
 CLOSED_LOG_FILE = os.path.join(os.path.dirname(__file__), "..", "logs", "closed_positions.json")
 
@@ -161,7 +163,9 @@ def close_position(coin: str, sell_price: float) -> dict:
 
     invested_usdt = pos.get("invested_usdt", 0.0)
     pnl_usd_actual = invested_usdt * (pnl_pct / 100)
-    received_usdt = invested_usdt + pnl_usd_actual
+    gross_received = invested_usdt + pnl_usd_actual
+    fee_usd = (invested_usdt * 0.001) + (gross_received * 0.001)  # Giả sử phí 0.1% mỗi chiều
+    received_usdt = gross_received - fee_usd
 
     closed_data = {
         **pos,
@@ -170,6 +174,7 @@ def close_position(coin: str, sell_price: float) -> dict:
         "pnl_pct": round(pnl_pct, 4),
         "pnl_usd_per_1000": round(1000 * pnl_pct / 100, 2),
         "pnl_usd_actual": round(pnl_usd_actual, 2),
+        "fee_usd": round(fee_usd, 2),
         "received_usdt": round(received_usdt, 2),
         "r_multiplier": r_mult,
         "hold_hours": hold_hours,
@@ -228,17 +233,37 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         entry = pos["entry_price"]
         direction = pos["direction"]
         signal = ana.get("signal", "NEUTRAL")
-        tp_sl = ana.get("tp_sl", {})
-        sl = tp_sl.get("sl", 0.0)
-        tp1 = tp_sl.get("tp1", 0.0)
-        tp2 = tp_sl.get("tp2", 0.0)
-        rr1 = tp_sl.get("rr1", 0.0)
+        
+        # Tính toán SL/TP riêng rẽ cho từng vị thế dựa trên entry_price và direction của vị thế
+        force_signal = "BUY" if direction == "LONG" else "SELL"
+        pos_tp_sl = calculate_tp_sl(
+            close=entry,
+            signal=force_signal,
+            atr=ana.get("atr", 0.0),
+            support=ana.get("support", 0.0),
+            resistance=ana.get("resistance", 0.0),
+            bb_upper=ana.get("bb_upper", 0.0),
+            bb_middle=ana.get("bb_middle", 0.0),
+            bb_lower=ana.get("bb_lower", 0.0),
+        )
+        
+        sl = pos_tp_sl.get("sl", 0.0)
+        tp1 = pos_tp_sl.get("tp1", 0.0)
+        tp2 = pos_tp_sl.get("tp2", 0.0)
+        rr1 = pos_tp_sl.get("rr1", 0.0)
 
         # Tính P&L hiện tại
         if direction == "LONG":
             pnl_pct = (current_price - entry) / entry * 100
         else:  # SHORT
             pnl_pct = (entry - current_price) / entry * 100
+            
+        # Tính tiền nhận thực tế dự kiến (đã trừ phí 0.1% mỗi chiều)
+        invested_usdt = pos.get("invested_usdt", 0.0)
+        pnl_usd_actual = invested_usdt * (pnl_pct / 100)
+        gross_received = invested_usdt + pnl_usd_actual
+        fee_usd = (invested_usdt * 0.001) + (gross_received * 0.001) if invested_usdt > 0 else 0.0
+        expected_received_usdt = gross_received - fee_usd if invested_usdt > 0 else 0.0
 
         # Xác định khuyến nghị
         rec = _generate_recommendation(
@@ -269,6 +294,9 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             "entry_price": entry,
             "current_price": current_price,
             "pnl_pct": round(pnl_pct, 3),
+            "invested_usdt": invested_usdt,
+            "expected_received_usdt": round(expected_received_usdt, 2),
+            "fee_usd": round(fee_usd, 2),
             "signal": signal,
             "recommendation": rec["action"],
             "recommendation_reason": rec["reason"],
@@ -297,21 +325,21 @@ def _generate_recommendation(
     """
     # SL bị chạm
     if direction == "LONG" and sl > 0 and current_price <= sl:
-        return {"action": "🚨 CẮT LỖ NGAY", "reason": f"Giá đã chạm/xuyên SL {sl:.4g}", "urgency": "HIGH"}
+        return {"action": "🚨 CẮT LỖ NGAY", "reason": f"Giá đã chạm/xuyên SL {sl}", "urgency": "HIGH"}
     if direction == "SHORT" and sl > 0 and current_price >= sl:
-        return {"action": "🚨 CẮT LỖ NGAY", "reason": f"Giá đã chạm/xuyên SL {sl:.4g}", "urgency": "HIGH"}
+        return {"action": "🚨 CẮT LỖ NGAY", "reason": f"Giá đã chạm/xuyên SL {sl}", "urgency": "HIGH"}
 
     # TP đã chạm
     if direction == "LONG":
         if tp2 > 0 and current_price >= tp2:
-            return {"action": "🎯 CHỐT LỜI TP2", "reason": f"Giá đạt TP2 {tp2:.4g} — đã đủ lãi!", "urgency": "HIGH"}
+            return {"action": "🎯 CHỐT LỜI TP2", "reason": f"Giá đạt TP2 {tp2} — đã đủ lãi!", "urgency": "HIGH"}
         if tp1 > 0 and current_price >= tp1:
-            return {"action": "✅ Xem xét CHỐT TP1", "reason": f"Giá chạm TP1 {tp1:.4g} (lãi {pnl_pct:+.2f}%) — cân nhắc chốt 50%", "urgency": "MEDIUM"}
+            return {"action": "✅ Xem xét CHỐT TP1", "reason": f"Giá chạm TP1 {tp1} (lãi {pnl_pct:+.2f}%) — cân nhắc chốt 50%", "urgency": "MEDIUM"}
     if direction == "SHORT":
         if tp2 > 0 and current_price <= tp2:
-            return {"action": "🎯 CHỐT LỜI TP2", "reason": f"Giá đạt TP2 {tp2:.4g} — đã đủ lãi!", "urgency": "HIGH"}
+            return {"action": "🎯 CHỐT LỜI TP2", "reason": f"Giá đạt TP2 {tp2} — đã đủ lãi!", "urgency": "HIGH"}
         if tp1 > 0 and current_price <= tp1:
-            return {"action": "✅ Xem xét CHỐT TP1", "reason": f"Giá chạm TP1 {tp1:.4g} (lãi {pnl_pct:+.2f}%) — cân nhắc chốt 50%", "urgency": "MEDIUM"}
+            return {"action": "✅ Xem xét CHỐT TP1", "reason": f"Giá chạm TP1 {tp1} (lãi {pnl_pct:+.2f}%) — cân nhắc chốt 50%", "urgency": "MEDIUM"}
 
     # Tín hiệu đảo chiều mạnh ngược chiều vị thế
     if direction == "LONG" and any(x in signal for x in ["STRONG SELL", "SELL (Crossover)", "SELL (Break-SMA50)", "SELL (SFP"]):
