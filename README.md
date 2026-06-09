@@ -4,8 +4,10 @@ Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích 
 
 ## Tính năng
 - Quét dữ liệu tự động cho danh sách các coin (BTC, ETH, SOL...).
-- Nhận định xu hướng dựa trên EMA, SMA, Bollinger Bands, RSI.
-- Tìm kiếm cơ hội vào lệnh bằng mô hình Swing Failure Pattern (SFP).
+- Nhận định xu hướng dựa trên EMA, SMA, Bollinger Bands, RSI, ADX và Choppiness Index.
+- Phân tích đa khung thời gian với HTF Trend Source (1h / 4h / 1d) để lọc tín hiệu 15m.
+- Tìm kiếm cơ hội vào lệnh bằng mô hình Swing Failure Pattern (SFP) và Pullback/EMA signals.
+- Quản lý ATR-based Stop Loss, ATR Shock filter và đánh giá rủi ro thị trường.
 - **Quản lý vị thế thủ công (Position Tracker)**: Nhập vị thế đã giao dịch, bot sẽ liên tục giám sát và đưa ra khuyến nghị Chốt Lời / Cắt Lỗ qua Telegram theo thời gian thực.
 - Gửi báo cáo phân tích tự động qua tin nhắn Telegram.
 
@@ -101,7 +103,10 @@ Tạo file `.env` ở thư mục gốc của dự án và điền các khóa API
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here
-GEMINI_API_KEY=your_gemini_api_key_here
+# Gemini API hỗ trợ nhiều key để round-robin và tránh hết quota nhanh
+GEMINI_API_KEY_1=your_gemini_api_key_here
+GEMINI_API_KEY_2=your_optional_second_key_here
+GEMINI_API_KEY_3=your_optional_third_key_here
 ```
 
 ### Bước 3: Chạy các dịch vụ
@@ -144,3 +149,21 @@ npm run dev -- --port 3000 --host
 ```
 
 Sau khi hoàn tất, mở trình duyệt và truy cập: **[http://localhost:3000](http://localhost:3000)** để sử dụng bảng điều khiển.
+
+---
+
+## Chạy Unit Test
+
+Hệ thống đã bổ sung kiểm thử đơn vị cho các thành phần phân tích và bộ lọc.
+
+Chạy toàn bộ kiểm thử bằng `pytest`:
+
+```bash
+pytest
+```
+
+Hoặc chạy riêng các test phân tích:
+
+```bash
+pytest tests/test_analysis.py
+```

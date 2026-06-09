@@ -29,6 +29,46 @@ from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper import position_tracker
 
+
+def _classify_mtf_signal(signal: str) -> str:
+    sig = str(signal or "").upper()
+    if "STRONG BUY" in sig or "BUY" in sig or "BULL" in sig:
+        return "BULL"
+    if "STRONG SELL" in sig or "SELL" in sig or "BEAR" in sig:
+        return "BEAR"
+    return "NEUTRAL"
+
+
+def _summarize_htf_trend(mtf_data: dict[str, dict]) -> str:
+    if not mtf_data:
+        return "NEUTRAL"
+
+    counts = {"BULL": 0, "BEAR": 0, "NEUTRAL": 0}
+    for tf in ["1d", "4h", "1h"]:
+        info = mtf_data.get(tf)
+        if not info:
+            continue
+        counts[_classify_mtf_signal(info.get("signal", ""))] += 1
+
+    if counts["BULL"] >= 2 and counts["BEAR"] == 0:
+        return "BULLISH"
+    if counts["BEAR"] >= 2 and counts["BULL"] == 0:
+        return "BEARISH"
+    if counts["BULL"] > counts["BEAR"]:
+        return "BULLISH-MIXED"
+    if counts["BEAR"] > counts["BULL"]:
+        return "BEARISH-MIXED"
+    return "NEUTRAL"
+
+
+def _format_htf_details(mtf_data: dict[str, dict]) -> str:
+    parts = []
+    for tf in ["1d", "4h", "1h"]:
+        info = mtf_data.get(tf)
+        if info:
+            parts.append(f"{tf.upper()}={info.get('signal', 'N/A')}")
+    return " | ".join(parts)
+
 console = Console()
 
 # ─── Auto-restart config ─────────────────────────────────────────────────────
@@ -126,6 +166,12 @@ def fetch_and_display():
             else:
                 tf_ana["close"] = 0.0
             mtf_analysis[coin][tf] = tf_ana
+
+        # Gắn HTF trend summary vào analysis 15m
+        htf_trend = _summarize_htf_trend(mtf_analysis[coin])
+        htf_details = _format_htf_details(mtf_analysis[coin])
+        analysis[f"{coin}:Binance"]["htf_trend"] = htf_trend
+        analysis[f"{coin}:Binance"]["htf_details"] = htf_details
 
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)

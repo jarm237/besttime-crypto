@@ -4,6 +4,8 @@ Không phụ thuộc vào thư viện pandas hay ta, sử dụng thuật toán t
 """
 
 import math
+from btc_scraper.sentiment import get_market_sentiment, sentiment_label_vi
+from btc_scraper.filters import atr_shock_filter
 
 
 def calculate_atr(candles: list[dict], period: int = 14) -> list[float]:
@@ -35,6 +37,194 @@ def calculate_atr(candles: list[dict], period: int = 14) -> list[float]:
         atr_list.append(atr)
 
     return atr_list
+
+
+def calculate_sma(values: list[float], period: int) -> list[float]:
+    """Return simple moving average for a numeric series."""
+    if len(values) < period:
+        return [0.0] * len(values)
+    result: list[float] = [0.0] * (period - 1)
+    window_sum = sum(values[:period])
+    result.append(window_sum / period)
+    for i in range(period, len(values)):
+        window_sum += values[i] - values[i - period]
+        result.append(window_sum / period)
+    return result
+
+
+def calculate_adx(highs: list[float], lows: list[float], closes: list[float], period: int = 14) -> list[float]:
+    """Calculate ADX to measure trend strength."""
+    n = len(highs)
+    if n < period + 1:
+        return [0.0] * n
+
+    tr_list: list[float] = [0.0] * n
+    plus_dm: list[float] = [0.0] * n
+    minus_dm: list[float] = [0.0] * n
+
+    for i in range(1, n):
+        high = highs[i]
+        low = lows[i]
+        prev_high = highs[i - 1]
+        prev_low = lows[i - 1]
+        prev_close = closes[i - 1]
+
+        tr_list[i] = max(high - low, abs(high - prev_close), abs(low - prev_close))
+        up_move = high - prev_high
+        down_move = prev_low - low
+
+        plus_dm[i] = up_move if up_move > down_move and up_move > 0 else 0.0
+        minus_dm[i] = down_move if down_move > up_move and down_move > 0 else 0.0
+
+    atr_values: list[float] = [0.0] * n
+    plus_di: list[float] = [0.0] * n
+    minus_di: list[float] = [0.0] * n
+    dx: list[float] = [0.0] * n
+    adx: list[float] = [0.0] * n
+
+    atr = sum(tr_list[1 : period + 1]) / period
+    plus_dm_sum = sum(plus_dm[1 : period + 1])
+    minus_dm_sum = sum(minus_dm[1 : period + 1])
+    atr_values[period] = atr
+
+    if atr > 0:
+        plus_di[period] = 100.0 * plus_dm_sum / atr
+        minus_di[period] = 100.0 * minus_dm_sum / atr
+        denom = plus_di[period] + minus_di[period]
+        dx[period] = 100.0 * abs(plus_di[period] - minus_di[period]) / denom if denom > 0 else 0.0
+
+    for i in range(period + 1, n):
+        atr = (atr * (period - 1) + tr_list[i]) / period
+        plus_dm_sum = (plus_dm_sum * (period - 1) + plus_dm[i]) / period
+        minus_dm_sum = (minus_dm_sum * (period - 1) + minus_dm[i]) / period
+        atr_values[i] = atr
+
+        if atr > 0:
+            plus_di[i] = 100.0 * plus_dm_sum / atr
+            minus_di[i] = 100.0 * minus_dm_sum / atr
+            denom = plus_di[i] + minus_di[i]
+            dx[i] = 100.0 * abs(plus_di[i] - minus_di[i]) / denom if denom > 0 else 0.0
+
+    adx_val = sum(dx[period : period * 2]) / period if len(dx) > period * 2 else dx[period]
+    adx[period * 2 - 1 if len(dx) > period * 2 - 1 else period] = adx_val
+    for i in range(period * 2, n):
+        adx_val = (adx_val * (period - 1) + dx[i]) / period
+        adx[i] = adx_val
+
+    return adx
+
+
+def calculate_choppiness_index(highs: list[float], lows: list[float], closes: list[float], period: int = 14) -> list[float]:
+    """Calculate Choppiness Index to detect trending vs choppy market."""
+    n = len(highs)
+    result = [0.0] * n
+    if n < period:
+        return result
+
+    tr_list: list[float] = [0.0] * n
+    for i in range(1, n):
+        tr_list[i] = max(highs[i] - lows[i], abs(highs[i] - closes[i - 1]), abs(lows[i] - closes[i - 1]))
+
+    for i in range(period - 1, n):
+        window_high = max(highs[i - period + 1 : i + 1])
+        window_low = min(lows[i - period + 1 : i + 1])
+        tr_total = sum(tr_list[i - period + 1 : i + 1])
+        dist = window_high - window_low
+        if dist <= 0:
+            result[i] = 0.0
+        else:
+            result[i] = 100.0 * math.log10(tr_total / dist) / math.log10(period)
+    return result
+
+
+def is_trend_following_allowed(adx: float, choppiness: float, adx_threshold: float = 20.0, choppy_threshold: float = 62.0) -> bool:
+    return adx >= adx_threshold and choppiness <= choppy_threshold
+
+
+def is_bullish_sfp(
+    high: float,
+    low: float,
+    close_price: float,
+    open_price: float,
+    support: float,
+    volume: float,
+    volume_ma: float,
+    rsi: float,
+    wick_threshold: float = 0.45,
+    volume_multiplier: float = 1.5,
+) -> bool:
+    if support <= 0 or volume_ma <= 0:
+        return False
+    lower_wick = max(min(open_price, close_price) - low, 0.0)
+    full_range = max(high - low, 1e-9)
+    lower_wick_ratio = lower_wick / full_range
+    return (
+        low < support
+        and close_price > support
+        and rsi < 55
+        and volume > volume_ma * volume_multiplier
+        and lower_wick_ratio > wick_threshold
+    )
+
+
+def is_bearish_sfp(
+    high: float,
+    low: float,
+    close_price: float,
+    open_price: float,
+    resistance: float,
+    volume: float,
+    volume_ma: float,
+    rsi: float,
+    wick_threshold: float = 0.45,
+    volume_multiplier: float = 1.5,
+) -> bool:
+    if resistance <= 0 or volume_ma <= 0:
+        return False
+    upper_wick = max(high - max(open_price, close_price), 0.0)
+    full_range = max(high - low, 1e-9)
+    upper_wick_ratio = upper_wick / full_range
+    return (
+        high > resistance
+        and close_price < resistance
+        and rsi > 55
+        and volume > volume_ma * volume_multiplier
+        and upper_wick_ratio > wick_threshold
+    )
+
+
+def _calculate_position_size(
+    base_confidence: float,
+    atr_shock: bool,
+    weak_signal: bool,
+    trend_following_allowed: bool,
+    extreme_fear: bool,
+    extreme_greed: bool,
+    direction: str,
+) -> float:
+    size = max(0.25, min(1.0, 0.5 + base_confidence * 0.5))
+    if weak_signal:
+        size *= 0.75
+    if atr_shock:
+        size *= 0.75
+    if not trend_following_allowed:
+        size *= 0.8
+    if direction == "LONG" and extreme_greed:
+        size *= 0.8
+    if direction == "SHORT" and extreme_fear:
+        size *= 0.8
+    if base_confidence < 0.6:
+        size *= 0.8
+    return round(max(0.25, min(1.0, size)), 2)
+
+
+def wick_ratios(open_price: float, high: float, low: float, close_price: float) -> tuple[float, float]:
+    body_top = max(open_price, close_price)
+    body_bottom = min(open_price, close_price)
+    full_range = max(high - low, 1e-9)
+    lower_wick = max(body_bottom - low, 0.0)
+    upper_wick = max(high - body_top, 0.0)
+    return lower_wick / full_range, upper_wick / full_range
 
 
 def calculate_tp_sl(
@@ -69,46 +259,46 @@ def calculate_tp_sl(
     entry = close
 
     if is_buy:
-        # SL: mức support hoặc ATR*mult (lấy mức cao hơn = gần giá hơn = thắt chặt hơn)
-        sl_atr  = entry - atr_sl_mult * atr
-        sl_sup  = support * 0.998 if support > 0 else sl_atr  # buffer 0.2% dưới support
-        sl = max(sl_atr, sl_sup)  # chọn mức cao hơn (gần giá hơn = thắt chặt rủi ro)
+        atr_used = atr
+        if atr > 0:
+            atr_used = atr
+        sl = support - 0.5 * atr_used if support > 0 else entry - atr_sl_mult * atr_used
+        sl = max(sl, entry - 6.0 * atr_used)
+        sl = min(sl, entry - 1.2 * atr_used)
         if sl >= entry:
-            sl = entry - atr_sl_mult * atr
+            sl = entry - atr_sl_mult * atr_used
 
-        # TP1: BB Middle hoặc ATR*mult (lấy mức nhỏ hơn = bảo thủ)
         tp1_bb  = bb_middle if bb_middle > entry else 0.0
-        tp1_atr = entry + atr_tp_mult * atr
+        tp1_atr = entry + atr_tp_mult * atr_used
         tp1 = min(tp1_bb, tp1_atr) if tp1_bb > 0 else tp1_atr
         if tp1 <= entry:
-            tp1 = entry + atr_tp_mult * atr
+            tp1 = entry + atr_tp_mult * atr_used
 
-        # TP2: Resistance hoặc BB Upper hoặc 2×ATR*mult
-        tp2_candidates = [x for x in [resistance * 0.998, bb_upper * 0.998, entry + atr_tp_mult * 2 * atr] if x > tp1]
+        tp2_candidates = [x for x in [resistance * 0.998, bb_upper * 0.998, entry + atr_tp_mult * 2 * atr_used] if x > tp1]
         tp2 = min(tp2_candidates) if tp2_candidates else tp1 * 1.01
 
-        method = "ATR+Support+BB (Long)"
+        method = "ATR+DynamicSL+Support+BB (Long)"
 
     elif is_sell:
-        # SL: resistance hoặc ATR*mult (lấy mức thấp hơn = gần giá hơn = thắt chặt rủi ro)
-        sl_atr  = entry + atr_sl_mult * atr
-        sl_res  = resistance * 1.002 if resistance > 0 else sl_atr
-        sl = min(sl_atr, sl_res)  # chọn mức thấp hơn (gần giá hơn)
+        atr_used = atr
+        if atr > 0:
+            atr_used = atr
+        sl = resistance + 0.5 * atr_used if resistance > 0 else entry + atr_sl_mult * atr_used
+        sl = min(sl, entry + 6.0 * atr_used)
+        sl = max(sl, entry + 1.2 * atr_used)
         if sl <= entry:
-            sl = entry + atr_sl_mult * atr
+            sl = entry + atr_sl_mult * atr_used
 
-        # TP1: BB Middle hoặc ATR*mult
         tp1_bb  = bb_middle if 0 < bb_middle < entry else 0.0
-        tp1_atr = entry - atr_tp_mult * atr
+        tp1_atr = entry - atr_tp_mult * atr_used
         tp1 = max(tp1_bb, tp1_atr) if tp1_bb > 0 else tp1_atr
         if tp1 >= entry:
-            tp1 = entry - atr_tp_mult * atr
+            tp1 = entry - atr_tp_mult * atr_used
 
-        # TP2: Support hoặc BB Lower
-        tp2_candidates = [x for x in [support * 1.002, bb_lower * 1.002, entry - atr_tp_mult * 2 * atr] if x < tp1]
+        tp2_candidates = [x for x in [support * 1.002, bb_lower * 1.002, entry - atr_tp_mult * 2 * atr_used] if x < tp1]
         tp2 = max(tp2_candidates) if tp2_candidates else tp1 * 0.99
 
-        method = "ATR+Resistance+BB (Short)"
+        method = "ATR+DynamicSL+Resistance+BB (Short)"
 
     else:
         # NEUTRAL: chỉ tính mức tham chiếu, không có lệnh
@@ -258,6 +448,7 @@ def calculate_chandelier_exit(candles: list[dict], period: int = 22, multiplier:
         return ["UNKNOWN"] * n
 
     atr_list = calculate_atr(candles, period)
+    atr_ma_list = calculate_sma(atr_list, period)
     result = ["UNKNOWN"] * n
 
     for i in range(period - 1, n):
@@ -267,17 +458,21 @@ def calculate_chandelier_exit(candles: list[dict], period: int = 22, multiplier:
         highest_high = max(c["high"] for c in window)
         lowest_low   = min(c["low"]  for c in window)
         atr_val      = atr_list[i]
+        atr_ma       = atr_ma_list[i]
+        atr_used     = min(atr_val, atr_ma * 1.5) if atr_ma > 0 else atr_val
+        atr_shock    = atr_ma > 0 and atr_val > atr_ma * 1.8
         close        = candles[i]["close"]
 
-        long_stop  = highest_high - multiplier * atr_val   # Nếu giá < mức này → BEAR
-        short_stop = lowest_low  + multiplier * atr_val    # Nếu giá > mức này → BULL
+        long_stop  = highest_high - multiplier * atr_used   # Nếu giá < mức này → BEAR
+        short_stop = lowest_low  + multiplier * atr_used    # Nếu giá > mức này → BULL
 
-        if close > short_stop:
+        if atr_shock:
+            result[i] = result[i - 1] if result[i - 1] != "UNKNOWN" else "UNKNOWN"
+        elif close > short_stop:
             result[i] = "BULL"
         elif close < long_stop:
             result[i] = "BEAR"
         else:
-            # Trong vùng trung gian: giữ nguyên trạng thái trước đó
             result[i] = result[i - 1] if result[i - 1] != "UNKNOWN" else "UNKNOWN"
 
     return result
@@ -335,10 +530,13 @@ def analyze_market(candles: list[dict]) -> dict:
     Trả về chỉ số hiện tại (RSI, EMA9, EMA21, SMA50, SMA200, MACD, Bollinger Bands,
     Support/Resistance) và Tín hiệu hành động khuyến nghị.
 
-    Chiến lược tín hiệu (3 lớp lọc):
+    Chiến lược tín hiệu (6 lớp lọc):
       Lớp 1 — Trend Filter (SMA 200): Chỉ cho phép BUY khi giá > SMA200.
       Lớp 2 — Pullback to SMA50: Khi giá gãy EMA21 nhưng chạm SMA50, bắt đáy pullback.
       Lớp 3 — EMA Crossover Matrix: EMA9/EMA21 crossover có xác nhận xu hướng từ SMA50.
+      Lớp 4 — Chandelier Exit: Bảo vệ khỏi downtrend theo ATR.
+      Lớp 5 — Volume & SFP: Xác nhận thanh khoản.
+      Lớp 6 — Sentiment Filter (Fear & Greed): Hạ cấp tín hiệu khi thị trường cực đoan.
     """
     if not candles or "error" in candles[0]:
         return {
@@ -372,8 +570,17 @@ def analyze_market(candles: list[dict]) -> dict:
     macd_list, macd_sig_list, macd_hist_list = calculate_macd(close_prices, 12, 26, 9)
     bb_up_list, bb_mid_list, bb_low_list = calculate_bollinger_bands(close_prices, 20, 2)
     atr_list = calculate_atr(candles, 14)
+    atr_ma_list = calculate_sma(atr_list, 14)
+    highs = [c["high"] for c in candles]
+    lows = [c["low"] for c in candles]
+    adx_list = calculate_adx(highs, lows, close_prices, 14)
+    choppiness_list = calculate_choppiness_index(highs, lows, close_prices, 14)
     vol_sma_list = calculate_volume_sma(candles, 20)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
+    sentiment_data = get_market_sentiment()
+    sentiment_score = sentiment_data["score"]
+    sentiment_label = sentiment_data["label"]
+    sentiment_raw = sentiment_data["raw_value"]
 
     # Ghi lại chỉ số vào nến để hiển thị
     for i, c in enumerate(candles):
@@ -389,6 +596,19 @@ def analyze_market(candles: list[dict]) -> dict:
         c["bb_middle"] = bb_mid_list[i]
         c["bb_lower"] = bb_low_list[i]
         c["atr"] = atr_list[i] if i < len(atr_list) else 0.0
+        c["atr_ma"] = atr_ma_list[i] if i < len(atr_ma_list) else 0.0
+        c["adx"] = adx_list[i] if i < len(adx_list) else 0.0
+        c["choppiness"] = choppiness_list[i] if i < len(choppiness_list) else 0.0
+        c["atr_shock"] = (
+            c["atr"] > 0
+            and c["atr_ma"] > 0
+            and c["atr"] > c["atr_ma"] * 1.8
+        )
+        c["market_regime"] = (
+            "TRENDING"
+            if is_trend_following_allowed(c["adx"], c["choppiness"])
+            else "SIDEWAY"
+        )
         c["vol_sma20"] = vol_sma_list[i]
         c["chandelier"] = chandelier_list[i]
 
@@ -405,6 +625,9 @@ def analyze_market(candles: list[dict]) -> dict:
         current_bb_middle = bb_mid_list[t]
         current_bb_lower = bb_low_list[t]
         current_atr = atr_list[t] if t < len(atr_list) and t >= -len(atr_list) else 0.0
+        current_atr_ma = atr_ma_list[t] if t < len(atr_ma_list) and t >= -len(atr_ma_list) else 0.0
+        current_adx = adx_list[t] if t < len(adx_list) and t >= -len(adx_list) else 0.0
+        current_choppiness = choppiness_list[t] if t < len(choppiness_list) and t >= -len(choppiness_list) else 0.0
         current_close = close_prices[t]
         current_open  = candles[t]["open"]
         current_high  = candles[t]["high"]
@@ -448,22 +671,29 @@ def analyze_market(candles: list[dict]) -> dict:
 
         # Tính toán support / resistance
         idx = t if t >= 0 else len(candles) + t
-        recent_candles = candles[max(0, idx-50):idx] if idx > 0 else []
+        recent_candles = candles[max(0, idx - 50):idx] if idx > 0 else []
         support = min(c["low"] for c in recent_candles) if recent_candles else 0.0
         resistance = max(c["high"] for c in recent_candles) if recent_candles else 0.0
 
-        sfp_bull = (
-            support > 0
-            and current_low < support
-            and current_close > support
-            and current_rsi < 45
+        sfp_bull = is_bullish_sfp(
+            current_high,
+            current_low,
+            current_close,
+            current_open,
+            support,
+            current_volume,
+            current_vol_sma,
+            current_rsi,
         )
-        sfp_bear = (
-            resistance > 0
-            and current_high > resistance
-            and current_close < resistance
-            and current_rsi > 55
-            and below_sma200
+        sfp_bear = is_bearish_sfp(
+            current_high,
+            current_low,
+            current_close,
+            current_open,
+            resistance,
+            current_volume,
+            current_vol_sma,
+            current_rsi,
         )
 
         prev_ema9 = ema9_list[t-1] if t >= -len(candles) + 1 else current_ema9
@@ -473,40 +703,153 @@ def analyze_market(candles: list[dict]) -> dict:
         ema_bearish_active = current_ema9 < current_ema21
 
         chandelier_blocks_buy = (chandelier_state == "BEAR")
+        trend_following_allowed = is_trend_following_allowed(current_adx, current_choppiness)
+        current_atr_shock = atr_shock_filter(current_atr, current_atr_ma)
+        trend_label = (
+            "BULL"
+            if above_sma200 and chandelier_state == "BULL"
+            else "BEAR"
+            if below_sma200 and chandelier_state == "BEAR"
+            else "NEUTRAL"
+        )
+
+        # Lớp 6 — Sentiment modifier (không chặn tín hiệu mạnh)
+        sentiment_note = f" | Sentiment: {sentiment_raw}/100 ({sentiment_label_vi(sentiment_label)})"
+        extreme_fear = sentiment_score < -0.6
+        extreme_greed = sentiment_score > 0.6
+        base_confidence = 0.55
+        if above_sma200 and chandelier_state == "BULL":
+            base_confidence += 0.15
+        if below_sma200 and chandelier_state == "BEAR":
+            base_confidence += 0.15
+        if current_adx >= 20 and current_choppiness <= 62:
+            base_confidence += 0.05
+        if current_adx < 20 or current_choppiness > 62:
+            base_confidence -= 0.05
 
         def finalize(sig: str, reason: str):
             tp_sl = calculate_tp_sl(
-                close=current_close, signal=sig, atr=current_atr,
-                support=support, resistance=resistance,
-                bb_upper=current_bb_upper, bb_middle=current_bb_middle, bb_lower=current_bb_lower
+                close=current_close,
+                signal=sig,
+                atr=current_atr,
+                support=support,
+                resistance=resistance,
+                bb_upper=current_bb_upper,
+                bb_middle=current_bb_middle,
+                bb_lower=current_bb_lower,
             )
+            direction = "SHORT" if "SELL" in sig.upper() or "SHORT" in sig.upper() else ("LONG" if "BUY" in sig.upper() or "BULL" in sig.upper() else None)
+            confidence = max(0.0, min(1.0, base_confidence))
+            position_size = 1.0
+
+            if direction == "SHORT" and trend_label == "BEAR" and extreme_fear:
+                confidence = max(0.0, confidence - 0.1)
+                position_size *= 0.8
+            elif direction == "LONG" and trend_label == "BULL" and extreme_greed:
+                confidence = max(0.0, confidence - 0.1)
+                position_size *= 0.8
+            elif direction == "LONG" and trend_label == "BULL":
+                confidence = min(1.0, confidence + 0.05)
+            elif direction == "SHORT" and trend_label == "BEAR":
+                confidence = min(1.0, confidence + 0.05)
+
+            if current_atr_shock:
+                confidence = max(0.0, confidence - 0.1)
+                position_size *= 0.75
+                if "STRONG" not in sig and "NEUTRAL" not in sig:
+                    if "BUY" in sig and "WEAK" not in sig:
+                        sig = sig.replace("BUY", "WEAK BUY")
+                    elif "SELL" in sig and "WEAK" not in sig:
+                        sig = sig.replace("SELL", "WEAK SELL")
+                    reason += " | ATR Shock: bien dong lon, giam quy mo"
+                else:
+                    reason += " | ATR Shock: bien dong lon, giam quy mo"
+
+            if "WEAK" in sig.upper() or "NEUTRAL" in sig.upper():
+                position_size *= 0.75
+
+            if not trend_following_allowed and "CROSSOVER" in sig.upper():
+                confidence = max(0.0, confidence - 0.1)
+                position_size *= 0.8
+                reason += " | Trend-following block: ADX hoac Choppiness khong hop le"
+
+            if not trend_following_allowed and any(x in sig.upper() for x in ["PULLBACK-ZONE", "SFP-LIQUIDITY-SWEEP", "BREAK-SMA50"]):
+                confidence = max(0.0, confidence - 0.1)
+                position_size *= 0.85
+                reason += " | Market regime SIDEWAY: tien hanh can than"
+
+            if confidence < 0.6:
+                position_size = max(position_size * 0.8, 0.25)
+
+            position_size = round(max(0.25, min(1.0, position_size)), 2)
+
             data = {
-                "rsi": current_rsi, "ema9": current_ema9, "ema21": current_ema21,
-                "sma50": current_sma50, "sma200": current_sma200, "macd": current_macd,
-                "macd_signal": current_macd_signal, "macd_hist": current_macd_hist,
-                "bb_upper": current_bb_upper, "bb_middle": current_bb_middle, "bb_lower": current_bb_lower,
-                "atr": current_atr, "support": support, "resistance": resistance,
+                "rsi": current_rsi,
+                "ema9": current_ema9,
+                "ema21": current_ema21,
+                "sma50": current_sma50,
+                "sma200": current_sma200,
+                "macd": current_macd,
+                "macd_signal": current_macd_signal,
+                "macd_hist": current_macd_hist,
+                "bb_upper": current_bb_upper,
+                "bb_middle": current_bb_middle,
+                "bb_lower": current_bb_lower,
+                "atr": current_atr,
+                "atr_ma": current_atr_ma,
+                "adx": current_adx,
+                "choppiness": current_choppiness,
+                "atr_shock": current_atr_shock,
+                "support": support,
+                "resistance": resistance,
+                "confidence": round(confidence, 2),
+                "position_size": round(position_size, 2),
+                "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+                "trend_following_allowed": trend_following_allowed,
+                "trend_label": trend_label,
             }
             context = {
                 "chandelier": chandelier_state,
-                "above_sma200": above_sma200, "below_sma200": below_sma200,
-                "sma50_uptrend": sma50_uptrend, "sma50_downtrend": sma50_downtrend,
-                "above_sma50": above_sma50, "in_pullback_zone": in_pullback_zone,
-                "vol_spike": vol_spike, "sfp_bull": sfp_bull, "sfp_bear": sfp_bear,
-                "rsi_turning_up": rsi_turning_up, "rsi_turning_down": rsi_turning_down,
+                "above_sma200": above_sma200,
+                "below_sma200": below_sma200,
+                "sma50_uptrend": sma50_uptrend,
+                "sma50_downtrend": sma50_downtrend,
+                "above_sma50": above_sma50,
+                "in_pullback_zone": in_pullback_zone,
+                "vol_spike": vol_spike,
+                "sfp_bull": sfp_bull,
+                "sfp_bear": sfp_bear,
+                "rsi_turning_up": rsi_turning_up,
+                "rsi_turning_down": rsi_turning_down,
+                "sentiment_score": sentiment_score,
+                "sentiment_label": sentiment_label,
+                "sentiment_raw": sentiment_raw,
+                "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+                "trend_label": trend_label,
+                "adx": current_adx,
+                "choppiness": current_choppiness,
+                "trend_following_allowed": trend_following_allowed,
             }
             return sig, reason, tp_sl, data, context
 
         if rsi_turning_up:
             vol_note = " + Volume Spike (dong tien lon do day)" if vol_spike else " (volume trung binh - can them xac nhan)"
             if above_sma200 and not chandelier_blocks_buy:
-                return finalize("STRONG BUY (Confirmed Reversal)", f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note} | Tren SMA200")
+                sig = "STRONG BUY (Confirmed Reversal)"
+                reason = f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note} | Tren SMA200"
+                if extreme_fear:
+                    reason += f" | {sentiment_note}"
+                return finalize(sig, reason)
             else:
-                return finalize("BUY (Counter-Trend Reversal - High Risk)", f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note}" + (" | Chandelier=BEAR: rui ro cao!" if chandelier_blocks_buy else "") + (" | Ben duoi SMA200 - CAUTION" if not above_sma200 else ""))
+                return finalize("BUY (Counter-Trend Reversal - High Risk)", f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note}" + (" | Chandelier=BEAR: rui ro cao!" if chandelier_blocks_buy else "") + (" | Ben duoi SMA200 - CAUTION" if not above_sma200 else "") + (sentiment_note if extreme_fear else ""))
 
         if rsi_turning_down:
             vol_note = " + Volume Spike (xa hang manh)" if vol_spike else " (volume trung binh)"
-            return finalize("STRONG SELL (Confirmed Reversal)", f"RSI cat xuong duoi 70 (dao chieu tu Overbought){vol_note}" + (" | Ben tren SMA200 - co the chi la dieu chinh" if above_sma200 else ""))
+            sig = "STRONG SELL (Confirmed Reversal)"
+            reason = f"RSI cat xuong duoi 70 (dao chieu tu Overbought){vol_note}" + (" | Ben tren SMA200 - co the chi la dieu chinh" if above_sma200 else "")
+            if extreme_greed:
+                reason += f" | {sentiment_note}"
+            return finalize(sig, reason)
 
         if sfp_bull and not chandelier_blocks_buy:
             return finalize("BUY (SFP-Liquidity-Sweep)", f"Quet thanh khoan day: wick xuyen SL duoi {support:.2f} roi dong cua tren support | RSI={current_rsi:.1f}" + (" | Bull Market (SMA200 xac nhan)" if above_sma200 else " | Bear Market - rui ro cao hon"))
@@ -515,16 +858,34 @@ def analyze_market(candles: list[dict]) -> dict:
             return finalize("SELL (SFP-Liquidity-Sweep)", f"Quet thanh khoan dinh: wick vuot {resistance:.2f} roi dong cua duoi resistance | RSI={current_rsi:.1f}" + (" | Bear Market (SMA200 xac nhan)" if below_sma200 else " | Bull Market - co the chi la fakeout"))
 
         if ema_golden_cross:
+            if not trend_following_allowed:
+                return finalize(
+                    "NEUTRAL (Trend-Blocked)",
+                    "EMA9 cat len EMA21 nhung ADX < 20 hoac Choppiness cao, bo qua trend-following"
+                )
             if chandelier_blocks_buy:
-                return finalize("WEAK BUY (Crossover-Blocked)", "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!")
+                return finalize(
+                    "WEAK BUY (Crossover-Blocked)",
+                    "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!"
+                )
             if above_sma200:
-                return finalize("BUY (Crossover)", "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)")
+                sig = "BUY (Crossover)"
+                reason = "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)"
+                if extreme_fear:
+                    sig = "WEAK BUY (Crossover-Sentiment)"
+                    reason += f" | NHUNG{sentiment_note} — Thi truong dang trong vung so hai cuc do!"
+                return finalize(sig, reason)
             elif current_sma200 > 0:
-                return finalize("WEAK BUY (Crossover)", "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap!")
+                return finalize("WEAK BUY (Crossover)", "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap!" + sentiment_note)
             else:
-                return finalize("BUY (Crossover)", "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)")
+                return finalize("BUY (Crossover)", "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)" + sentiment_note)
 
         if ema_death_cross:
+            if not trend_following_allowed:
+                return finalize(
+                    "NEUTRAL (Trend-Blocked)",
+                    "EMA9 cat xuong EMA21 nhung ADX < 20 hoac Choppiness cao, bo qua trend-following"
+                )
             if below_sma200:
                 return finalize("SELL (Crossover)", "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)")
             elif current_sma200 > 0:
@@ -623,7 +984,12 @@ def analyze_market(candles: list[dict]) -> dict:
         "signal": current_sig,
         "reason": current_reason,
         "tp_sl": current_tp_sl,
-        "trend_context": trend_context
+        "trend_context": trend_context,
+        "sentiment": {
+            "score": sentiment_score,
+            "label": sentiment_label,
+            "raw_value": sentiment_raw,
+        },
     }
     return res
 
@@ -651,6 +1017,11 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
     macd_list, macd_sig_list, macd_hist_list = calculate_macd(close_prices, 12, 26, 9)
     bb_up_list, bb_mid_list, bb_low_list = calculate_bollinger_bands(close_prices, 20, 2)
     atr_list = calculate_atr(candles, 14)
+    atr_ma_list = calculate_sma(atr_list, 14)
+    highs = [c["high"] for c in candles]
+    lows = [c["low"] for c in candles]
+    adx_list = calculate_adx(highs, lows, close_prices, 14)
+    choppiness_list = calculate_choppiness_index(highs, lows, close_prices, 14)
     vol_sma_list = calculate_volume_sma(candles, 20)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
 
@@ -668,6 +1039,15 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         candles[i]["bb_middle"] = bb_mid_list[i]
         candles[i]["bb_lower"] = bb_low_list[i]
         candles[i]["atr"] = atr_list[i] if i < len(atr_list) else 0.0
+        candles[i]["atr_ma"] = atr_ma_list[i] if i < len(atr_ma_list) else 0.0
+        candles[i]["adx"] = adx_list[i] if i < len(adx_list) else 0.0
+        candles[i]["choppiness"] = choppiness_list[i] if i < len(choppiness_list) else 0.0
+        candles[i]["atr_shock"] = candles[i]["atr"] > 0 and candles[i]["atr_ma"] > 0 and candles[i]["atr"] > candles[i]["atr_ma"] * 1.8
+        candles[i]["market_regime"] = (
+            "TRENDING"
+            if is_trend_following_allowed(candles[i]["adx"], candles[i]["choppiness"])
+            else "SIDEWAY"
+        )
         candles[i]["vol_sma20"] = vol_sma_list[i]
         candles[i]["chandelier"] = chandelier_list[i]
 
@@ -687,6 +1067,9 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         current_bb_middle = bb_mid_list[i]
         current_bb_lower = bb_low_list[i]
         current_atr = atr_list[i]
+        current_atr_ma = atr_ma_list[i]
+        current_adx = adx_list[i] if i < len(adx_list) else 0.0
+        current_choppiness = choppiness_list[i] if i < len(choppiness_list) else 0.0
         current_close = close_prices[i]
         current_open  = candles[i]["open"]
         current_high  = candles[i]["high"]
@@ -694,6 +1077,8 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         current_volume = candles[i].get("volume", 0.0)
         current_vol_sma = vol_sma_list[i]
         chandelier_state = chandelier_list[i]
+        trend_following_allowed = is_trend_following_allowed(current_adx, current_choppiness)
+        current_atr_shock = atr_shock_filter(current_atr, current_atr_ma)
 
         prev_rsi = rsi_list[i - 1]
         rsi_turning_up   = (prev_rsi <= 30) and (current_rsi > 30)
@@ -732,18 +1117,25 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         support = min(c["low"] for c in window_50)
         resistance = max(c["high"] for c in window_50)
 
-        sfp_bull = (
-            support > 0
-            and current_low < support          # wick quét qua đáy lịch sử
-            and current_close > support        # đóng cửa trở lại trên support
-            and current_rsi < 45
+        sfp_bull = is_bullish_sfp(
+            current_high,
+            current_low,
+            current_close,
+            current_open,
+            support,
+            current_volume,
+            current_vol_sma,
+            current_rsi,
         )
-        sfp_bear = (
-            resistance > 0
-            and current_high > resistance      # wick quét qua đỉnh lịch sử
-            and current_close < resistance     # đóng cửa trở lại dưới resistance
-            and current_rsi > 55
-            and below_sma200                  # Chỉ SELL SFP trong bear market
+        sfp_bear = is_bearish_sfp(
+            current_high,
+            current_low,
+            current_close,
+            current_open,
+            resistance,
+            current_volume,
+            current_vol_sma,
+            current_rsi,
         )
 
         # Chặn spam Break-SMA50: chỉ kích hoạt ngay lúc giá vừa xuyên xuống dưới SMA50
@@ -760,6 +1152,9 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         ema_death_cross  = (prev_ema9 >= prev_ema21) and (current_ema9 < current_ema21)
         ema_bearish_active = current_ema9 < current_ema21
         chandelier_blocks_buy = (chandelier_state == "BEAR")
+        current_adx = adx_list[i] if i < len(adx_list) else 0.0
+        current_choppiness = choppiness_list[i] if i < len(choppiness_list) else 0.0
+        trend_following_allowed = is_trend_following_allowed(current_adx, current_choppiness)
 
         sig = "NEUTRAL"
         reason = ""
@@ -784,7 +1179,10 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             sig = "SELL (SFP-Liquidity-Sweep)"
             reason = f"Quet thanh khoan dinh: wick vuot {resistance:.2f} roi dong cua duoi resistance | RSI={current_rsi:.1f}" + (" | Bear Market (SMA200 xac nhan)" if below_sma200 else " | Bull Market - co the chi la fakeout")
         elif ema_golden_cross:
-            if chandelier_blocks_buy:
+            if not trend_following_allowed:
+                sig = "NEUTRAL (Trend-Blocked)"
+                reason = "EMA9 cat len EMA21 nhung ADX < 20 hoac Choppiness cao, bo qua trend-following"
+            elif chandelier_blocks_buy:
                 sig = "WEAK BUY (Crossover-Blocked)"
                 reason = "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!"
             elif above_sma200:
@@ -797,7 +1195,10 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
                 sig = "BUY (Crossover)"
                 reason = "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)"
         elif ema_death_cross:
-            if below_sma200:
+            if not trend_following_allowed:
+                sig = "NEUTRAL (Trend-Blocked)"
+                reason = "EMA9 cat xuong EMA21 nhung ADX < 20 hoac Choppiness cao, bo qua trend-following"
+            elif below_sma200:
                 sig = "SELL (Crossover)"
                 reason = "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)"
             elif current_sma200 > 0:
@@ -879,6 +1280,14 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             "bb_middle": current_bb_middle,
             "bb_lower": current_bb_lower,
             "atr": current_atr,
+            "atr_ma": current_atr_ma,
+            "adx": current_adx,
+            "choppiness": current_choppiness,
+            "atr_shock": current_atr_shock,
+            "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+            "trend_following_allowed": trend_following_allowed,
+            "confidence": 0.50,
+            "position_size": 1.0,
             "support": support,
             "resistance": resistance,
             "signal": sig,

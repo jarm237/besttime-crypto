@@ -4,10 +4,19 @@ Hỗ trợ round-robin đa key và tự động tạm dừng đến hết ngày 
 """
 
 import re
+import os
+import json
 import time
 import datetime
 from google import genai
 from btc_scraper.config import GEMINI_API_KEYS
+from btc_scraper.filters import (
+    atr_shock_filter,
+    atr_used_for_chandelier,
+    dynamic_sl_long,
+    dynamic_sl_short,
+    sentiment_modify,
+)
 
 
 class _GeminiKeyManager:
@@ -112,6 +121,44 @@ def _format_price(value: float) -> str:
     return f"{value:,.2f}" if value >= 10 else f"{value:,.4f}"
 
 
+def _apply_dynamic_risk_and_sentiment(
+    analysis_results: dict[str, dict],
+    sentiment: dict[str, object] | None,
+) -> None:
+    """Cập nhật confidence và dynamic SL/ATR metadata trước khi build prompt AI."""
+    if sentiment is None:
+        sentiment = {}
+
+    fear_score = float(sentiment.get("score", 0.0))
+    fear_extreme = fear_score <= -0.6
+
+    for info in analysis_results.values():
+        signal = str(info.get("signal", "")).upper()
+        trend = str(info.get("trend", "NEUTRAL")).upper()
+        confidence = float(info.get("confidence", 0.5))
+        direction = "SHORT" if "SELL" in signal or "SHORT" in signal else "LONG"
+
+        info["confidence"] = sentiment_modify(confidence, trend, direction, fear_extreme)
+        info.setdefault("position_size", max(0.25, min(1.0, 0.5 + info["confidence"] * 0.5)))
+
+        tp_sl = info.setdefault("tp_sl", {})
+        atr_current = float(info.get("atr_current", info.get("atr", 0.0)))
+        atr_ma = float(info.get("atr_ma", 0.0))
+        support = info.get("support")
+        resistance = info.get("resistance")
+
+        if direction == "LONG" and support is not None:
+            tp_sl["sl"] = dynamic_sl_long(float(support), atr_current, atr_ma)
+            tp_sl.setdefault("method", "dynamic_atr_long")
+        elif direction == "SHORT" and resistance is not None:
+            tp_sl["sl"] = dynamic_sl_short(float(resistance), atr_current, atr_ma)
+            tp_sl.setdefault("method", "dynamic_atr_short")
+
+        if atr_ma > 0:
+            info["atr_shock"] = atr_shock_filter(atr_current, atr_ma)
+            info["atr_used"] = atr_used_for_chandelier(atr_current, atr_ma)
+
+
 # ────────────────────────────────────────────────────────────────────────────
 #  Block builders
 # ────────────────────────────────────────────────────────────────────────────
@@ -159,8 +206,10 @@ def _build_coin_block(key: str, info: dict) -> str:
         f"  Vi tri gia: {bb_pos}",
         f"  Ho tro (50-nến): {_format_price(support)} | Khang cu (50-nến): {_format_price(resistance)}",
         f"  Tin hieu hien tai: {info.get('signal', 'N/A')} ({info.get('reason', '')})",
+        f"  Confidence: {info.get('confidence', 0.5):.2f} | Position size: {info.get('position_size', 1.0):.2f} | ATR shock: {('YES' if info.get('atr_shock') else 'NO')}",
+        f"  Market Regime: {info.get('market_regime', 'N/A')} | Trend Follow: {info.get('trend_following_allowed', False)}",
+        f"  HTF Trend: {info.get('htf_trend', 'N/A')} | {info.get('htf_details', 'N/A')}",
     ]
-
     if tp_sl:
         entry_val = tp_sl.get("entry", 0.0)
         sl_val = tp_sl.get("sl", 0.0)
@@ -169,7 +218,7 @@ def _build_coin_block(key: str, info: dict) -> str:
         rr1_val = tp_sl.get("rr1", 0.0)
         rr2_val = tp_sl.get("rr2", 0.0)
         method = tp_sl.get("method", "N/A")
-        
+
         lines.append(
             f"  Khuyen nghi TP/SL ({method}): Entry={_format_price(entry_val)} | "
             f"SL={_format_price(sl_val)} | "
@@ -261,6 +310,114 @@ def _build_mtf_block(coin: str, mtf_data: dict[str, dict]) -> str:
 
 
 # ────────────────────────────────────────────────────────────────────────────
+#  RAG: Truy xuất lịch sử lệnh để cung cấp ngữ cảnh cho Gemini
+# ────────────────────────────────────────────────────────────────────────────
+
+def _load_closed_trades(positions_path: str | None = None) -> list[dict]:
+    """Đọc danh sách lệnh đã đóng từ positions.json."""
+    if positions_path is None:
+        # Tự động tìm file theo đường dẫn tương đối từ project root
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        positions_path = os.path.join(base, "data", "positions.json")
+    try:
+        with open(positions_path, encoding="utf-8") as f:
+            all_trades = json.load(f)
+        return [t for t in all_trades if t.get("status") == "closed"]
+    except Exception:
+        return []
+
+
+def _build_rag_block(
+    analysis_results: dict[str, dict],
+    closed_trades: list[dict] | None = None,
+) -> str:
+    """
+    Xây dựng khối RAG (Retrieval-Augmented Generation) để đưa vào prompt Gemini.
+
+    Logic truy xuất:
+    1. Với mỗi coin đang phân tích, tìm các lệnh đã đóng cho coin đó.
+    2. Với mỗi loại tín hiệu (signal) hiện tại, tìm các lệnh lịch sử có signal tương tự.
+    3. Tính Win Rate và tóm tắt kết quả để AI tham khảo.
+    """
+    if not closed_trades:
+        closed_trades = _load_closed_trades()
+    if not closed_trades:
+        return ""
+
+    lines = ["\n\n=== DU LIEU LICH SU GIAO DICH (RAG - Hoc tu Qua khu) ==="]
+    lines.append(
+        "Duoi day la lich su cac lenh da dong. Hay SU DUNG du lieu nay de dieu chinh muc do tu tin "
+        "cua ban khi dua ra khuyen nghi. Neu Win Rate thap, hay than trong hon."
+    )
+
+    has_content = False
+
+    for key, info in analysis_results.items():
+        coin = key.split(":")[0]
+        current_signal = info.get("signal", "")
+
+        # Tìm lệnh lịch sử cho coin này
+        coin_trades = [t for t in closed_trades if t.get("coin", "").upper() == coin.upper()]
+
+        # Tìm lệnh có loại tín hiệu tương tự (BUY / SELL)
+        is_buy_signal  = "BUY"  in current_signal.upper()
+        is_sell_signal = "SELL" in current_signal.upper()
+
+        if is_buy_signal:
+            similar_trades = [t for t in closed_trades if "LONG" in t.get("direction", "").upper()]
+        elif is_sell_signal:
+            similar_trades = [t for t in closed_trades if "SHORT" in t.get("direction", "").upper()]
+        else:
+            similar_trades = []
+
+        # Tổng hợp kết quả
+        sections = []
+
+        if coin_trades:
+            wins  = sum(1 for t in coin_trades if t.get("result") == "WIN")
+            total = len(coin_trades)
+            win_rate = wins / total * 100
+            avg_pnl = sum(t.get("pnl_pct", 0.0) for t in coin_trades) / total
+            recent = sorted(coin_trades, key=lambda t: t.get("entry_time", ""), reverse=True)[:3]
+            recent_summary = ", ".join(
+                f"{t.get('result','?')}({t.get('pnl_pct',0):+.1f}%)"
+                for t in recent
+            )
+            sections.append(
+                f"  [{coin}] Lich su {total} lenh: "
+                f"Win Rate={win_rate:.0f}% | Avg PnL={avg_pnl:+.1f}% | "
+                f"3 lenh gan nhat: {recent_summary}"
+            )
+
+        if similar_trades and (is_buy_signal or is_sell_signal):
+            direction_label = "LONG" if is_buy_signal else "SHORT"
+            wins  = sum(1 for t in similar_trades if t.get("result") == "WIN")
+            total = len(similar_trades)
+            win_rate = wins / total * 100
+            avg_pnl = sum(t.get("pnl_pct", 0.0) for t in similar_trades) / total
+            sections.append(
+                f"  [Tat ca {direction_label}] Toan bo lenh {direction_label} trong lich su: "
+                f"{total} lenh | Win Rate={win_rate:.0f}% | Avg PnL={avg_pnl:+.1f}%"
+            )
+            if win_rate < 40:
+                sections.append(
+                    f"  ⚠️  CANH BAO: Win Rate cua tin hieu {direction_label} chi dat {win_rate:.0f}%. "
+                    "Hay THAN TRONG truoc khi vao lenh!"
+                )
+
+        if sections:
+            has_content = True
+            lines.append(f"\n--- {coin} | Tin hieu hien tai: {current_signal} ---")
+            lines.extend(sections)
+
+    if not has_content:
+        return ""  # Không có dữ liệu hữu ích → bỏ qua
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+# ────────────────────────────────────────────────────────────────────────────
 #  Main analysis function
 # ────────────────────────────────────────────────────────────────────────────
 
@@ -268,12 +425,14 @@ def analyze_with_gemini(
     analysis_results: dict[str, dict],
     mtf_analysis: dict[str, dict] | None = None,
     open_positions: list[dict] | None = None,
+    closed_trades: list[dict] | None = None,
 ) -> str:
     """
     Gửi dữ liệu nến và chỉ số kỹ thuật lên Gemini API.
     - Round-robin qua GEMINI_API_KEY_1 … GEMINI_API_KEY_5.
     - Khi một key bị 429 → bỏ qua, dùng key tiếp theo ngay lập tức.
     - Khi tất cả key đều bị 429 → trả thông báo tạm dừng đến hết ngày.
+    - RAG: Bổ sung lịch sử giao dịch để Gemini học từ quá khứ.
     """
     if not GEMINI_API_KEYS:
         return "[Warning] Chua cau hinh GEMINI_API_KEY trong file .env. Bo qua phan tich AI."
@@ -287,6 +446,11 @@ def analyze_with_gemini(
         )
 
     try:
+        # ── Sentiment + Dynamic risk before building prompt ─────────────────
+        first_info = next(iter(analysis_results.values()), {})
+        sentiment = first_info.get("sentiment", {})
+        _apply_dynamic_risk_and_sentiment(analysis_results, sentiment)
+
         # ── Xây dựng prompt ──────────────────────────────────────────────
         coin_blocks = [_build_coin_block(k, v) for k, v in analysis_results.items()]
         market_data_str = "\n\n".join(coin_blocks)
@@ -317,6 +481,21 @@ def analyze_with_gemini(
                 + "\n".join(pos_blocks)
             )
 
+        # ── RAG: Lịch sử giao dịch ───────────────────────────────────────
+        rag_str = _build_rag_block(analysis_results, closed_trades)
+
+        # ── Sentiment: Fear & Greed ───────────────────────────────────────
+        sentiment_str = ""
+        if sentiment:
+            raw = sentiment.get("raw_value", 50)
+            label = sentiment.get("label", "Neutral")
+            score = sentiment.get("score", 0.0)
+            sentiment_str = (
+                f"\n\n=== CAM XUC THI TRUONG (FEAR & GREED INDEX) ===\n"
+                f"  Chi so hien tai: {raw}/100 - {label} (score={score:+.2f})\n"
+                f"  {'⚠️ EXTREME FEAR: Cam xuc tieu cuc cuc do — giao dich BUY co rui ro cao!' if score < -0.6 else ('🔥 EXTREME GREED: Thi truong dang qua lac quan — giao dich SELL/SHORT co the hieu qua!' if score > 0.6 else 'Cam xuc trung binh — khong anh huong dac biet den quyet dinh giao dich.')}"
+            )
+
         prompt = (
             "Ban la mot chuyen gia phan tich ky thuat crypto va giao dich tan tan cap cao. "
             "Ban da co kinh nghiem nhieu nam voi cac chi bao RSI, EMA, MACD va Bollinger Bands.\n\n"
@@ -324,6 +503,8 @@ def analyze_with_gemini(
             "--- DU LIEU KHUNG 15 PHUT (ngan han, giao dich scalp/intraday) ---\n"
             f"{market_data_str}"
             f"{mtf_str}"
+            f"{sentiment_str}"
+            f"{rag_str}"
             f"{positions_str}\n\n"
             "Nhiem vu cua ban (phan tich bang tieng Viet):\n\n"
             "1. **Danh gia cac vi the dang mo** (NEU CO): Voi moi vi the dang mo, dua tren phan tich ky thuat hien tai (dac biet la 15m va 1h), "

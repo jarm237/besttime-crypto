@@ -5,3 +5,4 @@ dotenv
 google-genai
 fastapi
 uvicorn
+pytest
