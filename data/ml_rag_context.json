@@ -1,0 +1,162 @@
+{
+  "export_timestamp": "2026-06-09T22:26:06.120687",
+  "global_stats": {
+    "total_trades": 5,
+    "wins": 2,
+    "losses": 3,
+    "win_rate_pct": 40.0,
+    "avg_pnl_pct": -0.8562,
+    "profit_factor": 0.36
+  },
+  "coin_stats": {
+    "ZEC": {
+      "total_trades": 1,
+      "win_rate_pct": 0.0,
+      "avg_pnl_pct": -3.9407,
+      "wins": 0,
+      "losses": 1,
+      "recent_3": [
+        {
+          "result": "LOSS",
+          "pnl_pct": -3.9407,
+          "signal": "NEUTRAL (BEARISH-CAUTION)",
+          "hold_hours": 0.9
+        }
+      ]
+    },
+    "BNB": {
+      "total_trades": 1,
+      "win_rate_pct": 100.0,
+      "avg_pnl_pct": 0.4715,
+      "wins": 1,
+      "losses": 0,
+      "recent_3": [
+        {
+          "result": "WIN",
+          "pnl_pct": 0.4715,
+          "signal": "NEUTRAL (BEARISH-CAUTION)",
+          "hold_hours": 2.8
+        }
+      ]
+    },
+    "NEAR": {
+      "total_trades": 1,
+      "win_rate_pct": 100.0,
+      "avg_pnl_pct": 1.9512,
+      "wins": 1,
+      "losses": 0,
+      "recent_3": [
+        {
+          "result": "WIN",
+          "pnl_pct": 1.9512,
+          "signal": "NEUTRAL (BEARISH-CAUTION)",
+          "hold_hours": 0.8
+        }
+      ]
+    },
+    "XLM": {
+      "total_trades": 1,
+      "win_rate_pct": 0.0,
+      "avg_pnl_pct": -0.8915,
+      "wins": 0,
+      "losses": 1,
+      "recent_3": [
+        {
+          "result": "LOSS",
+          "pnl_pct": -0.8915,
+          "signal": "SELL (Crossover)",
+          "hold_hours": 3.3
+        }
+      ]
+    },
+    "BTC": {
+      "total_trades": 1,
+      "win_rate_pct": 0.0,
+      "avg_pnl_pct": -1.8717,
+      "wins": 0,
+      "losses": 1,
+      "recent_3": [
+        {
+          "result": "LOSS",
+          "pnl_pct": -1.8717,
+          "signal": "NEUTRAL (BEARISH-CAUTION)",
+          "hold_hours": 12.1
+        }
+      ]
+    }
+  },
+  "directional_stats": {
+    "LONG": {
+      "total": 5,
+      "wins": 2,
+      "win_rate_pct": 40.0,
+      "avg_pnl_pct": -0.8562
+    },
+    "SHORT": {
+      "total": 0,
+      "wins": 0,
+      "win_rate_pct": 0,
+      "avg_pnl_pct": 0
+    }
+  },
+  "signal_stats": {
+    "NEUTRAL (BEARISH-CAUTION)": {
+      "count": 4,
+      "win_rate_pct": 50.0,
+      "avg_pnl_pct": -0.8474,
+      "wins": 2
+    },
+    "SELL (CROSSOVER)": {
+      "count": 1,
+      "win_rate_pct": 0.0,
+      "avg_pnl_pct": -0.8915,
+      "wins": 0
+    }
+  },
+  "scenarios": {
+    "LONG_LOSS": [
+      {
+        "coin": "ZEC",
+        "signal": "NEUTRAL (BEARISH-CAUTION)",
+        "pnl_pct": -3.9407,
+        "hold_hours": 0.9,
+        "entry_distance_to_sl_pct": 1.4305,
+        "entry_distance_to_tp1_pct": 7.9458
+      },
+      {
+        "coin": "XLM",
+        "signal": "SELL (Crossover)",
+        "pnl_pct": -0.8915,
+        "hold_hours": 3.3,
+        "entry_distance_to_sl_pct": 0.8915,
+        "entry_distance_to_tp1_pct": 2.6746
+      },
+      {
+        "coin": "BTC",
+        "signal": "NEUTRAL (BEARISH-CAUTION)",
+        "pnl_pct": -1.8717,
+        "hold_hours": 12.1,
+        "entry_distance_to_sl_pct": 0.3435,
+        "entry_distance_to_tp1_pct": 1.0018
+      }
+    ],
+    "LONG_WIN": [
+      {
+        "coin": "BNB",
+        "signal": "NEUTRAL (BEARISH-CAUTION)",
+        "pnl_pct": 0.4715,
+        "hold_hours": 2.8,
+        "entry_distance_to_sl_pct": 0.415,
+        "entry_distance_to_tp1_pct": 0.4306
+      },
+      {
+        "coin": "NEAR",
+        "signal": "NEUTRAL (BEARISH-CAUTION)",
+        "pnl_pct": 1.9512,
+        "hold_hours": 0.8,
+        "entry_distance_to_sl_pct": 0.4439,
+        "entry_distance_to_tp1_pct": 1.2293
+      }
+    ]
+  }
+}

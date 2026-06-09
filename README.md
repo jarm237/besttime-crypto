@@ -184,8 +184,31 @@ besttime-crypto/
 ├── logs/
 │   └── closed_positions.json   # Append-only closed trade log (RAG source)
 ├── scripts/
-│   └── manage_positions.py     # CLI backend for ./pos
+│   ├── manage_positions.py     # CLI backend for ./pos
+│   ├── prepare_ml_data.py      # Export ML training data + RAG context
+│   └── generate_rag_prompts.py # Generate RAG narratives for Gemini
 ├── tests/
 │   └── test_analysis.py        # Unit tests
 └── pos                         # ./pos CLI shortcut script
 ```
+
+---
+
+## Chuẩn bị Dữ liệu cho ML
+
+Để sử dụng lịch sử giao dịch thực tế cho machine learning, chạy:
+
+```bash
+# Xuất dataset ML + RAG context từ lịch sử giao dịch
+python scripts/prepare_ml_data.py
+
+# Sinh narratives RAG cho Gemini AI
+python scripts/generate_rag_prompts.py
+```
+
+**Output:**
+- `data/ml_training_data.csv` — Dataset 30+ cột cho model training
+- `data/ml_rag_context.json` — Structured RAG context (win rate, directional stats, scenarios)
+- `data/rag_prompts.md` — Markdown narratives để tích hợp vào Gemini prompt
+
+**Xem chi tiết:** [ML_DATA_GUIDE.md](ML_DATA_GUIDE.md)
