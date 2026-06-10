@@ -223,5 +223,40 @@
     "r_multiplier": -0.96,
     "hold_hours": 1.8,
     "result": "LOSS"
+  },
+  {
+    "coin": "BTC",
+    "id": "49cbf739-6a18-4c36-9cfa-d801e054c535",
+    "direction": "SHORT",
+    "entry_price": 62110.3,
+    "invested_usdt": 186.4,
+    "entry_signal_score": {},
+    "entry_confidence": null,
+    "entry_time": "2026-06-10 21:10",
+    "status": "closed",
+    "note": "",
+    "last_signal": "NEUTRAL (BULLISH-CAUTION)",
+    "last_price": 62292.0,
+    "last_checked": "2026-06-10 22:51",
+    "last_signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "NEUTRAL (BULLISH-CAUTION)"
+    },
+    "suggested_sl": 62613.4706,
+    "suggested_tp1": 61724.794,
+    "suggested_tp2": 60876.51,
+    "sell_price": 62659.2,
+    "exit_time": "2026-06-10 22:55",
+    "pnl_pct": -0.8838,
+    "pnl_usd_per_1000": -8.84,
+    "pnl_usd_actual": -1.65,
+    "fee_usd": 0.37,
+    "received_usdt": 184.38,
+    "r_multiplier": -1.09,
+    "hold_hours": 1.8,
+    "result": "LOSS"
   }
 ]

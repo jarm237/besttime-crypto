@@ -338,5 +338,19 @@
       "raw_text": "SELL (Break-SMA50)"
     },
     "confidence": "LOW"
+  },
+  {
+    "coin": "BTC",
+    "id": "49cbf739-6a18-4c36-9cfa-d801e054c535",
+    "entry_time": "2026-06-10 21:10",
+    "exit_time": "2026-06-10 22:55",
+    "entry_price": 62110.3,
+    "exit_price": 62659.2,
+    "pnl_pct": -0.8838,
+    "result": "LOSS",
+    "hold_hours": 1.8,
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {},
+    "confidence": null
   }
 ]

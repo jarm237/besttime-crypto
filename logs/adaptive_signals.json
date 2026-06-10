@@ -55174,5 +55174,29 @@
     "atr_1d": 0.0025766197642977905,
     "is_bull_1d": 0.0,
     "is_bear_1d": 1.0
+      "action": "BUY",
+      "score": 75,
+      "confidence": "MEDIUM",
+      "position_size": 0.81,
+      "raw_text": "BUY (Counter-Trend Reversal - High Risk)"
+    }
+  },
+  {
+    "coin": "BTC",
+    "id": "49cbf739-6a18-4c36-9cfa-d801e054c535",
+    "entry_price": 62110.3,
+    "sell_price": 62659.2,
+    "pnl_pct": -0.8838,
+    "result": "LOSS",
+    "hold_hours": 1.8,
+    "exit_time": "2026-06-10 22:55",
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "NEUTRAL (BULLISH-CAUTION)"
+    }
   }
 ]

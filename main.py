@@ -326,10 +326,10 @@ def main():
         focused_minutes = [(m + 1) % 60 for m in range(0, 60, 5) if (m + 1) % 60 not in general_minutes]
         
         for m in general_minutes:
-            schedule.every().hour.at(f"{m:02d}:00").do(fetch_and_display_with_retry)
+            schedule.every().hour.at(f":{m:02d}").do(fetch_and_display_with_retry)
             
         for m in focused_minutes:
-            schedule.every().hour.at(f"{m:02d}:00").do(fetch_and_analyze_open_positions_only_with_retry)
+            schedule.every().hour.at(f":{m:02d}").do(fetch_and_analyze_open_positions_only_with_retry)
             
         console.print(
             f"[dim]>> Lên lịch tổng quát vào: {general_minutes} | Quét khẩn cấp vị thế mở vào: {focused_minutes}. Nhấn Ctrl+C để dừng.[/dim]\n"
