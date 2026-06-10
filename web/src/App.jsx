@@ -271,14 +271,10 @@ function App() {
 
     return (
       <div className="modal-overlay" onClick={() => setShowDetailModal(null)}>
-        <div onClick={e => e.stopPropagation()} style={{
-          background: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem',
-          width: '100%', maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.7)'
-        }}>
+        <div onClick={e => e.stopPropagation()} className="modal-content" style={{ maxWidth: '850px', padding: 0 }}>
 
           {/* ── HEADER ── */}
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'1.25rem 1.5rem', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+          <div className="modal-header" style={{ padding: '1.5rem', marginBottom: 0, borderBottom: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', borderTopLeftRadius: '1.5rem', borderTopRightRadius: '1.5rem' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
               <div style={{ width:40, height:40, borderRadius:'50%', background:'linear-gradient(135deg,#f0b90b,#f8d47a)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', fontWeight:700, color:'#000' }}>
                 {coin.slice(0,2)}
@@ -289,14 +285,14 @@ function App() {
               </div>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
-              <div style={{ color:'#64748b', fontSize:'0.78rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+              <div style={{ color:'var(--text-secondary)', fontSize:'0.8rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
                 <span>🕐</span> Cập nhật: {ts}
               </div>
-              <button onClick={() => setShowDetailModal(null)} style={{ background:'none', border:'none', color:'#94a3b8', cursor:'pointer', fontSize:'1.2rem', lineHeight:1 }}>✕</button>
+              <button className="close-btn" onClick={() => setShowDetailModal(null)}>✕</button>
             </div>
           </div>
 
-          <div style={{ padding:'1.25rem 1.5rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
+          <div style={{ padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem', maxHeight: 'calc(90vh - 85px)', overflowY: 'auto' }}>
 
             {/* ── ROW 1: Signal + Price ── */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
@@ -436,7 +432,7 @@ function App() {
           <p className="text-secondary mt-1">Institutional Trading Dashboard</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={fetchData} className="btn" style={{ background: 'rgba(255,255,255,0.1)' }}>
+          <button onClick={fetchData} className="btn" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> 
           </button>
           <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
@@ -446,25 +442,25 @@ function App() {
       </div>
 
       <div className="grid grid-cols-4 mb-6">
-        <div className="glass-panel" style={{ cursor: 'pointer', border: activeTab === 'market' ? '1px solid var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'market' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Activity size={16} /> Tín Hiệu Thị Trường</div>
             <div className="stat-value">{Object.keys(signals).length} Pairs</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', border: activeTab === 'positions' ? '1px solid var(--accent)' : '' }} onClick={() => setActiveTab('positions')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'positions' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('positions')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Crosshair size={16} /> Vị Thế Đang Mở</div>
             <div className="stat-value">{positions.length}</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', border: activeTab === 'perf' ? '1px solid var(--accent)' : '' }} onClick={() => setActiveTab('perf')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'perf' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('perf')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Briefcase size={16} /> Win Rate</div>
             <div className="stat-value">{performance.win_rate_pct !== undefined ? `${performance.win_rate_pct}%` : 'N/A'}</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', border: activeTab === 'ai' ? '1px solid var(--accent)' : '' }} onClick={() => setActiveTab('ai')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'ai' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('ai')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Bot size={16} /> Gemini AI</div>
             <div className="stat-value text-blue-400">Phân Tích</div>

@@ -236,8 +236,8 @@
     "status": "open",
     "note": "",
     "last_signal": "NEUTRAL (BULLISH-CAUTION)",
-    "last_price": 61998.0,
-    "last_checked": "2026-06-10 21:18",
+    "last_price": 61884.54,
+    "last_checked": "2026-06-10 21:21",
     "last_signal_score": {
       "action": "BUY",
       "score": 65,
@@ -245,8 +245,8 @@
       "position_size": 0.74,
       "raw_text": "NEUTRAL (BULLISH-CAUTION)"
     },
-    "suggested_sl": 62590.2071,
-    "suggested_tp1": 61464.406,
+    "suggested_sl": 62591.6685,
+    "suggested_tp1": 61458.733,
     "suggested_tp2": 60876.51
   }
 ]
