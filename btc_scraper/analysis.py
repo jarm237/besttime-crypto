@@ -1278,6 +1278,7 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         # Prepare lightweight data/context for scoring (keeps backward compatibility)
         score_data = {
             "rsi": current_rsi,
+            "rsi_delta": current_rsi - rsi_list[i-3] if i >= 3 else 0.0,
             "ema9": current_ema9,
             "ema21": current_ema21,
             "sma50": current_sma50,

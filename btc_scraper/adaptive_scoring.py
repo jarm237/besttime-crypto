@@ -144,7 +144,7 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         # Try to use sklearn trainer if available
         from btc_scraper.feature_extractor import records_to_dataset
         import numpy as np
-        from sklearn.linear_model import LogisticRegression
+        from sklearn.ensemble import RandomForestClassifier
         import joblib
 
         X, y, feature_names = records_to_dataset(records)
@@ -154,7 +154,7 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         X = np.array(X)
         y = np.array(y)
 
-        clf = LogisticRegression(max_iter=1000, class_weight='balanced')
+        clf = RandomForestClassifier(n_estimators=100, max_depth=5, class_weight='balanced', random_state=42)
         clf.fit(X, y)
 
         # Save model and metadata

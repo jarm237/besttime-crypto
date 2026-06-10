@@ -61,6 +61,7 @@ def features_from_analysis(info: Dict) -> Dict[str, float]:
 
     # Indicators if available
     f["rsi"] = _safe_float(info.get("rsi"), default=50.0)
+    f["rsi_delta"] = _safe_float(ss.get("rsi_delta") or info.get("rsi_delta"), default=0.0)
     f["atr"] = _safe_float(info.get("atr"), default=0.0)
     ema9 = _safe_float(info.get("ema9", 0.0))
     ema21 = _safe_float(info.get("ema21", 0.0))
