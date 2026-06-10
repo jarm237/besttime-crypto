@@ -20,6 +20,7 @@ from typing import List, Dict
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from btc_scraper.analysis import analyze_all_market
+from btc_scraper.adaptive_scoring import log_trade_outcome
 
 
 def load_csv(path: str) -> List[Dict]:
@@ -40,10 +41,12 @@ def load_csv(path: str) -> List[Dict]:
 
 
 class SimpleBacktest:
-    def __init__(self, candles: List[Dict], capital: float = 1000.0):
+    def __init__(self, candles: List[Dict], capital: float = 1000.0, log_adaptive: bool = False, symbol: str = "BTC"):
         self.candles = candles
         self.capital = capital
         self.trades = []
+        self.log_adaptive = log_adaptive
+        self.symbol = symbol
 
     def run(self):
         analyses = analyze_all_market(self.candles)
@@ -73,11 +76,26 @@ class SimpleBacktest:
                 if result:
                     result.update({"direction": "LONG", "score": score, "signal_time": ana_time, "entry_idx": entry_idx})
                     self.trades.append(result)
+                    if self.log_adaptive:
+                        self._log_adaptive(result, ana)
             elif action == "SELL" and score <= 35:
                 result = self.simulate_trade(entry_idx, entry_price, tp1, tp2, sl, direction="SHORT")
                 if result:
                     result.update({"direction": "SHORT", "score": score, "signal_time": ana_time, "entry_idx": entry_idx})
                     self.trades.append(result)
+                    if self.log_adaptive:
+                        self._log_adaptive(result, ana)
+
+    def _log_adaptive(self, result: Dict, ana: Dict):
+        closed_data = dict(ana)
+        closed_data["coin"] = self.symbol
+        closed_data["entry_price"] = result["entry"]
+        closed_data["sell_price"] = result["exit"]
+        closed_data["pnl_pct"] = result["pnl_pct"]
+        closed_data["result"] = result["result"]
+        closed_data["hold_hours"] = round((result.get("exit_idx", result["entry_idx"]) - result["entry_idx"]) * 0.25, 2)
+        closed_data["exit_time"] = self.candles[result["exit_idx"]]["time"] if "exit_idx" in result else ""
+        log_trade_outcome(closed_data)
 
     def simulate_trade(self, start_idx: int, entry: float, tp1: float, tp2: float, sl: float, direction: str):
         # simple: iterate candles from start_idx, check high/low
@@ -143,10 +161,11 @@ if __name__ == "__main__":
     p.add_argument("file", help="CSV candles file path")
     p.add_argument("--capital", type=float, default=1000.0)
     p.add_argument("--symbol", default="BTC")
+    p.add_argument("--log-adaptive", action="store_true", help="Log simulated trades to adaptive_signals.json")
     args = p.parse_args()
 
     candles = load_csv(args.file)
-    bt = SimpleBacktest(candles, capital=args.capital)
+    bt = SimpleBacktest(candles, capital=args.capital, log_adaptive=args.log_adaptive, symbol=args.symbol)
     bt.run()
     bt.summary()
     out_csv = os.path.join(".", f"backtest_signal_trades_{args.symbol}.csv")

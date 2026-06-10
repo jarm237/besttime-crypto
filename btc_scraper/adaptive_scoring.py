@@ -44,6 +44,33 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
 
     Keeps a compact subset of fields to make downstream analysis simple.
     """
+    # Normalize signal_score: prefer explicit dict, fallback to parsing nested raw JSON
+    raw_ss = closed_data.get("last_signal_score") or closed_data.get("signal_score")
+    signal_score = {}
+    try:
+        if isinstance(raw_ss, dict) and raw_ss:
+            # If the producer serialized inner dict as string under 'raw', try to decode it
+            if raw_ss.get("raw") and isinstance(raw_ss.get("raw"), str):
+                import json as _json
+                try:
+                    parsed = _json.loads(raw_ss.get("raw"))
+                    signal_score = parsed
+                except Exception:
+                    signal_score = raw_ss
+            else:
+                signal_score = raw_ss
+        elif isinstance(raw_ss, str) and raw_ss:
+            import json as _json
+            try:
+                signal_score = _json.loads(raw_ss)
+            except Exception:
+                signal_score = {"raw": raw_ss}
+        else:
+            # Try to pick up any entry-level fields
+            signal_score = closed_data.get("entry_signal_score") or {}
+    except Exception:
+        signal_score = {}
+
     rec = {
         "coin": closed_data.get("coin"),
         "id": closed_data.get("id"),
@@ -54,7 +81,7 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
         "hold_hours": closed_data.get("hold_hours"),
         "exit_time": closed_data.get("exit_time"),
         "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
-        "signal_score": closed_data.get("last_signal_score") or closed_data.get("signal_score") or {},
+        "signal_score": signal_score,
     }
 
     log = _load_log()

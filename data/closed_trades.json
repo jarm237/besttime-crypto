@@ -1,0 +1,342 @@
+[
+  {
+    "coin": "BTC",
+    "entry_time": "2025-08-03 07:30",
+    "exit_time": "2025-08-03 18:15",
+    "entry_price": 112634.7,
+    "exit_price": 114004.23,
+    "pnl": 31.565084303505166,
+    "result": "EXIT_SIGNAL",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (SFP-Liquidity-Sweep)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "BNB",
+    "entry_time": "2025-08-03 07:30",
+    "exit_time": "2025-08-03 18:15",
+    "entry_price": 337.9,
+    "exit_price": 342.01,
+    "pnl": 31.580043898589455,
+    "result": "EXIT_SIGNAL",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (SFP-Liquidity-Sweep)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2025-09-18 01:15",
+    "exit_time": "2025-09-18 01:30",
+    "entry_price": 115961.73,
+    "exit_price": 115201.2996,
+    "pnl": -28.664450956858552,
+    "result": "SL",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (SFP-Liquidity-Sweep)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "BNB",
+    "entry_time": "2025-09-18 01:15",
+    "exit_time": "2025-09-18 01:30",
+    "entry_price": 347.89,
+    "exit_price": 345.6056,
+    "pnl": -28.694072802802765,
+    "result": "SL",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (SFP-Liquidity-Sweep)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "ETH",
+    "entry_time": "2025-10-02 22:00",
+    "exit_time": "2025-10-03 02:15",
+    "entry_price": 4392.56,
+    "exit_price": 4499.05,
+    "pnl": 61.07321499031447,
+    "result": "EXIT_SIGNAL",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (SFP-Liquidity-Sweep)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "ETH",
+    "entry_time": "2025-12-14 04:30",
+    "exit_time": "2025-12-14 18:30",
+    "entry_price": 3106.3,
+    "exit_price": 3091.2584,
+    "pnl": -22.905804152223798,
+    "result": "SL",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (SFP-Liquidity-Sweep)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-03-30 05:45",
+    "exit_time": "2026-03-30 07:15",
+    "entry_price": 65860.31,
+    "exit_price": 66784.4697,
+    "pnl": 30.96123361458663,
+    "result": "TP2",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (Counter-Trend Reversal - High Risk)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "BNB",
+    "entry_time": "2026-03-30 05:45",
+    "exit_time": "2026-03-30 07:15",
+    "entry_price": 197.58,
+    "exit_price": 200.3536,
+    "pnl": 30.975453275681442,
+    "result": "TP2",
+    "signal_score": {
+      "action": "BUY",
+      "score": 65,
+      "confidence": "MEDIUM",
+      "position_size": 0.74,
+      "raw_text": "BUY (Counter-Trend Reversal - High Risk)"
+    },
+    "confidence": "MEDIUM"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 76775.35,
+    "exit_price": 77151.1195,
+    "pnl": -23.179698715795325,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "XRP",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 0.7678,
+    "exit_price": 0.7715,
+    "pnl": -22.92598913707754,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 76775.35,
+    "exit_price": 77151.1195,
+    "pnl": -22.997657863710806,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "XRP",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 0.7678,
+    "exit_price": 0.7715,
+    "pnl": -22.745940783189745,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 76775.35,
+    "exit_price": 77151.1195,
+    "pnl": -22.997657863710806,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "XRP",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 0.7678,
+    "exit_price": 0.7715,
+    "pnl": -22.745940783189745,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 76775.35,
+    "exit_price": 77151.1195,
+    "pnl": -22.997657863710806,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "XRP",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 0.7678,
+    "exit_price": 0.7715,
+    "pnl": -22.745940783189745,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 76775.35,
+    "exit_price": 77151.1195,
+    "pnl": -22.997657863710806,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "XRP",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 0.7678,
+    "exit_price": 0.7715,
+    "pnl": -22.745940783189745,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "BTC",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 76775.35,
+    "exit_price": 77151.1195,
+    "pnl": -22.997657863710806,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  },
+  {
+    "coin": "XRP",
+    "entry_time": "2026-05-20 09:15",
+    "exit_time": "2026-05-20 12:00",
+    "entry_price": 0.7678,
+    "exit_price": 0.7715,
+    "pnl": -22.745940783189745,
+    "result": "SL",
+    "signal_score": {
+      "action": "SELL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.47,
+      "raw_text": "SELL (Break-SMA50)"
+    },
+    "confidence": "LOW"
+  }
+]

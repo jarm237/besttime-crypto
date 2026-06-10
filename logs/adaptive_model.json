@@ -1,1 +1,26 @@
-{}
+{
+  "70": {
+    "win_rate": 49.56,
+    "adjustment": 0.0
+  },
+  "30": {
+    "win_rate": 53.94,
+    "adjustment": 0.0
+  },
+  "10": {
+    "win_rate": 48.07,
+    "adjustment": 0.0
+  },
+  "60": {
+    "win_rate": 87.5,
+    "adjustment": 0.0
+  },
+  "20": {
+    "win_rate": 50.0,
+    "adjustment": 0.0
+  },
+  "90": {
+    "win_rate": 100.0,
+    "adjustment": 0.0
+  }
+}

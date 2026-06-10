@@ -1,6 +1,7 @@
 import os
 import csv
 import math
+import json
 from datetime import datetime
 from btc_scraper.analysis import analyze_all_market
 
@@ -43,7 +44,7 @@ def load_csv_data(filepath: str) -> list[dict]:
     return candles
 
 def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | None = None):
-    coins = ["BTC", "ETH", "SOL"]
+    coins = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "LTC", "ZEC"]
     data_dir = "data"
     
     # 1. Load data & run analysis for each coin
@@ -597,11 +598,18 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
     log_path = os.path.join(log_dir, "backtest_trades.csv")
     with open(log_path, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["coin", "type", "entry_time", "exit_time", "entry_price", "exit_price", "pnl", "result", "r_multiplier"])
+        writer.writerow(["coin", "type", "entry_time", "exit_time", "entry_price", "exit_price", "pnl", "result", "r_multiplier", "signal_score", "confidence"])
         for t in trade_log:
+            # Serialize signal_score as JSON string if present
+            ss = t.get("signal_score")
+            try:
+                ss_ser = json.dumps(ss, ensure_ascii=False) if ss is not None else ""
+            except Exception:
+                ss_ser = str(ss)
+            conf = t.get("confidence") if t.get("confidence") is not None else ""
             writer.writerow([
                 t["coin"], t["type"], t["entry_time"], t["exit_time"],
-                t["entry_price"], t["exit_price"], t["pnl"], t["result"], t["r_multiplier"]
+                t["entry_price"], t["exit_price"], t["pnl"], t["result"], t["r_multiplier"], ss_ser, conf
             ])
     print(f"📝 Đã lưu nhật ký giao dịch vào {log_path} để stress-test Monte Carlo.")
 

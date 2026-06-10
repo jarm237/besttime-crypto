@@ -1031,6 +1031,11 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
     choppiness_list = calculate_choppiness_index(highs, lows, close_prices, 14)
     vol_sma_list = calculate_volume_sma(candles, 20)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
+    # Global market sentiment (reused for all coins / candles in this historical run)
+    sentiment_data = get_market_sentiment()
+    sentiment_score = sentiment_data.get("score")
+    sentiment_label = sentiment_data.get("label")
+    sentiment_raw = sentiment_data.get("raw_value")
 
     # Đưa các chỉ báo vào nến
     for i in range(n):
@@ -1270,6 +1275,50 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             bb_middle   = current_bb_middle,
             bb_lower    = current_bb_lower,
         )
+        # Prepare lightweight data/context for scoring (keeps backward compatibility)
+        score_data = {
+            "rsi": current_rsi,
+            "ema9": current_ema9,
+            "ema21": current_ema21,
+            "sma50": current_sma50,
+            "sma200": current_sma200,
+            "macd": current_macd,
+            "macd_signal": current_macd_signal,
+            "macd_hist": current_macd_hist,
+            "bb_upper": current_bb_upper,
+            "bb_middle": current_bb_middle,
+            "bb_lower": current_bb_lower,
+            "atr": current_atr,
+            "atr_ma": current_atr_ma,
+            "adx": current_adx,
+            "choppiness": current_choppiness,
+            "atr_shock": current_atr_shock,
+            "support": support,
+            "resistance": resistance,
+            "confidence": round(0.5, 2),
+            "position_size": 1.0,
+            "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+            "trend_following_allowed": trend_following_allowed,
+            "vol_spike": vol_spike,
+            "chandelier": chandelier_state,
+            "sentiment": {
+                "score": sentiment_score,
+                "label": sentiment_label,
+                "raw_value": sentiment_raw,
+            },
+        }
+
+        # Compute a basic signal_score for this candle (keeps consistency with analyze_market)
+        try:
+            sig_score_obj = score_signal(sig, score_data, {
+                "chandelier": chandelier_state,
+                "above_sma200": above_sma200,
+                "below_sma200": below_sma200,
+                "vol_spike": vol_spike,
+                "sentiment_score": sentiment_score,
+            })
+        except Exception:
+            sig_score_obj = {"action": sig, "score": 50, "confidence": "LOW", "position_size": 0.5}
 
         results.append({
             "time": candles[i]["time"],
@@ -1302,6 +1351,12 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             "tp_sl": tp_sl_dict,
             "chandelier": chandelier_state,
             "vol_spike": vol_spike,
+            "sentiment": {
+                "score": sentiment_score,
+                "label": sentiment_label,
+                "raw_value": sentiment_raw,
+            },
+            "signal_score": sig_score_obj,
         })
 
     return results
