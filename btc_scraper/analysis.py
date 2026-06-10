@@ -238,7 +238,7 @@ def calculate_tp_sl(
     bb_middle: float,
     bb_lower: float,
     atr_sl_mult: float = 1.2,
-    atr_tp_mult: float = 3.5,
+    atr_tp_mult: float = 5.0,
 ) -> dict:
     """
     Tính mức Entry, Take Profit (TP1, TP2) và Stop Loss (SL) dựa trên:
@@ -264,7 +264,7 @@ def calculate_tp_sl(
         if atr > 0:
             atr_used = atr
         sl = support - 0.5 * atr_used if support > 0 else entry - atr_sl_mult * atr_used
-        sl = max(sl, entry - 6.0 * atr_used)
+        sl = max(sl, entry - 3.0 * atr_used)   # SL không xa hơn 3× ATR
         sl = min(sl, entry - 1.2 * atr_used)
         if sl >= entry:
             sl = entry - atr_sl_mult * atr_used
@@ -285,7 +285,7 @@ def calculate_tp_sl(
         if atr > 0:
             atr_used = atr
         sl = resistance + 0.5 * atr_used if resistance > 0 else entry + atr_sl_mult * atr_used
-        sl = min(sl, entry + 6.0 * atr_used)
+        sl = min(sl, entry + 3.0 * atr_used)   # SL không xa hơn 3× ATR
         sl = max(sl, entry + 1.2 * atr_used)
         if sl <= entry:
             sl = entry + atr_sl_mult * atr_used
@@ -842,7 +842,9 @@ def analyze_market(candles: list[dict]) -> dict:
                     reason += f" | {sentiment_note}"
                 return finalize(sig, reason)
             else:
-                return finalize("BUY (Counter-Trend Reversal - High Risk)", f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note}" + (" | Chandelier=BEAR: rui ro cao!" if chandelier_blocks_buy else "") + (" | Ben duoi SMA200 - CAUTION" if not above_sma200 else "") + (sentiment_note if extreme_fear else ""))
+                # Counter-Trend khi không có xác nhận xu hướng: chuyển thành NEUTRAL
+                # (backtest cho thấy win rate <43% và avg PnL âm)
+                return finalize("NEUTRAL (CT-Unconfirmed)", f"RSI dao chieu tu Oversold{vol_note} NHUNG thieu xac nhan (Chandelier=BEAR hoac ben duoi SMA200) — bo qua")
 
         if rsi_turning_down:
             vol_note = " + Volume Spike (xa hang manh)" if vol_spike else " (volume trung binh)"
@@ -877,7 +879,8 @@ def analyze_market(candles: list[dict]) -> dict:
                     reason += f" | NHUNG{sentiment_note} — Thi truong dang trong vung so hai cuc do!"
                 return finalize(sig, reason)
             elif current_sma200 > 0:
-                return finalize("WEAK BUY (Crossover)", "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap!" + sentiment_note)
+                # WEAK BUY below SMA200: xác suất thấp, bỏ qua
+                return finalize("NEUTRAL (Crossover-BearMkt)", "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap, bo qua")
             else:
                 return finalize("BUY (Crossover)", "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)" + sentiment_note)
 
@@ -1178,8 +1181,8 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
                 sig = "STRONG BUY (Confirmed Reversal)"
                 reason = f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note} | Tren SMA200"
             else:
-                sig = "BUY (Counter-Trend Reversal - High Risk)"
-                reason = f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note}" + (" | Chandelier=BEAR: rui ro cao!" if chandelier_blocks_buy else "") + (" | Ben duoi SMA200 - CAUTION" if not above_sma200 else "")
+                sig = "NEUTRAL (CT-Unconfirmed)"
+                reason = f"RSI dao chieu tu Oversold{vol_note} NHUNG thieu xac nhan — bo qua"
         elif rsi_turning_down:
             vol_note = " + Volume Spike (xa hang manh)" if vol_spike else " (volume trung binh)"
             sig = "STRONG SELL (Confirmed Reversal)"
