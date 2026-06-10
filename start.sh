@@ -27,7 +27,8 @@ sleep 1
 # 2. Khởi động Web Dashboard (Vite/React)
 echo "[2/3] Khởi động Web Dashboard (Cổng 3000)..."
 cd web
-npm run dev > /dev/null 2>&1 &
+# Pass the port argument so Vite runs on port 3000 to match the message above
+npm run dev -- --port 3000 > /dev/null 2>&1 &
 WEB_PID=$!
 cd ..
 sleep 1
