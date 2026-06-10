@@ -107,18 +107,24 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
     table.add_column("TP2 (R:R)",    justify="right", style="bright_green")
     table.add_column("Ly Do Chi Tiet")
     
+    from btc_scraper.signal_score import extract_signal_fields
     for key, ana in analysis_results.items():
         coin, exchange = key.split(":")
-        sig = ana["signal"]
+        sig_fields = extract_signal_fields(ana)
+        sig = ana.get("signal", sig_fields.get("raw", ""))
         
-        # Color signal
+        # Color signal and show score/confidence if available
         sig_styled = f"[white]{sig}[/]"
+        sig_score = ana.get("signal_score", {}) or {}
+        score_val = sig_score.get("score")
+        conf = sig_score.get("confidence")
+        score_suffix = f" ({score_val}% {conf})" if score_val is not None else ""
         if "STRONG BUY" in sig or "BUY" in sig:
-            sig_styled = f"[bold bright_green]{sig}[/]"
+            sig_styled = f"[bold bright_green]{sig}{score_suffix}[/]"
         elif "STRONG SELL" in sig or "SELL" in sig:
-            sig_styled = f"[bold bright_red]{sig}[/]"
+            sig_styled = f"[bold bright_red]{sig}{score_suffix}[/]"
         elif "NEUTRAL" in sig:
-            sig_styled = f"[bold yellow]{sig}[/]"
+            sig_styled = f"[bold yellow]{sig}{score_suffix}[/]"
             
         close_val = ana.get('close', 0.0)
         val_format = ",.4f" if close_val < 10 else ",.2f"
@@ -182,7 +188,9 @@ def make_missed_signals_table(analysis_results: dict[str, dict]) -> Table | None
     table.add_column("Trang Thai", justify="center")
     
     for coin, exchange, ms, current_close in all_missed:
-        sig = ms["signal"]
+        from btc_scraper.signal_score import extract_signal_fields
+        ms_sig_fields = extract_signal_fields(ms)
+        sig = ms.get("signal", ms_sig_fields.get("raw", ""))
         
         # Color signal
         sig_styled = f"[white]{sig}[/]"

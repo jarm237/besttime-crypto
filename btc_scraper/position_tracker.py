@@ -10,6 +10,7 @@ Luồng sử dụng:
 import json
 import os
 from datetime import datetime
+import uuid
 from typing import Literal
 
 from btc_scraper.analysis import calculate_tp_sl
@@ -65,6 +66,8 @@ def add_position(
     direction: Literal["LONG", "SHORT"] = "LONG",
     note: str = "",
     invested_usdt: float = 0.0,
+    signal_score: dict | None = None,
+    confidence: float | None = None,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -81,16 +84,15 @@ def add_position(
     positions = _load_positions()
     coin = coin.upper()
 
-    # Kiểm tra nếu đã có vị thế đang mở cho coin này
-    existing = next((p for p in positions if p["coin"] == coin and p["status"] == "open"), None)
-    if existing:
-        raise ValueError(f"Đã có vị thế ĐANG MỞ cho {coin} (entry={existing['entry_price']}). Đóng vị thế cũ trước.")
-
+    # Không chặn nhiều vị thế cùng mã — cho phép pyramiding/multiple entries.
     pos = {
         "coin": coin,
+        "id": str(uuid.uuid4()),
         "direction": direction.upper(),
         "entry_price": float(entry_price),
         "invested_usdt": float(invested_usdt),
+        "entry_signal_score": signal_score or {},
+        "entry_confidence": confidence,
         "entry_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "status": "open",
         "note": note,
@@ -191,6 +193,51 @@ def close_position(coin: str, sell_price: float) -> dict:
     closed_log.append(closed_data)
     _save_closed_log(closed_log)
 
+    # Đồng thời lưu một copy giản lược vào data/closed_trades.json để huấn luyện
+    try:
+        base = os.path.dirname(os.path.dirname(__file__))
+        data_path = os.path.join(base, "data", "closed_trades.json")
+        os.makedirs(os.path.dirname(data_path), exist_ok=True)
+        simple = {
+            "coin": closed_data.get("coin"),
+            "id": closed_data.get("id"),
+            "entry_time": closed_data.get("entry_time"),
+            "exit_time": closed_data.get("exit_time"),
+            "entry_price": closed_data.get("entry_price"),
+            "exit_price": closed_data.get("sell_price"),
+            "pnl_pct": closed_data.get("pnl_pct"),
+            "result": closed_data.get("result"),
+            "hold_hours": closed_data.get("hold_hours"),
+            "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
+            "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
+            "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
+        }
+        # Append to JSON array
+        if os.path.exists(data_path):
+            try:
+                with open(data_path, "r", encoding="utf-8") as f:
+                    arr = json.load(f)
+            except Exception:
+                arr = []
+        else:
+            arr = []
+        arr.append(simple)
+        with open(data_path, "w", encoding="utf-8") as f:
+            json.dump(arr, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+    # Ghi log outcomes cho adaptive scoring (không phá lỗi nếu module không có)
+    try:
+        from btc_scraper.adaptive_scoring import log_trade_outcome
+        try:
+            log_trade_outcome(closed_data)
+        except Exception:
+            # Không phá luồng: adaptive logging là bổ sung
+            pass
+    except Exception:
+        pass
+
     return closed_data
 
 
@@ -220,8 +267,12 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
     recommendations = []
     all_positions = _load_positions()
 
-    for pos in positions:
-        coin = pos["coin"]
+    # Group positions by coin to support multiple entries per same coin
+    by_coin: dict[str, list[dict]] = {}
+    for p in positions:
+        by_coin.setdefault(p["coin"], []).append(p)
+
+    for coin, pos_list in by_coin.items():
         ana = coin_analysis.get(coin)
         if not ana:
             continue
@@ -230,14 +281,23 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         if current_price <= 0:
             continue
 
-        entry = pos["entry_price"]
-        direction = pos["direction"]
-        signal = ana.get("signal", "NEUTRAL")
-        
-        # Tính toán SL/TP riêng rẽ cho từng vị thế dựa trên entry_price và direction của vị thế
+        # Aggregate invested and compute weighted average entry if possible
+        total_invested = sum(float(p.get("invested_usdt", 0.0)) for p in pos_list)
+        if total_invested > 0:
+            weighted_entry = sum(float(p.get("entry_price", 0.0)) * float(p.get("invested_usdt", 0.0)) for p in pos_list) / total_invested
+        else:
+            weighted_entry = sum(float(p.get("entry_price", 0.0)) for p in pos_list) / len(pos_list)
+
+        # Assume direction is the same for grouped positions (LONG/SHORT)
+        direction = pos_list[0].get("direction", "LONG")
+        from btc_scraper.signal_score import extract_signal_fields
+        sig_fields = extract_signal_fields(ana)
+        signal = ana.get("signal", sig_fields.get("raw", "NEUTRAL"))
+
+        # Recalculate SL/TP based on weighted entry
         force_signal = "BUY" if direction == "LONG" else "SELL"
         pos_tp_sl = calculate_tp_sl(
-            close=entry,
+            close=weighted_entry,
             signal=force_signal,
             atr=ana.get("atr", 0.0),
             support=ana.get("support", 0.0),
@@ -246,29 +306,29 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             bb_middle=ana.get("bb_middle", 0.0),
             bb_lower=ana.get("bb_lower", 0.0),
         )
-        
+
         sl = pos_tp_sl.get("sl", 0.0)
         tp1 = pos_tp_sl.get("tp1", 0.0)
         tp2 = pos_tp_sl.get("tp2", 0.0)
         rr1 = pos_tp_sl.get("rr1", 0.0)
 
-        # Tính P&L hiện tại
+        # Compute aggregated P&L using weighted_entry
         if direction == "LONG":
-            pnl_pct = (current_price - entry) / entry * 100
-        else:  # SHORT
-            pnl_pct = (entry - current_price) / entry * 100
-            
-        # Tính tiền nhận thực tế dự kiến (đã trừ phí 0.1% mỗi chiều)
-        invested_usdt = pos.get("invested_usdt", 0.0)
+            pnl_pct = (current_price - weighted_entry) / weighted_entry * 100
+        else:
+            pnl_pct = (weighted_entry - current_price) / weighted_entry * 100
+
+        # Aggregate invested_usdt and expected received
+        invested_usdt = total_invested
         pnl_usd_actual = invested_usdt * (pnl_pct / 100)
         gross_received = invested_usdt + pnl_usd_actual
         fee_usd = (invested_usdt * 0.001) + (gross_received * 0.001) if invested_usdt > 0 else 0.0
         expected_received_usdt = gross_received - fee_usd if invested_usdt > 0 else 0.0
 
-        # Xác định khuyến nghị
+        # Xác định khuyến nghị dựa trên entry trung bình
         rec = _generate_recommendation(
             direction=direction,
-            entry=entry,
+            entry=weighted_entry,
             current_price=current_price,
             pnl_pct=pnl_pct,
             signal=signal,
@@ -277,12 +337,13 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             tp2=tp2,
         )
 
-        # Cập nhật last_signal và last_price trong file
+        # Cập nhật last_signal và last_price cho mọi vị thế của coin
         for p in all_positions:
             if p["coin"] == coin and p["status"] == "open":
                 p["last_signal"] = signal
                 p["last_price"] = current_price
                 p["last_checked"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                p["last_signal_score"] = ana.get("signal_score", {})
                 p["suggested_sl"] = sl
                 p["suggested_tp1"] = tp1
                 p["suggested_tp2"] = tp2
@@ -291,13 +352,16 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         recommendations.append({
             "coin": coin,
             "direction": direction,
-            "entry_price": entry,
+            "positions_count": len(pos_list),
+            "avg_entry_price": round(weighted_entry, 6),
+            "entry_price": round(weighted_entry, 6),
             "current_price": current_price,
             "pnl_pct": round(pnl_pct, 3),
             "invested_usdt": invested_usdt,
             "expected_received_usdt": round(expected_received_usdt, 2),
             "fee_usd": round(fee_usd, 2),
             "signal": signal,
+            "suggested_position_size": ana.get("signal_score", {}).get("position_size") or ana.get("position_size"),
             "recommendation": rec["action"],
             "recommendation_reason": rec["reason"],
             "urgency": rec["urgency"],

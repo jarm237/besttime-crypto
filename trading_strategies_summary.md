@@ -69,7 +69,8 @@ Nến đóng cửa
     → [L4] Chandelier Exit      (Block BUY khi BEAR)
     → [L5] Volume + SFP Sweep   (Confirm momentum)
     → [L6] Fear & Greed Sentiment (Downgrade extreme)
-    → OUTPUT: BUY / SELL / WEAK / NEUTRAL
+    → [L7] Machine Learning Scoring (Logistic Regression - Tự động điều chỉnh)
+    → OUTPUT: BUY / SELL / WEAK / NEUTRAL (kèm Score 0-100% và Position Size)
 ```
 
 ### Lớp 1 — SMA 200 Trend Filter
@@ -108,6 +109,15 @@ Nến đóng cửa
 * Mapping: raw 0–100 → score [-1.0, +1.0] (tuyến tính, trừ 50, chia 50)
 * **Extreme Fear** (score < −0.6): Hạ cấp STRONG BUY → WEAK BUY (Sentiment-Blocked)
 * **Extreme Greed** (score > +0.6): Hạ cấp STRONG SELL → WEAK SELL (Sentiment-Blocked)
+
+### Lớp 7 — Machine Learning / Adaptive Scoring (Mới)
+* **Mục đích**: Thay vì chỉ dùng Rule-based cứng nhắc, tín hiệu sau cùng sẽ được đưa qua mô hình Machine Learning (Logistic Regression) để tính Xác Suất Thắng (Win Probability).
+* **Features đầu vào**: `rsi`, `atr`, `ema_trend`, `bb_width`, `vol_spike`, `is_buy`, `is_sell`, `sentiment_score`.
+* **Đầu ra**: 
+  - `score` (0-100%): Xác suất lệnh sẽ thắng.
+  - `confidence`: HIGH (≥80%), MEDIUM (≥60%), LOW.
+  - `position_size`: Tự động nội suy từ 0.25 (nhỏ) đến 1.0 (Full volume) dựa vào score (Dựa trên Kelly Criterion).
+* **Cơ chế tự học (Adaptive)**: Khi chốt lệnh (`./pos close`), dữ liệu được tự động log vào `adaptive_signals.json`. Mô hình được train lại bằng cách gọi `python btc_scraper/adaptive_scoring.py --train`.
 
 ---
 

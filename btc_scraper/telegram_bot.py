@@ -58,9 +58,11 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
     neutral_signals = []
     missed_valid_signals = []
     
+    from btc_scraper.signal_score import extract_signal_fields
     for key, ana in analysis_results.items():
         coin, exchange = key.split(":")
-        sig = ana["signal"]
+        sig_fields = extract_signal_fields(ana)
+        sig = ana.get("signal", sig_fields.get("raw", ""))
         
         # Định dạng dòng tin nhắn
         close_val = ana.get('close', 0.0)
@@ -79,7 +81,11 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
             
         escaped_sig = html.escape(sig)
         escaped_reason = html.escape(ana.get("reason", ""))
-        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b> giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
+        sig_score = ana.get("signal_score", {}) or {}
+        score_val = sig_score.get("score")
+        confidence = sig_score.get("confidence")
+        score_part = f" <b>[{score_val}% {confidence}]</b>" if score_val is not None else ""
+        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b>{score_part} giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
         
         tp_sl = ana.get("tp_sl", {})
         if ("BUY" in sig or "SELL" in sig) and tp_sl:
@@ -126,7 +132,8 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
         # Kiểm tra tín hiệu bỏ lỡ còn hiệu lực (Running)
         for ms in ana.get("missed_signals", []):
             if "Running" in ms["status"]:
-                ms_sig = ms["signal"]
+                ms_fields = extract_signal_fields(ms)
+                ms_sig = ms.get("signal", ms_fields.get("raw", ""))
                 ms_emoji = "⏳ 🟢" if "BUY" in ms_sig else "⏳ 🔴"
                 ms_val_format = ",.4f" if ms["entry"] < 10 else ",.2f"
                 ms_entry_str = f"{ms['entry']:{ms_val_format}}"

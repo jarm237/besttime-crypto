@@ -132,8 +132,10 @@ def _apply_dynamic_risk_and_sentiment(
     fear_score = float(sentiment.get("score", 0.0))
     fear_extreme = fear_score <= -0.6
 
+    from btc_scraper.signal_score import extract_signal_fields
     for info in analysis_results.values():
-        signal = str(info.get("signal", "")).upper()
+        sig_fields = extract_signal_fields(info)
+        signal = str(info.get("signal", sig_fields.get("raw", ""))).upper()
         trend = str(info.get("trend", "NEUTRAL")).upper()
         confidence = float(info.get("confidence", 0.5))
         direction = "SHORT" if "SELL" in signal or "SHORT" in signal else "LONG"
@@ -352,9 +354,11 @@ def _build_rag_block(
 
     has_content = False
 
+    from btc_scraper.signal_score import extract_signal_fields
     for key, info in analysis_results.items():
         coin = key.split(":")[0]
-        current_signal = info.get("signal", "")
+        sig_fields = extract_signal_fields(info)
+        current_signal = info.get("signal", sig_fields.get("raw", ""))
 
         # Tìm lệnh lịch sử cho coin này
         coin_trades = [t for t in closed_trades if t.get("coin", "").upper() == coin.upper()]

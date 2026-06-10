@@ -48,7 +48,9 @@ def _summarize_htf_trend(mtf_data: dict[str, dict]) -> str:
         info = mtf_data.get(tf)
         if not info:
             continue
-        counts[_classify_mtf_signal(info.get("signal", ""))] += 1
+        from btc_scraper.signal_score import extract_signal_fields
+        sig_fields = extract_signal_fields(info)
+        counts[_classify_mtf_signal(info.get("signal", sig_fields.get("raw", "")))] += 1
 
     if counts["BULL"] >= 2 and counts["BEAR"] == 0:
         return "BULLISH"

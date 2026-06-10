@@ -59,6 +59,14 @@ Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
 - 🎯 Giá đạt **TP1 hoặc TP2**
 - ⚠️ Xuất hiện **tín hiệu đảo chiều** ngược hướng vị thế
 
+Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`. Lưu ý: Việc đóng lệnh sẽ tự động ghi dữ liệu vào hệ thống AI để huấn luyện (Adaptive Scoring).
+
+#### 5. Huấn luyện Mô hình AI (Adaptive Scoring)
+Bot được tích hợp mô hình Machine Learning (Logistic Regression) tự học từ lịch sử giao dịch. Để train lại mô hình dựa trên các lệnh đã đóng mới nhất:
+```bash
+python btc_scraper/adaptive_scoring.py --train
+```
+
 ---
 
 ## Cài đặt và Khởi chạy
@@ -115,6 +123,8 @@ Nhấn `Ctrl + C` để tắt toàn bộ.
 ```bash
 python main.py
 ```
+- **Gửi báo cáo phân tích tự động qua tin nhắn Telegram.**
+- **MỚI - Trí tuệ Nhân tạo (Machine Learning)**: Tính toán xác suất chiến thắng của tín hiệu bằng mô hình Logistic Regression và điều chỉnh khối lượng vào lệnh (Position Sizing) tự động.
 - Quét tổng quát mỗi 15 phút: lấy dữ liệu, phân tích, gọi AI, gửi Telegram.
 - Quét khẩn cấp mỗi 5 phút: chỉ theo dõi coin đang có vị thế mở.
 

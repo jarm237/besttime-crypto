@@ -28,8 +28,8 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
   - `python-dotenv` — `.env` file loading.
   - `google-genai` — Gemini AI (Flash model) integration.
   - `fastapi` + `uvicorn` — Backend REST API for Web Dashboard.
-  - `pytest` + `httpx` — Unit testing.
-  - *No Pandas, no ta-lib.* All indicators are pure Python in `btc_scraper/analysis.py`.
+  - `pandas`, `scikit-learn`, `joblib`, `numpy` - Machine Learning & Adaptive Scoring.
+  - *No `ta-lib` are used.* All technical indicators are implemented in pure Python within `btc_scraper/analysis.py` for maximum speed and simplicity.
 - **Frontend:** Vue 3 / Vite in `web/`, served at port 3000.
 
 ---
@@ -47,7 +47,9 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
 | `btc_scraper/analysis.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/analysis.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/analysis.py) | All indicator math + 6-layer signal logic + TP/SL formula |
 | `btc_scraper/sentiment.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/sentiment.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/sentiment.py) | Fear & Greed Index from alternative.me (cached 1h) |
 | `btc_scraper/ai_analyst.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ai_analyst.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ai_analyst.py) | Gemini AI prompt builder — MTF data, sentiment, RAG from closed trades |
-| `btc_scraper/position_tracker.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/position_tracker.py) | Open/closed position management, TP/SL evaluation, performance metrics |
+| `btc_scraper/position_tracker.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/position_tracker.py) | Tracks manual open/closed positions and generates trade recommendations. |
+| `btc_scraper/adaptive_scoring.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/adaptive_scoring.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/adaptive_scoring.py) | Machine Learning pipeline for training win probability models. |
+| `btc_scraper/signal_score.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/signal_score.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/signal_score.py) | Fuzzy logic and ML inference to assign live probability and dynamic position sizing. |
 | `btc_scraper/exchanges/binance.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/exchanges/binance.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/exchanges/binance.py) | Binance OHLCV fetcher (`fetch_ohlcv`, `fetch_ohlcv_tf`, `fetch_ohlcv_multi_tf`) |
 | `btc_scraper/telegram_bot.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/telegram_bot.py) | Telegram broadcaster (signals, AI report, position recommendations) |
 | `api/server.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/api/server.py) | [Windows](file:///d:/Workspaces/Vọc vạch/api/server.py) | FastAPI REST backend — serves `latest_signals.json` and `latest_ai_analysis.json` |

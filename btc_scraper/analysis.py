@@ -6,6 +6,7 @@ Không phụ thuộc vào thư viện pandas hay ta, sử dụng thuật toán t
 import math
 from btc_scraper.sentiment import get_market_sentiment, sentiment_label_vi
 from btc_scraper.filters import atr_shock_filter
+from btc_scraper.signal_score import score_signal
 
 
 def calculate_atr(candles: list[dict], period: int = 14) -> list[float]:
@@ -991,6 +992,12 @@ def analyze_market(candles: list[dict]) -> dict:
             "raw_value": sentiment_raw,
         },
     }
+    # Attach scoring metadata (phase 1-5 basic implementation). Keep backward compatibility.
+    try:
+        res["signal_score"] = score_signal(current_sig, res, trend_context)
+    except Exception:
+        res["signal_score"] = {"action": current_sig, "score": 50, "confidence": "LOW", "position_size": 0.5}
+
     return res
 
 

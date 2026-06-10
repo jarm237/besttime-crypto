@@ -42,7 +42,7 @@ def load_csv_data(filepath: str) -> list[dict]:
             })
     return candles
 
-def run_backtest(initial_balance: float = 10000.0):
+def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | None = None):
     coins = ["BTC", "ETH", "SOL"]
     data_dir = "data"
     
@@ -148,7 +148,9 @@ def run_backtest(initial_balance: float = 10000.0):
                         "exit_price": exit_price,
                         "pnl": pnl_net,
                         "result": "SL",
-                        "r_multiplier": pnl_net / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0)
+                        "r_multiplier": pnl_net / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0),
+                        "signal_score": pos.get("entry_signal_score"),
+                        "confidence": pos.get("entry_confidence"),
                     })
                     closed_coins.append(coin)
                     continue
@@ -186,13 +188,17 @@ def run_backtest(initial_balance: float = 10000.0):
                         "exit_price": exit_price,
                         "pnl": total_pnl,
                         "result": "TP2",
-                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0)
+                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0),
+                        "signal_score": pos.get("entry_signal_score"),
+                        "confidence": pos.get("entry_confidence"),
                     })
                     closed_coins.append(coin)
                     continue
                 
                 # Check EXIT_SIGNAL: chỉ thoát sau MIN_HOLD_CANDLES và chỉ khi gặp tín hiệu đảo chiều mạnh
-                signal = coin_data["signal"]
+                from btc_scraper.signal_score import extract_signal_fields
+                sig_fields = extract_signal_fields(coin_data)
+                signal = coin_data.get("signal", sig_fields.get("raw", ""))
                 candles_held = pos.get("candles_held", 0) + 1
                 pos["candles_held"] = candles_held
                 strong_exit_long = any(x in signal for x in [
@@ -218,7 +224,9 @@ def run_backtest(initial_balance: float = 10000.0):
                         "exit_price": exit_price,
                         "pnl": total_pnl,
                         "result": "EXIT_SIGNAL",
-                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0)
+                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0),
+                        "signal_score": pos.get("entry_signal_score"),
+                        "confidence": pos.get("entry_confidence"),
                     })
                     closed_coins.append(coin)
                     continue
@@ -242,7 +250,9 @@ def run_backtest(initial_balance: float = 10000.0):
                         "exit_price": exit_price,
                         "pnl": pnl_net,
                         "result": "SL",
-                        "r_multiplier": pnl_net / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0)
+                        "r_multiplier": pnl_net / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0),
+                        "signal_score": pos.get("entry_signal_score"),
+                        "confidence": pos.get("entry_confidence"),
                     })
                     closed_coins.append(coin)
                     continue
@@ -279,13 +289,17 @@ def run_backtest(initial_balance: float = 10000.0):
                         "exit_price": exit_price,
                         "pnl": total_pnl,
                         "result": "TP2",
-                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0)
+                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0),
+                        "signal_score": pos.get("entry_signal_score"),
+                        "confidence": pos.get("entry_confidence"),
                     })
                     closed_coins.append(coin)
                     continue
                 
                 # Check EXIT_SIGNAL: chỉ thoát sau MIN_HOLD_CANDLES và chỉ khi gặp tín hiệu đảo chiều mạnh
-                signal = coin_data["signal"]
+                from btc_scraper.signal_score import extract_signal_fields
+                sig_fields = extract_signal_fields(coin_data)
+                signal = coin_data.get("signal", sig_fields.get("raw", ""))
                 candles_held = pos.get("candles_held", 0) + 1
                 pos["candles_held"] = candles_held
                 strong_exit_short = any(x in signal for x in [
@@ -310,7 +324,9 @@ def run_backtest(initial_balance: float = 10000.0):
                         "exit_price": exit_price,
                         "pnl": total_pnl,
                         "result": "EXIT_SIGNAL",
-                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0)
+                        "r_multiplier": total_pnl / (pos["entry_risk"] if pos["entry_risk"] > 0 else 1.0),
+                        "signal_score": pos.get("entry_signal_score"),
+                        "confidence": pos.get("entry_confidence"),
                     })
                     closed_coins.append(coin)
                     continue
@@ -333,7 +349,11 @@ def run_backtest(initial_balance: float = 10000.0):
                 continue
                 
             coin_data = lookup[current_time][coin]
-            signal = coin_data["signal"]
+            from btc_scraper.signal_score import extract_signal_fields, score_signal
+            sig_fields = extract_signal_fields(coin_data)
+            sig_text = coin_data.get("signal", sig_fields.get("raw", ""))
+            score_obj = score_signal(sig_text, coin_data, {"sentiment_penalty": sentiment_penalty} if sentiment_penalty is not None else {})
+            signal = sig_text
             tp_sl = coin_data["tp_sl"]
             
             # Chỉ vào lệnh với tín hiệu rõ ràng, loại WEAK và NEUTRAL
@@ -349,7 +369,17 @@ def run_backtest(initial_balance: float = 10000.0):
                 and "NEUTRAL" not in signal
             )
             
+            # Additionally require model-derived action (if available) to match
+            action_ok = False
+            try:
+                action_ok = score_obj.get("action") == "BUY" if is_buy_signal else (score_obj.get("action") == "SELL" if is_sell_signal else False)
+            except Exception:
+                action_ok = False
+
             if not is_buy_signal and not is_sell_signal:
+                continue
+            if not action_ok:
+                # Skip if score-based action disagrees with text-based filter
                 continue
                 
             # Lấy thông số Entry, SL, TP
@@ -436,6 +466,8 @@ def run_backtest(initial_balance: float = 10000.0):
                         "entry_risk": risk_amount,
                         "partial_pnl": 0.0,
                         "partial_exits": [],
+                        "entry_signal_score": score_obj,
+                        "entry_confidence": score_obj.get("confidence"),
                         "candles_held": 0,
                     }
                     # print(f"🟢 [LONG] {coin} tại {entry:.2f} | Risk: {risk_pct*100}%{correlation_note}")
@@ -469,6 +501,8 @@ def run_backtest(initial_balance: float = 10000.0):
                         "entry_risk": risk_amount,
                         "partial_pnl": 0.0,
                         "partial_exits": [],
+                        "entry_signal_score": score_obj,
+                        "entry_confidence": score_obj.get("confidence"),
                         "candles_held": 0,
                     }
                     # print(f"🔴 [SHORT] {coin} tại {entry:.2f} | Risk: {risk_pct*100}%{correlation_note}")
@@ -571,5 +605,68 @@ def run_backtest(initial_balance: float = 10000.0):
             ])
     print(f"📝 Đã lưu nhật ký giao dịch vào {log_path} để stress-test Monte Carlo.")
 
+    # Đồng thời lưu bản giản lược vào data/closed_trades.json để huấn luyện
+    try:
+        data_path = os.path.join("data", "closed_trades.json")
+        os.makedirs(os.path.dirname(data_path), exist_ok=True)
+        existing = []
+        if os.path.exists(data_path):
+            try:
+                with open(data_path, "r", encoding="utf-8") as f:
+                    existing = json.load(f)
+            except Exception:
+                existing = []
+
+        for t in trade_log:
+            rec = {
+                "coin": t.get("coin"),
+                "entry_time": t.get("entry_time"),
+                "exit_time": t.get("exit_time"),
+                "entry_price": t.get("entry_price"),
+                "exit_price": t.get("exit_price"),
+                "pnl": t.get("pnl"),
+                "result": t.get("result"),
+                "signal_score": t.get("signal_score"),
+                "confidence": t.get("confidence"),
+            }
+            existing.append(rec)
+
+        with open(data_path, "w", encoding="utf-8") as f:
+            json.dump(existing, f, ensure_ascii=False, indent=2)
+        print(f"📝 Đã lưu bản tóm tắt closed trades vào {data_path}.")
+    except Exception:
+        pass
+
+    return net_profit
+
 if __name__ == "__main__":
-    run_backtest()
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument("--sweep", action="store_true", help="Run sentiment penalty sweep")
+    p.add_argument("--start", type=int, default=-5, help="Sweep start (negative penalty)")
+    p.add_argument("--end", type=int, default=-30, help="Sweep end (negative penalty)")
+    p.add_argument("--step", type=int, default=-5, help="Sweep step (negative)")
+    args = p.parse_args()
+
+    if args.sweep:
+        weights = list(range(args.start, args.end - 1, args.step)) if args.step < 0 else list(range(args.start, args.end + 1, args.step))
+        results = []
+        for w in weights:
+            print(f"\n--- Running backtest with sentiment_penalty={w} ---")
+            try:
+                # Re-run and capture printed output; return net profit via function
+                net = run_backtest(initial_balance=10000.0, sentiment_penalty=w)
+                # If run_backtest returns None (no trades), approximate net as 0
+                results.append((w, net if isinstance(net, (int, float)) else 0.0))
+            except Exception as e:
+                print(f"Error running weight {w}: {e}")
+                results.append((w, float("-inf")))
+
+        # Find best
+        best = max(results, key=lambda x: x[1]) if results else (None, None)
+        print("\nSweep results (weight -> net profit):")
+        for w, net in results:
+            print(f"  {w} -> {net}")
+        print(f"\nBest weight: {best[0]} -> {best[1]}")
+    else:
+        run_backtest()
