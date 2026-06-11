@@ -131,6 +131,67 @@ def ai_worker():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+def check_and_execute_auto_closes(recs: list[dict]):
+    """
+    Kiểm tra và tự động đóng vị thế trên Binance Testnet nếu có khuyến nghị chốt lời/cắt lỗ.
+    """
+    try:
+        from btc_scraper.auto_trader import auto_trader
+        open_positions = position_tracker.get_open_positions()
+        for rec in recs:
+            coin = rec["coin"]
+            action = rec["recommendation"]
+            current_price = rec["current_price"]
+            
+            # Kiểm tra xem có phải tín hiệu đóng (chạm SL hoặc TP2)
+            should_close = "CẮT LỖ NGAY" in action or "CHỐT LỜI TP2" in action
+            if should_close:
+                # Tìm xem có position nào note chứa "[AUTO-"
+                auto_pos = [p for p in open_positions if p["coin"].upper() == coin.upper() and "[AUTO-" in p.get("note", "")]
+                if auto_pos:
+                    console.print(f"[bold yellow][AutoTrade] Tự động đóng vị thế {coin} do: {action}[/bold yellow]")
+                    closed_data = position_tracker.close_position(coin, current_price)
+                    
+                    # Cập nhật kết quả vào circuit breaker của AutoTrader
+                    result_type = "LOSS" if "CẮT LỖ NGAY" in action else "WIN"
+                    auto_trader._record_trade_result(result_type)
+                    
+                    # Gửi tin nhắn Telegram thông báo đóng vị thế tự động
+                    msg = (
+                        f"[AUTO-TRADE CLOSED] {coin}\n"
+                        f"Hanh dong: {action}\n"
+                        f"Gia dong: ${current_price:,.4f}\n"
+                        f"PnL: {closed_data.get('pnl_pct', 0.0):+.2f}%\n"
+                        f"R-multiplier: {closed_data.get('r_multiplier', 'N/A')}R\n"
+                        f"Ket qua: {result_type}"
+                    )
+                    from btc_scraper.telegram_bot import send_telegram_message
+                    send_telegram_message(msg, parse_mode=None)
+                    
+                    # Thực hiện lệnh đặt đóng trên exchange nếu không phải dry_run
+                    note = auto_pos[0].get("note", "")
+                    mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
+                    if mode in ("TESTNET", "LIVE"):
+                        try:
+                            from btc_scraper.ccxt_client import CCXTClient
+                            client = CCXTClient.from_env()
+                            client.dry_run = False
+                            symbol = f"{coin}/USDT"
+                            direction = auto_pos[0].get("direction")
+                            invested_usdt = auto_pos[0].get("invested_usdt", 0.0)
+                            entry_price = auto_pos[0].get("entry_price", 0.0)
+                            if entry_price > 0:
+                                current_val = invested_usdt * (current_price / entry_price)
+                                if direction == "LONG":
+                                    client.create_market_sell(symbol, current_val)
+                                else:
+                                    client.create_market_buy(symbol, current_val)
+                        except Exception as ex_err:
+                            console.print(f"[bold red][AutoTrade] Lỗi đóng lệnh trên sàn: {ex_err}[/bold red]")
+    except Exception as e:
+        console.print(f"[dim red][AutoTrade] Lỗi tự động đóng vị thế: {e}[/dim red]")
+
+
 def fetch_and_display():
     """Lấy dữ liệu từ tất cả sàn, phân tích chỉ báo và in ra terminal."""
     console.print("[dim]Đang lấy dữ liệu thị trường (BTC, ETH, BNB, SOL, ZEC)...[/dim]")
@@ -193,6 +254,7 @@ def fetch_and_display():
         recs = position_tracker.evaluate_positions(analysis)
         if recs:
             send_position_recommendations(recs)
+            check_and_execute_auto_closes(recs)
     except Exception as e:
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 
@@ -215,6 +277,13 @@ def fetch_and_display():
                 )
     except Exception as e:
         console.print(f"[dim red][Shadow] Lỗi ghi shadow log: {e}[/dim red]")
+
+    # Auto Trading (CCXT Integration)
+    try:
+        from btc_scraper.auto_trader import auto_trader
+        auto_trader.evaluate_and_trade(analysis)
+    except Exception as e:
+        console.print(f"[dim red][AutoTrade] Lỗi tự động giao dịch: {e}[/dim red]")
 
     # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
     message_id = send_signals_alert(analysis)
@@ -247,6 +316,7 @@ def fetch_and_analyze_open_positions_only():
         recs = position_tracker.evaluate_positions(analysis)
         if recs:
             send_position_recommendations(recs)
+            check_and_execute_auto_closes(recs)
     except Exception as e:
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 

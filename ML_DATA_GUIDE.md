@@ -140,11 +140,11 @@ Hiện `btc_scraper/ai_analyst.py` đã dùng RAG đơn giản từ `_build_rag_
 
 ## 📈 Hướng ML tiếp theo
 
-### Phase 1: Signal Confidence Scoring
+### Phase 1: Signal Confidence Scoring (Đã hoàn thành)
 1. Load `ml_training_data.csv`
-2. Train model: `is_win ~ [technical features]`
-3. Save model → Load trong `analysis.py`
-4. Khi sinh tín hiệu, đánh giá confidence → hạ cấp/skip nếu thấp
+2. Huấn luyện mô hình Random Forest trong `meta_model.py` dùng 14 đặc trưng kỹ thuật.
+3. Lưu trữ và hiệu chuẩn Platt để sinh ra xác suất thắng (`meta_confidence`).
+4. Tải mô hình thông qua `signal_score.py` để chấm điểm động xác suất thắng cho các tín hiệu và tự động quản lý khối lượng vị thế (Position Sizing).
 
 ### Phase 2: Dynamic Parameter Tuning
 1. Chạy `optuna` backtest mỗi tuần
@@ -171,7 +171,9 @@ scripts/
 └── generate_rag_prompts.py    ← Sinh markdown narratives
 
 logs/
-└── closed_positions.json      ← Append-only closed trade log (source)
+├── closed_positions.json      ← Append-only closed trade log (source)
+├── auto_trade_log.json        ← Lịch sử đặt/đóng lệnh tự động CCXT (Audit Log)
+└── auto_trade_circuit.json    ← Lưu trạng thái ngắt mạch (Circuit Breaker)
 ```
 
 ---

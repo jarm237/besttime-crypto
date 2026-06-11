@@ -29,8 +29,9 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
   - `google-genai` — Gemini AI (Flash model) integration.
   - `fastapi` + `uvicorn` — Backend REST API for Web Dashboard.
   - `pandas`, `scikit-learn`, `joblib`, `numpy` - Machine Learning & Adaptive Scoring.
+  - `ccxt` — Integration with crypto exchanges (Binance Testnet).
   - *No `ta-lib` are used.* All technical indicators are implemented in pure Python within `btc_scraper/analysis.py` for maximum speed and simplicity.
-- **Frontend:** Vue 3 / Vite in `web/`, served at port 3000.
+- **Frontend:** React / Vite in `web/`, served at port 3000.
 
 ---
 
@@ -42,24 +43,28 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
 
 | File | 🐧 Ubuntu | 🪟 Windows | Purpose |
 |------|-----------|-----------|---------|
-| `main.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/main.py) | [Windows](file:///d:/Workspaces/Vọc vạch/main.py) | Entry point, scheduler, AI worker thread, position evaluation loop |
+| `main.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/main.py) | [Windows](file:///d:/Workspaces/Vọc vạch/main.py) | Entry point, scheduler, AI worker thread, position evaluation loop, and auto-trade programmatic close loop |
 | `btc_scraper/config.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/config.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/config.py) | `COINS`, `INTERVAL`, `LIMIT`, API keys (round-robin Gemini keys) |
 | `btc_scraper/analysis.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/analysis.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/analysis.py) | All indicator math + 6-layer signal logic + TP/SL formula |
 | `btc_scraper/sentiment.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/sentiment.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/sentiment.py) | Fear & Greed Index from alternative.me (cached 1h) |
 | `btc_scraper/ai_analyst.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ai_analyst.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ai_analyst.py) | Gemini AI prompt builder — MTF data, sentiment, RAG from closed trades |
 | `btc_scraper/position_tracker.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/position_tracker.py) | Tracks manual open/closed positions and generates trade recommendations. |
+| `btc_scraper/auto_trader.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/auto_trader.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/auto_trader.py) | Auto-trading decision engine (risk management, circuit breaker, daily caps) |
+| `btc_scraper/ccxt_client.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ccxt_client.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ccxt_client.py) | CCXT exchange abstraction layer for Binance Testnet (Spot) |
 | `btc_scraper/adaptive_scoring.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/adaptive_scoring.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/adaptive_scoring.py) | Machine Learning pipeline for training win probability models. |
 | `btc_scraper/signal_score.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/signal_score.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/signal_score.py) | Fuzzy logic and ML inference to assign live probability and dynamic position sizing. |
 | `btc_scraper/exchanges/binance.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/exchanges/binance.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/exchanges/binance.py) | Binance OHLCV fetcher (`fetch_ohlcv`, `fetch_ohlcv_tf`, `fetch_ohlcv_multi_tf`) |
 | `btc_scraper/telegram_bot.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/telegram_bot.py) | Telegram broadcaster (signals, AI report, position recommendations) |
-| `api/server.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/api/server.py) | [Windows](file:///d:/Workspaces/Vọc vạch/api/server.py) | FastAPI REST backend — serves `latest_signals.json` and `latest_ai_analysis.json` |
+| `api/server.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/api/server.py) | [Windows](file:///d:/Workspaces/Vọc vạch/api/server.py) | FastAPI REST backend — serves signals, positions, performance, and auto-trade logs/status |
 | `backtest.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest.py) | Full vectorized backtesting with custom filters and PnL reporting |
 | `backtest_eval.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest_eval.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest_eval.py) | Signal quality evaluator: win rate × hold period × parameter variants |
-| `scripts/manage_positions.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/manage_positions.py) | [Windows](file:///d:/Workspaces/Vọc vạch/scripts/manage_positions.py) | CLI backend for `./pos add/list/close/perf` |
+| `scripts/manage_positions.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/manage_positions.py) | [Windows](file:///d:/Workspaces/Vọc vạch/scripts/manage_positions.py) | CLI backend for ./pos add/list/close/perf |
 | `data/positions.json` | — | — | Live positions store (open + closed) |
 | `data/latest_signals.json` | — | — | Latest analysis snapshot per coin (read by Web Dashboard) |
 | `data/latest_ai_analysis.json` | — | — | Latest Gemini AI report (read by Web Dashboard) |
 | `logs/closed_positions.json` | — | — | Append-only closed trade log (RAG source for AI prompts) |
+| `logs/auto_trade_log.json` | — | — | CCXT auto-trading audit logs (success, error, skips) |
+| `logs/auto_trade_circuit.json` | — | — | State storage for consecutive losses and daily trade counters |
 | `trading_strategies_summary.md` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/trading_strategies_summary.md) | [Windows](file:///d:/Workspaces/Vọc vạch/trading_strategies_summary.md) | Full indicator formulas and signal logic documentation |
 
 ---
@@ -139,6 +144,12 @@ TELEGRAM_CHAT_ID=your_telegram_chat_id
 GEMINI_API_KEY_1=your_gemini_api_key
 GEMINI_API_KEY_2=optional_second_key    # Round-robin for quota management
 GEMINI_API_KEY_3=optional_third_key
+
+# ── Auto-Trading (CCXT) ──────────────────────────────────────────────────────
+AUTO_TRADE_DRY_RUN=true                # true = only log predictions, false = place orders
+AUTO_TRADE_BINANCE_API_KEY=your_binance_testnet_api_key
+AUTO_TRADE_BINANCE_API_SECRET=your_binance_testnet_api_secret
+AUTO_TRADE_BINANCE_TESTNET=true        # true = testnet, false = mainnet
 ```
 
 ### Position Management CLI
@@ -155,8 +166,8 @@ Edit `COINS` list in [`btc_scraper/config.py`](file:///d:/Workspaces/Vọc vạc
 
 ### Running Tests
 ```bash
-pytest
-pytest tests/test_analysis.py  # Analysis module tests only
+pytest                                 # Run all unit tests
+pytest tests/test_auto_trader.py -v    # Run auto-trader tests
 ```
 
 ---

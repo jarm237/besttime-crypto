@@ -69,13 +69,70 @@ def add_position(pos: PositionCreate):
 def close_position(coin: str, data: PositionClose):
     """Đóng một vị thế đang mở."""
     try:
+        open_pos = next((p for p in position_tracker.get_open_positions() if p["coin"].upper() == coin.upper()), None)
+        
         closed_data = position_tracker.close_position(
             coin=coin,
             sell_price=data.sell_price
         )
+        
+        if open_pos and "[AUTO-" in open_pos.get("note", ""):
+            note = open_pos.get("note", "")
+            mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
+            
+            try:
+                from btc_scraper.auto_trader import auto_trader
+                pnl_pct = closed_data.get("pnl_pct", 0.0)
+                result_type = "WIN" if pnl_pct > 0 else "LOSS"
+                auto_trader._record_trade_result(result_type)
+            except Exception as e:
+                print(f"Lỗi cập nhật circuit breaker: {e}")
+                
+            if mode in ("TESTNET", "LIVE"):
+                try:
+                    from btc_scraper.ccxt_client import CCXTClient
+                    client = CCXTClient.from_env()
+                    client.dry_run = False
+                    
+                    symbol = f"{coin.upper()}/USDT"
+                    direction = open_pos.get("direction")
+                    invested_usdt = open_pos.get("invested_usdt", 0.0)
+                    entry_price = open_pos.get("entry_price", 0.0)
+                    current_price = data.sell_price
+                    
+                    if entry_price > 0:
+                        current_val = invested_usdt * (current_price / entry_price)
+                        if direction == "LONG":
+                            client.create_market_sell(symbol, current_val)
+                        else:
+                            client.create_market_buy(symbol, current_val)
+                except Exception as exchange_err:
+                    print(f"Lỗi đóng lệnh trên exchange: {exchange_err}")
+                    
         return {"status": "success", "data": closed_data}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/auto-trade/status")
+def get_auto_trade_status():
+    """Lấy trạng thái cấu hình và circuit breaker của AutoTrader."""
+    try:
+        from btc_scraper.auto_trader import auto_trader
+        return auto_trader.status()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái auto-trade: {str(e)}")
+
+@app.get("/api/auto-trade/logs")
+def get_auto_trade_logs():
+    """Lấy lịch sử giao dịch tự động từ auto_trade_log.json."""
+    try:
+        from btc_scraper.auto_trader import AUTO_TRADE_LOG
+        if not AUTO_TRADE_LOG.exists():
+            return []
+        with open(AUTO_TRADE_LOG, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi đọc log auto-trade: {str(e)}")
 
 @app.get("/api/performance")
 def get_performance():

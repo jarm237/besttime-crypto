@@ -1,0 +1,233 @@
+# CCXT Auto-Trading Integration
+
+## Tổng quan
+
+Tích hợp CCXT để bot tự động đặt lệnh Limit/Market khi:
+- Meta Model confidence ≥ ngưỡng cấu hình (mặc định **85%**)
+- Signal score ≥ ngưỡng phụ (mặc định **75**)
+- Không có position đang mở cùng coin + direction
+
+**Nguyên tắc thiết kế:**
+- **Dry-Run ON mặc định** — không đặt lệnh thực cho đến khi user bật `AUTO_TRADE_LIVE=true`
+- **Hard caps** — mỗi lệnh tối đa X USDT (cấu hình), tổng risk mỗi ngày có cap
+- **SL bắt buộc** — mọi auto-order đều kèm stop-loss
+- **Circuit breaker** — dừng auto-trade nếu thua N lệnh liên tiếp
+- **Audit log** — mọi lệnh (thật/dry-run) đều ghi log đầy đủ
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Auto-trading sử dụng tiền thật.** Toàn bộ tính năng mặc định là `AUTO_TRADE_DRY_RUN=true`.
+> Bật live trading phải sửa `.env` **thủ công** — không có toggle trong code.
+
+> [!WARNING]
+> **Phí giao dịch:** Mỗi lệnh tốn ~0.1% (Binance Spot) hoặc ~0.06% (Bybit Futures).
+> Bot sẽ chỉ đặt Spot hoặc Futures tùy cấu hình. **Futures có rủi ro thanh lý.**
+
+> [!CAUTION]
+> **Tôi khuyến nghị mạnh**: Chạy Dry-Run ít nhất 2 tuần trước khi bật Live.
+> Kiểm tra `logs/auto_trade_log.json` mỗi ngày để xác nhận logic đúng.
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> Trả lời các câu hỏi này trước khi tôi bắt đầu code:
+
+1. **Sàn ưu tiên:** Binance Spot, Bybit USDT Futures, hay cả hai?
+   - Nếu Bybit Futures: dùng leverage bao nhiêu? (khuyến nghị: 1x-3x)
+
+2. **Capital allocation:** Mỗi auto-trade tối đa bao nhiêu USDT?
+   - VD: `MAX_TRADE_USDT=50` (≈5% của tài khoản 1000 USDT)
+
+3. **Order type:**
+   - **Limit** (giá entry từ `tp_sl.entry`) — ít slippage, có thể không khớp
+   - **Market** — khớp ngay, slippage cao hơn
+   - Hay **Limit + timeout 15 phút** → tự hủy nếu không khớp?
+
+4. **Danh sách coin:** Tất cả coins hiện tại (`COINS` env), hay chỉ BTC/ETH?
+
+5. **Circuit breaker:** Dừng auto-trade sau bao nhiêu lệnh thua liên tiếp?
+   - Đề xuất: **3 lệnh thua** → dừng 24h → cần restart thủ công
+
+---
+
+## Proposed Changes
+
+### `btc_scraper/auto_trader.py` — [NEW]
+
+Module trung tâm xử lý auto-trading:
+
+```python
+class AutoTrader:
+    # Config từ .env
+    DRY_RUN: bool = True           # AUTO_TRADE_DRY_RUN
+    EXCHANGE: str = "binance"      # AUTO_TRADE_EXCHANGE
+    META_THRESHOLD: float = 0.85  # AUTO_TRADE_META_THRESHOLD
+    SCORE_THRESHOLD: int = 75     # AUTO_TRADE_SCORE_THRESHOLD
+    MAX_TRADE_USDT: float = 50.0  # AUTO_TRADE_MAX_USDT
+    MAX_DAILY_TRADES: int = 3     # AUTO_TRADE_MAX_DAILY
+    CIRCUIT_BREAKER_N: int = 3    # AUTO_TRADE_CIRCUIT_BREAKER_N
+
+    def should_trade(signal_score, meta_confidence) -> bool
+    def place_order(coin, direction, entry_price, sl, tp1) -> dict
+    def cancel_unfilled_limit_orders() -> None  # gọi mỗi 15 phút
+    def check_circuit_breaker() -> bool
+    def get_balance() -> float      # USDT free balance
+```
+
+**Luồng quyết định:**
+```
+Signal BUY/SELL
+    ↓
+meta_confidence ≥ 0.85 AND score ≥ 75?
+    ↓ YES
+Không có open position cùng coin+direction?
+    ↓ YES
+Circuit breaker OK? Daily limit OK?
+    ↓ YES
+DRY_RUN?
+    ├── YES → log "would buy X @ Y" → gửi Telegram
+    └── NO  → ccxt.create_limit_order() / create_market_order()
+              → set_stop_loss()
+              → log audit
+              → add_position() (tracker)
+              → gửi Telegram "Đã đặt lệnh tự động"
+```
+
+---
+
+### `btc_scraper/ccxt_client.py` — [NEW]
+
+CCXT client abstraction (tách khỏi auto_trader để dễ test):
+
+```python
+class CCXTClient:
+    def __init__(self, exchange_id, api_key, api_secret, dry_run=True)
+    def get_balance() -> float
+    def get_min_order_size(symbol) -> float
+    def create_limit_order(symbol, side, amount, price) -> dict
+    def create_market_order(symbol, side, amount) -> dict
+    def create_stop_loss(symbol, side, amount, stop_price) -> dict
+    def cancel_order(order_id, symbol) -> None
+    def fetch_order_status(order_id, symbol) -> str
+```
+
+---
+
+### `.env` / `.env.example` — [MODIFY]
+
+Thêm các biến cấu hình:
+
+```env
+# ── Auto-Trading (CCXT) ──────────────────────────────────────
+# Bắt buộc set trước khi dùng:
+AUTO_TRADE_DRY_RUN=true          # Đổi thành false để live trade
+AUTO_TRADE_EXCHANGE=binance      # binance | bybit
+AUTO_TRADE_BINANCE_API_KEY=
+AUTO_TRADE_BINANCE_API_SECRET=
+AUTO_TRADE_BYBIT_API_KEY=
+AUTO_TRADE_BYBIT_API_SECRET=
+
+# Ngưỡng tín hiệu
+AUTO_TRADE_META_THRESHOLD=0.85   # Meta confidence tối thiểu
+AUTO_TRADE_SCORE_THRESHOLD=75    # Signal score tối thiểu
+
+# Quản lý vốn
+AUTO_TRADE_MAX_USDT=50           # Tối đa mỗi lệnh (USDT)
+AUTO_TRADE_MAX_DAILY=3           # Tối đa số lệnh/ngày
+AUTO_TRADE_ORDER_TYPE=limit      # limit | market
+
+# Bảo vệ
+AUTO_TRADE_CIRCUIT_BREAKER_N=3  # Dừng sau N lệnh thua liên tiếp
+AUTO_TRADE_COINS=BTC,ETH        # Chỉ trade các coin này (để trống = tất cả)
+```
+
+---
+
+### `main.py` — [MODIFY]
+
+Hook auto_trader vào `fetch_and_display()` sau khi có analysis:
+
+```python
+# Sau khi có analysis và signal_score
+try:
+    from btc_scraper.auto_trader import auto_trader
+    auto_trader.evaluate_and_trade(analysis)
+except Exception as e:
+    console.print(f"[dim red][AutoTrade] {e}[/dim red]")
+```
+
+---
+
+### `logs/auto_trade_log.json` — [NEW, auto-generated]
+
+Audit log mỗi lệnh:
+```json
+{
+  "timestamp": "2026-06-19 09:15:00",
+  "mode": "DRY_RUN",
+  "coin": "BTC",
+  "direction": "LONG",
+  "signal": "STRONG BUY",
+  "meta_confidence": 0.87,
+  "signal_score": 82,
+  "order_type": "limit",
+  "entry_price": 67200.0,
+  "sl_price": 65800.0,
+  "tp1_price": 69500.0,
+  "amount_usdt": 50.0,
+  "order_id": "DRY-BTC-1718766900",
+  "status": "simulated",
+  "reason_skip": null
+}
+```
+
+---
+
+### `web/src/App.jsx` — [MODIFY]
+
+Thêm tab **"Auto Trade"** trong dashboard hiển thị:
+- Trạng thái: DRY_RUN / LIVE
+- Circuit breaker status
+- Danh sách lệnh auto gần đây (từ `auto_trade_log.json`)
+- P&L tích lũy của auto-trades
+
+---
+
+### `api/main.py` hoặc server tương đương — [MODIFY]
+
+Thêm endpoint `GET /api/auto-trade/status` và `GET /api/auto-trade/logs`.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+```bash
+# Unit test các filter và circuit breaker
+python -m pytest tests/test_auto_trader.py -v
+
+# Dry-run smoke test
+AUTO_TRADE_DRY_RUN=true python -c "from btc_scraper.auto_trader import auto_trader; print(auto_trader.status())"
+```
+
+### Manual Verification
+1. Chạy bot 1 tuần với `DRY_RUN=true`, kiểm tra `logs/auto_trade_log.json`
+2. Xác nhận Telegram nhận được thông báo "DRY-RUN: Would BUY BTC @ 67200"
+3. Đếm số lần threshold bị kích hoạt, so với manual trade history
+4. **Chỉ bật live sau khi** dry-run cho kết quả hợp lý ≥ 2 tuần
+
+---
+
+## Rollout Schedule (Khuyến nghị)
+
+| Giai đoạn | Thời gian | Nội dung |
+|---|---|---|
+| **Phase 1** | Ngay bây giờ | Code CCXT client + auto_trader + dry-run mode |
+| **Phase 2** | +2 tuần | Review dry-run logs, fine-tune threshold |
+| **Phase 3** | Sau Phase 2 | Bật live với MAX_USDT nhỏ (20-50 USDT) |
+| **Phase 4** | +1 tháng | Scale up nếu win rate thực tế tốt |

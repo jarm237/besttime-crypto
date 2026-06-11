@@ -32,21 +32,18 @@ Tuy nhiên, mô hình AI bây giờ vẫn hoạt động ở mức “tư vấn�
 
 ## Mức 2: Học từ dữ liệu — Signal Scoring / Predictive Modeling
 
-### 4. Xây mô hình đánh giá xác suất thắng của tín hiệu
-- Dùng dataset lịch sử từ `logs/closed_positions.json` để huấn luyện mô hình.
-- Khởi đầu với:
-  - logistic regression / random forest / XGBoost,
-  - label `is_win` từ `result == "WIN"`,
-  - features đơn giản: `direction`, `hold_hours`, `pnl_pct`, `last_signal`, `suggested_sl`, `suggested_tp1`, `suggested_tp2`, `invested_usdt`.
-- Sau đó mở rộng sang features kỹ thuật thực tế nếu bạn lưu được snapshot indicator khi mở lệnh.
-- Tích hợp vào `analysis.py` để hạ cấp / loại bỏ tín hiệu khi model dự đoán xác suất thắng thấp.
+### 4. Xây mô hình đánh giá xác suất thắng của tín hiệu (Đã hoàn thành)
+- Sử dụng dataset lịch sử từ `logs/closed_positions.json` và backtest simulator để huấn luyện mô hình.
+- Hiện đã triển khai mô hình **RandomForestClassifier** trong `btc_scraper/meta_model.py` với **14 đặc trưng kỹ thuật** cố định (`feature_extractor.py`).
+- Sử dụng phương pháp **Platt calibration** (hiệu chuẩn Sigmoid) để đưa ra xác suất thắng thực tế (`meta_confidence`) chính xác thay vì chỉ dự đoán nhị phân.
+- Tích hợp vào `btc_scraper/signal_score.py` để chấm điểm tín hiệu theo thời gian thực và loại bỏ các tín hiệu yếu.
 
-### 5. Tự động tối ưu tham số sau khi có dataset đủ lớn
+### 5. Tự động tối ưu tham số sau khi có dataset đủ lớn (Đang triển khai)
 - Khi hệ thống chạy đủ vài chục đến vài trăm lệnh đóng, dùng `optuna` để tối ưu:
   - ATR multiplier cho TP/SL,
-  - các ngưỡng RSI, EMA,
-  - tỷ lệ điểm cutoff cho signal confidence.
-- Đây là bước “data-driven tuning” phù hợp hơn là tinh chỉnh thủ công mãi.
+  - Các ngưỡng RSI, EMA,
+  - Tỷ lệ điểm cutoff cho signal confidence.
+- Đây là bước “data-driven tuning” phù hợp hơn là tinh chỉnh thủ công.
 
 ---
 
@@ -54,20 +51,20 @@ Tuy nhiên, mô hình AI bây giờ vẫn hoạt động ở mức “tư vấn�
 
 ### 6. Anomaly detection ở mức cảnh báo thị trường
 - Không cần làm ngay, nhưng ý tưởng vẫn phù hợp:
-  - phát hiện chuyển động bất thường bằng `IsolationForest` hoặc model chuỗi thời gian.
-  - dùng khi muốn thêm lớp bảo vệ: nếu thị trường quá dị thường, tự động kéo SL về breakeven hoặc không vào lệnh.
+  - Phát hiện chuyển động bất thường bằng `IsolationForest` hoặc mô hình chuỗi thời gian.
+  - Dùng khi muốn thêm lớp bảo vệ: nếu thị trường quá dị thường, tự động kéo SL về breakeven hoặc không vào lệnh.
 
 ### 7. Reinforcement Learning cho quản lý vị thế
 - Đây là mục tiêu dài hạn.
-- Nên làm sau khi đã có dataset lịch sử và signal confidence model.
 - Có thể xây môi trường Gym cho lệnh giữ lâu, học khi nào chuyển từ `hold` sang `take-profit`/`cut-loss`.
 
 ---
 
-## Lộ trình đề xuất theo thứ tự ưu tiên
+## Lộ trình đề xuất & Trạng thái hiện tại
 
 1. **Bước 1 (Đã hoàn thành):** Chuẩn hóa dữ liệu lịch sử giao dịch thật. Dùng `logs/closed_positions.json` làm nguồn chính và xuất file `data/ml_training_data.csv`.
 2. **Bước 2 (Đã hoàn thành):** Cải thiện RAG trong `btc_scraper/ai_analyst.py` để Gemini biết rõ Win Rate, Avg PnL và kịch bản tương đồng.
-3. **Bước 3 (Đã hoàn thành):** Xây mô hình `signal confidence` đơn giản (Random Forest / Logistic) tích hợp vào hệ thống (Adaptive Model với ngưỡng 51/49).
-4. **Bước 4 (Đã hoàn thành):** Continuous Learning - Xây dựng pipeline tự động tải dữ liệu và retrain model định kỳ hàng tuần, kèm theo cảnh báo Concept Drift.
-5. **Bước 5 (Tương lai):** Chạy `optuna` để tối ưu tham số và sau đó cân nhắc anomaly detection / RL.
+3. **Bước 3 (Đã hoàn thành):** Triển khai mô hình **RandomForest Classifier** (Meta Model) hiệu chuẩn Platt để dự đoán chính xác xác suất thắng (`meta_confidence`) và tích hợp vào hệ thống tính toán điểm số tín hiệu.
+4. **Bước 4 (Đã hoàn thành):** Continuous Learning - Xây dựng pipeline tự động tải dữ liệu và retrain model định kỳ hàng tuần lúc 23:30 Chủ Nhật, kèm theo cảnh báo Concept Drift và gửi báo cáo qua Telegram.
+5. **Bước 5 (Đã hoàn thành):** Tích hợp CCXT Auto-Trading trên Binance Testnet/Sandbox, quản lý vốn rủi ro cố định 2% mỗi lệnh, bảo vệ bằng Circuit Breaker ngắt 24h và tự động hóa đóng lệnh theo khuyến nghị TP/SL của bot.
+6. **Bước 6 (Tương lai):** Chạy `optuna` để tối ưu tham số tự động và nghiên cứu anomaly detection / RL.

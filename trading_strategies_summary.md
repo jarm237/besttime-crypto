@@ -110,16 +110,16 @@ Nến đóng cửa
 * **Extreme Fear** (score < −0.6): Hạ cấp STRONG BUY → WEAK BUY (Sentiment-Blocked)
 * **Extreme Greed** (score > +0.6): Hạ cấp STRONG SELL → WEAK SELL (Sentiment-Blocked)
 
-### Lớp 7 — Machine Learning / Adaptive Scoring (Mới)
-* **Mục đích**: Thay vì chỉ dùng Rule-based cứng nhắc, tín hiệu sau cùng sẽ được đưa qua mô hình Machine Learning (Random Forest / Logistic) để tính Xác Suất Thắng (Win Probability).
-* **Ngưỡng hành động (Threshold)**: Điểm > 51% (BUY), < 49% (SELL). Vùng 49-51% là NEUTRAL.
+### Lớp 7 — Machine Learning / Adaptive Scoring
+* **Mục đích**: Chấm điểm động xác suất thắng thực tế của tín hiệu (`meta_confidence`) bằng mô hình Machine Learning được huấn luyện trên dữ liệu lịch sử giao dịch.
+* **Mô hình triển khai**: **RandomForestClassifier** (`btc_scraper/meta_model.py`) với **14 đặc trưng kỹ thuật** cố định (`btc_scraper/feature_extractor.py`).
+* **Hiệu chuẩn Platt**: Đầu ra được hiệu chuẩn bằng hàm Sigmoid (Platt scaling) để dự đoán xác suất chính xác thay vì chỉ dự đoán nhị phân (WIN/LOSS).
 * **Đầu ra**: 
-  - `score` (0-100%): Xác suất lệnh sẽ thắng. Điểm quanh 50% là trung lập.
-  - `confidence`: HIGH (điểm cách xa 50%), MEDIUM, LOW.
-  - `position_size`: Tự động nội suy từ 0.25 (nhỏ) đến 1.0 (Full volume) dựa trên khoảng cách của score so với mức 50 (Kelly Criterion rút gọn).
+  - `meta_confidence` (0.0-1.0): Xác suất thắng dự báo của tín hiệu. Ngưỡng giao dịch tự động mặc định là ≥ 85%.
+  - Tự động hạ cấp / bỏ qua tín hiệu nếu xác suất thắng thấp.
 * **Cơ chế tự học (Continuous Learning)**:
-  - Lệnh đóng được lưu vào `logs/closed_positions.json`.
-  - Hàng tuần (23:30 Chủ Nhật), script `scripts/continuous_learning.py` tự động chạy để tải dữ liệu, tự sinh nhãn, train lại mô hình và kiểm tra Concept Drift (phát hiện nếu mô hình bị out-of-date). Nếu an toàn (ROC-AUC > 0.55), mô hình mới sẽ được lưu đè lên `adaptive_model.joblib`.
+  - Lệnh đóng được tự động đồng bộ hóa và lưu trữ làm mẫu dữ liệu huấn luyện.
+  - Hàng tuần vào lúc 23:30 Chủ Nhật, bot chạy pipeline tự động tải dữ liệu OHLCV, backtest tự gán nhãn và huấn luyện lại mô hình, đồng thời đánh giá Concept Drift (nếu CV ROC-AUC ≥ 0.55 thì tự động ghi đè mô hình mới lên `adaptive_model.joblib`).
 
 ---
 
@@ -193,3 +193,39 @@ Chạy `python -X utf8 backtest_eval.py` để tái tạo kết quả:
 **Sub-type hiệu quả nhất**:
 * BUY — **RSI Reversal** (72.4% WR, hold 1h): 86% tổng tín hiệu BUY
 * SELL — **EMA Death Cross** (87.1% WR, hold 4h) và **Break SMA50** (87.1% WR, hold 6h)
+
+---
+
+## 6. Giao dịch Tự động (Auto-Trading CCXT) & Quản lý Rủi ro
+
+Hệ thống tích hợp thư viện CCXT để tự động khớp lệnh trên sàn giao dịch Binance Spot (mặc định sử dụng Sandbox/Testnet để đảm bảo an toàn).
+
+### 6.1. Điều kiện Kích hoạt Lệnh đặt tự động (`should_trade`)
+Mỗi chu kỳ quét 15 phút, tín hiệu mới sinh ra phải thỏa mãn:
+1. Coin nằm trong danh sách whitelist (`AUTO_TRADE_COINS`).
+2. Tín hiệu là BUY hoặc SELL rõ ràng (loại bỏ tín hiệu WEAK và NEUTRAL).
+3. **Độ tin cậy của Meta Model (`meta_confidence`)** $\geq$ **ngưỡng cấu hình** (mặc định **85%**).
+4. **Signal score** $\geq$ **ngưỡng phụ** (mặc định **75**).
+5. Không có vị thế đang mở cùng cặp tiền và cùng chiều giao dịch để tránh nhồi lệnh vô kỷ luật.
+6. Hệ thống ngắt mạch (Circuit Breaker) và giới hạn ngày ở trạng thái bình thường.
+
+### 6.2. Tính toán Quy mô Vị thế (Fixed-Fractional Risk Sizing)
+Sử dụng phương pháp quản lý vốn dựa trên khoảng cách dừng lỗ để giữ cho mức rủi ro cố định ở mức **2%** tài khoản mỗi lệnh:
+$$Risk\_USDT = Account\_USDT \times Risk\_Pct$$
+$$SL\_Distance\_Pct = \frac{|Entry\_Price - SL\_Price|}{Entry\_Price}$$
+$$Position\_Sizing\_USDT = \frac{Risk\_USDT}{SL\_Distance\_Pct}$$
+
+*Cơ chế ràng buộc (Caps)*:
+- Giới hạn tối thiểu (`AUTO_TRADE_MIN_TRADE_USDT`): Mặc định **10 USDT** (Ngưỡng tối thiểu Binance Notional).
+- Giới hạn tối đa (`AUTO_TRADE_MAX_TRADE_USDT`): Mặc định **100 USDT** (Tránh oversizing khi khoảng cách SL quá hẹp).
+
+### 6.3. Cơ chế Bảo vệ tài khoản (Circuit Breaker & Limits)
+- **Daily Trade Limit**: Không đặt quá số lượng lệnh quy định trong ngày (mặc định tối đa **5 lệnh/ngày**).
+- **Circuit Breaker**: Tự động ngắt kết nối giao dịch tự động trong **24 giờ** nếu hệ thống gặp **5 lệnh thua liên tiếp** (`consecutive_losses` $\geq 5$). Để tiếp tục giao dịch sau khi hết hạn, Circuit Breaker tự động reset hoặc khởi động lại bot.
+- **Dry-run Mode (`AUTO_TRADE_DRY_RUN=true`)**: Mặc định luôn bật. Ở chế độ này, mọi lệnh đặt/đóng đều chỉ được ghi nhận vào `logs/auto_trade_log.json` và thông báo qua Telegram mà không tạo lệnh thực tế trên sàn.
+
+### 6.4. Cơ chế tự động đóng lệnh (Auto Close)
+Mỗi chu kỳ quét khẩn cấp 5 phút (`fetch_and_analyze_open_positions_only`), bot tự động đối chiếu giá thị trường hiện tại của các vị thế mở được tạo bởi bot (`[AUTO-...`):
+- Nếu chạm dừng lỗ khuyến nghị: Tự động đặt lệnh Market đóng vị thế, ghi nhận kết quả `"LOSS"` vào Circuit Breaker và gửi cảnh báo Telegram.
+- Nếu chạm mức chốt lời 2 (`TP2`): Tự động đặt lệnh Market đóng vị thế, ghi nhận kết quả `"WIN"` vào Circuit Breaker và gửi thông báo Telegram.
+- Nếu người dùng đóng vị thế thủ công trên Dashboard, API backend sẽ tự động đồng bộ đóng vị thế trên Binance Testnet qua CCXT.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LineChart, Activity, Briefcase, Plus, X, RefreshCw, Crosshair, TrendingUp, TrendingDown, Bot } from 'lucide-react';
+import { LineChart, Activity, Briefcase, Plus, X, RefreshCw, Crosshair, TrendingUp, TrendingDown, Bot, Shield, AlertTriangle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import './index.css';
 
@@ -13,6 +13,8 @@ function App() {
   const [performance, setPerformance] = useState({});
   const [availableCoins, setAvailableCoins] = useState(['BTC', 'ETH', 'SOL', 'BNB', 'XRP']);
   const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [autoTradeStatus, setAutoTradeStatus] = useState(null);
+  const [autoTradeLogs, setAutoTradeLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(null);
@@ -24,17 +26,21 @@ function App() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [sigRes, posRes, perfRes, confRes, aiRes] = await Promise.all([
+      const [sigRes, posRes, perfRes, confRes, aiRes, autoStatusRes, autoLogsRes] = await Promise.all([
         axios.get(`${API_BASE}/market-signals`).catch(() => ({ data: { signals: {} } })),
         axios.get(`${API_BASE}/positions`).catch(() => ({ data: { positions: [] } })),
         axios.get(`${API_BASE}/performance`).catch(() => ({ data: { performance: {} } })),
         axios.get(`${API_BASE}/config`).catch(() => ({ data: { coins: [] } })),
-        axios.get(`${API_BASE}/ai-analysis`).catch(() => ({ data: { report: 'Lỗi tải dữ liệu AI', timestamp: 0 } }))
+        axios.get(`${API_BASE}/ai-analysis`).catch(() => ({ data: { report: 'Lỗi tải dữ liệu AI', timestamp: 0 } })),
+        axios.get(`${API_BASE}/auto-trade/status`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/auto-trade/logs`).catch(() => ({ data: [] }))
       ]);
       setSignals(sigRes.data.signals || {});
       setPositions(posRes.data.positions || []);
       setPerformance(perfRes.data.performance || {});
       setAiAnalysis(aiRes.data);
+      setAutoTradeStatus(autoStatusRes.data);
+      setAutoTradeLogs(autoLogsRes.data || []);
       if (confRes.data.coins && confRes.data.coins.length > 0) {
         setAvailableCoins(confRes.data.coins);
         setNewPos(prev => ({ 
@@ -82,6 +88,165 @@ function App() {
     } catch (err) {
       alert(err.response?.data?.detail || 'Error closing position');
     }
+  };
+
+  const renderAutoTrade = () => {
+    if (!autoTradeStatus) {
+      return <div className="text-secondary text-center py-8">Chưa tải được thông tin AutoTrader hoặc bot chưa khởi động.</div>;
+    }
+
+    const isDryRun = autoTradeStatus.mode === 'DRY_RUN';
+    const isTripped = autoTradeStatus.circuit_tripped;
+
+    return (
+      <div className="flex flex-col gap-6">
+        {/* Row 1: Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Chế độ hoạt động</h4>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginTop: '0.5rem', color: isDryRun ? '#38bdf8' : '#22c55e' }}>
+                  {isDryRun ? 'DRY RUN' : 'LIVE'}
+                </div>
+              </div>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: isDryRun ? 'rgba(56,189,248,0.1)' : 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDryRun ? '#38bdf8' : '#22c55e' }}>
+                <Shield size={24} />
+              </div>
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              {isDryRun ? 'Chỉ ghi log & gửi cảnh báo, không đặt lệnh thật.' : 'Đặt lệnh Spot thật bằng Binance Testnet Account.'}
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Circuit Breaker</h4>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginTop: '0.5rem', color: isTripped ? '#ef4444' : '#10b981' }}>
+                  {isTripped ? 'TRIPPED (PAUSED)' : 'NORMAL (OK)'}
+                </div>
+              </div>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: isTripped ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isTripped ? '#ef4444' : '#10b981' }}>
+                <AlertTriangle size={24} />
+              </div>
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              {isTripped 
+                ? `Đang tạm dừng 24h do thua ${autoTradeStatus.consecutive_losses} lệnh liên tiếp. Reset sau ${autoTradeStatus.circuit_tripped_remaining_h} giờ.`
+                : `Chuỗi thua hiện tại: ${autoTradeStatus.consecutive_losses}/${autoTradeStatus.circuit_breaker_n} lệnh.`
+              }
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Tần suất hôm nay</h4>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#f59e0b' }}>
+                  {autoTradeStatus.trades_today} / {autoTradeStatus.max_daily_trades}
+                </div>
+              </div>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
+                <Activity size={24} />
+              </div>
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Số lệnh đặt thành công trong ngày hôm nay. Giới hạn: {autoTradeStatus.max_daily_trades} lệnh/ngày.
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Parameters Grid */}
+        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>Cấu hình tham số chiến lược</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Ngưỡng Meta Model:</span>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#a78bfa' }}>≥ {(autoTradeStatus.meta_threshold * 100).toFixed(0)}%</div>
+            </div>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Ngưỡng Signal Score:</span>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#a78bfa' }}>≥ {autoTradeStatus.score_threshold}</div>
+            </div>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Mức rủi ro / lệnh:</span>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#f59e0b' }}>{autoTradeStatus.risk_pct}% tài khoản</div>
+            </div>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Phân bổ tối đa / lệnh:</span>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#10b981' }}>${autoTradeStatus.max_trade_usdt} USDT</div>
+            </div>
+          </div>
+          <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            Whitelist Coins: <b style={{ color: 'var(--text-primary)' }}>{autoTradeStatus.allowed_coins && autoTradeStatus.allowed_coins.length > 0 ? autoTradeStatus.allowed_coins.join(', ') : 'Tất cả'}</b>
+          </div>
+        </div>
+
+        {/* Row 3: Trade Audit Logs */}
+        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem' }}>Nhật ký lệnh đặt tự động (Audit Log)</h3>
+          {autoTradeLogs.length === 0 ? (
+            <div className="text-secondary text-center py-6">Chưa ghi nhận lệnh tự động nào.</div>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Thời Gian</th>
+                    <th>Coin</th>
+                    <th>Hướng</th>
+                    <th>Tín Hiệu</th>
+                    <th>Độ tin cậy (Meta)</th>
+                    <th>Vốn đặt</th>
+                    <th>Entry/SL/TP1</th>
+                    <th>ID Lệnh</th>
+                    <th>Trạng Thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...autoTradeLogs].reverse().map((log, i) => {
+                    const isSkipped = log.status === 'skipped';
+                    const isError = log.status === 'error';
+                    const isSuccess = !isSkipped && !isError;
+                    
+                    return (
+                      <tr key={i} style={{ opacity: isSkipped ? 0.6 : 1 }}>
+                        <td className="font-mono text-sm">{log.timestamp_str || new Date(log.timestamp).toLocaleString()}</td>
+                        <td className="font-bold">{log.coin}</td>
+                        <td>
+                          <span className={`badge ${log.direction === 'LONG' ? 'badge-green' : 'badge-red'}`}>
+                            {log.direction}
+                          </span>
+                        </td>
+                        <td className="text-sm">{log.signal}</td>
+                        <td className="font-mono">{(log.meta_confidence * 100).toFixed(0)}% (Score: {log.signal_score})</td>
+                        <td className="font-mono">${log.usdt_amount ? log.usdt_amount.toFixed(2) : '0.00'}</td>
+                        <td className="font-mono text-sm" style={{ whiteSpace: 'nowrap' }}>
+                          <span className="text-primary">${log.entry_price?.toFixed(2)}</span> / <span className="text-red">${log.sl_price?.toFixed(2)}</span> / <span className="text-green">${log.tp1_price?.toFixed(2)}</span>
+                        </td>
+                        <td className="font-mono text-sm" style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {log.order_id || 'N/A'}
+                        </td>
+                        <td>
+                          {isSkipped ? (
+                            <span className="badge badge-warning" title={log.reason_skip}>SKIPPED</span>
+                          ) : isError ? (
+                            <span className="badge badge-red" title={log.error}>ERROR</span>
+                          ) : (
+                            <span className="badge badge-green">SUCCESS</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const renderMarketSignals = () => {
@@ -509,7 +674,7 @@ function App() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 mb-6">
+      <div className="grid grid-cols-5 mb-6">
         <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'market' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Activity size={16} /> Tín Hiệu Thị Trường</div>
@@ -534,6 +699,14 @@ function App() {
             <div className="stat-value text-blue-400">Phân Tích</div>
           </div>
         </div>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'auto' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('auto')}>
+          <div className="stat-card">
+            <div className="stat-title flex items-center gap-2"><Shield size={16} /> Auto Trading</div>
+            <div className="stat-value text-purple-400">
+              {autoTradeStatus ? (autoTradeStatus.mode === 'DRY_RUN' ? 'Dry Run' : 'Live') : 'Offline'}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="glass-panel">
@@ -542,10 +715,12 @@ function App() {
           {activeTab === 'positions' && <><Crosshair size={20} className="text-accent"/> Open Positions</>}
           {activeTab === 'perf' && <><Briefcase size={20} className="text-accent"/> Strategy Performance</>}
           {activeTab === 'ai' && <><Bot size={20} className="text-accent"/> Gemini AI Insights</>}
+          {activeTab === 'auto' && <><Shield size={20} className="text-accent"/> CCXT Auto Trading Monitor</>}
         </h2>
 
         {activeTab === 'market' && renderMarketSignals()}
         {activeTab === 'positions' && renderPositions()}
+        {activeTab === 'auto' && renderAutoTrade()}
         {activeTab === 'ai' && (
           <div className="p-6 bg-black/20 rounded-xl border border-blue-500/30">
             <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-4">
