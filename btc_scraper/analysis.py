@@ -7,6 +7,7 @@ import math
 from btc_scraper.sentiment import get_market_sentiment, sentiment_label_vi
 from btc_scraper.filters import atr_shock_filter
 from btc_scraper.signal_score import score_signal
+from btc_scraper.market_regime import regime_from_values
 
 
 def calculate_atr(candles: list[dict], period: int = 14) -> list[float]:
@@ -1278,6 +1279,10 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             bb_middle   = current_bb_middle,
             bb_lower    = current_bb_lower,
         )
+        # Determine regime using current indicators (TRENDING_BULL, TRENDING_BEAR, RANGING, HIGH_VOLATILITY)
+        atr_pct_val = (current_atr / current_close * 100) if current_close and current_atr else 0.0
+        regime_info = regime_from_values(current_close, current_sma200, current_ema21, current_sma50, current_adx, atr_pct_val)
+
         # Prepare lightweight data/context for scoring (keeps backward compatibility)
         score_data = {
             "rsi": current_rsi,
@@ -1302,6 +1307,8 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             "confidence": round(0.5, 2),
             "position_size": 1.0,
             "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+            "regime": regime_info.get("regime"),
+            "regime_confidence": regime_info.get("confidence"),
             "trend_following_allowed": trend_following_allowed,
             "vol_spike": vol_spike,
             "chandelier": chandelier_state,
@@ -1314,15 +1321,20 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
 
         # Compute a basic signal_score for this candle (keeps consistency with analyze_market)
         try:
-            sig_score_obj = score_signal(sig, score_data, {
-                "chandelier": chandelier_state,
-                "above_sma200": above_sma200,
-                "below_sma200": below_sma200,
-                "vol_spike": vol_spike,
-                "sentiment_score": sentiment_score,
-            })
+            sig_score_obj = score_signal(
+                sig,
+                score_data,
+                {
+                    "chandelier": chandelier_state,
+                    "above_sma200": above_sma200,
+                    "below_sma200": below_sma200,
+                    "vol_spike": vol_spike,
+                    "sentiment_score": sentiment_score,
+                    "regime": regime_info.get("regime"),
+                },
+            )
         except Exception:
-            sig_score_obj = {"action": sig, "score": 50, "confidence": "LOW", "position_size": 0.5}
+            sig_score_obj = {"action": sig, "score": 50, "confidence": "LOW", "position_size": 0.5, "regime": regime_info.get("regime")}
 
         results.append({
             "time": candles[i]["time"],
@@ -1345,6 +1357,8 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             "choppiness": current_choppiness,
             "atr_shock": current_atr_shock,
             "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+            "regime": regime_info.get("regime"),
+            "regime_confidence": regime_info.get("confidence"),
             "trend_following_allowed": trend_following_allowed,
             "confidence": 0.50,
             "position_size": 1.0,

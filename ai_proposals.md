@@ -66,7 +66,8 @@ Tuy nhiên, mô hình AI bây giờ vẫn hoạt động ở mức “tư vấn�
 
 ## Lộ trình đề xuất theo thứ tự ưu tiên
 
-1. **Bước 1:** Chuẩn hóa dữ liệu lịch sử giao dịch thật. Dùng `logs/closed_positions.json` làm nguồn chính và xuất file `data/ml_training_data.csv`.
-2. **Bước 2:** Cải thiện RAG trong `btc_scraper/ai_analyst.py` để Gemini biết rõ Win Rate, Avg PnL và kịch bản tương đồng.
-3. **Bước 3:** Xây mô hình `signal confidence` đơn giản (logistic / tree-based), rồi tích hợp vào `analysis.py`.
-4. **Bước 4:** Khi có đủ dữ liệu, chạy `optuna` để tối ưu tham số và sau đó cân nhắc anomaly detection / RL.
+1. **Bước 1 (Đã hoàn thành):** Chuẩn hóa dữ liệu lịch sử giao dịch thật. Dùng `logs/closed_positions.json` làm nguồn chính và xuất file `data/ml_training_data.csv`.
+2. **Bước 2 (Đã hoàn thành):** Cải thiện RAG trong `btc_scraper/ai_analyst.py` để Gemini biết rõ Win Rate, Avg PnL và kịch bản tương đồng.
+3. **Bước 3 (Đã hoàn thành):** Xây mô hình `signal confidence` đơn giản (Random Forest / Logistic) tích hợp vào hệ thống (Adaptive Model với ngưỡng 51/49).
+4. **Bước 4 (Đã hoàn thành):** Continuous Learning - Xây dựng pipeline tự động tải dữ liệu và retrain model định kỳ hàng tuần, kèm theo cảnh báo Concept Drift.
+5. **Bước 5 (Tương lai):** Chạy `optuna` để tối ưu tham số và sau đó cân nhắc anomaly detection / RL.

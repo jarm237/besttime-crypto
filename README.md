@@ -124,9 +124,10 @@ Nhấn `Ctrl + C` để tắt toàn bộ.
 python main.py
 ```
 - **Gửi báo cáo phân tích tự động qua tin nhắn Telegram.**
-- **MỚI - Trí tuệ Nhân tạo (Machine Learning)**: Tính toán xác suất chiến thắng của tín hiệu bằng mô hình Logistic Regression và điều chỉnh khối lượng vào lệnh (Position Sizing) tự động.
+- **AI RAG & Machine Learning**: Đánh giá độ tin cậy của tín hiệu dựa trên mô hình học máy Adaptive. Tự động tính kích thước vị thế (Position Sizing).
 - Quét tổng quát mỗi 15 phút: lấy dữ liệu, phân tích, gọi AI, gửi Telegram.
 - Quét khẩn cấp mỗi 5 phút: chỉ theo dõi coin đang có vị thế mở.
+- **Continuous Learning & Báo cáo Tuần**: Tự động tải lại dữ liệu thị trường và huấn luyện lại AI vào 23:30 Chủ Nhật hàng tuần, kèm theo báo cáo tổng kết tuần lúc 23:45.
 
 **Tab 2 — Backend API:**
 ```bash
@@ -196,7 +197,9 @@ besttime-crypto/
 ├── scripts/
 │   ├── manage_positions.py     # CLI backend for ./pos
 │   ├── prepare_ml_data.py      # Export ML training data + RAG context
-│   └── generate_rag_prompts.py # Generate RAG narratives for Gemini
+│   ├── generate_rag_prompts.py # Generate RAG narratives for Gemini
+│   ├── continuous_learning.py  # Retrain Adaptive Model tự động hàng tuần
+│   └── weekly_job.py           # Sinh Weekly Report tự động hàng tuần
 ├── tests/
 │   └── test_analysis.py        # Unit tests
 └── pos                         # ./pos CLI shortcut script

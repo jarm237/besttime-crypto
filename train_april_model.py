@@ -35,8 +35,8 @@ REPORT_PATH   = os.path.join(LOGS_DIR, "train_april_report.json")
 
 WARMUP_CANDLES = 220     # Nến warmup trước khi bắt đầu tạo signal
 FEE_RATE       = 0.001   # 0.1% mỗi chiều
-BUY_MIN_SCORE  = 65      # Chỉ train trên BUY signal MEDIUM+
-SELL_MAX_SCORE = 35      # Chỉ train trên SELL signal thực sự
+BUY_MIN_SCORE  = 51      # Chỉ train trên BUY signal MEDIUM+
+SELL_MAX_SCORE = 49      # Chỉ train trên SELL signal thực sự
 
 os.makedirs(LOGS_DIR, exist_ok=True)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -386,7 +386,7 @@ def main():
     print("=" * 60)
     print("  TRAIN ADAPTIVE MODEL — April 2026 Data")
     print(f"  Coins: {', '.join(COINS)}")
-    print(f"  Filter: BUY score>={BUY_MIN_SCORE} | SELL score<={SELL_MAX_SCORE} | No WEAK")
+    print("  Filter: BUY score>=51 | SELL score<=49 | No WEAK")
     print("=" * 60)
 
     all_records = []

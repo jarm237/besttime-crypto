@@ -79,30 +79,24 @@ python scripts/generate_rag_prompts.py
 cat data/rag_prompts.md  # Xem kết quả
 ```
 
-### Bước 4: Dùng dữ liệu cho ML training
+### Bước 4: Huấn luyện lại mô hình (Continuous Learning)
 
-Ví dụ với pandas + scikit-learn:
-```python
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+Dự án hiện đã tích hợp hệ thống Continuous Learning tự động. Bạn không cần phải code thủ công như trước.
 
-# Load training data
-df = pd.read_csv('data/ml_training_data.csv')
-
-# Select features and target
-features = ['hold_hours', 'entry_distance_to_sl_pct', 'entry_distance_to_tp1_pct', 'suggested_rr1']
-X = df[features]
-y = df['is_win']
-
-# Train model
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-# Evaluate
-print(f"Accuracy: {model.score(X_test, y_test)}")
+**Cách dùng:**
+```bash
+python scripts/continuous_learning.py
 ```
+
+Script này sẽ:
+1. Lấy dữ liệu OHLCV 30 ngày gần nhất + warmup.
+2. Mô phỏng backtest để tự động tạo nhãn (WIN/LOSS).
+3. Huấn luyện lại mô hình RandomForestClassifier.
+4. Đánh giá Cross-Validation ROC-AUC.
+5. So sánh Concept Drift (nếu ROC-AUC >= 0.55 thì sẽ tự động cập nhật `adaptive_model.joblib`).
+6. Gửi báo cáo kết quả Retrain lên Telegram.
+
+*Lưu ý: Luồng này cũng đã được tự động lên lịch chạy vào lúc 23:30 Chủ Nhật hàng tuần trong `main.py`.*
 
 ---
 

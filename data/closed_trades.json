@@ -352,5 +352,19 @@
     "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "BTC",
+    "id": "29b97a2d-39f2-4140-8165-7286eddb7ab2",
+    "entry_time": "2026-06-11 11:05",
+    "exit_time": "2026-06-11 13:37",
+    "entry_price": 62593.8,
+    "exit_price": 62937.9,
+    "pnl_pct": -0.5497,
+    "result": "LOSS",
+    "hold_hours": 2.5,
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {},
+    "confidence": null
   }
 ]

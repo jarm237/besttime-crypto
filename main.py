@@ -330,6 +330,19 @@ def main():
             
         for m in focused_minutes:
             schedule.every().hour.at(f":{m:02d}").do(fetch_and_analyze_open_positions_only_with_retry)
+
+        def run_weekly_report_job():
+            import subprocess, os
+            console.print("[bold yellow]Đang chạy Weekly Report...[/bold yellow]")
+            subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "scripts", "weekly_job.py")])
+            
+        def run_continuous_learning_job():
+            import subprocess, os
+            console.print("[bold yellow]Đang chạy Continuous Learning Pipeline...[/bold yellow]")
+            subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "scripts", "continuous_learning.py")])
+
+        schedule.every().sunday.at("23:30").do(run_continuous_learning_job)
+        schedule.every().sunday.at("23:45").do(run_weekly_report_job)
             
         console.print(
             f"[dim]>> Lên lịch tổng quát vào: {general_minutes} | Quét khẩn cấp vị thế mở vào: {focused_minutes}. Nhấn Ctrl+C để dừng.[/dim]\n"

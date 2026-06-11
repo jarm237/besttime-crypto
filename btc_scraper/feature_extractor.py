@@ -77,6 +77,15 @@ def features_from_analysis(info: Dict) -> Dict[str, float]:
 
     vol_spike = info.get("vol_spike")
     f["vol_spike"] = 1.0 if vol_spike else 0.0
+    # Regime features (one-hot + confidence)
+    regime_raw = info.get("regime") or (ss.get("regime") if isinstance(ss, dict) else None)
+    regime = (str(regime_raw).upper() if regime_raw is not None else "").strip()
+    f["regime_confidence"] = _safe_float(info.get("regime_confidence") or (ss.get("regime_confidence") if isinstance(ss, dict) else None), default=0.0)
+    f["regime_trending_bull"] = 1.0 if "TRENDING_BULL" in regime else 0.0
+    f["regime_trending_bear"] = 1.0 if "TRENDING_BEAR" in regime else 0.0
+    f["regime_ranging"] = 1.0 if "RANGING" in regime else 0.0
+    f["regime_high_volatility"] = 1.0 if "HIGH_VOLATILITY" in regime or "VOLATILITY" in regime else 0.0
+    f["regime_unknown"] = 1.0 if not regime else 0.0
 
     return f
 

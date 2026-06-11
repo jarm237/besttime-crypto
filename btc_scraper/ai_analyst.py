@@ -580,3 +580,91 @@ def analyze_with_gemini(
 
     except Exception as e:
         return f"[Loi AI Analyst] Khong the thuc hien phan tich Gemini: {str(e)}"
+
+
+
+
+# ────────────────────────────────────────────────────────────────────────────
+#  Weekly Report Generator
+# ────────────────────────────────────────────────────────────────────────────
+
+def generate_weekly_report() -> str:
+    """
+    Sinh báo cáo tổng kết tuần dựa trên dữ liệu giao dịch đã đóng.
+    """
+    if not GEMINI_API_KEYS or not _key_manager.available:
+        return ""
+        
+    closed_trades = _load_closed_trades()
+    if not closed_trades:
+        return "Không có dữ liệu giao dịch nào để báo cáo."
+        
+    # Filter for last 7 days
+    now = datetime.datetime.now()
+    week_ago = now - datetime.timedelta(days=7)
+    
+    recent_trades = []
+    for t in closed_trades:
+        try:
+            exit_time_str = t.get("exit_time", "")
+            # Example format: 2026-06-11 02:43:00 or similar
+            if "T" in exit_time_str:
+                dt = datetime.datetime.fromisoformat(exit_time_str.replace("Z", "+00:00")).replace(tzinfo=None)
+            else:
+                dt = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
+            if dt >= week_ago:
+                recent_trades.append(t)
+        except:
+            pass
+            
+    if not recent_trades:
+        return "Không có lệnh nào đóng trong 7 ngày qua."
+        
+    wins = [t for t in recent_trades if t.get("result") == "WIN"]
+    losses = [t for t in recent_trades if t.get("result") == "LOSS"]
+    win_rate = len(wins) / len(recent_trades) * 100
+    
+    total_pnl = sum(t.get("pnl_pct", 0.0) for t in recent_trades)
+    
+    stats = (
+        f"Tổng lệnh: {len(recent_trades)}\n"
+        f"WIN: {len(wins)} | LOSS: {len(losses)}\n"
+        f"Win Rate: {win_rate:.1f}%\n"
+        f"Tổng PnL: {total_pnl:+.2f}%\n"
+    )
+    
+    # top 3 best and worst
+    sorted_trades = sorted(recent_trades, key=lambda x: x.get("pnl_pct", 0.0), reverse=True)
+    best = sorted_trades[:3]
+    worst = sorted_trades[-3:]
+    
+    best_str = "\n".join(f"- {t['coin']} ({t['direction']}): {t.get('pnl_pct', 0.0):+.2f}% ({t.get('signal_raw', t.get('signal_score',{}).get('raw_text',''))})" for t in best)
+    worst_str = "\n".join(f"- {t['coin']} ({t['direction']}): {t.get('pnl_pct', 0.0):+.2f}% ({t.get('signal_raw', t.get('signal_score',{}).get('raw_text',''))})" for t in worst)
+    
+    prompt = (
+        "Bạn là một chuyên gia đánh giá hiệu suất hệ thống giao dịch thuật toán (Crypto).\n"
+        "Hãy viết một báo cáo tổng kết tuần ngắn gọn, chuyên nghiệp và có chiều sâu dựa trên số liệu sau:\n\n"
+        f"--- THỐNG KÊ 7 NGÀY QUA ---\n{stats}\n\n"
+        f"--- TOP 3 LỆNH THẮNG ĐẬM NHẤT ---\n{best_str}\n\n"
+        f"--- TOP 3 LỆNH THUA LỖ NẶNG NHẤT ---\n{worst_str}\n\n"
+        "Yêu cầu báo cáo gồm 3 phần:\n"
+        "1. Tóm tắt hiệu suất: Nhận xét tổng quan về Win Rate và PnL.\n"
+        "2. Phân tích: Đặc điểm chung của các lệnh thắng/thua là gì? (Ví dụ: xu hướng, loại tín hiệu).\n"
+        "3. Đề xuất cải thiện: Cần chỉnh sửa R:R, vị thế (position size) hay thay đổi ngưỡng tín hiệu nào không?\n"
+        "Chỉ viết tiếng Việt, sử dụng icon phù hợp. Giữ báo cáo súc tích dưới 400 từ."
+    )
+    
+    while _key_manager.available:
+        api_key = _key_manager.next_key()
+        if not api_key: break
+        try:
+            client = genai.Client(api_key=api_key)
+            resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+            _key_manager.reset_key(api_key)
+            return resp.text.strip()
+        except Exception as api_err:
+            if "429" in str(api_err) or "RESOURCE_EXHAUSTED" in str(api_err):
+                _key_manager.mark_exhausted(api_key)
+            else:
+                break
+    return "Không nhận được phản hồi báo cáo từ AI."

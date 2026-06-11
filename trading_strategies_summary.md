@@ -111,13 +111,15 @@ Nến đóng cửa
 * **Extreme Greed** (score > +0.6): Hạ cấp STRONG SELL → WEAK SELL (Sentiment-Blocked)
 
 ### Lớp 7 — Machine Learning / Adaptive Scoring (Mới)
-* **Mục đích**: Thay vì chỉ dùng Rule-based cứng nhắc, tín hiệu sau cùng sẽ được đưa qua mô hình Machine Learning (Logistic Regression) để tính Xác Suất Thắng (Win Probability).
-* **Features đầu vào**: `rsi`, `atr`, `ema_trend`, `bb_width`, `vol_spike`, `is_buy`, `is_sell`, `sentiment_score`.
+* **Mục đích**: Thay vì chỉ dùng Rule-based cứng nhắc, tín hiệu sau cùng sẽ được đưa qua mô hình Machine Learning (Random Forest / Logistic) để tính Xác Suất Thắng (Win Probability).
+* **Ngưỡng hành động (Threshold)**: Điểm > 51% (BUY), < 49% (SELL). Vùng 49-51% là NEUTRAL.
 * **Đầu ra**: 
-  - `score` (0-100%): Xác suất lệnh sẽ thắng.
-  - `confidence`: HIGH (≥80%), MEDIUM (≥60%), LOW.
-  - `position_size`: Tự động nội suy từ 0.25 (nhỏ) đến 1.0 (Full volume) dựa vào score (Dựa trên Kelly Criterion).
-* **Cơ chế tự học (Adaptive)**: Khi chốt lệnh (`./pos close`), dữ liệu được tự động log vào `adaptive_signals.json`. Mô hình được train lại bằng cách gọi `python btc_scraper/adaptive_scoring.py --train`.
+  - `score` (0-100%): Xác suất lệnh sẽ thắng. Điểm quanh 50% là trung lập.
+  - `confidence`: HIGH (điểm cách xa 50%), MEDIUM, LOW.
+  - `position_size`: Tự động nội suy từ 0.25 (nhỏ) đến 1.0 (Full volume) dựa trên khoảng cách của score so với mức 50 (Kelly Criterion rút gọn).
+* **Cơ chế tự học (Continuous Learning)**:
+  - Lệnh đóng được lưu vào `logs/closed_positions.json`.
+  - Hàng tuần (23:30 Chủ Nhật), script `scripts/continuous_learning.py` tự động chạy để tải dữ liệu, tự sinh nhãn, train lại mô hình và kiểm tra Concept Drift (phát hiện nếu mô hình bị out-of-date). Nếu an toàn (ROC-AUC > 0.55), mô hình mới sẽ được lưu đè lên `adaptive_model.joblib`.
 
 ---
 

@@ -43,8 +43,10 @@ def load_csv_data(filepath: str) -> list[dict]:
             })
     return candles
 
+from btc_scraper.config import COINS
+
 def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | None = None):
-    coins = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "LTC", "ZEC"]
+    coins = COINS
     data_dir = "data"
     
     # 1. Load data & run analysis for each coin

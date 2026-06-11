@@ -7,6 +7,7 @@ import os
 
 # Lazy-loaded model cache (joblib sklearn model + feature names)
 _ADAPTIVE_MODEL = None
+_REGIME_MULTIPLIERS = None
 
 
 def _load_adaptive_model():
@@ -89,25 +90,58 @@ def _apply_context_adjustments(score: int, data: Dict, context: Dict) -> int:
 
 
 def map_score_to_action(score: int) -> str:
-    if score >= 65:
+    if score >= 51:
         return "BUY"
-    if score <= 35:
+    if score <= 49:
         return "SELL"
     return "NEUTRAL"
 
 
 def map_score_to_confidence(score: int) -> str:
-    if score >= 80:
+    dist = abs(score - 50)
+    if dist >= 30:
         return "HIGH"
-    if score >= 60:
+    if dist >= 10:
         return "MEDIUM"
     return "LOW"
 
 
 def position_size_from_score(score: int, min_size: float = 0.25, max_size: float = 1.0) -> float:
-    frac = score / 100.0
+    frac = abs(score - 50) / 50.0
     size = min_size + frac * (max_size - min_size)
     return round(max(min_size, min(max_size, size)), 2)
+
+
+def _load_regime_multipliers():
+    global _REGIME_MULTIPLIERS
+    if _REGIME_MULTIPLIERS is not None:
+        return _REGIME_MULTIPLIERS
+    # default multipliers
+    default = {
+        "TRENDING_BULL": 1.0,
+        "TRENDING_BEAR": 0.8,
+        "RANGING": 0.5,
+        "HIGH_VOLATILITY": 0.3,
+    }
+    try:
+        import json
+        cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
+        if not os.path.exists(cfg_path):
+            cfg_path = os.path.join(os.path.dirname(__file__), "..", "btc_scraper", "regime_config.json")
+        if os.path.exists(cfg_path):
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            pm = cfg.get("position_size_multipliers") or {}
+            # merge with defaults
+            merged = default.copy()
+            merged.update(pm.get("default", {}))
+            per = pm.get("per_strategy", {})
+            _REGIME_MULTIPLIERS = {"default": merged, "per_strategy": per}
+            return _REGIME_MULTIPLIERS
+    except Exception:
+        pass
+    _REGIME_MULTIPLIERS = {"default": default, "per_strategy": {}}
+    return _REGIME_MULTIPLIERS
 
 
 def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
@@ -128,7 +162,27 @@ def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
             model = model_bundle.get("model")
             row = [float(feat.get(k, 0.0)) for k in feature_names]
             prob = float(model.predict_proba([row])[0][1])
-            score = int(round(prob * 100))
+            prob_percent = int(round(prob * 100))
+
+            is_buy = "BUY" in sig_text.upper() or "BULL" in sig_text.upper()
+            is_sell = "SELL" in sig_text.upper() or "BEAR" in sig_text.upper()
+
+            if is_buy:
+                # 50% win rate -> 50, 100% win rate -> 100
+                score = prob_percent
+            elif is_sell:
+                # 50% win rate -> 50, 100% win rate -> 0
+                score = 100 - prob_percent
+            else:
+                score = 50
+
+            # Use model probability to determine a base position size (continuous)
+            try:
+                min_size = 0.25
+                max_size = 1.0
+                base_pos = round(min_size + prob * (max_size - min_size), 2)
+            except Exception:
+                base_pos = position_size_from_score(int(score))
         except Exception:
             base = _base_score_from_text(sig_text)
             score = _apply_context_adjustments(base, data or {}, context or {})
@@ -137,7 +191,38 @@ def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
         score = _apply_context_adjustments(base, data or {}, context or {})
     action = map_score_to_action(score)
     conf = map_score_to_confidence(score)
-    pos_size = position_size_from_score(score)
+    # If adaptive model provided base_pos (from above), use it; else derive from score
+    if 'base_pos' in locals() and isinstance(base_pos, (int, float)):
+        pos_size = float(base_pos)
+    else:
+        pos_size = position_size_from_score(score)
+
+    # Regime-specific position sizing multiplier (loadable from regime_config.json)
+    regime = None
+    try:
+        regime = context.get("regime") or data.get("regime") or context.get("market_regime")
+    except Exception:
+        regime = None
+
+    if regime:
+        cfg = _load_regime_multipliers()
+        # try per-strategy override
+        strategy = None
+        try:
+            strategy = data.get("strategy") or data.get("subtype") or None
+        except Exception:
+            strategy = None
+        mult = None
+        if strategy and cfg.get("per_strategy"):
+            strat_map = cfg.get("per_strategy")
+            if strategy in strat_map:
+                mult = strat_map.get(strategy, {}).get(regime)
+        if mult is None:
+            mult = cfg.get("default", {}).get(regime, 1.0)
+        try:
+            pos_size = round(max(0.25, min(1.0, pos_size * float(mult))), 2)
+        except Exception:
+            pass
     return {
         "action": action,
         "score": int(score),

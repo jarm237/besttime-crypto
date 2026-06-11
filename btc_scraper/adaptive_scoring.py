@@ -82,6 +82,8 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
         "exit_time": closed_data.get("exit_time"),
         "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
         "signal_score": signal_score,
+        # support regime analysis: try to pick regime from closed_data or inner signal_score
+        "regime": (closed_data.get("regime") or signal_score.get("regime") if isinstance(signal_score, dict) else None),
     }
 
     log = _load_log()
@@ -145,6 +147,7 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         from btc_scraper.feature_extractor import records_to_dataset
         import numpy as np
         from sklearn.ensemble import RandomForestClassifier
+        from sklearn.model_selection import StratifiedKFold, cross_val_score
         import joblib
 
         X, y, feature_names = records_to_dataset(records)
@@ -154,7 +157,16 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         X = np.array(X)
         y = np.array(y)
 
-        clf = RandomForestClassifier(n_estimators=100, max_depth=5, class_weight='balanced', random_state=42)
+        # Cross-validated training to get robust accuracy estimate
+        clf = RandomForestClassifier(n_estimators=200, max_depth=6, class_weight='balanced', random_state=42)
+        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+        try:
+            cv_scores = cross_val_score(clf, X, y, cv=cv, scoring='roc_auc')
+            cv_mean = float(cv_scores.mean())
+        except Exception:
+            cv_mean = None
+
+        # Fit on full data
         clf.fit(X, y)
 
         # Save model and metadata
@@ -162,10 +174,10 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         _ensure_dir(model_path)
         joblib.dump({"model": clf, "features": feature_names}, model_path)
 
-        # Return simple metrics
+        # Return metrics
         preds = clf.predict(X)
         acc = float((preds == y).mean())
-        return {"model": "sklearn_logreg", "accuracy": acc, "n_samples": len(y), "features": feature_names}
+        return {"model": "sklearn_random_forest", "accuracy": acc, "cv_auc": cv_mean, "n_samples": len(y), "features": feature_names}
     except Exception:
         # Fallback to bucketed stats JSON
         stats = compute_score_stats()
