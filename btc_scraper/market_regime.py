@@ -81,6 +81,38 @@ def calculate_adx(df: pd.DataFrame, window: int = 14) -> pd.Series:
     return adx
 
 
+_REGIME_CONFIG_CACHE = None
+
+def _load_config() -> dict:
+    global _REGIME_CONFIG_CACHE
+    if _REGIME_CONFIG_CACHE is not None:
+        return _REGIME_CONFIG_CACHE
+
+    defaults = {
+        "adx_threshold": 25.0,
+        "atr_pct_threshold": 4.0,
+        "confidence": {
+            "base": 0.2,
+            "adx_weight": 0.5,
+            "trend_weight": 0.3,
+            "max": 0.98,
+        },
+    }
+    cfg_path = Path(__file__).parent / "regime_config.json"
+    if not cfg_path.exists():
+        cfg_path = Path(__file__).with_name("regime_config.json")
+    if cfg_path.exists():
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                user = json.load(f)
+            # merge shallowly
+            defaults.update({k: user.get(k, v) for k, v in defaults.items()})
+        except Exception:
+            pass
+    _REGIME_CONFIG_CACHE = defaults
+    return _REGIME_CONFIG_CACHE
+
+
 def detect_regime(df: pd.DataFrame) -> Dict:
     close = _get_col(df, "Close", "CLOSE", "close")
 
@@ -99,29 +131,6 @@ def detect_regime(df: pd.DataFrame) -> Dict:
     latest_ema21 = float(ema21.iloc[-1])
     latest_adx = float(adx.iloc[-1]) if not np.isnan(adx.iloc[-1]) else 0.0
     latest_atr_pct = float(atr_pct.iloc[-1]) if not np.isnan(atr_pct.iloc[-1]) else 0.0
-
-    # Load thresholds/config (optional)
-    def _load_config():
-        defaults = {
-            "adx_threshold": 25.0,
-            "atr_pct_threshold": 4.0,
-            "confidence": {
-                "base": 0.2,
-                "adx_weight": 0.5,
-                "trend_weight": 0.3,
-                "max": 0.98,
-            },
-        }
-        cfg_path = Path(__file__).with_name("regime_config.json")
-        if cfg_path.exists():
-            try:
-                with open(cfg_path, "r") as f:
-                    user = json.load(f)
-                # merge shallowly
-                defaults.update({k: user.get(k, v) for k, v in defaults.items()})
-            except Exception:
-                pass
-        return defaults
 
     cfg = _load_config()
     adx_thresh = float(cfg.get("adx_threshold", 25.0))

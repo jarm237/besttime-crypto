@@ -171,12 +171,28 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     return metrics
 
 
+_MODEL_CACHE = None
+
+
 def load_model():
     """Load model từ file. Trả về None nếu chưa có."""
+    global _MODEL_CACHE
+    if _MODEL_CACHE is not None:
+        return _MODEL_CACHE
     if not MODEL_OUT.exists():
         return None
     try:
-        return joblib.load(MODEL_OUT)
+        _MODEL_CACHE = joblib.load(MODEL_OUT)
+        # Optimize n_jobs to avoid multiprocessing overhead on single-row predictions
+        if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
+            clf = _MODEL_CACHE["model"]
+            if hasattr(clf, "calibrated_classifiers_") and clf.calibrated_classifiers_:
+                for c in clf.calibrated_classifiers_:
+                    if hasattr(c, "estimator") and hasattr(c.estimator, "n_jobs"):
+                        c.estimator.n_jobs = 1
+            elif hasattr(clf, "n_jobs"):
+                clf.n_jobs = 1
+        return _MODEL_CACHE
     except Exception:
         return None
 

@@ -46,14 +46,17 @@ def load_csv_data(filepath: str) -> list[dict]:
 from btc_scraper.config import COINS
 
 def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | None = None):
-    coins = COINS
     data_dir = "data"
+    # Lọc danh sách coin có sẵn file dữ liệu lịch sử
+    coins = [c for c in COINS if os.path.exists(os.path.join(data_dir, f"{c}_15m.csv"))]
+    if not coins:
+        coins = [f.split("_")[0] for f in os.listdir(data_dir) if f.endswith("_15m.csv") and not f.startswith("april_")]
     
     # 1. Load data & run analysis for each coin
     candles_dict = {}
     analysis_dict = {}
     
-    print("[Backtest] Đang tải dữ liệu và tính toán chỉ báo cho các coin...")
+    print(f"[Backtest] Đang tải dữ liệu và tính toán chỉ báo cho {len(coins)} coin: {', '.join(coins)}...")
     for coin in coins:
         csv_path = os.path.join(data_dir, f"{coin}_15m.csv")
         if not os.path.exists(csv_path):
@@ -352,39 +355,27 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                 continue
                 
             coin_data = lookup[current_time][coin]
-            from btc_scraper.signal_score import extract_signal_fields, score_signal
+            from btc_scraper.signal_score import extract_signal_fields
             sig_fields = extract_signal_fields(coin_data)
             sig_text = coin_data.get("signal", sig_fields.get("raw", ""))
-            score_obj = score_signal(sig_text, coin_data, {"sentiment_penalty": sentiment_penalty} if sentiment_penalty is not None else {})
-            signal = sig_text
-            tp_sl = coin_data["tp_sl"]
             
             # Chỉ vào lệnh với tín hiệu rõ ràng, loại WEAK và NEUTRAL
             is_buy_signal = (
-                any(x in signal for x in ["BUY", "STRONG BUY"])
-                and "WEAK" not in signal
-                and "Blocked" not in signal
-                and "NEUTRAL" not in signal
+                any(x in sig_text for x in ["BUY", "STRONG BUY"])
+                and "WEAK" not in sig_text
+                and "Blocked" not in sig_text
+                and "NEUTRAL" not in sig_text
             )
             is_sell_signal = (
-                any(x in signal for x in ["SELL", "STRONG SELL"])
-                and "WEAK" not in signal
-                and "NEUTRAL" not in signal
+                any(x in sig_text for x in ["SELL", "STRONG SELL"])
+                and "WEAK" not in sig_text
+                and "NEUTRAL" not in sig_text
             )
             
-            # Additionally require model-derived action (if available) to match
-            action_ok = False
-            try:
-                action_ok = score_obj.get("action") == "BUY" if is_buy_signal else (score_obj.get("action") == "SELL" if is_sell_signal else False)
-            except Exception:
-                action_ok = False
-
             if not is_buy_signal and not is_sell_signal:
                 continue
-            if not action_ok:
-                # Skip if score-based action disagrees with text-based filter
-                continue
-                
+
+            tp_sl = coin_data["tp_sl"]
             # Lấy thông số Entry, SL, TP
             entry = tp_sl["entry"]
             sl = tp_sl["sl"]
@@ -410,7 +401,24 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
             vol_spike = coin_data.get("vol_spike", False)
             if not vol_spike:
                 continue   # Bỏ qua tín hiệu không có xác nhận volume
-            risk_pct = RISK_PER_TRADE
+
+            # Sau khi qua toàn bộ các bộ lọc cơ bản, mới gọi model ML đắt đỏ để chấm điểm & quyết định quy mô vị thế
+            from btc_scraper.signal_score import score_signal
+            score_obj = score_signal(sig_text, coin_data, {"sentiment_penalty": sentiment_penalty} if sentiment_penalty is not None else {})
+            
+            # Additionally require model-derived action (if available) to match
+            action_ok = False
+            try:
+                action_ok = score_obj.get("action") == "BUY" if is_buy_signal else (score_obj.get("action") == "SELL" if is_sell_signal else False)
+            except Exception:
+                action_ok = False
+
+            if not action_ok:
+                # Skip if score-based action disagrees with text-based filter
+                continue
+                
+            signal = sig_text
+            risk_pct = RISK_PER_TRADE * float(score_obj.get("position_size", 1.0))
             
             # --- 2.2.1 BỘ LỌC TƯƠNG QUAN (Pearson Correlation Filter) ---
             # Tính Pearson correlation với các coin hiện đang có lệnh
@@ -432,7 +440,7 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
             
             # Nếu tương quan lớn hơn 0.75: Giảm 50% Position Risk để giảm rủi ro tập trung
             if max_corr > 0.75:
-                risk_pct = RISK_PER_TRADE * 0.5
+                risk_pct = risk_pct * 0.5
                 correlation_note = f" (Giảm 50% Vol do tương quan cao r={max_corr:.2f} với vị thế mở)"
             else:
                 correlation_note = ""

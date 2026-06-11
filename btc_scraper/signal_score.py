@@ -8,6 +8,15 @@ from pathlib import Path
 import json
 
 
+def _safe_float(v, default=0.0) -> float:
+    try:
+        if v is None:
+            return default
+        return float(v)
+    except Exception:
+        return default
+
+
 def _use_kelly() -> bool:
     """Return True when Kelly sizing should be enabled. Can be disabled via env var DISABLE_KELLY=1."""
     try:
@@ -29,6 +38,11 @@ def _load_adaptive_model():
         model_path = os.path.join(os.path.dirname(__file__), "..", "logs", "adaptive_model.joblib")
         if os.path.exists(model_path):
             data = joblib.load(model_path)
+            # Enforce n_jobs = 1 to optimize single-row inference
+            if isinstance(data, dict) and "model" in data:
+                m = data["model"]
+                if hasattr(m, "n_jobs"):
+                    m.n_jobs = 1
             _ADAPTIVE_MODEL = data
             return _ADAPTIVE_MODEL
     except Exception:
@@ -154,11 +168,17 @@ def _load_regime_multipliers():
     return _REGIME_MULTIPLIERS
 
 
+_KELLY_PARAMS_CACHE = None
+
 def _load_kelly_params():
     """Load Kelly tuning parameters from `regime_config.json`.
     Returns defaults when config missing.
     Keys: max_fraction, decay_rate, min_fraction
     """
+    global _KELLY_PARAMS_CACHE
+    if _KELLY_PARAMS_CACHE is not None:
+        return _KELLY_PARAMS_CACHE
+        
     defaults = {"max_fraction": 0.5, "decay_rate": 0.0, "min_fraction": 0.0}
     try:
         cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
@@ -168,42 +188,97 @@ def _load_kelly_params():
             with open(cfg_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
             k = cfg.get("kelly") or {}
-            return {
+            _KELLY_PARAMS_CACHE = {
                 "max_fraction": float(k.get("max_fraction", defaults["max_fraction"])),
                 "decay_rate": float(k.get("decay_rate", defaults["decay_rate"])),
                 "min_fraction": float(k.get("min_fraction", defaults["min_fraction"])),
             }
+            return _KELLY_PARAMS_CACHE
     except Exception:
         pass
-    return defaults
+    _KELLY_PARAMS_CACHE = defaults
+    return _KELLY_PARAMS_CACHE
 
+
+_POSITION_SIZING_PARAMS_CACHE = None
+
+def _load_position_sizing_params():
+    """Load Position Sizing parameters from `regime_config.json` and/or environment variables.
+    Returns a dict with keys: method, target_std_dev_pct, target_atr_pct, min_vol_mult, max_vol_mult
+    """
+    global _POSITION_SIZING_PARAMS_CACHE
+    
+    env_method = os.environ.get("AUTO_TRADE_POSITION_SIZING_METHOD")
+    
+    if _POSITION_SIZING_PARAMS_CACHE is not None:
+        if env_method:
+            res = _POSITION_SIZING_PARAMS_CACHE.copy()
+            res["method"] = env_method.lower()
+            return res
+        return _POSITION_SIZING_PARAMS_CACHE
+
+    defaults = {
+        "method": env_method.lower() if env_method else "kelly",
+        "target_std_dev_pct": 2.0,
+        "target_atr_pct": 1.0,
+        "min_vol_mult": 0.25,
+        "max_vol_mult": 1.5
+    }
+    try:
+        cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
+        if not os.path.exists(cfg_path):
+            cfg_path = os.path.join(os.path.dirname(__file__), "..", "btc_scraper", "regime_config.json")
+        if os.path.exists(cfg_path):
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            ps = cfg.get("position_sizing") or {}
+            method = env_method.lower() if env_method else ps.get("method", "kelly").lower()
+            _POSITION_SIZING_PARAMS_CACHE = {
+                "method": method,
+                "target_std_dev_pct": float(ps.get("target_std_dev_pct", defaults["target_std_dev_pct"])),
+                "target_atr_pct": float(ps.get("target_atr_pct", defaults["target_atr_pct"])),
+                "min_vol_mult": float(ps.get("min_vol_mult", defaults["min_vol_mult"])),
+                "max_vol_mult": float(ps.get("max_vol_mult", defaults["max_vol_mult"])),
+            }
+            return _POSITION_SIZING_PARAMS_CACHE
+    except Exception:
+        pass
+    _POSITION_SIZING_PARAMS_CACHE = defaults
+    return _POSITION_SIZING_PARAMS_CACHE
+
+
+_ESTIMATE_B_CACHE = None
 
 def _estimate_b(strategy: str, regime: str) -> float:
     """Estimate reward/risk ratio `b` (average win / average loss) from analytics file.
     Falls back to 1.0 when no data available.
     """
+    global _ESTIMATE_B_CACHE
+    if _ESTIMATE_B_CACHE is None:
+        _ESTIMATE_B_CACHE = {}
+        try:
+            p = Path(__file__).parent.parent / "logs" / "regime_strategy_matrix.csv"
+            if p.exists():
+                import csv
+                with open(p, mode="r", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        strat = row.get("strategy", "")
+                        reg = row.get("regime", "")
+                        aw = float(row.get("avg_win", 1.0))
+                        al = float(row.get("avg_loss", 1.0))
+                        b_val = max(0.01, aw / abs(al)) if al != 0 else max(1.0, aw)
+                        
+                        # Store in cache
+                        _ESTIMATE_B_CACHE[(strat, reg)] = b_val
+                        if strat and (strat, '') not in _ESTIMATE_B_CACHE:
+                            _ESTIMATE_B_CACHE[(strat, '')] = b_val
+        except Exception:
+            pass
+
+    # Lookup in cache
     try:
-        p = Path(__file__).parent.parent / "logs" / "regime_strategy_matrix.csv"
-        if not p.exists():
-            return 1.0
-        import pandas as pd
-        df = pd.read_csv(p)
-        if 'strategy' in df.columns and 'regime' in df.columns:
-            row = df[(df['strategy'] == strategy) & (df['regime'] == regime)]
-            if row.empty:
-                row = df[df['strategy'] == strategy]
-            if row.empty:
-                return 1.0
-            row = row.iloc[0]
-            # preferred columns
-            if 'avg_win' in df.columns and 'avg_loss' in df.columns:
-                aw = float(row.get('avg_win', 1.0))
-                al = float(row.get('avg_loss', 1.0))
-                if al == 0:
-                    return max(1.0, aw)
-                return max(0.01, aw / abs(al))
-            # fallback: if avg_pnl exists, assume symmetric wins/losses -> b = 1.0
-            return 1.0
+        return _ESTIMATE_B_CACHE.get((strategy, regime)) or _ESTIMATE_B_CACHE.get((strategy, '')) or 1.0
     except Exception:
         return 1.0
 
@@ -229,8 +304,34 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     - Keep backward compatibility: consumers can still use original text in `signal`.
     - This function produces a numeric score and derived fields.
     """
+    # Quick bypass for neutral / invalid signals to avoid expensive model prediction
+    s_upper = sig_text.upper() if sig_text else ""
+    is_buy = ("BUY" in s_upper or "BULL" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
+    is_sell = ("SELL" in s_upper or "BEAR" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
+
+    if not is_buy and not is_sell:
+        return {
+            "action": "NEUTRAL",
+            "score": 50,
+            "confidence": "LOW",
+            "position_size": 0.25,
+            "raw_text": sig_text,
+            "meta_confidence": None,
+            "meta_confidence_pct": None,
+            "kelly_fraction": None,
+            "b_estimate": None,
+            "meta_error": None,
+            "position_sizing_method": "kelly",
+            "volatility_multiplier": 1.0,
+            "std_dev_pct": None,
+        }
+
+    disable_ml = False
+    if context and isinstance(context, dict):
+        disable_ml = context.get("disable_ml", False)
+
     # First try adaptive model (if available)
-    model_bundle = _load_adaptive_model()
+    model_bundle = _load_adaptive_model() if not disable_ml else None
     if model_bundle is not None:
         try:
             from btc_scraper.feature_extractor import features_from_analysis
@@ -270,11 +371,18 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         score = _apply_context_adjustments(base, data or {}, context or {})
     action = map_score_to_action(score)
     conf = map_score_to_confidence(score)
+    # Merge analysis data + context thành một dict đầy đủ để build features và tính volatility
+    merged = {}
+    if isinstance(data, dict):
+        merged.update(data)
+    if isinstance(context, dict):
+        merged.update(context)
+
     # If adaptive model provided base_pos (from above), use it; else derive from score
     if 'base_pos' in locals() and isinstance(base_pos, (int, float)):
-        pos_size = float(base_pos)
+        initial_pos_size = float(base_pos)
     else:
-        pos_size = position_size_from_score(score)
+        initial_pos_size = position_size_from_score(score)
 
     # determine regime early so meta prediction can use it
     regime = None
@@ -290,18 +398,13 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     meta_err = None
     try:
         # allow disabling Kelly via environment for comparison runs
+        if disable_ml:
+            raise RuntimeError('ml_disabled')
         if not _use_kelly():
             raise RuntimeError('kelly_disabled')
         from btc_scraper.meta_model import predict_meta_confidence
         from btc_scraper.feature_extractor import build_meta_features
 
-        # Merge analysis data + context thành một dict đầy đủ để build features
-        # Đây là cách đúng: dùng build_meta_features() với toàn bộ context
-        merged = {}
-        if isinstance(data, dict):
-            merged.update(data)
-        if isinstance(context, dict):
-            merged.update(context)
         # Gắn score hiện tại vào merged để feature_extractor có thể đọc
         merged['score'] = score
         merged['signal'] = sig_text
@@ -325,18 +428,13 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
                 kelly_capped = float(kelly_raw)
             decay_rate = float(kparams.get('decay_rate', 0.0))
             try:
-                decayed = kelly_capped * max(0.0, 1.0 - decay_rate * float(pos_size))
+                decayed = kelly_capped * max(0.0, 1.0 - decay_rate * float(initial_pos_size))
             except Exception:
                 decayed = kelly_capped
             try:
                 kelly = max(float(kparams.get('min_fraction', 0.0)), float(decayed))
             except Exception:
                 kelly = float(decayed)
-            if kelly and kelly > 0.0:
-                try:
-                    pos_size = round(max(0.05, min(1.0, pos_size * float(kelly))), 2)
-                except Exception:
-                    pass
         elif isinstance(meta, dict) and meta.get('error'):
             meta_err = meta['error']
     except Exception as e:
@@ -344,6 +442,74 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         meta_err = str(e)
     # ─────────────────────────────────────────────────────────────────────────────
 
+    # ── Volatility (Standard Deviation) Sizing ──────────────────────────────────
+    std_dev_pct = None
+    vol_mult = 1.0
+    ps_params = _load_position_sizing_params()
+
+    # 1. Thử tính toán standard deviation từ Bollinger Bands
+    try:
+        bb_upper = _safe_float(merged.get("bb_upper"))
+        bb_lower = _safe_float(merged.get("bb_lower"))
+        close_p = _safe_float(merged.get("close") or merged.get("close_price"))
+        if close_p > 0 and bb_upper > 0 and bb_lower > 0:
+            bb_width_pct = (bb_upper - bb_lower) / close_p * 100
+            std_dev_pct = bb_width_pct / 4.0
+            target_std = float(ps_params.get("target_std_dev_pct", 2.0))
+            if std_dev_pct > 0:
+                vol_mult = target_std / std_dev_pct
+    except Exception:
+        pass
+
+    # 2. Fallback sang ATR percentage nếu Bollinger Bands bị thiếu/sai lệch
+    if std_dev_pct is None or std_dev_pct <= 0:
+        try:
+            atr_val = _safe_float(merged.get("atr") or merged.get("atr_15m"))
+            close_p = _safe_float(merged.get("close") or merged.get("close_price"))
+            if close_p > 0 and atr_val > 0:
+                std_dev_pct = (atr_val / close_p) * 100
+            else:
+                std_dev_pct = _safe_float(merged.get("atr_pct") or merged.get("atr_pct_15m"), default=0.0)
+
+            if std_dev_pct and std_dev_pct > 0:
+                target_atr = float(ps_params.get("target_atr_pct", 1.0))
+                vol_mult = target_atr / std_dev_pct
+        except Exception:
+            pass
+
+    # Giới hạn Volatility Multiplier
+    if vol_mult != 1.0:
+        try:
+            min_m = float(ps_params.get("min_vol_mult", 0.25))
+            max_m = float(ps_params.get("max_vol_mult", 1.5))
+            vol_mult = max(min_m, min(max_m, vol_mult))
+        except Exception:
+            vol_mult = 1.0
+
+    # ── Áp dụng Position Sizing Method ──────────────────────────────────────────
+    sizing_method = ps_params.get("method", "kelly")
+    pos_size = initial_pos_size
+
+    if sizing_method == "kelly" and kelly is not None:
+        try:
+            pos_size = round(max(0.05, min(1.0, pos_size * float(kelly))), 2)
+        except Exception:
+            pass
+    elif sizing_method == "std_dev" and vol_mult != 1.0:
+        try:
+            pos_size = round(max(0.05, min(1.0, pos_size * float(vol_mult))), 2)
+        except Exception:
+            pass
+    elif sizing_method == "hybrid":
+        try:
+            mult_factor = 1.0
+            if kelly is not None:
+                mult_factor *= float(kelly)
+            if vol_mult != 1.0:
+                mult_factor *= float(vol_mult)
+            pos_size = round(max(0.05, min(1.0, pos_size * mult_factor)), 2)
+        except Exception:
+            pass
 
     # Regime-specific position sizing multiplier (loadable from regime_config.json)
 
@@ -377,6 +543,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         "kelly_fraction": kelly,
         "b_estimate": b_est,
         "meta_error": meta_err,
+        "position_sizing_method": sizing_method,
+        "volatility_multiplier": round(vol_mult, 4) if vol_mult is not None else 1.0,
+        "std_dev_pct": round(std_dev_pct, 4) if std_dev_pct is not None else None,
     }
 
 

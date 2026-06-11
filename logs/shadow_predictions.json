@@ -1,0 +1,62 @@
+[
+  {
+    "prediction_id": "SOLUSDT_1781202234",
+    "symbol": "SOLUSDT",
+    "timestamp": 1781202234.470321,
+    "timestamp_str": "2026-06-12 01:23:54",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.451,
+    "signal_score": 40,
+    "regime": "",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "DOGEUSDT_1781202234",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1781202234.4773166,
+    "timestamp_str": "2026-06-12 01:23:54",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.2992,
+    "signal_score": 40,
+    "regime": "",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "AEVOUSDT_1781202234",
+    "symbol": "AEVOUSDT",
+    "timestamp": 1781202234.4833727,
+    "timestamp_str": "2026-06-12 01:23:54",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3054,
+    "signal_score": 44,
+    "regime": "",
+    "htf_trend": "NEUTRAL",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "ARUSDT_1781202234",
+    "symbol": "ARUSDT",
+    "timestamp": 1781202234.48914,
+    "timestamp_str": "2026-06-12 01:23:54",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3032,
+    "signal_score": 44,
+    "regime": "",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  }
+]

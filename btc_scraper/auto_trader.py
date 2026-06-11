@@ -249,12 +249,13 @@ class AutoTrader:
         entry_price: float,
         sl_price: float,
         current_balance: Optional[float] = None,
+        multiplier: float = 1.0,
     ) -> float:
         """
-        Tính position size dựa trên fixed fractional risk (2% mặc định).
+        Tính position size dựa trên fixed fractional risk (2% mặc định) nhân với setup multiplier (Kelly/Regime).
 
         Formula:
-            risk_usdt = account_balance * risk_pct / 100
+            risk_usdt = account_balance * (risk_pct * multiplier) / 100
             sl_distance_pct = |entry - sl| / entry
             position_usdt = risk_usdt / sl_distance_pct
 
@@ -264,15 +265,19 @@ class AutoTrader:
             entry_price: Giá vào lệnh
             sl_price: Giá stop-loss
             current_balance: Balance thực tế (nếu None, dùng AUTO_TRADE_ACCOUNT_USDT)
+            multiplier: Hệ số nhân điều chỉnh rủi ro của setup (Kelly fraction, market regime)
 
         Returns:
             Số USDT để invest vào lệnh này
         """
         balance = current_balance if current_balance and current_balance > 0 else self.account_usdt
-        risk_usdt = balance * self.risk_pct / 100.0  # VD: 500 * 2% = 10 USDT
+        
+        # Scale risk_pct dynamically by the setup multiplier (Kelly sizing / market regime)
+        adjusted_risk_pct = self.risk_pct * max(0.01, min(1.0, multiplier))
+        risk_usdt = balance * adjusted_risk_pct / 100.0  # VD: 500 * (2% * 0.5) = 5 USDT risk
 
         if entry_price <= 0 or sl_price <= 0:
-            # Fallback: dùng 2% tài khoản nếu không có SL
+            # Fallback: dùng adjusted risk nếu không có SL
             return min(self.max_trade_usdt, max(self.min_trade_usdt, risk_usdt))
 
         sl_distance_pct = abs(entry_price - sl_price) / entry_price
@@ -281,8 +286,6 @@ class AutoTrader:
             sl_distance_pct = 0.005
 
         # risk_usdt / sl_distance = notional cần thiết để risk đúng risk_pct
-        # VD: risk=10 USDT, SL cách 2% → notional = 10/0.02 = 500 (toàn bộ tk)
-        # → sẽ bị cap bởi max_trade_usdt
         position_usdt = risk_usdt / sl_distance_pct
 
         # Apply caps
@@ -426,6 +429,7 @@ class AutoTrader:
             entry_price=float(entry_price),
             sl_price=float(sl_price),
             current_balance=real_balance,
+            multiplier=float(sig_score.get("position_size", 1.0)),
         )
 
         # Đặt lệnh
