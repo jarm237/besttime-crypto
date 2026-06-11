@@ -1,7 +1,29 @@
 {
-  "n_samples": 967,
-  "cv_auc_mean": 0.6106891640391493,
-  "cv_auc_std": 0.024200812135554958,
-  "cv_acc_mean": 0.5915282303295765,
-  "cv_acc_std": 0.024961022529765002
+  "version": "v1.0",
+  "n_samples": 968,
+  "n_features": 14,
+  "features": [
+    "signal_score",
+    "rsi",
+    "macd_hist",
+    "atr_pct",
+    "volume_ratio",
+    "fear_greed",
+    "ema_distance_pct",
+    "bb_width_pct",
+    "adx",
+    "mtf_alignment",
+    "regime_trending_bull",
+    "regime_trending_bear",
+    "regime_ranging",
+    "regime_high_volatility"
+  ],
+  "cv_auc_mean": 0.6582869605836474,
+  "cv_auc_std": 0.031077121737312856,
+  "cv_acc_mean": 0.6250040061962502,
+  "calibrated": true,
+  "label_dist": {
+    "WIN": 412,
+    "LOSS": 556
+  }
 }

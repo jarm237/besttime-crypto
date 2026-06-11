@@ -223,7 +223,7 @@ def compute_kelly_fraction(p: float, b: float) -> float:
         return 0.0
 
 
-def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
+def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None) -> Dict:
     """Return a signal object: {action, score, confidence, position_size}
 
     - Keep backward compatibility: consumers can still use original text in `signal`.
@@ -283,62 +283,66 @@ def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
     except Exception:
         regime = None
 
-    # Attempt to get meta model confidence and apply Kelly sizing
+    # ── Meta Model Confidence + Kelly Position Sizing ──────────────────────────
     meta_prob = None
     kelly = None
     b_est = None
+    meta_err = None
     try:
         # allow disabling Kelly via environment for comparison runs
         if not _use_kelly():
             raise RuntimeError('kelly_disabled')
         from btc_scraper.meta_model import predict_meta_confidence
-        # build a compact record for meta prediction
-        rec = {
-            'score': score,
-            'confidence': (prob if 'prob' in locals() else None),
-            'position_size': pos_size,
-            'regime': regime or None,
-        }
-        # include common numeric indicators if present
-        for k in ('rsi_15m', 'adx_15m', 'atr_pct_15m', 'vol_spike'):
-            rec[k] = (data.get(k) if isinstance(data, dict) else None) or (context.get(k) if isinstance(context, dict) else None) or 0.0
+        from btc_scraper.feature_extractor import build_meta_features
 
-        meta = predict_meta_confidence(rec)
+        # Merge analysis data + context thành một dict đầy đủ để build features
+        # Đây là cách đúng: dùng build_meta_features() với toàn bộ context
+        merged = {}
+        if isinstance(data, dict):
+            merged.update(data)
+        if isinstance(context, dict):
+            merged.update(context)
+        # Gắn score hiện tại vào merged để feature_extractor có thể đọc
+        merged['score'] = score
+        merged['signal'] = sig_text
+        # HTF trend cho mtf_alignment feature
+        if htf_trend:
+            merged['htf_trend'] = htf_trend
+        elif 'htf_trend' not in merged:
+            merged['htf_trend'] = merged.get('trend_label', '')
+
+        meta = predict_meta_confidence(merged)
         if isinstance(meta, dict) and meta.get('probability') is not None:
-            meta_prob = float(meta.get('probability'))
-            # estimate b from analytics and compute Kelly
+            meta_prob = float(meta['probability'])
+            # Tính Kelly sizing dựa trên meta_prob
             strategy = (data.get('strategy') or data.get('subtype')) if isinstance(data, dict) else None
             b_est = _estimate_b(strategy or '', regime or '')
             kelly_raw = compute_kelly_fraction(meta_prob, b_est)
-            # Apply configurable clipping and decay to Kelly fraction
             kparams = _load_kelly_params()
             try:
                 kelly_capped = min(float(kparams.get('max_fraction', 0.5)), float(kelly_raw))
             except Exception:
                 kelly_capped = float(kelly_raw)
             decay_rate = float(kparams.get('decay_rate', 0.0))
-            # decay based on current base pos_size (higher base sizes reduce the applied Kelly)
             try:
                 decayed = kelly_capped * max(0.0, 1.0 - decay_rate * float(pos_size))
             except Exception:
                 decayed = kelly_capped
-            # enforce minimum fraction if configured
             try:
                 kelly = max(float(kparams.get('min_fraction', 0.0)), float(decayed))
             except Exception:
                 kelly = float(decayed)
-            # apply Kelly fraction as multiplier to base pos_size when it's positive
             if kelly and kelly > 0.0:
                 try:
                     pos_size = round(max(0.05, min(1.0, pos_size * float(kelly))), 2)
                 except Exception:
                     pass
+        elif isinstance(meta, dict) and meta.get('error'):
+            meta_err = meta['error']
     except Exception as e:
-        # if meta model unavailable or fails, continue with existing pos_size
         meta_prob = None
         meta_err = str(e)
-    else:
-        meta_err = None
+    # ─────────────────────────────────────────────────────────────────────────────
 
 
     # Regime-specific position sizing multiplier (loadable from regime_config.json)
@@ -368,10 +372,11 @@ def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
         "confidence": conf,
         "position_size": pos_size,
         "raw_text": sig_text,
-        "meta_confidence": meta_prob,
+        "meta_confidence": meta_prob,                          # float 0-1
+        "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,  # int 0-100 cho display
         "kelly_fraction": kelly,
         "b_estimate": b_est,
-        "meta_error": (meta_err if 'meta_err' in locals() else None),
+        "meta_error": meta_err,
     }
 
 

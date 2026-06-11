@@ -998,7 +998,8 @@ def analyze_market(candles: list[dict]) -> dict:
     }
     # Attach scoring metadata (phase 1-5 basic implementation). Keep backward compatibility.
     try:
-        res["signal_score"] = score_signal(current_sig, res, trend_context)
+        htf_trend = res.get("htf_trend") or trend_context.get("trend_label") or ""
+        res["signal_score"] = score_signal(current_sig, res, trend_context, htf_trend=htf_trend)
     except Exception:
         res["signal_score"] = {"action": current_sig, "score": 50, "confidence": "LOW", "position_size": 0.5}
 

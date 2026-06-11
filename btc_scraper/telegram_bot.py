@@ -84,8 +84,23 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
         sig_score = ana.get("signal_score", {}) or {}
         score_val = sig_score.get("score")
         confidence = sig_score.get("confidence")
+        meta_pct = sig_score.get("meta_confidence_pct")  # int 0-100 hoặc None
+
         score_part = f" <b>[{score_val}% {confidence}]</b>" if score_val is not None else ""
-        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b>{score_part} giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
+
+        # Meta Confidence badge (chỉ hiển thị khi model đã train)
+        if meta_pct is not None:
+            if meta_pct >= 70:
+                meta_emoji = "🟢"
+            elif meta_pct >= 50:
+                meta_emoji = "🟡"
+            else:
+                meta_emoji = "🔴"
+            meta_part = f" | {meta_emoji} <b>Meta: {meta_pct}%</b>"
+        else:
+            meta_part = ""
+
+        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b>{score_part}{meta_part} giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
         
         tp_sl = ana.get("tp_sl", {})
         if ("BUY" in sig or "SELL" in sig) and tp_sl:

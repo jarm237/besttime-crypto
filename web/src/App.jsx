@@ -99,6 +99,7 @@ function App() {
               <th>RSI</th>
               <th>Trend (SMA200)</th>
               <th>Chandelier</th>
+              <th style={{ color: '#a78bfa' }}>🤖 Meta</th>
               <th>Hành Động</th>
             </tr>
           </thead>
@@ -132,6 +133,20 @@ function App() {
                     <span className={`badge ${data.trend_context?.chandelier === 'BULL' ? 'badge-green' : 'badge-red'}`}>
                       {data.trend_context?.chandelier || 'UNKNOWN'}
                     </span>
+                  </td>
+                  <td>
+                    {(() => {
+                      const metaPct = data.signal_score?.meta_confidence_pct;
+                      if (metaPct == null) return <span style={{ color: '#475569', fontSize: '0.8rem' }}>N/A</span>;
+                      const color = metaPct >= 70 ? '#22c55e' : metaPct >= 50 ? '#f59e0b' : '#ef4444';
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', border: `2px solid ${color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color }}>
+                            {metaPct}%
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td>
                     <button 
@@ -411,6 +426,59 @@ function App() {
                 </div>
               ))}
             </div>
+
+            {/* ── ROW 4: Meta Model Panel ── */}
+            {(() => {
+              const metaPct = data.signal_score?.meta_confidence_pct;
+              const metaErr = data.signal_score?.meta_error;
+              if (metaPct == null && !metaErr) return null;
+              const metaColor = metaPct >= 70 ? '#22c55e' : metaPct >= 50 ? '#f59e0b' : '#ef4444';
+              const metaLabel = metaPct >= 70 ? 'Xác suất cao — Tín hiệu đáng tin' : metaPct >= 50 ? 'Xác suất trung bình — Thận trọng' : 'Xác suất thấp — Nên bỏ qua';
+              const metaBg = metaPct >= 70 ? 'rgba(34,197,94,0.06)' : metaPct >= 50 ? 'rgba(245,158,11,0.06)' : 'rgba(239,68,68,0.06)';
+              const metaBorder = metaPct >= 70 ? 'rgba(34,197,94,0.2)' : metaPct >= 50 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)';
+              return (
+                <div style={{ background: metaBg, border: `1px solid ${metaBorder}`, borderRadius:'0.75rem', padding:'1.25rem' }}>
+                  <div style={{ fontSize:'0.7rem', color:'#a78bfa', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'1rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+                    <span>🤖</span> META MODEL CONFIDENCE (RandomForest)
+                  </div>
+                  {metaPct != null ? (
+                    <div style={{ display:'flex', alignItems:'center', gap:'1.5rem' }}>
+                      {/* Circular gauge */}
+                      <div style={{ position:'relative', width:80, height:80, flexShrink:0 }}>
+                        <svg viewBox="0 0 80 80" style={{ width:'100%', height:'100%', transform:'rotate(-90deg)' }}>
+                          <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8"/>
+                          <circle cx="40" cy="40" r="34" fill="none" stroke={metaColor} strokeWidth="8"
+                            strokeDasharray={`${2 * Math.PI * 34 * metaPct / 100} ${2 * Math.PI * 34 * (1 - metaPct/100)}`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+                          <div style={{ fontSize:'1.2rem', fontWeight:800, color: metaColor }}>{metaPct}%</div>
+                        </div>
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:700, color: metaColor, fontSize:'1rem', marginBottom:'0.35rem' }}>{metaLabel}</div>
+                        <div style={{ color:'#64748b', fontSize:'0.78rem', lineHeight:1.5 }}>
+                          Xác suất thắng dự đoán từ lịch sử giao dịch.
+                          Giai đoạn hiện tại: <b style={{ color:'#a78bfa' }}>Shadow Mode</b> — chỉ hiển thị, chưa can thiệp.
+                        </div>
+                        {/* Progress bar */}
+                        <div style={{ marginTop:'0.75rem', height:6, borderRadius:999, background:'rgba(255,255,255,0.06)' }}>
+                          <div style={{ height:'100%', borderRadius:999, background:`linear-gradient(to right, #ef4444, #f59e0b 50%, #22c55e)`, width:`${metaPct}%`, transition:'width 0.5s' }} />
+                        </div>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.65rem', color:'#475569', marginTop:'0.2rem' }}>
+                          <span>0%</span><span>50%</span><span>100%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ color:'#64748b', fontSize:'0.85rem' }}>
+                      ⚠️ {metaErr === 'no_model' ? 'Model chưa được train. Chạy: python -m btc_scraper.meta_model --train' : `Lỗi: ${metaErr}`}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Footer */}
             <div style={{ background:'rgba(59,130,246,0.06)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'0.5rem', padding:'0.65rem 1rem', fontSize:'0.78rem', color:'#64748b', display:'flex', alignItems:'center', gap:'0.5rem' }}>
