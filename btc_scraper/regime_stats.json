@@ -1,25 +1,25 @@
 {
   "EMA_Crossover": {
     "TRENDING_BEAR": {
-      "total": 51,
+      "total": 45,
       "wins": 3,
-      "losses": 48,
-      "win_rate": 0.0588,
-      "avg_pnl": -0.1653
+      "losses": 42,
+      "win_rate": 0.0667,
+      "avg_pnl": -0.1988
     },
     "RANGING": {
-      "total": 86,
-      "wins": 7,
-      "losses": 79,
-      "win_rate": 0.0814,
-      "avg_pnl": -0.0985
+      "total": 87,
+      "wins": 6,
+      "losses": 81,
+      "win_rate": 0.069,
+      "avg_pnl": -0.1168
     },
     "TRENDING_BULL": {
-      "total": 13,
+      "total": 16,
       "wins": 0,
-      "losses": 13,
+      "losses": 16,
       "win_rate": 0.0,
-      "avg_pnl": -0.0926
+      "avg_pnl": -0.1993
     }
   },
   "Break_SMA50": {
@@ -47,11 +47,11 @@
       "avg_pnl": 0.0193
     },
     "TRENDING_BULL": {
-      "total": 39,
+      "total": 40,
       "wins": 4,
-      "losses": 35,
-      "win_rate": 0.1026,
-      "avg_pnl": 0.0557
+      "losses": 36,
+      "win_rate": 0.1,
+      "avg_pnl": 0.0572
     },
     "TRENDING_BEAR": {
       "total": 3,
@@ -70,11 +70,11 @@
       "avg_pnl": -0.3404
     },
     "RANGING": {
-      "total": 9,
+      "total": 11,
       "wins": 3,
-      "losses": 6,
-      "win_rate": 0.3333,
-      "avg_pnl": 0.2147
+      "losses": 8,
+      "win_rate": 0.2727,
+      "avg_pnl": 0.1533
     }
   }
 }

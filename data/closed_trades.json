@@ -366,5 +366,19 @@
     "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "SOL",
+    "id": "981919a7-ef62-44be-aba5-e1d321bab33a",
+    "entry_time": "2026-06-11 08:50",
+    "exit_time": "2026-06-11 19:20",
+    "entry_price": 64.77,
+    "exit_price": 65.45,
+    "pnl_pct": -1.0499,
+    "result": "LOSS",
+    "hold_hours": 10.5,
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {},
+    "confidence": null
   }
 ]

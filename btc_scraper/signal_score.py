@@ -4,6 +4,16 @@ Giai đoạn 1-5 (cơ bản): chuyển rule text -> điểm, tổng hợp, ánh 
 """
 from typing import Dict
 import os
+from pathlib import Path
+import json
+
+
+def _use_kelly() -> bool:
+    """Return True when Kelly sizing should be enabled. Can be disabled via env var DISABLE_KELLY=1."""
+    try:
+        return os.environ.get('DISABLE_KELLY', '') != '1'
+    except Exception:
+        return True
 
 # Lazy-loaded model cache (joblib sklearn model + feature names)
 _ADAPTIVE_MODEL = None
@@ -144,6 +154,75 @@ def _load_regime_multipliers():
     return _REGIME_MULTIPLIERS
 
 
+def _load_kelly_params():
+    """Load Kelly tuning parameters from `regime_config.json`.
+    Returns defaults when config missing.
+    Keys: max_fraction, decay_rate, min_fraction
+    """
+    defaults = {"max_fraction": 0.5, "decay_rate": 0.0, "min_fraction": 0.0}
+    try:
+        cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
+        if not os.path.exists(cfg_path):
+            cfg_path = os.path.join(os.path.dirname(__file__), "..", "btc_scraper", "regime_config.json")
+        if os.path.exists(cfg_path):
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            k = cfg.get("kelly") or {}
+            return {
+                "max_fraction": float(k.get("max_fraction", defaults["max_fraction"])),
+                "decay_rate": float(k.get("decay_rate", defaults["decay_rate"])),
+                "min_fraction": float(k.get("min_fraction", defaults["min_fraction"])),
+            }
+    except Exception:
+        pass
+    return defaults
+
+
+def _estimate_b(strategy: str, regime: str) -> float:
+    """Estimate reward/risk ratio `b` (average win / average loss) from analytics file.
+    Falls back to 1.0 when no data available.
+    """
+    try:
+        p = Path(__file__).parent.parent / "logs" / "regime_strategy_matrix.csv"
+        if not p.exists():
+            return 1.0
+        import pandas as pd
+        df = pd.read_csv(p)
+        if 'strategy' in df.columns and 'regime' in df.columns:
+            row = df[(df['strategy'] == strategy) & (df['regime'] == regime)]
+            if row.empty:
+                row = df[df['strategy'] == strategy]
+            if row.empty:
+                return 1.0
+            row = row.iloc[0]
+            # preferred columns
+            if 'avg_win' in df.columns and 'avg_loss' in df.columns:
+                aw = float(row.get('avg_win', 1.0))
+                al = float(row.get('avg_loss', 1.0))
+                if al == 0:
+                    return max(1.0, aw)
+                return max(0.01, aw / abs(al))
+            # fallback: if avg_pnl exists, assume symmetric wins/losses -> b = 1.0
+            return 1.0
+    except Exception:
+        return 1.0
+
+
+def compute_kelly_fraction(p: float, b: float) -> float:
+    """Compute Kelly fraction for probability p and odds b.
+    Returns clipped value between 0 and 1.
+    """
+    try:
+        p = float(p)
+        b = float(b)
+        if b <= 0:
+            return 0.0
+        k = (p * b - (1 - p)) / b
+        return max(0.0, min(1.0, k))
+    except Exception:
+        return 0.0
+
+
 def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
     """Return a signal object: {action, score, confidence, position_size}
 
@@ -197,12 +276,72 @@ def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
     else:
         pos_size = position_size_from_score(score)
 
-    # Regime-specific position sizing multiplier (loadable from regime_config.json)
+    # determine regime early so meta prediction can use it
     regime = None
     try:
         regime = context.get("regime") or data.get("regime") or context.get("market_regime")
     except Exception:
         regime = None
+
+    # Attempt to get meta model confidence and apply Kelly sizing
+    meta_prob = None
+    kelly = None
+    b_est = None
+    try:
+        # allow disabling Kelly via environment for comparison runs
+        if not _use_kelly():
+            raise RuntimeError('kelly_disabled')
+        from btc_scraper.meta_model import predict_meta_confidence
+        # build a compact record for meta prediction
+        rec = {
+            'score': score,
+            'confidence': (prob if 'prob' in locals() else None),
+            'position_size': pos_size,
+            'regime': regime or None,
+        }
+        # include common numeric indicators if present
+        for k in ('rsi_15m', 'adx_15m', 'atr_pct_15m', 'vol_spike'):
+            rec[k] = (data.get(k) if isinstance(data, dict) else None) or (context.get(k) if isinstance(context, dict) else None) or 0.0
+
+        meta = predict_meta_confidence(rec)
+        if isinstance(meta, dict) and meta.get('probability') is not None:
+            meta_prob = float(meta.get('probability'))
+            # estimate b from analytics and compute Kelly
+            strategy = (data.get('strategy') or data.get('subtype')) if isinstance(data, dict) else None
+            b_est = _estimate_b(strategy or '', regime or '')
+            kelly_raw = compute_kelly_fraction(meta_prob, b_est)
+            # Apply configurable clipping and decay to Kelly fraction
+            kparams = _load_kelly_params()
+            try:
+                kelly_capped = min(float(kparams.get('max_fraction', 0.5)), float(kelly_raw))
+            except Exception:
+                kelly_capped = float(kelly_raw)
+            decay_rate = float(kparams.get('decay_rate', 0.0))
+            # decay based on current base pos_size (higher base sizes reduce the applied Kelly)
+            try:
+                decayed = kelly_capped * max(0.0, 1.0 - decay_rate * float(pos_size))
+            except Exception:
+                decayed = kelly_capped
+            # enforce minimum fraction if configured
+            try:
+                kelly = max(float(kparams.get('min_fraction', 0.0)), float(decayed))
+            except Exception:
+                kelly = float(decayed)
+            # apply Kelly fraction as multiplier to base pos_size when it's positive
+            if kelly and kelly > 0.0:
+                try:
+                    pos_size = round(max(0.05, min(1.0, pos_size * float(kelly))), 2)
+                except Exception:
+                    pass
+    except Exception as e:
+        # if meta model unavailable or fails, continue with existing pos_size
+        meta_prob = None
+        meta_err = str(e)
+    else:
+        meta_err = None
+
+
+    # Regime-specific position sizing multiplier (loadable from regime_config.json)
 
     if regime:
         cfg = _load_regime_multipliers()
@@ -229,6 +368,10 @@ def score_signal(sig_text: str, data: Dict, context: Dict) -> Dict:
         "confidence": conf,
         "position_size": pos_size,
         "raw_text": sig_text,
+        "meta_confidence": meta_prob,
+        "kelly_fraction": kelly,
+        "b_estimate": b_est,
+        "meta_error": (meta_err if 'meta_err' in locals() else None),
     }
 
 

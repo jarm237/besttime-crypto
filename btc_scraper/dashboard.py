@@ -54,59 +54,89 @@ def get_multipliers():
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
-
-  @app.get("/tuning", response_class=JSONResponse)
-  def get_tuning():
+@app.get("/tuning", response_class=JSONResponse)
+def get_tuning():
     tuning_path = Path(__file__).parent.parent / "logs" / "multiplier_tuning.json"
     if not tuning_path.exists():
-      return {"message": "no_tuning"}
+        return {"message": "no_tuning"}
     try:
-      with open(tuning_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        with open(tuning_path, "r", encoding="utf-8") as f:
+            return json.load(f)
     except Exception as e:
-      return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/meta_model", response_class=JSONResponse)
+def get_meta_model():
+    """Return meta model metrics and existence state."""
+    metrics_path = Path(__file__).parent.parent / "logs" / "meta_model.json"
+    model_path = Path(__file__).parent.parent / "logs" / "meta_model.joblib"
+    if not metrics_path.exists() and not model_path.exists():
+        return {"message": "no_meta_model"}
+    out = {"model_exists": model_path.exists()}
+    try:
+        if metrics_path.exists():
+            with open(metrics_path, "r", encoding="utf-8") as f:
+                out["metrics"] = json.load(f)
+    except Exception as e:
+        out["metrics_error"] = str(e)
+    return out
 
 
-  @app.post("/multipliers/apply_suggestion", response_class=JSONResponse)
-  def apply_suggestion():
+@app.post("/meta_model/predict", response_class=JSONResponse)
+async def meta_model_predict(request: Request):
+    """Accept a JSON record and return meta model probability."""
+    try:
+        body = await request.json()
+    except Exception as e:
+        return JSONResponse({"error": "invalid_json", "message": str(e)}, status_code=400)
+    try:
+        from btc_scraper.meta_model import predict_meta_confidence
+        res = predict_meta_confidence(body)
+        return res
+    except Exception as e:
+        return JSONResponse({"error": "predict_failed", "message": str(e)}, status_code=500)
+
+
+@app.post("/multipliers/apply_suggestion", response_class=JSONResponse)
+def apply_suggestion():
     tuning_path = Path(__file__).parent.parent / "logs" / "multiplier_tuning.json"
     cfg_path = Path(__file__).with_name("regime_config.json")
     if not tuning_path.exists():
-      return JSONResponse({"error": "no_tuning_file"}, status_code=400)
+        return JSONResponse({"error": "no_tuning_file"}, status_code=400)
     try:
-      with open(tuning_path, "r", encoding="utf-8") as f:
-        t = json.load(f)
+        with open(tuning_path, "r", encoding="utf-8") as f:
+            t = json.load(f)
     except Exception as e:
-      return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(e)}, status_code=500)
 
     suggested = None
     if isinstance(t, dict) and t.get("suggested"):
-      suggested = t["suggested"]
+        suggested = t["suggested"]
     elif isinstance(t, dict) and t.get("top"):
-      # take top[0].multipliers as default mapping
-      top = t.get("top")
-      if top:
-        suggested = {"default": top[0].get("multipliers", {}), "per_strategy": {}}
+        # take top[0].multipliers as default mapping
+        top = t.get("top")
+        if top:
+            suggested = {"default": top[0].get("multipliers", {}), "per_strategy": {}}
 
     if not suggested:
-      return JSONResponse({"error": "no_suggestion_in_tuning"}, status_code=400)
+        return JSONResponse({"error": "no_suggestion_in_tuning"}, status_code=400)
 
     # load existing cfg
     cfg = {}
     try:
-      if cfg_path.exists():
-        with open(cfg_path, "r", encoding="utf-8") as f:
-          cfg = json.load(f)
+        if cfg_path.exists():
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
     except Exception:
-      cfg = {}
+        cfg = {}
 
     cfg["position_size_multipliers"] = suggested
     try:
-      with open(cfg_path, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=2)
-      return {"ok": True}
+        with open(cfg_path, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2)
+        return {"ok": True}
     except Exception as e:
-      return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @app.put("/multipliers", response_class=JSONResponse)
@@ -171,7 +201,7 @@ def index(request: Request):
                 <div id="regimeBadge" class="badge" style="background:#334155">&nbsp;</div>
                 <div style="color:var(--muted);">Confidence: <span id="confPercent">%%CONF_PERCENT%%%</span></div>
               </div>
-              <div class="conf-bar"><div id="confFill" class="conf-fill" style="width:{int(conf*100) if isinstance(conf,(int,float)) else 0}%"></div></div>
+              <div class="conf-bar"><div id="confFill" class="conf-fill" style="width:%%CONF_FILL_WIDTH%%"></div></div>
             </div>
             <div style="text-align:right">
               <div style="color:var(--muted);">Last update</div>
@@ -349,6 +379,7 @@ def index(request: Request):
         conf_pct = conf
     html = html.replace('%%REGIME%%', str(regime))
     html = html.replace('%%CONF_PERCENT%%', str(conf_pct))
+    html = html.replace('%%CONF_FILL_WIDTH%%', str(conf_pct) + '%')
     html = html.replace('%%UPDATED_AT%%', str(d.get('updated_at', '-')))
     html = html.replace('%%ADX%%', str(adx))
     html = html.replace('%%ATR%%', str(atr))

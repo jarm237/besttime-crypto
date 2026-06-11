@@ -1,0 +1,24 @@
+{
+  "timestamp": "20260611T132140Z",
+  "total_disabled": -12.6036,
+  "total_enabled": -11.9571,
+  "delta_total": 0.6465,
+  "per_strategy_disabled": {
+    "EMA_Crossover": -21.837,
+    "Break_SMA50": 6.9125,
+    "RSI_Reversal": 4.0386,
+    "SFP": -1.7177
+  },
+  "per_strategy_enabled": {
+    "EMA_Crossover": -21.1905,
+    "Break_SMA50": 6.9125,
+    "RSI_Reversal": 4.0386,
+    "SFP": -1.7177
+  },
+  "per_strategy_delta": {
+    "Break_SMA50": 0.0,
+    "EMA_Crossover": 0.6465,
+    "RSI_Reversal": 0.0,
+    "SFP": 0.0
+  }
+}

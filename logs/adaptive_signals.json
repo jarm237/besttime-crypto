@@ -57012,5 +57012,27 @@
     },
     "regime": "RANGING",
     "regime_confidence": 0.2
+  },
+  {
+    "coin": "SOL",
+    "id": "981919a7-ef62-44be-aba5-e1d321bab33a",
+    "entry_price": 64.77,
+    "sell_price": 65.45,
+    "pnl_pct": -1.0499,
+    "result": "LOSS",
+    "hold_hours": 10.5,
+    "exit_time": "2026-06-11 19:20",
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {
+      "action": "SELL",
+      "score": 34,
+      "confidence": "MEDIUM",
+      "position_size": 0.5,
+      "raw_text": "NEUTRAL (BULLISH-CAUTION)",
+      "meta_confidence": null,
+      "kelly_fraction": null,
+      "b_estimate": null
+    },
+    "regime": null
   }
 ]

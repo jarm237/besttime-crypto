@@ -1,0 +1,25 @@
+{
+  "enabled_csv": "logs/regime_stats_kelly_enabled_tuned_20260611T143440Z.csv",
+  "disabled_csv": "logs/regime_stats_kelly_disabled_tuned_20260611T143440Z.csv",
+  "total_enabled": -13.063,
+  "total_disabled": -13.063,
+  "delta_total": 0.0,
+  "per_strategy_enabled": {
+    "EMA_Crossover": -22.2964,
+    "Break_SMA50": 6.9125,
+    "RSI_Reversal": 4.0386,
+    "SFP": -1.7177
+  },
+  "per_strategy_disabled": {
+    "EMA_Crossover": -22.2964,
+    "Break_SMA50": 6.9125,
+    "RSI_Reversal": 4.0386,
+    "SFP": -1.7177
+  },
+  "per_strategy_delta": {
+    "Break_SMA50": 0.0,
+    "EMA_Crossover": 0.0,
+    "RSI_Reversal": 0.0,
+    "SFP": 0.0
+  }
+}
