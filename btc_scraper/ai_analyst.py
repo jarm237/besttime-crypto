@@ -148,14 +148,11 @@ def _apply_dynamic_risk_and_sentiment(
         atr_ma = float(info.get("atr_ma", 0.0))
         support = info.get("support")
         resistance = info.get("resistance")
+        entry = float(tp_sl.get("entry", info.get("close", 0.0)))
 
-        if direction == "LONG" and support is not None:
-            tp_sl["sl"] = dynamic_sl_long(float(support), atr_current, atr_ma)
-            tp_sl.setdefault("method", "dynamic_atr_long")
-        elif direction == "SHORT" and resistance is not None:
-            tp_sl["sl"] = dynamic_sl_short(float(resistance), atr_current, atr_ma)
-            tp_sl.setdefault("method", "dynamic_atr_short")
-
+        # We no longer override tp_sl["sl"] here because analysis.py already computes
+        # a highly robust dynamic SL. Overriding it here caused flawed SL logic.
+        
         if atr_ma > 0:
             info["atr_shock"] = atr_shock_filter(atr_current, atr_ma)
             info["atr_used"] = atr_used_for_chandelier(atr_current, atr_ma)
@@ -199,6 +196,11 @@ def _build_coin_block(key: str, info: dict) -> str:
     else:
         bb_pos = "N/A"
 
+    from btc_scraper.signal_score import extract_signal_fields
+    sig_fields = extract_signal_fields(info)
+    meta_pct = sig_fields.get("meta_pct", "N/A")
+    meta_str = f"{meta_pct}%" if meta_pct != "N/A" else "N/A"
+
     lines = [
         f"=== {coin} / USDT | {exchange} | Nến 15m ===",
         f"  Gia Close: {_format_price(close)} | RSI(14): {info['rsi']:.1f}",
@@ -208,7 +210,7 @@ def _build_coin_block(key: str, info: dict) -> str:
         f"  Vi tri gia: {bb_pos}",
         f"  Ho tro (50-nến): {_format_price(support)} | Khang cu (50-nến): {_format_price(resistance)}",
         f"  Tin hieu hien tai: {info.get('signal', 'N/A')} ({info.get('reason', '')})",
-        f"  Confidence: {info.get('confidence', 0.5):.2f} | Position size: {info.get('position_size', 1.0):.2f} | ATR shock: {('YES' if info.get('atr_shock') else 'NO')}",
+        f"  Confidence: {info.get('confidence', 0.5):.2f} | Meta Model Prob: {meta_str} | Position size: {info.get('position_size', 1.0):.2f} | ATR shock: {('YES' if info.get('atr_shock') else 'NO')}",
         f"  Market Regime: {info.get('market_regime', 'N/A')} | Trend Follow: {info.get('trend_following_allowed', False)}",
         f"  HTF Trend: {info.get('htf_trend', 'N/A')} | {info.get('htf_details', 'N/A')}",
     ]

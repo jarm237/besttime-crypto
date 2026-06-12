@@ -44,17 +44,36 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 
 # ─── 1. LOAD CSV ─────────────────────────────────────────────────────────────
 
+import os
+os.environ['DISABLE_KELLY'] = '1'
+
+import btc_scraper.signal_score
+def mock_load_adaptive_model():
+    return None
+btc_scraper.signal_score._load_adaptive_model = mock_load_adaptive_model
+
+import btc_scraper.sentiment
+def mock_get_market_sentiment():
+    return {
+        "score": -0.76,
+        "label": "Extreme Fear",
+        "raw_value": 12,
+        "timestamp": 1718000000,
+        "update_time_human": "2026-06-12 00:00:00"
+    }
+btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
+btc_scraper.analysis.get_market_sentiment = mock_get_market_sentiment
+
 def load_candles_csv(coin: str, interval: str) -> list[dict]:
     """
     Load nến từ CSV. Thử theo thứ tự:
-      1. april_{coin}_{interval}.csv  (fetch_april_data.py)
-      2. backtest_candles_{coin}.csv  (backtest_1month.py) — chỉ cho 15m
+      1. backtest_candles_{coin}.csv  (backtest_1month.py) — ưu tiên dùng data này
+      2. april_{coin}_{interval}.csv  (fetch_april_data.py)
     """
-    candidates = [
-        os.path.join(DATA_DIR, f"april_{coin}_{interval}.csv"),
-    ]
+    candidates = []
     if interval == "15m":
         candidates.append(os.path.join(DATA_DIR, f"backtest_candles_{coin}.csv"))
+    candidates.append(os.path.join(DATA_DIR, f"april_{coin}_{interval}.csv"))
 
     for path in candidates:
         if not os.path.exists(path):
@@ -166,7 +185,7 @@ def extract_features(ana: dict, mtf: dict) -> dict:
     return feat
 
 
-# ─── 4. BACKTEST ENGINE (tạo labeled trades) ─────────────────────────────────
+from btc_scraper.analysis import analyze_market, analyze_all_market
 
 def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dict) -> list[dict]:
     """
@@ -188,6 +207,8 @@ def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dic
 
     records  = []
     position = None
+
+    all_ana = analyze_all_market(candles_15m)
 
     for i in range(WARMUP_CANDLES, n):
         candle = candles_15m[i]
@@ -227,11 +248,7 @@ def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dic
 
         # ── Tìm tín hiệu mới ──────────────────────────────────────────────
         if position is None and not is_warmup_candle:
-            window = candles_15m[max(0, i - WARMUP_CANDLES + 1): i + 1]
-            try:
-                ana = analyze_market(window)
-            except Exception:
-                continue
+            ana = all_ana[i - WARMUP_CANDLES]
 
             signal = ana.get("signal", "")
             s_upper = signal.upper()

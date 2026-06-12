@@ -28,6 +28,8 @@ from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_pos
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper import position_tracker
+from btc_scraper.candle_store import candle_store
+from btc_scraper.exchanges.binance_ws import BinanceWebSocketManager
 
 
 def _classify_mtf_signal(signal: str) -> str:
@@ -192,9 +194,35 @@ def check_and_execute_auto_closes(recs: list[dict]):
         console.print(f"[dim red][AutoTrade] Lỗi tự động đóng vị thế: {e}[/dim red]")
 
 
+# ── Global WS Manager (khởi tạo trong main()) ────────────────────────────────
+_ws_manager: BinanceWebSocketManager | None = None
+
+
+def _get_candles_for_coin(coin: str, interval: str = "15m") -> list[dict]:
+    """
+    Đọc nến từ CandleStore (WS) nếu có, ngược lại fallback về REST.
+    Đây là điểm duy nhất trong code đọc dữ liệu Binance.
+    """
+    global _ws_manager
+    if _ws_manager is not None and candle_store.has_data(coin, interval):
+        candles = candle_store.get(coin, interval)
+        if candles:
+            return candles
+
+    # REST fallback (WS chưa sẵn sàng hoặc chưa có dữ liệu)
+    from btc_scraper.exchanges.binance import fetch_ohlcv, fetch_ohlcv_tf, MTF_INTERVALS
+    if interval == "15m":
+        return fetch_ohlcv(coin)
+    limit = MTF_INTERVALS.get(interval, 50)
+    return fetch_ohlcv_tf(coin, interval, limit)
+
+
 def fetch_and_display():
-    """Lấy dữ liệu từ tất cả sàn, phân tích chỉ báo và in ra terminal."""
-    console.print("[dim]Đang lấy dữ liệu thị trường (BTC, ETH, BNB, SOL, ZEC)...[/dim]")
+    """Lấy dữ liệu từ CandleStore (WS) hoặc REST (fallback), phân tích và in ra terminal."""
+    global _ws_manager
+    using_ws = _ws_manager is not None and _ws_manager.is_healthy()
+    src_label = "WebSocket" if using_ws else "REST fallback"
+    console.print(f"[dim]Đang lấy dữ liệu thị trường ({src_label})...[/dim]")
 
     results = {}
     analysis = {}
@@ -202,32 +230,22 @@ def fetch_and_display():
 
     for coin in COINS:
         results[coin] = {}
-        # Cào từ từng sàn
-        binance_candles = binance.fetch_ohlcv(coin)
-
+        # ── Nến 15m — từ WS hoặc REST fallback ──────────────────────────────
+        binance_candles = _get_candles_for_coin(coin, "15m")
         results[coin]["Binance"] = binance_candles
 
-        # Phân tích từng sàn (khung 15m - hiển thị terminal)
-        for exchange, candles in [("Binance", binance_candles)]:
-            ana = analyze_market(candles)
-            if candles and "error" not in candles[0]:
-                ana["close"] = candles[-1]["close"]
-            else:
-                ana["close"] = 0.0
+        ana = analyze_market(binance_candles)
+        ana["close"] = binance_candles[-1]["close"] if (binance_candles and "error" not in binance_candles[0]) else 0.0
+        analysis[f"{coin}:Binance"] = ana
 
-            # Key phân tích định dạng: "COIN:EXCHANGE"
-            analysis[f"{coin}:{exchange}"] = ana
-
-        # Lấy thêm nến 1h, 4h, 1d cho phân tích AI đa khung
-        console.print(f"[dim]  ↳ [{coin}] Đang lấy nến 1h / 4h / 1d...[/dim]")
-        mtf_candles = fetch_ohlcv_multi_tf(coin)
+        # ── MTF (1h, 4h, 1d) — từ WS hoặc REST fallback ─────────────────────
+        if not using_ws:
+            console.print(f"[dim]  ↳ [{coin}] Đang lấy nến 1h / 4h / 1d (REST)...[/dim]")
         mtf_analysis[coin] = {}
-        for tf, tf_candles in mtf_candles.items():
+        for tf in ["1h", "4h", "1d"]:
+            tf_candles = _get_candles_for_coin(coin, tf)
             tf_ana = analyze_market(tf_candles)
-            if tf_candles and "error" not in tf_candles[0]:
-                tf_ana["close"] = tf_candles[-1]["close"]
-            else:
-                tf_ana["close"] = 0.0
+            tf_ana["close"] = tf_candles[-1]["close"] if (tf_candles and "error" not in tf_candles[0]) else 0.0
             mtf_analysis[coin][tf] = tf_ana
 
         # Gắn HTF trend summary vào analysis 15m
@@ -304,12 +322,9 @@ def fetch_and_analyze_open_positions_only():
     analysis = {}
     
     for coin in coins_to_check:
-        binance_candles = binance.fetch_ohlcv(coin)
+        binance_candles = _get_candles_for_coin(coin, "15m")
         ana = analyze_market(binance_candles)
-        if binance_candles and "error" not in binance_candles[0]:
-            ana["close"] = binance_candles[-1]["close"]
-        else:
-            ana["close"] = 0.0
+        ana["close"] = binance_candles[-1]["close"] if (binance_candles and "error" not in binance_candles[0]) else 0.0
         analysis[f"{coin}:Binance"] = ana
             
     try:
@@ -401,11 +416,29 @@ def main():
     args = parser.parse_args()
 
     console.print(f"\n[bold yellow]*** Multi-coin Trading Signals Scraper ***[/]")
-    console.print(f"[dim]Coins: {', '.join(COINS)} | Nguồn: Binance - Bybit - OKX[/dim]\n")
+    console.print(f"[dim]Coins: {', '.join(COINS)} | Nguồn: Binance (WebSocket) + Bybit + OKX[/dim]\n")
     console.print(
         f"[dim]Auto-restart: ON | Max retries: {MAX_RETRIES} | "
         f"Backoff: {BASE_BACKOFF}s-{MAX_BACKOFF}s[/dim]\n"
     )
+
+    # ── Khởi tạo WebSocket Manager ────────────────────────────────────────────
+    global _ws_manager
+    try:
+        _ws_manager = BinanceWebSocketManager(
+            coins=COINS,
+            on_candle_close=None,  # event-driven callback tùy chọn (hiện không bắt buộc)
+        )
+        _ws_manager.bootstrap_rest()   # Load 210 nến lịch sử qua REST
+        if not args.once:
+            _ws_manager.connect()      # Bắt đầu WS thread nền
+            console.print("[bold cyan]  [WebSocket] Binance Combined Stream đã kết nối.[/bold cyan]\n")
+        else:
+            console.print("[dim]  [WebSocket] Chế độ --once: bỏ qua WS, dùng REST data.[/dim]\n")
+    except Exception as ws_err:
+        console.print(f"[bold red]  [WebSocket] Lỗi khởi động WS, sẽ dùng REST fallback: {ws_err}[/bold red]\n")
+        _ws_manager = None
+    # ──────────────────────────────────────────────────────────────────────────
 
     # Hiển thị trạng thái Shadow Mode & Meta Model khi khởi động
     try:
@@ -460,6 +493,16 @@ def main():
             
         for m in focused_minutes:
             schedule.every().hour.at(f":{m:02d}").do(fetch_and_analyze_open_positions_only_with_retry)
+
+        # ── WebSocket Watchdog (fallback guard) ───────────────────────────────
+        def ws_watchdog():
+            """Kiểm tra WS health mỗi 20 phút. Nếu unhealthy → chạy REST fetch ngay."""
+            if _ws_manager is not None and not _ws_manager.check_health():
+                console.print("[bold yellow]  [WS Watchdog] WS không healthy → chạy REST fallback ngay.[/bold yellow]")
+                fetch_and_display_with_retry()
+
+        schedule.every(20).minutes.do(ws_watchdog)
+        # ─────────────────────────────────────────────────────────────────────
 
         def run_weekly_report_job():
             import subprocess, os

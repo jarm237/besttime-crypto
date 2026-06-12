@@ -8,6 +8,9 @@ import requests
 from datetime import datetime
 from btc_scraper.config import INTERVAL, LIMIT
 
+# Re-export LIMIT so binance_ws.py can import it without circular dep
+__all__ = ["fetch_ohlcv", "fetch_ohlcv_tf", "fetch_ohlcv_multi_tf", "get_ws_stream_names", "LIMIT", "MTF_INTERVALS"]
+
 # Cấu hình số nến cho từng khung thời gian cao hơn
 MTF_INTERVALS = {
     "1h":  50,   # 50 nến 1h (~2 ngày)
@@ -88,3 +91,23 @@ def fetch_ohlcv_multi_tf(coin: str) -> dict[str, list[dict]]:
     for interval, limit in MTF_INTERVALS.items():
         result[interval] = fetch_ohlcv_tf(coin, interval, limit)
     return result
+
+
+def get_ws_stream_names(coins: list[str], intervals: list[str] | None = None) -> list[str]:
+    """
+    Tạo danh sách tên stream cho Binance Combined WebSocket.
+
+    Args:
+        coins: Danh sách coin không có USDT — ví dụ ["BTC", "ETH"]
+        intervals: Danh sách interval — mặc định ["15m", "1h", "4h", "1d"]
+
+    Returns:
+        ["btcusdt@kline_15m", "btcusdt@kline_1h", ..., "ethusdt@kline_15m", ...]
+    """
+    if intervals is None:
+        intervals = ["15m", "1h", "4h", "1d"]
+    return [
+        f"{coin.lower()}usdt@kline_{interval}"
+        for coin in coins
+        for interval in intervals
+    ]

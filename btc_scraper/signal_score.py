@@ -38,11 +38,18 @@ def _load_adaptive_model():
         model_path = os.path.join(os.path.dirname(__file__), "..", "logs", "adaptive_model.joblib")
         if os.path.exists(model_path):
             data = joblib.load(model_path)
-            # Enforce n_jobs = 1 to optimize single-row inference
-            if isinstance(data, dict) and "model" in data:
-                m = data["model"]
-                if hasattr(m, "n_jobs"):
-                    m.n_jobs = 1
+            # Fix n_jobs issue for single sample inference
+            model = data.get("model") if isinstance(data, dict) else data
+            def set_n_jobs(est):
+                if hasattr(est, 'n_jobs'): est.n_jobs = 1
+                if hasattr(est, 'estimator'): set_n_jobs(est.estimator)
+                if hasattr(est, 'base_estimator'): set_n_jobs(est.base_estimator)
+                if hasattr(est, 'best_estimator_'): set_n_jobs(est.best_estimator_)
+                if hasattr(est, 'steps'):
+                    for name, step in est.steps: set_n_jobs(step)
+                if hasattr(est, 'calibrated_classifiers_'):
+                    for e in est.calibrated_classifiers_: set_n_jobs(e)
+            set_n_jobs(model)
             _ADAPTIVE_MODEL = data
             return _ADAPTIVE_MODEL
     except Exception:
@@ -330,6 +337,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     if context and isinstance(context, dict):
         disable_ml = context.get("disable_ml", False)
 
+    # reason accumulates filter notes appended throughout the function
+    reason: str = ""
+
     # First try adaptive model (if available)
     model_bundle = _load_adaptive_model() if not disable_ml else None
     if model_bundle is not None:
@@ -438,8 +448,31 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         elif isinstance(meta, dict) and meta.get('error'):
             meta_err = meta['error']
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         meta_prob = None
         meta_err = str(e)
+    # ─────────────────────────────────────────────────────────────────────────────
+
+    # ── Sprint 3: Meta Signal Filter ─────────────────────────────────────────────
+    # Penalize score khi Meta Model xác suất thấp (cấu hình qua env var).
+    # Chỉ hoạt động khi META_REJECT_THRESHOLD được set trong .env hoặc environ.
+    # Mặc định disabled (threshold = 0.0) để không phá hệ thống cũ.
+    _meta_reject_threshold = None
+    try:
+        import os as _os
+        _thresh_str = _os.getenv("META_REJECT_THRESHOLD", "0").strip()
+        _thresh_val = float(_thresh_str)
+        if _thresh_val > 0:
+            _meta_reject_threshold = _thresh_val
+    except Exception:
+        pass
+
+    if _meta_reject_threshold is not None and meta_prob is not None:
+        if meta_prob < _meta_reject_threshold:
+            _penalty = 20
+            score = max(0, score - _penalty)
+            reason += f" | Meta Filter: {meta_prob:.0%} < {_meta_reject_threshold:.0%} → score -{_penalty}"
     # ─────────────────────────────────────────────────────────────────────────────
 
     # ── Volatility (Standard Deviation) Sizing ──────────────────────────────────

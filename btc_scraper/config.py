@@ -7,10 +7,34 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Danh sách các coin cần theo dõi (tự động ghép cặp USDT/USDT-spot)
-COINS = ["BTC", "ETH", "BNB", "SOL", "ZEC", "XRP", "DOGE", "WLD", "XLM", "NEAR", "AVAX", "TAO", "TRB", "AEVO", "ENA", "AR", "IOTA"]
+COINS = [
+    "BTC", 
+    "ETH", 
+    "BNB", 
+    "SOL", 
+    "ZEC", 
+    "XRP", 
+    "DOGE", 
+    "WLD", 
+    "XLM", 
+    "NEAR", 
+    "AVAX", 
+    "TAO", 
+    "TRB", 
+    "AEVO", 
+    "ENA", 
+    "AR", 
+    "IOTA", 
+    "XPL", 
+    "NAORIS", 
+    "SOPH", 
+    "TSLAB", 
+    "XAUT", 
+    "TRX"
+]
 
 INTERVAL = "15m"            # Khung nến 15 phút
-LIMIT = 100                  # Số nến lấy mỗi lần (cần tối thiểu 30-50 để tính RSI/EMA chính xác)
+LIMIT = 210                  # Số nến lấy mỗi lần — cần tối thiểu 200 để tính SMA200 (+ 10 buffer)
 FETCH_INTERVAL_MINUTES = 15   # Tần suất cập nhật (phút)
 
 # Telegram credentials

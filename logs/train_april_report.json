@@ -1,12 +1,12 @@
 {
-  "train_date": "2026-06-11 09:49",
-  "n_samples": 966,
-  "n_win": 412,
-  "n_loss": 554,
-  "win_rate": 42.65,
-  "cv_roc_auc": 0.624,
-  "cv_roc_auc_std": 0.0298,
-  "train_accuracy": 73.81,
+  "train_date": "2026-06-12 10:08",
+  "n_samples": 482,
+  "n_win": 238,
+  "n_loss": 244,
+  "win_rate": 49.38,
+  "cv_roc_auc": 0.5454,
+  "cv_roc_auc_std": 0.0628,
+  "train_accuracy": 79.46,
   "feature_names": [
     "above_sma200_15m",
     "above_sma200_1d",
@@ -55,104 +55,104 @@
   ],
   "top_features": [
     [
-      "rsi_15m",
-      0.2164
+      "bb_position_15m",
+      0.1065
     ],
     [
-      "macd_hist_15m",
-      0.1167
+      "rsi_15m",
+      0.0873
     ],
     [
       "adx_15m",
-      0.1032
+      0.0824
+    ],
+    [
+      "bb_width_15m",
+      0.0812
     ],
     [
       "choppiness_15m",
-      0.0913
+      0.076
     ],
     [
-      "bb_position_15m",
-      0.0884
+      "macd_hist_15m",
+      0.0667
     ],
     [
-      "position_size",
-      0.0266
-    ],
-    [
-      "macd_hist_4h",
-      0.0259
-    ],
-    [
-      "is_strong",
-      0.0258
-    ],
-    [
-      "macd_hist_1d",
-      0.025
-    ],
-    [
-      "rsi_1h",
-      0.0247
-    ],
-    [
-      "rsi_1d",
-      0.0245
-    ],
-    [
-      "rsi_4h",
-      0.023
+      "atr_pct_15m",
+      0.0568
     ],
     [
       "score",
-      0.0222
+      0.0445
+    ],
+    [
+      "rsi_4h",
+      0.0352
+    ],
+    [
+      "macd_hist_4h",
+      0.0316
+    ],
+    [
+      "position_size",
+      0.0265
+    ],
+    [
+      "rsi_1d",
+      0.0258
+    ],
+    [
+      "rsi_1h",
+      0.0251
+    ],
+    [
+      "macd_hist_1d",
+      0.0237
     ],
     [
       "macd_hist_1h",
+      0.0229
+    ],
+    [
+      "atr_4h",
       0.0222
     ],
     [
       "atr_1d",
-      0.0219
+      0.0215
     ],
     [
       "atr_1h",
-      0.0206
+      0.0177
     ],
     [
-      "atr_4h",
-      0.0196
+      "is_sell",
+      0.017
     ],
     [
-      "is_reversal",
-      0.0183
-    ],
-    [
-      "ema_trend_15m",
-      0.014
-    ],
-    [
-      "is_sfp",
-      0.012
+      "is_buy",
+      0.0152
     ]
   ],
   "coins": [
-    "WLD",
-    "BTC",
-    "TAO",
-    "ETH",
+    "XRP",
+    "NEAR",
+    "BNB",
+    "DOGE",
     "TRB",
     "AR",
-    "ENA",
-    "BNB",
-    "IOTA",
-    "DOGE",
-    "NEAR",
-    "AVAX",
+    "WLD",
+    "ETH",
     "AEVO",
     "ZEC",
-    "XRP",
-    "SOL",
-    "XLM"
+    "TAO",
+    "ENA",
+    "XLM",
+    "IOTA",
+    "BTC",
+    "AVAX",
+    "SOL"
   ],
   "data_period": "April 2026 (15m)"
 }
