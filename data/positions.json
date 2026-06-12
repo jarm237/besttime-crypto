@@ -473,23 +473,23 @@
     "entry_time": "2026-06-12 08:34",
     "status": "open",
     "note": "[MANUAL]",
-    "last_signal": "NEUTRAL (BULLISH-CAUTION)",
-    "last_price": 66.78,
-    "last_checked": "2026-06-12 10:29",
+    "last_signal": "NEUTRAL (BEARISH-CAUTION)",
+    "last_price": 66.75,
+    "last_checked": "2026-06-12 13:02",
     "last_signal_score": {
-      "action": "SELL",
-      "score": 43,
+      "action": "BUY",
+      "score": 57,
       "confidence": "LOW",
       "position_size": 0.57,
-      "raw_text": "NEUTRAL (BULLISH-CAUTION)",
-      "meta_confidence": 0.41417595412873015,
-      "meta_confidence_pct": 41,
+      "raw_text": "NEUTRAL (BEARISH-CAUTION)",
+      "meta_confidence": 0.35804852677382304,
+      "meta_confidence_pct": 36,
       "kelly_fraction": 0.0,
       "b_estimate": 1.0,
       "meta_error": null
     },
-    "suggested_sl": 67.3807,
-    "suggested_tp1": 65.1122,
-    "suggested_tp2": 63.6943
+    "suggested_sl": 67.228,
+    "suggested_tp1": 65.3667,
+    "suggested_tp2": 64.2033
   }
 ]

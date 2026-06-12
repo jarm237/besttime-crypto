@@ -376,6 +376,26 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         meta_err = str(e)
     # ─────────────────────────────────────────────────────────────────────────────
 
+    # ── Sprint 3: Meta Signal Filter ─────────────────────────────────────────────
+    # Penalize score khi Meta Model xác suất thấp (cấu hình qua env var).
+    # Chỉ hoạt động khi META_REJECT_THRESHOLD được set trong .env hoặc environ.
+    # Mặc định disabled (threshold = 0.0) để không phá hệ thống cũ.
+    _meta_reject_threshold = None
+    try:
+        import os as _os
+        _thresh_str = _os.getenv("META_REJECT_THRESHOLD", "0").strip()
+        _thresh_val = float(_thresh_str)
+        if _thresh_val > 0:
+            _meta_reject_threshold = _thresh_val
+    except Exception:
+        pass
+
+    if _meta_reject_threshold is not None and meta_prob is not None:
+        if meta_prob < _meta_reject_threshold:
+            _penalty = 20
+            score = max(0, score - _penalty)
+            reason += f" | Meta Filter: {meta_prob:.0%} < {_meta_reject_threshold:.0%} → score -{_penalty}"
+    # ─────────────────────────────────────────────────────────────────────────────
 
     # Regime-specific position sizing multiplier (loadable from regime_config.json)
 
