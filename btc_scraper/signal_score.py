@@ -512,9 +512,12 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     sizing_method = ps_params.get("method", "kelly")
     pos_size = initial_pos_size
 
-    if sizing_method == "kelly" and kelly is not None:
+    # Sprint 4: Sử dụng trực tiếp meta_prob thay thế cho Kelly fraction phức tạp
+    prob_factor = meta_prob if meta_prob is not None else (kelly if kelly is not None else 1.0)
+
+    if sizing_method == "kelly" and prob_factor is not None:
         try:
-            pos_size = round(max(0.05, min(1.0, pos_size * float(kelly))), 2)
+            pos_size = round(max(0.05, min(1.0, pos_size * float(prob_factor))), 2)
         except Exception:
             pass
     elif sizing_method == "std_dev" and vol_mult != 1.0:
@@ -525,8 +528,8 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     elif sizing_method == "hybrid":
         try:
             mult_factor = 1.0
-            if kelly is not None:
-                mult_factor *= float(kelly)
+            if prob_factor is not None:
+                mult_factor *= float(prob_factor)
             if vol_mult != 1.0:
                 mult_factor *= float(vol_mult)
             pos_size = round(max(0.05, min(1.0, pos_size * mult_factor)), 2)

@@ -1,16 +1,16 @@
 {
-  "rsi": 0.5208578733870511,
-  "adx": 0.3282734365928359,
-  "signal_score": 0.08722887203218399,
-  "regime_trending_bear": 0.04036126303037135,
-  "regime_ranging": 0.016712751635947248,
-  "regime_trending_bull": 0.006565803321610221,
-  "macd_hist": 0.0,
-  "atr_pct": 0.0,
+  "rsi": 0.2344238131494544,
+  "macd_hist": 0.1515836822477258,
+  "adx": 0.14773007212411832,
+  "ema_distance_pct": 0.12542842100940121,
+  "atr_pct": 0.11334622879805269,
+  "bb_width_pct": 0.11053594129863978,
+  "signal_score": 0.058117517101399674,
+  "mtf_alignment": 0.03813376445091485,
+  "regime_ranging": 0.010225374790704763,
+  "regime_high_volatility": 0.007130855816506132,
+  "regime_trending_bull": 0.003344329213082426,
   "volume_ratio": 0.0,
   "fear_greed": 0.0,
-  "ema_distance_pct": 0.0,
-  "bb_width_pct": 0.0,
-  "mtf_alignment": 0.0,
-  "regime_high_volatility": 0.0
+  "regime_trending_bear": 0.0
 }

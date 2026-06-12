@@ -136,6 +136,34 @@ def get_auto_trade_logs():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi đọc log auto-trade: {str(e)}")
 
+@app.get("/api/meta-model")
+def get_meta_model_info():
+    """Lấy thông tin metrics và feature importance của Meta Model."""
+    metrics_path = os.path.join(os.path.dirname(__file__), "..", "logs", "meta_model.json")
+    importance_path = os.path.join(os.path.dirname(__file__), "..", "logs", "meta_feature_importance.json")
+    
+    out = {
+        "model_exists": os.path.exists(os.path.join(os.path.dirname(__file__), "..", "logs", "meta_model.joblib")),
+        "metrics": None,
+        "feature_importance": None
+    }
+    
+    if os.path.exists(metrics_path):
+        try:
+            with open(metrics_path, "r", encoding="utf-8") as f:
+                out["metrics"] = json.load(f)
+        except Exception as e:
+            out["metrics_error"] = str(e)
+            
+    if os.path.exists(importance_path):
+        try:
+            with open(importance_path, "r", encoding="utf-8") as f:
+                out["feature_importance"] = json.load(f)
+        except Exception as e:
+            out["importance_error"] = str(e)
+            
+    return out
+
 @app.get("/api/performance")
 def get_performance():
     """Lấy báo cáo hiệu suất chiến lược giao dịch."""

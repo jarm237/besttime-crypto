@@ -492,6 +492,25 @@ def main():
         "calibrated": True,
     }
     joblib.dump(model_bundle, MODEL_OUT)
+
+    # Fit base model on full dataset to extract feature importances
+    try:
+        rf_base.fit(X, y)
+        if hasattr(rf_base, "feature_importances_"):
+            importances = rf_base.feature_importances_
+            feature_importance = dict(
+                sorted(
+                    zip(FEATURE_SCHEMA, importances.tolist()),
+                    key=lambda x: x[1],
+                    reverse=True,
+                )
+            )
+            importance_path = LOGS_DIR / "meta_feature_importance.json"
+            with open(importance_path, "w", encoding="utf-8") as f:
+                json.dump(feature_importance, f, indent=2, ensure_ascii=False)
+            print(f"  [+] Saved feature importance to {importance_path}")
+    except Exception as e:
+        print(f"  [Warning] Failed to save feature importance: {e}")
     
     # Save metrics
     metrics = {

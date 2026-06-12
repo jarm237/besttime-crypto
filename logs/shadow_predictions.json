@@ -65643,20 +65643,5 @@
     "sl": 0.3512,
     "tp1": 0.35,
     "meta_prob": 0.3565
-  },
-  {
-    "prediction_id": "XRPUSDT_1781280070",
-    "symbol": "XRPUSDT",
-    "timestamp": 1781280070.159369,
-    "timestamp_str": "2026-06-12 23:01:10",
-    "signal": "WEAK SELL (Crossover)",
-    "meta_prob": 0.4002,
-    "signal_score": 36,
-    "regime": "",
-    "htf_trend": "BULLISH-MIXED",
-    "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
   }
 ]

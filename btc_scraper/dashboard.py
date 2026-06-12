@@ -70,6 +70,7 @@ def get_meta_model():
     """Return meta model metrics and existence state."""
     metrics_path = Path(__file__).parent.parent / "logs" / "meta_model.json"
     model_path = Path(__file__).parent.parent / "logs" / "meta_model.joblib"
+    importance_path = Path(__file__).parent.parent / "logs" / "meta_feature_importance.json"
     if not metrics_path.exists() and not model_path.exists():
         return {"message": "no_meta_model"}
     out = {"model_exists": model_path.exists()}
@@ -79,6 +80,12 @@ def get_meta_model():
                 out["metrics"] = json.load(f)
     except Exception as e:
         out["metrics_error"] = str(e)
+    try:
+        if importance_path.exists():
+            with open(importance_path, "r", encoding="utf-8") as f:
+                out["feature_importance"] = json.load(f)
+    except Exception as e:
+        out["importance_error"] = str(e)
     return out
 
 

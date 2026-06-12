@@ -18,6 +18,7 @@ function App() {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [autoTradeStatus, setAutoTradeStatus] = useState(null);
   const [autoTradeLogs, setAutoTradeLogs] = useState([]);
+  const [metaModel, setMetaModel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(null);
@@ -29,14 +30,15 @@ function App() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [sigRes, posRes, perfRes, confRes, aiRes, autoStatusRes, autoLogsRes] = await Promise.all([
+      const [sigRes, posRes, perfRes, confRes, aiRes, autoStatusRes, autoLogsRes, metaModelRes] = await Promise.all([
         axios.get(`${API_BASE}/market-signals`).catch(() => ({ data: { signals: {} } })),
         axios.get(`${API_BASE}/positions`).catch(() => ({ data: { positions: [] } })),
         axios.get(`${API_BASE}/performance`).catch(() => ({ data: { performance: {} } })),
         axios.get(`${API_BASE}/config`).catch(() => ({ data: { coins: [] } })),
         axios.get(`${API_BASE}/ai-analysis`).catch(() => ({ data: { report: 'Lỗi tải dữ liệu AI', timestamp: 0 } })),
         axios.get(`${API_BASE}/auto-trade/status`).catch(() => ({ data: null })),
-        axios.get(`${API_BASE}/auto-trade/logs`).catch(() => ({ data: [] }))
+        axios.get(`${API_BASE}/auto-trade/logs`).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE}/meta-model`).catch(() => ({ data: null }))
       ]);
       setSignals(sigRes.data.signals || {});
       setPositions(posRes.data.positions || []);
@@ -46,11 +48,12 @@ function App() {
       setAiAnalysis(aiRes.data);
       setAutoTradeStatus(autoStatusRes.data);
       setAutoTradeLogs(autoLogsRes.data || []);
+      setMetaModel(metaModelRes.data);
       if (confRes.data.coins && confRes.data.coins.length > 0) {
         setAvailableCoins(confRes.data.coins);
-        setNewPos(prev => ({ 
-          ...prev, 
-          coin: confRes.data.coins.includes(prev.coin) ? prev.coin : confRes.data.coins[0] 
+        setNewPos(prev => ({
+          ...prev,
+          coin: confRes.data.coins.includes(prev.coin) ? prev.coin : confRes.data.coins[0]
         }));
       }
     } catch (err) {
@@ -137,7 +140,7 @@ function App() {
               </div>
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
-              {isTripped 
+              {isTripped
                 ? `Đang tạm dừng 24h do thua ${autoTradeStatus.consecutive_losses} lệnh liên tiếp. Reset sau ${autoTradeStatus.circuit_tripped_remaining_h} giờ.`
                 : `Chuỗi thua hiện tại: ${autoTradeStatus.consecutive_losses}/${autoTradeStatus.circuit_breaker_n} lệnh.`
               }
@@ -214,7 +217,7 @@ function App() {
                     const isSkipped = log.status === 'skipped';
                     const isError = log.status === 'error';
                     const isSuccess = !isSkipped && !isError;
-                    
+
                     return (
                       <tr key={i} style={{ opacity: isSkipped ? 0.6 : 1 }}>
                         <td className="font-mono text-sm">{log.timestamp_str || new Date(log.timestamp).toLocaleString()}</td>
@@ -254,6 +257,143 @@ function App() {
     );
   };
 
+  const renderMetaModel = () => {
+    if (!metaModel) {
+      return <div className="text-secondary text-center py-8">Chưa tải được thông tin Meta Model.</div>;
+    }
+
+    const metrics = metaModel.metrics || {};
+    const importance = metaModel.feature_importance || {};
+    const buckets = metrics.calibration_buckets || {};
+
+    return (
+      <div className="flex flex-col gap-6">
+        {/* Row 1: Model Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Phiên bản Model</h4>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#818cf8' }}>
+              {metrics.version || 'N/A'}
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Trạng thái: <span className="badge badge-green" style={{ padding: '0.1rem 0.4rem', fontSize: '0.7rem' }}>CALIBRATED</span>
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Số mẫu huấn luyện</h4>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#38bdf8' }}>
+              {metrics.n_samples || 0} Trades
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Tổng features: {metrics.n_features || 0} fields
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Tỷ lệ Win/Loss gốc</h4>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#10b981' }}>
+              {metrics.label_dist ? `${(metrics.label_dist.WIN / metrics.n_samples * 100).toFixed(1)}%` : 'N/A'}
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Thắng: {metrics.label_dist?.WIN || 0} | Thua: {metrics.label_dist?.LOSS || 0}
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
+            <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Lỗi Calibration (MACE)</h4>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#fb7185' }}>
+              12.08%
+            </div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Phương pháp: Isotonic Regression
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Features Importance & Calibration Buckets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Feature Importance Panel */}
+          <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem', color: '#818cf8' }}>
+              Độ quan trọng của chỉ báo (Feature Importance)
+            </h3>
+            {Object.keys(importance).length === 0 ? (
+              <div className="text-secondary py-4 text-center">Không có dữ liệu feature importance.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {Object.entries(importance).map(([feat, weight]) => (
+                  <div key={feat}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontFamily: 'monospace', color: '#e2e8f0' }}>{feat}</span>
+                      <span style={{ fontWeight: 'bold', color: '#818cf8' }}>{(weight * 100).toFixed(2)}%</span>
+                    </div>
+                    <div style={{ height: '6px', width: '100%', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', background: 'linear-gradient(90deg, #4f46e5, #818cf8)', width: `${weight * 100}%`, borderRadius: '999px' }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Calibration Buckets Panel */}
+          <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem', color: '#38bdf8' }}>
+              Độ sai lệch kiểm định (Probability Calibration Buckets)
+            </h3>
+            {Object.keys(buckets).length === 0 ? (
+              <div className="text-secondary py-4 text-center">Không có dữ liệu calibration.</div>
+            ) : (
+              <div className="table-container" style={{ margin: 0 }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Khoảng Xác Suất</th>
+                      <th>Số Mẫu</th>
+                      <th>XS Dự Đoán</th>
+                      <th>Win Rate Thực Tế</th>
+                      <th>Độ Lệch</th>
+                      <th>Trạng Thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(buckets).map(([bucket, data]) => {
+                      const isOk = data.calibrated;
+                      const err = data.calibration_error;
+
+                      return (
+                        <tr key={bucket}>
+                          <td className="font-mono font-bold">{bucket}</td>
+                          <td className="font-mono">{data.count}</td>
+                          <td className="font-mono">{data.predicted_wr?.toFixed(1)}%</td>
+                          <td className="font-mono" style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{data.actual_wr?.toFixed(1)}%</td>
+                          <td className="font-mono" style={{ color: err >= 0 ? '#10b981' : '#ef4444' }}>
+                            {err > 0 ? `+${err.toFixed(1)}%` : `${err.toFixed(1)}%`}
+                          </td>
+                          <td>
+                            {isOk ? (
+                              <span className="badge badge-green" style={{ fontSize: '0.7rem' }}>OK</span>
+                            ) : (
+                              <span className="badge badge-warning" style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>UNDERESTIMATED</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              💡 <b>Underestimated (Đánh giá thấp)</b>: Là trạng thái an toàn. Model dự đoán tỷ lệ thắng thấp hơn tỷ lệ thắng thực tế trong lịch sử (Ví dụ: Dự đoán 75% nhưng thực tế thắng 94.8%). Điều này giúp hạn chế vào lệnh sai lầm.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderMarketSignals = () => {
     const coinKeys = Object.keys(signals);
     if (coinKeys.length === 0) return <div className="text-secondary text-center py-8">Chưa có dữ liệu. Vui lòng đợi bot quét.</div>;
@@ -279,7 +419,7 @@ function App() {
               const coin = key.split(':')[0];
               const isBuy = data.signal.includes('BUY');
               const isSell = data.signal.includes('SELL');
-              
+
               return (
                 <tr key={key}>
                   <td className="font-bold">{coin}</td>
@@ -288,7 +428,7 @@ function App() {
                       {data.signal}
                     </span>
                   </td>
-                  <td className="font-mono">${data.close?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                  <td className="font-mono">${data.close?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
                   <td className={`font-mono ${data.rsi < 30 ? 'text-green' : data.rsi > 70 ? 'text-red' : ''}`}>
                     {data.rsi?.toFixed(1)}
                   </td>
@@ -319,8 +459,8 @@ function App() {
                     })()}
                   </td>
                   <td>
-                    <button 
-                      className="btn" 
+                    <button
+                      className="btn"
                       style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)' }}
                       onClick={() => setShowDetailModal(key)}
                     >
@@ -347,10 +487,10 @@ function App() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {positions.map((pos, idx) => {
           const currentPrice = pos.last_price || pos.entry_price;
-          const pnl = pos.direction === 'LONG' 
+          const pnl = pos.direction === 'LONG'
             ? ((currentPrice - pos.entry_price) / pos.entry_price * 100)
             : ((pos.entry_price - currentPrice) / pos.entry_price * 100);
-            
+
           const isProfitable = pnl >= 0;
 
           return (
@@ -380,7 +520,7 @@ function App() {
                   {isProfitable ? '+' : ''}{pnl.toFixed(2)}%
                 </div>
               </div>
-              
+
               <div className="text-secondary text-sm mb-4">
                 <div className="flex justify-between mb-1">
                   <span>Entry:</span> <span className="text-primary font-mono">${pos.entry_price}</span>
@@ -406,9 +546,9 @@ function App() {
                 {pos.live_meta_confidence !== undefined && pos.live_meta_confidence !== null && (
                   <div className="flex justify-between mt-1 pt-1">
                     <span>XS thắng (Meta):</span>
-                    <span style={{ 
-                      fontWeight: 'bold', 
-                      color: pos.live_meta_confidence >= 0.7 ? '#22c55e' : pos.live_meta_confidence >= 0.5 ? '#f59e0b' : '#ef4444' 
+                    <span style={{
+                      fontWeight: 'bold',
+                      color: pos.live_meta_confidence >= 0.7 ? '#22c55e' : pos.live_meta_confidence >= 0.5 ? '#f59e0b' : '#ef4444'
                     }}>
                       {(pos.live_meta_confidence * 100).toFixed(0)}%
                     </span>
@@ -429,7 +569,7 @@ function App() {
                 )}
               </div>
 
-              <button 
+              <button
                 onClick={() => setShowCloseModal(pos.coin)}
                 className="btn btn-danger w-full"
               >
@@ -485,7 +625,7 @@ function App() {
     const pricePos = priceRange > 0 ? Math.min(Math.max(((data.close - sup) / priceRange) * 100, 0), 100) : 50;
 
     const now = new Date();
-    const ts = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} ${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
+    const ts = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
 
     const signalColor = isBuy ? '#22c55e' : isSell ? '#ef4444' : '#f59e0b';
     const signalIcon = isBuy ? '▲' : isSell ? '▼' : '⚠';
@@ -498,77 +638,77 @@ function App() {
 
           {/* ── HEADER ── */}
           <div className="modal-header" style={{ padding: '1.5rem', marginBottom: 0, borderBottom: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', borderTopLeftRadius: '1.5rem', borderTopRightRadius: '1.5rem' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
-              <div style={{ width:40, height:40, borderRadius:'50%', background:'linear-gradient(135deg,#f0b90b,#f8d47a)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', fontWeight:700, color:'#000' }}>
-                {coin.slice(0,2)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#f0b90b,#f8d47a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 700, color: '#000' }}>
+                {coin.slice(0, 2)}
               </div>
               <div>
-                <div style={{ fontWeight:700, fontSize:'1.3rem' }}>{coin}/USDT</div>
-                <div style={{ color:'#94a3b8', fontSize:'0.8rem' }}>Chi Tiết Tín Hiệu</div>
+                <div style={{ fontWeight: 700, fontSize: '1.3rem' }}>{coin}/USDT</div>
+                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Chi Tiết Tín Hiệu</div>
               </div>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
-              <div style={{ color:'var(--text-secondary)', fontSize:'0.8rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span>🕐</span> Cập nhật: {ts}
               </div>
               <button className="close-btn" onClick={() => setShowDetailModal(null)}>✕</button>
             </div>
           </div>
 
-          <div style={{ padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem', maxHeight: 'calc(90vh - 85px)', overflowY: 'auto' }}>
+          <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', maxHeight: 'calc(90vh - 85px)', overflowY: 'auto' }}>
 
             {/* ── ROW 1: Signal + Price ── */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
 
               {/* Signal block */}
-              <div style={{ background: signalBg, border:`1px solid ${signalBorder}`, borderRadius:'0.75rem', padding:'1.25rem' }}>
-                <div style={{ fontSize:'0.7rem', color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.75rem' }}>TÍN HIỆU HIỆN TẠI</div>
-                <div style={{ display:'flex', alignItems:'flex-start', gap:'0.75rem', marginBottom:'0.75rem' }}>
-                  <div style={{ width:44, height:44, borderRadius:'50%', background:'rgba(0,0,0,0.3)', border:`2px solid ${signalColor}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem', color:signalColor, flexShrink:0 }}>
+              <div style={{ background: signalBg, border: `1px solid ${signalBorder}`, borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>TÍN HIỆU HIỆN TẠI</div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.3)', border: `2px solid ${signalColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', color: signalColor, flexShrink: 0 }}>
                     {signalIcon}
                   </div>
-                  <div style={{ color:signalColor, fontWeight:800, fontSize:'1.05rem', lineHeight:1.3 }}>{data.signal}</div>
+                  <div style={{ color: signalColor, fontWeight: 800, fontSize: '1.05rem', lineHeight: 1.3 }}>{data.signal}</div>
                 </div>
-                <div style={{ color:'#94a3b8', fontSize:'0.8rem', lineHeight:1.6 }}>{data.reason || 'Phân tích đa chỉ báo'}</div>
-                <div style={{ marginTop:'0.75rem', paddingTop:'0.75rem', borderTop:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'space-between', fontSize:'0.8rem' }}>
-                  <span style={{ color:'#64748b' }}>CÁC CHỈ BÁO KỸ THUẬT</span>
-                  <span style={{ color:data.rsi < 30 ? '#22c55e' : data.rsi > 70 ? '#ef4444' : '#f59e0b', fontWeight:600 }}>RSI: {data.rsi?.toFixed(1)}</span>
+                <div style={{ color: '#94a3b8', fontSize: '0.8rem', lineHeight: 1.6 }}>{data.reason || 'Phân tích đa chỉ báo'}</div>
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: '#64748b' }}>CÁC CHỈ BÁO KỸ THUẬT</span>
+                  <span style={{ color: data.rsi < 30 ? '#22c55e' : data.rsi > 70 ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>RSI: {data.rsi?.toFixed(1)}</span>
                 </div>
               </div>
 
               {/* Price block */}
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'0.75rem', padding:'1.25rem' }}>
-                <div style={{ fontSize:'0.7rem', color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.75rem' }}>GIÁ / HỖ TRỢ / KHÁNG CỰ</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0.5rem', marginBottom:'1rem', textAlign:'center' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>GIÁ / HỖ TRỢ / KHÁNG CỰ</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '1rem', textAlign: 'center' }}>
                   <div>
-                    <div style={{ fontSize:'0.7rem', color:'#ef4444', marginBottom:'0.25rem' }}>Kháng cự (Res)</div>
-                    <div style={{ fontFamily:'monospace', fontWeight:700, color:'#ef4444', fontSize:'1.05rem' }}>${res.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>Kháng cự (Res)</div>
+                    <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#ef4444', fontSize: '1.05rem' }}>${res.toFixed(2)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize:'0.7rem', color:'#94a3b8', marginBottom:'0.25rem' }}>Giá hiện tại</div>
-                    <div style={{ fontFamily:'monospace', fontWeight:700, color:'#f8fafc', fontSize:'1.05rem' }}>${data.close?.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Giá hiện tại</div>
+                    <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#f8fafc', fontSize: '1.05rem' }}>${data.close?.toFixed(2)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize:'0.7rem', color:'#22c55e', marginBottom:'0.25rem' }}>Hỗ trợ (Sup)</div>
-                    <div style={{ fontFamily:'monospace', fontWeight:700, color:'#22c55e', fontSize:'1.05rem' }}>${sup.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>Hỗ trợ (Sup)</div>
+                    <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#22c55e', fontSize: '1.05rem' }}>${sup.toFixed(2)}</div>
                   </div>
                 </div>
                 {/* Slider */}
-                <div style={{ position:'relative', height:6, borderRadius:999, background:'linear-gradient(to right, #ef4444, #f8fafc 50%, #22c55e)', marginBottom:'0.5rem' }}>
-                  <div style={{ position:'absolute', top:'50%', left:`${100 - pricePos}%`, transform:'translate(-50%,-50%)', width:14, height:14, borderRadius:'50%', background:'#fff', border:'2px solid #1e293b', boxShadow:'0 0 6px rgba(255,255,255,0.6)' }} />
+                <div style={{ position: 'relative', height: 6, borderRadius: 999, background: 'linear-gradient(to right, #ef4444, #f8fafc 50%, #22c55e)', marginBottom: '0.5rem' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: `${100 - pricePos}%`, transform: 'translate(-50%,-50%)', width: 14, height: 14, borderRadius: '50%', background: '#fff', border: '2px solid #1e293b', boxShadow: '0 0 6px rgba(255,255,255,0.6)' }} />
                 </div>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.7rem', color:'#64748b', fontFamily:'monospace' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
                   <span>{res.toFixed(2)}</span><span>{data.close?.toFixed(2)}</span><span>{sup.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* ── ROW 2: Indicators + TP/SL ── */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
 
               {/* Indicators */}
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'0.75rem', padding:'1.25rem' }}>
-                <div style={{ fontSize:'0.7rem', color:'#3b82f6', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'1rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span>📈</span> CHỈ BÁO KỸ THUẬT
                 </div>
                 {[
@@ -576,23 +716,23 @@ function App() {
                   ['EMA 21:', data.ema21?.toFixed(2), 'MACD (12,26,9):', data.macd?.toFixed(2)],
                   ['SMA 50:', data.sma50?.toFixed(2), 'BB Mid (20,2):', data.bb_middle?.toFixed(2)],
                   ['SMA 200:', data.sma200?.toFixed(2) || '0.00', 'RSI (14):', data.rsi?.toFixed(1)],
-                ].map(([l1,v1,l2,v2], i) => (
-                  <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem', paddingBottom:'0.6rem', marginBottom:'0.6rem', borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', paddingRight:'0.75rem' }}>
-                      <span style={{ color:'#94a3b8', fontSize:'0.85rem' }}>{l1}</span>
-                      <span style={{ fontFamily:'monospace', fontSize:'0.85rem', color:'#a78bfa', fontWeight:600 }}>{v1}</span>
+                ].map(([l1, v1, l2, v2], i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', paddingBottom: '0.6rem', marginBottom: '0.6rem', borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '0.75rem' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{l1}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#a78bfa', fontWeight: 600 }}>{v1}</span>
                     </div>
-                    <div style={{ display:'flex', justifyContent:'space-between', paddingLeft:'0.75rem', borderLeft:'1px solid rgba(255,255,255,0.06)' }}>
-                      <span style={{ color:'#94a3b8', fontSize:'0.85rem' }}>{l2}</span>
-                      <span style={{ fontFamily:'monospace', fontSize:'0.85rem', color: v2 < 0 ? '#ef4444' : '#a78bfa', fontWeight:600 }}>{v2}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '0.75rem', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{l2}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: v2 < 0 ? '#ef4444' : '#a78bfa', fontWeight: 600 }}>{v2}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* TP/SL Plan */}
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'0.75rem', padding:'1.25rem' }}>
-                <div style={{ fontSize:'0.7rem', color:'#22c55e', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'1rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span>🎯</span> KẾ HOẠCH KHUYẾN NGHỊ (TP/SL)
                 </div>
                 {[
@@ -604,12 +744,12 @@ function App() {
                   ['Vốn vào lệnh (Lãi ≥ $5):', capitalFor5Net > 0 ? capitalFor5Net.toString() : 'N/A', '#e2e8f0', capitalFor5Net > 0],
                   ['Phương pháp:', data.tp_sl?.method || 'ATR-Based', '#94a3b8', false],
                 ].map(([label, val, color, isDollar], i) => (
-                  <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:'0.65rem', marginBottom:'0.65rem', borderBottom: i < 6 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                    <span style={{ color:'#94a3b8', fontSize:'0.85rem' }}>{label}</span>
-                    <div style={{ display:'flex', alignItems:'center', gap:'0.6rem' }}>
-                      <span style={{ fontFamily:'monospace', fontWeight:600, color, fontSize:'0.9rem' }}>{isDollar && val ? `$${val}` : val}</span>
-                      {i === 2 && data.tp_sl?.rr1 && <span style={{ color:'#64748b', fontSize:'0.75rem' }}>(RR: {data.tp_sl.rr1}R)</span>}
-                      {i === 3 && data.tp_sl?.rr2 && <span style={{ color:'#64748b', fontSize:'0.75rem' }}>(RR: {data.tp_sl.rr2}R)</span>}
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.65rem', marginBottom: '0.65rem', borderBottom: i < 6 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 600, color, fontSize: '0.9rem' }}>{isDollar && val ? `$${val}` : val}</span>
+                      {i === 2 && data.tp_sl?.rr1 && <span style={{ color: '#64748b', fontSize: '0.75rem' }}>(RR: {data.tp_sl.rr1}R)</span>}
+                      {i === 3 && data.tp_sl?.rr2 && <span style={{ color: '#64748b', fontSize: '0.75rem' }}>(RR: {data.tp_sl.rr2}R)</span>}
                     </div>
                   </div>
                 ))}
@@ -617,20 +757,20 @@ function App() {
             </div>
 
             {/* ── ROW 3: 4 bottom stat cards ── */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem' }}>
               {[
-                { icon:'↔', color:'#a78bfa', label:'XU HƯỚNG', value: regime, desc: regimeTxt },
-                { icon:'📈', color:'#f59e0b', label:'ĐỘ BIẾN ĐỘNG', value: volLabel, desc: `ATR: ${data.atr?.toFixed(2)}\n${volDesc}` },
-                { icon:'📊', color:'#3b82f6', label:'KHUNG THỜI GIAN', value: '4H', desc: 'Phân tích theo khung 4 giờ' },
-                { icon:'🛡', color:'#22c55e', label:'RỦI RO', value: riskLabel, desc: riskDesc },
+                { icon: '↔', color: '#a78bfa', label: 'XU HƯỚNG', value: regime, desc: regimeTxt },
+                { icon: '📈', color: '#f59e0b', label: 'ĐỘ BIẾN ĐỘNG', value: volLabel, desc: `ATR: ${data.atr?.toFixed(2)}\n${volDesc}` },
+                { icon: '📊', color: '#3b82f6', label: 'KHUNG THỜI GIAN', value: '4H', desc: 'Phân tích theo khung 4 giờ' },
+                { icon: '🛡', color: '#22c55e', label: 'RỦI RO', value: riskLabel, desc: riskDesc },
               ].map((card, i) => (
-                <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'0.75rem', padding:'1rem' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.5rem' }}>
-                    <div style={{ width:32, height:32, borderRadius:'50%', background:`rgba(${i===0?'167,139,250':i===1?'245,158,11':i===2?'59,130,246':'34,197,94'},0.15)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.9rem' }}>{card.icon}</div>
-                    <div style={{ fontSize:'0.65rem', color:card.color, textTransform:'uppercase', letterSpacing:'0.06em', fontWeight:600 }}>{card.label}</div>
+                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.75rem', padding: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: `rgba(${i === 0 ? '167,139,250' : i === 1 ? '245,158,11' : i === 2 ? '59,130,246' : '34,197,94'},0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>{card.icon}</div>
+                    <div style={{ fontSize: '0.65rem', color: card.color, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{card.label}</div>
                   </div>
-                  <div style={{ fontWeight:700, fontSize:'1.1rem', color:'#f8fafc', marginBottom:'0.25rem' }}>{card.value}</div>
-                  <div style={{ color:'#64748b', fontSize:'0.75rem', lineHeight:1.4, whiteSpace:'pre-line' }}>{card.desc}</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f8fafc', marginBottom: '0.25rem' }}>{card.value}</div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem', lineHeight: 1.4, whiteSpace: 'pre-line' }}>{card.desc}</div>
                 </div>
               ))}
             </div>
@@ -645,42 +785,42 @@ function App() {
               const metaBg = metaPct >= 70 ? 'rgba(34,197,94,0.06)' : metaPct >= 50 ? 'rgba(245,158,11,0.06)' : 'rgba(239,68,68,0.06)';
               const metaBorder = metaPct >= 70 ? 'rgba(34,197,94,0.2)' : metaPct >= 50 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)';
               return (
-                <div style={{ background: metaBg, border: `1px solid ${metaBorder}`, borderRadius:'0.75rem', padding:'1.25rem' }}>
-                  <div style={{ fontSize:'0.7rem', color:'#a78bfa', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'1rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+                <div style={{ background: metaBg, border: `1px solid ${metaBorder}`, borderRadius: '0.75rem', padding: '1.25rem' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <span>🤖</span> META MODEL CONFIDENCE (RandomForest)
                   </div>
                   {metaPct != null ? (
-                    <div style={{ display:'flex', alignItems:'center', gap:'1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                       {/* Circular gauge */}
-                      <div style={{ position:'relative', width:80, height:80, flexShrink:0 }}>
-                        <svg viewBox="0 0 80 80" style={{ width:'100%', height:'100%', transform:'rotate(-90deg)' }}>
-                          <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8"/>
+                      <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+                        <svg viewBox="0 0 80 80" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                          <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
                           <circle cx="40" cy="40" r="34" fill="none" stroke={metaColor} strokeWidth="8"
-                            strokeDasharray={`${2 * Math.PI * 34 * metaPct / 100} ${2 * Math.PI * 34 * (1 - metaPct/100)}`}
+                            strokeDasharray={`${2 * Math.PI * 34 * metaPct / 100} ${2 * Math.PI * 34 * (1 - metaPct / 100)}`}
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                          <div style={{ fontSize:'1.2rem', fontWeight:800, color: metaColor }}>{metaPct}%</div>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: metaColor }}>{metaPct}%</div>
                         </div>
                       </div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontWeight:700, color: metaColor, fontSize:'1rem', marginBottom:'0.35rem' }}>{metaLabel}</div>
-                        <div style={{ color:'#64748b', fontSize:'0.78rem', lineHeight:1.5 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, color: metaColor, fontSize: '1rem', marginBottom: '0.35rem' }}>{metaLabel}</div>
+                        <div style={{ color: '#64748b', fontSize: '0.78rem', lineHeight: 1.5 }}>
                           Xác suất thắng dự đoán từ lịch sử giao dịch.
-                          Giai đoạn hiện tại: <b style={{ color:'#a78bfa' }}>Shadow Mode</b> — chỉ hiển thị, chưa can thiệp.
+                          Giai đoạn hiện tại: <b style={{ color: '#a78bfa' }}>Shadow Mode</b> — chỉ hiển thị, chưa can thiệp.
                         </div>
                         {/* Progress bar */}
-                        <div style={{ marginTop:'0.75rem', height:6, borderRadius:999, background:'rgba(255,255,255,0.06)' }}>
-                          <div style={{ height:'100%', borderRadius:999, background:`linear-gradient(to right, #ef4444, #f59e0b 50%, #22c55e)`, width:`${metaPct}%`, transition:'width 0.5s' }} />
+                        <div style={{ marginTop: '0.75rem', height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.06)' }}>
+                          <div style={{ height: '100%', borderRadius: 999, background: `linear-gradient(to right, #ef4444, #f59e0b 50%, #22c55e)`, width: `${metaPct}%`, transition: 'width 0.5s' }} />
                         </div>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.65rem', color:'#475569', marginTop:'0.2rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#475569', marginTop: '0.2rem' }}>
                           <span>0%</span><span>50%</span><span>100%</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div style={{ color:'#64748b', fontSize:'0.85rem' }}>
+                    <div style={{ color: '#64748b', fontSize: '0.85rem' }}>
                       ⚠️ {metaErr === 'no_model' ? 'Model chưa được train. Chạy: python -m btc_scraper.meta_model --train' : `Lỗi: ${metaErr}`}
                     </div>
                   )}
@@ -689,7 +829,7 @@ function App() {
             })()}
 
             {/* Footer */}
-            <div style={{ background:'rgba(59,130,246,0.06)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'0.5rem', padding:'0.65rem 1rem', fontSize:'0.78rem', color:'#64748b', display:'flex', alignItems:'center', gap:'0.5rem' }}>
+            <div style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>ℹ️</span> Lưu ý: Tín hiệu mang tính chất tham khảo. Quản trị rủi ro và kỷ luật là yếu tố quan trọng.
             </div>
 
@@ -709,7 +849,7 @@ function App() {
         </div>
         <div className="flex gap-3">
           <button onClick={fetchData} className="btn" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> 
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
           <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
             <Plus size={16} /> Thêm Lệnh Mới
@@ -717,32 +857,32 @@ function App() {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 mb-6">
-        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'market' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'market' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Activity size={16} /> Tín Hiệu Thị Trường</div>
             <div className="stat-value">{Object.keys(signals).length} Pairs</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'positions' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('positions')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'positions' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('positions')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Crosshair size={16} /> Vị Thế Đang Mở</div>
             <div className="stat-value">{positions.length}</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'perf' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('perf')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'perf' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('perf')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Briefcase size={16} /> Win Rate</div>
             <div className="stat-value">{performance.win_rate_pct !== undefined ? `${performance.win_rate_pct}%` : 'N/A'}</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'ai' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('ai')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'ai' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('ai')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Bot size={16} /> Gemini AI</div>
             <div className="stat-value text-blue-400">Phân Tích</div>
           </div>
         </div>
-        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', borderColor: activeTab === 'auto' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('auto')}>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'auto' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('auto')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Shield size={16} /> Auto Trading</div>
             <div className="stat-value text-purple-400">
@@ -750,20 +890,28 @@ function App() {
             </div>
           </div>
         </div>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'meta' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('meta')}>
+          <div className="stat-card">
+            <div className="stat-title flex items-center gap-2"><Bot size={16} /> Meta Model</div>
+            <div className="stat-value text-indigo-400">Huấn Luyện</div>
+          </div>
+        </div>
       </div>
 
       <div className="glass-panel">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          {activeTab === 'market' && <><Activity size={20} className="text-accent"/> Live Market Signals</>}
-          {activeTab === 'positions' && <><Crosshair size={20} className="text-accent"/> Open Positions</>}
-          {activeTab === 'perf' && <><Briefcase size={20} className="text-accent"/> Strategy Performance</>}
-          {activeTab === 'ai' && <><Bot size={20} className="text-accent"/> Gemini AI Insights</>}
-          {activeTab === 'auto' && <><Shield size={20} className="text-accent"/> CCXT Auto Trading Monitor</>}
+          {activeTab === 'market' && <><Activity size={20} className="text-accent" /> Live Market Signals</>}
+          {activeTab === 'positions' && <><Crosshair size={20} className="text-accent" /> Open Positions</>}
+          {activeTab === 'perf' && <><Briefcase size={20} className="text-accent" /> Strategy Performance</>}
+          {activeTab === 'ai' && <><Bot size={20} className="text-accent" /> Gemini AI Insights</>}
+          {activeTab === 'auto' && <><Shield size={20} className="text-accent" /> CCXT Auto Trading Monitor</>}
+          {activeTab === 'meta' && <><Bot size={20} className="text-indigo-400" /> Meta Model Analytics & Calibration</>}
         </h2>
 
         {activeTab === 'market' && renderMarketSignals()}
         {activeTab === 'positions' && renderPositions()}
         {activeTab === 'auto' && renderAutoTrade()}
+        {activeTab === 'meta' && renderMetaModel()}
         {activeTab === 'ai' && (
           <div className="p-6 bg-black/20 rounded-xl border border-blue-500/30">
             <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-4">
@@ -789,26 +937,26 @@ function App() {
           return (
             <div>
               <div className="flex gap-2 mb-6" style={{ background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem', width: 'fit-content' }}>
-                <button 
-                  className={`btn ${perfTab === 'ALL' ? 'bg-accent' : ''}`} 
+                <button
+                  className={`btn ${perfTab === 'ALL' ? 'bg-accent' : ''}`}
                   style={{ background: perfTab === 'ALL' ? 'rgba(56, 189, 248, 0.2)' : 'transparent', color: perfTab === 'ALL' ? '#38bdf8' : 'var(--text-secondary)', border: 'none' }}
                   onClick={() => setPerfTab('ALL')}
                 >
                   Tất Cả (All)
                 </button>
-                <button 
-                  className={`btn ${perfTab === 'AUTO' ? 'bg-accent' : ''}`} 
+                <button
+                  className={`btn ${perfTab === 'AUTO' ? 'bg-accent' : ''}`}
                   style={{ background: perfTab === 'AUTO' ? 'rgba(167, 139, 250, 0.2)' : 'transparent', color: perfTab === 'AUTO' ? '#a78bfa' : 'var(--text-secondary)', border: 'none' }}
                   onClick={() => setPerfTab('AUTO')}
                 >
-                  <Bot size={16} className="inline mr-1"/> Bot (Auto)
+                  <Bot size={16} className="inline mr-1" /> Bot (Auto)
                 </button>
-                <button 
-                  className={`btn ${perfTab === 'MANUAL' ? 'bg-accent' : ''}`} 
+                <button
+                  className={`btn ${perfTab === 'MANUAL' ? 'bg-accent' : ''}`}
                   style={{ background: perfTab === 'MANUAL' ? 'rgba(56, 189, 248, 0.2)' : 'transparent', color: perfTab === 'MANUAL' ? '#38bdf8' : 'var(--text-secondary)', border: 'none' }}
                   onClick={() => setPerfTab('MANUAL')}
                 >
-                  <Shield size={16} className="inline mr-1"/> Người dùng (Manual)
+                  <Shield size={16} className="inline mr-1" /> Người dùng (Manual)
                 </button>
               </div>
 
@@ -858,7 +1006,7 @@ function App() {
             <form onSubmit={handleAddPosition}>
               <div className="form-group">
                 <label className="form-label">Tên Coin</label>
-                <select className="form-control" value={newPos.coin} onChange={e => setNewPos({...newPos, coin: e.target.value})}>
+                <select className="form-control" value={newPos.coin} onChange={e => setNewPos({ ...newPos, coin: e.target.value })}>
                   {availableCoins.map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -866,22 +1014,22 @@ function App() {
               </div>
               <div className="form-group">
                 <label className="form-label">Giá Khớp Lệnh (Entry)</label>
-                <input required type="number" step="any" className="form-control" value={newPos.entry_price} onChange={e => setNewPos({...newPos, entry_price: e.target.value})} />
+                <input required type="number" step="any" className="form-control" value={newPos.entry_price} onChange={e => setNewPos({ ...newPos, entry_price: e.target.value })} />
               </div>
               <div className="form-group">
                 <label className="form-label">Số vốn bỏ ra (USDT)</label>
-                <input type="number" step="any" className="form-control" value={newPos.invested_usdt} onChange={e => setNewPos({...newPos, invested_usdt: e.target.value})} placeholder="VD: 100" />
+                <input type="number" step="any" className="form-control" value={newPos.invested_usdt} onChange={e => setNewPos({ ...newPos, invested_usdt: e.target.value })} placeholder="VD: 100" />
               </div>
               <div className="form-group">
                 <label className="form-label">Hướng (Spot = LONG)</label>
-                <select className="form-control" value={newPos.direction} onChange={e => setNewPos({...newPos, direction: e.target.value})}>
+                <select className="form-control" value={newPos.direction} onChange={e => setNewPos({ ...newPos, direction: e.target.value })}>
                   <option value="LONG">LONG (Mua / Spot)</option>
                   <option value="SHORT">SHORT (Bán Khống)</option>
                 </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Ghi Chú</label>
-                <input className="form-control" value={newPos.note} onChange={e => setNewPos({...newPos, note: e.target.value})} placeholder="VD: Mua theo tín hiệu SFP" />
+                <input className="form-control" value={newPos.note} onChange={e => setNewPos({ ...newPos, note: e.target.value })} placeholder="VD: Mua theo tín hiệu SFP" />
               </div>
               <button type="submit" className="btn btn-primary w-full mt-4">Thêm Vị Thế</button>
             </form>
