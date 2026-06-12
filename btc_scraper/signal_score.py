@@ -261,6 +261,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     - Keep backward compatibility: consumers can still use original text in `signal`.
     - This function produces a numeric score and derived fields.
     """
+    # reason accumulates filter notes appended throughout the function
+    reason: str = ""
+
     # First try adaptive model (if available)
     model_bundle = _load_adaptive_model()
     if model_bundle is not None:
