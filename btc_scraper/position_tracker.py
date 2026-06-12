@@ -343,6 +343,31 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         fee_usd = (invested_usdt * 0.001) + (gross_received * 0.001) if invested_usdt > 0 else 0.0
         expected_received_usdt = gross_received - fee_usd if invested_usdt > 0 else 0.0
 
+        # Predict success probability of the position using Meta Model
+        pos_meta_prob = None
+        try:
+            from btc_scraper.meta_model import predict_meta_confidence
+            eval_info = dict(ana)
+            if direction == "LONG":
+                eval_info["signal"] = "BUY"
+                eval_info["signal_score"] = {
+                    "action": "BUY",
+                    "score": 70,
+                    "confidence": "MEDIUM"
+                }
+            else:
+                eval_info["signal"] = "SELL"
+                eval_info["signal_score"] = {
+                    "action": "SELL",
+                    "score": 30,
+                    "confidence": "MEDIUM"
+                }
+            res = predict_meta_confidence(eval_info)
+            if res and res.get("probability") is not None:
+                pos_meta_prob = float(res["probability"])
+        except Exception:
+            pos_meta_prob = None
+
         # Xác định khuyến nghị dựa trên entry trung bình
         rec = _generate_recommendation(
             direction=direction,
@@ -365,6 +390,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                 p["suggested_sl"] = sl
                 p["suggested_tp1"] = tp1
                 p["suggested_tp2"] = tp2
+                p["live_meta_confidence"] = pos_meta_prob
         _save_positions(all_positions)
 
         recommendations.append({
@@ -387,6 +413,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             "tp1": tp1,
             "tp2": tp2,
             "rr1": rr1,
+            "live_meta_confidence": pos_meta_prob,
         })
 
     return recommendations

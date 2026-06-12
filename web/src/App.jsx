@@ -398,6 +398,17 @@ function App() {
                     <span>Signal:</span> <span className="text-primary">{pos.last_signal}</span>
                   </div>
                 )}
+                {pos.live_meta_confidence !== undefined && pos.live_meta_confidence !== null && (
+                  <div className="flex justify-between mt-1 pt-1">
+                    <span>XS thắng (Meta):</span>
+                    <span style={{ 
+                      fontWeight: 'bold', 
+                      color: pos.live_meta_confidence >= 0.7 ? '#22c55e' : pos.live_meta_confidence >= 0.5 ? '#f59e0b' : '#ef4444' 
+                    }}>
+                      {(pos.live_meta_confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                )}
               </div>
 
               <button 

@@ -256,9 +256,21 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
         
         escaped_action = html.escape(action)
         escaped_reason = html.escape(rec["recommendation_reason"])
+
+        meta_part = ""
+        live_meta = rec.get("live_meta_confidence")
+        if live_meta is not None:
+            live_meta_pct = int(round(live_meta * 100))
+            if live_meta_pct >= 70:
+                meta_emoji = "🟢"
+            elif live_meta_pct >= 50:
+                meta_emoji = "🟡"
+            else:
+                meta_emoji = "🔴"
+            meta_part = f" | {meta_emoji} <b>XS thắng: {live_meta_pct}%</b>"
         
         line = (
-            f"{icon} <b>{coin}</b> ({direction}): {pnl_text}\n"
+            f"{icon} <b>{coin}</b> ({direction}){meta_part}: {pnl_text}\n"
             f"  👉 <b>{escaped_action}</b>\n"
             f"  💰 Entry: <code>{entry_price_str}</code> | Hiện tại: <code>{current_price_str}</code>\n"
             f"  <i>{escaped_reason}</i>\n"

@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 from btc_scraper.auto_trader import AutoTrader, _load_circuit, _save_circuit, CIRCUIT_BREAKER_STATE
 
-def test_should_trade():
+def test_should_trade(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.85")
+    monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    monkeypatch.setenv("AUTO_TRADE_COINS", "")
+
     trader = AutoTrader()
     
     # Test wrong coin

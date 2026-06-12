@@ -311,28 +311,6 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     - Keep backward compatibility: consumers can still use original text in `signal`.
     - This function produces a numeric score and derived fields.
     """
-    # Quick bypass for neutral / invalid signals to avoid expensive model prediction
-    s_upper = sig_text.upper() if sig_text else ""
-    is_buy = ("BUY" in s_upper or "BULL" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
-    is_sell = ("SELL" in s_upper or "BEAR" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
-
-    if not is_buy and not is_sell:
-        return {
-            "action": "NEUTRAL",
-            "score": 50,
-            "confidence": "LOW",
-            "position_size": 0.25,
-            "raw_text": sig_text,
-            "meta_confidence": None,
-            "meta_confidence_pct": None,
-            "kelly_fraction": None,
-            "b_estimate": None,
-            "meta_error": None,
-            "position_sizing_method": "kelly",
-            "volatility_multiplier": 1.0,
-            "std_dev_pct": None,
-        }
-
     disable_ml = False
     if context and isinstance(context, dict):
         disable_ml = context.get("disable_ml", False)
@@ -340,59 +318,69 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     # reason accumulates filter notes appended throughout the function
     reason: str = ""
 
-    # First try adaptive model (if available)
-    model_bundle = _load_adaptive_model() if not disable_ml else None
-    if model_bundle is not None:
-        try:
-            from btc_scraper.feature_extractor import features_from_analysis
-            import numpy as np
+    s_upper = sig_text.upper() if sig_text else ""
+    is_buy = ("BUY" in s_upper or "BULL" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
+    is_sell = ("SELL" in s_upper or "BEAR" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
 
-            feat = features_from_analysis({**(data or {}), **(context or {}), "signal_score": {"score": None, "raw_text": sig_text}})
-            feature_names = model_bundle.get("features")
-            model = model_bundle.get("model")
-            row = [float(feat.get(k, 0.0)) for k in feature_names]
-            prob = float(model.predict_proba([row])[0][1])
-            prob_percent = int(round(prob * 100))
-
-            is_buy = "BUY" in sig_text.upper() or "BULL" in sig_text.upper()
-            is_sell = "SELL" in sig_text.upper() or "BEAR" in sig_text.upper()
-
-            if is_buy:
-                # 50% win rate -> 50, 100% win rate -> 100
-                score = prob_percent
-            elif is_sell:
-                # 50% win rate -> 50, 100% win rate -> 0
-                score = 100 - prob_percent
-            else:
-                score = 50
-
-            # Use model probability to determine a base position size (continuous)
-            try:
-                min_size = 0.25
-                max_size = 1.0
-                base_pos = round(min_size + prob * (max_size - min_size), 2)
-            except Exception:
-                base_pos = position_size_from_score(int(score))
-        except Exception:
-            base = _base_score_from_text(sig_text)
-            score = _apply_context_adjustments(base, data or {}, context or {})
-    else:
-        base = _base_score_from_text(sig_text)
-        score = _apply_context_adjustments(base, data or {}, context or {})
-    action = map_score_to_action(score)
-    conf = map_score_to_confidence(score)
-    # Merge analysis data + context thành một dict đầy đủ để build features và tính volatility
     merged = {}
     if isinstance(data, dict):
         merged.update(data)
     if isinstance(context, dict):
         merged.update(context)
 
-    # If adaptive model provided base_pos (from above), use it; else derive from score
-    if 'base_pos' in locals() and isinstance(base_pos, (int, float)):
-        initial_pos_size = float(base_pos)
+    if not is_buy and not is_sell:
+        action = "NEUTRAL"
+        score = 50
+        conf = "LOW"
+        initial_pos_size = 0.25
     else:
-        initial_pos_size = position_size_from_score(score)
+        # First try adaptive model (if available)
+        model_bundle = _load_adaptive_model() if not disable_ml else None
+        if model_bundle is not None:
+            try:
+                from btc_scraper.feature_extractor import features_from_analysis
+                import numpy as np
+
+                feat = features_from_analysis({**(data or {}), **(context or {}), "signal_score": {"score": None, "raw_text": sig_text}})
+                feature_names = model_bundle.get("features")
+                model = model_bundle.get("model")
+                row = [float(feat.get(k, 0.0)) for k in feature_names]
+                prob = float(model.predict_proba([row])[0][1])
+                prob_percent = int(round(prob * 100))
+
+                is_buy = "BUY" in sig_text.upper() or "BULL" in sig_text.upper()
+                is_sell = "SELL" in sig_text.upper() or "BEAR" in sig_text.upper()
+
+                if is_buy:
+                    # 50% win rate -> 50, 100% win rate -> 100
+                    score = prob_percent
+                elif is_sell:
+                    # 50% win rate -> 50, 100% win rate -> 0
+                    score = 100 - prob_percent
+                else:
+                    score = 50
+
+                # Use model probability to determine a base position size (continuous)
+                try:
+                    min_size = 0.25
+                    max_size = 1.0
+                    base_pos = round(min_size + prob * (max_size - min_size), 2)
+                except Exception:
+                    base_pos = position_size_from_score(int(score))
+            except Exception:
+                base = _base_score_from_text(sig_text)
+                score = _apply_context_adjustments(base, data or {}, context or {})
+        else:
+            base = _base_score_from_text(sig_text)
+            score = _apply_context_adjustments(base, data or {}, context or {})
+        action = map_score_to_action(score)
+        conf = map_score_to_confidence(score)
+
+        # If adaptive model provided base_pos (from above), use it; else derive from score
+        if 'base_pos' in locals() and isinstance(base_pos, (int, float)):
+            initial_pos_size = float(base_pos)
+        else:
+            initial_pos_size = position_size_from_score(score)
 
     # determine regime early so meta prediction can use it
     regime = None
