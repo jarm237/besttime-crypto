@@ -48,6 +48,8 @@ def get_ai_analysis():
 def get_positions():
     """Lấy danh sách các vị thế đang mở."""
     positions = position_tracker.get_open_positions()
+    for p in positions:
+        p["is_auto"] = "[AUTO-" in p.get("note", "")
     return {"positions": positions}
 
 @app.post("/api/positions")
@@ -137,8 +139,14 @@ def get_auto_trade_logs():
 @app.get("/api/performance")
 def get_performance():
     """Lấy báo cáo hiệu suất chiến lược giao dịch."""
-    perf = position_tracker.get_performance_summary()
-    return {"performance": perf}
+    perf_all = position_tracker.get_performance_summary("ALL")
+    perf_auto = position_tracker.get_performance_summary("AUTO")
+    perf_manual = position_tracker.get_performance_summary("MANUAL")
+    return {
+        "performance": perf_all,
+        "performance_auto": perf_auto,
+        "performance_manual": perf_manual
+    }
 
 @app.get("/api/market-signals")
 def get_market_signals():

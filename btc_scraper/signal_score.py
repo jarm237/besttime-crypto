@@ -29,6 +29,18 @@ def _load_adaptive_model():
         model_path = os.path.join(os.path.dirname(__file__), "..", "logs", "adaptive_model.joblib")
         if os.path.exists(model_path):
             data = joblib.load(model_path)
+            # Fix n_jobs issue for single sample inference
+            model = data.get("model") if isinstance(data, dict) else data
+            def set_n_jobs(est):
+                if hasattr(est, 'n_jobs'): est.n_jobs = 1
+                if hasattr(est, 'estimator'): set_n_jobs(est.estimator)
+                if hasattr(est, 'base_estimator'): set_n_jobs(est.base_estimator)
+                if hasattr(est, 'best_estimator_'): set_n_jobs(est.best_estimator_)
+                if hasattr(est, 'steps'):
+                    for name, step in est.steps: set_n_jobs(step)
+                if hasattr(est, 'calibrated_classifiers_'):
+                    for e in est.calibrated_classifiers_: set_n_jobs(e)
+            set_n_jobs(model)
             _ADAPTIVE_MODEL = data
             return _ADAPTIVE_MODEL
     except Exception:
@@ -154,11 +166,16 @@ def _load_regime_multipliers():
     return _REGIME_MULTIPLIERS
 
 
+_KELLY_PARAMS = None
 def _load_kelly_params():
     """Load Kelly tuning parameters from `regime_config.json`.
     Returns defaults when config missing.
     Keys: max_fraction, decay_rate, min_fraction
     """
+    global _KELLY_PARAMS
+    if _KELLY_PARAMS is not None:
+        return _KELLY_PARAMS
+        
     defaults = {"max_fraction": 0.5, "decay_rate": 0.0, "min_fraction": 0.0}
     try:
         cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
@@ -168,23 +185,30 @@ def _load_kelly_params():
             with open(cfg_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
             k = cfg.get("kelly") or {}
-            return {
+            _KELLY_PARAMS = {
                 "max_fraction": float(k.get("max_fraction", defaults["max_fraction"])),
                 "decay_rate": float(k.get("decay_rate", defaults["decay_rate"])),
                 "min_fraction": float(k.get("min_fraction", defaults["min_fraction"])),
             }
+            return _KELLY_PARAMS
     except Exception:
         pass
-    return defaults
+    _KELLY_PARAMS = defaults
+    return _KELLY_PARAMS
 
 
+_ESTIMATE_B_CACHE = {}
 def _estimate_b(strategy: str, regime: str) -> float:
     """Estimate reward/risk ratio `b` (average win / average loss) from analytics file.
     Falls back to 1.0 when no data available.
     """
+    key = f"{strategy}_{regime}"
+    if key in _ESTIMATE_B_CACHE:
+        return _ESTIMATE_B_CACHE[key]
     try:
         p = Path(__file__).parent.parent / "logs" / "regime_strategy_matrix.csv"
         if not p.exists():
+            _ESTIMATE_B_CACHE[key] = 1.0
             return 1.0
         import pandas as pd
         df = pd.read_csv(p)
@@ -193,6 +217,7 @@ def _estimate_b(strategy: str, regime: str) -> float:
             if row.empty:
                 row = df[df['strategy'] == strategy]
             if row.empty:
+                _ESTIMATE_B_CACHE[key] = 1.0
                 return 1.0
             row = row.iloc[0]
             # preferred columns
@@ -200,12 +225,19 @@ def _estimate_b(strategy: str, regime: str) -> float:
                 aw = float(row.get('avg_win', 1.0))
                 al = float(row.get('avg_loss', 1.0))
                 if al == 0:
-                    return max(1.0, aw)
-                return max(0.01, aw / abs(al))
+                    val = max(1.0, aw)
+                else:
+                    val = max(0.01, aw / abs(al))
+                _ESTIMATE_B_CACHE[key] = val
+                return val
             # fallback: if avg_pnl exists, assume symmetric wins/losses -> b = 1.0
+            _ESTIMATE_B_CACHE[key] = 1.0
             return 1.0
     except Exception:
+        _ESTIMATE_B_CACHE[key] = 1.0
         return 1.0
+    _ESTIMATE_B_CACHE[key] = 1.0
+    return 1.0
 
 
 def compute_kelly_fraction(p: float, b: float) -> float:

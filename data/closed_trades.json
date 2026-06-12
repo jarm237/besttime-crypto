@@ -380,5 +380,61 @@
     "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "ZEC",
+    "id": "49d85d4f-d6f4-4f4e-aca8-3aa5c3ed5ee9",
+    "entry_time": "2026-06-12 01:03",
+    "exit_time": "2026-06-12 08:13",
+    "entry_price": 435.17,
+    "exit_price": 427.05,
+    "pnl_pct": 1.8659,
+    "result": "WIN",
+    "hold_hours": 7.2,
+    "signal_raw": "NEUTRAL (BEARISH-CAUTION)",
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "ZEC",
+    "id": "0222efcd-f3f3-4dbd-b753-ed1ef426a9f5",
+    "entry_time": "2026-06-12 08:14",
+    "exit_time": "2026-06-12 08:14",
+    "entry_price": 428.01,
+    "exit_price": 427.05,
+    "pnl_pct": 0.2243,
+    "result": "WIN",
+    "hold_hours": 0.0,
+    "signal_raw": null,
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "ZEC",
+    "id": "bd1d90aa-4cfd-4f51-a1ab-3d175f198c57",
+    "entry_time": "2026-06-12 08:15",
+    "exit_time": "2026-06-12 08:15",
+    "entry_price": 428.01,
+    "exit_price": 426.26,
+    "pnl_pct": 0.4089,
+    "result": "WIN",
+    "hold_hours": 0.0,
+    "signal_raw": null,
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "XLM",
+    "id": "580c92ef-0412-4875-b634-aa1f37158b72",
+    "entry_time": "2026-06-12 08:25",
+    "exit_time": "2026-06-12 09:52",
+    "entry_price": 0.19,
+    "exit_price": 0.19558,
+    "pnl_pct": -2.9368,
+    "result": "LOSS",
+    "hold_hours": 1.5,
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {},
+    "confidence": null
   }
 ]

@@ -77,12 +77,13 @@ def cmd_list(args):
     console.print(table)
 
 def cmd_perf(args):
-    perf = position_tracker.get_performance_summary()
+    trade_type = args.type.upper() if hasattr(args, 'type') else "ALL"
+    perf = position_tracker.get_performance_summary(trade_type)
     if "message" in perf:
         console.print(f"\n[yellow]{perf['message']}[/yellow]")
         return
         
-    table = Table(title="Thống Kê Hiệu Suất Chiến Lược")
+    table = Table(title=f"Thống Kê Hiệu Suất Chiến Lược ({trade_type})")
     table.add_column("Chỉ Số", style="cyan")
     table.add_column("Giá Trị", style="bold")
     
@@ -129,6 +130,7 @@ def main():
     
     # Command: perf
     parser_perf = subparsers.add_parser("perf", help="Xem hiệu suất chiến lược (đã đóng)")
+    parser_perf.add_argument("--type", "-t", choices=["ALL", "AUTO", "MANUAL"], default="ALL", help="Loại lệnh để xem thống kê (ALL, AUTO, MANUAL)")
     
     args = parser.parse_args()
     

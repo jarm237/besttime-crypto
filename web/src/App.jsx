@@ -11,6 +11,9 @@ function App() {
   const [signals, setSignals] = useState({});
   const [positions, setPositions] = useState([]);
   const [performance, setPerformance] = useState({});
+  const [perfAuto, setPerfAuto] = useState({});
+  const [perfManual, setPerfManual] = useState({});
+  const [perfTab, setPerfTab] = useState('ALL');
   const [availableCoins, setAvailableCoins] = useState(['BTC', 'ETH', 'SOL', 'BNB', 'XRP']);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [autoTradeStatus, setAutoTradeStatus] = useState(null);
@@ -38,6 +41,8 @@ function App() {
       setSignals(sigRes.data.signals || {});
       setPositions(posRes.data.positions || []);
       setPerformance(perfRes.data.performance || {});
+      setPerfAuto(perfRes.data.performance_auto || {});
+      setPerfManual(perfRes.data.performance_manual || {});
       setAiAnalysis(aiRes.data);
       setAutoTradeStatus(autoStatusRes.data);
       setAutoTradeLogs(autoLogsRes.data || []);
@@ -356,6 +361,15 @@ function App() {
                   <span className={`badge ${pos.direction === 'LONG' ? 'badge-green' : 'badge-red'}`}>
                     {pos.direction}
                   </span>
+                  {pos.is_auto ? (
+                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(167,139,250,0.2)', color: '#a78bfa', fontWeight: 'bold' }}>
+                      AUTO
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(56,189,248,0.2)', color: '#38bdf8', fontWeight: 'bold' }}>
+                      MANUAL
+                    </span>
+                  )}
                 </div>
                 <div className={`text-xl font-bold ${isProfitable ? 'text-green' : 'text-red'}`}>
                   {isProfitable ? '+' : ''}{pnl.toFixed(2)}%
@@ -741,35 +755,68 @@ function App() {
             </div>
           </div>
         )}
-        {activeTab === 'perf' && (
-          <div className="grid grid-cols-1 md:grid-cols-2">
+        {activeTab === 'perf' && (() => {
+          const currentPerf = perfTab === 'AUTO' ? perfAuto : perfTab === 'MANUAL' ? perfManual : performance;
+          return (
             <div>
-              <table className="w-full">
-                <tbody>
-                  <tr><td className="text-secondary">Tổng số lệnh</td><td className="font-bold">{performance.total_trades || 0}</td></tr>
-                  <tr><td className="text-secondary">Số lệnh Thắng / Thua</td><td className="font-bold">{performance.wins || 0} / {performance.losses || 0}</td></tr>
-                  <tr><td className="text-secondary">Lãi trung bình (Win)</td><td className="font-bold text-green">+{performance.avg_win_pct || 0}%</td></tr>
-                  <tr><td className="text-secondary">Lỗ trung bình (Loss)</td><td className="font-bold text-red">{performance.avg_loss_pct || 0}%</td></tr>
-                  <tr><td className="text-secondary">Kỳ vọng (Avg R)</td><td className="font-bold">{performance.avg_r_multiplier || 'N/A'}R</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div>
-              <div className="p-6 bg-black/20 rounded-xl border border-white/5 flex flex-col items-center justify-center h-full">
-                <div className="text-secondary mb-2">Tổng Lợi Nhuận (PnL)</div>
-                <div className={`text-4xl font-bold ${performance.total_pnl_pct >= 0 ? 'text-green' : 'text-red'}`}>
-                  {performance.total_pnl_pct > 0 ? '+' : ''}{performance.total_pnl_pct || 0}%
-                </div>
-                <div className="text-secondary mt-4">Max Drawdown (Chuỗi Thua)</div>
-                <div className="text-xl font-bold text-red">{performance.max_consecutive_losses || 0} lệnh</div>
-                <div className="text-secondary mt-4">Lãi/Lỗ Thực Tế (USDT)</div>
-                <div className={`text-xl font-bold ${performance.total_pnl_usd_actual >= 0 ? 'text-green' : 'text-red'}`}>
-                  {performance.total_pnl_usd_actual > 0 ? '+' : ''}${performance.total_pnl_usd_actual || 0}
-                </div>
+              <div className="flex gap-2 mb-6" style={{ background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem', width: 'fit-content' }}>
+                <button 
+                  className={`btn ${perfTab === 'ALL' ? 'bg-accent' : ''}`} 
+                  style={{ background: perfTab === 'ALL' ? 'rgba(56, 189, 248, 0.2)' : 'transparent', color: perfTab === 'ALL' ? '#38bdf8' : 'var(--text-secondary)', border: 'none' }}
+                  onClick={() => setPerfTab('ALL')}
+                >
+                  Tất Cả (All)
+                </button>
+                <button 
+                  className={`btn ${perfTab === 'AUTO' ? 'bg-accent' : ''}`} 
+                  style={{ background: perfTab === 'AUTO' ? 'rgba(167, 139, 250, 0.2)' : 'transparent', color: perfTab === 'AUTO' ? '#a78bfa' : 'var(--text-secondary)', border: 'none' }}
+                  onClick={() => setPerfTab('AUTO')}
+                >
+                  <Bot size={16} className="inline mr-1"/> Bot (Auto)
+                </button>
+                <button 
+                  className={`btn ${perfTab === 'MANUAL' ? 'bg-accent' : ''}`} 
+                  style={{ background: perfTab === 'MANUAL' ? 'rgba(56, 189, 248, 0.2)' : 'transparent', color: perfTab === 'MANUAL' ? '#38bdf8' : 'var(--text-secondary)', border: 'none' }}
+                  onClick={() => setPerfTab('MANUAL')}
+                >
+                  <Shield size={16} className="inline mr-1"/> Người dùng (Manual)
+                </button>
               </div>
+
+              {currentPerf?.message ? (
+                <div className="text-secondary text-center py-8">{currentPerf.message}</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <table className="w-full">
+                      <tbody>
+                        <tr><td className="text-secondary">Tổng số lệnh</td><td className="font-bold">{currentPerf.total_trades || 0}</td></tr>
+                        <tr><td className="text-secondary">Số lệnh Thắng / Thua</td><td className="font-bold">{currentPerf.wins || 0} / {currentPerf.losses || 0}</td></tr>
+                        <tr><td className="text-secondary">Lãi trung bình (Win)</td><td className="font-bold text-green">+{currentPerf.avg_win_pct || 0}%</td></tr>
+                        <tr><td className="text-secondary">Lỗ trung bình (Loss)</td><td className="font-bold text-red">{currentPerf.avg_loss_pct || 0}%</td></tr>
+                        <tr><td className="text-secondary">Kỳ vọng (Avg R)</td><td className="font-bold">{currentPerf.avg_r_multiplier || 'N/A'}R</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div>
+                    <div className="p-6 bg-black/20 rounded-xl border border-white/5 flex flex-col items-center justify-center h-full">
+                      <div className="text-secondary mb-2">Tổng Lợi Nhuận (PnL)</div>
+                      <div className={`text-4xl font-bold ${currentPerf.total_pnl_pct >= 0 ? 'text-green' : 'text-red'}`}>
+                        {currentPerf.total_pnl_pct > 0 ? '+' : ''}{currentPerf.total_pnl_pct || 0}%
+                      </div>
+                      <div className="text-secondary mt-4">Max Drawdown (Chuỗi Thua)</div>
+                      <div className="text-xl font-bold text-red">{currentPerf.max_consecutive_losses || 0} lệnh</div>
+                      <div className="text-secondary mt-4">Lãi/Lỗ Thực Tế (USDT)</div>
+                      <div className={`text-xl font-bold ${currentPerf.total_pnl_usd_actual >= 0 ? 'text-green' : 'text-red'}`}>
+                        {currentPerf.total_pnl_usd_actual > 0 ? '+' : ''}${currentPerf.total_pnl_usd_actual || 0}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {showAddModal && (

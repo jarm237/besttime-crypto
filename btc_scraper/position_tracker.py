@@ -431,14 +431,22 @@ def _generate_recommendation(
     }
 
 
-def get_performance_summary() -> dict:
+def get_performance_summary(trade_type: str = "ALL") -> dict:
     """
-    Tổng hợp hiệu suất từ tất cả các lệnh đã đóng.
-    Dùng để đánh giá chiến lược giao dịch cá nhân.
+    Tổng hợp hiệu suất từ các lệnh đã đóng.
+    trade_type: "ALL" | "AUTO" | "MANUAL"
     """
     closed = _load_closed_log()
     if not closed:
         return {"message": "Chưa có lệnh nào được đóng."}
+
+    if trade_type == "AUTO":
+        closed = [t for t in closed if "[AUTO-" in t.get("note", "")]
+    elif trade_type == "MANUAL":
+        closed = [t for t in closed if "[AUTO-" not in t.get("note", "")]
+
+    if not closed:
+        return {"message": f"Chưa có lệnh {trade_type} nào được đóng."}
 
     total = len(closed)
     wins = [t for t in closed if t.get("result") == "WIN"]

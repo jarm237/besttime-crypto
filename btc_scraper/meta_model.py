@@ -171,12 +171,21 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     return metrics
 
 
+_CACHED_MODEL = None
+
 def load_model():
-    """Load model từ file. Trả về None nếu chưa có."""
+    """Load model từ disk, cache in memory để inference siêu nhanh."""
+    global _CACHED_MODEL
+    if _CACHED_MODEL is not None:
+        return _CACHED_MODEL
+
     if not MODEL_OUT.exists():
         return None
     try:
-        return joblib.load(MODEL_OUT)
+        import joblib
+        data = joblib.load(str(MODEL_OUT))
+        _CACHED_MODEL = data
+        return data
     except Exception:
         return None
 

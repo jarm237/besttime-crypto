@@ -83,9 +83,6 @@ class CCXTClient:
 
         if self.testnet:
             exchange.set_sandbox_mode(True)
-            # Override URLs cho Binance Testnet
-            exchange.urls["api"] = "https://testnet.binance.vision/api"
-            exchange.urls["apiBackup"] = "https://testnet.binance.vision/api"
 
         self._exchange = exchange
         return exchange
