@@ -1,0 +1,111 @@
+{
+  "train_date": "2026-06-13 01:56",
+  "n_samples": 992,
+  "n_train": 793,
+  "n_holdout": 199,
+  "n_win": 421,
+  "n_loss": 571,
+  "win_rate_pct": 42.44,
+  "cv_roc_auc": 0.6361,
+  "cv_roc_auc_std": 0.0218,
+  "holdout_roc_auc": 0.6408,
+  "train_accuracy_pct": 73.19,
+  "feature_schema": "FEATURE_SCHEMA",
+  "n_features": 14,
+  "feature_names": [
+    "signal_score",
+    "rsi",
+    "macd_hist",
+    "atr_pct",
+    "volume_ratio",
+    "fear_greed",
+    "ema_distance_pct",
+    "bb_width_pct",
+    "adx",
+    "mtf_alignment",
+    "regime_trending_bull",
+    "regime_trending_bear",
+    "regime_ranging",
+    "regime_high_volatility"
+  ],
+  "top_features": [
+    [
+      "rsi",
+      0.2727
+    ],
+    [
+      "macd_hist",
+      0.1598
+    ],
+    [
+      "ema_distance_pct",
+      0.1322
+    ],
+    [
+      "adx",
+      0.1167
+    ],
+    [
+      "atr_pct",
+      0.1105
+    ],
+    [
+      "bb_width_pct",
+      0.1079
+    ],
+    [
+      "signal_score",
+      0.0486
+    ],
+    [
+      "mtf_alignment",
+      0.0318
+    ],
+    [
+      "regime_ranging",
+      0.0096
+    ],
+    [
+      "regime_high_volatility",
+      0.0067
+    ],
+    [
+      "regime_trending_bull",
+      0.0033
+    ],
+    [
+      "volume_ratio",
+      0.0
+    ],
+    [
+      "fear_greed",
+      0.0
+    ],
+    [
+      "regime_trending_bear",
+      0.0
+    ]
+  ],
+  "coins": [
+    "AEVO",
+    "TAO",
+    "DOGE",
+    "ZEC",
+    "ETH",
+    "ENA",
+    "NEAR",
+    "TRB",
+    "AVAX",
+    "WLD",
+    "AR",
+    "SOL",
+    "BTC",
+    "XLM",
+    "BNB",
+    "IOTA",
+    "XRP"
+  ],
+  "cv_method": "TimeSeriesSplit(n_splits=5)",
+  "mtf_method": "time-aligned (no leakage)",
+  "note": "Fixed: no MTF lookahead bias, TimeSeriesSplit, FEATURE_SCHEMA unified"
+}

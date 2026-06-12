@@ -407,6 +407,7 @@ function App() {
               <th>Tín Hiệu</th>
               <th>Giá Hiện Tại</th>
               <th>RSI</th>
+              <th style={{ color: '#f59e0b' }}>📊 Score</th>
               <th>Trend (SMA200)</th>
               <th>Chandelier</th>
               <th style={{ color: '#a78bfa' }}>🤖 Meta</th>
@@ -431,6 +432,28 @@ function App() {
                   <td className="font-mono">${data.close?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
                   <td className={`font-mono ${data.rsi < 30 ? 'text-green' : data.rsi > 70 ? 'text-red' : ''}`}>
                     {data.rsi?.toFixed(1)}
+                  </td>
+                  <td>
+                    {(() => {
+                      const sc = data.signal_score?.score;
+                      const conf = data.signal_score?.confidence;
+                      if (sc == null) return <span style={{ color: '#475569', fontSize: '0.8rem' }}>N/A</span>;
+                      const isBuyScore = data.signal_score?.action === 'BUY';
+                      const isSellScore = data.signal_score?.action === 'SELL';
+                      const barColor = isBuyScore ? '#22c55e' : isSellScore ? '#ef4444' : '#f59e0b';
+                      const textColor = isBuyScore ? '#22c55e' : isSellScore ? '#ef4444' : '#f59e0b';
+                      return (
+                        <div style={{ minWidth: 80 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                            <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.9rem', color: textColor }}>{sc}</span>
+                            <span style={{ fontSize: '0.65rem', color: '#64748b', marginLeft: '0.3rem' }}>{conf}</span>
+                          </div>
+                          <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.08)' }}>
+                            <div style={{ height: '100%', borderRadius: 999, width: `${sc}%`, background: barColor, transition: 'width 0.4s' }} />
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td>
                     {data.trend_context?.above_sma200 ? (
@@ -670,6 +693,27 @@ function App() {
                   <div style={{ color: signalColor, fontWeight: 800, fontSize: '1.05rem', lineHeight: 1.3 }}>{data.signal}</div>
                 </div>
                 <div style={{ color: '#94a3b8', fontSize: '0.8rem', lineHeight: 1.6 }}>{data.reason || 'Phân tích đa chỉ báo'}</div>
+                {/* Signal Score bar */}
+                {data.signal_score?.score != null && (
+                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '0.78rem' }}>
+                      <span style={{ color: '#94a3b8' }}>📊 Signal Score</span>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '1rem', color: data.signal_score.action === 'BUY' ? '#22c55e' : data.signal_score.action === 'SELL' ? '#ef4444' : '#f59e0b' }}>
+                          {data.signal_score.score}
+                        </span>
+                        <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}>{data.signal_score.confidence}</span>
+                        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>size {data.signal_score.position_size}</span>
+                      </div>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.06)' }}>
+                      <div style={{ height: '100%', borderRadius: 999, width: `${data.signal_score.score}%`, background: data.signal_score.action === 'BUY' ? 'linear-gradient(to right,#16a34a,#22c55e)' : data.signal_score.action === 'SELL' ? 'linear-gradient(to right,#b91c1c,#ef4444)' : 'linear-gradient(to right,#b45309,#f59e0b)', transition: 'width 0.5s' }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#475569', marginTop: '0.2rem' }}>
+                      <span>0</span><span>50</span><span>100</span>
+                    </div>
+                  </div>
+                )}
                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
                   <span style={{ color: '#64748b' }}>CÁC CHỈ BÁO KỸ THUẬT</span>
                   <span style={{ color: data.rsi < 30 ? '#22c55e' : data.rsi > 70 ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>RSI: {data.rsi?.toFixed(1)}</span>
