@@ -14908,5 +14908,20 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "IOTAUSDT_1781244399",
+    "symbol": "IOTAUSDT",
+    "timestamp": 1781244399.2589211,
+    "timestamp_str": "2026-06-12 13:06:39",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.3411,
+    "signal_score": 56,
+    "regime": "",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]
