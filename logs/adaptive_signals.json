@@ -27496,5 +27496,32 @@
       "meta_error": null
     },
     "regime": null
+  },
+  {
+    "coin": "IOTA",
+    "id": "462f4d68-215b-4b63-a8ba-dd30875ea011",
+    "entry_price": 0.04711,
+    "sell_price": 0.04721,
+    "pnl_pct": -0.2123,
+    "result": "LOSS",
+    "hold_hours": 0.6,
+    "exit_time": "2026-06-12 19:48",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.500891717544615,
+      "meta_confidence_pct": 50,
+      "kelly_fraction": 0.0015605057030763092,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

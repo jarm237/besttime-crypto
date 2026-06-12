@@ -370,6 +370,11 @@ function App() {
                       MANUAL
                     </span>
                   )}
+                  {pos.dca_opportunity && (
+                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(236,72,153,0.2)', color: '#ec4899', fontWeight: 'bold' }} title="Mô hình xác nhận điều kiện DCA tốt">
+                      ➕ DCA
+                    </span>
+                  )}
                 </div>
                 <div className={`text-xl font-bold ${isProfitable ? 'text-green' : 'text-red'}`}>
                   {isProfitable ? '+' : ''}{pnl.toFixed(2)}%
@@ -407,6 +412,19 @@ function App() {
                     }}>
                       {(pos.live_meta_confidence * 100).toFixed(0)}%
                     </span>
+                  </div>
+                )}
+                {pos.dca_opportunity && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-pink-500/30 text-pink-400">
+                    <div className="flex justify-between mb-1">
+                      <span>Nên DCA thêm:</span> <span className="font-mono font-bold">${pos.dca_opportunity.suggested_dca_size}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span>Entry sau DCA:</span> <span className="font-mono font-bold">${pos.dca_opportunity.new_avg_entry}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>XS thắng DCA:</span> <span className="font-bold">{(pos.dca_opportunity.sim_meta_prob * 100).toFixed(0)}%</span>
+                    </div>
                   </div>
                 )}
               </div>

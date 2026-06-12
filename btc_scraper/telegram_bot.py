@@ -269,12 +269,29 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
                 meta_emoji = "🔴"
             meta_part = f" | {meta_emoji} <b>XS thắng: {live_meta_pct}%</b>"
         
-        line = (
-            f"{icon} <b>{coin}</b> ({direction}){meta_part}: {pnl_text}\n"
-            f"  👉 <b>{escaped_action}</b>\n"
-            f"  💰 Entry: <code>{entry_price_str}</code> | Hiện tại: <code>{current_price_str}</code>\n"
-            f"  <i>{escaped_reason}</i>\n"
-        )
+        dca_opp = rec.get("dca_opportunity")
+        if dca_opp:
+            icon = "➕"
+            dca_size = dca_opp["suggested_dca_size"]
+            new_avg_entry = dca_opp["new_avg_entry"]
+            sim_meta = int(round(dca_opp["sim_meta_prob"] * 100))
+            
+            new_entry_format = ",.4f" if new_avg_entry > 0 and new_avg_entry < 10 else ",.2f"
+            new_avg_entry_str = f"{new_avg_entry:{new_entry_format}}"
+            
+            line = (
+                f"{icon} <b>[KHUYẾN NGHỊ DCA] {coin} ({direction})</b>: {pnl_text}\n"
+                f"  👉 <b>Khuyên dùng DCA thêm ${dca_size:.2f} USDT tại {current_price_str}</b>\n"
+                f"  💰 Entry cũ: <code>{entry_price_str}</code> | Entry mới: <code>{new_avg_entry_str}</code>\n"
+                f"  🤖 <b>XS thắng DCA: {sim_meta}%</b> (Reversal Prob)\n"
+            )
+        else:
+            line = (
+                f"{icon} <b>{coin}</b> ({direction}){meta_part}: {pnl_text}\n"
+                f"  👉 <b>{escaped_action}</b>\n"
+                f"  💰 Entry: <code>{entry_price_str}</code> | Hiện tại: <code>{current_price_str}</code>\n"
+                f"  <i>{escaped_reason}</i>\n"
+            )
         message_lines.append(line)
 
     message = "\n".join(message_lines)

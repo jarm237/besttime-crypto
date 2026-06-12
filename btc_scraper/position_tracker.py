@@ -380,6 +380,8 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             tp2=tp2,
         )
 
+        dca_opp = _evaluate_dca_opportunity(pos_list, ana, current_price, pos_meta_prob)
+
         # Cập nhật last_signal và last_price cho mọi vị thế của coin
         for p in all_positions:
             if p["coin"] == coin and p["status"] == "open":
@@ -391,6 +393,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                 p["suggested_tp1"] = tp1
                 p["suggested_tp2"] = tp2
                 p["live_meta_confidence"] = pos_meta_prob
+                p["dca_opportunity"] = dca_opp
         _save_positions(all_positions)
 
         recommendations.append({
@@ -414,9 +417,82 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             "tp2": tp2,
             "rr1": rr1,
             "live_meta_confidence": pos_meta_prob,
+            "dca_opportunity": dca_opp,
         })
 
     return recommendations
+
+
+def _evaluate_dca_opportunity(
+    pos_list: list[dict],
+    ana: dict,
+    current_price: float,
+    sim_meta_prob: float | None
+) -> dict | None:
+    """
+    Evaluate DCA opportunity for a grouped coin position.
+    """
+    if not pos_list or not ana or current_price <= 0:
+        return None
+
+    direction = pos_list[0].get("direction", "LONG").upper()
+    
+    # Rule 1: Limit max DCA actions (total entries < 3)
+    if len(pos_list) >= 3:
+        return None
+
+    # Calculate weighted entry
+    total_invested = sum(float(p.get("invested_usdt", 0.0)) for p in pos_list)
+    if total_invested > 0:
+        weighted_entry = sum(float(p.get("entry_price", 0.0)) * float(p.get("invested_usdt", 0.0)) for p in pos_list) / total_invested
+    else:
+        weighted_entry = sum(float(p.get("entry_price", 0.0)) for p in pos_list) / len(pos_list)
+
+    # Rule 2: Volatility / Price Distance check
+    atr = float(ana.get("atr", 0.0))
+    price_diff_pct = abs(current_price - weighted_entry) / weighted_entry * 100
+    
+    # Volatility distance threshold = 1.5 * ATR% or minimum 1.5%
+    atr_pct = (atr / current_price * 100) if current_price > 0 else 0.0
+    min_distance = max(1.5, atr_pct * 1.5)
+    
+    # LONG: current price must be below entry; SHORT: current price must be above entry
+    is_in_loss = (direction == "LONG" and current_price < weighted_entry) or (direction == "SHORT" and current_price > weighted_entry)
+    
+    if not is_in_loss or price_diff_pct < min_distance:
+        return None
+
+    # Rule 3: Model confidence check (sim_meta_prob >= 65%)
+    if sim_meta_prob is None or sim_meta_prob < 0.65:
+        return None
+
+    # Rule 4: S/R Zone check (within 1% of S/R boundary)
+    # Skip S/R zone check if S/R value is missing or <= 0
+    if direction == "LONG":
+        support = float(ana.get("support", 0.0))
+        if support > 0:
+            is_near_support = (current_price >= support * 0.99) and (current_price <= support * 1.01)
+            if not is_near_support:
+                return None
+    else:
+        resistance = float(ana.get("resistance", 0.0))
+        if resistance > 0:
+            is_near_resistance = (current_price >= resistance * 0.99) and (current_price <= resistance * 1.01)
+            if not is_near_resistance:
+                return None
+
+    # Calculate DCA suggestion (default to 100% of the initial position size)
+    initial_invested = float(pos_list[0].get("invested_usdt", 0.0))
+    suggested_dca_size = initial_invested if initial_invested > 0 else 100.0
+    
+    # Calculate new average entry price
+    new_avg_entry = (total_invested * weighted_entry + suggested_dca_size * current_price) / (total_invested + suggested_dca_size)
+    
+    return {
+        "suggested_dca_size": round(suggested_dca_size, 2),
+        "new_avg_entry": round(new_avg_entry, 6),
+        "sim_meta_prob": round(sim_meta_prob, 4),
+    }
 
 
 def _generate_recommendation(

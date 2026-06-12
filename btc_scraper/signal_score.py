@@ -436,8 +436,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         elif isinstance(meta, dict) and meta.get('error'):
             meta_err = meta['error']
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        if str(e) not in ('ml_disabled', 'kelly_disabled'):
+            import traceback
+            traceback.print_exc()
         meta_prob = None
         meta_err = str(e)
     # ─────────────────────────────────────────────────────────────────────────────

@@ -184,3 +184,54 @@ def test_dynamic_position_sizing():
     if "AUTO_TRADE_POSITION_SIZING_METHOD" in os.environ:
         del os.environ["AUTO_TRADE_POSITION_SIZING_METHOD"]
 
+
+def test_dca_evaluation():
+    from btc_scraper.position_tracker import _evaluate_dca_opportunity
+    
+    # Setup test pos_list
+    pos_list = [
+        {
+            "coin": "BTC",
+            "direction": "LONG",
+            "entry_price": 60000.0,
+            "invested_usdt": 100.0,
+            "status": "open"
+        }
+    ]
+    
+    # Test case 1: Price is too close (no DCA)
+    # entry = 60000, current = 59500 (distance = 0.83% < 1.5%)
+    ana = {"atr": 100.0, "support": 58000.0}
+    res = _evaluate_dca_opportunity(pos_list, ana, 59500.0, 0.75)
+    assert res is None
+
+    # Test case 2: Low simulated win probability (no DCA)
+    # distance = 3% >= 1.5%, but meta_prob = 0.5 < 0.65
+    res = _evaluate_dca_opportunity(pos_list, ana, 58200.0, 0.5)
+    assert res is None
+
+    # Test case 3: Price is far from support level (no DCA)
+    # price = 58200, support = 55000 (distance is > 1.01% from support boundary)
+    ana_far_support = {"atr": 500.0, "support": 55000.0}
+    res = _evaluate_dca_opportunity(pos_list, ana_far_support, 58000.0, 0.8)
+    assert res is None
+
+    # Test case 4: Valid DCA (Distance >= 1.5%, meta_prob >= 0.65, S/R zone matched within 1%)
+    # entry = 60000, current = 58200 (diff = 3.0%), support = 58000 (diff = 0.3% which is < 1% zone)
+    # sim_meta = 0.72
+    res = _evaluate_dca_opportunity(pos_list, ana, 58200.0, 0.72)
+    assert res is not None
+    assert res["suggested_dca_size"] == 100.0
+    # expected new avg entry: (100 * 60000 + 100 * 58200) / 200 = 59100.0
+    assert res["new_avg_entry"] == 59100.0
+    assert res["sim_meta_prob"] == 0.72
+
+    # Test case 5: DCA Level cap exceeded (max 2 DCAs -> pos_list has 3 items)
+    pos_list_3 = [
+        {"coin": "BTC", "direction": "LONG", "entry_price": 60000.0, "invested_usdt": 100.0, "status": "open"},
+        {"coin": "BTC", "direction": "LONG", "entry_price": 58000.0, "invested_usdt": 100.0, "status": "open"},
+        {"coin": "BTC", "direction": "LONG", "entry_price": 57000.0, "invested_usdt": 100.0, "status": "open"},
+    ]
+    res = _evaluate_dca_opportunity(pos_list_3, ana, 55000.0, 0.8)
+    assert res is None
+
