@@ -776,6 +776,7 @@ def analyze_market(candles: list[dict]) -> dict:
 
     # Ghi lại chỉ số vào nến để hiển thị
     for i, c in enumerate(candles):
+        current_close = close_prices[i]
         c["rsi"] = rsi_list[i]
         c["ema9"] = ema9_list[i]
         c["ema21"] = ema21_list[i]
@@ -823,7 +824,7 @@ def analyze_market(candles: list[dict]) -> dict:
         c["ema21_slope"] = _calculate_slope(ema21_list, i, 4)
         c["sma50_slope"] = _calculate_slope(sma50_list, i, 8)
         c["sma200_slope"] = _calculate_slope(sma200_list, i, 16)
-        current_close = close_prices[i]
+        
         current_high = c["high"]
         current_low = c["low"]
         current_sma200 = sma200_list[i]
