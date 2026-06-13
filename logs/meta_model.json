@@ -1,6 +1,6 @@
 {
-  "version": "v1.0-calibrated-may",
-  "n_samples": 3455,
+  "version": "v1.0",
+  "n_samples": 5653,
   "n_features": 14,
   "features": [
     "signal_score",
@@ -18,56 +18,12 @@
     "regime_ranging",
     "regime_high_volatility"
   ],
+  "cv_auc_mean": 0.6539654843591383,
+  "cv_auc_std": 0.013892135803990398,
+  "cv_acc_mean": 0.6180798572803454,
   "calibrated": true,
   "label_dist": {
-    "WIN": 1472,
-    "LOSS": 1983
-  },
-  "calibration_buckets": {
-    "0.0-0.4": {
-      "count": 1884,
-      "wins": 414,
-      "losses": 1470,
-      "actual_wr": 22.0,
-      "predicted_wr": 20.0,
-      "calibration_error": 2.0,
-      "calibrated": true
-    },
-    "0.4-0.6": {
-      "count": 1072,
-      "wins": 606,
-      "losses": 466,
-      "actual_wr": 56.5,
-      "predicted_wr": 50.0,
-      "calibration_error": 6.5,
-      "calibrated": true
-    },
-    "0.6-0.7": {
-      "count": 317,
-      "wins": 276,
-      "losses": 41,
-      "actual_wr": 87.1,
-      "predicted_wr": 65.0,
-      "calibration_error": 22.1,
-      "calibrated": false
-    },
-    "0.7-0.8": {
-      "count": 116,
-      "wins": 110,
-      "losses": 6,
-      "actual_wr": 94.8,
-      "predicted_wr": 75.0,
-      "calibration_error": 19.8,
-      "calibrated": false
-    },
-    "0.8-1.0": {
-      "count": 66,
-      "wins": 66,
-      "losses": 0,
-      "actual_wr": 100.0,
-      "predicted_wr": 90.0,
-      "calibration_error": 10.0,
-      "calibrated": true
-    }
+    "WIN": 2438,
+    "LOSS": 3215
   }
 }

@@ -8,9 +8,16 @@ Usage:
   python -m btc_scraper.meta_model --train
   python -m btc_scraper.meta_model --train --n 200
 """
+import sys
 import json
 import os
 from pathlib import Path
+
+# Force stdout/stderr to UTF-8 to support Vietnamese characters in Windows console
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 import joblib
 import numpy as np

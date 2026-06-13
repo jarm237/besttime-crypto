@@ -90,7 +90,10 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     close = _safe_float(info.get("close", 0.0) or info.get("close_price", 0.0))
 
     # 1. signal_score (0-100)
-    f["signal_score"] = _safe_float(ss.get("score") or info.get("score"), default=50.0)
+    if isinstance(ss, dict):
+        f["signal_score"] = _safe_float(ss.get("score") or info.get("score"), default=50.0)
+    else:
+        f["signal_score"] = _safe_float(ss, default=50.0)
 
     # 2. rsi (0-100)
     f["rsi"] = _safe_float(info.get("rsi") or info.get("rsi_15m"), default=50.0)

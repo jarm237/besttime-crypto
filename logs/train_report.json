@@ -1,15 +1,15 @@
 {
-  "train_date": "2026-06-13 01:56",
-  "n_samples": 992,
-  "n_train": 793,
-  "n_holdout": 199,
-  "n_win": 421,
-  "n_loss": 571,
-  "win_rate_pct": 42.44,
-  "cv_roc_auc": 0.6361,
-  "cv_roc_auc_std": 0.0218,
-  "holdout_roc_auc": 0.6408,
-  "train_accuracy_pct": 73.19,
+  "train_date": "2026-06-13 12:53",
+  "n_samples": 5653,
+  "n_train": 4522,
+  "n_holdout": 1131,
+  "n_win": 2438,
+  "n_loss": 3215,
+  "win_rate_pct": 43.13,
+  "cv_roc_auc": 0.6166,
+  "cv_roc_auc_std": 0.0296,
+  "holdout_roc_auc": 0.6493,
+  "train_accuracy_pct": 67.26,
   "feature_schema": "FEATURE_SCHEMA",
   "n_features": 14,
   "feature_names": [
@@ -31,47 +31,51 @@
   "top_features": [
     [
       "rsi",
-      0.2727
+      0.3218
     ],
     [
       "macd_hist",
-      0.1598
-    ],
-    [
-      "ema_distance_pct",
-      0.1322
+      0.1308
     ],
     [
       "adx",
-      0.1167
+      0.1211
     ],
     [
-      "atr_pct",
-      0.1105
-    ],
-    [
-      "bb_width_pct",
-      0.1079
+      "ema_distance_pct",
+      0.1173
     ],
     [
       "signal_score",
-      0.0486
+      0.1014
+    ],
+    [
+      "bb_width_pct",
+      0.0908
+    ],
+    [
+      "atr_pct",
+      0.0785
     ],
     [
       "mtf_alignment",
-      0.0318
-    ],
-    [
-      "regime_ranging",
-      0.0096
+      0.0239
     ],
     [
       "regime_high_volatility",
-      0.0067
+      0.0055
+    ],
+    [
+      "regime_ranging",
+      0.0049
     ],
     [
       "regime_trending_bull",
-      0.0033
+      0.0038
+    ],
+    [
+      "regime_trending_bear",
+      0.0001
     ],
     [
       "volume_ratio",
@@ -80,30 +84,30 @@
     [
       "fear_greed",
       0.0
-    ],
-    [
-      "regime_trending_bear",
-      0.0
     ]
   ],
   "coins": [
-    "AEVO",
-    "TAO",
-    "DOGE",
-    "ZEC",
-    "ETH",
-    "ENA",
-    "NEAR",
-    "TRB",
-    "AVAX",
-    "WLD",
-    "AR",
-    "SOL",
     "BTC",
-    "XLM",
-    "BNB",
+    "ENA",
+    "TRB",
     "IOTA",
-    "XRP"
+    "AEVO",
+    "AVAX",
+    "XRP",
+    "WLD",
+    "XAUT",
+    "DOGE",
+    "AR",
+    "ZEC",
+    "BNB",
+    "NEAR",
+    "XLM",
+    "TRX",
+    "XPL",
+    "TAO",
+    "SOPH",
+    "ETH",
+    "SOL"
   ],
   "cv_method": "TimeSeriesSplit(n_splits=5)",
   "mtf_method": "time-aligned (no leakage)",

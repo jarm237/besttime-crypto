@@ -24,6 +24,12 @@ Yêu cầu:
 import sys, os, csv, json
 from datetime import datetime, timedelta, timezone
 
+# Force stdout to UTF-8 to support Vietnamese characters in console
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 # Disable external side-effects before importing btc_scraper modules
@@ -77,39 +83,33 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 
 def load_candles_csv(coin: str, interval: str, month: str = "april") -> list[dict]:
     """
-    Load nến từ CSV. Thử theo thứ tự:
-      1. {month}_{coin}_{interval}.csv  (fetch_{month}_data.py) — primary source
-      2. backtest_candles_{coin}.csv  (backtest_1month.py) — fallback for 15m
+    Load nến từ CSV cho cụ thể coin, khung thời gian và tháng.
     """
-    candidates = []
-    candidates.append(os.path.join(DATA_DIR, f"{month}_{coin}_{interval}.csv"))
-    if interval == "15m":
-        candidates.append(os.path.join(DATA_DIR, f"backtest_candles_{coin}.csv"))
-
-    for path in candidates:
-        if not os.path.exists(path):
-            continue
-        candles = []
-        with open(path, "r", encoding="utf-8") as f:
-            for row in csv.DictReader(f):
-                dt_str = row["time"]
-                try:
-                    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
-                except ValueError:
-                    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-                candles.append({
-                    "time":      dt_str,
-                    "time_dt":   dt,
-                    "open":      float(row["open"]),
-                    "high":      float(row["high"]),
-                    "low":       float(row["low"]),
-                    "close":     float(row["close"]),
-                    "volume":    float(row["volume"]),
-                    "is_warmup": int(row.get("is_warmup", 0)),
-                })
-        if candles:
-            candles.sort(key=lambda x: x["time_dt"])
-            return candles
+    path = os.path.join(DATA_DIR, f"{month}_{coin}_{interval}.csv")
+    if not os.path.exists(path):
+        return []
+        
+    candles = []
+    with open(path, "r", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            dt_str = row["time"]
+            try:
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            except ValueError:
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+            candles.append({
+                "time":      dt_str,
+                "time_dt":   dt,
+                "open":      float(row["open"]),
+                "high":      float(row["high"]),
+                "low":       float(row["low"]),
+                "close":     float(row["close"]),
+                "volume":    float(row["volume"]),
+                "is_warmup": int(row.get("is_warmup", 0)),
+            })
+    if candles:
+        candles.sort(key=lambda x: x["time_dt"])
+        return candles
     return []
 
 
@@ -466,8 +466,23 @@ def main():
     total_unclosed = 0
     missing_data = []
 
+    months_to_load = ["january", "february", "march", "april", "may"]
     for coin in COINS:
-        candles_15m = load_candles_csv(coin, "15m")
+        # Load and combine 15m candles from all target months
+        candles_15m = []
+        for month in months_to_load:
+            candles_15m.extend(load_candles_csv(coin, "15m", month))
+            
+        # De-duplicate and sort 15m candles chronologically
+        seen_15m = set()
+        deduped_15m = []
+        for c in candles_15m:
+            if c["time"] not in seen_15m:
+                seen_15m.add(c["time"])
+                deduped_15m.append(c)
+        deduped_15m.sort(key=lambda x: x["time_dt"])
+        candles_15m = deduped_15m
+
         if not candles_15m:
             missing_data.append(coin)
             continue
@@ -476,7 +491,7 @@ def main():
         mtf_candles = {}
         for tf in ["1h", "4h", "1d"]:
             combined = []
-            for month in ["march", "april", "may"]:
+            for month in months_to_load:
                 combined.extend(load_candles_csv(coin, tf, month))
             # de-duplicate
             seen = set()
@@ -510,7 +525,7 @@ def main():
 
     if missing_data:
         print(f"\n⚠️  Thiếu dữ liệu cho: {', '.join(missing_data)}")
-        print("   Chạy: python fetch_april_data.py trước")
+        print("   Chạy các file fetch_xxx_data.py tương ứng trước")
 
     print(f"\n{'='*65}")
     print(f"  Tổng records đóng: {len(all_records)} lệnh")
