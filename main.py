@@ -24,7 +24,7 @@ from btc_scraper.exchanges import binance, bybit, okx
 from btc_scraper.exchanges.binance import fetch_ohlcv_multi_tf
 from btc_scraper.analysis import analyze_market
 from btc_scraper.display import print_all
-from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations
+from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations, start_telegram_listener
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper import position_tracker
@@ -388,8 +388,20 @@ def run_scheduler():
     Vòng lặp scheduler có cơ chế tự restart nếu gặp lỗi bất ngờ.
     Chỉ dừng khi nhận KeyboardInterrupt (Ctrl+C).
     """
+    from btc_scraper.telegram_bot import telegram_command_queue
     while True:
         try:
+            # Xử lý các lệnh từ Telegram gửi xuống
+            try:
+                while not telegram_command_queue.empty():
+                    cmd = telegram_command_queue.get_nowait()
+                    if cmd == "scan":
+                        console.print("[bold yellow]⚡ [Telegram Bot] Trực tiếp kích hoạt quét thị trường...[/bold yellow]")
+                        fetch_and_display_with_retry()
+                    telegram_command_queue.task_done()
+            except queue.Empty:
+                pass
+
             schedule.run_pending()
             time.sleep(1)  # Giảm sleep xuống 1s để kích hoạt đúng giờ chính xác hơn
         except KeyboardInterrupt:
@@ -635,6 +647,10 @@ def main():
             console.print("\n[dim]Đang đợi AI Worker hoàn thành phân tích...[/dim]")
             ai_queue.join()
         return
+
+    # Khởi động listener Telegram nhận lệnh từ người dùng
+    listener = threading.Thread(target=start_telegram_listener, daemon=True)
+    listener.start()
 
     try:
         run_scheduler()

@@ -3,7 +3,12 @@ Telegram Bot module - Xử lý gửi cảnh báo và báo cáo tín hiệu mua b
 """
 
 import requests
+import queue
+import time
 from btc_scraper.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+
+# Command queue for main-thread execution
+telegram_command_queue = queue.Queue()
 
 
 def send_telegram_message(
@@ -296,3 +301,311 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
 
     message = "\n".join(message_lines)
     send_telegram_message(message, parse_mode="HTML")
+
+
+def get_latest_price(coin: str) -> float:
+    """Fetch latest price from Binance REST API."""
+    try:
+        symbol = f"{coin.upper()}USDT"
+        url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+        return float(data["price"])
+    except Exception as e:
+        print(f"[Telegram Bot] Loi khi lay gia cho {coin}: {e}")
+        return 0.0
+
+
+def format_status_message() -> str:
+    from btc_scraper.auto_trader import auto_trader
+    from btc_scraper.position_tracker import get_open_positions
+    
+    at_status = auto_trader.status()
+    open_positions = get_open_positions()
+    
+    cb_status = "🚨 ĐÃ BỊ KÍCH HOẠT" if at_status["circuit_tripped"] else "🟢 Bình thường"
+    if at_status["circuit_tripped"] and at_status["circuit_tripped_remaining_h"]:
+        cb_status += f" (Mở khoá sau {at_status['circuit_tripped_remaining_h']}h)"
+        
+    msg = (
+        "ℹ️ <b>TRẠNG THÁI HỆ THỐNG</b> ℹ️\n\n"
+        f"• <b>Chế độ AutoTrader:</b> <code>{at_status['mode']}</code>\n"
+        f"• <b>Lệnh hôm nay:</b> <code>{at_status['trades_today']}/{at_status['max_daily_trades']}</code>\n"
+        f"• <b>Chuỗi thua liên tiếp:</b> <code>{at_status['consecutive_losses']}/{at_status['circuit_breaker_n']}</code>\n"
+        f"• <b>Circuit Breaker:</b> {cb_status}\n"
+        f"• <b>Số vị thế đang mở:</b> <code>{len(open_positions)}</code>\n"
+        f"• <b>Ngưỡng Meta:</b> <code>{at_status['meta_threshold']:.0%}</code>\n"
+        f"• <b>Ngưỡng Score:</b> <code>{at_status['score_threshold']}</code>\n"
+        f"• <b>Allowed Coins:</b> <code>{', '.join(at_status['allowed_coins'][:10])}...</code>\n"
+    )
+    return msg
+
+
+def format_positions_message() -> str:
+    from btc_scraper.position_tracker import get_open_positions
+    positions = get_open_positions()
+    if not positions:
+        return "ℹ️ Hiện không có vị thế mở nào đang được theo dõi."
+        
+    lines = ["🛡️ <b>DANH SÁCH VỊ THẾ ĐANG MỞ</b> 🛡️\n"]
+    for p in positions:
+        coin = p["coin"]
+        direction = p["direction"]
+        entry = p["entry_price"]
+        current = p.get("last_price") or entry
+        pnl = 0.0
+        if entry > 0:
+            if direction == "LONG":
+                pnl = (current - entry) / entry * 100
+            else:
+                pnl = (entry - current) / entry * 100
+                
+        pnl_text = f"lãi +{pnl:.2f}%" if pnl > 0 else f"lỗ {pnl:.2f}%"
+        pnl_emoji = "🟢" if pnl >= 0 else "🔴"
+        
+        val_format = ",.4f" if current < 10 else ",.2f"
+        
+        lines.append(
+            f"• {pnl_emoji} <b>{coin} ({direction})</b>\n"
+            f"  👉 Vốn: <code>${p.get('invested_usdt', 0.0):.2f} USDT</code>\n"
+            f"  👉 Giá vào: <code>{entry:{val_format}}</code> | Hiện tại: <code>{current:{val_format}}</code>\n"
+            f"  👉 Trạng thái: <b>{pnl_text}</b>\n"
+            f"  👉 Entry time: <code>{p['entry_time']}</code>\n"
+        )
+    return "\n".join(lines)
+
+
+def format_performance_message() -> str:
+    from btc_scraper.position_tracker import get_performance_summary
+    perf = get_performance_summary("ALL")
+    if "message" in perf:
+        return f"ℹ️ {perf['message']}"
+        
+    msg = (
+        "📈 <b>BÁO CÁO HIỆU SUẤT GIAO DỊCH</b> 📈\n\n"
+        f"• <b>Tổng số lệnh đã đóng:</b> <code>{perf['total_trades']}</code>\n"
+        f"• <b>Số lệnh thắng:</b> <code>{perf['wins']}</code> (Win Rate: <code>{perf['win_rate_pct']}%</code>)\n"
+        f"• <b>Số lệnh thua:</b> <code>{perf['losses']}</code>\n"
+        f"• <b>Chuỗi thua liên tiếp tối đa:</b> <code>{perf['max_consecutive_losses']}</code>\n"
+        f"• <b>Lãi/lỗ trung bình lệnh thắng:</b> <code>+{perf['avg_win_pct']}%</code>\n"
+        f"• <b>Lãi/lỗ trung bình lệnh thua:</b> <code>{perf['avg_loss_pct']}%</code>\n"
+        f"• <b>Profit Factor:</b> <code>{perf['profit_factor'] or 'N/A'}</code>\n"
+        f"• <b>Average R-Multiplier:</b> <code>{perf['avg_r_multiplier'] or 'N/A'}R</code>\n"
+        f"• <b>Tổng PnL (%):</b> <code>{perf['total_pnl_pct']:+.3f}%</code>\n"
+        f"• <b>Ước tính PnL ($1000 vốn):</b> <code>{perf['pnl_per_1000_usd']:+.2f} USD</code>\n"
+        f"• <b>PnL thực tế tích luỹ:</b> <code>{perf['total_pnl_usd_actual']:+.2f} USDT</code>"
+    )
+    return msg
+
+
+def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
+    parts = text.split()
+    if not parts:
+        return
+    cmd = parts[0].lower()
+    
+    if cmd in ("/start", "/help"):
+        help_msg = (
+            "🤖 <b>HƯỚNG DẪN SỬ DỤNG BOT TELEGRAM</b> 🤖\n\n"
+            "<b>Lệnh hệ thống:</b>\n"
+            "• <code>/status</code>: Xem trạng thái hệ thống, WebSocket, và AutoTrader.\n"
+            "• <code>/scan</code> hoặc <code>/signals</code>: Quét thị trường và phân tích tín hiệu ngay.\n"
+            "• <code>/perf</code> hoặc <code>/summary</code>: Xem báo cáo hiệu suất giao dịch.\n\n"
+            "<b>Lệnh quản lý vị thế:</b>\n"
+            "• <code>/positions</code>: Xem danh sách vị thế đang mở.\n"
+            "• <code>/buy &lt;coin&gt; &lt;LONG/SHORT&gt; [vốn USDT]</code>: Mở vị thế thủ công.\n"
+            "  <i>Ví dụ: <code>/buy BTC LONG 50</code></i>\n"
+            "• <code>/close &lt;coin&gt;</code>: Đóng vị thế thủ công theo giá hiện tại.\n"
+            "  <i>Ví dụ: <code>/close BTC</code></i>"
+        )
+        send_telegram_message(help_msg, reply_to_message_id=reply_to_id)
+        
+    elif cmd == "/status":
+        msg = format_status_message()
+        send_telegram_message(msg, reply_to_message_id=reply_to_id)
+        
+    elif cmd in ("/scan", "/signals"):
+        send_telegram_message("⏳ Đang tiến hành quét thị trường và phân tích tín hiệu...", reply_to_message_id=reply_to_id)
+        telegram_command_queue.put("scan")
+        
+    elif cmd in ("/perf", "/summary"):
+        msg = format_performance_message()
+        send_telegram_message(msg, reply_to_message_id=reply_to_id)
+        
+    elif cmd == "/positions":
+        msg = format_positions_message()
+        send_telegram_message(msg, reply_to_message_id=reply_to_id)
+        
+    elif cmd == "/buy":
+        if len(parts) < 3:
+            send_telegram_message(
+                "❌ Cú pháp sai. Ví dụ: <code>/buy BTC LONG 50</code>",
+                reply_to_message_id=reply_to_id
+            )
+            return
+            
+        coin = parts[1].upper()
+        direction = parts[2].upper()
+        if direction not in ("LONG", "SHORT", "BUY", "SELL"):
+            send_telegram_message(
+                "❌ Chiều giao dịch phải là LONG hoặc SHORT.",
+                reply_to_message_id=reply_to_id
+            )
+            return
+            
+        if direction == "BUY":
+            direction = "LONG"
+        elif direction == "SELL":
+            direction = "SHORT"
+            
+        invested_usdt = 50.0
+        if len(parts) >= 4:
+            try:
+                invested_usdt = float(parts[3])
+            except ValueError:
+                send_telegram_message(
+                    "❌ Số vốn USDT phải là một số hợp lệ.",
+                    reply_to_message_id=reply_to_id
+                )
+                return
+                
+        price = get_latest_price(coin)
+        if price <= 0:
+            send_telegram_message(
+                f"❌ Không lấy được giá hiện tại cho coin <b>{coin}</b>. Vui lòng kiểm tra lại.",
+                reply_to_message_id=reply_to_id
+            )
+            return
+            
+        from btc_scraper.position_tracker import add_position
+        pos = add_position(
+            coin=coin,
+            entry_price=price,
+            direction=direction,
+            note="[MANUAL] Telegram Command",
+            invested_usdt=invested_usdt
+        )
+        
+        reply = (
+            "✅ <b>ĐÃ MỞ VỊ THẾ THỦ CÔNG:</b>\n"
+            f"• Coin: <b>{coin}</b> ({direction})\n"
+            f"• Giá vào: <code>{price:,.4f}</code>\n"
+            f"• Vốn đầu tư: <code>${invested_usdt:.2f} USDT</code>\n"
+            f"• Thời gian: <code>{pos['entry_time']}</code>"
+        )
+        send_telegram_message(reply, reply_to_message_id=reply_to_id)
+        
+    elif cmd == "/close":
+        if len(parts) < 2:
+            send_telegram_message(
+                "❌ Cú pháp sai. Ví dụ: <code>/close BTC</code>",
+                reply_to_message_id=reply_to_id
+            )
+            return
+            
+        coin = parts[1].upper()
+        price = get_latest_price(coin)
+        if price <= 0:
+            send_telegram_message(
+                f"❌ Không lấy được giá thị trường cho <b>{coin}</b> để đóng lệnh.",
+                reply_to_message_id=reply_to_id
+            )
+            return
+            
+        from btc_scraper.position_tracker import close_position
+        try:
+            closed_data = close_position(coin, price)
+            pnl = closed_data["pnl_pct"]
+            pnl_text = f"+{pnl:.2f}%" if pnl > 0 else f"{pnl:.2f}%"
+            pnl_emoji = "🟢" if pnl >= 0 else "🔴"
+            
+            reply = (
+                f"✅ <b>ĐÃ ĐÓNG VỊ THẾ THỦ CÔNG:</b>\n"
+                f"• Coin: <b>{coin}</b> ({closed_data['direction']})\n"
+                f"• Giá vào: <code>{closed_data['entry_price']:,.4f}</code>\n"
+                f"• Giá đóng: <code>{price:,.4f}</code>\n"
+                f"• Lãi/lỗ: {pnl_emoji} <b>{pnl_text}</b>\n"
+                f"• Lợi nhuận: <code>${closed_data['pnl_usd_actual']:.2f} USDT</code>\n"
+                f"• Hold: <code>{closed_data['hold_hours']} giờ</code>"
+            )
+            send_telegram_message(reply, reply_to_message_id=reply_to_id)
+        except Exception as e:
+            send_telegram_message(
+                f"❌ Không thể đóng vị thế: {e}",
+                reply_to_message_id=reply_to_id
+            )
+
+
+def start_telegram_listener() -> None:
+    """Background listener to poll for Telegram commands."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("[Telegram Bot] TELEGRAM_BOT_TOKEN hoac TELEGRAM_CHAT_ID chua duoc cau hinh. Bo qua khoi dong listener.")
+        return
+
+    print("[Telegram Bot] Dang khoi dong Telegram Command Listener...")
+    
+    # Avoid executing old commands before startup
+    offset = 0
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+        resp = requests.get(url, params={"limit": 1, "offset": -1}, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("ok") and data.get("result"):
+                offset = data["result"][0]["update_id"] + 1
+    except Exception as e:
+        print(f"[Telegram Bot] Loi khi lay update_id ban dau: {e}")
+
+    print(f"[Telegram Bot] Dang lang nghe lenh voi offset = {offset}...")
+
+    while True:
+        try:
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+            params = {"offset": offset, "timeout": 20}
+            resp = requests.get(url, params=params, timeout=25)
+            
+            if resp.status_code != 200:
+                time.sleep(5)
+                continue
+                
+            data = resp.json()
+            if not data.get("ok"):
+                time.sleep(5)
+                continue
+                
+            for update in data.get("result", []):
+                offset = update["update_id"] + 1
+                
+                message = update.get("message")
+                if not message:
+                    continue
+                    
+                chat = message.get("chat")
+                if not chat:
+                    continue
+                    
+                chat_id = chat.get("id")
+                text = message.get("text", "").strip()
+                
+                if not text:
+                    continue
+                
+                # Only handle commands starting with /
+                if not text.startswith("/"):
+                    continue
+                    
+                # Security: Only accept commands from configured chat ID
+                if str(chat_id) != str(TELEGRAM_CHAT_ID):
+                    print(f"[Telegram Bot] Bo qua lenh tu chat_id la: {chat_id}")
+                    continue
+                    
+                try:
+                    handle_telegram_command(text, message.get("message_id"))
+                except Exception as cmd_err:
+                    send_telegram_message(f"❌ Lỗi thực thi lệnh: {cmd_err}")
+                    print(f"[Telegram Bot] Loi thuc thi lenh '{text}': {cmd_err}")
+                    
+        except Exception as e:
+            print(f"[Telegram Bot] Loi trong vong lap polling: {e}")
+            time.sleep(5)
