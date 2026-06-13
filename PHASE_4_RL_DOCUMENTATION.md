@@ -264,14 +264,13 @@ Outputs:
 
 ---
 
-## Next Phase: Phase 5
+## Next Phase: Phase 5 (Completed)
 
 **Portfolio Optimization & Multi-Agent AI**
 
-- Coordinate multiple trading agents
-- Optimize capital allocation across coins
-- Portfolio-level risk management
-- Real-time Sharpe ratio monitoring
+- Triển khai thành công module `portfolio_manager.py` tích hợp Mean-Variance Optimization và Risk Parity.
+- Tái cấu trúc bot thành hệ thống đa tác nhân (`multi_agent.py`) được điều phối bởi `AgentOrchestrator` giúp tăng tính linh hoạt và khả năng kiểm soát danh mục đầu tư.
+- Portfolio-level risk management & MVO capital allocation.
 
 ---
 

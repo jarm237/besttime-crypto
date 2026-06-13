@@ -141,32 +141,30 @@ Hiện `btc_scraper/ai_analyst.py` đã dùng RAG từ `logs/closed_positions.js
 
 ---
 
-## 📈 Hướng ML tiếp theo
+## 📈 Hướng ML tiếp theo (Lộ trình Roadmap)
 
-### Phase 1: Signal Confidence Scoring (Đã hoàn thành)
+### Phase 1: Signal Confidence Scoring & Feature Engineering (Đã hoàn thành)
 1. **Thu thập dữ liệu lịch sử:** Sử dụng `fetch_historical_range.py` để cào dữ liệu lịch sử chất lượng cao từ Binance qua nhiều tháng liên tục (đã tích hợp đầy đủ **18 tháng**, từ Tháng 1/2025 đến Tháng 6/2026, với **18,908 mẫu giao dịch**).
-2. **Huấn luyện mô hình Adaptive:** Chạy `train_april_model.py` để load toàn bộ dữ liệu 18 tháng, chạy giả lập sinh tín hiệu, trích xuất 14 đặc trưng kỹ thuật (`FEATURE_SCHEMA`), huấn luyện mô hình **Random Forest Classifier** và lưu tại `logs/adaptive_model.joblib`.
-3. **Huấn luyện mô hình Meta & Hiệu chuẩn xác suất (Ensemble + Calibration):** Chạy `python -m btc_scraper.meta_model --train`. Phiên bản meta model mới `v2.0-ensemble` sẽ cố gắng xây dựng một ensemble mềm (soft voting) gồm RandomForest và các estimator tùy chọn (`LightGBM`, `CatBoost`, `XGBoost`) nếu các thư viện này có sẵn. Sau khi huấn luyện, script sẽ so sánh phương pháp hiệu chuẩn (`sigmoid` vs `isotonic`) và lưu kết quả calibration cùng các buckets vào `logs/meta_model.json`.
+2. **Huấn luyện mô hình Adaptive:** Chạy `train_april_model.py` để load toàn bộ dữ liệu 18 tháng, chạy giả lập sinh tín hiệu, trích xuất đặc trưng kỹ thuật (`FEATURE_SCHEMA`), huấn luyện mô hình **Random Forest Classifier** và lưu tại `logs/adaptive_model.joblib`.
+3. **Hiệu chuẩn xác suất (Calibration):** Chia kết quả hiệu chuẩn thành 5 nhóm xác suất (0.0-0.4, 0.4-0.6, 0.6-0.7, 0.7-0.8, 0.8-1.0) và lưu vào `logs/meta_model.json`.
 
-**Lưu ý cài đặt (tuỳ chọn):** cài thêm các thư viện để kích hoạt estimators tương ứng trước khi train:
+### Phase 2: Ensemble Machine Learning (Đã hoàn thành)
+1. **Mô hình Ensemble:** Xây dựng `EnsembleMetaModel` kết hợp RandomForest, LightGBM, CatBoost để tăng độ chính xác dự báo xác suất thắng.
+2. **Probability Calibration:** Áp dụng Isotonic Regression để hiệu chuẩn xác suất dự báo, tối ưu hóa sai số MACE xuống dưới 20%.
 
-```bash
-pip install lightgbm catboost xgboost
-```
+### Phase 3: Dynamic Parameter Tuning & Risk Management (Đã hoàn thành)
+1. **Bayesian Optimization (Optuna):** Chạy tối ưu hóa Optuna (`scripts/optimize_hyperparameters.py`) hàng tuần để tự động tìm tham số ATR multipliers, signal cutoff, kelly multiplier, và regime scaling.
+2. **Dynamic TP/SL & Position Sizing:** Tích hợp TP/SL co giãn động theo regime và quản lý vốn Kelly điều chỉnh theo mô hình ML.
+3. **Risk Management:** Triển khai `RiskManager` kiểm soát drawdown (<10%) và chuỗi lệnh thua liên tiếp.
 
-Script cũng lưu báo cáo walk-forward evaluation và các thông số ensemble trong `logs/meta_model.json` để dễ so sánh model (thông tin `available_models`, `ensemble_weights`, `walk_forward`).
-4. **Lưu trữ Calibration Buckets:** Kết quả hiệu chuẩn được chia thành 5 nhóm xác suất (0.0-0.4, 0.4-0.6, 0.6-0.7, 0.7-0.8, 0.8-1.0) và lưu vào `logs/meta_model.json` trong trường `"calibration_buckets"` cùng với các chỉ số ROC-AUC của mô hình. Điều này đảm bảo tính tương thích và ngăn chặn lỗi runtime do thiếu cấu hình calibration.
-5. **Chấm điểm tín hiệu & Quản lý vị thế:** Tải mô hình thông qua `btc_scraper/signal_score.py` để chấm điểm động xác suất thắng cho các tín hiệu thời gian thực và tự động xác định khối lượng vị thế tối ưu (Position Sizing).
+### Phase 4: Reinforcement Learning Exit Manager (Đã hoàn thành)
+1. **Trading Environment:** Định nghĩa môi trường Gymnasium (`btc_scraper/rl_trading_env.py`) mô phỏng các trade episodes.
+2. **RL Agent Training:** Huấn luyện các Agent PPO, DQN, A2C (`train_rl_exit_manager.py`) trên dữ liệu tín hiệu lịch sử, lưu checkpoint tại `logs/rl_models/`.
+3. **Evaluation:** Đánh giá hiệu năng và so sánh giữa RL exit strategy và baseline rule-based exit (`evaluate_rl_phase4.py`).
 
-### Phase 2: Dynamic Parameter Tuning
-1. Chạy `optuna` backtest mỗi tuần
-2. Tối ưu: ATR multiplier, EMA period, RSI threshold
-3. Cập nhật vào `analysis.py` tự động
-
-### Phase 3: Anomaly Detection
-1. Train `IsolationForest` trên dữ liệu 1m candles
-2. Detect flash crash patterns
-3. Auto-trigger defensive SL adjustment
+### Phase 5: Portfolio Optimization & Multi-Agent AI (Đã hoàn thành)
+1. **Tối ưu hóa danh mục:** Phân bổ vốn hiệu quả qua Mean-Variance (MVO), Risk Parity, Sharpe/Sortino ratio sử dụng module `portfolio_manager.py`.
+2. **Hệ thống Multi-Agent:** Tái cấu trúc hệ thống thành đa tác nhân (`multi_agent.py`) bao gồm: MarketAnalystAgent, SignalGeneratorAgent, RiskManagerAgent, PortfolioManagerAgent, RLExitAgent và ExecutionAgent được điều phối tự động bởi `AgentOrchestrator`.
 
 ---
 

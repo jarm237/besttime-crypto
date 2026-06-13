@@ -225,34 +225,28 @@ def fetch_and_display():
     console.print(f"[dim]Đang lấy dữ liệu thị trường ({src_label})...[/dim]")
 
     results = {}
-    analysis = {}
-    mtf_analysis = {}   # Phân tích đa khung thời gian gửi cho AI
+    raw_candles_dict = {}
+    mtf_candles_dict = {}
 
     for coin in COINS:
-        results[coin] = {}
-        # ── Nến 15m — từ WS hoặc REST fallback ──────────────────────────────
         binance_candles = _get_candles_for_coin(coin, "15m")
-        results[coin]["Binance"] = binance_candles
+        results[coin] = {"Binance": binance_candles}
+        raw_candles_dict[coin] = binance_candles
 
-        ana = analyze_market(binance_candles)
-        ana["close"] = binance_candles[-1]["close"] if (binance_candles and "error" not in binance_candles[0]) else 0.0
-        analysis[f"{coin}:Binance"] = ana
-
-        # ── MTF (1h, 4h, 1d) — từ WS hoặc REST fallback ─────────────────────
         if not using_ws:
             console.print(f"[dim]  ↳ [{coin}] Đang lấy nến 1h / 4h / 1d (REST)...[/dim]")
-        mtf_analysis[coin] = {}
+        
+        mtf_candles_dict[coin] = {}
         for tf in ["1h", "4h", "1d"]:
-            tf_candles = _get_candles_for_coin(coin, tf)
-            tf_ana = analyze_market(tf_candles)
-            tf_ana["close"] = tf_candles[-1]["close"] if (tf_candles and "error" not in tf_candles[0]) else 0.0
-            mtf_analysis[coin][tf] = tf_ana
+            mtf_candles_dict[coin][tf] = _get_candles_for_coin(coin, tf)
 
-        # Gắn HTF trend summary vào analysis 15m
-        htf_trend = _summarize_htf_trend(mtf_analysis[coin])
-        htf_details = _format_htf_details(mtf_analysis[coin])
-        analysis[f"{coin}:Binance"]["htf_trend"] = htf_trend
-        analysis[f"{coin}:Binance"]["htf_details"] = htf_details
+    # Chạy hệ thống đa tác nhân điều phối (AgentOrchestrator)
+    from btc_scraper.multi_agent import AgentOrchestrator
+    orchestrator = AgentOrchestrator()
+    context = orchestrator.run_cycle(raw_candles_dict, mtf_candles_dict)
+
+    analysis = context["analysis"]
+    mtf_analysis = context["mtf_analysis"]
 
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)
@@ -275,33 +269,6 @@ def fetch_and_display():
             check_and_execute_auto_closes(recs)
     except Exception as e:
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
-
-    # [Shadow Mode] Ghi log Meta Model predictions cho tất cả BUY/SELL signals
-    try:
-        from scripts.shadow_log import log_signal_prediction
-        for key, ana in analysis.items():
-            sig_score = ana.get("signal_score") or {}
-            meta_prob = sig_score.get("meta_confidence")
-            sig = ana.get("signal", "")
-            if meta_prob is not None and ("BUY" in sig or "SELL" in sig):
-                coin = key.split(":")[0]
-                log_signal_prediction(
-                    symbol=f"{coin}USDT",
-                    signal=sig,
-                    meta_prob=meta_prob,
-                    signal_score=sig_score.get("score", 50),
-                    regime=ana.get("regime") or (sig_score.get("regime") or ""),
-                    htf_trend=ana.get("htf_trend", ""),
-                )
-    except Exception as e:
-        console.print(f"[dim red][Shadow] Lỗi ghi shadow log: {e}[/dim red]")
-
-    # Auto Trading (CCXT Integration)
-    try:
-        from btc_scraper.auto_trader import auto_trader
-        auto_trader.evaluate_and_trade(analysis)
-    except Exception as e:
-        console.print(f"[dim red][AutoTrade] Lỗi tự động giao dịch: {e}[/dim red]")
 
     # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
     message_id = send_signals_alert(analysis)

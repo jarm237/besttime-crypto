@@ -88,6 +88,11 @@ Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đá
   ```bash
   python evaluate_rl_phase4.py
   ```
+- **Hệ thống đa tác nhân & Tối ưu danh mục (Phase 5):**
+  Hệ thống chạy qua `AgentOrchestrator` trong `btc_scraper/multi_agent.py`. Bạn có thể chạy unit tests để kiểm tra logic phân bổ danh mục (MVO & Risk Parity):
+  ```bash
+  pytest tests/test_portfolio_manager.py
+  ```
 
 ---
 

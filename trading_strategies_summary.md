@@ -2,7 +2,7 @@
 
 Tài liệu này tổng hợp toàn bộ các chỉ báo kỹ thuật, công thức tính toán, quy tắc xác định tín hiệu (6 lớp lọc) và logic quản lý vị thế hiện tại trong hệ thống bot giao dịch Crypto.
 
-> **Cập nhật lần cuối**: 09/06/2026 — Sau backtest v2 (8.000 điểm dữ liệu, 10 coin, 1000 nến 15m)
+> **Cập nhật lần cuối**: 14/06/2026 — Thêm Phase 4 RL Exit Manager và cập nhật ML workflow
 
 ---
 
@@ -179,7 +179,31 @@ $$NetReceived = Invested + PnL_{USD} - Fee$$
 
 ---
 
-## 5. Kết quả Backtest v2 (Tham khảo)
+## 5. Reinforcement Learning Exit Manager (Phase 4)
+
+### Mục tiêu
+- Tự học chiến lược đóng lệnh tối ưu thay vì dùng ngưỡng tĩnh TP/SL.
+- Cân bằng lợi nhuận và tổn thất với penalty drawdown và bonus cho việc thoát gần đỉnh PnL.
+
+### Môi trường RL
+- **State:** 18 feature bao gồm RSI, MACD Histogram, ATR%, ADX, meta_confidence, regime one-hot, pnl_pct, hold_time, fear_greed, volume_ratio, BB width.
+- **Actions:** HOLD, PARTIAL_CLOSE_50, MOVE_SL_TO_BREAKEVEN, TAKE_PROFIT, EXIT.
+- **Reward:** PnL thực tế ± penalty/bonus.
+- **Mục tiêu:** Phát triển exit manager có khả năng đóng vị thế chính xác hơn rule-based và tối ưu hóa tỷ lệ thắng / lợi nhuận ròng.
+
+### File liên quan
+- `btc_scraper/rl_trading_env.py` — Gymnasium environment.
+- `train_rl_exit_manager.py` — Huấn luyện RL với PPO/DQN/A2C.
+- `evaluate_rl_phase4.py` — So sánh với rule-based exit.
+- `PHASE_4_RL_DOCUMENTATION.md` — Tài liệu chi tiết Phase 4.
+
+### Kết quả ban đầu
+- Đã huấn luyện thành công đường PPO/DQN/A2C với reward ổn định `0.50` sau 20k steps.
+- Mô hình RL đã sẵn sàng để thử nghiệm A/B so với thuật toán đóng lệnh cũ.
+
+---
+
+## 6. Kết quả Backtest v2 (Tham khảo)
 
 Chạy `python -X utf8 backtest_eval.py` để tái tạo kết quả:
 
@@ -229,3 +253,22 @@ Mỗi chu kỳ quét khẩn cấp 5 phút (`fetch_and_analyze_open_positions_onl
 - Nếu chạm dừng lỗ khuyến nghị: Tự động đặt lệnh Market đóng vị thế, ghi nhận kết quả `"LOSS"` vào Circuit Breaker và gửi cảnh báo Telegram.
 - Nếu chạm mức chốt lời 2 (`TP2`): Tự động đặt lệnh Market đóng vị thế, ghi nhận kết quả `"WIN"` vào Circuit Breaker và gửi thông báo Telegram.
 - Nếu người dùng đóng vị thế thủ công trên Dashboard, API backend sẽ tự động đồng bộ đóng vị thế trên Binance Testnet qua CCXT.
+
+---
+
+## 7. Portfolio Optimization & Multi-Agent AI (Phase 5)
+
+### 7.1. Tối ưu hóa danh mục (Portfolio Sizing)
+Khi xuất hiện từ 2 tín hiệu BUY/SELL đồng thời trở lên, hệ thống sẽ chuyển từ định cỡ vị thế độc lập sang tối ưu danh mục:
+1. **Tính tương quan returns:** Lấy nến 15m của 100 chu kỳ gần nhất để lập ma trận covariance.
+2. **Mean-Variance Optimization (MVO):** Tối đa hóa tỷ lệ Sharpe dự kiến dựa trên covariance và expected returns từ xác suất Meta model.
+3. **Risk Parity:** Tìm tỷ trọng vốn cân bằng đóng đóng góp rủi ro của mỗi tài sản trong danh mục.
+
+### 7.2. Kiến trúc Đa tác nhân (Multi-Agent)
+Mã nguồn core loop được chia tách thành các Agent độc lập điều phối bởi `AgentOrchestrator`:
+- `MarketAnalystAgent`: Phân tích chỉ báo kỹ thuật và xu hướng MTF.
+- `SignalGeneratorAgent`: Chấm điểm xác suất Meta model và lọc cutoff.
+- `RiskManagerAgent`: Áp dụng drawdown cap và chuỗi lệnh thua.
+- `PortfolioManagerAgent`: Thực thi tối ưu hóa danh mục MVO/Risk Parity.
+- `RLExitAgent`: Đưa ra khuyến nghị đóng lệnh nâng cao qua Agent RL.
+- `ExecutionAgent`: Giao dịch CCXT và ghi log shadow predictions.

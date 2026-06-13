@@ -17,4 +17,5 @@ lightgbm
 xgboost
 catboost
 optuna
+scipy
 

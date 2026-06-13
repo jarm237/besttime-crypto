@@ -15,6 +15,8 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
   1. **General scan (every 15 mins, offset +1 min after close):** Fetches all coins, computes all indicators, sends Telegram signal alert, enqueues Gemini AI analysis in background thread.
   2. **Focused scan (every 5 mins, interleaved):** Only fetches coins with open positions — evaluates TP/SL hits and reversal warnings without calling AI to save quota.
 - **Robustness:** Auto-restart with exponential backoff (`BASE_BACKOFF=10s`, `MAX_BACKOFF=300s`, `MAX_RETRIES=5`) for network errors; scheduler crash recovery.
+- **Reinforcement Learning:** Phase 4 RL Exit Manager added with gymnasium + stable-baselines3 for adaptive exit decisions.
+- **Portfolio Optimization & Multi-Agent AI:** Phase 5 added with Mean-Variance Optimization, Risk Parity, and modular Agent system coordinated by AgentOrchestrator.
 
 ---
 
@@ -29,6 +31,7 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
   - `google-genai` — Gemini AI (Flash model) integration.
   - `fastapi` + `uvicorn` — Backend REST API for Web Dashboard.
   - `pandas`, `scikit-learn`, `joblib`, `numpy` - Machine Learning & Adaptive Scoring.
+  - `gymnasium`, `stable-baselines3`, `torch` - Reinforcement Learning exit manager.
   - `ccxt` — Integration with crypto exchanges (Binance Testnet).
   - *No `ta-lib` are used.* All technical indicators are implemented in pure Python within `btc_scraper/analysis.py` for maximum speed and simplicity.
 - **Frontend:** React / Vite in `web/`, served at port 3000.
@@ -50,6 +53,13 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
 | `btc_scraper/ai_analyst.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ai_analyst.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ai_analyst.py) | Gemini AI prompt builder — MTF data, sentiment, RAG from closed trades |
 | `btc_scraper/position_tracker.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/position_tracker.py) | Tracks manual open/closed positions and generates trade recommendations. |
 | `btc_scraper/auto_trader.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/auto_trader.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/auto_trader.py) | Auto-trading decision engine (risk management, circuit breaker, daily caps) |
+| `btc_scraper/rl_trading_env.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/rl_trading_env.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/rl_trading_env.py) | Gymnasium environment for RL exit management |
+| `train_rl_exit_manager.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/train_rl_exit_manager.py) | [Windows](file:///d:/Workspaces/Vọc vạch/train_rl_exit_manager.py) | RL training script (PPO/DQN/A2C) |
+| `evaluate_rl_phase4.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/evaluate_rl_phase4.py) | [Windows](file:///d:/Workspaces/Vọc vạch/evaluate_rl_phase4.py) | RL evaluation and rule-based comparison |
+| `PHASE_4_RL_DOCUMENTATION.md` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/PHASE_4_RL_DOCUMENTATION.md) | [Windows](file:///d:/Workspaces/Vọc vạch/PHASE_4_RL_DOCUMENTATION.md) | Phase 4 RL implementation summary |
+| `btc_scraper/portfolio_manager.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/portfolio_manager.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/portfolio_manager.py) | Portfolio Manager (MVO, Risk Parity) |
+| `btc_scraper/multi_agent.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/multi_agent.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/multi_agent.py) | Multi-Agent AI system and Orchestrator |
+| `tests/test_portfolio_manager.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/tests/test_portfolio_manager.py) | [Windows](file:///d:/Workspaces/Vọc vạch/tests/test_portfolio_manager.py) | Unit tests for portfolio allocation |
 | `btc_scraper/ccxt_client.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ccxt_client.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ccxt_client.py) | CCXT exchange abstraction layer for Binance Testnet (Spot) |
 | `btc_scraper/meta_model.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/meta_model.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/meta_model.py) | Trains the Meta Confidence model and calculates sigmoid probability calibration buckets |
 | `btc_scraper/adaptive_scoring.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/adaptive_scoring.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/adaptive_scoring.py) | Machine Learning pipeline for training win probability models. |
@@ -159,6 +169,19 @@ python train_april_model.py
 
 # 3. Train the Meta Confidence model (with sigmoid probability calibration)
 python -m btc_scraper.meta_model --train
+
+# 4. Train the RL Exit Manager (Phase 4)
+python train_rl_exit_manager.py --algo ppo --train --steps 100000 --n-trades 500
+```
+
+### Evaluating RL Exit Performance
+```bash
+python evaluate_rl_phase4.py
+```
+
+### Running Portfolio Allocation Tests (Phase 5)
+```bash
+python -m pytest tests/test_portfolio_manager.py
 ```
 
 ### Environment Variables (`.env`)
