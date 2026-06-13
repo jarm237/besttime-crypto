@@ -420,10 +420,10 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             "• <code>/perf</code> hoặc <code>/summary</code>: Xem báo cáo hiệu suất giao dịch.\n\n"
             "<b>Lệnh quản lý vị thế:</b>\n"
             "• <code>/positions</code>: Xem danh sách vị thế đang mở.\n"
-            "• <code>/buy &lt;coin&gt; &lt;LONG/SHORT&gt; [vốn USDT]</code>: Mở vị thế thủ công.\n"
-            "  <i>Ví dụ: <code>/buy BTC LONG 50</code></i>\n"
-            "• <code>/close &lt;coin&gt;</code>: Đóng vị thế thủ công theo giá hiện tại.\n"
-            "  <i>Ví dụ: <code>/close BTC</code></i>"
+            "• <code>/buy &lt;coin&gt; &lt;LONG/SHORT&gt; [vốn USDT] [giá vào]</code>: Mở vị thế thủ công.\n"
+            "  <i>Ví dụ: <code>/buy BTC LONG 50 67100</code></i>\n"
+            "• <code>/close &lt;coin&gt; [giá đóng]</code>: Đóng vị thế thủ công.\n"
+            "  <i>Ví dụ: <code>/close BTC 67500</code></i>"
         )
         send_telegram_message(help_msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
@@ -446,7 +446,9 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
     elif cmd == "/buy":
         if len(parts) < 3:
             send_telegram_message(
-                "❌ Cú pháp sai. Ví dụ: <code>/buy BTC LONG 50</code>",
+                "❌ Cú pháp sai. Ví dụ:\n"
+                "• Theo giá thị trường: <code>/buy BTC LONG 50</code>\n"
+                "• Theo giá chỉ định: <code>/buy BTC LONG 50 67100</code>",
                 reply_to_message_id=reply_to_id,
                 chat_id=chat_id
             )
@@ -479,10 +481,23 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
                 )
                 return
                 
-        price = get_latest_price(coin)
+        price = 0.0
+        if len(parts) >= 5:
+            try:
+                price = float(parts[4])
+            except ValueError:
+                send_telegram_message(
+                    "❌ Giá vào lệnh phải là một số hợp lệ.",
+                    reply_to_message_id=reply_to_id,
+                    chat_id=chat_id
+                )
+                return
+        else:
+            price = get_latest_price(coin)
+            
         if price <= 0:
             send_telegram_message(
-                f"❌ Không lấy được giá hiện tại cho coin <b>{coin}</b>. Vui lòng kiểm tra lại.",
+                f"❌ Không lấy được giá vào lệnh cho coin <b>{coin}</b>. Vui lòng nhập giá thủ công.",
                 reply_to_message_id=reply_to_id,
                 chat_id=chat_id
             )
@@ -509,17 +524,33 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
     elif cmd == "/close":
         if len(parts) < 2:
             send_telegram_message(
-                "❌ Cú pháp sai. Ví dụ: <code>/close BTC</code>",
+                "❌ Cú pháp sai. Ví dụ:\n"
+                "• Theo giá thị trường: <code>/close BTC</code>\n"
+                "• Theo giá chỉ định: <code>/close BTC 67500</code>",
                 reply_to_message_id=reply_to_id,
                 chat_id=chat_id
             )
             return
             
         coin = parts[1].upper()
-        price = get_latest_price(coin)
+        
+        price = 0.0
+        if len(parts) >= 3:
+            try:
+                price = float(parts[2])
+            except ValueError:
+                send_telegram_message(
+                    "❌ Giá đóng lệnh phải là một số hợp lệ.",
+                    reply_to_message_id=reply_to_id,
+                    chat_id=chat_id
+                )
+                return
+        else:
+            price = get_latest_price(coin)
+            
         if price <= 0:
             send_telegram_message(
-                f"❌ Không lấy được giá thị trường cho <b>{coin}</b> để đóng lệnh.",
+                f"❌ Không lấy được giá thị trường cho <b>{coin}</b> để đóng lệnh. Vui lòng nhập giá thủ công.",
                 reply_to_message_id=reply_to_id,
                 chat_id=chat_id
             )
