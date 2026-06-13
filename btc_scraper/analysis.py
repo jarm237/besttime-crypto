@@ -358,6 +358,39 @@ def wick_ratios(open_price: float, high: float, low: float, close_price: float) 
     return lower_wick / full_range, upper_wick / full_range
 
 
+_OPTIMIZED_PARAMS_CACHE = None
+
+def _load_optimized_params():
+    global _OPTIMIZED_PARAMS_CACHE
+    if _OPTIMIZED_PARAMS_CACHE is not None:
+        return _OPTIMIZED_PARAMS_CACHE
+    from pathlib import Path
+    import json
+    cfg_path = Path(__file__).parent.parent / "logs" / "optimized_trading_params.json"
+    if cfg_path.exists():
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                _OPTIMIZED_PARAMS_CACHE = json.load(f)
+                return _OPTIMIZED_PARAMS_CACHE
+        except Exception:
+            pass
+    _OPTIMIZED_PARAMS_CACHE = {}
+    return _OPTIMIZED_PARAMS_CACHE
+
+REGIME_MULTIPLIERS_MAP = {
+    "STRONG_TREND_BULL": {"tp_scale": 1.2, "sl_scale": 0.8},
+    "STRONG_TREND_BEAR": {"tp_scale": 1.2, "sl_scale": 0.8},
+    "WEAK_TREND_BULL": {"tp_scale": 1.0, "sl_scale": 1.0},
+    "WEAK_TREND_BEAR": {"tp_scale": 1.0, "sl_scale": 1.0},
+    "RANGING": {"tp_scale": 0.6, "sl_scale": 1.2},
+    "HIGH_VOLATILITY": {"tp_scale": 0.8, "sl_scale": 1.5},
+    "COMPRESSION": {"tp_scale": 1.1, "sl_scale": 0.9},
+    "BREAKOUT": {"tp_scale": 1.3, "sl_scale": 0.8},
+    "MEAN_REVERSION": {"tp_scale": 0.7, "sl_scale": 1.1},
+    "PANIC_SELL": {"tp_scale": 1.2, "sl_scale": 1.0},
+    "PUMP_RISK": {"tp_scale": 0.8, "sl_scale": 1.2},
+}
+
 def calculate_tp_sl(
     close: float,
     signal: str,
@@ -369,6 +402,7 @@ def calculate_tp_sl(
     bb_lower: float,
     atr_sl_mult: float = 1.2,
     atr_tp_mult: float = 5.0,
+    regime: str = None,
 ) -> dict:
     """
     Tính mức Entry, Take Profit (TP1, TP2) và Stop Loss (SL) dựa trên:
@@ -381,6 +415,30 @@ def calculate_tp_sl(
     Trả về dict:
       entry, sl, tp1, tp2, rr1 (Risk:Reward cho TP1), rr2, method
     """
+    opt_params = _load_optimized_params()
+    atr_tp_mult = opt_params.get("atr_tp_mult", atr_tp_mult)
+    atr_sl_mult = opt_params.get("atr_sl_mult", atr_sl_mult)
+
+    tp_scale = 1.0
+    sl_scale = 1.0
+    
+    if regime:
+        regime_tp_override = opt_params.get("regime_tp_scale", {}).get(regime)
+        regime_sl_override = opt_params.get("regime_sl_scale", {}).get(regime)
+        
+        if regime_tp_override is not None:
+            tp_scale = float(regime_tp_override)
+        else:
+            tp_scale = REGIME_MULTIPLIERS_MAP.get(regime, {}).get("tp_scale", 1.0)
+            
+        if regime_sl_override is not None:
+            sl_scale = float(regime_sl_override)
+        else:
+            sl_scale = REGIME_MULTIPLIERS_MAP.get(regime, {}).get("sl_scale", 1.0)
+
+    atr_tp_mult = atr_tp_mult * tp_scale
+    atr_sl_mult = atr_sl_mult * sl_scale
+
     is_buy = "BUY" in signal.upper() or "BULLISH" in signal.upper()
     is_sell = "SELL" in signal.upper() or "BEARISH" in signal.upper()
 
@@ -929,6 +987,7 @@ def analyze_market(candles: list[dict]) -> dict:
                 bb_upper=current_bb_upper,
                 bb_middle=current_bb_middle,
                 bb_lower=current_bb_lower,
+                regime=candles[t].get("regime") if (t < len(candles) and t >= -len(candles)) else None,
             )
             direction = "SHORT" if "SELL" in sig.upper() or "SHORT" in sig.upper() else ("LONG" if "BUY" in sig.upper() or "BULL" in sig.upper() else None)
             confidence = max(0.0, min(1.0, base_confidence))
@@ -1567,6 +1626,10 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
                     sig = "NEUTRAL (BEARISH-CAUTION)"
                     reason = f"EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han{chandelier_tag}"
 
+        # Determine regime using current indicators (TRENDING_BULL, TRENDING_BEAR, RANGING, HIGH_VOLATILITY)
+        atr_pct_val = (current_atr / current_close * 100) if current_close and current_atr else 0.0
+        regime_info = regime_from_values(current_close, current_sma200, current_ema21, current_sma50, current_adx, atr_pct_val)
+
         tp_sl_dict = calculate_tp_sl(
             close       = current_close,
             signal      = sig,
@@ -1576,10 +1639,8 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             bb_upper    = current_bb_upper,
             bb_middle   = current_bb_middle,
             bb_lower    = current_bb_lower,
+            regime      = regime_info.get("regime"),
         )
-        # Determine regime using current indicators (TRENDING_BULL, TRENDING_BEAR, RANGING, HIGH_VOLATILITY)
-        atr_pct_val = (current_atr / current_close * 100) if current_close and current_atr else 0.0
-        regime_info = regime_from_values(current_close, current_sma200, current_ema21, current_sma50, current_adx, atr_pct_val)
 
         # Prepare lightweight data/context for scoring (keeps backward compatibility)
         score_data = {

@@ -254,6 +254,27 @@ def _load_position_sizing_params():
     return _POSITION_SIZING_PARAMS_CACHE
 
 
+_OPTIMIZED_PARAMS_CACHE = None
+
+def _load_optimized_params():
+    global _OPTIMIZED_PARAMS_CACHE
+    if _OPTIMIZED_PARAMS_CACHE is not None:
+        return _OPTIMIZED_PARAMS_CACHE
+    from pathlib import Path
+    import json
+    cfg_path = Path(__file__).parent.parent / "logs" / "optimized_trading_params.json"
+    if cfg_path.exists():
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                _OPTIMIZED_PARAMS_CACHE = json.load(f)
+                return _OPTIMIZED_PARAMS_CACHE
+        except Exception:
+            pass
+    _OPTIMIZED_PARAMS_CACHE = {}
+    return _OPTIMIZED_PARAMS_CACHE
+
+
+
 _ESTIMATE_B_CACHE = None
 
 def _estimate_b(strategy: str, regime: str) -> float:
@@ -394,6 +415,16 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     kelly = None
     b_est = None
     meta_err = None
+
+    opt_params = _load_optimized_params()
+    signal_cutoff = opt_params.get("signal_cutoff", 0.0)
+    kelly_multiplier = opt_params.get("kelly_multiplier", 1.0)
+
+    from btc_scraper.risk_manager import calculate_risk_metrics
+    risk_metrics = calculate_risk_metrics()
+    risk_multiplier = risk_metrics.get("risk_multiplier", 1.0)
+    risk_blocked = risk_metrics.get("blocked", False)
+
     try:
         # allow disabling Kelly via environment for comparison runs
         if disable_ml:
@@ -415,10 +446,20 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         meta = predict_meta_confidence(merged)
         if isinstance(meta, dict) and meta.get('probability') is not None:
             meta_prob = float(meta['probability'])
+            
+            # Apply optimized signal probability cutoff
+            if meta_prob < signal_cutoff:
+                action = "NEUTRAL"
+                reason += f" | Optuna Reject: win prob {meta_prob:.2f} < signal_cutoff {signal_cutoff:.2f}"
+                
             # Tính Kelly sizing dựa trên meta_prob
             strategy = (data.get('strategy') or data.get('subtype')) if isinstance(data, dict) else None
             b_est = _estimate_b(strategy or '', regime or '')
             kelly_raw = compute_kelly_fraction(meta_prob, b_est)
+            
+            # Apply dynamic sizing scale and risk reduction
+            kelly_raw = kelly_raw * kelly_multiplier * risk_multiplier
+            
             kparams = _load_kelly_params()
             try:
                 kelly_capped = min(float(kparams.get('max_fraction', 0.5)), float(kelly_raw))
@@ -441,6 +482,11 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             traceback.print_exc()
         meta_prob = None
         meta_err = str(e)
+
+    # Apply Drawdown Risk management block
+    if risk_blocked:
+        action = "NEUTRAL"
+        reason += f" | Risk Block: drawdown {risk_metrics.get('drawdown_pct')}% exceeds limit"
     # ─────────────────────────────────────────────────────────────────────────────
 
     # ── Sprint 3: Meta Signal Filter ─────────────────────────────────────────────

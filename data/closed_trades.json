@@ -856,5 +856,33 @@
     "signal_raw": "NEUTRAL (BULLISH)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "XRP",
+    "id": "73cab448-135a-4da4-a009-02a71e883953",
+    "entry_time": "2026-06-13 22:48",
+    "exit_time": "2026-06-13 23:30",
+    "entry_price": 1.1557,
+    "exit_price": 1.1482,
+    "pnl_pct": 0.649,
+    "result": "WIN",
+    "hold_hours": 0.7,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "TRX",
+    "id": "296975c6-d319-47a2-82a7-b4491ee79b27",
+    "entry_time": "2026-06-13 17:04",
+    "exit_time": "2026-06-14 00:07",
+    "entry_price": 0.31643,
+    "exit_price": 0.31711,
+    "pnl_pct": -0.2149,
+    "result": "LOSS",
+    "hold_hours": 7.1,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
   }
 ]

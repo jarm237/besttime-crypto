@@ -13,3 +13,8 @@ joblib
 numpy
 ccxt
 websocket-client>=1.8.0
+lightgbm
+xgboost
+catboost
+optuna
+

@@ -38,7 +38,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 from btc_scraper.config import COINS
 from btc_scraper.analysis import analyze_market, analyze_all_market
-from btc_scraper.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT
+from btc_scraper.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT, EnsembleMetaModel
 from btc_scraper.feature_extractor import build_meta_features, FEATURE_SCHEMA
 
 import btc_scraper.sentiment
@@ -428,23 +428,15 @@ def main():
         print("  [!] Old model not found. Cannot evaluate old model calibration.")
         
     # 2. Train and Calibrate New Model (Sigmoid vs Isotonic comparison)
-    print("  [+] Training new RandomForest models and comparing calibration methods...")
-    rf_base = RandomForestClassifier(
-        n_estimators=200,
-        max_depth=8,
-        min_samples_leaf=5,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1,
-    )
+    print("  [+] Training new Ensemble models and comparing calibration methods...")
     
-    clf_sigmoid = CalibratedClassifierCV(rf_base, method="sigmoid", cv=5)
-    clf_sigmoid.fit(X, y)
+    clf_sigmoid = EnsembleMetaModel(calibration="sigmoid")
+    clf_sigmoid.fit(X, y, cv=5)
     probs_sigmoid = clf_sigmoid.predict_proba(X)[:, 1]
     analysis_sigmoid = compute_calibration_buckets(probs_sigmoid, [r["actual_result"] for r in all_trades])
     
-    clf_isotonic = CalibratedClassifierCV(rf_base, method="isotonic", cv=5)
-    clf_isotonic.fit(X, y)
+    clf_isotonic = EnsembleMetaModel(calibration="isotonic")
+    clf_isotonic.fit(X, y, cv=5)
     probs_isotonic = clf_isotonic.predict_proba(X)[:, 1]
     analysis_isotonic = compute_calibration_buckets(probs_isotonic, [r["actual_result"] for r in all_trades])
     
@@ -487,17 +479,16 @@ def main():
     model_bundle = {
         "model": new_clf,
         "features": FEATURE_SCHEMA,
-        "version": "v1.0-calibrated-may",
+        "version": "v2.0",
         "n_samples": int(len(y)),
         "calibrated": True,
     }
     joblib.dump(model_bundle, MODEL_OUT)
 
-    # Fit base model on full dataset to extract feature importances
+    # Extract feature importances directly from new ensemble model
     try:
-        rf_base.fit(X, y)
-        if hasattr(rf_base, "feature_importances_"):
-            importances = rf_base.feature_importances_
+        if hasattr(new_clf, "feature_importances_") and new_clf.feature_importances_ is not None:
+            importances = new_clf.feature_importances_
             feature_importance = dict(
                 sorted(
                     zip(FEATURE_SCHEMA, importances.tolist()),
@@ -514,7 +505,7 @@ def main():
     
     # Save metrics
     metrics = {
-        "version": "v1.0-calibrated-may",
+        "version": "v2.0",
         "n_samples": int(len(y)),
         "n_features": len(FEATURE_SCHEMA),
         "features": FEATURE_SCHEMA,

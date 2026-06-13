@@ -26,6 +26,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 BASE = Path(__file__).parent.parent
 LOGS = BASE / "logs"
@@ -35,7 +36,8 @@ METRIC_OUT = LOGS / "meta_model.json"
 FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
 
 # Schema version — tăng lên khi đổi FEATURE_SCHEMA
-MODEL_VERSION = "v2.0-ensemble"
+MODEL_VERSION = "v2.0"
+
 
 
 def compute_calibration_buckets(probs, actual_results, min_samples=3):
@@ -193,7 +195,142 @@ def _normalize_weights(weights: dict, available: list[str]) -> list[float]:
     return [selected[k] / total for k in available]
 
 
-def walk_forward_eval(X: np.ndarray, y: np.ndarray, train_window_pct: float = 0.65, test_window_pct: float = 0.15, n_splits: int = 3):
+class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
+    def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42):
+        self.weights = weights if weights is not None else {"rf": 0.20, "lgbm": 0.40, "catboost": 0.40}
+        self.calibration = calibration  # "sigmoid", "isotonic" or None
+        self.n_estimators = n_estimators
+        self.random_state = random_state
+        self.classes_ = np.array([0, 1])
+        self.models_ = {}
+        self.normalized_weights_ = {}
+        self.feature_importances_ = None
+
+    def fit(self, X, y, cv=5):
+        X = np.array(X)
+        y = np.array(y)
+        self.classes_ = np.unique(y)
+
+        # Import base classifiers optionally
+        optional = _import_optional_estimators()
+        
+        estimators = {
+            "rf": RandomForestClassifier(
+                n_estimators=self.n_estimators,
+                max_depth=8,
+                min_samples_leaf=5,
+                class_weight="balanced",
+                random_state=self.random_state,
+                n_jobs=-1,
+            )
+        }
+        if "lgbm" in optional:
+            estimators["lgbm"] = optional["lgbm"](
+                n_estimators=self.n_estimators,
+                max_depth=8,
+                learning_rate=0.1,
+                class_weight="balanced",
+                random_state=self.random_state,
+                n_jobs=-1,
+            )
+        if "catboost" in optional:
+            estimators["catboost"] = optional["catboost"](
+                iterations=self.n_estimators,
+                depth=6,
+                learning_rate=0.1,
+                verbose=0,
+                thread_count=-1,
+                random_seed=self.random_state,
+            )
+        if "xgboost" in optional:
+            estimators["xgboost"] = optional["xgboost"](
+                n_estimators=self.n_estimators,
+                max_depth=6,
+                learning_rate=0.1,
+                use_label_encoder=False,
+                eval_metric="logloss",
+                n_jobs=-1,
+                random_state=self.random_state,
+            )
+
+        # Filter weights based on availability
+        available_keys = [k for k in self.weights if k in estimators]
+        if not available_keys:
+            available_keys = ["rf"]
+            
+        selected_weights = {k: self.weights[k] for k in available_keys}
+        total_w = sum(selected_weights.values())
+        if total_w <= 0:
+            self.normalized_weights_ = {k: 1.0 / len(available_keys) for k in available_keys}
+        else:
+            self.normalized_weights_ = {k: v / total_w for k, v in selected_weights.items()}
+
+        # Fit base models (with calibration if requested)
+        self.models_ = {}
+        for name in self.normalized_weights_:
+            base_clf = estimators[name]
+            if self.calibration in ("sigmoid", "isotonic"):
+                model = CalibratedClassifierCV(estimator=base_clf, method=self.calibration, cv=cv)
+            else:
+                model = base_clf
+            model.fit(X, y)
+            self.models_[name] = model
+
+        # Compute self.feature_importances_
+        importances_list = []
+        weights_list = []
+        for name, model in self.models_.items():
+            imp = None
+            if hasattr(model, "calibrated_classifiers_"):
+                cal_imps = []
+                for cc in model.calibrated_classifiers_:
+                    est = getattr(cc, "estimator", None)
+                    if est is not None and hasattr(est, "feature_importances_"):
+                        cal_imps.append(est.feature_importances_)
+                if cal_imps:
+                    imp = np.mean(cal_imps, axis=0)
+            elif hasattr(model, "feature_importances_"):
+                imp = model.feature_importances_
+
+            if imp is not None:
+                total_imp = np.sum(imp)
+                if total_imp > 0:
+                    imp = imp / total_imp
+                importances_list.append(imp)
+                weights_list.append(self.normalized_weights_[name])
+
+        if importances_list:
+            weighted_imp = np.zeros_like(importances_list[0])
+            sum_w = sum(weights_list)
+            if sum_w > 0:
+                for imp, w in zip(importances_list, weights_list):
+                    weighted_imp += imp * (w / sum_w)
+            self.feature_importances_ = weighted_imp
+        else:
+            self.feature_importances_ = None
+
+        return self
+
+    def predict_proba(self, X):
+        X = np.array(X)
+        n_samples = X.shape[0]
+        combined_prob = np.zeros((n_samples, 2))
+        for name, model in self.models_.items():
+            w = self.normalized_weights_[name]
+            probs = model.predict_proba(X)
+            if probs.ndim == 1:
+                probs = np.column_stack([1.0 - probs, probs])
+            elif probs.shape[1] == 1:
+                probs = np.column_stack([1.0 - probs[:, 0], probs[:, 0]])
+            combined_prob += w * probs
+        return combined_prob
+
+    def predict(self, X):
+        probs = self.predict_proba(X)
+        return np.argmax(probs, axis=1)
+
+
+def walk_forward_eval(X: np.ndarray, y: np.ndarray, clf=None, train_window_pct: float = 0.65, test_window_pct: float = 0.15, n_splits: int = 3):
     """Compute walk-forward ROC-AUC and accuracy on sequential train/test windows."""
     n = len(y)
     if n < 30:
@@ -212,23 +349,27 @@ def walk_forward_eval(X: np.ndarray, y: np.ndarray, train_window_pct: float = 0.
         X_train, y_train = X[start:train_end], y[start:train_end]
         X_test, y_test = X[train_end:test_end], y[train_end:test_end]
 
-        clf = RandomForestClassifier(
-            n_estimators=200,
-            max_depth=8,
-            min_samples_leaf=5,
-            class_weight="balanced",
-            random_state=42,
-            n_jobs=-1,
-        )
+        if clf is None:
+            model = RandomForestClassifier(
+                n_estimators=200,
+                max_depth=8,
+                min_samples_leaf=5,
+                class_weight="balanced",
+                random_state=42,
+                n_jobs=-1,
+            )
+        else:
+            from sklearn.base import clone
+            model = clone(clf)
 
         auc = None
         acc = None
         try:
-            clf.fit(X_train, y_train)
+            model.fit(X_train, y_train)
             if len(y_test) > 0 and len(set(y_test)) > 1:
                 from sklearn.metrics import roc_auc_score, accuracy_score
-                y_prob = clf.predict_proba(X_test)[:, 1]
-                y_pred = clf.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+                y_pred = model.predict(X_test)
                 auc = float(roc_auc_score(y_test, y_prob))
                 acc = float(accuracy_score(y_test, y_pred))
         except Exception:
@@ -268,13 +409,19 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     print(f"  Training với {len(y)} samples, {len(feature_names)} features")
     print(f"  Label distribution: WIN={y.sum()}, LOSS={len(y)-y.sum()}")
 
-    estimators = _build_estimators(n_estimators=n_estimators, random_state=42)
-    available_keys = list(estimators.keys())
-    print(f"  Available models: {', '.join(available_keys)}")
-    base_clf = estimators["rf"]
-
+    # Determine CV splits
     cv_splits = min(cv, max(2, len(y) // 10))
     tscv = TimeSeriesSplit(n_splits=cv_splits)
+
+    # 1. Base model CV (RandomForest Classifier) for backward-compatible comparison
+    base_clf = RandomForestClassifier(
+        n_estimators=n_estimators,
+        max_depth=8,
+        min_samples_leaf=5,
+        class_weight="balanced",
+        random_state=42,
+        n_jobs=-1,
+    )
     try:
         aucs = cross_val_score(base_clf, X, y, cv=tscv, scoring="roc_auc")
         accs = cross_val_score(base_clf, X, y, cv=tscv, scoring="accuracy")
@@ -282,39 +429,33 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         cv_auc_std = float(np.std(aucs))
         cv_acc_mean = float(np.mean(accs))
     except Exception as e:
-        print(f"  [Warning] CV failed: {e}")
+        print(f"  [Warning] Base CV failed: {e}")
         cv_auc_mean = cv_auc_std = cv_acc_mean = None
 
     base_clf.fit(X, y)
 
-    ensemble_estimators = [(name, estimators[name]) for name in available_keys]
-    if len(ensemble_estimators) > 1:
-        weights = _normalize_weights({"rf": 0.2, "lgbm": 0.4, "catboost": 0.4, "xgboost": 0.4}, available_keys)
-        ensemble_clf = VotingClassifier(estimators=ensemble_estimators, voting="soft", weights=weights, n_jobs=-1)
-    else:
-        ensemble_clf = base_clf
-        weights = [1.0]
-
+    # 2. Ensemble Classifier (Uncalibrated) CV
+    ensemble_clf = EnsembleMetaModel(calibration=None, n_estimators=n_estimators)
     ensemble_cv_auc = None
     ensemble_cv_acc = None
     try:
-        if len(ensemble_estimators) > 1:
-            ensemble_cv_auc = float(np.mean(cross_val_score(ensemble_clf, X, y, cv=tscv, scoring="roc_auc")))
-            ensemble_cv_acc = float(np.mean(cross_val_score(ensemble_clf, X, y, cv=tscv, scoring="accuracy")))
-        else:
-            ensemble_cv_auc = cv_auc_mean
-            ensemble_cv_acc = cv_acc_mean
+        ensemble_aucs = cross_val_score(ensemble_clf, X, y, cv=tscv, scoring="roc_auc")
+        ensemble_accs = cross_val_score(ensemble_clf, X, y, cv=tscv, scoring="accuracy")
+        ensemble_cv_auc = float(np.mean(ensemble_aucs))
+        ensemble_cv_acc = float(np.mean(ensemble_accs))
     except Exception as e:
         print(f"  [Warning] Ensemble CV failed: {e}")
         ensemble_cv_auc = ensemble_cv_acc = None
 
+    # 3. Model Calibration (Sigmoid vs Isotonic) if calibrate is True and y >= 50
     clf = ensemble_clf
     calibration_method = None
     calibration_buckets = {}
+    
     if calibrate and len(y) >= 50:
         try:
-            clf_sigmoid = CalibratedClassifierCV(ensemble_clf, method="sigmoid", cv=tscv)
-            clf_sigmoid.fit(X, y)
+            clf_sigmoid = EnsembleMetaModel(calibration="sigmoid", n_estimators=n_estimators)
+            clf_sigmoid.fit(X, y, cv=tscv)
             probs_sigmoid = clf_sigmoid.predict_proba(X)[:, 1]
             sigmoid_buckets = compute_calibration_buckets(probs_sigmoid, ["WIN" if val == 1 else "LOSS" for val in y])
             sigmoid_err = np.mean([abs(v["calibration_error"]) for v in sigmoid_buckets.values() if v.get("calibration_error") is not None])
@@ -323,8 +464,8 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
             isotonic_err = float("inf")
             if len(y) >= 100:
                 try:
-                    clf_isotonic = CalibratedClassifierCV(ensemble_clf, method="isotonic", cv=tscv)
-                    clf_isotonic.fit(X, y)
+                    clf_isotonic = EnsembleMetaModel(calibration="isotonic", n_estimators=n_estimators)
+                    clf_isotonic.fit(X, y, cv=tscv)
                     probs_isotonic = clf_isotonic.predict_proba(X)[:, 1]
                     isotonic_buckets = compute_calibration_buckets(probs_isotonic, ["WIN" if val == 1 else "LOSS" for val in y])
                     isotonic_err = np.mean([abs(v["calibration_error"]) for v in isotonic_buckets.values() if v.get("calibration_error") is not None])
@@ -344,12 +485,16 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         except Exception as e:
             print(f"  [Warning] Calibration failed, using uncalibrated ensemble: {e}")
             clf = ensemble_clf
+            clf.fit(X, y, cv=tscv)
             calibration_method = None
             calibration_buckets = {}
-
     else:
+        # Fit uncalibrated ensemble
+        clf = ensemble_clf
+        clf.fit(X, y, cv=tscv)
         calibration_buckets = {}
 
+    # Compute calibration buckets on final predictions
     try:
         if hasattr(clf, "predict_proba"):
             probs = clf.predict_proba(X)[:, 1]
@@ -367,13 +512,25 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     }
     joblib.dump(model_bundle, MODEL_OUT)
 
+    # 4. Feature Importance Extraction
     feature_importance = {}
     try:
-        if hasattr(base_clf, "feature_importances_"):
-            importances = base_clf.feature_importances_
-            feature_importance = dict(sorted(zip(feature_names, importances.tolist()), key=lambda x: x[1], reverse=True))
-    except Exception:
-        pass
+        imp = None
+        if hasattr(clf, "feature_importances_") and clf.feature_importances_ is not None:
+            imp = clf.feature_importances_
+        elif hasattr(ensemble_clf, "feature_importances_") and ensemble_clf.feature_importances_ is not None:
+            imp = ensemble_clf.feature_importances_
+        elif hasattr(base_clf, "feature_importances_"):
+            imp = base_clf.feature_importances_
+
+        if imp is not None:
+            feature_importance = dict(sorted(zip(feature_names, imp.tolist()), key=lambda x: x[1], reverse=True))
+    except Exception as e:
+        print(f"  [Warning] Failed to extract feature importance: {e}")
+
+    # Available keys and weights for metrics
+    available_keys = list(clf.normalized_weights_.keys()) if hasattr(clf, "normalized_weights_") else list(ensemble_clf.normalized_weights_.keys())
+    weights = list(clf.normalized_weights_.values()) if hasattr(clf, "normalized_weights_") else list(ensemble_clf.normalized_weights_.values())
 
     metrics = {
         "version": MODEL_VERSION,
@@ -391,7 +548,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "calibrated": calibrate and len(y) >= 50,
         "label_dist": {"WIN": int(y.sum()), "LOSS": int(len(y) - y.sum())},
         "calibration_buckets": calibration_buckets,
-        "walk_forward": walk_forward_eval(X, y, train_window_pct=0.65, test_window_pct=0.15, n_splits=3),
+        "walk_forward": walk_forward_eval(X, y, clf=ensemble_clf, train_window_pct=0.65, test_window_pct=0.15, n_splits=3),
     }
 
     with open(METRIC_OUT, "w", encoding="utf-8") as f:
@@ -406,6 +563,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
             print(f"    {feat:<30} {imp:.4f} {bar}")
 
     return metrics
+
 
 
 _MODEL_CACHE = None

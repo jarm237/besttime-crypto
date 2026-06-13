@@ -1,0 +1,32 @@
+{
+  "atr_tp_mult": 3.1312,
+  "atr_sl_mult": 2.3897,
+  "signal_cutoff": 0.5533,
+  "kelly_multiplier": 0.9993,
+  "regime_tp_scale": {
+    "STRONG_TREND_BULL": 1.2602,
+    "STRONG_TREND_BEAR": 1.8797,
+    "WEAK_TREND_BULL": 1.4008,
+    "WEAK_TREND_BEAR": 0.7816,
+    "RANGING": 1.6742,
+    "HIGH_VOLATILITY": 0.5449,
+    "COMPRESSION": 1.1093,
+    "BREAKOUT": 1.4058,
+    "MEAN_REVERSION": 1.3726,
+    "PANIC_SELL": 1.6353,
+    "PUMP_RISK": 1.282
+  },
+  "regime_sl_scale": {
+    "STRONG_TREND_BULL": 0.9797,
+    "STRONG_TREND_BEAR": 1.5966,
+    "WEAK_TREND_BULL": 0.8052,
+    "WEAK_TREND_BEAR": 0.9035,
+    "RANGING": 1.6421,
+    "HIGH_VOLATILITY": 1.5888,
+    "COMPRESSION": 0.5017,
+    "BREAKOUT": 1.6849,
+    "MEAN_REVERSION": 1.1445,
+    "PANIC_SELL": 0.5786,
+    "PUMP_RISK": 0.568
+  }
+}
