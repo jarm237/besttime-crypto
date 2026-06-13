@@ -559,16 +559,16 @@
     "status": "open",
     "note": "",
     "last_signal": "NEUTRAL (BULLISH)",
-    "last_price": 1.995,
-    "last_checked": "2026-06-13 14:51",
+    "last_price": 1.991,
+    "last_checked": "2026-06-13 15:06",
     "last_signal_score": {
       "action": "NEUTRAL",
       "score": 30,
       "confidence": "LOW",
       "position_size": 0.25,
       "raw_text": "NEUTRAL (BULLISH)",
-      "meta_confidence": 0.44228526351543007,
-      "meta_confidence_pct": 44,
+      "meta_confidence": 0.4481653071372603,
+      "meta_confidence_pct": 45,
       "kelly_fraction": 0.0,
       "b_estimate": 1.0,
       "meta_error": null,
@@ -576,10 +576,10 @@
       "volatility_multiplier": 1.0,
       "std_dev_pct": 0.0
     },
-    "suggested_sl": 2.014,
-    "suggested_tp1": 1.948,
-    "suggested_tp2": 1.8935,
-    "live_meta_confidence": 0.34648815426020896,
+    "suggested_sl": 2.0129,
+    "suggested_tp1": 1.9518,
+    "suggested_tp2": 1.8968,
+    "live_meta_confidence": 0.43751347129615825,
     "dca_opportunity": null
   }
 ]
