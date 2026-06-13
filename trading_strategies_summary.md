@@ -5,7 +5,16 @@ Tài liệu này tổng hợp toàn bộ các chỉ báo kỹ thuật, công th�
 > **Cập nhật lần cuối**: 14/06/2026 — Thêm Phase 4 RL Exit Manager và cập nhật ML workflow
 
 ---
+## 0. Web Dashboard & UI
 
+- **React / Vite dashboard** tại `http://localhost:3000` kết nối với backend `api/server.py`.
+- **Tab chính**:
+  - `Tín Hiệu Thị Trường`: Live market signals, RSI, trend, chandelier, meta confidence.
+  - `Vị Thế Đang Mở`: Quản lý vị thế, mở/đóng lệnh, xem PnL, SL, TP.
+  - `CCXT Auto Trading Monitor`: Hiển thị chế độ Dry Run / Live, Circuit Breaker, daily trade limit, audit logs.
+  - `Meta Model Analytics`: Metrics huấn luyện, feature importance, calibration buckets.
+  - `Gemini AI Insights`: Báo cáo phân tích AI từ `data/latest_ai_analysis.json`.
+- **Chức năng UI**: thêm lệnh mới, đóng lệnh hiện tại, xem trạng thái auto-trading và phân tích model.
 ## 1. Các Chỉ báo Kỹ thuật & Công thức Toán học
 
 Hệ thống được lập trình hoàn toàn bằng Python thuần (không phụ thuộc vào thư viện bên ngoài như `pandas` hay `ta`).

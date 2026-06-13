@@ -158,6 +158,10 @@ python train_rl_exit_manager.py --algo all --train --steps 100000 --n-trades 500
 python evaluate_rl_phase4.py
 ```
 
+### UI / Status
+- There is no dedicated RL dashboard in the current release. RL performance and model status are tracked via logs in `logs/rl_training_results.json`, saved checkpoints in `logs/rl_models/`, and the evaluation script results in `logs/phase_4_rl_report.json`.
+- Future UI integration can expose RL exit decisions and real-time policy recommendations in the main React dashboard.
+
 ### Load & Use Trained Agent
 
 ```python

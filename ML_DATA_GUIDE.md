@@ -139,6 +139,10 @@ Hiện `btc_scraper/ai_analyst.py` đã dùng RAG từ `logs/closed_positions.js
    - Build once, reuse cho Gemini
    - Giảm overhead tính toán runtime
 
+### UI Integration
+- `api/server.py` exposes `/api/ai-analysis` and `/api/meta-model` to support the React dashboard.
+- The dashboard shows AI reports, model metrics, feature importance, and live signals from `data/latest_ai_analysis.json` and `data/latest_signals.json`.
+
 ---
 
 ## 📈 Hướng ML tiếp theo (Lộ trình Roadmap)

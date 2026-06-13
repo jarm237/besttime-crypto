@@ -67,6 +67,7 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
 | `btc_scraper/exchanges/binance.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/exchanges/binance.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/exchanges/binance.py) | Binance OHLCV fetcher (`fetch_ohlcv`, `fetch_ohlcv_tf`, `fetch_ohlcv_multi_tf`) |
 | `btc_scraper/telegram_bot.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/telegram_bot.py) | Telegram broadcaster (signals, AI report, position recommendations) |
 | `api/server.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/api/server.py) | [Windows](file:///d:/Workspaces/Vọc vạch/api/server.py) | FastAPI REST backend — serves signals, positions, performance, and auto-trade logs/status |
+| `web/src/App.jsx` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/web/src/App.jsx) | [Windows](file:///d:/Workspaces/Vọc vạch/web/src/App.jsx) | React UI component for the Web Dashboard |
 | `train_april_model.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/train_april_model.py) | [Windows](file:///d:/Workspaces/Vọc vạch/train_april_model.py) | Trains the Random Forest Adaptive Model on 18-month historical data |
 | `fetch_historical_range.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/fetch_historical_range.py) | [Windows](file:///d:/Workspaces/Vọc vạch/fetch_historical_range.py) | Scrapes custom range of historical data from Binance (e.g. 18-month data) |
 | `backtest.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest.py) | Full vectorized backtesting with custom filters and PnL reporting |
@@ -157,6 +158,14 @@ python main.py --once   # Single scan then exit
 ```bash
 python -X utf8 backtest_eval.py   # Signal quality evaluation (win rate, PF per type)
 python backtest.py                 # Full historical backtest with PnL report
+```
+
+### Running the Web Dashboard
+```bash
+python api/server.py
+cd web
+npm install
+npm run dev -- --port 3000 --host
 ```
 
 ### Training ML Models

@@ -13,7 +13,13 @@ Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích 
 - **Tự động đặt lệnh (Auto Trading - CCXT)**: Khi mô hình ML chấm điểm xác suất thắng đạt ngưỡng tin cậy cao (≥ 85%), bot tự động đặt lệnh Market trên Binance Testnet/Sandbox. Hỗ trợ chế độ chạy mô phỏng an toàn (`DRY_RUN=true`).
 - **Tự động đóng vị thế (Auto Close)**: Bot tự động đặt lệnh đóng vị thế trên sàn Binance Testnet khi vị thế chạm mức SL/TP khuyến nghị.
 - **Cơ chế bảo vệ (Circuit Breaker)**: Tự động dừng giao dịch 24h nếu gặp chuỗi 5 lệnh thua liên tiếp và giới hạn tần suất tối đa 5 lệnh/ngày.
-- **Web Dashboard**: Giao diện trực quan viết bằng React / Vite xem tín hiệu, AI report và giám sát lệnh tự động Auto Trading tại `http://localhost:3000`.
+- **Web Dashboard**: Giao diện React / Vite tại `http://localhost:3000`, bao gồm các tab:
+  - `Tín Hiệu Thị Trường` — bảng signal, RSI, trend, inter-market context và meta confidence.
+  - `Vị Thế Đang Mở` — quản lý position, thêm lệnh mới, đóng lệnh và xem PnL hiện tại.
+  - `CCXT Auto Trading Monitor` — trạng thái AutoTrader, Circuit Breaker, daily trade limit và audit log.
+  - `Meta Model Analytics` — load metrics, feature importance và calibration buckets.
+  - `Gemini AI Insights` — hiển thị báo cáo Gemini AI từ `data/latest_ai_analysis.json`.
+- **Backend API**: `api/server.py` phục vụ dữ liệu cho Dashboard qua các endpoint `/api/market-signals`, `/api/positions`, `/api/performance`, `/api/ai-analysis`, `/api/auto-trade/status`, `/api/auto-trade/logs`, `/api/meta-model`, v.v.
 - **Backtest**: Script `backtest_eval.py` đánh giá chất lượng tín hiệu theo win rate, Profit Factor và hold period tối ưu.
 - **Telegram Alerts**: Gửi bảng tín hiệu + AI report tự động sau mỗi chu kỳ quét.
 
@@ -147,6 +153,15 @@ AUTO_TRADE_BINANCE_TESTNET=true        # true = testnet, false = mainnet
 ```
 
 Nhấn `Ctrl + C` để tắt toàn bộ.
+
+Sau khi chạy, truy cập Web Dashboard:
+```bash
+http://localhost:3000
+```
+
+Hoặc khởi động riêng từng phần:
+- **Backend API:** `python api/server.py` (port 8000)
+- **Web Dashboard:** `cd web && npm run dev -- --port 3000 --host`
 
 ---
 
