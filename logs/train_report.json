@@ -1,15 +1,15 @@
 {
-  "train_date": "2026-06-13 14:22",
-  "n_samples": 13348,
-  "n_train": 10678,
-  "n_holdout": 2670,
-  "n_win": 5897,
-  "n_loss": 7451,
-  "win_rate_pct": 44.18,
-  "cv_roc_auc": 0.6143,
-  "cv_roc_auc_std": 0.0159,
-  "holdout_roc_auc": 0.64,
-  "train_accuracy_pct": 63.98,
+  "train_date": "2026-06-13 14:35",
+  "n_samples": 18547,
+  "n_train": 14837,
+  "n_holdout": 3710,
+  "n_win": 8228,
+  "n_loss": 10319,
+  "win_rate_pct": 44.36,
+  "cv_roc_auc": 0.6186,
+  "cv_roc_auc_std": 0.009,
+  "holdout_roc_auc": 0.6416,
+  "train_accuracy_pct": 62.41,
   "feature_schema": "FEATURE_SCHEMA",
   "n_features": 14,
   "feature_names": [
@@ -31,47 +31,47 @@
   "top_features": [
     [
       "rsi",
-      0.3441
+      0.356
     ],
     [
       "macd_hist",
-      0.1455
+      0.1407
     ],
     [
       "signal_score",
-      0.115
+      0.1305
     ],
     [
       "ema_distance_pct",
-      0.11
+      0.1176
     ],
     [
       "adx",
-      0.1053
+      0.0924
     ],
     [
       "atr_pct",
-      0.0701
+      0.0648
     ],
     [
       "bb_width_pct",
-      0.0697
+      0.0608
     ],
     [
       "mtf_alignment",
-      0.0179
-    ],
-    [
-      "regime_trending_bull",
-      0.009
+      0.0155
     ],
     [
       "regime_ranging",
-      0.0089
+      0.0099
+    ],
+    [
+      "regime_trending_bull",
+      0.0071
     ],
     [
       "regime_high_volatility",
-      0.004
+      0.0043
     ],
     [
       "regime_trending_bear",
@@ -87,27 +87,27 @@
     ]
   ],
   "coins": [
-    "TRX",
-    "AEVO",
+    "TAO",
+    "IOTA",
+    "XAUT",
     "XLM",
+    "AVAX",
+    "SOPH",
     "BNB",
-    "NEAR",
+    "TRX",
+    "ENA",
+    "XRP",
+    "XPL",
+    "SOL",
+    "ZEC",
     "BTC",
     "AR",
-    "IOTA",
     "TRB",
-    "SOPH",
-    "ZEC",
-    "AVAX",
-    "XRP",
-    "ETH",
-    "TAO",
-    "SOL",
-    "ENA",
-    "DOGE",
-    "XAUT",
     "WLD",
-    "XPL"
+    "ETH",
+    "AEVO",
+    "NEAR",
+    "DOGE"
   ],
   "cv_method": "TimeSeriesSplit(n_splits=5)",
   "mtf_method": "time-aligned (no leakage)",

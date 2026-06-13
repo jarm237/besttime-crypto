@@ -24,39 +24,34 @@ from btc_scraper.config import COINS
 # Định nghĩa danh sách các tháng cần cào dữ liệu
 MONTHS = [
     {
+        "name": "january_2025",
+        "start": datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+        "end": datetime(2025, 1, 31, 23, 59, 59, tzinfo=timezone.utc),
+    },
+    {
+        "name": "february_2025",
+        "start": datetime(2025, 2, 1, 0, 0, 0, tzinfo=timezone.utc),
+        "end": datetime(2025, 2, 28, 23, 59, 59, tzinfo=timezone.utc),
+    },
+    {
+        "name": "march_2025",
+        "start": datetime(2025, 3, 1, 0, 0, 0, tzinfo=timezone.utc),
+        "end": datetime(2025, 3, 31, 23, 59, 59, tzinfo=timezone.utc),
+    },
+    {
+        "name": "april_2025",
+        "start": datetime(2025, 4, 1, 0, 0, 0, tzinfo=timezone.utc),
+        "end": datetime(2025, 4, 30, 23, 59, 59, tzinfo=timezone.utc),
+    },
+    {
+        "name": "may_2025",
+        "start": datetime(2025, 5, 1, 0, 0, 0, tzinfo=timezone.utc),
+        "end": datetime(2025, 5, 31, 23, 59, 59, tzinfo=timezone.utc),
+    },
+    {
         "name": "june_2025",
         "start": datetime(2025, 6, 1, 0, 0, 0, tzinfo=timezone.utc),
         "end": datetime(2025, 6, 30, 23, 59, 59, tzinfo=timezone.utc),
-    },
-    {
-        "name": "july_2025",
-        "start": datetime(2025, 7, 1, 0, 0, 0, tzinfo=timezone.utc),
-        "end": datetime(2025, 7, 31, 23, 59, 59, tzinfo=timezone.utc),
-    },
-    {
-        "name": "august_2025",
-        "start": datetime(2025, 8, 1, 0, 0, 0, tzinfo=timezone.utc),
-        "end": datetime(2025, 8, 31, 23, 59, 59, tzinfo=timezone.utc),
-    },
-    {
-        "name": "september_2025",
-        "start": datetime(2025, 9, 1, 0, 0, 0, tzinfo=timezone.utc),
-        "end": datetime(2025, 9, 30, 23, 59, 59, tzinfo=timezone.utc),
-    },
-    {
-        "name": "october_2025",
-        "start": datetime(2025, 10, 1, 0, 0, 0, tzinfo=timezone.utc),
-        "end": datetime(2025, 10, 31, 23, 59, 59, tzinfo=timezone.utc),
-    },
-    {
-        "name": "november_2025",
-        "start": datetime(2025, 11, 1, 0, 0, 0, tzinfo=timezone.utc),
-        "end": datetime(2025, 11, 30, 23, 59, 59, tzinfo=timezone.utc),
-    },
-    {
-        "name": "december_2025",
-        "start": datetime(2025, 12, 1, 0, 0, 0, tzinfo=timezone.utc),
-        "end": datetime(2025, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
     },
 ]
 
