@@ -2,6 +2,7 @@
 Telegram Bot module - Xử lý gửi cảnh báo và báo cáo tín hiệu mua bán qua Telegram Bot.
 """
 
+import os
 import requests
 import queue
 import time
@@ -15,6 +16,7 @@ def send_telegram_message(
     text: str,
     parse_mode: str = "HTML",
     reply_to_message_id: int | None = None,
+    chat_id: str | int | None = None,
 ) -> int | None:
     """
     Gửi tin nhắn về Telegram.
@@ -22,12 +24,16 @@ def send_telegram_message(
     - reply_to_message_id: message_id của tin nhắn gốc để gửi dưới dạng reply/thread.
     Trả về message_id (int) nếu thành công, None nếu thất bại.
     """
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+    if not TELEGRAM_BOT_TOKEN:
+        return None
+
+    target_chat_id = chat_id if chat_id is not None else TELEGRAM_CHAT_ID
+    if not target_chat_id:
         return None
 
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": target_chat_id,
         "text": text,
         "disable_web_page_preview": True,
     }
@@ -399,7 +405,7 @@ def format_performance_message() -> str:
     return msg
 
 
-def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
+def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | None = None) -> None:
     parts = text.split()
     if not parts:
         return
@@ -419,29 +425,30 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
             "• <code>/close &lt;coin&gt;</code>: Đóng vị thế thủ công theo giá hiện tại.\n"
             "  <i>Ví dụ: <code>/close BTC</code></i>"
         )
-        send_telegram_message(help_msg, reply_to_message_id=reply_to_id)
+        send_telegram_message(help_msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd == "/status":
         msg = format_status_message()
-        send_telegram_message(msg, reply_to_message_id=reply_to_id)
+        send_telegram_message(msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd in ("/scan", "/signals"):
-        send_telegram_message("⏳ Đang tiến hành quét thị trường và phân tích tín hiệu...", reply_to_message_id=reply_to_id)
+        send_telegram_message("⏳ Đang tiến hành quét thị trường và phân tích tín hiệu...", reply_to_message_id=reply_to_id, chat_id=chat_id)
         telegram_command_queue.put("scan")
         
     elif cmd in ("/perf", "/summary"):
         msg = format_performance_message()
-        send_telegram_message(msg, reply_to_message_id=reply_to_id)
+        send_telegram_message(msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd == "/positions":
         msg = format_positions_message()
-        send_telegram_message(msg, reply_to_message_id=reply_to_id)
+        send_telegram_message(msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd == "/buy":
         if len(parts) < 3:
             send_telegram_message(
                 "❌ Cú pháp sai. Ví dụ: <code>/buy BTC LONG 50</code>",
-                reply_to_message_id=reply_to_id
+                reply_to_message_id=reply_to_id,
+                chat_id=chat_id
             )
             return
             
@@ -450,7 +457,8 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
         if direction not in ("LONG", "SHORT", "BUY", "SELL"):
             send_telegram_message(
                 "❌ Chiều giao dịch phải là LONG hoặc SHORT.",
-                reply_to_message_id=reply_to_id
+                reply_to_message_id=reply_to_id,
+                chat_id=chat_id
             )
             return
             
@@ -466,7 +474,8 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
             except ValueError:
                 send_telegram_message(
                     "❌ Số vốn USDT phải là một số hợp lệ.",
-                    reply_to_message_id=reply_to_id
+                    reply_to_message_id=reply_to_id,
+                    chat_id=chat_id
                 )
                 return
                 
@@ -474,7 +483,8 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
         if price <= 0:
             send_telegram_message(
                 f"❌ Không lấy được giá hiện tại cho coin <b>{coin}</b>. Vui lòng kiểm tra lại.",
-                reply_to_message_id=reply_to_id
+                reply_to_message_id=reply_to_id,
+                chat_id=chat_id
             )
             return
             
@@ -494,13 +504,14 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
             f"• Vốn đầu tư: <code>${invested_usdt:.2f} USDT</code>\n"
             f"• Thời gian: <code>{pos['entry_time']}</code>"
         )
-        send_telegram_message(reply, reply_to_message_id=reply_to_id)
+        send_telegram_message(reply, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd == "/close":
         if len(parts) < 2:
             send_telegram_message(
                 "❌ Cú pháp sai. Ví dụ: <code>/close BTC</code>",
-                reply_to_message_id=reply_to_id
+                reply_to_message_id=reply_to_id,
+                chat_id=chat_id
             )
             return
             
@@ -509,7 +520,8 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
         if price <= 0:
             send_telegram_message(
                 f"❌ Không lấy được giá thị trường cho <b>{coin}</b> để đóng lệnh.",
-                reply_to_message_id=reply_to_id
+                reply_to_message_id=reply_to_id,
+                chat_id=chat_id
             )
             return
             
@@ -529,11 +541,12 @@ def handle_telegram_command(text: str, reply_to_id: int | None = None) -> None:
                 f"• Lợi nhuận: <code>${closed_data['pnl_usd_actual']:.2f} USDT</code>\n"
                 f"• Hold: <code>{closed_data['hold_hours']} giờ</code>"
             )
-            send_telegram_message(reply, reply_to_message_id=reply_to_id)
+            send_telegram_message(reply, reply_to_message_id=reply_to_id, chat_id=chat_id)
         except Exception as e:
             send_telegram_message(
                 f"❌ Không thể đóng vị thế: {e}",
-                reply_to_message_id=reply_to_id
+                reply_to_message_id=reply_to_id,
+                chat_id=chat_id
             )
 
 
@@ -561,6 +574,10 @@ def start_telegram_listener() -> None:
 
     while True:
         try:
+            # Dynamic check of allowed chat IDs from environment
+            allowed_chat_ids = os.getenv("TELEGRAM_ALLOWED_CHAT_IDS", "")
+            allowed_list = [x.strip() for x in allowed_chat_ids.split(",") if x.strip()] if allowed_chat_ids else ([str(TELEGRAM_CHAT_ID)] if TELEGRAM_CHAT_ID else [])
+
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
             params = {"offset": offset, "timeout": 20}
             resp = requests.get(url, params=params, timeout=25)
@@ -595,15 +612,15 @@ def start_telegram_listener() -> None:
                 if not text.startswith("/"):
                     continue
                     
-                # Security: Only accept commands from configured chat ID
-                if str(chat_id) != str(TELEGRAM_CHAT_ID):
+                # Security: Only accept commands from configured chat IDs
+                if str(chat_id) not in allowed_list:
                     print(f"[Telegram Bot] Bo qua lenh tu chat_id la: {chat_id}")
                     continue
                     
                 try:
-                    handle_telegram_command(text, message.get("message_id"))
+                    handle_telegram_command(text, chat_id, message.get("message_id"))
                 except Exception as cmd_err:
-                    send_telegram_message(f"❌ Lỗi thực thi lệnh: {cmd_err}")
+                    send_telegram_message(f"❌ Lỗi thực thi lệnh: {cmd_err}", chat_id=chat_id)
                     print(f"[Telegram Bot] Loi thuc thi lenh '{text}': {cmd_err}")
                     
         except Exception as e:
