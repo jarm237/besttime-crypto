@@ -1,15 +1,15 @@
 {
-  "train_date": "2026-06-13 14:35",
-  "n_samples": 18547,
-  "n_train": 14837,
-  "n_holdout": 3710,
-  "n_win": 8228,
-  "n_loss": 10319,
-  "win_rate_pct": 44.36,
-  "cv_roc_auc": 0.6186,
-  "cv_roc_auc_std": 0.009,
-  "holdout_roc_auc": 0.6416,
-  "train_accuracy_pct": 62.41,
+  "train_date": "2026-06-13 14:44",
+  "n_samples": 18904,
+  "n_train": 15123,
+  "n_holdout": 3781,
+  "n_win": 8400,
+  "n_loss": 10504,
+  "win_rate_pct": 44.44,
+  "cv_roc_auc": 0.6204,
+  "cv_roc_auc_std": 0.0096,
+  "holdout_roc_auc": 0.6423,
+  "train_accuracy_pct": 62.45,
   "feature_schema": "FEATURE_SCHEMA",
   "n_features": 14,
   "feature_names": [
@@ -31,23 +31,23 @@
   "top_features": [
     [
       "rsi",
-      0.356
+      0.3495
     ],
     [
       "macd_hist",
-      0.1407
+      0.1548
     ],
     [
       "signal_score",
-      0.1305
+      0.1285
     ],
     [
       "ema_distance_pct",
-      0.1176
+      0.114
     ],
     [
       "adx",
-      0.0924
+      0.0925
     ],
     [
       "atr_pct",
@@ -55,27 +55,27 @@
     ],
     [
       "bb_width_pct",
-      0.0608
+      0.0597
     ],
     [
       "mtf_alignment",
-      0.0155
+      0.0141
     ],
     [
       "regime_ranging",
-      0.0099
+      0.0102
     ],
     [
       "regime_trending_bull",
-      0.0071
+      0.0074
     ],
     [
       "regime_high_volatility",
-      0.0043
+      0.0044
     ],
     [
       "regime_trending_bear",
-      0.0005
+      0.0002
     ],
     [
       "volume_ratio",
@@ -87,27 +87,27 @@
     ]
   ],
   "coins": [
-    "TAO",
-    "IOTA",
-    "XAUT",
-    "XLM",
-    "AVAX",
-    "SOPH",
-    "BNB",
-    "TRX",
-    "ENA",
-    "XRP",
-    "XPL",
-    "SOL",
-    "ZEC",
-    "BTC",
-    "AR",
-    "TRB",
-    "WLD",
     "ETH",
+    "ZEC",
+    "TRB",
+    "AR",
+    "BNB",
+    "XRP",
+    "BTC",
+    "DOGE",
+    "TAO",
     "AEVO",
+    "ENA",
+    "XLM",
     "NEAR",
-    "DOGE"
+    "IOTA",
+    "AVAX",
+    "WLD",
+    "XAUT",
+    "XPL",
+    "TRX",
+    "SOPH",
+    "SOL"
   ],
   "cv_method": "TimeSeriesSplit(n_splits=5)",
   "mtf_method": "time-aligned (no leakage)",

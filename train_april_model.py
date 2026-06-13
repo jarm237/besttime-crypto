@@ -469,7 +469,7 @@ def main():
     months_to_load = [
         "january_2025", "february_2025", "march_2025", "april_2025", "may_2025", "june_2025",
         "july_2025", "august_2025", "september_2025", "october_2025", "november_2025", "december_2025",
-        "january", "february", "march", "april", "may"
+        "january", "february", "march", "april", "may", "june"
     ]
     for coin in COINS:
         # Load and combine 15m candles from all target months
