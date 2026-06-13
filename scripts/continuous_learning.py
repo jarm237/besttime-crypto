@@ -109,6 +109,28 @@ def run_continuous_learning():
     print(f"  Drift threshold: holdout ROC-AUC >= {DRIFT_THRESHOLD}")
     print("=" * 65)
 
+    print("\n⏳ Đang tải chỉ số Fear & Greed Index lịch sử cho 45 ngày qua...")
+    from btc_scraper.sentiment import get_historical_sentiment_map
+    import btc_scraper.sentiment
+    import btc_scraper.analysis as _btc_analysis
+    
+    sentiment_map = get_historical_sentiment_map(limit=45)
+    print(f"  ✅ Đã tải {len(sentiment_map)} ngày Fear & Greed Index lịch sử.")
+
+    def mock_get_market_sentiment():
+        date_str = getattr(btc_scraper.sentiment, "CURRENT_TRAINING_DATE", None)
+        if date_str and date_str in sentiment_map:
+            return sentiment_map[date_str]
+        return {
+            "score": 0.0,
+            "label": "Neutral",
+            "raw_value": 50,
+            "timestamp": int(time.time()),
+            "update_time_human": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+    btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
+    _btc_analysis.get_market_sentiment = mock_get_market_sentiment
+
     all_records = []
 
     for coin in COINS:
@@ -127,7 +149,7 @@ def run_continuous_learning():
         mtf = {tf: mtf_candles[tf] for tf in ["1h", "4h", "1d"]}
 
         # generate_labeled_trades now uses time-aligned MTF + FEATURE_SCHEMA
-        result = generate_labeled_trades(coin, candles_15m, mtf)
+        result = generate_labeled_trades(coin, candles_15m, mtf, sentiment_map=sentiment_map)
         if isinstance(result, tuple):
             records, n_unclosed = result
         else:

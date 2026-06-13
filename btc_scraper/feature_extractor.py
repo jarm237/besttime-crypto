@@ -31,6 +31,45 @@ FEATURE_SCHEMA = [
     "regime_ranging",         # 0/1: one-hot regime
     "regime_high_volatility", # 0/1: one-hot regime
 ]
+
+FEATURE_SCHEMA_V2 = FEATURE_SCHEMA + [
+    "return_15m",
+    "return_1h",
+    "return_4h",
+    "return_1d",
+    "ema9_slope",
+    "ema21_slope",
+    "sma50_slope",
+    "sma200_slope",
+    "ema_distance_zscore",
+    "realized_vol_20",
+    "realized_vol_50",
+    "atr_percentile",
+    "volatility_regime_compression",
+    "volatility_regime_breakout",
+    "volatility_regime_mean_reversion",
+    "volatility_regime_panic_sell",
+    "volatility_regime_low_liquidity",
+    "volatility_regime_pump_risk",
+    "distance_support_pct",
+    "distance_resistance_pct",
+    "higher_high",
+    "lower_low",
+    "market_structure_break",
+    "obv",
+    "cmf",
+    "mfi",
+    "volume_acceleration",
+    "volume_percentile",
+    "regime_strong_trend",
+    "regime_weak_trend",
+    "regime_compression",
+    "regime_breakout",
+    "regime_mean_reversion",
+    "regime_panic_sell",
+    "regime_low_liquidity",
+    "regime_pump_risk",
+]
 # ───────────────────────────────────────────────────────────────────────────────
 
 CONF_MAP = {"HIGH": 0.9, "MEDIUM": 0.6, "LOW": 0.4}
@@ -185,6 +224,73 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     return f
 
 
+def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float]:
+    """
+    Build feature dict theo FEATURE_SCHEMA_V2 cho model version 2.
+    """
+    f = build_meta_features(info, htf_trend)
+
+    extra_keys = {
+        "return_15m": info.get("return_15m"),
+        "return_1h": info.get("return_1h"),
+        "return_4h": info.get("return_4h"),
+        "return_1d": info.get("return_1d"),
+        "ema9_slope": info.get("ema9_slope"),
+        "ema21_slope": info.get("ema21_slope"),
+        "sma50_slope": info.get("sma50_slope"),
+        "sma200_slope": info.get("sma200_slope"),
+        "ema_distance_zscore": info.get("ema_distance_zscore"),
+        "realized_vol_20": info.get("realized_vol_20"),
+        "realized_vol_50": info.get("realized_vol_50"),
+        "atr_percentile": info.get("atr_percentile"),
+        "volatility_regime_compression": info.get("volatility_regime_compression"),
+        "volatility_regime_breakout": info.get("volatility_regime_breakout"),
+        "volatility_regime_mean_reversion": info.get("volatility_regime_mean_reversion"),
+        "volatility_regime_panic_sell": info.get("volatility_regime_panic_sell"),
+        "volatility_regime_low_liquidity": info.get("volatility_regime_low_liquidity"),
+        "volatility_regime_pump_risk": info.get("volatility_regime_pump_risk"),
+        "distance_support_pct": info.get("distance_support_pct"),
+        "distance_resistance_pct": info.get("distance_resistance_pct"),
+        "higher_high": info.get("higher_high"),
+        "lower_low": info.get("lower_low"),
+        "market_structure_break": info.get("market_structure_break"),
+        "obv": info.get("obv"),
+        "cmf": info.get("cmf"),
+        "mfi": info.get("mfi"),
+        "volume_acceleration": info.get("volume_acceleration"),
+        "volume_percentile": info.get("volume_percentile"),
+    }
+
+    regime_raw = str(
+        info.get("regime")
+        or info.get("market_regime")
+        or (info.get("signal_score") or {}).get("regime")
+        or ""
+    ).upper()
+    extra_keys.update({
+        "regime_strong_trend": 1.0 if "STRONG_TREND" in regime_raw else 0.0,
+        "regime_weak_trend": 1.0 if "WEAK_TREND" in regime_raw else 0.0,
+        "regime_compression": 1.0 if "COMPRESSION" in regime_raw else 0.0,
+        "regime_breakout": 1.0 if "BREAKOUT" in regime_raw else 0.0,
+        "regime_mean_reversion": 1.0 if "MEAN_REVERSION" in regime_raw else 0.0,
+        "regime_panic_sell": 1.0 if "PANIC_SELL" in regime_raw else 0.0,
+        "regime_low_liquidity": 1.0 if "LOW_LIQUIDITY" in regime_raw else 0.0,
+        "regime_pump_risk": 1.0 if "PUMP_RISK" in regime_raw else 0.0,
+    })
+
+    for k, v in extra_keys.items():
+        f[k] = _safe_float(v, default=0.0)
+
+    # Ensure all schema fields exist and are numeric for V2
+    for k in FEATURE_SCHEMA_V2:
+        if k not in f:
+            f[k] = 0.0
+        else:
+            f[k] = float(f[k]) if not math.isnan(f[k]) and not math.isinf(f[k]) else 0.0
+
+    return f
+
+
 def features_from_analysis(info: Dict) -> Dict[str, float]:
     """
     Backward-compatible alias cho build_meta_features().
@@ -229,7 +335,10 @@ def records_to_dataset(records: List[Dict]) -> Tuple[List[List[float]], List[int
     y: List[int] = []
 
     for r in records:
-        feat = build_meta_features(r)
+        if all(k in r for k in FEATURE_SCHEMA):
+            feat = r
+        else:
+            feat = build_meta_features(r)
         row = [float(feat.get(k, 0.0)) for k in FEATURE_SCHEMA]
         X.append(row)
         label = 1 if (r.get("result") == "WIN") else 0

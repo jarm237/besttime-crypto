@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "n_samples": 18908,
+  "n_samples": 18800,
   "n_features": 14,
   "features": [
     "signal_score",
@@ -18,54 +18,54 @@
     "regime_ranging",
     "regime_high_volatility"
   ],
-  "cv_auc_mean": 0.6356610099609141,
-  "cv_auc_std": 0.013898713978841914,
-  "cv_acc_mean": 0.6029183463589762,
+  "cv_auc_mean": 0.6427233298980155,
+  "cv_auc_std": 0.009888051058209248,
+  "cv_acc_mean": 0.6087765957446809,
   "calibrated": true,
   "label_dist": {
-    "WIN": 8401,
-    "LOSS": 10507
+    "WIN": 8444,
+    "LOSS": 10356
   },
   "calibration_buckets": {
     "0.0-0.4": {
-      "count": 7264,
-      "wins": 1956,
-      "losses": 5308,
-      "actual_wr": 26.9,
+      "count": 7575,
+      "wins": 2014,
+      "losses": 5561,
+      "actual_wr": 26.6,
       "predicted_wr": 20.0,
-      "calibration_error": 6.9,
+      "calibration_error": 6.6,
       "calibrated": true
     },
     "0.4-0.6": {
-      "count": 9422,
-      "wins": 4705,
-      "losses": 4717,
-      "actual_wr": 49.9,
+      "count": 8563,
+      "wins": 4287,
+      "losses": 4276,
+      "actual_wr": 50.1,
       "predicted_wr": 50.0,
-      "calibration_error": -0.1,
+      "calibration_error": 0.1,
       "calibrated": true
     },
     "0.6-0.7": {
-      "count": 1846,
-      "wins": 1383,
-      "losses": 463,
-      "actual_wr": 74.9,
+      "count": 2091,
+      "wins": 1596,
+      "losses": 495,
+      "actual_wr": 76.3,
       "predicted_wr": 65.0,
-      "calibration_error": 9.9,
-      "calibrated": true
+      "calibration_error": 11.3,
+      "calibrated": false
     },
     "0.7-0.8": {
-      "count": 360,
-      "wins": 341,
-      "losses": 19,
-      "actual_wr": 94.7,
+      "count": 548,
+      "wins": 524,
+      "losses": 24,
+      "actual_wr": 95.6,
       "predicted_wr": 75.0,
-      "calibration_error": 19.7,
+      "calibration_error": 20.6,
       "calibrated": false
     },
     "0.8-1.0": {
-      "count": 16,
-      "wins": 16,
+      "count": 23,
+      "wins": 23,
       "losses": 0,
       "actual_wr": 100.0,
       "predicted_wr": 90.0,

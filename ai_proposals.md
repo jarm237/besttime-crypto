@@ -1,70 +1,548 @@
-# Đề xuất Ứng dụng AI/Machine Learning vào Besttime Crypto
+# AI Quant Trading Platform Roadmap
 
-Dự án hiện đã có một chuỗi xử lý tốt: **thu thập OHLCV ➔ tính chỉ báo kỹ thuật ➔ lọc tín hiệu rule-based ➔ quản lý vị thế ➔ gọi Gemini AI để phân tích**.
-
-Tuy nhiên, mô hình AI bây giờ vẫn hoạt động ở mức “tư vấn” chứ chưa thực sự dùng lịch sử để dự đoán hay đánh giá xác suất thắng. Dưới đây là các hướng phát triển phù hợp với codebase hiện tại, đồng thời gắn vào nguồn dữ liệu thật của dự án.
+> Mục tiêu: Phát triển **besttime-crypto** từ một hệ thống Signal Bot thành một **AI Quant Trading Platform** có khả năng tự học, tự tối ưu và tự quản lý danh mục đầu tư.
 
 ---
 
-## Mức 1: Giữ đúng hướng hiện có và làm dữ liệu tốt hơn
+# Giai đoạn 1: Củng cố nền tảng dữ liệu & Feature Engineering
+**Thời gian dự kiến:** 1-2 tuần
 
-### 1. Củng cố RAG với dữ liệu giao dịch thật
-- Hiện `btc_scraper/ai_analyst.py` đã dùng RAG đơn giản từ `logs/closed_positions.json`.
-- Nên mở rộng và cấu trúc lại thành:
-  - `coin + direction` tương tự,
-  - `win_rate`, `avg_pnl`, `recent_trades`,
-  - `kịch bản tương đồng` (ví dụ RSI/MACD/HTF khi lệnh win/lose).
-- Kết quả: Gemini sẽ không còn chỉ “đọc” dữ liệu, mà sẽ nhận được bối cảnh lịch sử cụ thể để cảnh báo những tín hiệu yếu.
+## Mục tiêu
 
-### 2. Chuẩn bị dữ liệu lịch sử giao dịch cho ML và RAG
-- Nguồn dữ liệu chính hiện tại:
-  - `logs/closed_positions.json` — append-only log của lệnh đã đóng.
-  - `data/positions.json` — lưu cả vị thế mở và đóng.
-- Cần thêm một bước chuẩn hóa xuất ra dataset ML như CSV hoặc JSON.
-- Tôi đã bổ sung script `scripts/prepare_ml_data.py` để xuất `data/ml_training_data.csv` từ lịch sử đóng lệnh hiện có.
-
-### 3. Tăng cường Sentiment đa nguồn
-- Hiện có Fear & Greed và `sentiment_modify()` trong `btc_scraper/ai_analyst.py`.
-- Bước tiếp theo nên là thêm sentiment tin tức (FinBERT/HuggingFace) hoặc news-summarization.
-- Kết hợp sentiment làm filter bổ sung trong `analysis.py` thay vì chỉ dùng trong prompt AI.
+- Tăng chất lượng dữ liệu đầu vào cho ML.
+- Giảm overfitting.
+- Nâng AUC từ ~0.64 → ~0.67.
 
 ---
 
-## Mức 2: Học từ dữ liệu — Signal Scoring / Predictive Modeling
+## Công việc cần thực hiện
 
-### 4. Xây mô hình đánh giá xác suất thắng của tín hiệu (Đã hoàn thành)
-- Sử dụng dataset lịch sử rộng khắp được cào tự động bằng `fetch_historical_range.py` (tập dữ liệu **18 tháng** từ Tháng 1/2025 - Tháng 6/2026 với **18,908 mẫu giao dịch**) để huấn luyện mô hình.
-- Hiện đã triển khai mô hình **RandomForestClassifier** trong `train_april_model.py` với **14 đặc trưng kỹ thuật** cố định (`btc_scraper/feature_extractor.py`), đạt Time-Series CV ROC-AUC là `0.620 ± 0.010` và Holdout ROC-AUC là `0.642`.
-- Sử dụng phương pháp **Platt calibration** (hiệu chuẩn Sigmoid) thông qua `btc_scraper/meta_model.py` để chuyển đổi điểm số dự đoán thô thành xác suất thắng thực tế (`meta_confidence`) chính xác thay vì chỉ dự đoán nhị phân (CV ROC-AUC đạt `0.6355 ± 0.0081`).
-- Các nhóm hiệu chuẩn xác suất (calibration buckets) cho 5 nhóm (0.0-0.4, 0.4-0.6, 0.6-0.7, 0.7-0.8, 0.8-1.0) được lưu tự động vào `logs/meta_model.json` để `btc_scraper/signal_score.py` sử dụng tại runtime, giúp loại bỏ hoàn toàn các lỗi thiếu dữ liệu calibration.
+### 1. Market Regime Detection v2
 
-### 5. Tự động tối ưu tham số sau khi có dataset đủ lớn (Đang triển khai)
-- Khi hệ thống chạy đủ vài chục đến vài trăm lệnh đóng, dùng `optuna` để tối ưu:
-  - ATR multiplier cho TP/SL,
-  - Các ngưỡng RSI, EMA,
-  - Tỷ lệ điểm cutoff cho signal confidence.
-- Đây là bước “data-driven tuning” phù hợp hơn là tinh chỉnh thủ công.
+#### Trạng thái hiện tại
+
+```
+Trending Bull
+Trending Bear
+Ranging
+High Volatility
+```
+
+#### Mục tiêu mới
+
+```
+Strong Trend
+Weak Trend
+Compression
+Breakout
+Mean Reversion
+Panic Sell
+Low Liquidity
+Pump Risk
+```
+
+#### Feature đề xuất
+
+- ADX Percentile
+- ATR Percentile
+- BB Width Percentile
+- Historical Volatility
+- Volume Percentile
+- Trend Strength Score
 
 ---
 
-## Mức 3: Nghiên cứu dài hạn — Advanced AI/ML
+### 2. Bổ sung Feature Engineering
 
-### 6. Anomaly detection ở mức cảnh báo thị trường
-- Không cần làm ngay, nhưng ý tưởng vẫn phù hợp:
-  - Phát hiện chuyển động bất thường bằng `IsolationForest` hoặc mô hình chuỗi thời gian.
-  - Dùng khi muốn thêm lớp bảo vệ: nếu thị trường quá dị thường, tự động kéo SL về breakeven hoặc không vào lệnh.
+#### Momentum Features
 
-### 7. Reinforcement Learning cho quản lý vị thế
-- Đây là mục tiêu dài hạn.
-- Có thể xây môi trường Gym cho lệnh giữ lâu, học khi nào chuyển từ `hold` sang `take-profit`/`cut-loss`.
+```
+return_15m
+return_1h
+return_4h
+return_1d
+roc_14
+roc_50
+```
+
+#### Trend Features
+
+```
+ema9_slope
+ema21_slope
+sma50_slope
+sma200_slope
+ema_distance_zscore
+```
+
+#### Volatility Features
+
+```
+realized_vol_20
+realized_vol_50
+atr_percentile
+volatility_regime
+```
+
+#### Market Structure Features
+
+```
+distance_support_pct
+distance_resistance_pct
+higher_high
+lower_low
+market_structure_break
+```
+
+#### Liquidity Features
+
+```
+obv
+cmf
+mfi
+volume_acceleration
+volume_percentile
+```
 
 ---
 
-## Lộ trình đề xuất & Trạng thái hiện tại
+### 3. Explainable AI
 
-1. **Bước 1 (Đã hoàn thành):** Chuẩn hóa dữ liệu lịch sử giao dịch thật. Dùng `logs/closed_positions.json` làm nguồn chính và xuất file `data/ml_training_data.csv`.
-2. **Bước 2 (Đã hoàn thành):** Cải thiện RAG trong `btc_scraper/ai_analyst.py` để Gemini biết rõ Win Rate, Avg PnL và kịch bản tương đồng.
-3. **Bước 3 (Đã hoàn thành):** Triển khai mô hình **RandomForest Classifier** (Meta Model) hiệu chuẩn Platt trên tập dữ liệu 18 tháng để dự đoán chính xác xác suất thắng (`meta_confidence`), tính toán 5 calibration buckets và tích hợp vào hệ thống tính toán điểm số tín hiệu.
-4. **Bước 4 (Đã hoàn thành):** Continuous Learning - Xây dựng pipeline tự động tải dữ liệu và retrain model định kỳ hàng tuần lúc 23:30 Chủ Nhật, kèm theo cảnh báo Concept Drift và gửi báo cáo qua Telegram.
-5. **Bước 5 (Đã hoàn thành):** Tích hợp CCXT Auto-Trading trên Binance Testnet/Sandbox, quản lý vốn rủi ro cố định 2% mỗi lệnh, bảo vệ bằng Circuit Breaker ngắt 24h và tự động hóa đóng lệnh theo khuyến nghị TP/SL của bot.
-6. **Bước 6 (Tương lai):** Chạy `optuna` để tối ưu tham số tự động và nghiên cứu anomaly detection / RL.
+#### Triển khai
+
+- SHAP Values
+- Permutation Importance
+- Feature Correlation Analysis
+
+#### Mục tiêu
+
+- Loại bỏ feature không tạo alpha:Fear & Greed
+- Volume Ratio
+
+- Xác định feature đóng góp lớn nhất.
+
+---
+
+### Deliverables
+
+```
+FEATURE_SCHEMA:
+14 features
+↓
+40-60 features
+```
+
+```
+Regime:
+4 trạng thái
+↓
+8-10 trạng thái
+```
+
+```
+Target ROC-AUC:
+0.64
+↓
+0.67+
+```
+
+---
+
+# Giai đoạn 2: Ensemble Machine Learning
+**Thời gian dự kiến:** 2-4 tuần
+
+## Mục tiêu
+
+- Tăng độ chính xác dự báo xác suất thắng.
+- Giảm variance của Random Forest.
+
+---
+
+## Công việc cần thực hiện
+
+### 1. Triển khai nhiều mô hình
+
+#### RandomForest
+
+```
+Ưu điểm:
+- Dễ giải thích
+- Chống overfit tương đối tốt
+```
+
+#### LightGBM
+
+```
+Ưu điểm:
+- Huấn luyện nhanh
+- Hiệu quả với tabular data
+```
+
+#### CatBoost
+
+```
+Ưu điểm:
+- Xử lý feature categorical tốt
+- Ít cần tuning
+```
+
+#### XGBoost
+
+```
+Ưu điểm:
+- Mạnh trong bài toán classification
+```
+
+---
+
+### 2. Ensemble Voting
+
+```
+p_win =
+0.20 * RandomForest +
+0.40 * LightGBM +
+0.40 * CatBoost
+```
+
+---
+
+### 3. Probability Calibration
+Áp dụng:
+
+- Platt Scaling
+- Isotonic Regression
+
+---
+
+### 4. Walk Forward Validation
+
+```
+Train:
+Jan-Jun
+
+Test:
+Jul
+
+Train:
+Feb-Jul
+
+Test:
+Aug
+...
+```
+
+---
+
+### Deliverables
+
+```
+Adaptive Model:
+RandomForest
+↓
+Ensemble Model
+```
+
+```
+Target ROC-AUC:
+0.67
+↓
+0.70+
+```
+
+---
+
+# Giai đoạn 3: Dynamic Trading Engine
+**Thời gian dự kiến:** 1 tháng
+
+## Mục tiêu
+
+- Tự động tối ưu tham số.
+- Tăng expectancy của hệ thống.
+
+---
+
+## Công việc cần thực hiện
+
+### 1. Bayesian Optimization (Optuna)
+Tối ưu:
+
+```
+atr_sl_mult
+atr_tp_mult
+ema_period
+rsi_threshold
+signal_cutoff
+position_size
+```
+
+---
+
+### 2. Dynamic TP/SL
+
+#### Hiện tại
+
+```
+TP = ATR × 3.5
+SL = ATR × 1.2
+```
+
+#### Đề xuất
+
+```
+if regime == "StrongTrend":
+    TP = ATR × 5
+elif regime == "Range":
+    TP = ATR × 2
+```
+
+---
+
+### 3. Dynamic Position Sizing
+
+#### Kelly Criterion
+
+```
+f* = (bp - q)/b
+```
+Trong đó:
+
+```
+b = reward/risk
+p = win probability
+q = 1-p
+```
+
+#### Position Size
+
+```
+position_size = 0.25 * kelly_fraction
+```
+
+---
+
+### 4. Dynamic Risk Management
+
+```
+if losing_streak >= 3:
+    risk_per_trade *= 0.5
+
+if drawdown >= 10:
+    disable_auto_trade()
+```
+
+---
+
+### Deliverables
+
+```
+Fixed TP/SL
+↓
+Dynamic TP/SL
+```
+
+```
+Fixed Position Size
+↓
+Adaptive Position Size
+```
+
+---
+
+# Giai đoạn 4: Reinforcement Learning
+**Thời gian dự kiến:** 1-2 tháng
+
+## Mục tiêu
+
+- Tối ưu hành vi quản lý lệnh.
+- Tự học chiến lược thoát lệnh.
+
+---
+
+## Thiết kế môi trường RL
+
+### State
+
+```
+rsi
+macd
+atr
+adx
+meta_confidence
+regime
+pnl_pct
+hold_time
+fear_greed
+volume_ratio
+```
+
+---
+
+### Actions
+
+```
+HOLD
+PARTIAL_CLOSE_50
+MOVE_SL_TO_BREAKEVEN
+TAKE_PROFIT
+EXIT
+```
+
+---
+
+### Reward Function
+
+```
+reward =
+pnl
+- drawdown_penalty
++ sharpe_bonus
+```
+
+---
+
+## Công nghệ đề xuất
+
+```
+Gymnasium
+Stable-Baselines3
+PPO
+DQN
+A2C
+```
+
+---
+
+### Deliverables
+
+```
+Rule-based Exit
+↓
+RL-based Exit Management
+```
+
+---
+
+# Giai đoạn 5: AI Quant Platform & Portfolio Management
+**Thời gian dự kiến:** dài hạn
+
+## Mục tiêu
+Biến hệ thống thành nền tảng giao dịch định lượng hoàn chỉnh.
+
+---
+
+## Công việc cần thực hiện
+
+### 1. Portfolio Optimization
+
+#### Tính toán:
+
+- Sharpe Ratio
+- Sortino Ratio
+- Maximum Drawdown
+- Correlation Matrix
+
+---
+
+### 2. Capital Allocation
+
+```
+BTC = 30%
+ETH = 20%
+SOL = 15%
+BNB = 10%
+Others = 25%
+```
+Sử dụng:
+
+- Mean Variance Optimization
+- Risk Parity
+- Kelly Portfolio
+
+---
+
+### 3. Online Learning
+
+```
+Trade Closed
+↓
+Append Dataset
+↓
+Incremental Training
+↓
+Update Model
+↓
+Deploy
+```
+
+---
+
+### 4. Multi-Agent AI System
+
+#### Agent 1
+
+```
+Market Analyst
+```
+
+#### Agent 2
+
+```
+Signal Generator
+```
+
+#### Agent 3
+
+```
+Risk Manager
+```
+
+#### Agent 4
+
+```
+Portfolio Manager
+```
+
+#### Agent 5
+
+```
+Execution Agent
+```
+
+---
+
+### Deliverables
+
+```
+Signal Bot
+↓
+AI-assisted Trading
+↓
+Adaptive Trading
+↓
+Self-learning Trading System
+↓
+AI Quant Platform
+```
+
+---
+
+# Roadmap Tổng thể
+
+```
+Phase 1
+Feature Engineering + Regime Detection
+        ↓
+Phase 2
+Ensemble ML + Walk Forward Validation
+        ↓
+Phase 3
+Dynamic TP/SL + Kelly + Optuna
+        ↓
+Phase 4
+Reinforcement Learning Exit Manager
+        ↓
+Phase 5
+Portfolio Optimization + Multi-Agent AI
+        ↓
+AI Quant Trading Platform
+```

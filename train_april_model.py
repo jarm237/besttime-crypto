@@ -42,11 +42,17 @@ btc_scraper.signal_score._load_adaptive_model = mock_load_adaptive_model
 
 import btc_scraper.sentiment
 import btc_scraper.analysis as _btc_analysis
+
+HISTORICAL_SENTIMENT_MAP = {}
+
 def mock_get_market_sentiment():
+    date_str = getattr(btc_scraper.sentiment, "CURRENT_TRAINING_DATE", None)
+    if date_str and date_str in HISTORICAL_SENTIMENT_MAP:
+        return HISTORICAL_SENTIMENT_MAP[date_str]
     return {
-        "score": -0.76,
-        "label": "Extreme Fear",
-        "raw_value": 12,
+        "score": 0.0,
+        "label": "Neutral",
+        "raw_value": 50,
         "timestamp": 1718000000,
         "update_time_human": "2026-06-12 00:00:00"
     }
@@ -157,7 +163,7 @@ def _summarize_htf_trend(mtf_data: dict) -> str:
 
 # ─── 3. GENERATE LABELED TRADES ──────────────────────────────────────────────
 
-def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dict) -> list[dict]:
+def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dict, sentiment_map: dict = None) -> list[dict]:
     """
     Rolling window trên 15m candles, tạo lệnh ảo và gắn label WIN/LOSS.
 
@@ -170,7 +176,7 @@ def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dic
     if n < WARMUP_CANDLES + 2:
         return []
 
-    all_ana = analyze_all_market(candles_15m)
+    all_ana = analyze_all_market(candles_15m, sentiment_map=sentiment_map)
     ana_by_time = {x["time"]: x for x in all_ana}
 
     records  = []
@@ -179,6 +185,7 @@ def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dic
 
     for i in range(WARMUP_CANDLES, n):
         candle = candles_15m[i]
+        btc_scraper.sentiment.CURRENT_TRAINING_DATE = candle["time"][:10]
 
         # skip warmup candles for entry signals
         if candle.get("is_warmup", 0):
@@ -462,6 +469,13 @@ def main():
     print("  Split: 80% train / 20% holdout (by time)")
     print("=" * 65)
 
+    print("\n⏳ Đang tải chỉ số Fear & Greed Index lịch sử...")
+    from btc_scraper.sentiment import get_historical_sentiment_map
+    global HISTORICAL_SENTIMENT_MAP
+    HISTORICAL_SENTIMENT_MAP.clear()
+    HISTORICAL_SENTIMENT_MAP.update(get_historical_sentiment_map(limit=1000))
+    print(f"  ✅ Đã tải {len(HISTORICAL_SENTIMENT_MAP)} ngày Fear & Greed Index lịch sử.")
+
     all_records = []
     total_unclosed = 0
     missing_data = []
@@ -510,7 +524,7 @@ def main():
         print(f"\n[{coin}] 15m={len(candles_15m)} nến | "
               + " | ".join(f"{tf}={len(mtf_candles[tf])}" for tf in ["1h", "4h", "1d"]))
 
-        result = generate_labeled_trades(coin, candles_15m, mtf_candles)
+        result = generate_labeled_trades(coin, candles_15m, mtf_candles, sentiment_map=HISTORICAL_SENTIMENT_MAP)
         if isinstance(result, tuple):
             records, n_unclosed = result
         else:

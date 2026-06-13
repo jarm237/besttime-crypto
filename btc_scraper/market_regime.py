@@ -113,6 +113,66 @@ def _load_config() -> dict:
     return _REGIME_CONFIG_CACHE
 
 
+def _classify_regime(close: float, sma200: float, ema21: float, sma50: float, adx: float, atr_pct: float, cfg: Dict) -> Dict[str, object]:
+    close = float(close)
+    sma200 = float(sma200)
+    ema21 = float(ema21)
+    sma50 = float(sma50)
+    adx = float(adx)
+    atr_pct = float(atr_pct)
+
+    adx_thresh = float(cfg.get("adx_threshold", 25.0))
+    strong_adx = float(cfg.get("strong_adx_threshold", 35.0))
+    compression_ratio = float(cfg.get("compression_atr_ratio", 0.75))
+    mean_reversion_ratio = float(cfg.get("mean_reversion_atr_ratio", 1.25))
+    breakout_ratio = float(cfg.get("breakout_atr_ratio", 1.5))
+    pump_risk_ratio = float(cfg.get("pump_risk_atr_ratio", 2.0))
+    panic_sell_ratio = float(cfg.get("panic_sell_atr_ratio", 2.0))
+
+    regime = "RANGING"
+    confidence = float(cfg.get("confidence", {}).get("base", 0.2))
+
+    if atr_pct >= panic_sell_ratio * adx_thresh and close < sma200 and adx >= adx_thresh:
+        regime = "PANIC_SELL"
+        confidence = 0.85
+    elif atr_pct >= pump_risk_ratio * adx_thresh and close > sma200 and adx < adx_thresh:
+        regime = "PUMP_RISK"
+        confidence = 0.65
+    elif atr_pct <= compression_ratio * adx_thresh and adx < 20:
+        regime = "COMPRESSION"
+        confidence = 0.45
+    elif atr_pct >= breakout_ratio * adx_thresh and adx >= adx_thresh and close > sma200 and ema21 > sma50:
+        regime = "BREAKOUT"
+        confidence = 0.75
+    elif atr_pct >= mean_reversion_ratio * adx_thresh and adx < adx_thresh:
+        regime = "MEAN_REVERSION"
+        confidence = 0.55
+    elif adx >= strong_adx:
+        if close > sma200 and ema21 > sma50:
+            regime = "STRONG_TREND_BULL"
+        elif close < sma200 and ema21 < sma50:
+            regime = "STRONG_TREND_BEAR"
+        else:
+            regime = "STRONG_TREND"
+        confidence = 0.9
+    elif adx > adx_thresh:
+        if close > sma200 and ema21 > sma50:
+            regime = "WEAK_TREND_BULL"
+        elif close < sma200 and ema21 < sma50:
+            regime = "WEAK_TREND_BEAR"
+        else:
+            regime = "WEAK_TREND"
+        confidence = 0.7
+    elif atr_pct > adx_thresh:
+        regime = "HIGH_VOLATILITY"
+        confidence = 0.6
+    else:
+        regime = "RANGING"
+        confidence = 0.4
+
+    return {"regime": regime, "confidence": round(float(confidence), 3)}
+
+
 def detect_regime(df: pd.DataFrame) -> Dict:
     close = _get_col(df, "Close", "CLOSE", "close")
 
@@ -133,40 +193,9 @@ def detect_regime(df: pd.DataFrame) -> Dict:
     latest_atr_pct = float(atr_pct.iloc[-1]) if not np.isnan(atr_pct.iloc[-1]) else 0.0
 
     cfg = _load_config()
-    adx_thresh = float(cfg.get("adx_threshold", 25.0))
-    atr_thresh = float(cfg.get("atr_pct_threshold", 4.0))
-    conf_cfg = cfg.get("confidence", {})
-
-    # High volatility override
-    if latest_atr_pct > atr_thresh:
-        regime = "HIGH_VOLATILITY"
-        # confidence rises with atr_pct above threshold
-        confidence = min(conf_cfg.get("max", 0.98), 0.5 + (latest_atr_pct - atr_thresh) / (atr_thresh * 2 + 1e-9))
-    else:
-        # determine regime using ADX and trend alignment
-        if latest_adx > adx_thresh:
-            if latest_close > latest_sma200 and latest_ema21 > latest_sma50:
-                regime = "TRENDING_BULL"
-            elif latest_close < latest_sma200 and latest_ema21 < latest_sma50:
-                regime = "TRENDING_BEAR"
-            else:
-                regime = "RANGING"
-        else:
-            regime = "RANGING"
-
-        # compute a refined confidence score combining ADX and trend alignment
-        base = float(conf_cfg.get("base", 0.2))
-        adx_weight = float(conf_cfg.get("adx_weight", 0.5))
-        trend_weight = float(conf_cfg.get("trend_weight", 0.3))
-        max_conf = float(conf_cfg.get("max", 0.98))
-
-        # adx component: how much above threshold, normalized
-        adx_component = max(0.0, (latest_adx - adx_thresh) / max(1.0, adx_thresh))
-        # trend alignment boolean
-        trend_align = 1.0 if ((regime == "TRENDING_BULL" and latest_ema21 > latest_sma50) or (regime == "TRENDING_BEAR" and latest_ema21 < latest_sma50)) else 0.0
-
-        confidence = base + adx_weight * adx_component + trend_weight * trend_align
-        confidence = float(min(max_conf, max(0.0, confidence)))
+    regime_info = _classify_regime(latest_close, latest_sma200, latest_ema21, latest_sma50, latest_adx, latest_atr_pct, cfg)
+    regime = regime_info["regime"]
+    confidence = regime_info["confidence"]
 
     result = {
         "regime": regime,
@@ -187,49 +216,23 @@ def regime_from_values(close: float, sma200: float, ema21: float, sma50: float, 
     Returns dict: {regime, confidence, adx, atr_pct}
     """
     if cfg is None:
-        # reuse local config loader
         try:
             cfg = _load_config()
         except Exception:
-            cfg = None
+            cfg = {}
 
-    adx_thresh = float(cfg.get("adx_threshold", 25.0)) if cfg else 25.0
-    atr_thresh = float(cfg.get("atr_pct_threshold", 4.0)) if cfg else 4.0
-    conf_cfg = cfg.get("confidence", {}) if cfg else {"base": 0.2, "adx_weight": 0.5, "trend_weight": 0.3, "max": 0.98}
+    if cfg is None:
+        cfg = {}
 
+    regime_info = _classify_regime(close, sma200, ema21, sma50, adx, atr_pct, cfg)
     latest_adx = float(adx)
     latest_atr_pct = float(atr_pct)
-    latest_close = float(close)
-    latest_sma200 = float(sma200)
-    latest_sma50 = float(sma50)
-    latest_ema21 = float(ema21)
-
-    # High volatility override
-    if latest_atr_pct > atr_thresh:
-        regime = "HIGH_VOLATILITY"
-        confidence = min(conf_cfg.get("max", 0.98), 0.5 + (latest_atr_pct - atr_thresh) / (atr_thresh * 2 + 1e-9))
-    else:
-        if latest_adx > adx_thresh:
-            if latest_close > latest_sma200 and latest_ema21 > latest_sma50:
-                regime = "TRENDING_BULL"
-            elif latest_close < latest_sma200 and latest_ema21 < latest_sma50:
-                regime = "TRENDING_BEAR"
-            else:
-                regime = "RANGING"
-        else:
-            regime = "RANGING"
-
-        # confidence
-        base = float(conf_cfg.get("base", 0.2))
-        adx_weight = float(conf_cfg.get("adx_weight", 0.5))
-        trend_weight = float(conf_cfg.get("trend_weight", 0.3))
-        max_conf = float(conf_cfg.get("max", 0.98))
-        adx_component = max(0.0, (latest_adx - adx_thresh) / max(1.0, adx_thresh))
-        trend_align = 1.0 if ((regime == "TRENDING_BULL" and latest_ema21 > latest_sma50) or (regime == "TRENDING_BEAR" and latest_ema21 < latest_sma50)) else 0.0
-        confidence = base + adx_weight * adx_component + trend_weight * trend_align
-        confidence = float(min(max_conf, max(0.0, confidence)))
-
-    return {"regime": regime, "confidence": round(float(confidence), 3), "adx": round(float(latest_adx), 2), "atr_pct": round(float(latest_atr_pct), 3)}
+    return {
+        "regime": regime_info["regime"],
+        "confidence": regime_info["confidence"],
+        "adx": round(float(latest_adx), 2),
+        "atr_pct": round(float(latest_atr_pct), 3),
+    }
 
 
 def save_json(d: Dict, path: str):

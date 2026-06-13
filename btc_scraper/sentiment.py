@@ -12,6 +12,7 @@ import time
 import json
 import urllib.request
 import urllib.error
+from datetime import datetime, timezone
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Cache đơn giản trong bộ nhớ (1 giờ)
@@ -92,3 +93,26 @@ def sentiment_label_vi(label: str) -> str:
         "Extreme Greed": "Cực kỳ Tham lam",
     }
     return mapping.get(label, label)
+
+
+def get_historical_sentiment_map(limit: int = 1000) -> dict:
+    """
+    Tải dữ liệu lịch sử Fear & Greed và trả về mapping:
+    date_str (YYYY-MM-DD) -> sentiment_dict
+    """
+    url = f"https://api.alternative.me/fng/?limit={limit}&format=json"
+    mapping = {}
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "besttime-crypto-bot/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+        for item in data.get("data", []):
+            raw = int(item["value"])
+            label = item["value_classification"]
+            score = round((raw - 50) / 50.0, 3)
+            ts = int(item["timestamp"])
+            date_str = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+            mapping[date_str] = {"score": score, "label": label, "raw_value": raw}
+    except Exception as e:
+        print(f"  [Sentiment] Lỗi tải F&G lịch sử: {e}", flush=True)
+    return mapping
