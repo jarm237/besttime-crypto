@@ -10,6 +10,135 @@ from btc_scraper.signal_score import score_signal
 from btc_scraper.market_regime import regime_from_values
 
 
+def _percentile_rank(value: float, values: list[float]) -> float:
+    if not values:
+        return 0.0
+    if len(values) == 1:
+        return 100.0 if values[0] <= value else 0.0
+    count = sum(1 for x in values if x <= value)
+    return float(count) / len(values) * 100.0
+
+
+def _calculate_slope(values: list[float], idx: int, lookback: int = 4) -> float:
+    if idx < lookback or values[idx - lookback] == 0.0:
+        return 0.0
+    prev = values[idx - lookback]
+    return (values[idx] - prev) / abs(prev) * 100.0
+
+
+def _calculate_realized_volatility(prices: list[float], idx: int, lookback: int) -> float:
+    if idx < lookback or lookback < 2:
+        return 0.0
+    returns = []
+    for j in range(idx - lookback + 1, idx + 1):
+        prev = prices[j - 1]
+        if prev > 0:
+            returns.append(math.log(prices[j] / prev))
+    if len(returns) < 2:
+        return 0.0
+    mean = sum(returns) / len(returns)
+    variance = sum((x - mean) ** 2 for x in returns) / len(returns)
+    return math.sqrt(variance) * math.sqrt(lookback)
+
+
+def _calculate_obv(candles: list[dict]) -> list[float]:
+    obv = []
+    current = 0.0
+    for i, c in enumerate(candles):
+        if i == 0:
+            obv.append(0.0)
+            continue
+        prev_close = candles[i - 1]["close"]
+        volume = c.get("volume", 0.0)
+        if c["close"] > prev_close:
+            current += volume
+        elif c["close"] < prev_close:
+            current -= volume
+        obv.append(current)
+    return obv
+
+
+def _calculate_cmf(highs: list[float], lows: list[float], closes: list[float], volumes: list[float], period: int = 20) -> list[float]:
+    n = len(closes)
+    result = [0.0] * n
+    if n < period:
+        return result
+    money_flow = [0.0] * n
+    for i in range(n):
+        high = highs[i]
+        low = lows[i]
+        close = closes[i]
+        volume = volumes[i]
+        denom = max(high - low, 1e-9)
+        money_flow_multiplier = ((close - low) - (high - close)) / denom
+        money_flow[i] = money_flow_multiplier * volume
+    for i in range(period - 1, n):
+        window = money_flow[i - period + 1 : i + 1]
+        positive = sum(x for x in window if x > 0)
+        negative = sum(-x for x in window if x < 0)
+        denom = positive + negative
+        result[i] = positive / denom if denom > 0 else 0.0
+    return result
+
+
+def _calculate_mfi(highs: list[float], lows: list[float], closes: list[float], volumes: list[float], period: int = 14) -> list[float]:
+    n = len(closes)
+    result = [0.0] * n
+    if n < period + 1:
+        return result
+    typical_prices = [(highs[i] + lows[i] + closes[i]) / 3.0 for i in range(n)]
+    money_flows = [typical_prices[i] * volumes[i] for i in range(n)]
+    for i in range(period, n):
+        positive = 0.0
+        negative = 0.0
+        for j in range(i - period + 1, i + 1):
+            if typical_prices[j] > typical_prices[j - 1]:
+                positive += money_flows[j]
+            elif typical_prices[j] < typical_prices[j - 1]:
+                negative += money_flows[j]
+        if negative <= 0.0:
+            result[i] = 100.0
+        else:
+            money_ratio = positive / negative if negative else 0.0
+            result[i] = 100.0 - (100.0 / (1.0 + money_ratio))
+    return result
+
+
+def _structure_flags(candles: list[dict], idx: int, lookback: int = 20) -> tuple[float, float, float, float, float]:
+    if idx <= 0:
+        return 0.0, 0.0, 0.0, 0.0, 0.0
+    start = max(0, idx - lookback)
+    highs = [c["high"] for c in candles[start:idx]]
+    lows = [c["low"] for c in candles[start:idx]]
+    if not highs or not lows:
+        return 0.0, 0.0, 0.0, 0.0, 0.0
+    prev_high = max(highs)
+    prev_low = min(lows)
+    current = candles[idx]
+    current_close = current["close"]
+    current_high = current["high"]
+    current_low = current["low"]
+    distance_support_pct = ((current_close - prev_low) / current_close * 100.0) if current_close else 0.0
+    distance_resistance_pct = ((prev_high - current_close) / current_close * 100.0) if current_close else 0.0
+    higher_high = 1.0 if current_high > prev_high else 0.0
+    lower_low = 1.0 if current_low < prev_low else 0.0
+    market_structure_break = 1.0 if current_close > prev_high or current_close < prev_low else 0.0
+    return distance_support_pct, distance_resistance_pct, higher_high, lower_low, market_structure_break
+
+
+def _make_window(values: list[float], idx: int, window: int) -> list[float]:
+    if idx < 0:
+        idx = len(values) + idx
+    start = max(0, idx - window + 1)
+    return values[start : idx + 1]
+
+
+def _lookback_return(prices: list[float], idx: int, bars: int) -> float:
+    if idx < bars or prices[idx - bars] == 0.0:
+        return 0.0
+    return (prices[idx] / prices[idx - bars] - 1.0) * 100.0
+
+
 def calculate_atr(candles: list[dict], period: int = 14) -> list[float]:
     """
     Tính toán Average True Range (ATR) đo độ biến động giá.
@@ -578,6 +707,9 @@ def analyze_market(candles: list[dict]) -> dict:
     adx_list = calculate_adx(highs, lows, close_prices, 14)
     choppiness_list = calculate_choppiness_index(highs, lows, close_prices, 14)
     vol_sma_list = calculate_volume_sma(candles, 20)
+    obv_list = _calculate_obv(candles)
+    cmf_list = _calculate_cmf(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=20)
+    mfi_list = _calculate_mfi(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=14)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     sentiment_data = get_market_sentiment()
     sentiment_score = sentiment_data["score"]
@@ -611,7 +743,65 @@ def analyze_market(candles: list[dict]) -> dict:
             if is_trend_following_allowed(c["adx"], c["choppiness"])
             else "SIDEWAY"
         )
-        c["vol_sma20"] = vol_sma_list[i]
+        atr_pct = (c["atr"] / current_close * 100.0) if current_close and c["atr"] else 0.0
+        regime_info = regime_from_values(
+            current_close,
+            c["sma200"],
+            c["ema21"],
+            c["sma50"],
+            c["adx"],
+            atr_pct,
+        )
+        c["regime"] = regime_info.get("regime")
+        c["regime_confidence"] = regime_info.get("confidence")
+        c["obv"] = obv_list[i]
+        c["cmf"] = cmf_list[i]
+        c["mfi"] = mfi_list[i]
+        c["return_15m"] = _lookback_return(close_prices, i, 1)
+        c["return_1h"] = _lookback_return(close_prices, i, 4)
+        c["return_4h"] = _lookback_return(close_prices, i, 16)
+        c["return_1d"] = _lookback_return(close_prices, i, 96)
+        c["ema9_slope"] = _calculate_slope(ema9_list, i, 4)
+        c["ema21_slope"] = _calculate_slope(ema21_list, i, 4)
+        c["sma50_slope"] = _calculate_slope(sma50_list, i, 8)
+        c["sma200_slope"] = _calculate_slope(sma200_list, i, 16)
+        current_close = close_prices[i]
+        current_high = c["high"]
+        current_low = c["low"]
+        current_sma200 = sma200_list[i]
+        c["ema_distance_pct"] = ((ema9_list[i] - ema21_list[i]) / current_close * 100.0) if current_close else 0.0
+        window_start = max(0, i - 50)
+        ema_diff_window = [((ema9_list[j] - ema21_list[j]) / close_prices[j] * 100.0) for j in range(window_start, i + 1) if close_prices[j] > 0]
+        if ema_diff_window:
+            mean_diff = sum(ema_diff_window) / len(ema_diff_window)
+            std_diff = math.sqrt(sum((x - mean_diff) ** 2 for x in ema_diff_window) / len(ema_diff_window))
+            c["ema_distance_zscore"] = ((c["ema_distance_pct"] - mean_diff) / std_diff) if std_diff > 0 else 0.0
+        else:
+            c["ema_distance_zscore"] = 0.0
+        c["realized_vol_20"] = _calculate_realized_volatility(close_prices, i, 20)
+        c["realized_vol_50"] = _calculate_realized_volatility(close_prices, i, 50)
+        atr_window = [x for x in atr_list[max(0, i - 50) : i + 1] if x > 0]
+        c["atr_percentile"] = _percentile_rank(c["atr"], atr_window)
+        current_volume = candles[i].get("volume", 0.0)
+        current_vol_sma = vol_sma_list[i]
+        c["volume_acceleration"] = ((current_volume - current_vol_sma) / current_vol_sma) if current_vol_sma > 0 else 0.0
+        vol_window = [candles[j].get("volume", 0.0) for j in range(max(0, i - 100), i + 1)]
+        c["volume_percentile"] = _percentile_rank(current_volume, vol_window)
+        structure_window = candles[max(0, i - 20) : i]
+        support = min(cand["low"] for cand in structure_window) if structure_window else 0.0
+        resistance = max(cand["high"] for cand in structure_window) if structure_window else 0.0
+        c["distance_support_pct"] = ((current_close - support) / current_close * 100.0) if current_close else 0.0
+        c["distance_resistance_pct"] = ((resistance - current_close) / current_close * 100.0) if current_close else 0.0
+        c["higher_high"] = 1.0 if current_high > resistance else 0.0
+        c["lower_low"] = 1.0 if current_low < support else 0.0
+        c["market_structure_break"] = 1.0 if current_close > resistance or current_close < support else 0.0
+        c["volatility_regime_compression"] = 1.0 if (c["atr_percentile"] <= 25.0 and c["adx"] < 20.0) else 0.0
+        c["volatility_regime_breakout"] = 1.0 if (c["atr_percentile"] >= 75.0 and c["adx"] >= 30.0 and c["market_structure_break"] == 1.0) else 0.0
+        c["volatility_regime_mean_reversion"] = 1.0 if (c["atr_percentile"] >= 60.0 and c["adx"] < 25.0) else 0.0
+        c["volatility_regime_panic_sell"] = 1.0 if (c["atr_percentile"] >= 80.0 and current_close < current_sma200 and c["adx"] >= 25.0) else 0.0
+        c["volatility_regime_low_liquidity"] = 1.0 if c["volume_percentile"] <= 20.0 else 0.0
+        c["volatility_regime_pump_risk"] = 1.0 if (c["volume_percentile"] >= 90.0 and c["atr_percentile"] >= 70.0 and c["adx"] >= 25.0) else 0.0
+        c["vol_sma20"] = current_vol_sma
         c["chandelier"] = chandelier_list[i]
 
     def _evaluate_candle_signal(t: int):
@@ -807,8 +997,41 @@ def analyze_market(candles: list[dict]) -> dict:
                 "confidence": round(confidence, 2),
                 "position_size": round(position_size, 2),
                 "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
+                "regime": c.get("regime"),
+                "regime_confidence": c.get("regime_confidence"),
                 "trend_following_allowed": trend_following_allowed,
                 "trend_label": trend_label,
+                "volume": current_volume,
+                "vol_sma20": current_vol_sma,
+                "obv": c["obv"],
+                "cmf": c["cmf"],
+                "mfi": c["mfi"],
+                "return_15m": c["return_15m"],
+                "return_1h": c["return_1h"],
+                "return_4h": c["return_4h"],
+                "return_1d": c["return_1d"],
+                "ema9_slope": c["ema9_slope"],
+                "ema21_slope": c["ema21_slope"],
+                "sma50_slope": c["sma50_slope"],
+                "sma200_slope": c["sma200_slope"],
+                "ema_distance_pct": c["ema_distance_pct"],
+                "ema_distance_zscore": c["ema_distance_zscore"],
+                "realized_vol_20": c["realized_vol_20"],
+                "realized_vol_50": c["realized_vol_50"],
+                "atr_percentile": c["atr_percentile"],
+                "volatility_regime_compression": c["volatility_regime_compression"],
+                "volatility_regime_breakout": c["volatility_regime_breakout"],
+                "volatility_regime_mean_reversion": c["volatility_regime_mean_reversion"],
+                "volatility_regime_panic_sell": c["volatility_regime_panic_sell"],
+                "volatility_regime_low_liquidity": c["volatility_regime_low_liquidity"],
+                "volatility_regime_pump_risk": c["volatility_regime_pump_risk"],
+                "distance_support_pct": c["distance_support_pct"],
+                "distance_resistance_pct": c["distance_resistance_pct"],
+                "higher_high": c["higher_high"],
+                "lower_low": c["lower_low"],
+                "market_structure_break": c["market_structure_break"],
+                "volume_acceleration": c["volume_acceleration"],
+                "volume_percentile": c["volume_percentile"],
             }
             context = {
                 "chandelier": chandelier_state,
@@ -1007,7 +1230,7 @@ def analyze_market(candles: list[dict]) -> dict:
 
 
 
-def analyze_all_market(candles: list[dict]) -> list[dict]:
+def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[dict]:
     """
     Phân tích toàn bộ dữ liệu lịch sử nến và tạo danh sách kết quả phân tích cho từng nến.
     Dùng cho backtesting hiệu năng cao (O(N) thay vì O(N^2)).
@@ -1035,6 +1258,9 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
     adx_list = calculate_adx(highs, lows, close_prices, 14)
     choppiness_list = calculate_choppiness_index(highs, lows, close_prices, 14)
     vol_sma_list = calculate_volume_sma(candles, 20)
+    obv_list = _calculate_obv(candles)
+    cmf_list = _calculate_cmf(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=20)
+    mfi_list = _calculate_mfi(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=14)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     # Global market sentiment (reused for all coins / candles in this historical run)
     sentiment_data = get_market_sentiment()
@@ -1067,6 +1293,54 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         )
         candles[i]["vol_sma20"] = vol_sma_list[i]
         candles[i]["chandelier"] = chandelier_list[i]
+        candles[i]["obv"] = obv_list[i]
+        candles[i]["cmf"] = cmf_list[i]
+        candles[i]["mfi"] = mfi_list[i]
+        candles[i]["return_15m"] = _lookback_return(close_prices, i, 1)
+        candles[i]["return_1h"] = _lookback_return(close_prices, i, 4)
+        candles[i]["return_4h"] = _lookback_return(close_prices, i, 16)
+        candles[i]["return_1d"] = _lookback_return(close_prices, i, 96)
+        candles[i]["ema9_slope"] = _calculate_slope(ema9_list, i, 4)
+        candles[i]["ema21_slope"] = _calculate_slope(ema21_list, i, 4)
+        candles[i]["sma50_slope"] = _calculate_slope(sma50_list, i, 8)
+        candles[i]["sma200_slope"] = _calculate_slope(sma200_list, i, 16)
+        current_close = close_prices[i]
+        current_high = candles[i]["high"]
+        current_low = candles[i]["low"]
+        candles[i]["ema_distance_pct"] = ((ema9_list[i] - ema21_list[i]) / current_close * 100.0) if current_close else 0.0
+        window_start = max(0, i - 50)
+        ema_diff_window = [((ema9_list[j] - ema21_list[j]) / close_prices[j] * 100.0) for j in range(window_start, i + 1) if close_prices[j] > 0]
+        if ema_diff_window:
+            mean_diff = sum(ema_diff_window) / len(ema_diff_window)
+            std_diff = math.sqrt(sum((x - mean_diff) ** 2 for x in ema_diff_window) / len(ema_diff_window))
+            candles[i]["ema_distance_zscore"] = ((candles[i]["ema_distance_pct"] - mean_diff) / std_diff) if std_diff > 0 else 0.0
+        else:
+            candles[i]["ema_distance_zscore"] = 0.0
+        candles[i]["realized_vol_20"] = _calculate_realized_volatility(close_prices, i, 20)
+        candles[i]["realized_vol_50"] = _calculate_realized_volatility(close_prices, i, 50)
+        atr_window = [x for x in atr_list[max(0, i - 50) : i + 1] if x > 0]
+        candles[i]["atr_percentile"] = _percentile_rank(candles[i]["atr"], atr_window)
+        current_volume = candles[i].get("volume", 0.0)
+        current_vol_sma = vol_sma_list[i]
+        candles[i]["volume_acceleration"] = ((current_volume - current_vol_sma) / current_vol_sma) if current_vol_sma > 0 else 0.0
+        vol_window = [candles[j].get("volume", 0.0) for j in range(max(0, i - 100), i + 1)]
+        candles[i]["volume_percentile"] = _percentile_rank(current_volume, vol_window)
+        structure_window = candles[max(0, i - 20) : i]
+        support = min(cand["low"] for cand in structure_window) if structure_window else 0.0
+        resistance = max(cand["high"] for cand in structure_window) if structure_window else 0.0
+        candles[i]["distance_support_pct"] = ((current_close - support) / current_close * 100.0) if current_close else 0.0
+        candles[i]["distance_resistance_pct"] = ((resistance - current_close) / current_close * 100.0) if current_close else 0.0
+        candles[i]["higher_high"] = 1.0 if current_high > resistance else 0.0
+        candles[i]["lower_low"] = 1.0 if current_low < support else 0.0
+        candles[i]["market_structure_break"] = 1.0 if current_close > resistance or current_close < support else 0.0
+        candles[i]["volatility_regime_compression"] = 1.0 if (candles[i]["atr_percentile"] <= 25.0 and candles[i]["adx"] < 20.0) else 0.0
+        candles[i]["volatility_regime_breakout"] = 1.0 if (candles[i]["atr_percentile"] >= 75.0 and candles[i]["adx"] >= 30.0 and candles[i]["market_structure_break"] == 1.0) else 0.0
+        candles[i]["volatility_regime_mean_reversion"] = 1.0 if (candles[i]["atr_percentile"] >= 60.0 and candles[i]["adx"] < 25.0) else 0.0
+        candles[i]["volatility_regime_panic_sell"] = 1.0 if (candles[i]["atr_percentile"] >= 80.0 and current_close < candles[i]["sma200"] and candles[i]["adx"] >= 25.0) else 0.0
+        candles[i]["volatility_regime_low_liquidity"] = 1.0 if candles[i]["volume_percentile"] <= 20.0 else 0.0
+        candles[i]["volatility_regime_pump_risk"] = 1.0 if (candles[i]["volume_percentile"] >= 90.0 and candles[i]["atr_percentile"] >= 70.0 and candles[i]["adx"] >= 25.0) else 0.0
+        candles[i]["regime"] = regime_from_values(current_close, candles[i]["sma200"], candles[i]["ema21"], candles[i]["sma50"], candles[i]["adx"], candles[i]["atr_percentile"]).get("regime")
+        candles[i]["regime_confidence"] = regime_from_values(current_close, candles[i]["sma200"], candles[i]["ema21"], candles[i]["sma50"], candles[i]["adx"], candles[i]["atr_percentile"]).get("confidence")
 
     results = []
 
@@ -1098,6 +1372,22 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
         current_atr_shock = atr_shock_filter(current_atr, current_atr_ma)
 
         prev_rsi = rsi_list[i - 1]
+        # Determine sentiment dynamically if sentiment_map is provided
+        c_sentiment_score = sentiment_score
+        c_sentiment_label = sentiment_label
+        c_sentiment_raw = sentiment_raw
+        if sentiment_map:
+            date_str = candles[i]["time"][:10]
+            c_sentiment = sentiment_map.get(date_str)
+            if c_sentiment:
+                c_sentiment_score = c_sentiment["score"]
+                c_sentiment_label = c_sentiment["label"]
+                c_sentiment_raw = c_sentiment["raw_value"]
+
+        extreme_fear = c_sentiment_score < -0.6
+        extreme_greed = c_sentiment_score > 0.6
+        sentiment_note = f" | Sentiment: {c_sentiment_raw}/100 ({sentiment_label_vi(c_sentiment_label)})"
+
         rsi_turning_up   = (prev_rsi <= 30) and (current_rsi > 30)
         rsi_turning_down = (prev_rsi >= 70) and (current_rsi < 70)
 
@@ -1182,6 +1472,8 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             if above_sma200 and not chandelier_blocks_buy:
                 sig = "STRONG BUY (Confirmed Reversal)"
                 reason = f"RSI cat len tren 30 (dao chieu tu Oversold){vol_note} | Tren SMA200"
+                if extreme_fear:
+                    reason += f" | {sentiment_note}"
             else:
                 sig = "NEUTRAL (CT-Unconfirmed)"
                 reason = f"RSI dao chieu tu Oversold{vol_note} NHUNG thieu xac nhan — bo qua"
@@ -1189,6 +1481,8 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             vol_note = " + Volume Spike (xa hang manh)" if vol_spike else " (volume trung binh)"
             sig = "STRONG SELL (Confirmed Reversal)"
             reason = f"RSI cat xuong duoi 70 (dao chieu tu Overbought){vol_note}" + (" | Ben tren SMA200 - co the chi la dieu chinh" if above_sma200 else "")
+            if extreme_greed:
+                reason += f" | {sentiment_note}"
         elif sfp_bull and not chandelier_blocks_buy:
             sig = "BUY (SFP-Liquidity-Sweep)"
             reason = f"Quet thanh khoan day: wick xuyen SL duoi {support:.2f} roi dong cua tren support | RSI={current_rsi:.1f}" + (" | Bull Market (SMA200 xac nhan)" if above_sma200 else " | Bear Market - rui ro cao hon")
@@ -1205,12 +1499,15 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             elif above_sma200:
                 sig = "BUY (Crossover)"
                 reason = "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)"
+                if extreme_fear:
+                    sig = "WEAK BUY (Crossover-Sentiment)"
+                    reason += f" | NHUNG{sentiment_note} — Thi truong dang trong vung so hai cuc do!"
             elif current_sma200 > 0:
-                sig = "WEAK BUY (Crossover)"
-                reason = "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap!"
+                sig = "NEUTRAL (Crossover-BearMkt)"
+                reason = "EMA9 cat len EMA21 NHUNG gia duoi SMA200 — co the la bull trap, bo qua"
             else:
                 sig = "BUY (Crossover)"
-                reason = "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)"
+                reason = "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200)" + sentiment_note
         elif ema_death_cross:
             if not trend_following_allowed:
                 sig = "NEUTRAL (Trend-Blocked)"
@@ -1314,10 +1611,12 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             "vol_spike": vol_spike,
             "chandelier": chandelier_state,
             "sentiment": {
-                "score": sentiment_score,
-                "label": sentiment_label,
-                "raw_value": sentiment_raw,
+                "score": c_sentiment_score,
+                "label": c_sentiment_label,
+                "raw_value": c_sentiment_raw,
             },
+            "volume": current_volume,
+            "vol_sma20": current_vol_sma,
         }
 
         # Compute a basic signal_score for this candle (keeps consistency with analyze_market)
@@ -1330,7 +1629,7 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
                     "above_sma200": above_sma200,
                     "below_sma200": below_sma200,
                     "vol_spike": vol_spike,
-                    "sentiment_score": sentiment_score,
+                    "sentiment_score": c_sentiment_score,
                     "regime": regime_info.get("regime"),
                     "disable_ml": True,
                 },
@@ -1372,10 +1671,41 @@ def analyze_all_market(candles: list[dict]) -> list[dict]:
             "chandelier": chandelier_state,
             "vol_spike": vol_spike,
             "sentiment": {
-                "score": sentiment_score,
-                "label": sentiment_label,
-                "raw_value": sentiment_raw,
+                "score": c_sentiment_score,
+                "label": c_sentiment_label,
+                "raw_value": c_sentiment_raw,
             },
+            "volume": current_volume,
+            "vol_sma20": current_vol_sma,
+            "obv": candles[i]["obv"],
+            "cmf": candles[i]["cmf"],
+            "mfi": candles[i]["mfi"],
+            "return_15m": candles[i]["return_15m"],
+            "return_1h": candles[i]["return_1h"],
+            "return_4h": candles[i]["return_4h"],
+            "return_1d": candles[i]["return_1d"],
+            "ema9_slope": candles[i]["ema9_slope"],
+            "ema21_slope": candles[i]["ema21_slope"],
+            "sma50_slope": candles[i]["sma50_slope"],
+            "sma200_slope": candles[i]["sma200_slope"],
+            "ema_distance_pct": candles[i]["ema_distance_pct"],
+            "ema_distance_zscore": candles[i]["ema_distance_zscore"],
+            "realized_vol_20": candles[i]["realized_vol_20"],
+            "realized_vol_50": candles[i]["realized_vol_50"],
+            "atr_percentile": candles[i]["atr_percentile"],
+            "volatility_regime_compression": candles[i]["volatility_regime_compression"],
+            "volatility_regime_breakout": candles[i]["volatility_regime_breakout"],
+            "volatility_regime_mean_reversion": candles[i]["volatility_regime_mean_reversion"],
+            "volatility_regime_panic_sell": candles[i]["volatility_regime_panic_sell"],
+            "volatility_regime_low_liquidity": candles[i]["volatility_regime_low_liquidity"],
+            "volatility_regime_pump_risk": candles[i]["volatility_regime_pump_risk"],
+            "distance_support_pct": candles[i]["distance_support_pct"],
+            "distance_resistance_pct": candles[i]["distance_resistance_pct"],
+            "higher_high": candles[i]["higher_high"],
+            "lower_low": candles[i]["lower_low"],
+            "market_structure_break": candles[i]["market_structure_break"],
+            "volume_acceleration": candles[i]["volume_acceleration"],
+            "volume_percentile": candles[i]["volume_percentile"],
             "signal_score": sig_score_obj,
         })
 

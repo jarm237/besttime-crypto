@@ -12,6 +12,7 @@ import sys
 import json
 import os
 from pathlib import Path
+from datetime import datetime
 
 # Force stdout/stderr to UTF-8 to support Vietnamese characters in Windows console
 if hasattr(sys.stdout, "reconfigure"):
@@ -22,8 +23,8 @@ if hasattr(sys.stderr, "reconfigure"):
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 from sklearn.calibration import CalibratedClassifierCV
 
 BASE = Path(__file__).parent.parent
@@ -34,7 +35,7 @@ METRIC_OUT = LOGS / "meta_model.json"
 FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
 
 # Schema version — tăng lên khi đổi FEATURE_SCHEMA
-MODEL_VERSION = "v1.0"
+MODEL_VERSION = "v2.0-ensemble"
 
 
 def compute_calibration_buckets(probs, actual_results, min_samples=3):
@@ -45,7 +46,7 @@ def compute_calibration_buckets(probs, actual_results, min_samples=3):
         "0.7-0.8": [],
         "0.8-1.0": [],
     }
-    
+
     for prob, res in zip(probs, actual_results):
         label = 1 if res == "WIN" else 0
         if prob < 0.4:
@@ -58,7 +59,7 @@ def compute_calibration_buckets(probs, actual_results, min_samples=3):
             buckets["0.7-0.8"].append(label)
         else:
             buckets["0.8-1.0"].append(label)
-            
+
     analysis = {}
     for bucket, labels in buckets.items():
         if len(labels) < min_samples:
@@ -70,17 +71,15 @@ def compute_calibration_buckets(probs, actual_results, min_samples=3):
                 "calibrated": False,
             }
             continue
-            
+
         wins = sum(labels)
         actual_wr = wins / len(labels) * 100
-        
         parts = bucket.split("-")
         lo, hi = float(parts[0]), float(parts[1])
         predicted_wr = (lo + hi) / 2 * 100
-        
         error = actual_wr - predicted_wr
         calibrated = abs(error) <= 10.0
-        
+
         analysis[bucket] = {
             "count": len(labels),
             "wins": wins,
@@ -100,30 +99,168 @@ def _load_records():
         return json.load(f)
 
 
+def _get_record_timestamp(record: dict) -> float:
+    ts = record.get("timestamp")
+    if ts is not None:
+        try:
+            return float(ts)
+        except Exception:
+            pass
+    entry_time = record.get("entry_time") or record.get("timestamp_str")
+    if entry_time:
+        try:
+            return float(datetime.fromisoformat(entry_time).timestamp())
+        except Exception:
+            try:
+                return float(datetime.strptime(entry_time, "%Y-%m-%d %H:%M").timestamp())
+            except Exception:
+                return 0.0
+    return 0.0
+
+
+def _sort_records_by_time(records: list[dict]) -> list[dict]:
+    return sorted(records, key=_get_record_timestamp)
+
+
+def _import_optional_estimators():
+    estimators = {}
+    try:
+        from lightgbm import LGBMClassifier
+        estimators["lgbm"] = LGBMClassifier
+    except Exception:
+        pass
+    try:
+        from catboost import CatBoostClassifier
+        estimators["catboost"] = CatBoostClassifier
+    except Exception:
+        pass
+    try:
+        from xgboost import XGBClassifier
+        estimators["xgboost"] = XGBClassifier
+    except Exception:
+        pass
+    return estimators
+
+
+def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
+    estimators = {
+        "rf": RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=8,
+            min_samples_leaf=5,
+            class_weight="balanced",
+            random_state=random_state,
+            n_jobs=-1,
+        )
+    }
+    optional = _import_optional_estimators()
+    if "lgbm" in optional:
+        estimators["lgbm"] = optional["lgbm"](
+            n_estimators=n_estimators,
+            max_depth=8,
+            learning_rate=0.1,
+            class_weight="balanced",
+            random_state=random_state,
+            n_jobs=-1,
+        )
+    if "catboost" in optional:
+        estimators["catboost"] = optional["catboost"](
+            iterations=n_estimators,
+            depth=6,
+            learning_rate=0.1,
+            verbose=0,
+            thread_count=-1,
+            random_seed=random_state,
+        )
+    if "xgboost" in optional:
+        estimators["xgboost"] = optional["xgboost"](
+            n_estimators=n_estimators,
+            max_depth=6,
+            learning_rate=0.1,
+            use_label_encoder=False,
+            eval_metric="logloss",
+            n_jobs=-1,
+            random_state=random_state,
+        )
+    return estimators
+
+
+def _normalize_weights(weights: dict, available: list[str]) -> list[float]:
+    selected = {k: weights[k] for k in available if k in weights}
+    total = sum(selected.values())
+    if total <= 0:
+        return [1.0 / len(available)] * len(available)
+    return [selected[k] / total for k in available]
+
+
+def walk_forward_eval(X: np.ndarray, y: np.ndarray, train_window_pct: float = 0.65, test_window_pct: float = 0.15, n_splits: int = 3):
+    """Compute walk-forward ROC-AUC and accuracy on sequential train/test windows."""
+    n = len(y)
+    if n < 30:
+        return []
+
+    results = []
+    step = int(n * test_window_pct)
+    train_len = int(n * train_window_pct)
+    if step < 1:
+        step = 1
+
+    start = 0
+    while start + train_len + step <= n and len(results) < n_splits:
+        train_end = start + train_len
+        test_end = train_end + step
+        X_train, y_train = X[start:train_end], y[start:train_end]
+        X_test, y_test = X[train_end:test_end], y[train_end:test_end]
+
+        clf = RandomForestClassifier(
+            n_estimators=200,
+            max_depth=8,
+            min_samples_leaf=5,
+            class_weight="balanced",
+            random_state=42,
+            n_jobs=-1,
+        )
+
+        auc = None
+        acc = None
+        try:
+            clf.fit(X_train, y_train)
+            if len(y_test) > 0 and len(set(y_test)) > 1:
+                from sklearn.metrics import roc_auc_score, accuracy_score
+                y_prob = clf.predict_proba(X_test)[:, 1]
+                y_pred = clf.predict(X_test)
+                auc = float(roc_auc_score(y_test, y_prob))
+                acc = float(accuracy_score(y_test, y_pred))
+        except Exception:
+            pass
+
+        results.append({
+            "train_range": [start, train_end],
+            "test_range": [train_end, test_end],
+            "n_train": len(y_train),
+            "n_test": len(y_test),
+            "roc_auc": auc,
+            "accuracy": acc,
+        })
+        start += step
+    return results
+
+
 def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = True):
     """
-    Train RandomForest Meta Model trên adaptive_signals.json.
-    
-    Dùng FEATURE_SCHEMA cố định từ feature_extractor.build_meta_features().
-    Lưu model, metrics và feature importance.
-    
-    Args:
-        n_estimators: số cây RandomForest
-        cv: số fold cross-validation
-        calibrate: có dùng Platt scaling để calibrate probability không
-    
-    Returns:
-        dict với metrics
+    Train the ensemble meta model on adaptive_signals.json.
+
+    Uses fixed FEATURE_SCHEMA from feature_extractor.build_meta_features().
+    Saves model, metrics and feature importance.
     """
     from btc_scraper.feature_extractor import FEATURE_SCHEMA, records_to_dataset
 
     recs = _load_records()
+    recs = _sort_records_by_time(recs)
     X_list, y_list, feature_names = records_to_dataset(recs)
 
     if len(y_list) < 30:
-        raise RuntimeError(
-            f"Chỉ có {len(y_list)} samples. Cần ít nhất 30 để train."
-        )
+        raise RuntimeError(f"Chỉ có {len(y_list)} samples. Cần ít nhất 30 để train.")
 
     X = np.array(X_list)
     y = np.array(y_list)
@@ -131,21 +268,16 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     print(f"  Training với {len(y)} samples, {len(feature_names)} features")
     print(f"  Label distribution: WIN={y.sum()}, LOSS={len(y)-y.sum()}")
 
-    # Base RandomForest
-    base_clf = RandomForestClassifier(
-        n_estimators=n_estimators,
-        max_depth=8,
-        min_samples_leaf=5,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1,
-    )
+    estimators = _build_estimators(n_estimators=n_estimators, random_state=42)
+    available_keys = list(estimators.keys())
+    print(f"  Available models: {', '.join(available_keys)}")
+    base_clf = estimators["rf"]
 
-    # Cross-validation
-    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
+    cv_splits = min(cv, max(2, len(y) // 10))
+    tscv = TimeSeriesSplit(n_splits=cv_splits)
     try:
-        aucs = cross_val_score(base_clf, X, y, cv=skf, scoring="roc_auc")
-        accs = cross_val_score(base_clf, X, y, cv=skf, scoring="accuracy")
+        aucs = cross_val_score(base_clf, X, y, cv=tscv, scoring="roc_auc")
+        accs = cross_val_score(base_clf, X, y, cv=tscv, scoring="accuracy")
         cv_auc_mean = float(np.mean(aucs))
         cv_auc_std = float(np.std(aucs))
         cv_acc_mean = float(np.mean(accs))
@@ -153,51 +285,71 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         print(f"  [Warning] CV failed: {e}")
         cv_auc_mean = cv_auc_std = cv_acc_mean = None
 
-    # Fit base model
     base_clf.fit(X, y)
 
-    # Calibration (Platt scaling) để probability có ý nghĩa thực sự
+    ensemble_estimators = [(name, estimators[name]) for name in available_keys]
+    if len(ensemble_estimators) > 1:
+        weights = _normalize_weights({"rf": 0.2, "lgbm": 0.4, "catboost": 0.4, "xgboost": 0.4}, available_keys)
+        ensemble_clf = VotingClassifier(estimators=ensemble_estimators, voting="soft", weights=weights, n_jobs=-1)
+    else:
+        ensemble_clf = base_clf
+        weights = [1.0]
+
+    ensemble_cv_auc = None
+    ensemble_cv_acc = None
+    try:
+        if len(ensemble_estimators) > 1:
+            ensemble_cv_auc = float(np.mean(cross_val_score(ensemble_clf, X, y, cv=tscv, scoring="roc_auc")))
+            ensemble_cv_acc = float(np.mean(cross_val_score(ensemble_clf, X, y, cv=tscv, scoring="accuracy")))
+        else:
+            ensemble_cv_auc = cv_auc_mean
+            ensemble_cv_acc = cv_acc_mean
+    except Exception as e:
+        print(f"  [Warning] Ensemble CV failed: {e}")
+        ensemble_cv_auc = ensemble_cv_acc = None
+
+    clf = ensemble_clf
+    calibration_method = None
+    calibration_buckets = {}
     if calibrate and len(y) >= 50:
         try:
-            # Dùng CalibratedClassifierCV với cv=5 (không dùng prefit)
-            # Fit từ đầu với calibration built-in
-            clf = CalibratedClassifierCV(
-                RandomForestClassifier(
-                    n_estimators=n_estimators,
-                    max_depth=8,
-                    min_samples_leaf=5,
-                    class_weight="balanced",
-                    random_state=42,
-                    n_jobs=-1,
-                ),
-                method="sigmoid",
-                cv=5,
-            )
-            clf.fit(X, y)
-            print("  [OK] Probability calibration (Platt/sigmoid) applied.")
+            clf_sigmoid = CalibratedClassifierCV(ensemble_clf, method="sigmoid", cv=tscv)
+            clf_sigmoid.fit(X, y)
+            probs_sigmoid = clf_sigmoid.predict_proba(X)[:, 1]
+            sigmoid_buckets = compute_calibration_buckets(probs_sigmoid, ["WIN" if val == 1 else "LOSS" for val in y])
+            sigmoid_err = np.mean([abs(v["calibration_error"]) for v in sigmoid_buckets.values() if v.get("calibration_error") is not None])
+
+            clf_isotonic = None
+            isotonic_err = float("inf")
+            if len(y) >= 100:
+                try:
+                    clf_isotonic = CalibratedClassifierCV(ensemble_clf, method="isotonic", cv=tscv)
+                    clf_isotonic.fit(X, y)
+                    probs_isotonic = clf_isotonic.predict_proba(X)[:, 1]
+                    isotonic_buckets = compute_calibration_buckets(probs_isotonic, ["WIN" if val == 1 else "LOSS" for val in y])
+                    isotonic_err = np.mean([abs(v["calibration_error"]) for v in isotonic_buckets.values() if v.get("calibration_error") is not None])
+                except Exception:
+                    isotonic_err = float("inf")
+
+            if clf_isotonic is not None and isotonic_err < sigmoid_err:
+                clf = clf_isotonic
+                calibration_method = "isotonic"
+                calibration_buckets = isotonic_buckets
+            else:
+                clf = clf_sigmoid
+                calibration_method = "sigmoid"
+                calibration_buckets = sigmoid_buckets
+
+            print(f"  [OK] Probability calibration applied ({calibration_method}).")
         except Exception as e:
-            print(f"  [Warning] Calibration failed, dung base model: {e}")
-            clf = base_clf
+            print(f"  [Warning] Calibration failed, using uncalibrated ensemble: {e}")
+            clf = ensemble_clf
+            calibration_method = None
+            calibration_buckets = {}
+
     else:
-        clf = base_clf
+        calibration_buckets = {}
 
-    # Feature importance (chỉ có ở base RF, không có ở calibrated wrapper)
-    feature_importance = {}
-    try:
-        if hasattr(base_clf, "feature_importances_"):
-            importances = base_clf.feature_importances_
-            feature_importance = dict(
-                sorted(
-                    zip(feature_names, importances.tolist()),
-                    key=lambda x: x[1],
-                    reverse=True,
-                )
-            )
-    except Exception:
-        pass
-
-    # Predict probabilities on full set to compute calibration buckets
-    calibration_buckets = {}
     try:
         if hasattr(clf, "predict_proba"):
             probs = clf.predict_proba(X)[:, 1]
@@ -205,7 +357,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     except Exception as e:
         print(f"  [Warning] Failed to compute calibration buckets: {e}")
 
-    # Lưu model
+    LOGS.mkdir(exist_ok=True)
     model_bundle = {
         "model": clf,
         "features": feature_names,
@@ -213,10 +365,16 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "n_samples": int(len(y)),
         "calibrated": calibrate and len(y) >= 50,
     }
-    LOGS.mkdir(exist_ok=True)
     joblib.dump(model_bundle, MODEL_OUT)
 
-    # Lưu metrics
+    feature_importance = {}
+    try:
+        if hasattr(base_clf, "feature_importances_"):
+            importances = base_clf.feature_importances_
+            feature_importance = dict(sorted(zip(feature_names, importances.tolist()), key=lambda x: x[1], reverse=True))
+    except Exception:
+        pass
+
     metrics = {
         "version": MODEL_VERSION,
         "n_samples": int(len(y)),
@@ -225,14 +383,20 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "cv_auc_mean": cv_auc_mean,
         "cv_auc_std": cv_auc_std,
         "cv_acc_mean": cv_acc_mean,
+        "ensemble_cv_auc_mean": ensemble_cv_auc,
+        "ensemble_cv_acc_mean": ensemble_cv_acc,
+        "ensemble_weights": {name: weight for name, weight in zip(available_keys, weights)},
+        "available_models": available_keys,
+        "calibration_method": calibration_method,
         "calibrated": calibrate and len(y) >= 50,
         "label_dist": {"WIN": int(y.sum()), "LOSS": int(len(y) - y.sum())},
         "calibration_buckets": calibration_buckets,
+        "walk_forward": walk_forward_eval(X, y, train_window_pct=0.65, test_window_pct=0.15, n_splits=3),
     }
+
     with open(METRIC_OUT, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
 
-    # Lưu feature importance
     if feature_importance:
         with open(FEATURE_IMPORTANCE_OUT, "w", encoding="utf-8") as f:
             json.dump(feature_importance, f, indent=2, ensure_ascii=False)
@@ -246,8 +410,8 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
 _MODEL_CACHE = None
 
-
 _CACHED_MODEL = None
+
 
 def load_model():
     """Load model từ disk, cache in memory để inference siêu nhanh."""
@@ -262,15 +426,25 @@ def load_model():
         return None
     try:
         _MODEL_CACHE = joblib.load(MODEL_OUT)
-        # Optimize n_jobs to avoid multiprocessing overhead on single-row predictions
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
-            if hasattr(clf, "calibrated_classifiers_") and clf.calibrated_classifiers_:
-                for c in clf.calibrated_classifiers_:
-                    if hasattr(c, "estimator") and hasattr(c.estimator, "n_jobs"):
-                        c.estimator.n_jobs = 1
-            elif hasattr(clf, "n_jobs"):
-                clf.n_jobs = 1
+            def _set_n_jobs(est):
+                if hasattr(est, "n_jobs"):
+                    try:
+                        est.n_jobs = 1
+                    except Exception:
+                        pass
+                if hasattr(est, "estimator"):
+                    _set_n_jobs(est.estimator)
+                if hasattr(est, "best_estimator_"):
+                    _set_n_jobs(est.best_estimator_)
+                if hasattr(est, "steps"):
+                    for _, step in est.steps:
+                        _set_n_jobs(step)
+                if hasattr(est, "calibrated_classifiers_"):
+                    for cls in est.calibrated_classifiers_:
+                        _set_n_jobs(cls)
+            _set_n_jobs(clf)
         return _MODEL_CACHE
     except Exception:
         return None
@@ -279,15 +453,6 @@ def load_model():
 def predict_meta_confidence(analysis_info: dict) -> dict:
     """
     Predict win probability cho một tín hiệu.
-    
-    Args:
-        analysis_info: analysis dict từ analyze_market() hoặc dict có các fields cần thiết.
-                       Nên là output trực tiếp từ analyze_market() để có đủ features.
-    
-    Returns:
-        dict với keys:
-        - 'probability': float 0-1 (xác suất thắng)
-        - 'error': str (nếu model chưa train hoặc lỗi)
     """
     from btc_scraper.feature_extractor import FEATURE_SCHEMA, build_meta_features
 
@@ -339,15 +504,17 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     if args.train:
-        print("[Meta Model] Training RandomForest...")
+        print("[Meta Model] Training Meta Model...")
         try:
             m = train_meta_model(n_estimators=args.n, calibrate=not args.no_calibrate)
             print(f"\n[OK] Model saved to {MODEL_OUT}")
             print(f"   Samples: {m['n_samples']}")
-            if m.get("cv_auc_mean"):
+            if m.get("cv_auc_mean") is not None:
                 print(f"   CV AUC: {m['cv_auc_mean']:.4f} +/- {m.get('cv_auc_std', 0):.4f}")
-            if m.get("cv_acc_mean"):
+            if m.get("cv_acc_mean") is not None:
                 print(f"   CV Acc: {m['cv_acc_mean']:.4f}")
+            if m.get("ensemble_cv_auc_mean") is not None:
+                print(f"   Ensemble CV AUC: {m['ensemble_cv_auc_mean']:.4f}")
         except Exception as e:
             print(f"[ERROR] Training failed: {e}")
     else:

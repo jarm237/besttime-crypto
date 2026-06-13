@@ -76,6 +76,11 @@ Bot tích hợp mô hình Machine Learning **Random Forest** tự học từ l�
   ```bash
   python -m btc_scraper.meta_model --train
   ```
+  Ghi chú: Phiên bản mới `v2.0-ensemble` hỗ trợ huấn luyện ensemble (RandomForest + LightGBM/CatBoost/XGBoost nếu được cài) và walk-forward evaluation. Cài thêm thư viện nếu muốn dùng các estimator này:
+
+  ```bash
+  pip install lightgbm catboost xgboost
+  ```
 - Để huấn luyện nhanh từ CLI bằng closed trades thật:
   ```bash
   python btc_scraper/adaptive_scoring.py --train

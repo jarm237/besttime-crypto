@@ -800,5 +800,61 @@
     "signal_raw": "NEUTRAL (BULLISH)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "TAO",
+    "id": "1a26adeb-1914-48b8-a6bd-ef6c800a0055",
+    "entry_time": "2026-06-13 16:44",
+    "exit_time": "2026-06-13 17:04",
+    "entry_price": 242.94,
+    "exit_price": 247.87,
+    "pnl_pct": -2.0293,
+    "result": "LOSS",
+    "hold_hours": 0.3,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "SOL",
+    "id": "44ee094c-6b32-480f-9f8e-0e94abdf4a7c",
+    "entry_time": "2026-06-13 16:24",
+    "exit_time": "2026-06-13 20:56",
+    "entry_price": 67.37,
+    "exit_price": 68.03,
+    "pnl_pct": -0.9797,
+    "result": "LOSS",
+    "hold_hours": 4.5,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "XLM",
+    "id": "20390c58-e0c8-4ebd-8092-05253a8d4a3a",
+    "entry_time": "2026-06-13 20:56",
+    "exit_time": "2026-06-13 22:08",
+    "entry_price": 0.18849,
+    "exit_price": 0.18963,
+    "pnl_pct": -0.6048,
+    "result": "LOSS",
+    "hold_hours": 1.2,
+    "signal_raw": "NEUTRAL (BEARISH)",
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "XAUT",
+    "id": "7baa7783-e583-45d2-b89d-bb0ff85f4eb7",
+    "entry_time": "2026-06-13 16:19",
+    "exit_time": "2026-06-13 22:29",
+    "entry_price": 4200.83,
+    "exit_price": 4209.59,
+    "pnl_pct": 0.2085,
+    "result": "WIN",
+    "hold_hours": 6.2,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
   }
 ]
