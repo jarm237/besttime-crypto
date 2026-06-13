@@ -30,7 +30,8 @@ COINS = [
     "SOPH", 
     "TSLAB", 
     "XAUT", 
-    "TRX"
+    "TRX",
+    "TRUMP"
 ]
 
 INTERVAL = "15m"            # Khung nến 15 phút

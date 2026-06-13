@@ -434790,5 +434790,32 @@
     "regime_trending_bear": 0.0,
     "regime_ranging": 1.0,
     "regime_high_volatility": 0.0
+  },
+  {
+    "coin": "XAUT",
+    "id": "c5400300-666d-409f-9c1a-99034f058bbd",
+    "entry_price": 4194.97,
+    "sell_price": 4201.72,
+    "pnl_pct": -0.1609,
+    "result": "LOSS",
+    "hold_hours": 8.7,
+    "exit_time": "2026-06-13 11:45",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.5768637737667083,
+      "meta_confidence_pct": 58,
+      "kelly_fraction": 0.13451160409173948,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

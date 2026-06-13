@@ -744,5 +744,19 @@
     "signal_raw": "NEUTRAL (BULLISH)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "XAUT",
+    "id": "c5400300-666d-409f-9c1a-99034f058bbd",
+    "entry_time": "2026-06-13 03:03",
+    "exit_time": "2026-06-13 11:45",
+    "entry_price": 4194.97,
+    "exit_price": 4201.72,
+    "pnl_pct": -0.1609,
+    "result": "LOSS",
+    "hold_hours": 8.7,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
   }
 ]
