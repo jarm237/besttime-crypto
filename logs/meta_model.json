@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "n_samples": 5653,
+  "n_samples": 13348,
   "n_features": 14,
   "features": [
     "signal_score",
@@ -18,12 +18,12 @@
     "regime_ranging",
     "regime_high_volatility"
   ],
-  "cv_auc_mean": 0.6539654843591383,
-  "cv_auc_std": 0.013892135803990398,
-  "cv_acc_mean": 0.6180798572803454,
+  "cv_auc_mean": 0.6373393077582481,
+  "cv_auc_std": 0.007500623120085762,
+  "cv_acc_mean": 0.6110283277413162,
   "calibrated": true,
   "label_dist": {
-    "WIN": 2438,
-    "LOSS": 3215
+    "WIN": 5897,
+    "LOSS": 7451
   }
 }

@@ -466,7 +466,10 @@ def main():
     total_unclosed = 0
     missing_data = []
 
-    months_to_load = ["january", "february", "march", "april", "may"]
+    months_to_load = [
+        "june_2025", "july_2025", "august_2025", "september_2025", "october_2025", "november_2025", "december_2025",
+        "january", "february", "march", "april", "may"
+    ]
     for coin in COINS:
         # Load and combine 15m candles from all target months
         candles_15m = []
