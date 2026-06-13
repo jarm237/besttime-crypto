@@ -1,0 +1,29 @@
+{
+  "ppo": {
+    "algorithm": "ppo",
+    "total_timesteps": 20000,
+    "learning_rate": 0.0003,
+    "mean_reward": 0.4999999888241291,
+    "std_reward": 0.0,
+    "timestamp": "20260614_021204",
+    "model_path": "logs/rl_models\\rl_exit_ppo_20260614_021204"
+  },
+  "dqn": {
+    "algorithm": "dqn",
+    "total_timesteps": 20000,
+    "learning_rate": 0.0003,
+    "mean_reward": 0.4999999888241291,
+    "std_reward": 0.0,
+    "timestamp": "20260614_021220",
+    "model_path": "logs/rl_models\\rl_exit_dqn_20260614_021220"
+  },
+  "a2c": {
+    "algorithm": "a2c",
+    "total_timesteps": 20000,
+    "learning_rate": 0.0003,
+    "mean_reward": 0.4999999888241291,
+    "std_reward": 0.0,
+    "timestamp": "20260614_021226",
+    "model_path": "logs/rl_models\\rl_exit_a2c_20260614_021226"
+  }
+}

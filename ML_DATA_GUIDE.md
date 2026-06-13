@@ -104,37 +104,40 @@ Script này sẽ:
 
 ### Current RAG Implementation
 
-Hiện `btc_scraper/ai_analyst.py` đã dùng RAG đơn giản từ `_build_rag_block()`:
-- Lấy `logs/closed_positions.json`
-- Tóm tắt win rate + avg PnL per coin
-- Đưa vào prompt Gemini
+Hiện `btc_scraper/ai_analyst.py` đã dùng RAG từ `logs/closed_positions.json` và dataset lịch sử để bổ sung prompt Gemini AI với:
+- Win rate & average PnL theo coin
+- Hiệu suất tín hiệu theo hướng LONG/SHORT
+- Các cảnh báo chiến lược và kịch bản lịch sử
 
-### Enhanced RAG (Future)
+### Improved RAG Pipeline
 
-1. **Dùng `ml_rag_context.json` thay vì tính runtime:**
+1. **Dùng `data/ml_rag_context.json` thay vì tính runtime:**
    ```python
-   # In ai_analyst.py
+   from pathlib import Path
    import json
-   with open("data/ml_rag_context.json") as f:
+
+   path = Path("data/ml_rag_context.json")
+   with path.open("r", encoding="utf-8") as f:
        rag_context = json.load(f)
-   
-   # Thay vì _build_rag_block(), dùng rag_context trực tiếp
    ```
 
-2. **Đưa signal-specific warnings vào prompt:**
-   ```
-   Lệnh [STRONG_BUY] hiện tại. Tuy nhiên, trong quá khứ:
-   - STRONG_BUY có win rate 65% (20 lệnh) — tín hiệu TỐT
-   - Tuy nhiên, trên BTC, STRONG_BUY chỉ 50% win rate — CẨN THẬN
-   ```
+2. **Xây prompt trực tiếp từ context:**
+   - Tổng quan thị trường
+   - Hiệu suất từng coin
+   - So sánh tín hiệu hiện tại với lịch sử
 
 3. **Scenario-based analysis:**
    ```
-   Bạn muốn vào LONG trên BTC. Tương tự lịch sử:
+   Hiện tại lệnh STRONG_BUY trên BTC. Trong lịch sử:
    - LONG WIN: 3 lệnh, avg hold 4.5h, avg PnL +1.8%
    - LONG LOSS: 2 lệnh, avg hold 2.1h, avg PnL -2.1%
    → Kỳ vọng: +0.84% nếu vào lệnh này
    ```
+
+4. **RAG prompt generation:**
+   - Source: `data/rag_prompts.md`
+   - Build once, reuse cho Gemini
+   - Giảm overhead tính toán runtime
 
 ---
 

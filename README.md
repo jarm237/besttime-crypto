@@ -66,24 +66,27 @@ Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
 
 Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`. Lưu ý: Việc đóng lệnh sẽ tự động ghi dữ liệu vào hệ thống AI để huấn luyện (Adaptive Scoring).
 
-#### 5. Huấn luyện Mô hình AI (Adaptive & Meta Model)
-Bot tích hợp mô hình Machine Learning **Random Forest** tự học từ lịch sử giao dịch và dữ liệu thị trường đa khung thời gian:
-- Để huấn luyện lại mô hình Adaptive & xuất signals log từ các file dữ liệu lịch sử (18 tháng):
+#### 5. Huấn luyện Mô hình AI (Adaptive, Meta & RL)
+Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đánh giá tín hiệu và quản lý thoát lệnh:
+- Để huấn luyện lại mô hình Adaptive & xuất signals log từ dữ liệu lịch sử (18 tháng):
   ```bash
   python train_april_model.py
   ```
-- Để huấn luyện lại mô hình Meta Confidence (hiệu chuẩn xác suất Platt Sigmoid) dựa trên nhật ký tín hiệu:
+- Để huấn luyện lại mô hình Meta Confidence & ensemble với walk-forward validation:
   ```bash
   python -m btc_scraper.meta_model --train
   ```
-  Ghi chú: Phiên bản mới `v2.0-ensemble` hỗ trợ huấn luyện ensemble (RandomForest + LightGBM/CatBoost/XGBoost nếu được cài) và walk-forward evaluation. Cài thêm thư viện nếu muốn dùng các estimator này:
-
+  Ghi chú: Phiên bản mới `v2.0-ensemble` hỗ trợ huấn luyện ensemble (RandomForest + LightGBM/CatBoost/XGBoost nếu được cài) và walk-forward evaluation.
   ```bash
   pip install lightgbm catboost xgboost
   ```
-- Để huấn luyện nhanh từ CLI bằng closed trades thật:
+- Để huấn luyện mô hình RL Exit Manager (Phase 4):
   ```bash
-  python btc_scraper/adaptive_scoring.py --train
+  python train_rl_exit_manager.py --algo ppo --train --steps 100000 --n-trades 500
+  ```
+- Để đánh giá kết quả RL và so sánh rule-based exit:
+  ```bash
+  python evaluate_rl_phase4.py
   ```
 
 ---

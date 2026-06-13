@@ -1,0 +1,84 @@
+{
+  "phase": 4,
+  "title": "Reinforcement Learning Exit Manager",
+  "date": "2026-06-14T02:13:31.350236",
+  "environment": {
+    "state_space": 18,
+    "action_space": 5,
+    "actions": [
+      "HOLD",
+      "PARTIAL_CLOSE_50",
+      "MOVE_SL_TO_BREAKEVEN",
+      "TAKE_PROFIT",
+      "EXIT"
+    ],
+    "episode_length": 50
+  },
+  "algorithms_trained": {
+    "ppo": {
+      "description": "Proximal Policy Optimization - on-policy method",
+      "hyperparams": {
+        "learning_rate": 0.0003,
+        "n_steps": 2048,
+        "batch_size": 64,
+        "n_epochs": 10
+      }
+    },
+    "dqn": {
+      "description": "Deep Q-Network - off-policy method",
+      "hyperparams": {
+        "learning_rate": 0.0003,
+        "buffer_size": 100000,
+        "learning_starts": 10000,
+        "target_update_interval": 10000
+      }
+    },
+    "a2c": {
+      "description": "Advantage Actor-Critic - on-policy method",
+      "hyperparams": {
+        "learning_rate": 0.0003
+      }
+    }
+  },
+  "training_results": {
+    "ppo": {
+      "algorithm": "ppo",
+      "total_timesteps": 20000,
+      "learning_rate": 0.0003,
+      "mean_reward": 0.4999999888241291,
+      "std_reward": 0.0,
+      "timestamp": "20260614_021204",
+      "model_path": "logs/rl_models\\rl_exit_ppo_20260614_021204"
+    },
+    "dqn": {
+      "algorithm": "dqn",
+      "total_timesteps": 20000,
+      "learning_rate": 0.0003,
+      "mean_reward": 0.4999999888241291,
+      "std_reward": 0.0,
+      "timestamp": "20260614_021220",
+      "model_path": "logs/rl_models\\rl_exit_dqn_20260614_021220"
+    },
+    "a2c": {
+      "algorithm": "a2c",
+      "total_timesteps": 20000,
+      "learning_rate": 0.0003,
+      "mean_reward": 0.4999999888241291,
+      "std_reward": 0.0,
+      "timestamp": "20260614_021226",
+      "model_path": "logs/rl_models\\rl_exit_a2c_20260614_021226"
+    }
+  },
+  "backtest_comparison": {
+    "rule_based": {
+      "total_pnl": 0,
+      "wins": 0,
+      "losses": 0,
+      "avg_win": 0,
+      "avg_loss": 0,
+      "trades": [],
+      "win_rate": 0
+    },
+    "rl_agents": {}
+  }
+}
