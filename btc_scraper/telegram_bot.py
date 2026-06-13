@@ -44,11 +44,20 @@ def send_telegram_message(
 
     try:
         resp = requests.post(url, json=payload, timeout=10)
+        if resp.status_code == 400 and parse_mode:
+            print(f"\n[Warning] Telegram HTML parse error: {resp.text}")
+            print("[Telegram Bot] Thu gui lai duoi dang Plain Text (fallback)...")
+            payload_fallback = payload.copy()
+            payload_fallback.pop("parse_mode", None)
+            resp = requests.post(url, json=payload_fallback, timeout=10)
+            
         resp.raise_for_status()
         data = resp.json()
         return data.get("result", {}).get("message_id")
     except Exception as e:
         print(f"\n[Warning] Khong the gui tin nhan Telegram: {e}")
+        if 'resp' in locals() and resp is not None:
+            print(f"[Telegram Response Body] {resp.text}")
         return None
 
 
@@ -177,28 +186,41 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
                 )
                 missed_valid_signals.append(ms_line)
             
-    # Tạo tiêu đề tin nhắn
-    message_lines = [
-        "🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO]</b> 🔔\n",
-        f"Khung nến: <b>15m</b>"
-    ]
-    
-    # Ưu tiên in các tín hiệu hành động trước
-    if active_signals:
-        message_lines.append("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>")
-        message_lines.extend(active_signals)
+    # Gửi từng phần tin nhắn riêng biệt để tránh gộp chung gây rối mắt
+    def _send_section(title: str, items: list[str]) -> int | None:
+        if not items:
+            return None
+            
+        header = f"🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO]</b> 🔔\nKhung nến: <b>15m</b>\n{title}"
+        chunk_text = header
+        first_msg_id = None
         
-    if missed_valid_signals:
-        message_lines.append("\n⏳ <b>TÍN HIỆU BỎ LỠ VẪN CÒN HIỆU LỰC:</b>")
-        message_lines.extend(missed_valid_signals)
-        
-    if neutral_signals:
-        message_lines.append("\n📈 <b>Trạng thái thị trường:</b>")
-        message_lines.extend(neutral_signals)
+        for line in items:
+            if len(chunk_text) + len(line) + 1 > 4000:
+                msg_id = send_telegram_message(chunk_text, parse_mode="HTML")
+                if first_msg_id is None:
+                    first_msg_id = msg_id
+                chunk_text = f"🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO] (tiếp theo)</b> 🔔\nKhung nến: <b>15m</b>\n{title} (tiếp theo)" + "\n" + line
+            else:
+                chunk_text += "\n" + line
+                
+        if chunk_text != header:
+            msg_id = send_telegram_message(chunk_text, parse_mode="HTML")
+            if first_msg_id is None:
+                first_msg_id = msg_id
+                
+        return first_msg_id
 
-    message = "\n".join(message_lines)
-    message_id = send_telegram_message(message, parse_mode="HTML")
-    return message_id
+    active_msg_id = _send_section("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>", active_signals)
+    missed_msg_id = _send_section("\n⏳ <b>TÍN HIỆU BỎ LỠ VẪN CÒN HIỆU LỰC:</b>", missed_valid_signals)
+    neutral_msg_id = _send_section("\n📈 <b>Trạng thái thị trường:</b>", neutral_signals)
+    
+    # Trả về message_id ưu tiên để AI reply vào (ưu tiên Tín hiệu đáng chú ý)
+    if active_msg_id is not None:
+        return active_msg_id
+    if missed_msg_id is not None:
+        return missed_msg_id
+    return neutral_msg_id
 
 
 def send_ai_reply(ai_report: str, reply_to_message_id: int | None = None) -> None:
