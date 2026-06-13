@@ -8308,5 +8308,20 @@
     "actual_result": "WIN",
     "actual_pnl_pct": 0.703,
     "closed_at": "2026-04-29 12:00"
+  },
+  {
+    "prediction_id": "TRXUSDT_1781380879",
+    "symbol": "TRXUSDT",
+    "timestamp": 1781380879.8558767,
+    "timestamp_str": "2026-06-14 03:01:19",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.2897,
+    "signal_score": 32,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

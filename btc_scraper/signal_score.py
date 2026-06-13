@@ -620,6 +620,14 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     }
 
 
+def evaluate_signal_score(ana: Dict) -> Dict:
+    """Evaluate or re-evaluate signal score for an analysis dict."""
+    sig_text = ana.get("signal", "")
+    htf_trend = ana.get("htf_trend", None)
+    # Use the analysis dict itself as both data and context, as it contains all indicator metrics.
+    return score_signal(sig_text, ana, ana, htf_trend=htf_trend)
+
+
 def extract_signal_fields(info: Dict) -> Dict:
     """Normalize signal info from analysis consumer.
 
