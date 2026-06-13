@@ -434817,5 +434817,72 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "AR",
+    "id": "d6f14dd1-6f0e-435f-97e7-77269894366b",
+    "entry_price": 1.963,
+    "sell_price": 1.988,
+    "pnl_pct": -1.2736,
+    "result": "LOSS",
+    "hold_hours": 1.2,
+    "exit_time": "2026-06-13 15:14",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.4640377210302019,
+      "meta_confidence_pct": 46,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
+  },
+  {
+    "coin": "TAO",
+    "id": "37bdaf66-0f63-4c2b-a2a9-1773cd165b5a",
+    "entry_price": 237.4,
+    "sell_price": 237.4,
+    "pnl_pct": 0.0,
+    "result": "BREAKEVEN",
+    "hold_hours": 0.0,
+    "exit_time": "2026-06-13 15:37",
+    "signal_raw": null,
+    "signal_score": {},
+    "regime": null
+  },
+  {
+    "coin": "TAO",
+    "id": "e8895b73-1098-4c10-abcc-096ddd51bb01",
+    "entry_price": 237.04,
+    "sell_price": 234.26,
+    "pnl_pct": 1.1728,
+    "result": "WIN",
+    "hold_hours": 0.1,
+    "exit_time": "2026-06-13 15:45",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.2310149128888237,
+      "meta_confidence_pct": 23,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

@@ -51,11 +51,14 @@ A Python-based multi-coin OHLCV scraper, technical analyzer, AI analyst, and aut
 | `btc_scraper/position_tracker.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/position_tracker.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/position_tracker.py) | Tracks manual open/closed positions and generates trade recommendations. |
 | `btc_scraper/auto_trader.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/auto_trader.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/auto_trader.py) | Auto-trading decision engine (risk management, circuit breaker, daily caps) |
 | `btc_scraper/ccxt_client.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ccxt_client.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/ccxt_client.py) | CCXT exchange abstraction layer for Binance Testnet (Spot) |
+| `btc_scraper/meta_model.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/meta_model.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/meta_model.py) | Trains the Meta Confidence model and calculates sigmoid probability calibration buckets |
 | `btc_scraper/adaptive_scoring.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/adaptive_scoring.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/adaptive_scoring.py) | Machine Learning pipeline for training win probability models. |
 | `btc_scraper/signal_score.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/signal_score.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/signal_score.py) | Fuzzy logic and ML inference to assign live probability and dynamic position sizing. |
 | `btc_scraper/exchanges/binance.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/exchanges/binance.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/exchanges/binance.py) | Binance OHLCV fetcher (`fetch_ohlcv`, `fetch_ohlcv_tf`, `fetch_ohlcv_multi_tf`) |
 | `btc_scraper/telegram_bot.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/telegram_bot.py) | [Windows](file:///d:/Workspaces/Vọc vạch/btc_scraper/telegram_bot.py) | Telegram broadcaster (signals, AI report, position recommendations) |
 | `api/server.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/api/server.py) | [Windows](file:///d:/Workspaces/Vọc vạch/api/server.py) | FastAPI REST backend — serves signals, positions, performance, and auto-trade logs/status |
+| `train_april_model.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/train_april_model.py) | [Windows](file:///d:/Workspaces/Vọc vạch/train_april_model.py) | Trains the Random Forest Adaptive Model on 18-month historical data |
+| `fetch_historical_range.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/fetch_historical_range.py) | [Windows](file:///d:/Workspaces/Vọc vạch/fetch_historical_range.py) | Scrapes custom range of historical data from Binance (e.g. 18-month data) |
 | `backtest.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest.py) | Full vectorized backtesting with custom filters and PnL reporting |
 | `backtest_eval.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/backtest_eval.py) | [Windows](file:///d:/Workspaces/Vọc vạch/backtest_eval.py) | Signal quality evaluator: win rate × hold period × parameter variants |
 | `scripts/manage_positions.py` | [Ubuntu](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/manage_positions.py) | [Windows](file:///d:/Workspaces/Vọc vạch/scripts/manage_positions.py) | CLI backend for ./pos add/list/close/perf |
@@ -102,6 +105,15 @@ All indicators are pure Python — no external libraries.
 | WEAK BUY | ~35% | 0.24 | ❌ No edge |
 | WEAK SELL | ~25% | 0.54 | ❌ Use as warning only |
 
+### Machine Learning & Meta Confidence Performance (18-Month Dataset: Jan 2025 - Jun 2026, 18,908 samples)
+- **Adaptive Model (Random Forest):**
+  - **TimeSeriesSplit CV ROC-AUC:** `0.620 ± 0.010` (Highly stable across cycles)
+  - **Holdout ROC-AUC:** `0.642`
+  - **Accuracy:** `62%`
+- **Meta Confidence Model (Probability Calibration):**
+  - **CV ROC-AUC:** `0.6355 ± 0.0081`
+  - **Probability Calibration (Platt Sigmoid):** Successfully mapped and verified across 5 bins (error <10%).
+
 ### TP/SL Formula
 - **SL (BUY):** `max(Entry − 1.2×ATR, Support × 0.998)`
 - **TP1 (BUY):** `min(BB_Middle, Entry + 3.5×ATR)` ← currently being evaluated for reduction to 2.0×
@@ -135,6 +147,18 @@ python main.py --once   # Single scan then exit
 ```bash
 python -X utf8 backtest_eval.py   # Signal quality evaluation (win rate, PF per type)
 python backtest.py                 # Full historical backtest with PnL report
+```
+
+### Training ML Models
+```bash
+# 1. Fetch historical data range (configurable in python script)
+python fetch_historical_range.py
+
+# 2. Train the Random Forest Adaptive Model on 18-month data
+python train_april_model.py
+
+# 3. Train the Meta Confidence model (with sigmoid probability calibration)
+python -m btc_scraper.meta_model --train
 ```
 
 ### Environment Variables (`.env`)

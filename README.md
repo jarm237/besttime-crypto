@@ -19,15 +19,17 @@ Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích 
 
 ---
 
-## Backtest (Kết quả đã xác minh)
+## Backtest & Hiệu năng ML (Kết quả đã xác minh)
 
-Trên **8.000 điểm dữ liệu** (1000 nến 15m × 10 coin):
+Trên bộ dữ liệu lịch sử **18 tháng** (Tháng 1/2025 - Tháng 6/2026) với **18,904 mẫu giao dịch đóng**:
 
-| Loại tín hiệu | Win Rate | Profit Factor | Hold tối ưu |
-|---------------|---------|---------------|------------|
-| **STRONG BUY** | **70.5%** | **2.95** | **1h (4 nến)** |
-| **STRONG SELL** | **66.4%** | **2.92** | **6h (24 nến)** |
-| WEAK BUY | ~35% | 0.24 | ❌ Không có edge |
+- **Mô hình Adaptive (Random Forest):**
+  - **Time-Series CV ROC-AUC:** `0.620 ± 0.010` (Rất ổn định qua các chu kỳ)
+  - **Holdout ROC-AUC:** `0.642`
+  - **Accuracy:** `62%`
+- **Mô hình Meta Confidence:**
+  - **CV ROC-AUC:** `0.6355 ± 0.0081`
+  - **Hiệu chuẩn xác suất (Platt Sigmoid):** Đã áp dụng thành công cho các bucket xác suất dự đoán (sai số <10%).
 
 ---
 
@@ -64,11 +66,20 @@ Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
 
 Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`. Lưu ý: Việc đóng lệnh sẽ tự động ghi dữ liệu vào hệ thống AI để huấn luyện (Adaptive Scoring).
 
-#### 5. Huấn luyện Mô hình AI (Adaptive Scoring)
-Bot được tích hợp mô hình Machine Learning (Logistic Regression) tự học từ lịch sử giao dịch. Để train lại mô hình dựa trên các lệnh đã đóng mới nhất:
-```bash
-python btc_scraper/adaptive_scoring.py --train
-```
+#### 5. Huấn luyện Mô hình AI (Adaptive & Meta Model)
+Bot tích hợp mô hình Machine Learning **Random Forest** tự học từ lịch sử giao dịch và dữ liệu thị trường đa khung thời gian:
+- Để huấn luyện lại mô hình Adaptive & xuất signals log từ các file dữ liệu lịch sử (18 tháng):
+  ```bash
+  python train_april_model.py
+  ```
+- Để huấn luyện lại mô hình Meta Confidence (hiệu chuẩn xác suất Platt Sigmoid) dựa trên nhật ký tín hiệu:
+  ```bash
+  python -m btc_scraper.meta_model --train
+  ```
+- Để huấn luyện nhanh từ CLI bằng closed trades thật:
+  ```bash
+  python btc_scraper/adaptive_scoring.py --train
+  ```
 
 ---
 
@@ -223,6 +234,12 @@ besttime-crypto/
 ---
 
 ## Chuẩn bị Dữ liệu cho ML
+
+Để cào dữ liệu lịch sử trên diện rộng phục vụ huấn luyện mô hình:
+```bash
+# Cào dữ liệu lịch sử theo tháng (cấu hình trong fetch_historical_range.py)
+python fetch_historical_range.py
+```
 
 Để sử dụng lịch sử giao dịch thực tế cho machine learning, chạy:
 

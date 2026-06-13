@@ -37,6 +37,62 @@ FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
 MODEL_VERSION = "v1.0"
 
 
+def compute_calibration_buckets(probs, actual_results, min_samples=3):
+    buckets = {
+        "0.0-0.4": [],
+        "0.4-0.6": [],
+        "0.6-0.7": [],
+        "0.7-0.8": [],
+        "0.8-1.0": [],
+    }
+    
+    for prob, res in zip(probs, actual_results):
+        label = 1 if res == "WIN" else 0
+        if prob < 0.4:
+            buckets["0.0-0.4"].append(label)
+        elif prob < 0.6:
+            buckets["0.4-0.6"].append(label)
+        elif prob < 0.7:
+            buckets["0.6-0.7"].append(label)
+        elif prob < 0.8:
+            buckets["0.7-0.8"].append(label)
+        else:
+            buckets["0.8-1.0"].append(label)
+            
+    analysis = {}
+    for bucket, labels in buckets.items():
+        if len(labels) < min_samples:
+            analysis[bucket] = {
+                "count": len(labels),
+                "actual_wr": None,
+                "predicted_wr": None,
+                "calibration_error": None,
+                "calibrated": False,
+            }
+            continue
+            
+        wins = sum(labels)
+        actual_wr = wins / len(labels) * 100
+        
+        parts = bucket.split("-")
+        lo, hi = float(parts[0]), float(parts[1])
+        predicted_wr = (lo + hi) / 2 * 100
+        
+        error = actual_wr - predicted_wr
+        calibrated = abs(error) <= 10.0
+        
+        analysis[bucket] = {
+            "count": len(labels),
+            "wins": wins,
+            "losses": len(labels) - wins,
+            "actual_wr": round(actual_wr, 1),
+            "predicted_wr": round(predicted_wr, 1),
+            "calibration_error": round(error, 1),
+            "calibrated": calibrated,
+        }
+    return analysis
+
+
 def _load_records():
     if not INPUT.exists():
         raise FileNotFoundError(f"Missing {INPUT}")
@@ -140,6 +196,15 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     except Exception:
         pass
 
+    # Predict probabilities on full set to compute calibration buckets
+    calibration_buckets = {}
+    try:
+        if hasattr(clf, "predict_proba"):
+            probs = clf.predict_proba(X)[:, 1]
+            calibration_buckets = compute_calibration_buckets(probs, ["WIN" if val == 1 else "LOSS" for val in y])
+    except Exception as e:
+        print(f"  [Warning] Failed to compute calibration buckets: {e}")
+
     # Lưu model
     model_bundle = {
         "model": clf,
@@ -162,6 +227,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "cv_acc_mean": cv_acc_mean,
         "calibrated": calibrate and len(y) >= 50,
         "label_dist": {"WIN": int(y.sum()), "LOSS": int(len(y) - y.sum())},
+        "calibration_buckets": calibration_buckets,
     }
     with open(METRIC_OUT, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)

@@ -141,10 +141,11 @@ Hiện `btc_scraper/ai_analyst.py` đã dùng RAG đơn giản từ `_build_rag_
 ## 📈 Hướng ML tiếp theo
 
 ### Phase 1: Signal Confidence Scoring (Đã hoàn thành)
-1. Load `ml_training_data.csv`
-2. Huấn luyện mô hình Random Forest trong `meta_model.py` dùng 14 đặc trưng kỹ thuật.
-3. Lưu trữ và hiệu chuẩn Platt để sinh ra xác suất thắng (`meta_confidence`).
-4. Tải mô hình thông qua `signal_score.py` để chấm điểm động xác suất thắng cho các tín hiệu và tự động quản lý khối lượng vị thế (Position Sizing).
+1. **Thu thập dữ liệu lịch sử:** Sử dụng `fetch_historical_range.py` để cào dữ liệu lịch sử chất lượng cao từ Binance qua nhiều tháng liên tục (đã tích hợp đầy đủ **18 tháng**, từ Tháng 1/2025 đến Tháng 6/2026, với **18,908 mẫu giao dịch**).
+2. **Huấn luyện mô hình Adaptive:** Chạy `train_april_model.py` để load toàn bộ dữ liệu 18 tháng, chạy giả lập sinh tín hiệu, trích xuất 14 đặc trưng kỹ thuật (`FEATURE_SCHEMA`), huấn luyện mô hình **Random Forest Classifier** và lưu tại `logs/adaptive_model.joblib`.
+3. **Huấn luyện mô hình Meta & Hiệu chuẩn xác suất (Platt Calibration):** Chạy `python -m btc_scraper.meta_model --train`. Script này sử dụng phương pháp hiệu chuẩn Sigmoid (Platt Sigmoid) trên toàn bộ dữ liệu tín hiệu để chuyển điểm số dự đoán thô thành xác suất thắng thực tế (`meta_confidence`).
+4. **Lưu trữ Calibration Buckets:** Kết quả hiệu chuẩn được chia thành 5 nhóm xác suất (0.0-0.4, 0.4-0.6, 0.6-0.7, 0.7-0.8, 0.8-1.0) và lưu vào `logs/meta_model.json` trong trường `"calibration_buckets"` cùng với các chỉ số ROC-AUC của mô hình. Điều này đảm bảo tính tương thích và ngăn chặn lỗi runtime do thiếu cấu hình calibration.
+5. **Chấm điểm tín hiệu & Quản lý vị thế:** Tải mô hình thông qua `btc_scraper/signal_score.py` để chấm điểm động xác suất thắng cho các tín hiệu thời gian thực và tự động xác định khối lượng vị thế tối ưu (Position Sizing).
 
 ### Phase 2: Dynamic Parameter Tuning
 1. Chạy `optuna` backtest mỗi tuần

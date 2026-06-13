@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "n_samples": 18904,
+  "n_samples": 18908,
   "n_features": 14,
   "features": [
     "signal_score",
@@ -18,12 +18,59 @@
     "regime_ranging",
     "regime_high_volatility"
   ],
-  "cv_auc_mean": 0.6354847314635833,
-  "cv_auc_std": 0.008066003426786417,
-  "cv_acc_mean": 0.6036287256387759,
+  "cv_auc_mean": 0.6356610099609141,
+  "cv_auc_std": 0.013898713978841914,
+  "cv_acc_mean": 0.6029183463589762,
   "calibrated": true,
   "label_dist": {
-    "WIN": 8400,
-    "LOSS": 10504
+    "WIN": 8401,
+    "LOSS": 10507
+  },
+  "calibration_buckets": {
+    "0.0-0.4": {
+      "count": 7264,
+      "wins": 1956,
+      "losses": 5308,
+      "actual_wr": 26.9,
+      "predicted_wr": 20.0,
+      "calibration_error": 6.9,
+      "calibrated": true
+    },
+    "0.4-0.6": {
+      "count": 9422,
+      "wins": 4705,
+      "losses": 4717,
+      "actual_wr": 49.9,
+      "predicted_wr": 50.0,
+      "calibration_error": -0.1,
+      "calibrated": true
+    },
+    "0.6-0.7": {
+      "count": 1846,
+      "wins": 1383,
+      "losses": 463,
+      "actual_wr": 74.9,
+      "predicted_wr": 65.0,
+      "calibration_error": 9.9,
+      "calibrated": true
+    },
+    "0.7-0.8": {
+      "count": 360,
+      "wins": 341,
+      "losses": 19,
+      "actual_wr": 94.7,
+      "predicted_wr": 75.0,
+      "calibration_error": 19.7,
+      "calibrated": false
+    },
+    "0.8-1.0": {
+      "count": 16,
+      "wins": 16,
+      "losses": 0,
+      "actual_wr": 100.0,
+      "predicted_wr": 90.0,
+      "calibration_error": 10.0,
+      "calibrated": true
+    }
   }
 }

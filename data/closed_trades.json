@@ -758,5 +758,47 @@
     "signal_raw": "NEUTRAL (BULLISH)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "AR",
+    "id": "d6f14dd1-6f0e-435f-97e7-77269894366b",
+    "entry_time": "2026-06-13 14:05",
+    "exit_time": "2026-06-13 15:14",
+    "entry_price": 1.963,
+    "exit_price": 1.988,
+    "pnl_pct": -1.2736,
+    "result": "LOSS",
+    "hold_hours": 1.2,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "TAO",
+    "id": "37bdaf66-0f63-4c2b-a2a9-1773cd165b5a",
+    "entry_time": "2026-06-13 15:37",
+    "exit_time": "2026-06-13 15:37",
+    "entry_price": 237.4,
+    "exit_price": 237.4,
+    "pnl_pct": 0.0,
+    "result": "BREAKEVEN",
+    "hold_hours": 0.0,
+    "signal_raw": null,
+    "signal_score": {},
+    "confidence": null
+  },
+  {
+    "coin": "TAO",
+    "id": "e8895b73-1098-4c10-abcc-096ddd51bb01",
+    "entry_time": "2026-06-13 15:38",
+    "exit_time": "2026-06-13 15:45",
+    "entry_price": 237.04,
+    "exit_price": 234.26,
+    "pnl_pct": 1.1728,
+    "result": "WIN",
+    "hold_hours": 0.1,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {},
+    "confidence": null
   }
 ]

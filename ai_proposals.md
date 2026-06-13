@@ -33,10 +33,10 @@ Tuy nhiên, mô hình AI bây giờ vẫn hoạt động ở mức “tư vấn�
 ## Mức 2: Học từ dữ liệu — Signal Scoring / Predictive Modeling
 
 ### 4. Xây mô hình đánh giá xác suất thắng của tín hiệu (Đã hoàn thành)
-- Sử dụng dataset lịch sử từ `logs/closed_positions.json` và backtest simulator để huấn luyện mô hình.
-- Hiện đã triển khai mô hình **RandomForestClassifier** trong `btc_scraper/meta_model.py` với **14 đặc trưng kỹ thuật** cố định (`feature_extractor.py`).
-- Sử dụng phương pháp **Platt calibration** (hiệu chuẩn Sigmoid) để đưa ra xác suất thắng thực tế (`meta_confidence`) chính xác thay vì chỉ dự đoán nhị phân.
-- Tích hợp vào `btc_scraper/signal_score.py` để chấm điểm tín hiệu theo thời gian thực và loại bỏ các tín hiệu yếu.
+- Sử dụng dataset lịch sử rộng khắp được cào tự động bằng `fetch_historical_range.py` (tập dữ liệu **18 tháng** từ Tháng 1/2025 - Tháng 6/2026 với **18,908 mẫu giao dịch**) để huấn luyện mô hình.
+- Hiện đã triển khai mô hình **RandomForestClassifier** trong `train_april_model.py` với **14 đặc trưng kỹ thuật** cố định (`btc_scraper/feature_extractor.py`), đạt Time-Series CV ROC-AUC là `0.620 ± 0.010` và Holdout ROC-AUC là `0.642`.
+- Sử dụng phương pháp **Platt calibration** (hiệu chuẩn Sigmoid) thông qua `btc_scraper/meta_model.py` để chuyển đổi điểm số dự đoán thô thành xác suất thắng thực tế (`meta_confidence`) chính xác thay vì chỉ dự đoán nhị phân (CV ROC-AUC đạt `0.6355 ± 0.0081`).
+- Các nhóm hiệu chuẩn xác suất (calibration buckets) cho 5 nhóm (0.0-0.4, 0.4-0.6, 0.6-0.7, 0.7-0.8, 0.8-1.0) được lưu tự động vào `logs/meta_model.json` để `btc_scraper/signal_score.py` sử dụng tại runtime, giúp loại bỏ hoàn toàn các lỗi thiếu dữ liệu calibration.
 
 ### 5. Tự động tối ưu tham số sau khi có dataset đủ lớn (Đang triển khai)
 - Khi hệ thống chạy đủ vài chục đến vài trăm lệnh đóng, dùng `optuna` để tối ưu:
@@ -64,7 +64,7 @@ Tuy nhiên, mô hình AI bây giờ vẫn hoạt động ở mức “tư vấn�
 
 1. **Bước 1 (Đã hoàn thành):** Chuẩn hóa dữ liệu lịch sử giao dịch thật. Dùng `logs/closed_positions.json` làm nguồn chính và xuất file `data/ml_training_data.csv`.
 2. **Bước 2 (Đã hoàn thành):** Cải thiện RAG trong `btc_scraper/ai_analyst.py` để Gemini biết rõ Win Rate, Avg PnL và kịch bản tương đồng.
-3. **Bước 3 (Đã hoàn thành):** Triển khai mô hình **RandomForest Classifier** (Meta Model) hiệu chuẩn Platt để dự đoán chính xác xác suất thắng (`meta_confidence`) và tích hợp vào hệ thống tính toán điểm số tín hiệu.
+3. **Bước 3 (Đã hoàn thành):** Triển khai mô hình **RandomForest Classifier** (Meta Model) hiệu chuẩn Platt trên tập dữ liệu 18 tháng để dự đoán chính xác xác suất thắng (`meta_confidence`), tính toán 5 calibration buckets và tích hợp vào hệ thống tính toán điểm số tín hiệu.
 4. **Bước 4 (Đã hoàn thành):** Continuous Learning - Xây dựng pipeline tự động tải dữ liệu và retrain model định kỳ hàng tuần lúc 23:30 Chủ Nhật, kèm theo cảnh báo Concept Drift và gửi báo cáo qua Telegram.
 5. **Bước 5 (Đã hoàn thành):** Tích hợp CCXT Auto-Trading trên Binance Testnet/Sandbox, quản lý vốn rủi ro cố định 2% mỗi lệnh, bảo vệ bằng Circuit Breaker ngắt 24h và tự động hóa đóng lệnh theo khuyến nghị TP/SL của bot.
 6. **Bước 6 (Tương lai):** Chạy `optuna` để tối ưu tham số tự động và nghiên cứu anomaly detection / RL.
