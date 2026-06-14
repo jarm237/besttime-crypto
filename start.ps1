@@ -19,7 +19,7 @@ try {
     # 2. Khởi động Web Dashboard (Vite/React)
     Write-Host "[2/3] Khởi động Web Dashboard (Cổng 3000)..." -ForegroundColor Yellow
     Set-Location -Path "web"
-    $WebProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c npm run dev" -WindowStyle Hidden -PassThru
+    $WebProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c npm run dev -- --port 3000 --host" -WindowStyle Hidden -PassThru
     Set-Location -Path ".."
     Start-Sleep -Seconds 1
 

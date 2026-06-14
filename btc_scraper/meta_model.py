@@ -144,6 +144,43 @@ def _import_optional_estimators():
     return estimators
 
 
+def _prepare_feature_matrix(X, feature_names=None):
+    """Convert inference input into a feature-aligned DataFrame when possible."""
+    if feature_names is None or len(feature_names) == 0:
+        return np.asarray(X)
+
+    try:
+        import pandas as pd
+    except Exception:
+        return np.asarray(X)
+
+    if isinstance(X, pd.DataFrame):
+        return X
+
+    X_arr = np.asarray(X)
+    if X_arr.ndim == 1:
+        return pd.DataFrame([X_arr], columns=feature_names)
+    return pd.DataFrame(X_arr, columns=feature_names)
+
+
+class _InferenceWrapper:
+    def __init__(self, estimator, feature_names):
+        self._estimator = estimator
+        self._feature_names = feature_names
+
+    def __getattr__(self, name):
+        return getattr(self._estimator, name)
+
+    def _prepare(self, X):
+        return _prepare_feature_matrix(X, self._feature_names)
+
+    def predict_proba(self, X, *args, **kwargs):
+        return self._estimator.predict_proba(self._prepare(X), *args, **kwargs)
+
+    def predict(self, X, *args, **kwargs):
+        return self._estimator.predict(self._prepare(X), *args, **kwargs)
+
+
 def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
     estimators = {
         "rf": RandomForestClassifier(
@@ -311,13 +348,35 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
 
         return self
 
+    def _prepare_for_model(self, model, X):
+        if isinstance(X, pd.DataFrame):
+            base_estimator = None
+            if isinstance(model, CalibratedClassifierCV):
+                base_estimator = getattr(model, "base_estimator", None)
+                if base_estimator is None and hasattr(model, "calibrated_classifiers_"):
+                    cc = getattr(model, "calibrated_classifiers_")
+                    if cc:
+                        base_estimator = getattr(cc[0], "estimator", None)
+            else:
+                base_estimator = model
+
+            from sklearn.ensemble import RandomForestClassifier
+            if isinstance(base_estimator, RandomForestClassifier):
+                return X.values
+
+        if not isinstance(X, (np.ndarray, pd.DataFrame)):
+            return np.asarray(X)
+        return X
+
     def predict_proba(self, X):
-        X = np.array(X)
+        if not isinstance(X, (np.ndarray, pd.DataFrame)):
+            X = np.asarray(X)
         n_samples = X.shape[0]
         combined_prob = np.zeros((n_samples, 2))
         for name, model in self.models_.items():
             w = self.normalized_weights_[name]
-            probs = model.predict_proba(X)
+            x_input = self._prepare_for_model(model, X)
+            probs = model.predict_proba(x_input)
             if probs.ndim == 1:
                 probs = np.column_stack([1.0 - probs, probs])
             elif probs.shape[1] == 1:
@@ -586,6 +645,10 @@ def load_model():
         _MODEL_CACHE = joblib.load(MODEL_OUT)
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
+            feature_names = _MODEL_CACHE.get("features")
+            if feature_names:
+                _MODEL_CACHE["model"] = _InferenceWrapper(clf, feature_names)
+
             def _set_n_jobs(est):
                 if hasattr(est, "n_jobs"):
                     try:
