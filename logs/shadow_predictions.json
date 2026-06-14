@@ -8323,5 +8323,20 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1781382686",
+    "symbol": "NEARUSDT",
+    "timestamp": 1781382686.5507574,
+    "timestamp_str": "2026-06-14 03:31:26",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.4576,
+    "signal_score": 50,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]
