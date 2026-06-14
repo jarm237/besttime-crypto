@@ -1,0 +1,24 @@
+[
+  {
+    "timestamp": "2026-06-14T17:14:37.857638",
+    "timestamp_str": "2026-06-14 17:14:37",
+    "mode": "TESTNET",
+    "coin": "XAUT",
+    "symbol": "XAUT/USDT",
+    "direction": "SHORT",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.5082,
+    "meta_confidence_pct": 51,
+    "signal_score": 44,
+    "order_type": "market",
+    "entry_price": 4219.0,
+    "sl_price": 4221.5424,
+    "tp1_price": 4218.4615,
+    "usdt_amount": 100.0,
+    "account_balance_est": 9999.9999977,
+    "order_id": "1038590",
+    "status": "closed",
+    "error": null,
+    "filled_price": 4218.99
+  }
+]

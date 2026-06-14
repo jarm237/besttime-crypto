@@ -7,6 +7,11 @@ echo "==========================================="
 # Di chuyển đến thư mục gốc của project
 cd "$(dirname "$0")"
 
+# Kích hoạt virtual environment nếu có
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+fi
+
 # Hàm dọn dẹp khi nhấn Ctrl+C
 cleanup() {
     echo ""
@@ -35,7 +40,7 @@ sleep 1
 
 # 3. Khởi động Trading Bot (Python Core)
 echo "[3/3] Khởi động Trading Bot..."
-python main.py &
+python3 main.py &
 BOT_PID=$!
 
 echo "==========================================="

@@ -369,14 +369,19 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         return X
 
     def predict_proba(self, X):
+        import warnings
+
         if not isinstance(X, (np.ndarray, pd.DataFrame)):
             X = np.asarray(X)
+
         n_samples = X.shape[0]
         combined_prob = np.zeros((n_samples, 2))
         for name, model in self.models_.items():
             w = self.normalized_weights_[name]
             x_input = self._prepare_for_model(model, X)
-            probs = model.predict_proba(x_input)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message="X does not have valid feature names", category=UserWarning)
+                probs = model.predict_proba(x_input)
             if probs.ndim == 1:
                 probs = np.column_stack([1.0 - probs, probs])
             elif probs.shape[1] == 1:
@@ -687,7 +692,11 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
     try:
         feat = build_meta_features(analysis_info)
         row = [float(feat.get(k, 0.0)) for k in feature_names]
-        prob = float(clf.predict_proba([row])[0, 1])
+        
+        # Build DataFrame to provide valid feature names to avoid warnings from LGBMClassifier
+        import pandas as pd
+        df = pd.DataFrame([row], columns=feature_names)
+        prob = float(clf.predict_proba(df)[0, 1])
         return {"probability": prob}
     except Exception as e:
         return {"error": str(e), "probability": None}
