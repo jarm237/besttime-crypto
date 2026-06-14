@@ -432533,5 +432533,32 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "TRX",
+    "id": "5b4fb13c-7bad-4882-a6f9-67e2a7cc3a56",
+    "entry_price": 0.31611,
+    "sell_price": 0.31636,
+    "pnl_pct": 0.0791,
+    "result": "BREAKEVEN",
+    "hold_hours": 0.3,
+    "exit_time": "2026-06-14 15:07",
+    "signal_raw": "STRONG SELL (Confirmed Reversal)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "STRONG SELL (Confirmed Reversal)",
+      "meta_confidence": 0.38535894744543675,
+      "meta_confidence_pct": 39,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

@@ -884,5 +884,19 @@
     "signal_raw": "NEUTRAL (BULLISH)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "TRX",
+    "id": "5b4fb13c-7bad-4882-a6f9-67e2a7cc3a56",
+    "entry_time": "2026-06-14 14:51",
+    "exit_time": "2026-06-14 15:07",
+    "entry_price": 0.31611,
+    "exit_price": 0.31636,
+    "pnl_pct": 0.0791,
+    "result": "BREAKEVEN",
+    "hold_hours": 0.3,
+    "signal_raw": "STRONG SELL (Confirmed Reversal)",
+    "signal_score": {},
+    "confidence": null
   }
 ]
