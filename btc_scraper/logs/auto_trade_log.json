@@ -10,5 +10,17 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 25 thua lien tiep. Reset sau 21.3h",
     "entry_price": 2.382
+  },
+  {
+    "timestamp": "2026-06-15T15:18:45.289516",
+    "timestamp_str": "2026-06-15 15:18:45",
+    "mode": "TESTNET",
+    "coin": "TAO",
+    "signal": "SELL (SFP-Liquidity-Sweep)",
+    "meta_confidence": 0.4335,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 25 thua lien tiep. Reset sau 20.9h",
+    "entry_price": 286.9
   }
 ]

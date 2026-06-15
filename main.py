@@ -13,6 +13,8 @@ from rich.panel import Panel
 
 import queue
 import threading
+import asyncio
+import aiohttp
 
 # Buoc stdout sang UTF-8 de hien thi tieng Viet va ky tu dac biet
 if hasattr(sys.stdout, "reconfigure"):
@@ -133,7 +135,7 @@ def ai_worker():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def check_and_execute_auto_closes(recs: list[dict]):
+async def check_and_execute_auto_closes(recs: list[dict]):
     """
     Kiểm tra và tự động đóng vị thế trên Binance Testnet nếu có khuyến nghị chốt lời/cắt lỗ.
     """
@@ -185,9 +187,10 @@ def check_and_execute_auto_closes(recs: list[dict]):
                             if entry_price > 0:
                                 current_val = invested_usdt * (current_price / entry_price)
                                 if direction == "LONG":
-                                    client.create_market_sell(symbol, current_val)
+                                    await client.create_market_sell(symbol, current_val)
                                 else:
-                                    client.create_market_buy(symbol, current_val)
+                                    await client.create_market_buy(symbol, current_val)
+                                await client.close()
                         except Exception as ex_err:
                             console.print(f"[bold red][AutoTrade] Lỗi đóng lệnh trên sàn: {ex_err}[/bold red]")
     except Exception as e:
@@ -198,7 +201,7 @@ def check_and_execute_auto_closes(recs: list[dict]):
 _ws_manager: BinanceWebSocketManager | None = None
 
 
-def _get_candles_for_coin(coin: str, interval: str = "15m") -> list[dict]:
+async def _get_candles_for_coin(coin: str, interval: str = "15m", session=None) -> list[dict]:
     """
     Đọc nến từ CandleStore (WS) nếu có, ngược lại fallback về REST.
     Đây là điểm duy nhất trong code đọc dữ liệu Binance.
@@ -212,38 +215,57 @@ def _get_candles_for_coin(coin: str, interval: str = "15m") -> list[dict]:
     # REST fallback (WS chưa sẵn sàng hoặc chưa có dữ liệu)
     from btc_scraper.exchanges.binance import fetch_ohlcv, fetch_ohlcv_tf, MTF_INTERVALS
     if interval == "15m":
-        return fetch_ohlcv(coin)
+        return await fetch_ohlcv(coin, session)
     limit = MTF_INTERVALS.get(interval, 50)
-    return fetch_ohlcv_tf(coin, interval, limit)
+    return await fetch_ohlcv_tf(coin, interval, limit, session)
 
 
-def fetch_and_display():
+async def fetch_and_display():
     """Lấy dữ liệu từ CandleStore (WS) hoặc REST (fallback), phân tích và in ra terminal."""
     global _ws_manager
     using_ws = _ws_manager is not None and _ws_manager.is_healthy()
-    src_label = "WebSocket" if using_ws else "REST fallback"
+    src_label = "WebSocket" if using_ws else "REST fallback (parallel)"
     console.print(f"[dim]Đang lấy dữ liệu thị trường ({src_label})...[/dim]")
 
     results = {}
     raw_candles_dict = {}
     mtf_candles_dict = {}
 
-    for coin in COINS:
-        binance_candles = _get_candles_for_coin(coin, "15m")
-        results[coin] = {"Binance": binance_candles}
-        raw_candles_dict[coin] = binance_candles
+    async with aiohttp.ClientSession() as session:
+        tasks_15m = []
+        for coin in COINS:
+            tasks_15m.append(_get_candles_for_coin(coin, "15m", session))
+            
+        res_15m = await asyncio.gather(*tasks_15m)
+        
+        for i, coin in enumerate(COINS):
+            binance_candles = res_15m[i]
+            results[coin] = {"Binance": binance_candles}
+            raw_candles_dict[coin] = binance_candles
+            mtf_candles_dict[coin] = {}
 
         if not using_ws:
-            console.print(f"[dim]  ↳ [{coin}] Đang lấy nến 1h / 4h / 1d (REST)...[/dim]")
-        
-        mtf_candles_dict[coin] = {}
-        for tf in ["1h", "4h", "1d"]:
-            mtf_candles_dict[coin][tf] = _get_candles_for_coin(coin, tf)
+            console.print(f"[dim]  ↳ Đang lấy nến 1h / 4h / 1d (REST parallel)...[/dim]")
+            tasks_mtf = []
+            for coin in COINS:
+                for tf in ["1h", "4h", "1d"]:
+                    tasks_mtf.append(_get_candles_for_coin(coin, tf, session))
+            res_mtf = await asyncio.gather(*tasks_mtf)
+            
+            idx = 0
+            for coin in COINS:
+                for tf in ["1h", "4h", "1d"]:
+                    mtf_candles_dict[coin][tf] = res_mtf[idx]
+                    idx += 1
+        else:
+            for coin in COINS:
+                for tf in ["1h", "4h", "1d"]:
+                    mtf_candles_dict[coin][tf] = await _get_candles_for_coin(coin, tf, session)
 
     # Chạy hệ thống đa tác nhân điều phối (AgentOrchestrator)
     from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
     orchestrator = AgentOrchestrator()
-    context = orchestrator.run_cycle(raw_candles_dict, mtf_candles_dict)
+    context = await orchestrator.run_cycle(raw_candles_dict, mtf_candles_dict)
 
     analysis = context["analysis"]
     mtf_analysis = context["mtf_analysis"]
@@ -266,7 +288,7 @@ def fetch_and_display():
         recs = position_tracker.evaluate_positions(analysis)
         if recs:
             send_position_recommendations(recs)
-            check_and_execute_auto_closes(recs)
+            await check_and_execute_auto_closes(recs)
     except Exception as e:
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 
@@ -277,7 +299,7 @@ def fetch_and_display():
     open_positions = position_tracker.get_open_positions()
     ai_queue.put((analysis, mtf_analysis, open_positions, message_id))
 
-def fetch_and_analyze_open_positions_only():
+async def fetch_and_analyze_open_positions_only():
     """Lấy dữ liệu và phân tích chỉ cho các coin đang có vị thế mở (quét khẩn cấp mỗi 5 phút). Không gọi AI."""
     open_positions = position_tracker.get_open_positions()
     if not open_positions:
@@ -288,11 +310,17 @@ def fetch_and_analyze_open_positions_only():
     
     analysis = {}
     
-    for coin in coins_to_check:
-        binance_candles = _get_candles_for_coin(coin, "15m")
-        ana = analyze_market(binance_candles)
-        ana["close"] = binance_candles[-1]["close"] if (binance_candles and "error" not in binance_candles[0]) else 0.0
-        analysis[f"{coin}:Binance"] = ana
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for coin in coins_to_check:
+            tasks.append(_get_candles_for_coin(coin, "15m", session))
+        res_15m = await asyncio.gather(*tasks)
+        
+        for i, coin in enumerate(coins_to_check):
+            binance_candles = res_15m[i]
+            ana = analyze_market(binance_candles)
+            ana["close"] = binance_candles[-1]["close"] if (binance_candles and "error" not in binance_candles[0]) else 0.0
+            analysis[f"{coin}:Binance"] = ana
             
     try:
         recs = position_tracker.evaluate_positions(analysis)
@@ -302,12 +330,14 @@ def fetch_and_analyze_open_positions_only():
     except Exception as e:
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 
-def fetch_and_analyze_open_positions_only_with_retry():
+async def fetch_and_analyze_open_positions_only_with_retry():
     attempt = 0
     while attempt <= MAX_RETRIES:
         try:
-            fetch_and_analyze_open_positions_only()
+            await fetch_and_analyze_open_positions_only()
             return
+        except asyncio.CancelledError:
+            raise
         except KeyboardInterrupt:
             raise
         except Exception as exc:
@@ -315,10 +345,10 @@ def fetch_and_analyze_open_positions_only_with_retry():
             backoff = min(BASE_BACKOFF * (2 ** (attempt - 1)), MAX_BACKOFF)
             if attempt > MAX_RETRIES:
                 return
-            time.sleep(backoff)
+            await asyncio.sleep(backoff)
 
 
-def fetch_and_display_with_retry():
+async def fetch_and_display_with_retry():
     """
     Wrapper quanh fetch_and_display() với cơ chế retry + exponential backoff.
     Nếu lỗi mạng hoặc exception bất kỳ, tự động thử lại tối đa MAX_RETRIES lần.
@@ -326,8 +356,10 @@ def fetch_and_display_with_retry():
     attempt = 0
     while attempt <= MAX_RETRIES:
         try:
-            fetch_and_display()
+            await fetch_and_display()
             return  # Thành công → thoát
+        except asyncio.CancelledError:
+            raise
         except KeyboardInterrupt:
             raise  # Cho phép Ctrl+C thoát bình thường
         except Exception as exc:
@@ -347,13 +379,13 @@ def fetch_and_display_with_retry():
                 f"\n[bold yellow][{timestamp}] Lỗi lần {attempt}/{MAX_RETRIES}: {exc}[/bold yellow]\n"
                 f"[dim]Thử lại sau {backoff}s...[/dim]\n"
             )
-            time.sleep(backoff)
+            await asyncio.sleep(backoff)
 
 
-def run_scheduler():
+async def run_scheduler():
     """
     Vòng lặp scheduler có cơ chế tự restart nếu gặp lỗi bất ngờ.
-    Chỉ dừng khi nhận KeyboardInterrupt (Ctrl+C).
+    Chỉ dừng khi nhận KeyboardInterrupt (Ctrl+C) hoặc CancelledError.
     """
     from btc_scraper.telegram_bot import telegram_command_queue
     while True:
@@ -364,13 +396,15 @@ def run_scheduler():
                     cmd = telegram_command_queue.get_nowait()
                     if cmd == "scan":
                         console.print("[bold yellow]⚡ [Telegram Bot] Trực tiếp kích hoạt quét thị trường...[/bold yellow]")
-                        fetch_and_display_with_retry()
+                        asyncio.create_task(fetch_and_display_with_retry())
                     telegram_command_queue.task_done()
             except queue.Empty:
                 pass
 
             schedule.run_pending()
-            time.sleep(1)  # Giảm sleep xuống 1s để kích hoạt đúng giờ chính xác hơn
+            await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            raise
         except KeyboardInterrupt:
             raise  # Truyền lên để main() xử lý
         except Exception as exc:
@@ -379,11 +413,11 @@ def run_scheduler():
                 f"\n[bold red][{timestamp}] Scheduler crash: {exc}[/bold red]\n"
                 f"[dim]Restart scheduler sau {SCHEDULER_RESTART_WAIT}s...[/dim]\n"
             )
-            time.sleep(SCHEDULER_RESTART_WAIT)
+            await asyncio.sleep(SCHEDULER_RESTART_WAIT)
             # Tiếp tục vòng lặp while → tự restart
 
 
-def main():
+async def async_main():
     parser = argparse.ArgumentParser(
         description="Multi-coin OHLCV Scraper & Analyzer"
     )
@@ -408,7 +442,7 @@ def main():
             coins=COINS,
             on_candle_close=None,  # event-driven callback tùy chọn (hiện không bắt buộc)
         )
-        _ws_manager.bootstrap_rest()   # Load 210 nến lịch sử qua REST
+        await _ws_manager.bootstrap_rest()   # Load 210 nến lịch sử qua REST
         if not args.once:
             _ws_manager.connect()      # Bắt đầu WS thread nền
             console.print("[bold cyan]  [WebSocket] Binance Combined Stream đã kết nối.[/bold cyan]\n")
@@ -468,17 +502,17 @@ def main():
         focused_minutes = [(m + 1) % 60 for m in range(0, 60, 5) if (m + 1) % 60 not in general_minutes]
         
         for m in general_minutes:
-            schedule.every().hour.at(f":{m:02d}").do(fetch_and_display_with_retry)
+            schedule.every().hour.at(f":{m:02d}").do(lambda: asyncio.create_task(fetch_and_display_with_retry()))
             
         for m in focused_minutes:
-            schedule.every().hour.at(f":{m:02d}").do(fetch_and_analyze_open_positions_only_with_retry)
+            schedule.every().hour.at(f":{m:02d}").do(lambda: asyncio.create_task(fetch_and_analyze_open_positions_only_with_retry()))
 
         # ── WebSocket Watchdog (fallback guard) ───────────────────────────────
         def ws_watchdog():
-            """Kiểm tra WS health mỗi 20 phút. Nếu unhealthy → chạy REST fetch ngay."""
+            """Kiểm tra WS health mỗi 20 phút. Nếu unhealthy → chạy REST fallback ngay."""
             if _ws_manager is not None and not _ws_manager.check_health():
                 console.print("[bold yellow]  [WS Watchdog] WS không healthy → chạy REST fallback ngay.[/bold yellow]")
-                fetch_and_display_with_retry()
+                asyncio.create_task(fetch_and_display_with_retry())
 
         schedule.every(20).minutes.do(ws_watchdog)
         # ─────────────────────────────────────────────────────────────────────
@@ -606,7 +640,7 @@ def main():
     worker.start()
 
     # Lấy dữ liệu ngay lập tức (cũng có retry)
-    fetch_and_display_with_retry()
+    await fetch_and_display_with_retry()
 
     if args.once:
         # Nếu chỉ chạy 1 lần, đợi hàng đợi AI hoàn thành trước khi thoát
@@ -620,10 +654,16 @@ def main():
     listener.start()
 
     try:
-        run_scheduler()
+        await run_scheduler()
     except KeyboardInterrupt:
         console.print("\n[bold red]Đã dừng.[/bold red]")
 
+
+def main():
+    try:
+        asyncio.run(async_main())
+    except KeyboardInterrupt:
+        console.print("\n[bold red]Đã dừng.[/bold red]")
 
 if __name__ == "__main__":
     main()

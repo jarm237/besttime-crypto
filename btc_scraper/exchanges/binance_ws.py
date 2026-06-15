@@ -114,29 +114,39 @@ class BinanceWebSocketManager:
 
     # ── Bootstrap ─────────────────────────────────────────────────────────────
 
-    def bootstrap_rest(self) -> None:
+    async def bootstrap_rest(self) -> None:
         """
-        Load lịch sử OHLCV qua REST API trước khi WS kết nối.
+        Load lịch sử OHLCV qua REST API trước khi WS kết nối (song song).
         Đảm bảo CandleStore có đủ 210 nến để tính SMA200.
         """
+        import asyncio
+        import aiohttp
+        
         print(f"  [WS] Bootstrap REST: {len(self.coins)} coins × {len(self.intervals)} intervals...", flush=True)
-        for coin in self.coins:
-            for interval in self.intervals:
-                limit = MTF_LIMIT_MAP.get(interval, 50)
-                try:
-                    if interval == "15m":
-                        candles = fetch_ohlcv(coin)
-                    else:
-                        candles = fetch_ohlcv_tf(coin, interval, limit)
+        
+        async def fetch_for_coin_interval(coin, interval, session):
+            limit = MTF_LIMIT_MAP.get(interval, 50)
+            try:
+                if interval == "15m":
+                    candles = await fetch_ohlcv(coin, session)
+                else:
+                    candles = await fetch_ohlcv_tf(coin, interval, limit, session)
 
-                    if candles and "error" not in candles[0]:
-                        self.store.seed(coin, interval, candles)
-                        print(f"    ✓ {coin}/{interval}: {len(candles)} nến loaded", flush=True)
-                    else:
-                        err = candles[0].get("error", "unknown") if candles else "no data"
-                        print(f"    ✗ {coin}/{interval}: REST error — {err}", flush=True)
-                except Exception as e:
-                    print(f"    ✗ {coin}/{interval}: Exception — {e}", flush=True)
+                if candles and "error" not in candles[0]:
+                    self.store.seed(coin, interval, candles)
+                    print(f"    ✓ {coin}/{interval}: {len(candles)} nến loaded", flush=True)
+                else:
+                    err = candles[0].get("error", "unknown") if candles else "no data"
+                    print(f"    ✗ {coin}/{interval}: REST error — {err}", flush=True)
+            except Exception as e:
+                print(f"    ✗ {coin}/{interval}: Exception — {e}", flush=True)
+
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for coin in self.coins:
+                for interval in self.intervals:
+                    tasks.append(fetch_for_coin_interval(coin, interval, session))
+            await asyncio.gather(*tasks)
 
         self._bootstrapped = True
         print("  [WS] Bootstrap hoàn tất.\n", flush=True)

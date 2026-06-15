@@ -370,7 +370,7 @@ class AutoTrader:
 
     # ─── Core: Evaluate & Trade ─────────────────────────────────────────────────
 
-    def evaluate_and_trade(self, analysis: Dict[str, Any]) -> List[Dict]:
+    async def evaluate_and_trade(self, analysis: Dict[str, Any]) -> List[Dict]:
         """
         Entry point chính. Gọi sau mỗi cycle fetch_and_display().
 
@@ -384,7 +384,7 @@ class AutoTrader:
 
         for key, ana in analysis.items():
             try:
-                result = self._process_signal(key, ana)
+                result = await self._process_signal(key, ana)
                 if result:
                     placed.append(result)
             except Exception as e:
@@ -398,7 +398,7 @@ class AutoTrader:
 
         return placed
 
-    def _process_signal(self, key: str, ana: Dict) -> Optional[Dict]:
+    async def _process_signal(self, key: str, ana: Dict) -> Optional[Dict]:
         """Xử lý một signal từ một coin."""
         coin = key.split(":")[0].upper()
         sig_score = ana.get("signal_score") or {}
@@ -440,7 +440,7 @@ class AutoTrader:
             # Thử lấy balance thực từ exchange
             client = self._get_client()
             if not self.dry_run:
-                real_balance = client.get_usdt_balance()
+                real_balance = await client.get_usdt_balance()
             else:
                 real_balance = self.account_usdt
         except Exception:
@@ -490,9 +490,9 @@ class AutoTrader:
 
         try:
             if order_side == "buy":
-                order = self._get_client().create_market_buy(symbol, usdt_amount)
+                order = await self._get_client().create_market_buy(symbol, usdt_amount)
             else:
-                order = self._get_client().create_market_sell(symbol, usdt_amount)
+                order = await self._get_client().create_market_sell(symbol, usdt_amount)
 
             log_entry["order_id"] = order.get("id")
             log_entry["status"] = order.get("status", "placed")

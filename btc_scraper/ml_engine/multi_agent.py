@@ -210,13 +210,13 @@ class ExecutionAgent(BaseAgent):
     def __init__(self):
         super().__init__("Execution")
 
-    def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
         
         # 1. Chạy Auto Trader (CCXT)
         try:
             from btc_scraper.trading.auto_trader import auto_trader
-            auto_trader.evaluate_and_trade(analysis)
+            await auto_trader.evaluate_and_trade(analysis)
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")
             
@@ -254,7 +254,7 @@ class AgentOrchestrator:
         self.rl_exit = RLExitAgent()
         self.execution = ExecutionAgent()
 
-    def run_cycle(
+    async def run_cycle(
         self,
         raw_candles_dict: Dict[str, List[Dict]],
         mtf_candles_dict: Dict[str, Dict[str, List[Dict]]]
@@ -274,6 +274,6 @@ class AgentOrchestrator:
         context = self.risk_manager.run(context)
         context = self.portfolio_manager.run(context)
         context = self.rl_exit.run(context)
-        context = self.execution.run(context)
+        context = await self.execution.run(context)
         
         return context

@@ -1,14 +1,8 @@
-"""
-Binance Public API - Lấy dữ liệu nến OHLCV đa coin
-Endpoint: GET /api/v3/klines
-Hỗ trợ đa khung thời gian: 15m, 1h, 4h, 1d
-"""
-
-import requests
+import aiohttp
+import asyncio
 from datetime import datetime
 from btc_scraper.core.config import INTERVAL, LIMIT
 
-# Re-export LIMIT so binance_ws.py can import it without circular dep
 __all__ = ["fetch_ohlcv", "fetch_ohlcv_tf", "fetch_ohlcv_multi_tf", "get_ws_stream_names", "LIMIT", "MTF_INTERVALS"]
 
 # Cấu hình số nến cho từng khung thời gian cao hơn
@@ -21,7 +15,7 @@ MTF_INTERVALS = {
 BASE_URL = "https://api.binance.com"
 
 
-def fetch_ohlcv(coin: str) -> list[dict]:
+async def fetch_ohlcv(coin: str, session: aiohttp.ClientSession = None) -> list[dict]:
     """
     Lấy dữ liệu nến OHLCV từ Binance cho một coin cụ thể.
     Trả về danh sách dict với các trường: time, open, high, low, close, volume.
@@ -33,26 +27,33 @@ def fetch_ohlcv(coin: str) -> list[dict]:
         "interval": INTERVAL,
         "limit": LIMIT,
     }
+    
+    async def _fetch(sess):
+        async with sess.get(url, params=params, timeout=10) as resp:
+            resp.raise_for_status()
+            raw = await resp.json()
+            candles = []
+            for k in raw:
+                candles.append({
+                    "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
+                    "open":   float(k[1]),
+                    "high":   float(k[2]),
+                    "low":    float(k[3]),
+                    "close":  float(k[4]),
+                    "volume": float(k[5]),
+                })
+            return candles
+
     try:
-        resp = requests.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        raw = resp.json()
-        candles = []
-        for k in raw:
-            candles.append({
-                "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
-                "open":   float(k[1]),
-                "high":   float(k[2]),
-                "low":    float(k[3]),
-                "close":  float(k[4]),
-                "volume": float(k[5]),
-            })
-        return candles
+        if session is None:
+            async with aiohttp.ClientSession() as sess:
+                return await _fetch(sess)
+        return await _fetch(session)
     except Exception as e:
         return [{"error": str(e)}]
 
 
-def fetch_ohlcv_tf(coin: str, interval: str, limit: int) -> list[dict]:
+async def fetch_ohlcv_tf(coin: str, interval: str, limit: int, session: aiohttp.ClientSession = None) -> list[dict]:
     """
     Lấy dữ liệu nến OHLCV từ Binance cho một coin và một khung thời gian cụ thể.
     """
@@ -63,34 +64,53 @@ def fetch_ohlcv_tf(coin: str, interval: str, limit: int) -> list[dict]:
         "interval": interval,
         "limit": limit,
     }
+    
+    async def _fetch(sess):
+        async with sess.get(url, params=params, timeout=10) as resp:
+            resp.raise_for_status()
+            raw = await resp.json()
+            candles = []
+            for k in raw:
+                candles.append({
+                    "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
+                    "open":   float(k[1]),
+                    "high":   float(k[2]),
+                    "low":    float(k[3]),
+                    "close":  float(k[4]),
+                    "volume": float(k[5]),
+                })
+            return candles
+
     try:
-        resp = requests.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        raw = resp.json()
-        candles = []
-        for k in raw:
-            candles.append({
-                "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
-                "open":   float(k[1]),
-                "high":   float(k[2]),
-                "low":    float(k[3]),
-                "close":  float(k[4]),
-                "volume": float(k[5]),
-            })
-        return candles
+        if session is None:
+            async with aiohttp.ClientSession() as sess:
+                return await _fetch(sess)
+        return await _fetch(session)
     except Exception as e:
         return [{"error": str(e)}]
 
 
-def fetch_ohlcv_multi_tf(coin: str) -> dict[str, list[dict]]:
+async def fetch_ohlcv_multi_tf(coin: str, session: aiohttp.ClientSession = None) -> dict[str, list[dict]]:
     """
-    Lấy dữ liệu nến OHLCV từ Binance cho nhiều khung thời gian: 1h, 4h, 1d.
+    Lấy dữ liệu nến OHLCV từ Binance cho nhiều khung thời gian: 1h, 4h, 1d song song.
     Trả về dict với key là interval, value là danh sách nến.
     """
-    result = {}
-    for interval, limit in MTF_INTERVALS.items():
-        result[interval] = fetch_ohlcv_tf(coin, interval, limit)
-    return result
+    async def _fetch(sess):
+        tasks = []
+        for interval, limit in MTF_INTERVALS.items():
+            tasks.append(fetch_ohlcv_tf(coin, interval, limit, sess))
+        
+        results = await asyncio.gather(*tasks)
+        return dict(zip(MTF_INTERVALS.keys(), results))
+        
+    try:
+        if session is None:
+            async with aiohttp.ClientSession() as sess:
+                return await _fetch(sess)
+        return await _fetch(session)
+    except Exception as e:
+        # Trong trường hợp lỗi, trả về list chứa lỗi cho mỗi TF (như logic cũ)
+        return {tf: [{"error": str(e)}] for tf in MTF_INTERVALS.keys()}
 
 
 def get_ws_stream_names(coins: list[str], intervals: list[str] | None = None) -> list[str]:

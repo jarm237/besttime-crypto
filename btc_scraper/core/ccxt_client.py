@@ -10,16 +10,14 @@ Hỗ trợ:
 Sử dụng:
     from btc_scraper.core.ccxt_client import CCXTClient
     client = CCXTClient.from_env()
-    balance = client.get_usdt_balance()
-    order = client.create_market_order("BTC/USDT", "buy", 25.0)
+    balance = await client.get_usdt_balance()
+    order = await client.create_market_buy("BTC/USDT", 25.0)
 """
 from __future__ import annotations
 
 import os
 import time
 from typing import Optional, Dict, Any
-from pathlib import Path
-
 
 # ─── BINANCE TESTNET URLS ───────────────────────────────────────────────────
 BINANCE_TESTNET_URLS = {
@@ -31,7 +29,7 @@ BINANCE_TESTNET_URLS = {
 
 class CCXTClient:
     """
-    Thin wrapper quanh ccxt.binance để:
+    Thin wrapper quanh ccxt.binance (async) để:
     1. Luôn dùng testnet URL
     2. Cung cấp helper methods đơn giản
     3. Lazy-load ccxt (tránh import error nếu ccxt chưa cài)
@@ -60,15 +58,15 @@ class CCXTClient:
         return cls(api_key=api_key, api_secret=api_secret, testnet=testnet, dry_run=dry_run)
 
     def _get_exchange(self):
-        """Lazy-init ccxt.binance exchange."""
+        """Lazy-init ccxt.binance exchange async."""
         if self._exchange is not None:
             return self._exchange
 
         try:
-            import ccxt
+            import ccxt.async_support as ccxt
         except ImportError:
             raise RuntimeError(
-                "ccxt chua duoc cai. Chay: pip install ccxt"
+                "ccxt chưa được cài. Chạy: pip install ccxt"
             )
 
         exchange = ccxt.binance({
@@ -87,40 +85,44 @@ class CCXTClient:
         self._exchange = exchange
         return exchange
 
-    def ping(self) -> bool:
+    async def close(self):
+        """Đóng kết nối exchange khi không dùng nữa."""
+        if self._exchange is not None:
+            await self._exchange.close()
+
+    async def ping(self) -> bool:
         """Kiểm tra kết nối tới exchange."""
         try:
             ex = self._get_exchange()
-            ex.fetch_time()
+            await ex.fetch_time()
             return True
         except Exception:
             return False
 
-    def get_usdt_balance(self) -> float:
+    async def get_usdt_balance(self) -> float:
         """Lấy số dư USDT free trong tài khoản."""
         try:
             ex = self._get_exchange()
-            balance = ex.fetch_balance()
+            balance = await ex.fetch_balance()
             return float(balance.get("USDT", {}).get("free", 0.0))
         except Exception as e:
-            raise RuntimeError(f"Khong lay duoc balance: {e}")
+            raise RuntimeError(f"Không lấy được balance: {e}")
 
-    def get_symbol_price(self, symbol: str) -> float:
+    async def get_symbol_price(self, symbol: str) -> float:
         """Lấy giá hiện tại của symbol (VD: 'BTC/USDT')."""
         try:
             ex = self._get_exchange()
-            ticker = ex.fetch_ticker(symbol)
+            ticker = await ex.fetch_ticker(symbol)
             return float(ticker["last"] or ticker["close"] or 0.0)
         except Exception as e:
-            raise RuntimeError(f"Khong lay duoc gia {symbol}: {e}")
+            raise RuntimeError(f"Không lấy được giá {symbol}: {e}")
 
-    def get_min_order_usdt(self, symbol: str) -> float:
+    async def get_min_order_usdt(self, symbol: str) -> float:
         """Lấy minimum order size tính theo USDT (notional)."""
         try:
             ex = self._get_exchange()
-            ex.load_markets()
+            await ex.load_markets()
             market = ex.market(symbol)
-            # Binance thường yêu cầu minimum notional 10 USDT (spot)
             min_notional = (
                 market.get("limits", {})
                 .get("cost", {})
@@ -130,25 +132,15 @@ class CCXTClient:
         except Exception:
             return 10.0  # safe default
 
-    def create_market_buy(
+    async def create_market_buy(
         self,
         symbol: str,
         usdt_amount: float,
         params: Optional[Dict] = None,
     ) -> Dict[str, Any]:
-        """
-        Đặt lệnh Market BUY với số tiền USDT nhất định.
-
-        Args:
-            symbol: VD 'BTC/USDT'
-            usdt_amount: Số USDT muốn spend
-            params: Extra params cho ccxt
-
-        Returns:
-            order dict từ ccxt
-        """
+        """Đặt lệnh Market BUY."""
         if self.dry_run:
-            price = self.get_symbol_price(symbol)
+            price = await self.get_symbol_price(symbol)
             qty = usdt_amount / price if price > 0 else 0
             return {
                 "id": f"DRY-{symbol.replace('/', '')}-{int(time.time())}",
@@ -163,34 +155,27 @@ class CCXTClient:
             }
 
         ex = self._get_exchange()
-        ex.load_markets()
+        await ex.load_markets()
         market = ex.market(symbol)
 
-        # Tính qty từ USDT
-        price = self.get_symbol_price(symbol)
+        price = await self.get_symbol_price(symbol)
         if price <= 0:
-            raise RuntimeError(f"Gia {symbol} khong hop le: {price}")
+            raise RuntimeError(f"Giá {symbol} không hợp lệ: {price}")
         qty = usdt_amount / price
-
-        # Round theo precision của market
-        precision = market.get("precision", {}).get("amount", 6)
         qty = ex.amount_to_precision(symbol, qty)
 
-        order = ex.create_market_buy_order(symbol, float(qty), params=params or {})
+        order = await ex.create_market_buy_order(symbol, float(qty), params=params or {})
         return order
 
-    def create_market_sell(
+    async def create_market_sell(
         self,
         symbol: str,
         usdt_amount: float,
         params: Optional[Dict] = None,
     ) -> Dict[str, Any]:
-        """
-        Đặt lệnh Market SELL với số tiền USDT nhất định.
-        Tính qty từ usdt_amount và giá hiện tại.
-        """
+        """Đặt lệnh Market SELL."""
         if self.dry_run:
-            price = self.get_symbol_price(symbol)
+            price = await self.get_symbol_price(symbol)
             qty = usdt_amount / price if price > 0 else 0
             return {
                 "id": f"DRY-{symbol.replace('/', '')}-{int(time.time())}",
@@ -205,37 +190,35 @@ class CCXTClient:
             }
 
         ex = self._get_exchange()
-        ex.load_markets()
+        await ex.load_markets()
 
-        price = self.get_symbol_price(symbol)
+        price = await self.get_symbol_price(symbol)
         if price <= 0:
-            raise RuntimeError(f"Gia {symbol} khong hop le: {price}")
+            raise RuntimeError(f"Giá {symbol} không hợp lệ: {price}")
         qty = usdt_amount / price
         qty = ex.amount_to_precision(symbol, qty)
 
-        order = ex.create_market_sell_order(symbol, float(qty), params=params or {})
+        order = await ex.create_market_sell_order(symbol, float(qty), params=params or {})
         return order
 
-    def fetch_order_status(self, order_id: str, symbol: str) -> str:
-        """
-        Lấy trạng thái lệnh: 'open', 'closed', 'canceled', 'dry_run_simulated'.
-        """
+    async def fetch_order_status(self, order_id: str, symbol: str) -> str:
+        """Lấy trạng thái lệnh."""
         if self.dry_run or str(order_id).startswith("DRY-"):
             return "dry_run_simulated"
         try:
             ex = self._get_exchange()
-            order = ex.fetch_order(order_id, symbol)
+            order = await ex.fetch_order(order_id, symbol)
             return str(order.get("status", "unknown"))
         except Exception as e:
             return f"error: {e}"
 
-    def cancel_order(self, order_id: str, symbol: str) -> bool:
-        """Hủy lệnh. Trả về True nếu thành công."""
+    async def cancel_order(self, order_id: str, symbol: str) -> bool:
+        """Hủy lệnh."""
         if self.dry_run or str(order_id).startswith("DRY-"):
             return True
         try:
             ex = self._get_exchange()
-            ex.cancel_order(order_id, symbol)
+            await ex.cancel_order(order_id, symbol)
             return True
         except Exception:
             return False
