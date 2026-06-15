@@ -432749,5 +432749,86 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "BNB",
+    "id": "387dea0c-6e66-4bee-a527-b0ac3000f7b8",
+    "entry_price": 616.09,
+    "sell_price": 612.96,
+    "pnl_pct": 0.508,
+    "result": "WIN",
+    "hold_hours": 1.9,
+    "exit_time": "2026-06-15 09:01",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.5064289927927625,
+      "meta_confidence_pct": 51,
+      "kelly_fraction": 0.005621430935581659,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.2402
+    },
+    "regime": null
+  },
+  {
+    "coin": "NEAR",
+    "id": "0ec65fab-f8eb-44b9-8ded-b59153a7a25b",
+    "entry_price": 2.234,
+    "sell_price": 2.258,
+    "pnl_pct": -1.0743,
+    "result": "LOSS",
+    "hold_hours": 1.0,
+    "exit_time": "2026-06-15 09:17",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.5998113123310432,
+      "meta_confidence_pct": 60,
+      "kelly_fraction": 0.17454752772172014,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.7847
+    },
+    "regime": null
+  },
+  {
+    "coin": "AR",
+    "id": "2c3ddc52-e0af-45e9-8f95-01014c8f7c71",
+    "entry_price": 2.06,
+    "sell_price": 2.093,
+    "pnl_pct": -1.6019,
+    "result": "LOSS",
+    "hold_hours": 3.8,
+    "exit_time": "2026-06-15 09:51",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.37287452947646593,
+      "meta_confidence_pct": 37,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

@@ -19,3 +19,4 @@ catboost
 optuna
 scipy
 
+stable-baselines3

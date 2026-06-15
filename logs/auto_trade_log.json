@@ -416,5 +416,77 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 24.0h",
     "entry_price": 0.32
+  },
+  {
+    "timestamp": "2026-06-15T08:13:13.637156",
+    "timestamp_str": "2026-06-15 08:13:13",
+    "mode": "TESTNET",
+    "coin": "SOL",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4453,
+    "signal_score": 31,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 23.7h",
+    "entry_price": 70.94
+  },
+  {
+    "timestamp": "2026-06-15T08:13:13.637777",
+    "timestamp_str": "2026-06-15 08:13:13",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.6059,
+    "signal_score": 60,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 23.7h",
+    "entry_price": 2.239
+  },
+  {
+    "timestamp": "2026-06-15T08:16:37.406124",
+    "timestamp_str": "2026-06-15 08:16:37",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.7387,
+    "signal_score": 56,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 23.7h",
+    "entry_price": 2.239
+  },
+  {
+    "timestamp": "2026-06-15T08:16:37.406873",
+    "timestamp_str": "2026-06-15 08:16:37",
+    "mode": "TESTNET",
+    "coin": "XAUT",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.653,
+    "signal_score": 39,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 23.7h",
+    "entry_price": 4274.83
+  },
+  {
+    "timestamp": "2026-06-15T08:46:37.447261",
+    "timestamp_str": "2026-06-15 08:46:37",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.6113,
+    "signal_score": 49,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 23.2h",
+    "entry_price": 2.238
+  },
+  {
+    "timestamp": "2026-06-15T09:01:47.417894",
+    "timestamp_str": "2026-06-15 09:01:47",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.6016,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 22.9h",
+    "entry_price": 2.24
   }
 ]
