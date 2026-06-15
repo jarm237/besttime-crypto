@@ -432911,5 +432911,59 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "AVAX",
+    "id": "881431ec-3072-4077-a90c-8963fc4623fb",
+    "entry_price": 6.75,
+    "sell_price": 6.843,
+    "pnl_pct": -1.3778,
+    "result": "LOSS",
+    "hold_hours": 10.2,
+    "exit_time": "2026-06-15 18:06",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.3844022735981972,
+      "meta_confidence_pct": 38,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
+  },
+  {
+    "coin": "DOGE",
+    "id": "26cfd40e-112f-43a2-80fc-fe2c6a13680c",
+    "entry_price": 0.08834,
+    "sell_price": 0.08932,
+    "pnl_pct": -1.1094,
+    "result": "LOSS",
+    "hold_hours": 12.2,
+    "exit_time": "2026-06-15 18:11",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.370506489303748,
+      "meta_confidence_pct": 37,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]
