@@ -4,8 +4,12 @@ from btc_scraper.core.filters import atr_shock_filter
 from btc_scraper.ml_engine.signal_score import score_signal
 from btc_scraper.regime.market_regime import regime_from_values
 from .indicators import *
-from .structure import *
-
+from .structure import (
+    _calculate_obv, _calculate_cmf, _calculate_mfi, _calculate_slope,
+    _calculate_realized_volatility, _lookback_return, _percentile_rank,
+    _structure_flags, is_bullish_sfp, is_bearish_sfp, is_trend_following_allowed,
+    wick_ratios, calculate_smc_structure
+)
 REGIME_MULTIPLIERS_MAP = {
     "STRONG_TREND_BULL": {"tp_scale": 1.2, "sl_scale": 0.8},
     "STRONG_TREND_BEAR": {"tp_scale": 1.2, "sl_scale": 0.8},
@@ -241,6 +245,11 @@ def analyze_market(candles: list[dict]) -> dict:
     obv_list = _calculate_obv(candles)
     cmf_list = _calculate_cmf(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=20)
     mfi_list = _calculate_mfi(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=14)
+    roc_14_list = calculate_roc(close_prices, 14)
+    roc_50_list = calculate_roc(close_prices, 50)
+    hv20_list = calculate_hv(close_prices, 20)
+    hv60_list = calculate_hv(close_prices, 60)
+    bos_bull_list, bos_bear_list, choch_bull_list, choch_bear_list = calculate_smc_structure(candles)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     sentiment_data = get_market_sentiment()
     sentiment_score = sentiment_data["score"]
@@ -297,6 +306,14 @@ def analyze_market(candles: list[dict]) -> dict:
         c["ema21_slope"] = _calculate_slope(ema21_list, i, 4)
         c["sma50_slope"] = _calculate_slope(sma50_list, i, 8)
         c["sma200_slope"] = _calculate_slope(sma200_list, i, 16)
+        c["roc_14"] = roc_14_list[i]
+        c["roc_50"] = roc_50_list[i]
+        c["hv20"] = hv20_list[i]
+        c["hv60"] = hv60_list[i]
+        c["bos_bull"] = bos_bull_list[i]
+        c["bos_bear"] = bos_bear_list[i]
+        c["choch_bull"] = choch_bull_list[i]
+        c["choch_bear"] = choch_bear_list[i]
         
         current_high = c["high"]
         current_low = c["low"]
@@ -565,6 +582,14 @@ def analyze_market(candles: list[dict]) -> dict:
                 "market_structure_break": c["market_structure_break"],
                 "volume_acceleration": c["volume_acceleration"],
                 "volume_percentile": c["volume_percentile"],
+                "roc_14": c["roc_14"],
+                "roc_50": c["roc_50"],
+                "hv20": c["hv20"],
+                "hv60": c["hv60"],
+                "bos_bull": c["bos_bull"],
+                "bos_bear": c["bos_bear"],
+                "choch_bull": c["choch_bull"],
+                "choch_bear": c["choch_bear"],
             }
             context = {
                 "chandelier": chandelier_state,
@@ -793,6 +818,11 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
     obv_list = _calculate_obv(candles)
     cmf_list = _calculate_cmf(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=20)
     mfi_list = _calculate_mfi(highs, lows, close_prices, [c.get("volume", 0.0) for c in candles], period=14)
+    roc_14_list = calculate_roc(close_prices, 14)
+    roc_50_list = calculate_roc(close_prices, 50)
+    hv20_list = calculate_hv(close_prices, 20)
+    hv60_list = calculate_hv(close_prices, 60)
+    bos_bull_list, bos_bear_list, choch_bull_list, choch_bear_list = calculate_smc_structure(candles)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     # Global market sentiment (reused for all coins / candles in this historical run)
     sentiment_data = get_market_sentiment()
@@ -836,6 +866,14 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
         candles[i]["ema21_slope"] = _calculate_slope(ema21_list, i, 4)
         candles[i]["sma50_slope"] = _calculate_slope(sma50_list, i, 8)
         candles[i]["sma200_slope"] = _calculate_slope(sma200_list, i, 16)
+        candles[i]["roc_14"] = roc_14_list[i]
+        candles[i]["roc_50"] = roc_50_list[i]
+        candles[i]["hv20"] = hv20_list[i]
+        candles[i]["hv60"] = hv60_list[i]
+        candles[i]["bos_bull"] = bos_bull_list[i]
+        candles[i]["bos_bear"] = bos_bear_list[i]
+        candles[i]["choch_bull"] = choch_bull_list[i]
+        candles[i]["choch_bear"] = choch_bear_list[i]
         current_close = close_prices[i]
         current_high = candles[i]["high"]
         current_low = candles[i]["low"]
@@ -1240,6 +1278,14 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             "market_structure_break": candles[i]["market_structure_break"],
             "volume_acceleration": candles[i]["volume_acceleration"],
             "volume_percentile": candles[i]["volume_percentile"],
+            "roc_14": candles[i]["roc_14"],
+            "roc_50": candles[i]["roc_50"],
+            "hv20": candles[i]["hv20"],
+            "hv60": candles[i]["hv60"],
+            "bos_bull": candles[i]["bos_bull"],
+            "bos_bear": candles[i]["bos_bear"],
+            "choch_bull": candles[i]["choch_bull"],
+            "choch_bear": candles[i]["choch_bear"],
             "signal_score": sig_score_obj,
         })
 

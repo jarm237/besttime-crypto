@@ -317,3 +317,30 @@ def calculate_choppiness_index(highs: list[float], lows: list[float], closes: li
             result[i] = 100.0 * math.log10(tr_total / dist) / math.log10(period)
     return result
 
+
+def calculate_roc(prices: list[float], period: int) -> list[float]:
+    """Calculate Rate of Change (Momentum)"""
+    n = len(prices)
+    result = [0.0] * n
+    for i in range(period, n):
+        if prices[i - period] > 0:
+            result[i] = (prices[i] / prices[i - period] - 1.0) * 100.0
+    return result
+
+
+def calculate_hv(prices: list[float], period: int, periods_per_year: int = 35040) -> list[float]:
+    """Calculate Annualized Historical Volatility"""
+    n = len(prices)
+    result = [0.0] * n
+    log_returns = [0.0] * n
+    for i in range(1, n):
+        if prices[i-1] > 0:
+            log_returns[i] = math.log(prices[i] / prices[i-1])
+            
+    annualization_factor = math.sqrt(periods_per_year)
+    for i in range(period, n):
+        window = log_returns[i - period + 1 : i + 1]
+        mean = sum(window) / period
+        variance = sum((x - mean)**2 for x in window) / (period - 1) if period > 1 else 0.0
+        result[i] = math.sqrt(variance) * annualization_factor * 100.0 # percentage
+    return result

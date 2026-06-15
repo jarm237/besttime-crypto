@@ -193,3 +193,74 @@ def wick_ratios(open_price: float, high: float, low: float, close_price: float) 
     upper_wick = max(high - body_top, 0.0)
     return lower_wick / full_range, upper_wick / full_range
 
+
+def calculate_smc_structure(candles: list[dict], swing_length: int = 5) -> tuple[list[float], list[float], list[float], list[float]]:
+    """
+    Tính toán BOS và CHOCH chặt chẽ theo Smart Money Concepts (Strict SMC).
+    Trả về 4 list: bos_bull, bos_bear, choch_bull, choch_bear (0.0 hoac 1.0)
+    """
+    n = len(candles)
+    bos_bull = [0.0] * n
+    bos_bear = [0.0] * n
+    choch_bull = [0.0] * n
+    choch_bear = [0.0] * n
+
+    if n < swing_length * 2 + 1:
+        return bos_bull, bos_bear, choch_bull, choch_bear
+
+    highs = [c["high"] for c in candles]
+    lows = [c["low"] for c in candles]
+    closes = [c["close"] for c in candles]
+
+    # Lưu trữ index của Swing gần nhất
+    last_swing_high_idx = -1
+    last_swing_low_idx = -1
+    
+    # Trend: 1 (Bullish), -1 (Bearish), 0 (Neutral)
+    current_trend = 0
+
+    for i in range(swing_length * 2, n):
+        # Kiểm tra xem nến ở i - swing_length có phải là Swing High không
+        # Nó phải cao hơn swing_length nến trước và swing_length nến sau
+        check_idx = i - swing_length
+        is_swing_high = True
+        is_swing_low = True
+        
+        check_high = highs[check_idx]
+        check_low = lows[check_idx]
+        
+        for j in range(check_idx - swing_length, check_idx + swing_length + 1):
+            if j == check_idx: continue
+            if highs[j] >= check_high:
+                is_swing_high = False
+            if lows[j] <= check_low:
+                is_swing_low = False
+                
+        if is_swing_high:
+            last_swing_high_idx = check_idx
+            
+        if is_swing_low:
+            last_swing_low_idx = check_idx
+
+        # Tại nến i hiện tại, giá đóng cửa có phá vỡ mốc nào không?
+        current_close = closes[i]
+        
+        if last_swing_high_idx != -1 and current_close > highs[last_swing_high_idx]:
+            last_swing_high_idx = -1 # Đã phá vỡ, reset mốc
+            if current_trend == 1 or current_trend == 0:
+                bos_bull[i] = 1.0
+                current_trend = 1
+            elif current_trend == -1:
+                choch_bull[i] = 1.0
+                current_trend = 1
+                
+        if last_swing_low_idx != -1 and current_close < lows[last_swing_low_idx]:
+            last_swing_low_idx = -1
+            if current_trend == -1 or current_trend == 0:
+                bos_bear[i] = 1.0
+                current_trend = -1
+            elif current_trend == 1:
+                choch_bear[i] = 1.0
+                current_trend = -1
+
+    return bos_bull, bos_bear, choch_bull, choch_bear

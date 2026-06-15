@@ -166,6 +166,14 @@ class AutoTrader:
         from btc_scraper.core.config import COINS
         return _env_list("AUTO_TRADE_COINS", list(COINS))
 
+    @property
+    def use_kelly(self) -> bool:
+        return _env_bool("AUTO_TRADE_USE_KELLY", True)
+
+    @property
+    def kelly_fraction(self) -> float:
+        return _env_float("AUTO_TRADE_KELLY_FRACTION", 0.5)
+
     def _get_client(self):
         """Lazy-init CCXTClient."""
         if self._client is None:
@@ -250,6 +258,8 @@ class AutoTrader:
         sl_price: float,
         current_balance: Optional[float] = None,
         multiplier: float = 1.0,
+        win_prob: Optional[float] = None,
+        rr_ratio: Optional[float] = None,
     ) -> float:
         """
         Tính position size dựa trên fixed fractional risk (2% mặc định) nhân với setup multiplier (Kelly/Regime).
@@ -266,14 +276,25 @@ class AutoTrader:
             sl_price: Giá stop-loss
             current_balance: Balance thực tế (nếu None, dùng AUTO_TRADE_ACCOUNT_USDT)
             multiplier: Hệ số nhân điều chỉnh rủi ro của setup (Kelly fraction, market regime)
+            win_prob: Xác suất thắng dự kiến (từ meta_confidence)
+            rr_ratio: Reward-to-Risk ratio (từ tp_sl dict)
 
         Returns:
-            Số USDT để invest vào lệnh này
+            Số USDT để invest vào lệnh này, hoặc 0.0 nếu rủi ro không đạt yêu cầu.
         """
         balance = current_balance if current_balance and current_balance > 0 else self.account_usdt
         
-        # Scale risk_pct dynamically by the setup multiplier (Kelly sizing / market regime)
+        # Dynamic Risk Management with Kelly Criterion
         adjusted_risk_pct = self.risk_pct * max(0.01, min(1.0, multiplier))
+        if self.use_kelly and win_prob is not None and rr_ratio is not None and rr_ratio > 0:
+            kelly_f = win_prob - (1.0 - win_prob) / rr_ratio
+            if kelly_f <= 0:
+                return 0.0  # Từ chối lệnh vì kỳ vọng âm
+            
+            kelly_risk_pct = kelly_f * self.kelly_fraction * 100.0
+            # Giới hạn max risk là adjusted_risk_pct (ví dụ 2%)
+            adjusted_risk_pct = min(kelly_risk_pct, adjusted_risk_pct)
+
         risk_usdt = balance * adjusted_risk_pct / 100.0  # VD: 500 * (2% * 0.5) = 5 USDT risk
 
         if entry_price <= 0 or sl_price <= 0:
@@ -425,12 +446,21 @@ class AutoTrader:
         except Exception:
             real_balance = self.account_usdt
 
+        rr_ratio = float(tp_sl.get("rr1", 0.0))
+
         usdt_amount = self.compute_position_size(
             entry_price=float(entry_price),
             sl_price=float(sl_price),
             current_balance=real_balance,
             multiplier=float(sig_score.get("position_size", 1.0)),
+            win_prob=float(meta_prob),
+            rr_ratio=rr_ratio,
         )
+
+        if usdt_amount <= 0:
+            log_entry = self._build_skip_log(coin, signal, meta_prob, score, "Kelly Fraction <= 0 (Ky vong am)", ana)
+            _append_log(log_entry)
+            return log_entry
 
         # Đặt lệnh
         symbol = f"{coin}/USDT"

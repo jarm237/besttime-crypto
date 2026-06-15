@@ -1178,5 +1178,61 @@
     "signal_raw": "NEUTRAL (BULLISH)",
     "signal_score": {},
     "confidence": null
+  },
+  {
+    "coin": "TRB",
+    "id": "dba978e3-560d-49e7-8427-32684318092c",
+    "entry_time": "2026-06-15 07:16",
+    "exit_time": "2026-06-15 11:36",
+    "entry_price": 13.92,
+    "exit_price": 13.84,
+    "pnl_pct": 0.5747,
+    "result": "WIN",
+    "hold_hours": 4.3,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 38,
+      "confidence": "LOW",
+      "position_size": 0.34,
+      "raw_text": "STRONG SELL (Confirmed Reversal)",
+      "meta_confidence": 0.4092584527074155,
+      "meta_confidence_pct": 41,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.4704,
+      "std_dev_pct": 1.3601
+    },
+    "confidence": 0.4092584527074155
+  },
+  {
+    "coin": "XLM",
+    "id": "98a58503-3b25-4f55-ba66-9aede1ccb218",
+    "entry_time": "2026-06-15 07:57",
+    "exit_time": "2026-06-15 11:56",
+    "entry_price": 0.1893,
+    "exit_price": 0.1879,
+    "pnl_pct": 0.7396,
+    "result": "WIN",
+    "hold_hours": 4.0,
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 56,
+      "confidence": "LOW",
+      "position_size": 0.32,
+      "raw_text": "STRONG SELL (Confirmed Reversal)",
+      "meta_confidence": 0.4843850641051214,
+      "meta_confidence_pct": 48,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.1233,
+      "std_dev_pct": 1.7804
+    },
+    "confidence": 0.4843850641051214
   }
 ]

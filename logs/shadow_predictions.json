@@ -703,5 +703,35 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "XPLUSDT_1781499703",
+    "symbol": "XPLUSDT",
+    "timestamp": 1781499703.5067236,
+    "timestamp_str": "2026-06-15 12:01:43",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.4265,
+    "signal_score": 30,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "ENAUSDT_1781501503",
+    "symbol": "ENAUSDT",
+    "timestamp": 1781501503.2854285,
+    "timestamp_str": "2026-06-15 12:31:43",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3638,
+    "signal_score": 33,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

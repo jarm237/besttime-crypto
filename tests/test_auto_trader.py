@@ -73,7 +73,30 @@ def test_compute_position_size():
     size = trader.compute_position_size(100.0, 50.0, current_balance=500.0, multiplier=0.5)
     assert size == 10.0
 
-def test_circuit_breaker():
+    # Test Kelly logic
+    # win_prob = 0.6, rr_ratio = 1.5 -> f* = 0.6 - 0.4/1.5 = 0.6 - 0.2667 = 0.3333
+    # kelly_fraction = 0.5 -> kelly_risk_pct = 0.3333 * 0.5 * 100 = 16.66%
+    # But max risk is adjusted_risk_pct (default 2% * multiplier 1.0 = 2.0%)
+    # So risk_usdt = 500 * 2.0% = 10 USDT
+    size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.6, rr_ratio=1.5)
+    assert size == 100.0  # (10 USDT / 0.02) = 500 capped to 100
+    
+    # Test Negative Kelly (win_prob = 0.4, rr_ratio = 1.0 -> f* = 0.4 - 0.6/1.0 = -0.2 <= 0)
+    # size should be 0.0
+    size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.4, rr_ratio=1.0)
+    assert size == 0.0
+
+    # Test Low Kelly bounded by risk_pct
+    # win_prob = 0.51, rr_ratio = 1.0 -> f* = 0.51 - 0.49/1.0 = 0.02
+    # kelly_fraction = 0.5 -> kelly_risk_pct = 0.01 * 100 = 1.0%
+    # adjusted_risk_pct becomes 1.0%
+    # risk_usdt = 500 * 1.0% = 5 USDT
+    # position_usdt = 5 / 0.02 = 250 capped to 100 USDT
+    size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.51, rr_ratio=1.0)
+    assert size == 100.0
+
+def test_circuit_breaker(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_CIRCUIT_BREAKER_N", "5")
     trader = AutoTrader()
     
     # Backup original circuit state if any

@@ -133,7 +133,7 @@ def run_continuous_learning():
 
     all_records = []
 
-    for coin in COINS:
+    def process_coin(coin):
         print(f"  [+] Đang xử lý {coin}...")
         mtf_candles = {}
         for tf, conf in INTERVALS.items():
@@ -143,7 +143,7 @@ def run_continuous_learning():
 
         candles_15m = mtf_candles.get("15m", [])
         if len(candles_15m) < WARMUP_CANDLES:
-            continue
+            return []
 
         # MTF for 1h, 4h, 1d (used by generate_labeled_trades for time-aligned MTF)
         mtf = {tf: mtf_candles[tf] for tf in ["1h", "4h", "1d"]}
@@ -155,8 +155,15 @@ def run_continuous_learning():
         else:
             records, n_unclosed = result, 0
 
-        print(f"      {len(records)} closed trades | {n_unclosed} unclosed")
-        all_records.extend(records)
+        print(f"      {coin}: {len(records)} closed trades | {n_unclosed} unclosed")
+        return records
+
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        results = list(executor.map(process_coin, COINS))
+    
+    for r in results:
+        all_records.extend(r)
 
     if not all_records:
         msg = "⚠️ <b>[Continuous Learning]</b> Thất bại! Không tạo được record nào từ dữ liệu 30 ngày qua."
@@ -190,28 +197,69 @@ def run_continuous_learning():
     X_train, X_holdout = X[:split_idx], X[split_idx:]
     y_train, y_holdout = y[:split_idx], y[split_idx:]
 
-    clf = RandomForestClassifier(
-        n_estimators=200,
-        max_depth=6,
-        min_samples_leaf=5,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1,
-    )
+    # 1. Feature Correlation Check
+    import pandas as pd
+    df_train = pd.DataFrame(X_train, columns=feature_names)
+    corr_matrix = df_train.corr(method="spearman").abs()
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] > 0.85)]
+    
+    selected_features = [f for f in feature_names if f not in to_drop]
+    print(f"  [Correlation] Đã loại bỏ {len(to_drop)} features nhiễu: {to_drop}")
+    
+    sel_indices = [feature_names.index(f) for f in selected_features]
+    X_train_sel = X_train[:, sel_indices]
+    X_holdout_sel = X_holdout[:, sel_indices]
+    X_sel = X[:, sel_indices]
 
-    # Time-series cross-validation (no shuffling!)
-    tscv = TimeSeriesSplit(n_splits=5)
-    cv_scores = cross_val_score(clf, X_train, y_train, cv=tscv, scoring="roc_auc")
-    cv_auc = float(cv_scores.mean())
+    # 2. Hyperparameter Tuning with Optuna
+    try:
+        import optuna
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
+        
+        def objective(trial):
+            params = {
+                "n_estimators": trial.suggest_int("n_estimators", 100, 300, step=50),
+                "max_depth": trial.suggest_int("max_depth", 3, 8),
+                "min_samples_leaf": trial.suggest_int("min_samples_leaf", 3, 10),
+                "max_features": trial.suggest_categorical("max_features", ["sqrt", "log2", None]),
+                "class_weight": "balanced",
+                "random_state": 42,
+                "n_jobs": -1,
+            }
+            model = RandomForestClassifier(**params)
+            tscv = TimeSeriesSplit(n_splits=5)
+            scores = cross_val_score(model, X_train_sel, y_train, cv=tscv, scoring="roc_auc")
+            return scores.mean()
+
+        print("  [Optuna] Bắt đầu tối ưu hóa siêu tham số (20 trials)...")
+        study = optuna.create_study(direction="maximize")
+        study.optimize(objective, n_trials=20)
+        best_params = study.best_params
+        best_params["class_weight"] = "balanced"
+        best_params["random_state"] = 42
+        best_params["n_jobs"] = -1
+        print(f"  [Optuna] Best params: {best_params}")
+        
+        clf = RandomForestClassifier(**best_params)
+        cv_auc = study.best_value
+    except ImportError:
+        print("  [Optuna] Chưa cài đặt optuna, dùng tham số mặc định.")
+        clf = RandomForestClassifier(
+            n_estimators=200, max_depth=6, min_samples_leaf=5,
+            class_weight="balanced", random_state=42, n_jobs=-1
+        )
+        tscv = TimeSeriesSplit(n_splits=5)
+        cv_auc = float(cross_val_score(clf, X_train_sel, y_train, cv=tscv, scoring="roc_auc").mean())
 
     # Train on train split
-    clf.fit(X_train, y_train)
+    clf.fit(X_train_sel, y_train)
 
     # Holdout ROC-AUC (primary drift indicator)
     holdout_auc = None
     if len(y_holdout) >= 10:
         try:
-            y_prob = clf.predict_proba(X_holdout)[:, 1]
+            y_prob = clf.predict_proba(X_holdout_sel)[:, 1]
             holdout_auc = float(roc_auc_score(y_holdout, y_prob))
         except Exception as e:
             print(f"  [Warning] Holdout evaluation failed: {e}")
@@ -239,10 +287,10 @@ def run_continuous_learning():
         msg_lines.append("❌ <b>HỦY</b> thao tác lưu đè mô hình. Hệ thống vẫn sử dụng mô hình cũ.")
     else:
         # Retrain on full dataset before saving
-        clf.fit(X, y)
-        joblib.dump({"model": clf, "features": feature_names}, MODEL_PATH)
+        clf.fit(X_sel, y)
+        joblib.dump({"model": clf, "features": selected_features}, MODEL_PATH)
         msg_lines.append(f"\n✅ Đã lưu đè mô hình thành công. Sẵn sàng cho giao dịch tuần mới!")
-        msg_lines.append(f"Schema: FEATURE_SCHEMA ({len(feature_names)} fields)")
+        msg_lines.append(f"Schema: Đã chọn {len(selected_features)}/{len(feature_names)} features")
 
     send_telegram_message("\n".join(msg_lines), parse_mode="HTML")
     print("\n  Hoàn thành Continuous Learning.")
