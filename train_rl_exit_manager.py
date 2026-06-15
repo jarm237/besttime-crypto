@@ -14,6 +14,7 @@ Usage:
 """
 
 import os
+import glob
 import json
 import argparse
 from pathlib import Path
@@ -124,6 +125,7 @@ def train_agent(
     eval_frequency: int = 10000,
     n_eval_episodes: int = 10,
     save_dir: str = "logs/rl_models",
+    no_warm_start: bool = False,
 ) -> Tuple[str, Dict]:
     """
     Train an RL agent.
@@ -136,11 +138,20 @@ def train_agent(
         eval_frequency: Eval every N steps
         n_eval_episodes: Number of eval episodes
         save_dir: Where to save models
+        no_warm_start: If True, do not load previous models
         
     Returns:
         (model_path, metrics_dict)
     """
     os.makedirs(save_dir, exist_ok=True)
+    
+    # Check for previous model (Warm-start)
+    latest_model = None
+    if not no_warm_start:
+        pattern = os.path.join(save_dir, f"rl_exit_{algorithm.lower()}_*.zip")
+        models = glob.glob(pattern)
+        if models:
+            latest_model = max(models, key=os.path.getctime)
     
     # Create environment
     env = MultiTradeExitEnv(
@@ -177,34 +188,46 @@ def train_agent(
     
     try:
         if algorithm.lower() == "ppo":
-            model = PPO(
-                "MlpPolicy",
-                env,
-                learning_rate=learning_rate,
-                n_steps=2048,
-                batch_size=64,
-                n_epochs=10,
-                verbose=1,
-            )
+            if latest_model:
+                print(f"[RL] Warm-starting PPO from {os.path.basename(latest_model)}...")
+                model = PPO.load(latest_model, env=env, custom_objects={"learning_rate": learning_rate})
+            else:
+                model = PPO(
+                    "MlpPolicy",
+                    env,
+                    learning_rate=learning_rate,
+                    n_steps=2048,
+                    batch_size=64,
+                    n_epochs=10,
+                    verbose=1,
+                )
         
         elif algorithm.lower() == "dqn":
-            model = DQN(
-                "MlpPolicy",
-                env,
-                learning_rate=learning_rate,
-                buffer_size=100000,
-                learning_starts=10000,
-                target_update_interval=10000,
-                verbose=1,
-            )
+            if latest_model:
+                print(f"[RL] Warm-starting DQN from {os.path.basename(latest_model)}...")
+                model = DQN.load(latest_model, env=env, custom_objects={"learning_rate": learning_rate})
+            else:
+                model = DQN(
+                    "MlpPolicy",
+                    env,
+                    learning_rate=learning_rate,
+                    buffer_size=100000,
+                    learning_starts=10000,
+                    target_update_interval=10000,
+                    verbose=1,
+                )
         
         elif algorithm.lower() == "a2c":
-            model = A2C(
-                "MlpPolicy",
-                env,
-                learning_rate=learning_rate,
-                verbose=1,
-            )
+            if latest_model:
+                print(f"[RL] Warm-starting A2C from {os.path.basename(latest_model)}...")
+                model = A2C.load(latest_model, env=env, custom_objects={"learning_rate": learning_rate})
+            else:
+                model = A2C(
+                    "MlpPolicy",
+                    env,
+                    learning_rate=learning_rate,
+                    verbose=1,
+                )
         
         else:
             raise ValueError(f"Unknown algorithm: {algorithm}")
@@ -321,6 +344,7 @@ def main():
     parser.add_argument("--compare", action="store_true", help="Compare trained models")
     parser.add_argument("--steps", type=int, default=100000, help="Total training steps")
     parser.add_argument("--n-trades", type=int, default=200, help="Number of trades to use")
+    parser.add_argument("--no-warm-start", action="store_true", help="Do not load previous models (train from scratch)")
     
     args = parser.parse_args()
     
@@ -346,6 +370,7 @@ def main():
                 algorithm=algo,
                 trades=trades,
                 total_timesteps=args.steps,
+                no_warm_start=args.no_warm_start,
             )
             results[algo] = metrics
         
