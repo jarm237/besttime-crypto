@@ -28,7 +28,7 @@ from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-BASE = Path(__file__).parent.parent
+BASE = Path(__file__).parent.parent.parent
 LOGS = BASE / "logs"
 INPUT = LOGS / "adaptive_signals.json"
 MODEL_OUT = LOGS / "meta_model.joblib"

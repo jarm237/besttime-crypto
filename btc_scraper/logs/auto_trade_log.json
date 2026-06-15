@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2026-06-15T14:53:26.023935",
+    "timestamp_str": "2026-06-15 14:53:26",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.7168,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 25 thua lien tiep. Reset sau 21.3h",
+    "entry_price": 2.382
+  }
+]

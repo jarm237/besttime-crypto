@@ -14,8 +14,8 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
 BASE = os.path.dirname(__file__)
-ADAPTIVE_LOG = os.path.join(BASE, "..", "logs", "adaptive_signals.json")
-ADAPTIVE_MODEL = os.path.join(BASE, "..", "logs", "adaptive_model.json")
+ADAPTIVE_LOG = os.path.join(BASE, "..", "..", "logs", "adaptive_signals.json")
+ADAPTIVE_MODEL = os.path.join(BASE, "..", "..", "logs", "adaptive_model.json")
 
 
 def _ensure_dir(path: str) -> None:
@@ -101,8 +101,15 @@ def compute_score_stats() -> Dict[str, Any]:
     noscore: List[Dict[str, Any]] = []
 
     for r in log:
-        s = r.get("signal_score") or {}
-        score = s.get("score")
+        s = r.get("signal_score")
+        
+        if isinstance(s, dict):
+            score = s.get("score")
+        elif isinstance(s, (int, float)):
+            score = float(s)
+        else:
+            score = None
+
         if score is None:
             noscore.append(r)
             continue

@@ -64,7 +64,11 @@ def add_position(
 
 def get_open_positions() -> list[dict]:
     """Trả về danh sách các vị thế đang mở."""
-    return list(positions_col.find({"status": "open"}, {"_id": 0}))
+    try:
+        return list(positions_col.find({"status": "open"}, {"_id": 0}))
+    except Exception as e:
+        print(f"Warning: Lỗi khi lấy danh sách vị thế mở từ MongoDB: {e}")
+        return []
 
 
 def close_position(coin: str, sell_price: float) -> dict:
@@ -136,10 +140,12 @@ def close_position(coin: str, sell_price: float) -> dict:
     }
 
     # Cập nhật trạng thái đóng trong MongoDB
-    positions_col.update_one({"id": pos["id"]}, {"$set": closed_data})
-
-    # Ghi vào log đóng lệnh
-    closed_positions_col.insert_one(closed_data.copy())
+    try:
+        positions_col.update_one({"id": pos["id"]}, {"$set": closed_data})
+        # Ghi vào log đóng lệnh
+        closed_positions_col.insert_one(closed_data.copy())
+    except Exception as e:
+        print(f"Warning: Lỗi khi lưu trạng thái đóng lệnh vào MongoDB: {e}")
 
     # Đồng thời lưu một copy giản lược để huấn luyện
     try:
@@ -316,20 +322,23 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         dca_opp = _evaluate_dca_opportunity(pos_list, ana, current_price, pos_meta_prob)
 
         # Cập nhật last_signal và last_price cho mọi vị thế của coin
-        positions_col.update_many(
-            {"coin": coin, "status": "open"},
-            {"$set": {
-                "last_signal": signal,
-                "last_price": current_price,
-                "last_checked": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "last_signal_score": ana.get("signal_score", {}),
-                "suggested_sl": sl,
-                "suggested_tp1": tp1,
-                "suggested_tp2": tp2,
-                "live_meta_confidence": pos_meta_prob,
-                "dca_opportunity": dca_opp,
-            }}
-        )
+        try:
+            positions_col.update_many(
+                {"coin": coin, "status": "open"},
+                {"$set": {
+                    "last_signal": signal,
+                    "last_price": current_price,
+                    "last_checked": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "last_signal_score": ana.get("signal_score", {}),
+                    "suggested_sl": sl,
+                    "suggested_tp1": tp1,
+                    "suggested_tp2": tp2,
+                    "live_meta_confidence": pos_meta_prob,
+                    "dca_opportunity": dca_opp,
+                }}
+            )
+        except Exception as e:
+            print(f"Warning: Lỗi khi cập nhật vị thế cho {coin} trên MongoDB: {e}")
 
         recommendations.append({
             "coin": coin,
@@ -509,13 +518,13 @@ def get_performance_summary(trade_type: str = "ALL") -> dict:
     losses = [t for t in closed if t.get("result") == "LOSS"]
 
     win_rate = len(wins) / total * 100 if total > 0 else 0
-    avg_win = sum(t["pnl_pct"] for t in wins) / len(wins) if wins else 0
-    avg_loss = sum(t["pnl_pct"] for t in losses) / len(losses) if losses else 0
-    total_pnl = sum(t["pnl_pct"] for t in closed)
+    avg_win = sum(t.get("pnl_pct", 0.0) for t in wins) / len(wins) if wins else 0
+    avg_loss = sum(t.get("pnl_pct", 0.0) for t in losses) / len(losses) if losses else 0
+    total_pnl = sum(t.get("pnl_pct", 0.0) for t in closed)
 
     profit_factor = (
-        abs(sum(t["pnl_pct"] for t in wins)) / abs(sum(t["pnl_pct"] for t in losses))
-        if losses and sum(t["pnl_pct"] for t in losses) != 0
+        abs(sum(t.get("pnl_pct", 0.0) for t in wins)) / abs(sum(t.get("pnl_pct", 0.0) for t in losses))
+        if losses and sum(t.get("pnl_pct", 0.0) for t in losses) != 0
         else None
     )
 
