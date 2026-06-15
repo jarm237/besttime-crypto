@@ -23,9 +23,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ['DISABLE_KELLY'] = '1'
 
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 from btc_scraper.telegram_bot import send_telegram_message
-from btc_scraper.feature_extractor import FEATURE_SCHEMA
+from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 DAYS_TO_TRAIN = 30
@@ -110,8 +110,8 @@ def run_continuous_learning():
     print("=" * 65)
 
     print("\n⏳ Đang tải chỉ số Fear & Greed Index lịch sử cho 45 ngày qua...")
-    from btc_scraper.sentiment import get_historical_sentiment_map
-    import btc_scraper.sentiment
+    from btc_scraper.core.sentiment import get_historical_sentiment_map
+    import btc_scraper.core.sentiment
     import btc_scraper.analysis as _btc_analysis
     
     sentiment_map = get_historical_sentiment_map(limit=45)

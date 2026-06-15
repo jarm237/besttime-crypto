@@ -4,7 +4,7 @@ Usage: .venv/bin/python -m btc_scraper.run_tuner_objective
 """
 import json
 import os
-from btc_scraper.tune_multipliers import _load_log, extract_records, grid_search
+from btc_scraper.regime.tune_multipliers import _load_log, extract_records, grid_search
 
 BASE = os.path.dirname(__file__)
 OUT = os.path.join(BASE, "..", "logs", "multiplier_tuning_objective.json")

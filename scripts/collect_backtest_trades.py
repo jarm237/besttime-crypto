@@ -6,7 +6,7 @@ import csv
 import os
 from backtest import run_backtest
 
-from btc_scraper import adaptive_scoring
+from btc_scraper.ml_engine import adaptive_scoring
 
 WEIGHTS = [-5, -10, -15, -20, -25, -30]
 

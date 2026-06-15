@@ -9,12 +9,12 @@ os.environ['DISABLE_KELLY'] = '1'
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from btc_scraper.analysis import analyze_market, analyze_all_market
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 from backtest_april import load_candles_csv, WARMUP_CANDLES, _is_actionable, BUY_MIN_SCORE, SELL_MAX_SCORE
 
-from btc_scraper.meta_model import load_model
-from btc_scraper.feature_extractor import build_meta_features, FEATURE_SCHEMA
-import btc_scraper.sentiment
+from btc_scraper.ml_engine.meta_model import load_model
+from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
+import btc_scraper.core.sentiment
 
 # Mock sentiment to speed up backtest
 def mock_get_market_sentiment():

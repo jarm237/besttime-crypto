@@ -19,7 +19,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 sys.path.insert(0, os.path.dirname(__file__))
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 
 # Định nghĩa danh sách các tháng cần cào dữ liệu
 MONTHS = [

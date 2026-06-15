@@ -144,7 +144,7 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
 
     try:
         # Try to use sklearn trainer if available
-        from btc_scraper.feature_extractor import records_to_dataset
+        from btc_scraper.ml_engine.feature_extractor import records_to_dataset
         import numpy as np
         from sklearn.ensemble import RandomForestClassifier
         from sklearn.model_selection import StratifiedKFold, cross_val_score

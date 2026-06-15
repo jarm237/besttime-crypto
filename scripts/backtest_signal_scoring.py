@@ -20,7 +20,7 @@ from typing import List, Dict
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from btc_scraper.analysis import analyze_all_market
-from btc_scraper.adaptive_scoring import log_trade_outcome
+from btc_scraper.ml_engine.adaptive_scoring import log_trade_outcome
 
 
 def load_csv(path: str) -> List[Dict]:

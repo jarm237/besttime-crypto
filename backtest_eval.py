@@ -101,7 +101,7 @@ def simulate_outcome(results, sig_idx: int, direction: str, sl: float, tp1: floa
 
 
 def _override_tp1_from_variant(r: dict, variant: dict) -> tuple[float, float]:
-    from btc_scraper.signal_score import extract_signal_fields
+    from btc_scraper.ml_engine.signal_score import extract_signal_fields
     sig_fields = extract_signal_fields(r)
     signal = str(r.get("signal", sig_fields.get("raw", ""))).upper()
     direction = "LONG" if "BUY" in signal else "SHORT"
@@ -158,7 +158,7 @@ def run_backtest():
         for hold in HOLDS:
             eval_results = results[:len(results) - hold]
 
-            from btc_scraper.signal_score import extract_signal_fields
+            from btc_scraper.ml_engine.signal_score import extract_signal_fields
             for i, r in enumerate(eval_results):
                         sig_fields = extract_signal_fields(r)
                         sig = r.get("signal", sig_fields.get("raw", ""))

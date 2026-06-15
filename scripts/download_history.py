@@ -8,7 +8,7 @@ from datetime import datetime
 # Đảm bảo đường dẫn import hoạt động
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 
 BASE_URL = "https://api.binance.com"
 

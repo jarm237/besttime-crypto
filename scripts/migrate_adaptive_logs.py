@@ -5,7 +5,7 @@ import sys
 # Add root project dir to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from btc_scraper.adaptive_scoring import log_trade_outcome
+from btc_scraper.ml_engine.adaptive_scoring import log_trade_outcome
 
 BASE = os.path.dirname(__file__)
 CLOSED_POSITIONS_LOG = os.path.join(BASE, "..", "logs", "closed_positions.json")

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from btc_scraper.market_regime import calculate_adx, calculate_atr, _get_col
+from btc_scraper.regime.market_regime import calculate_adx, calculate_atr, _get_col
 
 
 def _load_csv(path: str) -> pd.DataFrame:

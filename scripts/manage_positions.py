@@ -14,7 +14,7 @@ from rich.panel import Panel
 # Thêm đường dẫn project vào sys.path để import được btc_scraper
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from btc_scraper import position_tracker
+from btc_scraper.trading import position_tracker
 
 console = Console()
 

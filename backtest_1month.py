@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(__file__))
 
 from btc_scraper.analysis import analyze_market
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 INITIAL_CAPITAL    = 300.0        # USDT ban đầu

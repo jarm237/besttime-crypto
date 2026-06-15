@@ -19,7 +19,7 @@ import logging
 from datetime import datetime
 from typing import Callable, Optional
 
-from btc_scraper.candle_store import candle_store as _default_store
+from btc_scraper.core.candle_store import candle_store as _default_store
 from btc_scraper.exchanges.binance import (
     fetch_ohlcv,
     fetch_ohlcv_tf,

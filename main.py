@@ -23,12 +23,12 @@ if hasattr(sys.stderr, "reconfigure"):
 from btc_scraper.exchanges import binance, bybit, okx
 from btc_scraper.exchanges.binance import fetch_ohlcv_multi_tf
 from btc_scraper.analysis import analyze_market
-from btc_scraper.display import print_all
+from btc_scraper.ui.display import print_all
 from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations, start_telegram_listener
 from btc_scraper.ai_analyst import analyze_with_gemini
-from btc_scraper.config import COINS, FETCH_INTERVAL_MINUTES
-from btc_scraper import position_tracker
-from btc_scraper.candle_store import candle_store
+from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
+from btc_scraper.trading import position_tracker
+from btc_scraper.core.candle_store import candle_store
 from btc_scraper.exchanges.binance_ws import BinanceWebSocketManager
 
 
@@ -50,7 +50,7 @@ def _summarize_htf_trend(mtf_data: dict[str, dict]) -> str:
         info = mtf_data.get(tf)
         if not info:
             continue
-        from btc_scraper.signal_score import extract_signal_fields
+        from btc_scraper.ml_engine.signal_score import extract_signal_fields
         sig_fields = extract_signal_fields(info)
         counts[_classify_mtf_signal(info.get("signal", sig_fields.get("raw", "")))] += 1
 
@@ -138,7 +138,7 @@ def check_and_execute_auto_closes(recs: list[dict]):
     Kiểm tra và tự động đóng vị thế trên Binance Testnet nếu có khuyến nghị chốt lời/cắt lỗ.
     """
     try:
-        from btc_scraper.auto_trader import auto_trader
+        from btc_scraper.trading.auto_trader import auto_trader
         open_positions = position_tracker.get_open_positions()
         for rec in recs:
             coin = rec["coin"]
@@ -175,7 +175,7 @@ def check_and_execute_auto_closes(recs: list[dict]):
                     mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
                     if mode in ("TESTNET", "LIVE"):
                         try:
-                            from btc_scraper.ccxt_client import CCXTClient
+                            from btc_scraper.core.ccxt_client import CCXTClient
                             client = CCXTClient.from_env()
                             client.dry_run = False
                             symbol = f"{coin}/USDT"
@@ -241,7 +241,7 @@ def fetch_and_display():
             mtf_candles_dict[coin][tf] = _get_candles_for_coin(coin, tf)
 
     # Chạy hệ thống đa tác nhân điều phối (AgentOrchestrator)
-    from btc_scraper.multi_agent import AgentOrchestrator
+    from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
     orchestrator = AgentOrchestrator()
     context = orchestrator.run_cycle(raw_candles_dict, mtf_candles_dict)
 

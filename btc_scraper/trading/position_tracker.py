@@ -229,7 +229,7 @@ def close_position(coin: str, sell_price: float) -> dict:
 
     # Ghi log outcomes cho adaptive scoring (không phá lỗi nếu module không có)
     try:
-        from btc_scraper.adaptive_scoring import log_trade_outcome
+        from btc_scraper.ml_engine.adaptive_scoring import log_trade_outcome
         try:
             log_trade_outcome(closed_data)
         except Exception:
@@ -308,7 +308,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
 
         # Assume direction is the same for grouped positions (LONG/SHORT)
         direction = pos_list[0].get("direction", "LONG")
-        from btc_scraper.signal_score import extract_signal_fields
+        from btc_scraper.ml_engine.signal_score import extract_signal_fields
         sig_fields = extract_signal_fields(ana)
         signal = ana.get("signal", sig_fields.get("raw", "NEUTRAL"))
 
@@ -346,7 +346,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         # Predict success probability of the position using Meta Model
         pos_meta_prob = None
         try:
-            from btc_scraper.meta_model import predict_meta_confidence
+            from btc_scraper.ml_engine.meta_model import predict_meta_confidence
             eval_info = dict(ana)
             if direction == "LONG":
                 eval_info["signal"] = "BUY"

@@ -35,12 +35,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Disable external side-effects before importing btc_scraper modules
 os.environ['DISABLE_KELLY'] = '1'
 
-import btc_scraper.signal_score
+import btc_scraper.ml_engine.signal_score
 def mock_load_adaptive_model():
     return None
 btc_scraper.signal_score._load_adaptive_model = mock_load_adaptive_model
 
-import btc_scraper.sentiment
+import btc_scraper.core.sentiment
 import btc_scraper.analysis as _btc_analysis
 
 HISTORICAL_SENTIMENT_MAP = {}
@@ -60,8 +60,8 @@ btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
 _btc_analysis.get_market_sentiment = mock_get_market_sentiment
 
 from btc_scraper.analysis import analyze_market, analyze_all_market
-from btc_scraper.config import COINS
-from btc_scraper.feature_extractor import build_meta_features, FEATURE_SCHEMA
+from btc_scraper.core.config import COINS
+from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 DATA_DIR      = os.path.join(os.path.dirname(__file__), "data")
@@ -470,7 +470,7 @@ def main():
     print("=" * 65)
 
     print("\n⏳ Đang tải chỉ số Fear & Greed Index lịch sử...")
-    from btc_scraper.sentiment import get_historical_sentiment_map
+    from btc_scraper.core.sentiment import get_historical_sentiment_map
     global HISTORICAL_SENTIMENT_MAP
     HISTORICAL_SENTIMENT_MAP.clear()
     HISTORICAL_SENTIMENT_MAP.update(get_historical_sentiment_map(limit=1000))

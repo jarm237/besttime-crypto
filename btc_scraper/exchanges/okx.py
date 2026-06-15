@@ -5,7 +5,7 @@ Endpoint: GET /api/v5/market/candles
 
 import requests
 from datetime import datetime
-from btc_scraper.config import LIMIT
+from btc_scraper.core.config import LIMIT
 
 BASE_URL = "https://www.okx.com"
 

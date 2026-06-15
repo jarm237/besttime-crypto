@@ -6,7 +6,7 @@ Hỗ trợ đa khung thời gian: 15m, 1h, 4h, 1d
 
 import requests
 from datetime import datetime
-from btc_scraper.config import INTERVAL, LIMIT
+from btc_scraper.core.config import INTERVAL, LIMIT
 
 # Re-export LIMIT so binance_ws.py can import it without circular dep
 __all__ = ["fetch_ohlcv", "fetch_ohlcv_tf", "fetch_ohlcv_multi_tf", "get_ws_stream_names", "LIMIT", "MTF_INTERVALS"]

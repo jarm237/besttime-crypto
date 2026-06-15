@@ -359,7 +359,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         model_bundle = _load_adaptive_model() if not disable_ml else None
         if model_bundle is not None:
             try:
-                from btc_scraper.feature_extractor import features_from_analysis
+                from btc_scraper.ml_engine.feature_extractor import features_from_analysis
                 import numpy as np
 
                 feat = features_from_analysis({**(data or {}), **(context or {}), "signal_score": {"score": None, "raw_text": sig_text}})
@@ -420,7 +420,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     signal_cutoff = opt_params.get("signal_cutoff", 0.0)
     kelly_multiplier = opt_params.get("kelly_multiplier", 1.0)
 
-    from btc_scraper.risk_manager import calculate_risk_metrics
+    from btc_scraper.trading.risk_manager import calculate_risk_metrics
     risk_metrics = calculate_risk_metrics()
     risk_multiplier = risk_metrics.get("risk_multiplier", 1.0)
     risk_blocked = risk_metrics.get("blocked", False)
@@ -431,8 +431,8 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             raise RuntimeError('ml_disabled')
         if not _use_kelly():
             raise RuntimeError('kelly_disabled')
-        from btc_scraper.meta_model import predict_meta_confidence
-        from btc_scraper.feature_extractor import build_meta_features
+        from btc_scraper.ml_engine.meta_model import predict_meta_confidence
+        from btc_scraper.ml_engine.feature_extractor import build_meta_features
 
         # Gắn score hiện tại vào merged để feature_extractor có thể đọc
         merged['score'] = score

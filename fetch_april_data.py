@@ -27,7 +27,7 @@ import sys, os, time, csv, requests
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(__file__))
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 TARGET_MONTH_START = datetime(2026, 4, 1,  0, 0, 0, tzinfo=timezone.utc)

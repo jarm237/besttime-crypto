@@ -27,7 +27,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
 
-from btc_scraper.rl_trading_env import TradeExitEnv, MultiTradeExitEnv
+from btc_scraper.ml_engine.rl_trading_env import TradeExitEnv, MultiTradeExitEnv
 
 
 def load_trade_data(csv_path: str = "logs/adaptive_signals.json") -> list[dict]:

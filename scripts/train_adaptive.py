@@ -5,7 +5,7 @@ Usage:
     python3 scripts/train_adaptive.py --train
 """
 import argparse
-from btc_scraper import adaptive_scoring
+from btc_scraper.ml_engine import adaptive_scoring
 
 p = argparse.ArgumentParser()
 p.add_argument("--train", action="store_true", help="Train and save model")

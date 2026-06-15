@@ -2,7 +2,7 @@ import pytest
 import os
 import json
 from pathlib import Path
-from btc_scraper.auto_trader import AutoTrader, _load_circuit, _save_circuit, CIRCUIT_BREAKER_STATE
+from btc_scraper.trading.auto_trader import AutoTrader, _load_circuit, _save_circuit, CIRCUIT_BREAKER_STATE
 
 def test_should_trade(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.85")
@@ -123,7 +123,7 @@ def test_circuit_breaker():
 
 
 def test_dynamic_position_sizing():
-    from btc_scraper.signal_score import _load_position_sizing_params, score_signal
+    from btc_scraper.ml_engine.signal_score import _load_position_sizing_params, score_signal
     
     # 1. Test loading params
     params = _load_position_sizing_params()
@@ -186,7 +186,7 @@ def test_dynamic_position_sizing():
 
 
 def test_dca_evaluation():
-    from btc_scraper.position_tracker import _evaluate_dca_opportunity
+    from btc_scraper.trading.position_tracker import _evaluate_dca_opportunity
     
     # Setup test pos_list
     pos_list = [

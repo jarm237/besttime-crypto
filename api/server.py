@@ -9,8 +9,8 @@ from typing import Literal
 # Thêm đường dẫn project vào sys.path để import btc_scraper
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from btc_scraper import position_tracker
-from btc_scraper.config import COINS
+from btc_scraper.trading import position_tracker
+from btc_scraper.core.config import COINS
 
 app = FastAPI(title="BestTime Crypto API")
 
@@ -83,7 +83,7 @@ def close_position(coin: str, data: PositionClose):
             mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
             
             try:
-                from btc_scraper.auto_trader import auto_trader
+                from btc_scraper.trading.auto_trader import auto_trader
                 pnl_pct = closed_data.get("pnl_pct", 0.0)
                 result_type = "WIN" if pnl_pct > 0 else "LOSS"
                 auto_trader._record_trade_result(result_type)
@@ -92,7 +92,7 @@ def close_position(coin: str, data: PositionClose):
                 
             if mode in ("TESTNET", "LIVE"):
                 try:
-                    from btc_scraper.ccxt_client import CCXTClient
+                    from btc_scraper.core.ccxt_client import CCXTClient
                     client = CCXTClient.from_env()
                     client.dry_run = False
                     
@@ -119,7 +119,7 @@ def close_position(coin: str, data: PositionClose):
 def get_auto_trade_status():
     """Lấy trạng thái cấu hình và circuit breaker của AutoTrader."""
     try:
-        from btc_scraper.auto_trader import auto_trader
+        from btc_scraper.trading.auto_trader import auto_trader
         return auto_trader.status()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái auto-trade: {str(e)}")
@@ -128,7 +128,7 @@ def get_auto_trade_status():
 def get_auto_trade_logs():
     """Lấy lịch sử giao dịch tự động từ auto_trade_log.json."""
     try:
-        from btc_scraper.auto_trader import AUTO_TRADE_LOG
+        from btc_scraper.trading.auto_trader import AUTO_TRADE_LOG
         if not AUTO_TRADE_LOG.exists():
             return []
         with open(AUTO_TRADE_LOG, "r", encoding="utf-8") as f:

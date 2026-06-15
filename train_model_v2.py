@@ -19,12 +19,12 @@ os.environ['DISABLE_KELLY'] = '1'
 from datetime import datetime, timedelta
 import json
 
-from btc_scraper.config import COINS
-import btc_scraper.sentiment
+from btc_scraper.core.config import COINS
+import btc_scraper.core.sentiment
 
 # Reuse functions from train_april_model to generate labeled trades
 import train_april_model as old_train
-from btc_scraper.meta_model import train_meta_model
+from btc_scraper.ml_engine.meta_model import train_meta_model
 
 # Load historical sentiment map
 print("Loading historical sentiment map...")

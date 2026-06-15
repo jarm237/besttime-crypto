@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from btc_scraper.analysis import analyze_market
 from backtest_april import load_candles_csv, WARMUP_CANDLES
-from btc_scraper.meta_model import load_model
+from btc_scraper.ml_engine.meta_model import load_model
 
 def run_test():
     obj = load_model()

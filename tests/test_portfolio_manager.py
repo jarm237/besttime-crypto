@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from btc_scraper import portfolio_manager
+from btc_scraper.trading import portfolio_manager
 
 def test_compute_returns_df():
     # Giả lập dữ liệu nến cho 2 coin

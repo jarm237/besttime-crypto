@@ -1,4 +1,4 @@
-from btc_scraper.filters import (
+from btc_scraper.core.filters import (
     atr_shock_filter,
     atr_used_for_chandelier,
     dynamic_sl_long,

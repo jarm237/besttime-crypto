@@ -31,7 +31,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 sys.path.insert(0, os.path.dirname(__file__))
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 TARGET_MONTH_START = datetime(2026, 2, 1,  0, 0, 0, tzinfo=timezone.utc)

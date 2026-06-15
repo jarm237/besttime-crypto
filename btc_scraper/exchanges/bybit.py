@@ -5,7 +5,7 @@ Endpoint: GET /v5/market/kline
 
 import requests
 from datetime import datetime
-from btc_scraper.config import LIMIT
+from btc_scraper.core.config import LIMIT
 
 BASE_URL = "https://api.bybit.com"
 

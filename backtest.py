@@ -43,7 +43,7 @@ def load_csv_data(filepath: str) -> list[dict]:
             })
     return candles
 
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 
 def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | None = None):
     data_dir = "data"
@@ -202,7 +202,7 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                     continue
                 
                 # Check EXIT_SIGNAL: chỉ thoát sau MIN_HOLD_CANDLES và chỉ khi gặp tín hiệu đảo chiều mạnh
-                from btc_scraper.signal_score import extract_signal_fields
+                from btc_scraper.ml_engine.signal_score import extract_signal_fields
                 sig_fields = extract_signal_fields(coin_data)
                 signal = coin_data.get("signal", sig_fields.get("raw", ""))
                 candles_held = pos.get("candles_held", 0) + 1
@@ -303,7 +303,7 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                     continue
                 
                 # Check EXIT_SIGNAL: chỉ thoát sau MIN_HOLD_CANDLES và chỉ khi gặp tín hiệu đảo chiều mạnh
-                from btc_scraper.signal_score import extract_signal_fields
+                from btc_scraper.ml_engine.signal_score import extract_signal_fields
                 sig_fields = extract_signal_fields(coin_data)
                 signal = coin_data.get("signal", sig_fields.get("raw", ""))
                 candles_held = pos.get("candles_held", 0) + 1
@@ -355,7 +355,7 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                 continue
                 
             coin_data = lookup[current_time][coin]
-            from btc_scraper.signal_score import extract_signal_fields
+            from btc_scraper.ml_engine.signal_score import extract_signal_fields
             sig_fields = extract_signal_fields(coin_data)
             sig_text = coin_data.get("signal", sig_fields.get("raw", ""))
             
@@ -403,7 +403,7 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                 continue   # Bỏ qua tín hiệu không có xác nhận volume
 
             # Sau khi qua toàn bộ các bộ lọc cơ bản, mới gọi model ML đắt đỏ để chấm điểm & quyết định quy mô vị thế
-            from btc_scraper.signal_score import score_signal
+            from btc_scraper.ml_engine.signal_score import score_signal
             score_obj = score_signal(sig_text, coin_data, {"sentiment_penalty": sentiment_penalty} if sentiment_penalty is not None else {})
             
             # Additionally require model-derived action (if available) to match

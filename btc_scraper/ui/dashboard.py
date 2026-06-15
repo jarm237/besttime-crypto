@@ -97,7 +97,7 @@ async def meta_model_predict(request: Request):
     except Exception as e:
         return JSONResponse({"error": "invalid_json", "message": str(e)}, status_code=400)
     try:
-        from btc_scraper.meta_model import predict_meta_confidence
+        from btc_scraper.ml_engine.meta_model import predict_meta_confidence
         res = predict_meta_confidence(body)
         return res
     except Exception as e:

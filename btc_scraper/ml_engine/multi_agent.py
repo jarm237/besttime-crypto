@@ -8,9 +8,9 @@ from typing import Dict, Any, List
 from rich.console import Console
 
 from btc_scraper.analysis import analyze_market
-from btc_scraper.config import COINS
-from btc_scraper.portfolio_manager import PortfolioManager
-from btc_scraper import position_tracker
+from btc_scraper.core.config import COINS
+from btc_scraper.trading.portfolio_manager import PortfolioManager
+from btc_scraper.trading import position_tracker
 
 console = Console()
 
@@ -81,7 +81,7 @@ class SignalGeneratorAgent(BaseAgent):
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
-        from btc_scraper.signal_score import evaluate_signal_score
+        from btc_scraper.ml_engine.signal_score import evaluate_signal_score
         
         signals_info = []
         for key, ana in list(analysis.items()):
@@ -116,7 +116,7 @@ class RiskManagerAgent(BaseAgent):
         super().__init__("RiskManager")
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        from btc_scraper.risk_manager import calculate_risk_metrics
+        from btc_scraper.trading.risk_manager import calculate_risk_metrics
         
         # Tính toán các chỉ số rủi ro dựa trên closed_positions.json
         risk_metrics = calculate_risk_metrics()
@@ -215,7 +215,7 @@ class ExecutionAgent(BaseAgent):
         
         # 1. Chạy Auto Trader (CCXT)
         try:
-            from btc_scraper.auto_trader import auto_trader
+            from btc_scraper.trading.auto_trader import auto_trader
             auto_trader.evaluate_and_trade(analysis)
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")

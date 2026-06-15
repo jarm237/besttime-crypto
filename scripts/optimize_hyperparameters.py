@@ -8,7 +8,7 @@ import optuna
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Mock sentiment to speed up backtest and avoid external requests
-import btc_scraper.sentiment
+import btc_scraper.core.sentiment
 def mock_get_market_sentiment():
     return {
         "score": -0.76,
@@ -20,11 +20,11 @@ def mock_get_market_sentiment():
 btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
 
 
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 from btc_scraper.analysis import analyze_all_market, calculate_tp_sl
-from btc_scraper.signal_score import compute_kelly_fraction, _estimate_b
-from btc_scraper.meta_model import load_model
-from btc_scraper.feature_extractor import build_meta_features, FEATURE_SCHEMA
+from btc_scraper.ml_engine.signal_score import compute_kelly_fraction, _estimate_b
+from btc_scraper.ml_engine.meta_model import load_model
+from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 LOGS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
@@ -116,7 +116,7 @@ def pre_extract_candidates():
 
 def run_simulation(candidates, candles_db, trial_params, base_capital=5000.0):
     import btc_scraper.analysis as ana_mod
-    import btc_scraper.signal_score as ss_mod
+    import btc_scraper.ml_engine.signal_score as ss_mod
     
     # Overwrite caches so imported library calls use our proposed trial params
     ana_mod._OPTIMIZED_PARAMS_CACHE = trial_params

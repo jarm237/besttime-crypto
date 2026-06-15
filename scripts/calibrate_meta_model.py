@@ -36,12 +36,12 @@ os.environ['DISABLE_KELLY'] = '1'
 BASE_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
-from btc_scraper.config import COINS
+from btc_scraper.core.config import COINS
 from btc_scraper.analysis import analyze_market, analyze_all_market
-from btc_scraper.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT, EnsembleMetaModel
-from btc_scraper.feature_extractor import build_meta_features, FEATURE_SCHEMA
+from btc_scraper.ml_engine.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT, EnsembleMetaModel
+from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
 
-import btc_scraper.sentiment
+import btc_scraper.core.sentiment
 def mock_get_market_sentiment():
     return {
         "score": -0.76,

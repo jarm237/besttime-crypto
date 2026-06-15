@@ -1,7 +1,7 @@
 import json
 import pytest
 from pathlib import Path
-from btc_scraper import risk_manager
+from btc_scraper.trading import risk_manager
 
 def test_calculate_risk_metrics_no_file(tmp_path, monkeypatch):
     # Mock CLOSED_POS_PATH to a non-existent file

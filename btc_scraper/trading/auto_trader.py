@@ -163,13 +163,13 @@ class AutoTrader:
     @property
     def allowed_coins(self) -> List[str]:
         """List coins cho phép auto-trade. Để trống = tất cả."""
-        from btc_scraper.config import COINS
+        from btc_scraper.core.config import COINS
         return _env_list("AUTO_TRADE_COINS", list(COINS))
 
     def _get_client(self):
         """Lazy-init CCXTClient."""
         if self._client is None:
-            from btc_scraper.ccxt_client import CCXTClient
+            from btc_scraper.core.ccxt_client import CCXTClient
             self._client = CCXTClient.from_env()
         return self._client
 
@@ -338,7 +338,7 @@ class AutoTrader:
     def _has_open_position(self, coin: str, direction: str) -> bool:
         """Kiểm tra đã có position cùng coin+direction chưa."""
         try:
-            from btc_scraper.position_tracker import get_open_positions
+            from btc_scraper.trading.position_tracker import get_open_positions
             positions = get_open_positions()
             for p in positions:
                 if p.get("coin", "").upper() == coin.upper() and p.get("direction", "").upper() == direction.upper():
@@ -470,7 +470,7 @@ class AutoTrader:
 
             # Sync với position tracker
             try:
-                from btc_scraper.position_tracker import add_position
+                from btc_scraper.trading.position_tracker import add_position
                 add_position(
                     coin=coin,
                     entry_price=float(order.get("price") or entry_price),

@@ -8,7 +8,7 @@ Hỗ trợ:
   - Fetch order status để verify fill
 
 Sử dụng:
-    from btc_scraper.ccxt_client import CCXTClient
+    from btc_scraper.core.ccxt_client import CCXTClient
     client = CCXTClient.from_env()
     balance = client.get_usdt_balance()
     order = client.create_market_order("BTC/USDT", "buy", 25.0)

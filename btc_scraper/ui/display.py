@@ -107,7 +107,7 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
     table.add_column("TP2 (R:R)",    justify="right", style="bright_green")
     table.add_column("Ly Do Chi Tiet")
     
-    from btc_scraper.signal_score import extract_signal_fields
+    from btc_scraper.ml_engine.signal_score import extract_signal_fields
     for key, ana in analysis_results.items():
         coin, exchange = key.split(":")
         sig_fields = extract_signal_fields(ana)
@@ -188,7 +188,7 @@ def make_missed_signals_table(analysis_results: dict[str, dict]) -> Table | None
     table.add_column("Trang Thai", justify="center")
     
     for coin, exchange, ms, current_close in all_missed:
-        from btc_scraper.signal_score import extract_signal_fields
+        from btc_scraper.ml_engine.signal_score import extract_signal_fields
         ms_sig_fields = extract_signal_fields(ms)
         sig = ms.get("signal", ms_sig_fields.get("raw", ""))
         

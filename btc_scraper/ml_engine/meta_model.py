@@ -458,7 +458,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     Uses fixed FEATURE_SCHEMA from feature_extractor.build_meta_features().
     Saves model, metrics and feature importance.
     """
-    from btc_scraper.feature_extractor import FEATURE_SCHEMA, records_to_dataset
+    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA, records_to_dataset
 
     recs = _load_records()
     recs = _sort_records_by_time(recs)
@@ -680,7 +680,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
     """
     Predict win probability cho một tín hiệu.
     """
-    from btc_scraper.feature_extractor import FEATURE_SCHEMA, build_meta_features
+    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA, build_meta_features
 
     obj = load_model()
     if obj is None:
