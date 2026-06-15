@@ -658,5 +658,50 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "ZECUSDT_1781493238",
+    "symbol": "ZECUSDT",
+    "timestamp": 1781493238.5542395,
+    "timestamp_str": "2026-06-15 10:13:58",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4799,
+    "signal_score": 58,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1781493238",
+    "symbol": "NEARUSDT",
+    "timestamp": 1781493238.5555372,
+    "timestamp_str": "2026-06-15 10:13:58",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.5004,
+    "signal_score": 54,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "ARUSDT_1781493238",
+    "symbol": "ARUSDT",
+    "timestamp": 1781493238.5566788,
+    "timestamp_str": "2026-06-15 10:13:58",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4397,
+    "signal_score": 42,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

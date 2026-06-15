@@ -496,9 +496,13 @@ def analyze_with_gemini(
             raw = sentiment.get("raw_value", 50)
             label = sentiment.get("label", "Neutral")
             score = sentiment.get("score", 0.0)
+            trend_list = sentiment.get("trend", [])
+            trend_text = "\n  ".join(trend_list) if trend_list else ""
+            
             sentiment_str = (
                 f"\n\n=== CAM XUC THI TRUONG (FEAR & GREED INDEX) ===\n"
                 f"  Chi so hien tai: {raw}/100 - {label} (score={score:+.2f})\n"
+                f"  Xu huong nhung ngay qua:\n  {trend_text}\n"
                 f"  {'⚠️ EXTREME FEAR: Cam xuc tieu cuc cuc do — giao dich BUY co rui ro cao!' if score < -0.6 else ('🔥 EXTREME GREED: Thi truong dang qua lac quan — giao dich SELL/SHORT co the hieu qua!' if score > 0.6 else 'Cam xuc trung binh — khong anh huong dac biet den quyet dinh giao dich.')}"
             )
 
@@ -520,7 +524,7 @@ def analyze_with_gemini(
             "   - Neu 1d va 4h cung bearish: uu tien tim diem SELL/SHORT o khung nho.\n"
             "   - Neu cac khung mau thuan: chua ro xu huong, nen dung ngoai quan sat.\n\n"
             "3. **Nhan dinh thi truong tong quan** (2-3 cau): Xu huong chung la Bullish hay Bearish? "
-            "Tam ly thi truong dang the nao? (FOMO, so hai, on dinh?)\n\n"
+            "Tam ly thi truong dang the nao? (FOMO, so hai, on dinh?) Hay danh gia ca XU HUONG cua Fear & Greed trong nhung ngay qua de xem tam ly dang tot len hay xau di.\n\n"
             "4. **Phan tich tung coin** (15m + ket hop 1h/4h/1d):\n"
             "   - EMA Crossover: EMA9 va EMA21 dang hoi tu hay phan ky? Co tin hieu giao cat sap xay ra khong?\n"
             "   - MACD Histogram: Dang tang hay giam? Momentum dang manh len hay yeu di?\n"

@@ -432830,5 +432830,32 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "AR",
+    "id": "3642c7af-b8a7-410e-82f5-853227ef2fb2",
+    "entry_price": 2.09,
+    "sell_price": 2.096,
+    "pnl_pct": -0.2871,
+    "result": "LOSS",
+    "hold_hours": 0.1,
+    "exit_time": "2026-06-15 10:19",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.4916420744960255,
+      "meta_confidence_pct": 49,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.5609
+    },
+    "regime": null
   }
 ]

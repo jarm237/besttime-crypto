@@ -105,8 +105,9 @@
     "usdt_amount": 100.0,
     "account_balance_est": 10101.3581287,
     "order_id": null,
-    "status": "error",
-    "error": "binance Account has insufficient balance for requested action."
+    "status": "skipped",
+    "error": "binance Account has insufficient balance for requested action.",
+    "reason_skip": "L\u1ed7i Spot Margin (\u0111\u00e3 fix chuy\u1ec3n sang Futures)"
   },
   {
     "timestamp": "2026-06-15T05:16:32.852422",
@@ -236,8 +237,9 @@
     "usdt_amount": 100.0,
     "account_balance_est": 10500.0015387,
     "order_id": null,
-    "status": "error",
-    "error": "binance Account has insufficient balance for requested action."
+    "status": "skipped",
+    "error": "binance Account has insufficient balance for requested action.",
+    "reason_skip": "L\u1ed7i Spot Margin (\u0111\u00e3 fix chuy\u1ec3n sang Futures)"
   },
   {
     "timestamp": "2026-06-15T07:06:07.377404",
@@ -301,8 +303,9 @@
     "usdt_amount": 100.0,
     "account_balance_est": 10497.7639687,
     "order_id": null,
-    "status": "error",
-    "error": "binance Account has insufficient balance for requested action."
+    "status": "skipped",
+    "error": "binance Account has insufficient balance for requested action.",
+    "reason_skip": "L\u1ed7i Spot Margin (\u0111\u00e3 fix chuy\u1ec3n sang Futures)"
   },
   {
     "timestamp": "2026-06-15T07:57:22.675702",
@@ -366,8 +369,9 @@
     "usdt_amount": 100.0,
     "account_balance_est": 10697.3032687,
     "order_id": null,
-    "status": "error",
-    "error": "binance Account has insufficient balance for requested action."
+    "status": "skipped",
+    "error": "binance Account has insufficient balance for requested action.",
+    "reason_skip": "L\u1ed7i Spot Margin (\u0111\u00e3 fix chuy\u1ec3n sang Futures)"
   },
   {
     "timestamp": "2026-06-15T07:58:20.233520",
@@ -488,5 +492,41 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 22.9h",
     "entry_price": 2.24
+  },
+  {
+    "timestamp": "2026-06-15T10:13:58.546320",
+    "timestamp_str": "2026-06-15 10:13:58",
+    "mode": "TESTNET",
+    "coin": "ZEC",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4799,
+    "signal_score": 58,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 21.7h",
+    "entry_price": 481.13
+  },
+  {
+    "timestamp": "2026-06-15T10:13:58.548417",
+    "timestamp_str": "2026-06-15 10:13:58",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.5004,
+    "signal_score": 54,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 21.7h",
+    "entry_price": 2.266
+  },
+  {
+    "timestamp": "2026-06-15T10:13:58.550054",
+    "timestamp_str": "2026-06-15 10:13:58",
+    "mode": "TESTNET",
+    "coin": "AR",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4397,
+    "signal_score": 42,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 5 thua lien tiep. Reset sau 21.7h",
+    "entry_price": 2.089
   }
 ]

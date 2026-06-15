@@ -76,7 +76,7 @@ class CCXTClient:
             "secret": self.api_secret,
             "enableRateLimit": True,
             "options": {
-                "defaultType": "spot",
+                "defaultType": "future",
                 "adjustForTimeDifference": True,
             },
         })

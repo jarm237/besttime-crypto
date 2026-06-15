@@ -66,6 +66,7 @@ Công cụ CLI `./pos` giúp ghi nhận và theo dõi vị thế giao dịch. Bo
 ```
 
 Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
+
 - 🚨 Giá chạm **Stop Loss**
 - 🎯 Giá đạt **TP1 hoặc TP2**
 - ⚠️ Xuất hiện **tín hiệu đảo chiều** ngược hướng vị thế
@@ -73,7 +74,9 @@ Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
 Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`. Lưu ý: Việc đóng lệnh sẽ tự động ghi dữ liệu vào hệ thống AI để huấn luyện (Adaptive Scoring).
 
 #### 5. Huấn luyện Mô hình AI (Adaptive, Meta & RL)
+
 Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đánh giá tín hiệu và quản lý thoát lệnh:
+
 - Để huấn luyện lại mô hình Adaptive & xuất signals log từ dữ liệu lịch sử (18 tháng):
   ```bash
   python train_april_model.py
@@ -105,6 +108,7 @@ Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đá
 ## Cài đặt và Khởi chạy
 
 Hệ thống gồm 3 thành phần chạy song song:
+
 1. **Bot cốt lõi** (`main.py`) — Quét tín hiệu, gọi AI, gửi Telegram, giao dịch tự động.
 2. **Backend API** (`api/server.py`) — FastAPI phục vụ dữ liệu cho Web Dashboard (cổng 8000).
 3. **Web Dashboard** (`web/`) — Giao diện React / Vite (cổng 3000).
@@ -155,11 +159,13 @@ AUTO_TRADE_BINANCE_TESTNET=true        # true = testnet, false = mainnet
 Nhấn `Ctrl + C` để tắt toàn bộ.
 
 Sau khi chạy, truy cập Web Dashboard:
+
 ```bash
 http://localhost:3000
 ```
 
 Hoặc khởi động riêng từng phần:
+
 - **Backend API:** `python api/server.py` (port 8000)
 - **Web Dashboard:** `cd web && npm run dev -- --port 3000 --host`
 
@@ -168,9 +174,11 @@ Hoặc khởi động riêng từng phần:
 ### Chạy thủ công từng phần
 
 **Tab 1 — Bot cốt lõi:**
+
 ```bash
 python main.py
 ```
+
 - **Gửi báo cáo phân tích tự động qua tin nhắn Telegram.**
 - **AI RAG & Machine Learning**: Đánh giá độ tin cậy của tín hiệu dựa trên mô hình học máy Adaptive. Tự động tính kích thước vị thế (Position Sizing).
 - Quét tổng quát mỗi 15 phút: lấy dữ liệu, phân tích, gọi AI, gửi Telegram.
@@ -178,11 +186,13 @@ python main.py
 - **Continuous Learning & Báo cáo Tuần**: Tự động tải lại dữ liệu thị trường và huấn luyện lại AI vào 23:30 Chủ Nhật hàng tuần, kèm theo báo cáo tổng kết tuần lúc 23:45.
 
 **Tab 2 — Backend API:**
+
 ```bash
 python api/server.py
 ```
 
 **Tab 3 — Web Dashboard:**
+
 ```bash
 cd web
 npm run dev -- --port 3000 --host
@@ -264,6 +274,7 @@ besttime-crypto/
 ## Chuẩn bị Dữ liệu cho ML
 
 Để cào dữ liệu lịch sử trên diện rộng phục vụ huấn luyện mô hình:
+
 ```bash
 # Cào dữ liệu lịch sử theo tháng (cấu hình trong fetch_historical_range.py)
 python fetch_historical_range.py
@@ -280,8 +291,17 @@ python scripts/generate_rag_prompts.py
 ```
 
 **Output:**
+
 - `data/ml_training_data.csv` — Dataset 30+ cột cho model training
 - `data/ml_rag_context.json` — Structured RAG context (win rate, directional stats, scenarios)
 - `data/rag_prompts.md` — Markdown narratives để tích hợp vào Gemini prompt
 
 **Xem chi tiết:** [ML_DATA_GUIDE.md](ML_DATA_GUIDE.md)
+
+---
+
+## Tài liệu Thiết kế Hệ thống (System Design)
+
+Để xem chi tiết kiến trúc tổng thể, luồng dữ liệu, tính năng Explainable AI, Dynamic Position Sizing và định hướng phát triển từ một Signal Bot thành nền tảng **AI Quant Trading Platform** hoàn chỉnh, vui lòng tham khảo:
+
+**👉 [SYSTEM DESIGN DOCUMENT (TDD)](SYSTEM_DESIGN.md)**

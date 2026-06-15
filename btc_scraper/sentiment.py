@@ -21,9 +21,9 @@ _CACHE_TTL = 3600  # seconds
 
 _cache: dict = {
     "score": 0.0,
-    "label": "Neutral",
     "raw_value": 50,
     "timestamp": 0.0,
+    "trend": [],
 }
 
 
@@ -34,23 +34,32 @@ _cache: dict = {
 def _fetch_fear_and_greed() -> dict:
     """
     Gọi Alternative.me API và trả về dict:
-        {"score": float (-1.0 đến 1.0), "label": str, "raw_value": int}
+        {"score": float (-1.0 đến 1.0), "label": str, "raw_value": int, "trend": list}
     Nếu lỗi → trả về giá trị neutral (0.0).
     """
-    url = "https://api.alternative.me/fng/?limit=1&format=json"
+    url = "https://api.alternative.me/fng/?limit=5&format=json"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "besttime-crypto-bot/1.0"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             data = json.loads(resp.read().decode())
-        raw = int(data["data"][0]["value"])
-        label = data["data"][0]["value_classification"]
+        
+        current = data["data"][0]
+        raw = int(current["value"])
+        label = current["value_classification"]
         # Map 0-100 → -1.0 đến +1.0
         score = round((raw - 50) / 50.0, 3)
-        return {"score": score, "label": label, "raw_value": raw}
+        
+        trend = []
+        for item in data.get("data", []):
+            ts = int(item["timestamp"])
+            date_str = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%d/%m")
+            trend.append(f"{date_str}: {item['value']}/100 ({item['value_classification']})")
+            
+        return {"score": score, "label": label, "raw_value": raw, "trend": trend}
     except Exception as e:
         # Không crash bot khi API lỗi
         print(f"  [Sentiment] Không thể lấy Fear & Greed Index: {e}", flush=True)
-        return {"score": 0.0, "label": "Neutral", "raw_value": 50}
+        return {"score": 0.0, "label": "Neutral", "raw_value": 50, "trend": []}
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -70,7 +79,7 @@ def get_market_sentiment() -> dict:
     now = time.time()
 
     if now - _cache["timestamp"] < _CACHE_TTL:
-        return {k: _cache[k] for k in ("score", "label", "raw_value")}
+        return {k: _cache.get(k) for k in ("score", "label", "raw_value", "trend")}
 
     result = _fetch_fear_and_greed()
     _cache.update(result)
