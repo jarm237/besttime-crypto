@@ -432884,5 +432884,32 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "TAO",
+    "id": "dc1d0f00-aa6b-44c0-9b42-9bf35e144e33",
+    "entry_price": 266.37,
+    "sell_price": 269.16,
+    "pnl_pct": -1.0474,
+    "result": "LOSS",
+    "hold_hours": 0.3,
+    "exit_time": "2026-06-15 16:24",
+    "signal_raw": "NEUTRAL (BEARISH-CAUTION)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH-CAUTION)",
+      "meta_confidence": 0.3886047341806097,
+      "meta_confidence_pct": 39,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

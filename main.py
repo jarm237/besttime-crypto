@@ -326,7 +326,7 @@ async def fetch_and_analyze_open_positions_only():
         recs = position_tracker.evaluate_positions(analysis)
         if recs:
             send_position_recommendations(recs)
-            check_and_execute_auto_closes(recs)
+            await check_and_execute_auto_closes(recs)
     except Exception as e:
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 

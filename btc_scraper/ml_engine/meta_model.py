@@ -30,13 +30,13 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 
 BASE = Path(__file__).parent.parent.parent
 LOGS = BASE / "logs"
-INPUT = LOGS / "adaptive_signals.json"
+INPUT = LOGS / "adaptive_signals_v2.json"
 MODEL_OUT = LOGS / "meta_model.joblib"
 METRIC_OUT = LOGS / "meta_model.json"
 FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
 
 # Schema version — tăng lên khi đổi FEATURE_SCHEMA
-MODEL_VERSION = "v2.0"
+MODEL_VERSION = "v3.0"
 
 
 
@@ -455,10 +455,10 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     """
     Train the ensemble meta model on adaptive_signals.json.
 
-    Uses fixed FEATURE_SCHEMA from feature_extractor.build_meta_features().
+    Uses fixed FEATURE_SCHEMA_V2 from feature_extractor.build_meta_features_v2().
     Saves model, metrics and feature importance.
     """
-    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA, records_to_dataset
+    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2, records_to_dataset
 
     recs = _load_records()
     recs = _sort_records_by_time(recs)
@@ -680,17 +680,17 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
     """
     Predict win probability cho một tín hiệu.
     """
-    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA, build_meta_features
+    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2, build_meta_features_v2
 
     obj = load_model()
     if obj is None:
         return {"error": "no_model", "probability": None}
 
     clf = obj.get("model") if isinstance(obj, dict) else obj
-    feature_names = obj.get("features", FEATURE_SCHEMA) if isinstance(obj, dict) else FEATURE_SCHEMA
+    feature_names = obj.get("features", FEATURE_SCHEMA_V2) if isinstance(obj, dict) else FEATURE_SCHEMA_V2
 
     try:
-        feat = build_meta_features(analysis_info)
+        feat = build_meta_features_v2(analysis_info)
         row = [float(feat.get(k, 0.0)) for k in feature_names]
         
         # Build DataFrame to provide valid feature names to avoid warnings from LGBMClassifier

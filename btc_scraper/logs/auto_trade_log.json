@@ -34,5 +34,17 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 25 thua lien tiep. Reset sau 20.4h",
     "entry_price": 412.58
+  },
+  {
+    "timestamp": "2026-06-15T16:18:16.586003",
+    "timestamp_str": "2026-06-15 16:18:16",
+    "mode": "TESTNET",
+    "coin": "XAUT",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4675,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 25 thua lien tiep. Reset sau 19.9h",
+    "entry_price": 4321.63
   }
 ]

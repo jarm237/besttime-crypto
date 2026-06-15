@@ -351,13 +351,13 @@ def records_to_dataset(records: List[Dict]) -> Tuple[List[List[float]], List[int
     y: List[int] = []
 
     for r in records:
-        if all(k in r for k in FEATURE_SCHEMA):
+        if all(k in r for k in FEATURE_SCHEMA_V2):
             feat = r
         else:
-            feat = build_meta_features(r)
-        row = [float(feat.get(k, 0.0)) for k in FEATURE_SCHEMA]
+            feat = build_meta_features_v2(r)
+        row = [float(feat.get(k, 0.0)) for k in FEATURE_SCHEMA_V2]
         X.append(row)
         label = 1 if (r.get("result") == "WIN") else 0
         y.append(label)
 
-    return X, y, list(FEATURE_SCHEMA)
+    return X, y, list(FEATURE_SCHEMA_V2)
