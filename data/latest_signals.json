@@ -212,7 +212,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 64357.12,
       "sl": 64625.6928,
@@ -1019,7 +1019,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 67.83,
       "sl": 68.402,
@@ -2095,7 +2095,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 0.4982,
       "sl": 0.5134,
@@ -2633,7 +2633,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 2.096,
       "sl": 2.1363,
@@ -2902,7 +2902,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (CT-Unconfirmed)",
-    "reason": "RSI dao chieu tu Oversold (volume trung binh - can them xac nhan) NHUNG thieu xac nhan (Chandelier=BEAR hoac ben duoi SMA200) — bo qua",
+    "reason": "RSI dao chieu tu Oversold (volume trung binh - can them xac nhan) NHUNG thieu xac nhan (Chandelier=BEAR hoac ben duoi SMA200) \u2014 bo qua",
     "tp_sl": {
       "entry": 6.613,
       "sl": 6.5458,
@@ -3171,7 +3171,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 264.7,
       "sl": 274.4743,
@@ -3440,7 +3440,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 13.39,
       "sl": 13.4966,
@@ -4247,7 +4247,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 1.987,
       "sl": 2.018,
@@ -4785,7 +4785,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 0.0881,
       "sl": 0.0914,
@@ -5341,7 +5341,7 @@
       }
     ],
     "signal": "WEAK SELL (Crossover)",
-    "reason": "EMA9 cat xuong EMA21 NHUNG gia tren SMA200 — co the chi la dieu chinh",
+    "reason": "EMA9 cat xuong EMA21 NHUNG gia tren SMA200 \u2014 co the chi la dieu chinh",
     "tp_sl": {
       "entry": 406.31,
       "sl": 406.8762,
@@ -5610,7 +5610,7 @@
     ],
     "missed_signals": [],
     "signal": "NEUTRAL (BEARISH-CAUTION)",
-    "reason": "EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han | Chandelier=BEAR",
+    "reason": "EMA9<EMA21 nhung tren SMA200 \u2014 co the chi la dieu chinh ngan han | Chandelier=BEAR",
     "tp_sl": {
       "entry": 4216.55,
       "sl": 4218.5539,
