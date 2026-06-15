@@ -132,13 +132,14 @@ def normalize_trade(trade: dict) -> dict:
     }
 
 
-def collect_trades(closed_log_path: str, positions_path: str) -> list[dict]:
-    trades = load_json_file(closed_log_path)
-    if trades:
-        return trades
+from btc_scraper.core.db import closed_positions_col
 
-    all_positions = load_json_file(positions_path)
-    return [p for p in all_positions if str(p.get("status", "")).lower() == "closed"]
+def collect_trades(closed_log_path: str, positions_path: str) -> list[dict]:
+    try:
+        return list(closed_positions_col.find({"status": "closed"}, {"_id": 0}))
+    except Exception as e:
+        print(f"Error fetching from MongoDB: {e}")
+        return []
 
 
 def build_rag_context(trades: list[dict]) -> dict:

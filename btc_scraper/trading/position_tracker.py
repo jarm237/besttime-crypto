@@ -7,53 +7,15 @@ Luồng sử dụng:
   3. Đóng lệnh:  close_position(coin, sell_price) → trả về dict chỉ số đánh giá
 """
 
-import json
 import os
 from datetime import datetime
 import uuid
 from typing import Literal
 
 from btc_scraper.analysis import calculate_tp_sl
+from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
 
-POSITIONS_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "positions.json")
-CLOSED_LOG_FILE = os.path.join(os.path.dirname(__file__), "..", "logs", "closed_positions.json")
-
-
-def _load_positions() -> list[dict]:
-    """Tải danh sách vị thế đang mở từ file JSON."""
-    os.makedirs(os.path.dirname(POSITIONS_FILE), exist_ok=True)
-    if not os.path.exists(POSITIONS_FILE):
-        return []
-    try:
-        with open(POSITIONS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def _save_positions(positions: list[dict]) -> None:
-    """Lưu danh sách vị thế đang mở vào file JSON."""
-    os.makedirs(os.path.dirname(POSITIONS_FILE), exist_ok=True)
-    with open(POSITIONS_FILE, "w", encoding="utf-8") as f:
-        json.dump(positions, f, ensure_ascii=False, indent=2)
-
-
-def _load_closed_log() -> list[dict]:
-    """Tải nhật ký vị thế đã đóng."""
-    os.makedirs(os.path.dirname(CLOSED_LOG_FILE), exist_ok=True)
-    if not os.path.exists(CLOSED_LOG_FILE):
-        return []
-    try:
-        with open(CLOSED_LOG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def _save_closed_log(log: list[dict]) -> None:
-    os.makedirs(os.path.dirname(CLOSED_LOG_FILE), exist_ok=True)
-    with open(CLOSED_LOG_FILE, "w", encoding="utf-8") as f:
-        json.dump(log, f, ensure_ascii=False, indent=2)
+# Loại bỏ các hàm load/save json cũ
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -81,10 +43,6 @@ def add_position(
     Returns:
         dict vị thế vừa tạo
     """
-    positions = _load_positions()
-    coin = coin.upper()
-
-    # Không chặn nhiều vị thế cùng mã — cho phép pyramiding/multiple entries.
     pos = {
         "coin": coin,
         "id": str(uuid.uuid4()),
@@ -96,19 +54,17 @@ def add_position(
         "entry_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "status": "open",
         "note": note,
-        # Sẽ được cập nhật từ analysis mỗi lần quét
         "last_signal": None,
         "last_price": None,
         "last_checked": None,
     }
-    positions.append(pos)
-    _save_positions(positions)
+    positions_col.insert_one(pos.copy())
     return pos
 
 
 def get_open_positions() -> list[dict]:
     """Trả về danh sách các vị thế đang mở."""
-    return [p for p in _load_positions() if p["status"] == "open"]
+    return list(positions_col.find({"status": "open"}, {"_id": 0}))
 
 
 def close_position(coin: str, sell_price: float) -> dict:
@@ -122,17 +78,12 @@ def close_position(coin: str, sell_price: float) -> dict:
         - result: "WIN" | "LOSS" | "BREAKEVEN"
         - hold_hours: thời gian nắm giữ
     """
-    positions = _load_positions()
     coin = coin.upper()
 
-    pos_idx = next(
-        (i for i, p in enumerate(positions) if p["coin"] == coin and p["status"] == "open"),
-        None
-    )
-    if pos_idx is None:
+    pos = positions_col.find_one({"coin": coin, "status": "open"}, {"_id": 0})
+    if not pos:
         raise ValueError(f"Không tìm thấy vị thế đang mở cho {coin}.")
 
-    pos = positions[pos_idx]
     entry = pos["entry_price"]
     direction = pos["direction"]
 
@@ -184,20 +135,14 @@ def close_position(coin: str, sell_price: float) -> dict:
         "status": "closed",
     }
 
-    # Cập nhật positions list
-    positions[pos_idx] = closed_data
-    _save_positions(positions)
+    # Cập nhật trạng thái đóng trong MongoDB
+    positions_col.update_one({"id": pos["id"]}, {"$set": closed_data})
 
     # Ghi vào log đóng lệnh
-    closed_log = _load_closed_log()
-    closed_log.append(closed_data)
-    _save_closed_log(closed_log)
+    closed_positions_col.insert_one(closed_data.copy())
 
-    # Đồng thời lưu một copy giản lược vào data/closed_trades.json để huấn luyện
+    # Đồng thời lưu một copy giản lược để huấn luyện
     try:
-        base = os.path.dirname(os.path.dirname(__file__))
-        data_path = os.path.join(base, "data", "closed_trades.json")
-        os.makedirs(os.path.dirname(data_path), exist_ok=True)
         simple = {
             "coin": closed_data.get("coin"),
             "id": closed_data.get("id"),
@@ -212,18 +157,7 @@ def close_position(coin: str, sell_price: float) -> dict:
             "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
             "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
         }
-        # Append to JSON array
-        if os.path.exists(data_path):
-            try:
-                with open(data_path, "r", encoding="utf-8") as f:
-                    arr = json.load(f)
-            except Exception:
-                arr = []
-        else:
-            arr = []
-        arr.append(simple)
-        with open(data_path, "w", encoding="utf-8") as f:
-            json.dump(arr, f, ensure_ascii=False, indent=2)
+        closed_trades_col.insert_one(simple)
     except Exception:
         pass
 
@@ -283,7 +217,6 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         coin_analysis[coin.upper()] = ana
 
     recommendations = []
-    all_positions = _load_positions()
 
     # Group positions by coin to support multiple entries per same coin
     by_coin: dict[str, list[dict]] = {}
@@ -383,18 +316,20 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         dca_opp = _evaluate_dca_opportunity(pos_list, ana, current_price, pos_meta_prob)
 
         # Cập nhật last_signal và last_price cho mọi vị thế của coin
-        for p in all_positions:
-            if p["coin"] == coin and p["status"] == "open":
-                p["last_signal"] = signal
-                p["last_price"] = current_price
-                p["last_checked"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                p["last_signal_score"] = ana.get("signal_score", {})
-                p["suggested_sl"] = sl
-                p["suggested_tp1"] = tp1
-                p["suggested_tp2"] = tp2
-                p["live_meta_confidence"] = pos_meta_prob
-                p["dca_opportunity"] = dca_opp
-        _save_positions(all_positions)
+        positions_col.update_many(
+            {"coin": coin, "status": "open"},
+            {"$set": {
+                "last_signal": signal,
+                "last_price": current_price,
+                "last_checked": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "last_signal_score": ana.get("signal_score", {}),
+                "suggested_sl": sl,
+                "suggested_tp1": tp1,
+                "suggested_tp2": tp2,
+                "live_meta_confidence": pos_meta_prob,
+                "dca_opportunity": dca_opp,
+            }}
+        )
 
         recommendations.append({
             "coin": coin,
@@ -557,7 +492,7 @@ def get_performance_summary(trade_type: str = "ALL") -> dict:
     Tổng hợp hiệu suất từ các lệnh đã đóng.
     trade_type: "ALL" | "AUTO" | "MANUAL"
     """
-    closed = _load_closed_log()
+    closed = list(closed_positions_col.find({}, {"_id": 0}))
     if not closed:
         return {"message": "Chưa có lệnh nào được đóng."}
 

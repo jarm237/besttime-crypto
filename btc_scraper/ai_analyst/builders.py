@@ -153,16 +153,12 @@ def _build_mtf_block(coin: str, mtf_data: dict[str, dict]) -> str:
     return "\n".join(lines)
 
 
+from btc_scraper.core.db import closed_positions_col
+
 def _load_closed_trades(positions_path: str | None = None) -> list[dict]:
-    """Đọc danh sách lệnh đã đóng từ positions.json."""
-    if positions_path is None:
-        # Tự động tìm file theo đường dẫn tương đối từ project root
-        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        positions_path = os.path.join(base, "data", "positions.json")
+    """Đọc danh sách lệnh đã đóng từ MongoDB."""
     try:
-        with open(positions_path, encoding="utf-8") as f:
-            all_trades = json.load(f)
-        return [t for t in all_trades if t.get("status") == "closed"]
+        return list(closed_positions_col.find({"status": "closed"}, {"_id": 0}))
     except Exception:
         return []
 

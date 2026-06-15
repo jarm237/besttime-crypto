@@ -151,9 +151,9 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
                 
         return first_msg_id
 
-    active_msg_id = _send_section("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>", active_signals)
-    missed_msg_id = _send_section("\n⏳ <b>TÍN HIỆU BỎ LỠ VẪN CÒN HIỆU LỰC:</b>", missed_valid_signals)
     neutral_msg_id = _send_section("\n📈 <b>Trạng thái thị trường:</b>", neutral_signals)
+    missed_msg_id = _send_section("\n⏳ <b>TÍN HIỆU BỎ LỠ VẪN CÒN HIỆU LỰC:</b>", missed_valid_signals)
+    active_msg_id = _send_section("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>", active_signals)
     
     # Trả về message_id ưu tiên để AI reply vào (ưu tiên Tín hiệu đáng chú ý)
     if active_msg_id is not None:

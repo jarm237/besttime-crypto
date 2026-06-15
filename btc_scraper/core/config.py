@@ -38,6 +38,9 @@ INTERVAL = "15m"            # Khung nến 15 phút
 LIMIT = 210                  # Số nến lấy mỗi lần — cần tối thiểu 200 để tính SMA200 (+ 10 buffer)
 FETCH_INTERVAL_MINUTES = 15   # Tần suất cập nhật (phút)
 
+# Database
+MONGODB_URI = os.getenv("MONGODB_URI")
+
 # Telegram credentials
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")

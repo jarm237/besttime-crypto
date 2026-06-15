@@ -1,11 +1,10 @@
-import json
 from pathlib import Path
+from btc_scraper.core.db import closed_positions_col
 
 BASE_DIR = Path(__file__).parent.parent
-CLOSED_POS_PATH = BASE_DIR / "logs" / "closed_positions.json"
 
 def calculate_risk_metrics(base_capital: float = 5000.0) -> dict:
-    """Read closed_positions.json and compute consecutive losses and current drawdown percentage.
+    """Read closed_positions from MongoDB and compute consecutive losses and current drawdown percentage.
     
     Returns a dict:
         consecutive_losses (int)
@@ -24,12 +23,9 @@ def calculate_risk_metrics(base_capital: float = 5000.0) -> dict:
         "current_equity": base_capital,
     }
 
-    if not CLOSED_POS_PATH.exists():
-        return default_res
-    
     try:
-        with open(CLOSED_POS_PATH, "r", encoding="utf-8") as f:
-            trades = json.load(f)
+        # Sort by _id to ensure chronological order (insertion order)
+        trades = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
     except Exception:
         return default_res
         
