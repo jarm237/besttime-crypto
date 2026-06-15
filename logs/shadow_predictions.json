@@ -988,5 +988,50 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "BNBUSDT_1781523151",
+    "symbol": "BNBUSDT",
+    "timestamp": 1781523151.77894,
+    "timestamp_str": "2026-06-15 18:32:31",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4031,
+    "signal_score": 0,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "AEVOUSDT_1781523151",
+    "symbol": "AEVOUSDT",
+    "timestamp": 1781523151.7806356,
+    "timestamp_str": "2026-06-15 18:32:31",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4602,
+    "signal_score": 10,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "TRUMPUSDT_1781523151",
+    "symbol": "TRUMPUSDT",
+    "timestamp": 1781523151.7890027,
+    "timestamp_str": "2026-06-15 18:32:31",
+    "signal": "WEAK BUY (Crossover-Blocked)",
+    "meta_prob": 0.5489,
+    "signal_score": 35,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

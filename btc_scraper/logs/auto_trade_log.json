@@ -58,5 +58,17 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 18.2h",
     "entry_price": 0.1922
+  },
+  {
+    "timestamp": "2026-06-15T18:32:31.777958",
+    "timestamp_str": "2026-06-15 18:32:31",
+    "mode": "TESTNET",
+    "coin": "AEVO",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4602,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 17.7h",
+    "entry_price": 0.0205
   }
 ]

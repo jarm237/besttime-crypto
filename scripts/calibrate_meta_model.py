@@ -50,10 +50,10 @@ def mock_get_market_sentiment():
         "timestamp": 1718000000,
         "update_time_human": "2026-06-12 00:00:00"
     }
-btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
+btc_scraper.core.sentiment.get_market_sentiment = mock_get_market_sentiment
 btc_scraper.analysis.get_market_sentiment = mock_get_market_sentiment
 
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = BASE_DIR / "data" / "historical_18m"
 LOGS_DIR = BASE_DIR / "logs"
 
 # Configs
@@ -366,16 +366,28 @@ def print_calibration_table(title: str, analysis: dict):
             print(f"   {bucket:<12} {data['count']:<8} {'N/A':<15} {'N/A':<12} {'N/A':<10} ⏳")
     print()
 
+def get_available_months(data_dir: Path) -> list[str]:
+    months = set()
+    if data_dir.exists():
+        for f in data_dir.glob("*_15m.csv"):
+            parts = f.name.split("_")
+            if len(parts) >= 3:
+                months.add(f"{parts[0]}_{parts[1]}")
+    return sorted(list(months))
+
 def main():
     print("=" * 65)
-    print("  SIMULATING MARCH, APRIL & MAY 2026 TRADES WITH HTF ALIGNMENT & CALIBRATION")
+    print("  SIMULATING TRADES ON 18-MONTH HISTORICAL DATA & CALIBRATING META MODEL")
     print("=" * 65)
+    
+    months = get_available_months(DATA_DIR)
+    print(f"  Found {len(months)} months of data: {months}")
     
     all_trades = []
     
     for coin in COINS:
         print(f"  [+] Loading & simulating {coin}...")
-        candles_15m, mtf_candles = load_all_timeframe_candles(coin, ["march", "april", "may"])
+        candles_15m, mtf_candles = load_all_timeframe_candles(coin, months)
         
         if not candles_15m:
             print(f"      [!] Missing 15m data for {coin}, skipping.")
