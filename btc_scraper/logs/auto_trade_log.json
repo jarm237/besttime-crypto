@@ -70,5 +70,53 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 17.7h",
     "entry_price": 0.0205
+  },
+  {
+    "timestamp": "2026-06-15T20:17:30.776378",
+    "timestamp_str": "2026-06-15 20:17:30",
+    "mode": "TESTNET",
+    "coin": "ZEC",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.6902,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 15.9h",
+    "entry_price": 530.41
+  },
+  {
+    "timestamp": "2026-06-15T20:32:24.668304",
+    "timestamp_str": "2026-06-15 20:32:24",
+    "mode": "TESTNET",
+    "coin": "AVAX",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4842,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 15.7h",
+    "entry_price": 6.966
+  },
+  {
+    "timestamp": "2026-06-15T21:17:26.758093",
+    "timestamp_str": "2026-06-15 21:17:26",
+    "mode": "TESTNET",
+    "coin": "SOL",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4924,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 14.9h",
+    "entry_price": 73.42
+  },
+  {
+    "timestamp": "2026-06-15T21:17:26.759474",
+    "timestamp_str": "2026-06-15 21:17:26",
+    "mode": "TESTNET",
+    "coin": "TRUMP",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.5018,
+    "signal_score": 30,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 14.9h",
+    "entry_price": 1.997
   }
 ]

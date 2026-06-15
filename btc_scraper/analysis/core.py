@@ -1,5 +1,10 @@
 import math
-from btc_scraper.core.sentiment import get_market_sentiment, sentiment_label_vi
+from btc_scraper.core.sentiment import (
+    get_market_sentiment, 
+    sentiment_label_vi,
+    _save_sentiment_to_history,
+    get_sentiment_trend,
+)
 from btc_scraper.core.filters import atr_shock_filter
 from btc_scraper.ml_engine.signal_score import score_signal
 from btc_scraper.regime.market_regime import regime_from_values
@@ -255,6 +260,10 @@ def analyze_market(candles: list[dict]) -> dict:
     sentiment_score = sentiment_data["score"]
     sentiment_label = sentiment_data["label"]
     sentiment_raw = sentiment_data["raw_value"]
+    
+    # Lưu sentiment vào history để tracking trend
+    _save_sentiment_to_history(sentiment_data)
+    sentiment_trend_data = get_sentiment_trend()
 
     # Ghi lại chỉ số vào nến để hiển thị
     for i, c in enumerate(candles):
@@ -458,6 +467,12 @@ def analyze_market(candles: list[dict]) -> dict:
         sentiment_note = f" | Sentiment: {sentiment_raw}/100 ({sentiment_label_vi(sentiment_label)})"
         extreme_fear = sentiment_score < -0.6
         extreme_greed = sentiment_score > 0.6
+        
+        # Sentiment Trend (recovery/risk signal)
+        sentiment_recovery = sentiment_trend_data.get("recovery_signal", False)
+        sentiment_risk = sentiment_trend_data.get("risk_signal", False)
+        sentiment_trend_direction = sentiment_trend_data.get("trend", "STABLE")
+        
         base_confidence = 0.55
         if above_sma200 and chandelier_state == "BULL":
             base_confidence += 0.15
@@ -494,6 +509,22 @@ def analyze_market(candles: list[dict]) -> dict:
                 confidence = min(1.0, confidence + 0.05)
             elif direction == "SHORT" and trend_label == "BEAR":
                 confidence = min(1.0, confidence + 0.05)
+
+            # Sentiment Trend Boost/Risk Adjustment
+            if sentiment_recovery and direction == "LONG":
+                # Thị trường đang hồi phục từ extreme fear → boost confidence & upgrade WEAK
+                confidence = min(1.0, confidence + 0.15)
+                position_size = min(1.0, position_size * 1.2)
+                if "WEAK" in sig.upper() and "STRONG" not in sig.upper():
+                    sig = sig.replace("WEAK BUY", "BUY").replace("WEAK ", "")
+                reason += f" | Sentiment Recovery UP (trend={sentiment_trend_direction}): hồi phục từ extreme fear, tăng confidence"
+            elif sentiment_risk and direction == "LONG":
+                # Sentiment đang giảm từ greed cao → downgrade confidence
+                confidence = max(0.0, confidence - 0.1)
+                position_size *= 0.85
+                if "STRONG" in sig.upper():
+                    sig = sig.replace("STRONG BUY", "BUY")
+                reason += f" | Sentiment Risk DOWN (trend={sentiment_trend_direction}): giảm từ greed, cần cảnh báo"
 
             if current_atr_shock:
                 confidence = max(0.0, confidence - 0.1)
@@ -775,6 +806,11 @@ def analyze_market(candles: list[dict]) -> dict:
             "score": sentiment_score,
             "label": sentiment_label,
             "raw_value": sentiment_raw,
+            "trend": sentiment_trend_data.get("trend", "STABLE"),
+            "momentum": sentiment_trend_data.get("momentum", 0.0),
+            "recovery_signal": sentiment_trend_data.get("recovery_signal", False),
+            "risk_signal": sentiment_trend_data.get("risk_signal", False),
+            "hours_in_extreme": sentiment_trend_data.get("hours_in_extreme", 0),
         },
     }
     # Attach scoring metadata (phase 1-5 basic implementation). Keep backward compatibility.
@@ -829,6 +865,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
     sentiment_score = sentiment_data.get("score")
     sentiment_label = sentiment_data.get("label")
     sentiment_raw = sentiment_data.get("raw_value")
+    sentiment_trend_data = get_sentiment_trend()
 
     # Đưa các chỉ báo vào nến
     for i in range(n):
