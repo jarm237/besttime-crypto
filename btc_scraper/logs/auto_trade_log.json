@@ -118,5 +118,29 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 14.9h",
     "entry_price": 1.997
+  },
+  {
+    "timestamp": "2026-06-15T22:47:33.912519",
+    "timestamp_str": "2026-06-15 22:47:33",
+    "mode": "TESTNET",
+    "coin": "IOTA",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.64,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 13.4h",
+    "entry_price": 0.0508
+  },
+  {
+    "timestamp": "2026-06-15T23:02:31.579284",
+    "timestamp_str": "2026-06-15 23:02:31",
+    "mode": "TESTNET",
+    "coin": "TRUMP",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.628,
+    "signal_score": 30,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 13.2h",
+    "entry_price": 2.01
   }
 ]

@@ -1183,5 +1183,50 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "WLDUSDT_1781537549",
+    "symbol": "WLDUSDT",
+    "timestamp": 1781537549.9942374,
+    "timestamp_str": "2026-06-15 22:32:29",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.5899,
+    "signal_score": 45,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "IOTAUSDT_1781538453",
+    "symbol": "IOTAUSDT",
+    "timestamp": 1781538453.9226615,
+    "timestamp_str": "2026-06-15 22:47:33",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.64,
+    "signal_score": 10,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "TRUMPUSDT_1781539351",
+    "symbol": "TRUMPUSDT",
+    "timestamp": 1781539351.58821,
+    "timestamp_str": "2026-06-15 23:02:31",
+    "signal": "SELL (Break-SMA50)",
+    "meta_prob": 0.628,
+    "signal_score": 30,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]
