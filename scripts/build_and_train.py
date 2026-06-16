@@ -371,7 +371,26 @@ def build_dataset(months: list[str]) -> list[dict]:
     print(f"  Tháng: {months}\n")
 
     all_trades = []
+    coin_results = {}
+    
+    progress_file = LOGS_DIR / "build_progress.json"
+    if progress_file.exists():
+        try:
+            with open(progress_file, "r", encoding="utf-8") as f:
+                state = json.load(f)
+                all_trades = state.get("all_trades", [])
+                coin_results = state.get("coin_results", {})
+            print(f"  [Resume] Tiếp tục từ mốc trước: đã xong {len(coin_results)} coin, {len(all_trades)} lệnh.\n")
+        except Exception as e:
+            print(f"  [Warning] Không thể đọc {progress_file}, sẽ chạy lại từ đầu: {e}\n")
+            all_trades = []
+            coin_results = {}
+
     for coin in COINS:
+        if coin in coin_results:
+            print(f"  [+] {coin} ... BỎ QUA (đã có kết quả)")
+            continue
+
         print(f"  [+] {coin} ...", end=" ", flush=True)
         candles_15m = load_candles(coin, "15m", months)
         if not candles_15m:
@@ -387,10 +406,41 @@ def build_dataset(months: list[str]) -> list[dict]:
         print(f"{len(coin_trades)} lệnh | WIN={wins} LOSS={losses} WR={wr:.1f}%")
         all_trades.extend(coin_trades)
 
+        coin_results[coin] = {
+            "total_trades": len(coin_trades),
+            "wins": wins,
+            "losses": losses,
+            "win_rate": round(wr, 2)
+        }
+
+        # Lưu state sau mỗi coin để có thể resume
+        try:
+            with open(progress_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "coin_results": coin_results,
+                    "all_trades": all_trades
+                }, f, ensure_ascii=False)
+        except Exception as e:
+            print(f"  [Error] Không thể lưu tiến độ: {e}")
+
     print(f"\n  [OK] Tổng: {len(all_trades)} lệnh")
     if all_trades:
         wins_total = sum(1 for t in all_trades if t.get("result") == "WIN")
         print(f"  WIN={wins_total} ({wins_total/len(all_trades)*100:.1f}%) | LOSS={len(all_trades)-wins_total}")
+
+    results_file = LOGS_DIR / "build_results_by_coin.json"
+    try:
+        with open(results_file, "w", encoding="utf-8") as f:
+            json.dump(coin_results, f, indent=2, ensure_ascii=False)
+        print(f"  [Saved] Kết quả build từng coin → {results_file}")
+        
+        # Nếu build xong toàn bộ, xóa file progress để lần chạy sau build lại từ đầu
+        if progress_file.exists():
+            progress_file.unlink()
+            
+    except Exception as e:
+        print(f"  [Error] Không thể lưu kết quả build: {e}")
+
     return all_trades
 
 
