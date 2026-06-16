@@ -156,7 +156,13 @@ import btc_scraper.trading.risk_manager as _risk_mod
 
 # Lôi hết dữ liệu DB lên bảng tạm 1 lần duy nhất để tối ưu tốc độ
 print("  [Init] Đang tải bảng tạm closed_positions từ MongoDB...")
-_TEMP_TRADES_TABLE = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
+try:
+    _TEMP_TRADES_TABLE = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
+except Exception as e:
+    print(f"  [Warning] Không thể kết nối MongoDB: {e}")
+    print("  [Warning] Sẽ tiếp tục với bảng tạm rỗng (không ảnh hưởng nhiều đến backtest).")
+    _TEMP_TRADES_TABLE = []
+    
 _original_calculate_risk_metrics = _risk_mod.calculate_risk_metrics
 
 def _cached_calculate_risk_metrics(*args, **kwargs):

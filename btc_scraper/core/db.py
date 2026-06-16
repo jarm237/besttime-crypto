@@ -1,4 +1,5 @@
 import os
+import certifi
 from pymongo import MongoClient
 from btc_scraper.core.config import MONGODB_URI
 
@@ -6,7 +7,10 @@ from btc_scraper.core.config import MONGODB_URI
 _db_uri = MONGODB_URI or "mongodb://localhost:27017/"
 
 # Kết nối MongoDB (singleton)
-client = MongoClient(_db_uri)
+if "mongodb+srv://" in _db_uri:
+    client = MongoClient(_db_uri, tlsCAFile=certifi.where())
+else:
+    client = MongoClient(_db_uri)
 
 # Tạo database 'besttime_crypto'
 db = client['besttime_crypto']

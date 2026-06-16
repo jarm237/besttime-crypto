@@ -433119,5 +433119,63 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "ETH",
+    "id": "23b10777-dff8-42e2-9c10-a5d81ba3489a",
+    "entry_price": 1802.52,
+    "sell_price": 1764.78,
+    "pnl_pct": -2.0937,
+    "result": "LOSS",
+    "hold_hours": 1.0,
+    "exit_time": "2026-06-16 21:36",
+    "signal_raw": "NEUTRAL (BEARISH-CAUTION)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH-CAUTION)",
+      "meta_confidence": 0.3695033403581336,
+      "meta_confidence_pct": 37,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
+  },
+  {
+    "coin": "XRP",
+    "id": "a2a58992-2996-412e-aa41-d963372c24eb",
+    "entry_price": 1.2161,
+    "sell_price": 1.2077,
+    "pnl_pct": -0.6907,
+    "result": "LOSS",
+    "hold_hours": 0.6,
+    "exit_time": "2026-06-16 22:49",
+    "signal_raw": "NEUTRAL (BEARISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH)",
+      "meta_confidence": 0.3856509689680725,
+      "meta_confidence_pct": 39,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 1.1266
+    },
+    "regime": null
   }
 ]

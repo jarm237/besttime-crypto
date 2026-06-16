@@ -165,8 +165,13 @@ class CCXTClient:
         qty = usdt_amount / price
         qty = ex.amount_to_precision(symbol, qty)
 
-        order = await ex.create_market_buy_order(symbol, float(qty), params=params or {})
-        return order
+        try:
+            order = await ex.create_market_buy_order(symbol, float(qty), params=params or {})
+            return order
+        except Exception as e:
+            if "-2015" in str(e) or "Invalid API-key" in str(e):
+                raise RuntimeError(f"Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: {e}")
+            raise RuntimeError(f"Lỗi đặt lệnh: {e}")
 
     async def create_market_sell(
         self,
@@ -199,8 +204,13 @@ class CCXTClient:
         qty = usdt_amount / price
         qty = ex.amount_to_precision(symbol, qty)
 
-        order = await ex.create_market_sell_order(symbol, float(qty), params=params or {})
-        return order
+        try:
+            order = await ex.create_market_sell_order(symbol, float(qty), params=params or {})
+            return order
+        except Exception as e:
+            if "-2015" in str(e) or "Invalid API-key" in str(e):
+                raise RuntimeError(f"Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: {e}")
+            raise RuntimeError(f"Lỗi đặt lệnh: {e}")
 
     async def fetch_order_status(self, order_id: str, symbol: str) -> str:
         """Lấy trạng thái lệnh."""

@@ -313,5 +313,77 @@
     "order_id": null,
     "status": "error",
     "error": "binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
+  },
+  {
+    "timestamp": "2026-06-16T20:16:40.829284",
+    "timestamp_str": "2026-06-16 20:16:40",
+    "mode": "TESTNET",
+    "coin": "DOGE",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4044,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0877
+  },
+  {
+    "timestamp": "2026-06-16T20:31:42.442558",
+    "timestamp_str": "2026-06-16 20:31:42",
+    "mode": "TESTNET",
+    "coin": "TSLAB",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4583,
+    "signal_score": 30,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 401.5
+  },
+  {
+    "timestamp": "2026-06-16T20:34:42.576532",
+    "timestamp_str": "2026-06-16 20:34:42",
+    "mode": "TESTNET",
+    "coin": "TSLAB",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4516,
+    "signal_score": 30,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 401.41
+  },
+  {
+    "timestamp": "2026-06-16T21:31:41.957436",
+    "timestamp_str": "2026-06-16 21:31:41",
+    "mode": "TESTNET",
+    "coin": "XPL",
+    "signal": "BUY (Pullback-Zone)",
+    "meta_confidence": 0.509,
+    "signal_score": 70,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0951
+  },
+  {
+    "timestamp": "2026-06-16T21:31:42.363817",
+    "timestamp_str": "2026-06-16 21:31:42",
+    "mode": "TESTNET",
+    "coin": "TSLAB",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4269,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 402.94
+  },
+  {
+    "timestamp": "2026-06-16T23:16:42.634436",
+    "timestamp_str": "2026-06-16 23:16:42",
+    "mode": "TESTNET",
+    "coin": "XAUT",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.4898,
+    "signal_score": 70,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 4327.16
   }
 ]
