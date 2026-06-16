@@ -125,27 +125,43 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
         if len(parts) < 2:
             send_telegram_message(
                 "❌ Cú pháp sai. Ví dụ:\n"
-                "• Theo giá thị trường: <code>/close BTC</code>\n"
-                "• Theo giá chỉ định: <code>/close BTC 67500</code>",
+                "• Đóng toàn bộ: <code>/close BTC</code>\n"
+                "• Đóng 1 phần: <code>/close BTC 50%</code>\n"
+                "• Kèm giá: <code>/close BTC 50% 67500</code>\n"
+                "• Toàn bộ kèm giá: <code>/close BTC 67500</code>",
                 reply_to_message_id=reply_to_id,
                 chat_id=chat_id
             )
             return
             
         coin = parts[1].upper()
-        
+        percentage = 100.0
         price = 0.0
-        if len(parts) >= 3:
+        
+        if len(parts) == 3:
+            # Could be percentage (50%) or price (67500)
+            if parts[2].endswith('%'):
+                try:
+                    percentage = float(parts[2].replace('%', ''))
+                except ValueError:
+                    send_telegram_message("❌ Phần trăm đóng lệnh không hợp lệ.", reply_to_message_id=reply_to_id, chat_id=chat_id)
+                    return
+            else:
+                try:
+                    price = float(parts[2])
+                except ValueError:
+                    send_telegram_message("❌ Giá hoặc phần trăm không hợp lệ.", reply_to_message_id=reply_to_id, chat_id=chat_id)
+                    return
+        elif len(parts) >= 4:
+            # Expected: /close BTC 50% 67500 or /close BTC 50 67500
             try:
-                price = float(parts[2])
+                percentage = float(parts[2].replace('%', ''))
+                price = float(parts[3])
             except ValueError:
-                send_telegram_message(
-                    "❌ Giá đóng lệnh phải là một số hợp lệ.",
-                    reply_to_message_id=reply_to_id,
-                    chat_id=chat_id
-                )
+                send_telegram_message("❌ Cú pháp giá hoặc phần trăm không hợp lệ.", reply_to_message_id=reply_to_id, chat_id=chat_id)
                 return
-        else:
+
+        if price <= 0:
             price = get_latest_price(coin)
             
         if price <= 0:
@@ -156,20 +172,29 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             )
             return
             
-        from btc_scraper.trading.position_tracker import close_position
+        from btc_scraper.trading.position_tracker import close_position, close_partial_position
         try:
-            closed_data = close_position(coin, price)
+            if percentage >= 100:
+                closed_data = close_position(coin, price)
+                is_partial = False
+            else:
+                closed_data = close_partial_position(coin, price, percentage)
+                is_partial = True
+                
             pnl = closed_data["pnl_pct"]
             pnl_text = f"+{pnl:.2f}%" if pnl > 0 else f"{pnl:.2f}%"
             pnl_emoji = "🟢" if pnl >= 0 else "🔴"
             
+            partial_text = f" (Chốt {percentage}%)" if is_partial else ""
+            
             reply = (
-                f"✅ <b>ĐÃ ĐÓNG VỊ THẾ THỦ CÔNG:</b>\n"
+                f"✅ <b>ĐÃ ĐÓNG VỊ THẾ THỦ CÔNG{partial_text}:</b>\n"
                 f"• Coin: <b>{coin}</b> ({closed_data['direction']})\n"
                 f"• Giá vào: <code>{closed_data['entry_price']:,.4f}</code>\n"
                 f"• Giá đóng: <code>{price:,.4f}</code>\n"
-                f"• Lãi/lỗ: {pnl_emoji} <b>{pnl_text}</b>\n"
+                f"• Lãi/lỗ phần chốt: {pnl_emoji} <b>{pnl_text}</b>\n"
                 f"• Lợi nhuận: <code>${closed_data['pnl_usd_actual']:.2f} USDT</code>\n"
+                f"• Vốn chốt: <code>${closed_data['invested_usdt']:.2f} USDT</code>\n"
                 f"• Hold: <code>{closed_data['hold_hours']} giờ</code>"
             )
             send_telegram_message(reply, reply_to_message_id=reply_to_id, chat_id=chat_id)

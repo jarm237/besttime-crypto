@@ -178,5 +178,17 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 11.2h",
     "entry_price": 1.2793
+  },
+  {
+    "timestamp": "2026-06-16T10:18:34.351562",
+    "timestamp_str": "2026-06-16 10:18:34",
+    "mode": "TESTNET",
+    "coin": "ZEC",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.4067,
+    "signal_score": 50,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 1.9h",
+    "entry_price": 525.39
   }
 ]

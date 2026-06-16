@@ -26,6 +26,10 @@ function App() {
 
   const [newPos, setNewPos] = useState({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '' });
   const [closePrice, setClosePrice] = useState('');
+  
+  const [showPartialModal, setShowPartialModal] = useState(null);
+  const [partialPercentage, setPartialPercentage] = useState(50);
+  const [partialPrice, setPartialPrice] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -95,6 +99,22 @@ function App() {
       fetchData();
     } catch (err) {
       alert(err.response?.data?.detail || 'Error closing position');
+    }
+  };
+
+  const handlePartialClose = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API_BASE}/positions/${showPartialModal}/close-partial`, {
+        sell_price: parseFloat(partialPrice),
+        percentage: parseFloat(partialPercentage)
+      });
+      setShowPartialModal(null);
+      setPartialPrice('');
+      setPartialPercentage(50);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Error closing partial position');
     }
   };
 
@@ -435,21 +455,27 @@ function App() {
                   </td>
                   <td>
                     {(() => {
-                      const sc = data.signal_score?.score;
+                      const displayLabel = data.signal_score?.display_label;
+                      const displayScore = data.signal_score?.display_score;
                       const conf = data.signal_score?.confidence;
-                      if (sc == null) return <span style={{ color: '#475569', fontSize: '0.8rem' }}>N/A</span>;
-                      const isBuyScore = data.signal_score?.action === 'BUY';
-                      const isSellScore = data.signal_score?.action === 'SELL';
+                      // Fallback for old data
+                      const sc = data.signal_score?.score;
+                      const action = data.signal_score?.action;
+                      const isBuyScore = action === 'BUY';
+                      const isSellScore = action === 'SELL';
                       const barColor = isBuyScore ? '#22c55e' : isSellScore ? '#ef4444' : '#f59e0b';
                       const textColor = isBuyScore ? '#22c55e' : isSellScore ? '#ef4444' : '#f59e0b';
+                      const label = displayLabel ?? (sc != null ? (isBuyScore ? `BUY ${sc}%` : isSellScore ? `SELL ${100 - sc}%` : 'NEUTRAL') : null);
+                      const barWidth = displayScore ?? (sc != null ? (isBuyScore ? sc : isSellScore ? 100 - sc : 0) : 0);
+                      if (!label) return <span style={{ color: '#475569', fontSize: '0.8rem' }}>N/A</span>;
                       return (
-                        <div style={{ minWidth: 80 }}>
+                        <div style={{ minWidth: 90 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
-                            <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.9rem', color: textColor }}>{sc}</span>
+                            <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.85rem', color: textColor }}>{label}</span>
                             <span style={{ fontSize: '0.65rem', color: '#64748b', marginLeft: '0.3rem' }}>{conf}</span>
                           </div>
                           <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.08)' }}>
-                            <div style={{ height: '100%', borderRadius: 999, width: `${sc}%`, background: barColor, transition: 'width 0.4s' }} />
+                            <div style={{ height: '100%', borderRadius: 999, width: `${barWidth}%`, background: barColor, transition: 'width 0.4s' }} />
                           </div>
                         </div>
                       );
@@ -592,12 +618,21 @@ function App() {
                 )}
               </div>
 
-              <button
-                onClick={() => setShowCloseModal(pos.coin)}
-                className="btn btn-danger w-full"
-              >
-                <X size={16} /> Đóng Vị Thế
-              </button>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={() => setShowPartialModal(pos.coin)}
+                  className="btn flex-1"
+                  style={{ background: 'rgba(56,189,248,0.1)', color: '#38bdf8', borderColor: 'rgba(56,189,248,0.3)' }}
+                >
+                  <TrendingDown size={16} /> Chốt 1 phần
+                </button>
+                <button
+                  onClick={() => setShowCloseModal(pos.coin)}
+                  className="btn btn-danger flex-1"
+                >
+                  <X size={16} /> Đóng Vị Thế
+                </button>
+              </div>
             </div>
           );
         })}
@@ -694,26 +729,38 @@ function App() {
                 </div>
                 <div style={{ color: '#94a3b8', fontSize: '0.8rem', lineHeight: 1.6 }}>{data.reason || 'Phân tích đa chỉ báo'}</div>
                 {/* Signal Score bar */}
-                {data.signal_score?.score != null && (
+                {(data.signal_score?.display_label ?? data.signal_score?.score) != null && (
                   <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '0.78rem' }}>
-                      <span style={{ color: '#94a3b8' }}>📊 Signal Score</span>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '1rem', color: data.signal_score.action === 'BUY' ? '#22c55e' : data.signal_score.action === 'SELL' ? '#ef4444' : '#f59e0b' }}>
-                          {data.signal_score.score}
-                        </span>
-                        <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}>{data.signal_score.confidence}</span>
-                        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>size {data.signal_score.position_size}</span>
-                      </div>
-                    </div>
-                    <div style={{ height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.06)' }}>
-                      <div style={{ height: '100%', borderRadius: 999, width: `${data.signal_score.score}%`, background: data.signal_score.action === 'BUY' ? 'linear-gradient(to right,#16a34a,#22c55e)' : data.signal_score.action === 'SELL' ? 'linear-gradient(to right,#b91c1c,#ef4444)' : 'linear-gradient(to right,#b45309,#f59e0b)', transition: 'width 0.5s' }} />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#475569', marginTop: '0.2rem' }}>
-                      <span>0</span><span>50</span><span>100</span>
-                    </div>
+                    {(() => {
+                      const ss = data.signal_score;
+                      const action = ss.action;
+                      const scoreColor = action === 'BUY' ? '#22c55e' : action === 'SELL' ? '#ef4444' : '#f59e0b';
+                      const barGrad = action === 'BUY' ? 'linear-gradient(to right,#16a34a,#22c55e)' : action === 'SELL' ? 'linear-gradient(to right,#b91c1c,#ef4444)' : 'linear-gradient(to right,#b45309,#f59e0b)';
+                      // Use display fields if available, fallback for old data
+                      const label = ss.display_label ?? (action === 'BUY' ? `BUY ${ss.score}%` : action === 'SELL' ? `SELL ${100 - ss.score}%` : 'NEUTRAL');
+                      const barWidth = ss.display_score ?? (action === 'BUY' ? ss.score : action === 'SELL' ? 100 - ss.score : 0);
+                      return (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '0.78rem' }}>
+                            <span style={{ color: '#94a3b8' }}>📊 Sức mạnh tín hiệu</span>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '1rem', color: scoreColor }}>{label}</span>
+                              <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}>{ss.confidence}</span>
+                              <span style={{ fontSize: '0.65rem', color: '#64748b' }}>size {ss.position_size}</span>
+                            </div>
+                          </div>
+                          <div style={{ height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.06)' }}>
+                            <div style={{ height: '100%', borderRadius: 999, width: `${barWidth}%`, background: barGrad, transition: 'width 0.5s' }} />
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#475569', marginTop: '0.2rem' }}>
+                            <span>Yếu</span><span>Vừa</span><span>Mạnh</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
+
                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
                   <span style={{ color: '#64748b' }}>CÁC CHỈ BÁO KỸ THUẬT</span>
                   <span style={{ color: data.rsi < 30 ? '#22c55e' : data.rsi > 70 ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>RSI: {data.rsi?.toFixed(1)}</span>
@@ -1094,6 +1141,33 @@ function App() {
                 <input required type="number" step="any" className="form-control" value={closePrice} onChange={e => setClosePrice(e.target.value)} />
               </div>
               <button type="submit" className="btn btn-primary w-full mt-4">Xác Nhận Đóng Lệnh</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showPartialModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">Chốt Lời 1 Phần {showPartialModal}</h3>
+              <button className="close-btn" onClick={() => setShowPartialModal(null)}><X size={20} /></button>
+            </div>
+            <form onSubmit={handlePartialClose}>
+              <div className="form-group">
+                <label className="form-label">Phần Trăm Chốt (%)</label>
+                <input required type="number" min="1" max="99" step="any" className="form-control" value={partialPercentage} onChange={e => setPartialPercentage(e.target.value)} />
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  {[25, 50, 75].map(pct => (
+                    <button key={pct} type="button" onClick={() => setPartialPercentage(pct)} className="btn flex-1" style={{ fontSize: '0.8rem', padding: '0.2rem' }}>{pct}%</button>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Giá Đóng Lệnh (Sell Price)</label>
+                <input required type="number" step="any" className="form-control" value={partialPrice} onChange={e => setPartialPrice(e.target.value)} />
+              </div>
+              <button type="submit" className="btn w-full mt-4" style={{ background: 'linear-gradient(to right, #38bdf8, #818cf8)' }}>Xác Nhận Chốt Lời</button>
             </form>
           </div>
         </div>

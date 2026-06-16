@@ -116,9 +116,25 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
         # Color signal and show score/confidence if available
         sig_styled = f"[white]{sig}[/]"
         sig_score = ana.get("signal_score", {}) or {}
-        score_val = sig_score.get("score")
-        conf = sig_score.get("confidence")
-        score_suffix = f" ({score_val}% {conf})" if score_val is not None else ""
+        display_label = sig_score.get("display_label")
+        confidence = sig_score.get("confidence")
+        # Fallback for old data without display_label
+        if display_label is None:
+            score_val = sig_score.get("score")
+            action = sig_score.get("action", "NEUTRAL")
+            if score_val is not None:
+                if action == "BUY":
+                    display_label = f"BUY {score_val}%"
+                elif action == "SELL":
+                    display_label = f"SELL {100 - score_val}%"
+                else:
+                    display_label = "NEUTRAL"
+        if display_label and confidence and display_label != "NEUTRAL":
+            score_suffix = f" [{display_label} {confidence}]"
+        elif display_label == "NEUTRAL":
+            score_suffix = " [→ NEUTRAL]"
+        else:
+            score_suffix = ""
         if "STRONG BUY" in sig or "BUY" in sig:
             sig_styled = f"[bold bright_green]{sig}{score_suffix}[/]"
         elif "STRONG SELL" in sig or "SELL" in sig:

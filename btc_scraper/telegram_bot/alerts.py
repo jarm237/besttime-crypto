@@ -42,11 +42,32 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
         escaped_sig = html.escape(sig)
         escaped_reason = html.escape(ana.get("reason", ""))
         sig_score = ana.get("signal_score", {}) or {}
-        score_val = sig_score.get("score")
+        display_label = sig_score.get("display_label")  # e.g. "BUY 80%" / "SELL 75%" / "NEUTRAL"
+        display_score = sig_score.get("display_score")  # sức mạnh theo chiều action 0-100
         confidence = sig_score.get("confidence")
         meta_pct = sig_score.get("meta_confidence_pct")  # int 0-100 hoặc None
 
-        score_part = f" <b>[{score_val}% {confidence}]</b>" if score_val is not None else ""
+        # Fallback nếu bot đang chạy mà chưa có display_label (dữ liệu cũ)
+        if display_label is None:
+            score_val = sig_score.get("score")
+            action = sig_score.get("action", "NEUTRAL")
+            if score_val is not None:
+                if action == "BUY":
+                    display_label = f"BUY {score_val}%"
+                    display_score = score_val
+                elif action == "SELL":
+                    display_label = f"SELL {100 - score_val}%"
+                    display_score = 100 - score_val
+                else:
+                    display_label = "NEUTRAL"
+                    display_score = 0
+
+        if display_label and confidence and display_label != "NEUTRAL":
+            score_part = f" <b>[{display_label} {confidence}]</b>"
+        elif display_label == "NEUTRAL":
+            score_part = f" <b>[→ NEUTRAL]</b>"
+        else:
+            score_part = ""
 
         # Meta Confidence badge (chỉ hiển thị khi model đã train)
         if meta_pct is not None:

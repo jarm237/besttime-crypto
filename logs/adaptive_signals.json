@@ -432992,5 +432992,32 @@
       "std_dev_pct": 0.4303
     },
     "regime": null
+  },
+  {
+    "coin": "ZEC",
+    "id": "34e712f9-5b64-4ce0-b9ff-08e8c1c0f306",
+    "entry_price": 522.27,
+    "sell_price": 521.73,
+    "pnl_pct": -0.1034,
+    "result": "LOSS",
+    "hold_hours": 1.2,
+    "exit_time": "2026-06-16 11:33",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.6532044911609644,
+      "meta_confidence_pct": 65,
+      "kelly_fraction": 0.3064089823219287,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 1.2906
+    },
+    "regime": null
   }
 ]

@@ -137,6 +137,34 @@ def map_score_to_confidence(score: int) -> str:
     return "LOW"
 
 
+def map_score_to_display(score: int, action: str) -> tuple[int, str]:
+    """
+    Chuyển score nội bộ (0-100) sang dạng hiển thị dễ hiểu hơn:
+    - display_score: 0-100, đại diện cho sức mạnh theo chiều action (luôn dương)
+    - display_label: chuỗi hiển thị ví dụ "BUY 80%" hoặc "SELL 75%" hoặc "NEUTRAL"
+
+    Score nội bộ:
+      - 0   = STRONG SELL (100% sức mạnh bán)
+      - 50  = NEUTRAL
+      - 100 = STRONG BUY  (100% sức mạnh mua)
+
+    Quy đổi:
+      - BUY:  display_score = score       (51-100 → 51-100%)
+      - SELL: display_score = 100 - score (0-49  → 51-100%)
+      - NEUTRAL: display_score = 0
+    """
+    if action == "BUY":
+        display_score = int(score)
+        display_label = f"BUY {display_score}%"
+    elif action == "SELL":
+        display_score = int(100 - score)
+        display_label = f"SELL {display_score}%"
+    else:
+        display_score = 0
+        display_label = "NEUTRAL"
+    return display_score, display_label
+
+
 def position_size_from_score(score: int, min_size: float = 0.25, max_size: float = 1.0) -> float:
     frac = abs(score - 50) / 50.0
     size = min_size + frac * (max_size - min_size)
@@ -603,14 +631,20 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             pos_size = round(max(0.25, min(1.0, pos_size * float(mult))), 2)
         except Exception:
             pass
+
+    # ── Display fields (human-readable) ─────────────────────────────────────────
+    display_score, display_label = map_score_to_display(int(score), action)
+
     return {
         "action": action,
-        "score": int(score),
+        "score": int(score),               # internal 0-100 (0=strong sell, 100=strong buy)
+        "display_score": display_score,    # 0-100 strength in direction of action
+        "display_label": display_label,    # e.g. "BUY 80%" / "SELL 75%" / "NEUTRAL"
         "confidence": conf,
         "position_size": pos_size,
         "raw_text": sig_text,
-        "meta_confidence": meta_prob,                          # float 0-1
-        "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,  # int 0-100 cho display
+        "meta_confidence": meta_prob,
+        "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,
         "kelly_fraction": kelly,
         "b_estimate": b_est,
         "meta_error": meta_err,

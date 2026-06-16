@@ -36,6 +36,10 @@ class PositionCreate(BaseModel):
 class PositionClose(BaseModel):
     sell_price: float
 
+class PositionClosePartial(BaseModel):
+    sell_price: float
+    percentage: float
+
 @app.get("/api/ai-analysis")
 def get_ai_analysis():
     try:
@@ -110,6 +114,52 @@ def close_position(coin: str, data: PositionClose):
                             client.create_market_buy(symbol, current_val)
                 except Exception as exchange_err:
                     print(f"Lỗi đóng lệnh trên exchange: {exchange_err}")
+                    
+        return {"status": "success", "data": closed_data}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/positions/{coin}/close-partial")
+def close_partial_position(coin: str, data: PositionClosePartial):
+    """Đóng một phần vị thế đang mở."""
+    try:
+        open_pos = next((p for p in position_tracker.get_open_positions() if p["coin"].upper() == coin.upper()), None)
+        
+        closed_data = position_tracker.close_partial_position(
+            coin=coin,
+            sell_price=data.sell_price,
+            percentage=data.percentage
+        )
+        
+        if open_pos and "[AUTO-" in open_pos.get("note", ""):
+            note = open_pos.get("note", "")
+            mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
+            
+            # Note: We do not record circuit breaker results for partial closes 
+            # to avoid messing up the win/loss streak logic until the final close.
+                
+            if mode in ("TESTNET", "LIVE"):
+                try:
+                    from btc_scraper.core.ccxt_client import CCXTClient
+                    client = CCXTClient.from_env()
+                    client.dry_run = False
+                    
+                    symbol = f"{coin.upper()}/USDT"
+                    direction = open_pos.get("direction")
+                    invested_usdt = open_pos.get("invested_usdt", 0.0)
+                    entry_price = open_pos.get("entry_price", 0.0)
+                    current_price = data.sell_price
+                    
+                    if entry_price > 0:
+                        # Partial close amount based on original invested USDT and percentage
+                        closed_usdt = invested_usdt * (data.percentage / 100)
+                        current_val = closed_usdt * (current_price / entry_price)
+                        if direction == "LONG":
+                            client.create_market_sell(symbol, current_val)
+                        else:
+                            client.create_market_buy(symbol, current_val)
+                except Exception as exchange_err:
+                    print(f"Lỗi đóng lệnh một phần trên exchange: {exchange_err}")
                     
         return {"status": "success", "data": closed_data}
     except ValueError as e:

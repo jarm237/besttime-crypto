@@ -199,6 +199,126 @@ def close_position(coin: str, sell_price: float) -> dict:
     return closed_data
 
 
+def close_partial_position(coin: str, sell_price: float, percentage: float) -> dict:
+    """
+    Đóng một phần vị thế (theo phần trăm) và tính toán chỉ số hiệu suất cho phần đó.
+    Vị thế gốc sẽ được giảm invested_usdt tương ứng.
+    """
+    coin = coin.upper()
+    if percentage <= 0 or percentage >= 100:
+        raise ValueError(f"Phần trăm chốt lời phải nằm trong khoảng (0, 100). Giá trị: {percentage}")
+
+    pos = positions_col.find_one({"coin": coin, "status": "open"}, {"_id": 0})
+    if not pos:
+        raise ValueError(f"Không tìm thấy vị thế đang mở cho {coin}.")
+
+    entry = pos["entry_price"]
+    direction = pos["direction"]
+    invested_usdt = pos.get("invested_usdt", 0.0)
+
+    if invested_usdt <= 0:
+        raise ValueError(f"Vị thế {coin} không có vốn đầu tư (invested_usdt = 0), không thể chốt 1 phần.")
+
+    # Tính P&L phần trăm
+    if direction == "LONG":
+        pnl_pct = (sell_price - entry) / entry * 100
+    else:  # SHORT
+        pnl_pct = (entry - sell_price) / entry * 100
+
+    # Lượng vốn đóng
+    closed_amount_usdt = invested_usdt * (percentage / 100)
+    
+    # Tính R-multiplier
+    r_mult = None
+    sl = pos.get("suggested_sl")
+    if sl and sl > 0:
+        risk_pct = abs(entry - sl) / entry * 100
+        if risk_pct > 0:
+            r_mult = round(pnl_pct / risk_pct, 2)
+
+    # Tính thời gian nắm giữ
+    try:
+        entry_dt = datetime.strptime(pos["entry_time"], "%Y-%m-%d %H:%M")
+        hold_hours = round((datetime.now() - entry_dt).total_seconds() / 3600, 1)
+    except Exception:
+        hold_hours = 0.0
+
+    result = "BREAKEVEN"
+    if pnl_pct > 0.1:
+        result = "WIN"
+    elif pnl_pct < -0.1:
+        result = "LOSS"
+
+    pnl_usd_actual = closed_amount_usdt * (pnl_pct / 100)
+    gross_received = closed_amount_usdt + pnl_usd_actual
+    fee_usd = (closed_amount_usdt * 0.001) + (gross_received * 0.001)
+    received_usdt = gross_received - fee_usd
+
+    closed_data = {
+        **pos,
+        "id": f"{pos['id']}-partial-{int(datetime.now().timestamp())}",
+        "parent_id": pos["id"],
+        "is_partial": True,
+        "sell_price": float(sell_price),
+        "exit_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "invested_usdt": round(closed_amount_usdt, 2),
+        "closed_percentage": percentage,
+        "pnl_pct": round(pnl_pct, 4),
+        "pnl_usd_per_1000": round(1000 * pnl_pct / 100, 2),
+        "pnl_usd_actual": round(pnl_usd_actual, 2),
+        "fee_usd": round(fee_usd, 2),
+        "received_usdt": round(received_usdt, 2),
+        "r_multiplier": r_mult,
+        "hold_hours": hold_hours,
+        "result": result,
+        "status": "closed",
+    }
+
+    # Cập nhật vị thế gốc (giảm vốn)
+    remaining_usdt = invested_usdt - closed_amount_usdt
+    partial_record = {
+        "time": closed_data["exit_time"],
+        "percentage": percentage,
+        "amount_usdt": round(closed_amount_usdt, 2),
+        "sell_price": float(sell_price),
+        "pnl_pct": round(pnl_pct, 4),
+        "pnl_usd": round(pnl_usd_actual, 2)
+    }
+
+    try:
+        positions_col.update_one(
+            {"id": pos["id"]},
+            {
+                "$set": {"invested_usdt": remaining_usdt},
+                "$push": {"partial_closes": partial_record}
+            }
+        )
+        # Lưu bản ghi đóng lệnh 1 phần vào collections
+        closed_positions_col.insert_one(closed_data.copy())
+        
+        simple = {
+            "coin": closed_data.get("coin"),
+            "id": closed_data.get("id"),
+            "parent_id": pos["id"],
+            "is_partial": True,
+            "entry_time": closed_data.get("entry_time"),
+            "exit_time": closed_data.get("exit_time"),
+            "entry_price": closed_data.get("entry_price"),
+            "exit_price": closed_data.get("sell_price"),
+            "pnl_pct": closed_data.get("pnl_pct"),
+            "result": closed_data.get("result"),
+            "hold_hours": closed_data.get("hold_hours"),
+            "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
+            "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
+            "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
+        }
+        closed_trades_col.insert_one(simple)
+    except Exception as e:
+        print(f"Warning: Lỗi khi lưu trạng thái đóng 1 phần vào MongoDB: {e}")
+
+    return closed_data
+
+
 def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
     """
     Kiểm tra tất cả vị thế đang mở so với kết quả phân tích hiện tại.
