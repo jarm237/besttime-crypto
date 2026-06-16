@@ -433061,5 +433061,63 @@
       "std_dev_pct": 0.6346
     },
     "regime": null
+  },
+  {
+    "coin": "BTC",
+    "id": "59e78d83-7f50-4421-aa27-4f27bd68480c",
+    "entry_price": 66336.9,
+    "sell_price": 66837.4,
+    "pnl_pct": 0.7545,
+    "result": "WIN",
+    "hold_hours": 2.5,
+    "exit_time": "2026-06-16 16:03",
+    "signal_raw": "STRONG SELL (Confirmed Reversal)",
+    "signal_score": {
+      "action": "SELL",
+      "score": 0,
+      "display_score": 100,
+      "display_label": "SELL 100%",
+      "confidence": "HIGH",
+      "position_size": 0.28,
+      "raw_text": "STRONG SELL (Confirmed Reversal)",
+      "meta_confidence": 0.44962434799801493,
+      "meta_confidence_pct": 45,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.424
+    },
+    "regime": null
+  },
+  {
+    "coin": "NEAR",
+    "id": "0e8ddf34-9928-4b72-a34c-778a566fd780",
+    "entry_price": 2.491,
+    "sell_price": 2.509,
+    "pnl_pct": -0.7226,
+    "result": "LOSS",
+    "hold_hours": 0.4,
+    "exit_time": "2026-06-16 16:27",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.44165387600294526,
+      "meta_confidence_pct": 44,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

@@ -292,5 +292,26 @@
     "order_id": null,
     "status": "error",
     "error": "binance testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead."
+  },
+  {
+    "timestamp": "2026-06-16T16:02:25.469853",
+    "timestamp_str": "2026-06-16 16:02:25",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "symbol": "NEAR/USDT",
+    "direction": "SHORT",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4673,
+    "meta_confidence_pct": 47,
+    "signal_score": 10,
+    "order_type": "market",
+    "entry_price": 2.492,
+    "sl_price": 2.5162,
+    "tp1_price": 2.4349,
+    "usdt_amount": 100.0,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
   }
 ]
