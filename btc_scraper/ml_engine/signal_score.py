@@ -4,8 +4,35 @@ Giai đoạn 1-5 (cơ bản): chuyển rule text -> điểm, tổng hợp, ánh 
 """
 from typing import Dict
 import os
+import time
 from pathlib import Path
 import json
+
+# ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
+# Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
+_RISK_METRICS_CACHE: dict = {}
+_RISK_METRICS_CACHE_TS: float = 0.0
+_RISK_METRICS_TTL: float = 60.0  # giây
+
+def _get_cached_risk_metrics() -> dict:
+    global _RISK_METRICS_CACHE, _RISK_METRICS_CACHE_TS
+    now = time.monotonic()
+    if now - _RISK_METRICS_CACHE_TS < _RISK_METRICS_TTL and _RISK_METRICS_CACHE:
+        return _RISK_METRICS_CACHE
+    try:
+        from btc_scraper.trading.risk_manager import calculate_risk_metrics
+        _RISK_METRICS_CACHE = calculate_risk_metrics()
+        _RISK_METRICS_CACHE_TS = now
+    except Exception:
+        _RISK_METRICS_CACHE = {
+            "consecutive_losses": 0,
+            "drawdown_pct": 0.0,
+            "risk_multiplier": 1.0,
+            "blocked": False,
+            "peak_equity": 5000.0,
+            "current_equity": 5000.0,
+        }
+    return _RISK_METRICS_CACHE
 
 
 def _safe_float(v, default=0.0) -> float:
@@ -448,8 +475,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     signal_cutoff = opt_params.get("signal_cutoff", 0.0)
     kelly_multiplier = opt_params.get("kelly_multiplier", 1.0)
 
-    from btc_scraper.trading.risk_manager import calculate_risk_metrics
-    risk_metrics = calculate_risk_metrics()
+    risk_metrics = _get_cached_risk_metrics()
     risk_multiplier = risk_metrics.get("risk_multiplier", 1.0)
     risk_blocked = risk_metrics.get("blocked", False)
 

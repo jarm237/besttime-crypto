@@ -433019,5 +433019,47 @@
       "std_dev_pct": 1.2906
     },
     "regime": null
+  },
+  {
+    "coin": "TRB",
+    "id": "c1399478-6cc9-4088-b7d2-d7d7d69ba695",
+    "entry_price": 14.0,
+    "sell_price": 13.97,
+    "pnl_pct": -0.2143,
+    "result": "LOSS",
+    "hold_hours": 0.0,
+    "exit_time": "2026-06-16 13:07",
+    "signal_raw": null,
+    "signal_score": {},
+    "regime": null
+  },
+  {
+    "coin": "TRB",
+    "id": "3cfcb7ce-9be8-4f28-ac50-abcc8e7e7904",
+    "entry_price": 13.972,
+    "sell_price": 14.117,
+    "pnl_pct": 1.0378,
+    "result": "WIN",
+    "hold_hours": 1.4,
+    "exit_time": "2026-06-16 14:48",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.37847755377956993,
+      "meta_confidence_pct": 38,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.6346
+    },
+    "regime": null
   }
 ]

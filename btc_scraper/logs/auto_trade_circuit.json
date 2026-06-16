@@ -1,6 +1,6 @@
 {
-  "consecutive_losses": 7,
-  "tripped_at": "2026-06-15T12:13:45.141410",
+  "consecutive_losses": 0,
+  "tripped_at": null,
   "total_trades_today": 0,
-  "date": "2026-06-15"
+  "date": "2026-06-16"
 }

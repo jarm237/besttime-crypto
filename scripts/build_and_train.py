@@ -151,6 +151,27 @@ _sentiment_mod.get_market_sentiment         = _mock_get_sentiment
 _sentiment_mod.get_sentiment_trend          = _mock_get_sentiment_trend
 _sentiment_mod._save_sentiment_to_history   = lambda data, **kw: None  # no-op
 
+from btc_scraper.core.db import closed_positions_col
+import btc_scraper.trading.risk_manager as _risk_mod
+
+# Lôi hết dữ liệu DB lên bảng tạm 1 lần duy nhất để tối ưu tốc độ
+print("  [Init] Đang tải bảng tạm closed_positions từ MongoDB...")
+_TEMP_TRADES_TABLE = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
+_original_calculate_risk_metrics = _risk_mod.calculate_risk_metrics
+
+def _cached_calculate_risk_metrics(*args, **kwargs):
+    # Truyền bảng tạm vào để tính toán thay vì query DB
+    kwargs["trades_cache"] = _TEMP_TRADES_TABLE
+    return _original_calculate_risk_metrics(*args, **kwargs)
+
+_risk_mod.calculate_risk_metrics = _cached_calculate_risk_metrics
+
+try:
+    import btc_scraper.ml_engine.signal_score as _score_mod
+    _score_mod.calculate_risk_metrics = _cached_calculate_risk_metrics
+except Exception:
+    pass
+
 # Cũng patch trên module analysis (nếu nó đã import riêng)
 try:
     import btc_scraper.analysis as _analysis_pkg

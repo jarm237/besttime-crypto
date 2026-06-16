@@ -3,7 +3,7 @@ from btc_scraper.core.db import closed_positions_col
 
 BASE_DIR = Path(__file__).parent.parent
 
-def calculate_risk_metrics(base_capital: float = 5000.0) -> dict:
+def calculate_risk_metrics(base_capital: float = 5000.0, trades_cache: list = None) -> dict:
     """Read closed_positions from MongoDB and compute consecutive losses and current drawdown percentage.
     
     Returns a dict:
@@ -24,8 +24,11 @@ def calculate_risk_metrics(base_capital: float = 5000.0) -> dict:
     }
 
     try:
-        # Sort by _id to ensure chronological order (insertion order)
-        trades = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
+        if trades_cache is not None:
+            trades = trades_cache
+        else:
+            # Sort by _id to ensure chronological order (insertion order)
+            trades = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
     except Exception:
         return default_res
         

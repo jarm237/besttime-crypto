@@ -76,6 +76,7 @@ class CCXTClient:
             "options": {
                 "defaultType": "future",
                 "adjustForTimeDifference": True,
+                "disableFuturesSandboxWarning": True,  # Bỏ qua lỗi NotSupported của CCXT cho testnet
             },
         })
 
