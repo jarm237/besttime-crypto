@@ -77,6 +77,11 @@ FEATURE_SCHEMA_V2 = FEATURE_SCHEMA + [
     "regime_panic_sell",
     "regime_low_liquidity",
     "regime_pump_risk",
+    "sentiment_momentum",
+    "sentiment_recovery",
+    "sentiment_risk",
+    "sentiment_trend_up",
+    "sentiment_trend_down",
 ]
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -275,6 +280,11 @@ def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float
         "bos_bear": info.get("bos_bear"),
         "choch_bull": info.get("choch_bull"),
         "choch_bear": info.get("choch_bear"),
+        "sentiment_momentum": info.get("sentiment_momentum"),
+        "sentiment_recovery": info.get("sentiment_recovery"),
+        "sentiment_risk": info.get("sentiment_risk"),
+        "sentiment_trend_up": info.get("sentiment_trend_up"),
+        "sentiment_trend_down": info.get("sentiment_trend_down"),
     }
 
     regime_raw = str(

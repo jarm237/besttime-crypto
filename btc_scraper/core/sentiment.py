@@ -176,9 +176,12 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/s
         print(f"  [Sentiment] Lỗi lưu history: {e}", flush=True)
 
 
-def get_sentiment_trend(history_file: str = "logs/sentiment_history.json") -> dict:
+def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", current_sentiment: dict = None) -> dict:
     """
     Tính xu hướng sentiment từ history.
+
+    Nếu current_sentiment được cung cấp, hàm sẽ dùng giá trị này làm điểm hiện tại
+    để đảm bảo trend được tính trên dữ liệu sentiment thực tế thay vì chỉ dựa vào history cũ.
     
     Trả về:
     {
@@ -201,25 +204,28 @@ def get_sentiment_trend(history_file: str = "logs/sentiment_history.json") -> di
     
     try:
         history_path = Path(history_file)
-        if not history_path.exists():
-            return default_trend
+        if history_path.exists():
+            with open(history_path, 'r', encoding='utf-8') as f:
+                history = json.load(f)
+        else:
+            history = {}
         
-        with open(history_path, 'r', encoding='utf-8') as f:
-            history = json.load(f)
-        
-        if len(history) < 2:
-            return default_trend
-        
-        # Sort timestamps descending (newest first)
         sorted_times = sorted(history.keys(), reverse=True)
-        current = history[sorted_times[0]]
-        
-        # Tìm điểm dữ liệu cách ~1 giờ (hoặc gần nhất)
-        prev_idx = 1
-        if len(sorted_times) > 2:
-            prev_idx = 1  # Lấy điểm liền trước
-        
-        prev = history[sorted_times[prev_idx]]
+
+        if current_sentiment is not None:
+            current = {
+                "score": current_sentiment.get("score", 0.0),
+                "raw_value": current_sentiment.get("raw_value", 50),
+                "label": current_sentiment.get("label", "Neutral"),
+            }
+            if len(sorted_times) < 1:
+                return default_trend
+            prev = history[sorted_times[0]]
+        else:
+            if len(sorted_times) < 2:
+                return default_trend
+            current = history[sorted_times[0]]
+            prev = history[sorted_times[1]]
         
         current_score = current.get("score", 0.0)
         prev_score = prev.get("score", 0.0)

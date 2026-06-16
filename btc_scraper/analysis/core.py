@@ -263,7 +263,7 @@ def analyze_market(candles: list[dict]) -> dict:
     
     # Lưu sentiment vào history để tracking trend
     _save_sentiment_to_history(sentiment_data)
-    sentiment_trend_data = get_sentiment_trend()
+    sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
 
     # Ghi lại chỉ số vào nến để hiển thị
     for i, c in enumerate(candles):
@@ -621,6 +621,11 @@ def analyze_market(candles: list[dict]) -> dict:
                 "bos_bear": c["bos_bear"],
                 "choch_bull": c["choch_bull"],
                 "choch_bear": c["choch_bear"],
+                "sentiment_momentum": sentiment_trend_data.get("momentum", 0.0),
+                "sentiment_recovery": 1.0 if sentiment_trend_data.get("recovery_signal") else 0.0,
+                "sentiment_risk": 1.0 if sentiment_trend_data.get("risk_signal") else 0.0,
+                "sentiment_trend_up": 1.0 if sentiment_trend_data.get("trend") == "UP" else 0.0,
+                "sentiment_trend_down": 1.0 if sentiment_trend_data.get("trend") == "DOWN" else 0.0,
             }
             context = {
                 "chandelier": chandelier_state,
@@ -865,7 +870,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
     sentiment_score = sentiment_data.get("score")
     sentiment_label = sentiment_data.get("label")
     sentiment_raw = sentiment_data.get("raw_value")
-    sentiment_trend_data = get_sentiment_trend()
+    sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
 
     # Đưa các chỉ báo vào nến
     for i in range(n):
