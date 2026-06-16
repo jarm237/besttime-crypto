@@ -142,5 +142,41 @@
     "status": "skipped",
     "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 13.2h",
     "entry_price": 2.01
+  },
+  {
+    "timestamp": "2026-06-16T00:02:07.340527",
+    "timestamp_str": "2026-06-16 00:02:07",
+    "mode": "TESTNET",
+    "coin": "BTC",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.5309,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 12.2h",
+    "entry_price": 67082.44
+  },
+  {
+    "timestamp": "2026-06-16T00:17:09.993990",
+    "timestamp_str": "2026-06-16 00:17:09",
+    "mode": "TESTNET",
+    "coin": "ETH",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.5938,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 11.9h",
+    "entry_price": 1829.99
+  },
+  {
+    "timestamp": "2026-06-16T01:02:07.930921",
+    "timestamp_str": "2026-06-16 01:02:07",
+    "mode": "TESTNET",
+    "coin": "XRP",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.5922,
+    "signal_score": 10,
+    "status": "skipped",
+    "reason_skip": "Circuit breaker: 9999 thua lien tiep. Reset sau 11.2h",
+    "entry_price": 1.2793
   }
 ]

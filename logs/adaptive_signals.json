@@ -432965,5 +432965,32 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "TRUMP",
+    "id": "9b557062-410b-45be-84b8-31a15bc66a45",
+    "entry_price": 2.012,
+    "sell_price": 1.966,
+    "pnl_pct": 2.2863,
+    "result": "WIN",
+    "hold_hours": 7.9,
+    "exit_time": "2026-06-16 07:04",
+    "signal_raw": "NEUTRAL (BEARISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH)",
+      "meta_confidence": 0.6441337343194105,
+      "meta_confidence_pct": 64,
+      "kelly_fraction": 0.14413373431941046,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.4303
+    },
+    "regime": null
   }
 ]
