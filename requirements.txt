@@ -12,7 +12,7 @@ scikit-learn
 joblib
 numpy
 ccxt
-websocket-client>=1.8.0
+websocket-client
 lightgbm
 xgboost
 catboost
@@ -21,6 +21,6 @@ scipy
 
 stable-baselines3
 
-pymongo>=4.6.0
-cryptography>=42.0.0
-aiohttp>=3.9.0
+pymongo
+cryptography
+aiohttp

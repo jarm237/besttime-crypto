@@ -24,7 +24,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
-from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+from sklearn.model_selection import TimeSeriesSplit, cross_val_score, PredefinedSplit
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.base import BaseEstimator, ClassifierMixin
 
@@ -619,64 +619,100 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     except Exception as e:
         print(f"  [Warning] Ensemble CV failed: {e}")
 
-    # 5. Calibration (Sigmoid vs Isotonic)
+    # 5. Calibration using separate hold-out calibration set
     clf = ensemble_clf
     calibration_method = None
     calibration_buckets = {}
+    calibration_info = {
+        "split": None,
+        "selected_method": None,
+        "selected_error": None,
+    }
 
-    if calibrate and len(y) >= 50:
+    if calibrate and len(y) >= 100:
         try:
-            clf_sigmoid = EnsembleMetaModel(
-                weights=best_weights, base_params=best_base_params,
-                calibration="sigmoid", n_estimators=n_estimators,
-            )
-            clf_sigmoid.fit(X, y, cv=tscv)
-            probs_sigmoid   = clf_sigmoid.predict_proba(X)[:, 1]
-            sigmoid_buckets = compute_calibration_buckets(
-                probs_sigmoid, ["WIN" if v == 1 else "LOSS" for v in y])
-            sigmoid_err = np.mean([
-                abs(v["calibration_error"]) for v in sigmoid_buckets.values()
-                if v.get("calibration_error") is not None])
+            # Split train/calib/test sequentially for time-series consistency.
+            split_idx_1 = int(len(y) * 0.70)
+            split_idx_2 = int(len(y) * 0.85)
+            X_train, X_calib, X_test = X[:split_idx_1], X[split_idx_1:split_idx_2], X[split_idx_2:]
+            y_train, y_calib, y_test = y[:split_idx_1], y[split_idx_1:split_idx_2], y[split_idx_2:]
 
-            clf_isotonic = None
-            isotonic_err = float("inf")
-            if len(y) >= 100:
+            calibration_info["split"] = {
+                "train": len(y_train),
+                "calib": len(y_calib),
+                "test": len(y_test),
+            }
+            print(f"  [Calibration] Train={len(y_train)}, Calib={len(y_calib)}, Test={len(y_test)}")
+
+            clf.fit(X_train, y_train)
+
+            fitted_clf = clf
+            best_calibrator = None
+            best_method = None
+            best_error = float("inf")
+            best_buckets = {}
+
+            for method in ("sigmoid", "isotonic"):
                 try:
-                    clf_isotonic = EnsembleMetaModel(
-                        weights=best_weights, base_params=best_base_params,
-                        calibration="isotonic", n_estimators=n_estimators,
+                    test_fold = np.concatenate([
+                        np.full(len(y_train), -1, dtype=int),
+                        np.zeros(len(y_calib), dtype=int),
+                    ])
+                    calibrator = CalibratedClassifierCV(
+                        estimator=fitted_clf,
+                        method=method,
+                        cv=PredefinedSplit(test_fold),
+                        n_jobs=-1,
                     )
-                    clf_isotonic.fit(X, y, cv=tscv)
-                    probs_isotonic   = clf_isotonic.predict_proba(X)[:, 1]
-                    isotonic_buckets = compute_calibration_buckets(
-                        probs_isotonic, ["WIN" if v == 1 else "LOSS" for v in y])
-                    isotonic_err = np.mean([
-                        abs(v["calibration_error"]) for v in isotonic_buckets.values()
+                    calibrator.fit(np.vstack([X_train, X_calib]), np.concatenate([y_train, y_calib]))
+                    probs_test = calibrator.predict_proba(X_test)[:, 1]
+                    buckets = compute_calibration_buckets(
+                        probs_test, ["WIN" if v == 1 else "LOSS" for v in y_test])
+                    err = np.mean([
+                        abs(v["calibration_error"]) for v in buckets.values()
                         if v.get("calibration_error") is not None])
-                except Exception:
-                    isotonic_err = float("inf")
+                    print(f"    [Calibration] {method:<8} mean error={err:.3f}")
+                    if err < best_error:
+                        best_error = err
+                        best_method = method
+                        best_calibrator = calibrator
+                        best_buckets = buckets
+                except Exception as e:
+                    print(f"    [Warning] Calibration {method} failed: {e}")
 
-            if clf_isotonic is not None and isotonic_err < sigmoid_err:
-                clf, calibration_method, calibration_buckets = clf_isotonic, "isotonic", isotonic_buckets
+            if best_calibrator is not None:
+                clf = best_calibrator
+                calibration_method = best_method
+                calibration_buckets = best_buckets
+                calibration_info["selected_method"] = best_method
+                calibration_info["selected_error"] = float(best_error)
+                print(f"  [OK] Selected calibration method: {calibration_method}")
             else:
-                clf, calibration_method, calibration_buckets = clf_sigmoid, "sigmoid", sigmoid_buckets
-
-            print(f"  [OK] Probability calibration applied ({calibration_method}).")
+                print("  [Warning] No calibration method succeeded, using uncalibrated ensemble.")
+                clf = fitted_clf
+                clf.fit(X, y)
+                probs = clf.predict_proba(X)[:, 1]
+                calibration_buckets = compute_calibration_buckets(
+                    probs, ["WIN" if v == 1 else "LOSS" for v in y])
         except Exception as e:
             print(f"  [Warning] Calibration failed, using uncalibrated ensemble: {e}")
             clf = ensemble_clf
-            clf.fit(X, y, cv=tscv)
+            clf.fit(X, y)
+            try:
+                probs = clf.predict_proba(X)[:, 1]
+                calibration_buckets = compute_calibration_buckets(
+                    probs, ["WIN" if v == 1 else "LOSS" for v in y])
+            except Exception:
+                calibration_buckets = {}
     else:
         clf = ensemble_clf
-        clf.fit(X, y, cv=tscv)
-
-    # Recompute calibration buckets on full data
-    try:
-        probs = clf.predict_proba(X)[:, 1]
-        calibration_buckets = compute_calibration_buckets(
-            probs, ["WIN" if v == 1 else "LOSS" for v in y])
-    except Exception as e:
-        print(f"  [Warning] Failed to compute calibration buckets: {e}")
+        clf.fit(X, y)
+        try:
+            probs = clf.predict_proba(X)[:, 1]
+            calibration_buckets = compute_calibration_buckets(
+                probs, ["WIN" if v == 1 else "LOSS" for v in y])
+        except Exception:
+            calibration_buckets = {}
 
     LOGS.mkdir(exist_ok=True)
     model_bundle = {
@@ -743,6 +779,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "available_models": available_keys,
         "calibration_method": calibration_method,
         "calibrated": calibrate and len(y) >= 50,
+        "calibration_info": calibration_info,
         "label_dist": {"WIN": int(y.sum()), "LOSS": int(len(y) - y.sum())},
         "calibration_buckets": calibration_buckets,
         "walk_forward": walk_forward_eval(X, y, clf=ensemble_clf, train_window_pct=0.65, test_window_pct=0.15, n_splits=3),
