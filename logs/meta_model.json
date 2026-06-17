@@ -1,22 +1,18 @@
 {
   "version": "v3.0",
   "n_samples": 21482,
-  "n_features": 63,
+  "n_features": 46,
   "features": [
     "signal_score",
     "rsi",
     "macd_hist",
     "atr_pct",
     "volume_ratio",
-    "fear_greed",
     "ema_distance_pct",
     "bb_width_pct",
     "adx",
     "mtf_alignment",
-    "regime_trending_bull",
-    "regime_trending_bear",
     "regime_ranging",
-    "regime_high_volatility",
     "return_15m",
     "return_1h",
     "return_4h",
@@ -24,7 +20,6 @@
     "ema9_slope",
     "ema21_slope",
     "sma50_slope",
-    "sma200_slope",
     "ema_distance_zscore",
     "realized_vol_20",
     "realized_vol_50",
@@ -52,35 +47,25 @@
     "bos_bull",
     "bos_bear",
     "choch_bull",
-    "choch_bear",
     "regime_strong_trend",
-    "regime_weak_trend",
-    "regime_compression",
-    "regime_breakout",
-    "regime_mean_reversion",
-    "regime_panic_sell",
-    "regime_low_liquidity",
-    "regime_pump_risk",
-    "sentiment_momentum",
-    "sentiment_recovery",
-    "sentiment_risk",
-    "sentiment_trend_up",
-    "sentiment_trend_down"
+    "regime_compression"
   ],
-  "cv_auc_mean": 0.6274884251302444,
-  "cv_auc_std": 0.011730805068604445,
-  "cv_acc_mean": 0.5863687150837988,
-  "ensemble_cv_auc_mean": 0.6201223846921382,
-  "ensemble_cv_acc_mean": 0.5853072625698325,
+  "cv_auc_mean": 0.6269524334890837,
+  "cv_auc_std": 0.012362030782084827,
+  "cv_acc_mean": 0.5869832402234636,
+  "ensemble_cv_auc_mean": 0.6242950394032447,
+  "ensemble_cv_acc_mean": 0.5880446927374301,
   "ensemble_weights": {
-    "rf": 0.2,
-    "lgbm": 0.4,
-    "catboost": 0.4
+    "rf": 0.009235822007035214,
+    "lgbm": 0.14720894764423662,
+    "catboost": 0.4672703032488051,
+    "xgboost": 0.37628492709992306
   },
   "available_models": [
     "rf",
     "lgbm",
-    "catboost"
+    "catboost",
+    "xgboost"
   ],
   "calibration_method": "isotonic",
   "calibrated": true,
@@ -90,48 +75,48 @@
   },
   "calibration_buckets": {
     "0.0-0.4": {
-      "count": 5280,
-      "wins": 780,
-      "losses": 4500,
-      "actual_wr": 14.8,
+      "count": 5327,
+      "wins": 1058,
+      "losses": 4269,
+      "actual_wr": 19.9,
       "predicted_wr": 20.0,
-      "calibration_error": -5.2,
+      "calibration_error": -0.1,
       "calibrated": true
     },
     "0.4-0.6": {
-      "count": 13608,
-      "wins": 7082,
-      "losses": 6526,
-      "actual_wr": 52.0,
+      "count": 13424,
+      "wins": 6799,
+      "losses": 6625,
+      "actual_wr": 50.6,
       "predicted_wr": 50.0,
-      "calibration_error": 2.0,
+      "calibration_error": 0.6,
       "calibrated": true
     },
     "0.6-0.7": {
-      "count": 1849,
-      "wins": 1610,
-      "losses": 239,
-      "actual_wr": 87.1,
+      "count": 1846,
+      "wins": 1502,
+      "losses": 344,
+      "actual_wr": 81.4,
       "predicted_wr": 65.0,
-      "calibration_error": 22.1,
+      "calibration_error": 16.4,
       "calibrated": false
     },
     "0.7-0.8": {
-      "count": 596,
-      "wins": 569,
-      "losses": 27,
-      "actual_wr": 95.5,
+      "count": 765,
+      "wins": 711,
+      "losses": 54,
+      "actual_wr": 92.9,
       "predicted_wr": 75.0,
-      "calibration_error": 20.5,
+      "calibration_error": 17.9,
       "calibrated": false
     },
     "0.8-1.0": {
-      "count": 149,
-      "wins": 146,
+      "count": 120,
+      "wins": 117,
       "losses": 3,
-      "actual_wr": 98.0,
+      "actual_wr": 97.5,
       "predicted_wr": 90.0,
-      "calibration_error": 8.0,
+      "calibration_error": 7.5,
       "calibrated": true
     }
   },
@@ -147,8 +132,8 @@
       ],
       "n_train": 13963,
       "n_test": 3222,
-      "roc_auc": 0.6267370582083407,
-      "accuracy": 0.5844196151458722
+      "roc_auc": 0.6334504162985675,
+      "accuracy": 0.590626939788951
     },
     {
       "train_range": [
@@ -161,8 +146,8 @@
       ],
       "n_train": 13963,
       "n_test": 3222,
-      "roc_auc": 0.636668517774315,
-      "accuracy": 0.5934202358783365
+      "roc_auc": 0.6402434936408058,
+      "accuracy": 0.5943513345747983
     }
   ]
 }

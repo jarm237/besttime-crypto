@@ -433177,5 +433177,63 @@
       "std_dev_pct": 1.1266
     },
     "regime": null
+  },
+  {
+    "coin": "ENA",
+    "id": "044b1a10-e613-47ec-9e4c-41e82321893d",
+    "entry_price": 0.0862,
+    "sell_price": 0.0883,
+    "pnl_pct": -2.4362,
+    "result": "LOSS",
+    "hold_hours": 1.0,
+    "exit_time": "2026-06-17 09:08",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.4445140128657103,
+      "meta_confidence_pct": 44,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
+  },
+  {
+    "coin": "TRUMP",
+    "id": "1b1a2adf-aec5-484c-ac59-95e6cdeccbb4",
+    "entry_price": 1.904,
+    "sell_price": 1.925,
+    "pnl_pct": -1.1029,
+    "result": "LOSS",
+    "hold_hours": 1.3,
+    "exit_time": "2026-06-17 09:25",
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH-CAUTION)",
+      "meta_confidence": 0.4832132517053863,
+      "meta_confidence_pct": 48,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

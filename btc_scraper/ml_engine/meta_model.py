@@ -185,8 +185,9 @@ def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
     estimators = {
         "rf": RandomForestClassifier(
             n_estimators=n_estimators,
-            max_depth=8,
-            min_samples_leaf=5,
+            max_depth=6,
+            min_samples_leaf=10,
+            max_features="sqrt",
             class_weight="balanced",
             random_state=random_state,
             n_jobs=-1,
@@ -196,8 +197,11 @@ def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
     if "lgbm" in optional:
         estimators["lgbm"] = optional["lgbm"](
             n_estimators=n_estimators,
-            max_depth=8,
-            learning_rate=0.1,
+            max_depth=5,
+            num_leaves=31,
+            learning_rate=0.03,
+            subsample=0.8,
+            colsample_bytree=0.8,
             class_weight="balanced",
             random_state=random_state,
             n_jobs=-1,
@@ -205,8 +209,9 @@ def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
     if "catboost" in optional:
         estimators["catboost"] = optional["catboost"](
             iterations=n_estimators,
-            depth=6,
-            learning_rate=0.1,
+            depth=5,
+            learning_rate=0.03,
+            l2_leaf_reg=3,
             verbose=0,
             thread_count=-1,
             random_seed=random_state,
@@ -214,8 +219,10 @@ def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
     if "xgboost" in optional:
         estimators["xgboost"] = optional["xgboost"](
             n_estimators=n_estimators,
-            max_depth=6,
-            learning_rate=0.1,
+            max_depth=5,
+            learning_rate=0.03,
+            subsample=0.8,
+            colsample_bytree=0.8,
             use_label_encoder=False,
             eval_metric="logloss",
             n_jobs=-1,
@@ -233,11 +240,12 @@ def _normalize_weights(weights: dict, available: list[str]) -> list[float]:
 
 
 class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
-    def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42):
+    def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42, base_params=None):
         self.weights = weights if weights is not None else {"rf": 0.20, "lgbm": 0.40, "catboost": 0.40}
         self.calibration = calibration  # "sigmoid", "isotonic" or None
         self.n_estimators = n_estimators
         self.random_state = random_state
+        self.base_params = base_params if base_params is not None else {}
         self.classes_ = np.array([0, 1])
         self.models_ = {}
         self.normalized_weights_ = {}
@@ -251,44 +259,28 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         # Import base classifiers optionally
         optional = _import_optional_estimators()
         
+        # Set default base params and override with provided base_params
+        rf_params = {"n_estimators": self.n_estimators, "max_depth": 6, "min_samples_leaf": 10, "max_features": "sqrt", "class_weight": "balanced", "random_state": self.random_state, "n_jobs": -1}
+        rf_params.update(self.base_params.get("rf", {}))
+        
+        lgbm_params = {"n_estimators": self.n_estimators, "max_depth": 5, "num_leaves": 31, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "class_weight": "balanced", "random_state": self.random_state, "n_jobs": -1}
+        lgbm_params.update(self.base_params.get("lgbm", {}))
+        
+        catboost_params = {"iterations": self.n_estimators, "depth": 5, "learning_rate": 0.03, "l2_leaf_reg": 3, "verbose": 0, "thread_count": -1, "random_seed": self.random_state}
+        catboost_params.update(self.base_params.get("catboost", {}))
+        
+        xgboost_params = {"n_estimators": self.n_estimators, "max_depth": 5, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "use_label_encoder": False, "eval_metric": "logloss", "n_jobs": -1, "random_state": self.random_state}
+        xgboost_params.update(self.base_params.get("xgboost", {}))
+
         estimators = {
-            "rf": RandomForestClassifier(
-                n_estimators=self.n_estimators,
-                max_depth=8,
-                min_samples_leaf=5,
-                class_weight="balanced",
-                random_state=self.random_state,
-                n_jobs=-1,
-            )
+            "rf": RandomForestClassifier(**rf_params)
         }
         if "lgbm" in optional:
-            estimators["lgbm"] = optional["lgbm"](
-                n_estimators=self.n_estimators,
-                max_depth=8,
-                learning_rate=0.1,
-                class_weight="balanced",
-                random_state=self.random_state,
-                n_jobs=-1,
-            )
+            estimators["lgbm"] = optional["lgbm"](**lgbm_params)
         if "catboost" in optional:
-            estimators["catboost"] = optional["catboost"](
-                iterations=self.n_estimators,
-                depth=6,
-                learning_rate=0.1,
-                verbose=0,
-                thread_count=-1,
-                random_seed=self.random_state,
-            )
+            estimators["catboost"] = optional["catboost"](**catboost_params)
         if "xgboost" in optional:
-            estimators["xgboost"] = optional["xgboost"](
-                n_estimators=self.n_estimators,
-                max_depth=6,
-                learning_rate=0.1,
-                use_label_encoder=False,
-                eval_metric="logloss",
-                n_jobs=-1,
-                random_state=self.random_state,
-            )
+            estimators["xgboost"] = optional["xgboost"](**xgboost_params)
 
         # Filter weights based on availability
         available_keys = [k for k in self.weights if k in estimators]
@@ -477,20 +469,35 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     cv_splits = min(cv, max(2, len(y) // 10))
     tscv = TimeSeriesSplit(n_splits=cv_splits)
 
-    # 1. Base model CV (RandomForest Classifier) for backward-compatible comparison
+    # 1. Quick pre-fit to identify and drop zero-importance features
+    print("  [Pre-fit] Đang xác định features có tầm quan trọng = 0...")
+    _prefit = RandomForestClassifier(
+        n_estimators=100, max_depth=6, min_samples_leaf=10,
+        class_weight="balanced", random_state=42, n_jobs=-1,
+    )
+    _prefit.fit(X, y)
+    _importance = _prefit.feature_importances_
+    selected_mask = _importance > 0.0
+    selected_features = [f for f, keep in zip(feature_names, selected_mask) if keep]
+    dropped_features  = [f for f, keep in zip(feature_names, selected_mask) if not keep]
+
+    if dropped_features:
+        print(f"  [Pre-fit] Loại bỏ {len(dropped_features)} features zero-importance: {dropped_features}")
+        X = X[:, selected_mask]
+        print(f"  [Pre-fit] Features còn lại: {len(selected_features)}")
+    else:
+        selected_features = list(feature_names)
+
+    # 2. Base model CV (RandomForest) for backward-compatible comparison
     base_clf = RandomForestClassifier(
-        n_estimators=n_estimators,
-        max_depth=8,
-        min_samples_leaf=5,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1,
+        n_estimators=n_estimators, max_depth=8, min_samples_leaf=5,
+        class_weight="balanced", random_state=42, n_jobs=-1,
     )
     try:
         aucs = cross_val_score(base_clf, X, y, cv=tscv, scoring="roc_auc")
         accs = cross_val_score(base_clf, X, y, cv=tscv, scoring="accuracy")
         cv_auc_mean = float(np.mean(aucs))
-        cv_auc_std = float(np.std(aucs))
+        cv_auc_std  = float(np.std(aucs))
         cv_acc_mean = float(np.mean(accs))
     except Exception as e:
         print(f"  [Warning] Base CV failed: {e}")
@@ -498,8 +505,110 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
     base_clf.fit(X, y)
 
-    # 2. Ensemble Classifier (Uncalibrated) CV
-    ensemble_clf = EnsembleMetaModel(calibration=None, n_estimators=n_estimators)
+    # 3. Optuna — full search space: all 4 models + ensemble weights
+    best_base_params: dict = {}
+    best_weights: dict = {"rf": 0.20, "lgbm": 0.40, "catboost": 0.40}
+    try:
+        import optuna
+        from sklearn.metrics import roc_auc_score
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
+        print("  [Optuna] Đang tìm kiếm siêu tham số tối ưu (40 trials)...")
+
+        split_idx = int(len(y) * 0.8)
+        X_t, X_v = X[:split_idx], X[split_idx:]
+        y_t, y_v = y[:split_idx], y[split_idx:]
+
+        def objective(trial):
+            # ── LGBM ────────────────────────────────────────────────────
+            lgbm_depth      = trial.suggest_int("lgbm_depth",      3, 7)
+            lgbm_leaves     = trial.suggest_int("lgbm_num_leaves", 16, 63)
+            lgbm_lr         = trial.suggest_float("lgbm_lr",       0.01, 0.15, log=True)
+            lgbm_subsample  = trial.suggest_float("lgbm_subsample",0.6, 1.0)
+            lgbm_colsample  = trial.suggest_float("lgbm_colsample",0.6, 1.0)
+
+            # ── RF ──────────────────────────────────────────────────────
+            rf_depth        = trial.suggest_int("rf_depth",        4, 8)
+            rf_min_leaf     = trial.suggest_int("rf_min_leaf",     5, 20)
+
+            # ── CatBoost ─────────────────────────────────────────────────
+            cat_depth       = trial.suggest_int("cat_depth",       4, 7)
+            cat_lr          = trial.suggest_float("cat_lr",        0.01, 0.1, log=True)
+            cat_l2          = trial.suggest_float("cat_l2",        1.0, 10.0)
+
+            # ── XGBoost ─────────────────────────────────────────────────
+            xgb_depth       = trial.suggest_int("xgb_depth",      3, 7)
+            xgb_lr          = trial.suggest_float("xgb_lr",       0.01, 0.15, log=True)
+            xgb_subsample   = trial.suggest_float("xgb_subsample",0.6, 1.0)
+
+            # ── Ensemble weights ─────────────────────────────────────────
+            w_rf   = trial.suggest_float("w_rf",   0.0, 1.0)
+            w_lgbm = trial.suggest_float("w_lgbm", 0.0, 1.0)
+            w_cat  = trial.suggest_float("w_cat",  0.0, 1.0)
+            w_xgb  = trial.suggest_float("w_xgb",  0.0, 1.0)
+            if w_rf + w_lgbm + w_cat + w_xgb == 0:
+                return 0.0
+
+            weights = {"rf": w_rf, "lgbm": w_lgbm, "catboost": w_cat, "xgboost": w_xgb}
+            bp = {
+                "lgbm": {"max_depth": lgbm_depth, "num_leaves": lgbm_leaves,
+                         "learning_rate": lgbm_lr, "subsample": lgbm_subsample,
+                         "colsample_bytree": lgbm_colsample},
+                "rf":   {"max_depth": rf_depth, "min_samples_leaf": rf_min_leaf},
+                "catboost": {"depth": cat_depth, "learning_rate": cat_lr, "l2_leaf_reg": cat_l2},
+                "xgboost":  {"max_depth": xgb_depth, "learning_rate": xgb_lr, "subsample": xgb_subsample},
+            }
+
+            model = EnsembleMetaModel(weights=weights, base_params=bp, n_estimators=80)
+            model.fit(X_t, y_t)
+            preds = model.predict_proba(X_v)[:, 1]
+            return float(roc_auc_score(y_v, preds))
+
+        study = optuna.create_study(direction="maximize")
+        study.optimize(objective, n_trials=40)
+        bp = study.best_params
+
+        print(f"  [Optuna] Best Trial AUC : {study.best_value:.4f}")
+        print(f"  [Optuna] Best Params    : {bp}")
+
+        best_base_params = {
+            "lgbm": {
+                "max_depth": bp.get("lgbm_depth", 5),
+                "num_leaves": bp.get("lgbm_num_leaves", 31),
+                "learning_rate": bp.get("lgbm_lr", 0.03),
+                "subsample": bp.get("lgbm_subsample", 0.8),
+                "colsample_bytree": bp.get("lgbm_colsample", 0.8),
+            },
+            "rf": {
+                "max_depth": bp.get("rf_depth", 6),
+                "min_samples_leaf": bp.get("rf_min_leaf", 10),
+            },
+            "catboost": {
+                "depth": bp.get("cat_depth", 5),
+                "learning_rate": bp.get("cat_lr", 0.03),
+                "l2_leaf_reg": bp.get("cat_l2", 3.0),
+            },
+            "xgboost": {
+                "max_depth": bp.get("xgb_depth", 5),
+                "learning_rate": bp.get("xgb_lr", 0.03),
+                "subsample": bp.get("xgb_subsample", 0.8),
+            },
+        }
+        best_weights = {
+            "rf": bp.get("w_rf", 0.2),
+            "lgbm": bp.get("w_lgbm", 0.4),
+            "catboost": bp.get("w_cat", 0.4),
+            "xgboost": bp.get("w_xgb", 0.0),
+        }
+    except ImportError:
+        print("  [Optuna] Thư viện optuna chưa được cài đặt. Dùng hyperparameters mặc định.")
+    except Exception as e:
+        print(f"  [Optuna] Lỗi trong quá trình tối ưu: {e}. Dùng hyperparameters mặc định.")
+
+    # 4. Ensemble CV on filtered feature matrix
+    ensemble_clf = EnsembleMetaModel(
+        weights=best_weights, base_params=best_base_params,
+        calibration=None, n_estimators=n_estimators,
+    )
     ensemble_cv_auc = None
     ensemble_cv_acc = None
     try:
@@ -509,72 +618,81 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         ensemble_cv_acc = float(np.mean(ensemble_accs))
     except Exception as e:
         print(f"  [Warning] Ensemble CV failed: {e}")
-        ensemble_cv_auc = ensemble_cv_acc = None
 
-    # 3. Model Calibration (Sigmoid vs Isotonic) if calibrate is True and y >= 50
+    # 5. Calibration (Sigmoid vs Isotonic)
     clf = ensemble_clf
     calibration_method = None
     calibration_buckets = {}
-    
+
     if calibrate and len(y) >= 50:
         try:
-            clf_sigmoid = EnsembleMetaModel(calibration="sigmoid", n_estimators=n_estimators)
+            clf_sigmoid = EnsembleMetaModel(
+                weights=best_weights, base_params=best_base_params,
+                calibration="sigmoid", n_estimators=n_estimators,
+            )
             clf_sigmoid.fit(X, y, cv=tscv)
-            probs_sigmoid = clf_sigmoid.predict_proba(X)[:, 1]
-            sigmoid_buckets = compute_calibration_buckets(probs_sigmoid, ["WIN" if val == 1 else "LOSS" for val in y])
-            sigmoid_err = np.mean([abs(v["calibration_error"]) for v in sigmoid_buckets.values() if v.get("calibration_error") is not None])
+            probs_sigmoid   = clf_sigmoid.predict_proba(X)[:, 1]
+            sigmoid_buckets = compute_calibration_buckets(
+                probs_sigmoid, ["WIN" if v == 1 else "LOSS" for v in y])
+            sigmoid_err = np.mean([
+                abs(v["calibration_error"]) for v in sigmoid_buckets.values()
+                if v.get("calibration_error") is not None])
 
             clf_isotonic = None
             isotonic_err = float("inf")
             if len(y) >= 100:
                 try:
-                    clf_isotonic = EnsembleMetaModel(calibration="isotonic", n_estimators=n_estimators)
+                    clf_isotonic = EnsembleMetaModel(
+                        weights=best_weights, base_params=best_base_params,
+                        calibration="isotonic", n_estimators=n_estimators,
+                    )
                     clf_isotonic.fit(X, y, cv=tscv)
-                    probs_isotonic = clf_isotonic.predict_proba(X)[:, 1]
-                    isotonic_buckets = compute_calibration_buckets(probs_isotonic, ["WIN" if val == 1 else "LOSS" for val in y])
-                    isotonic_err = np.mean([abs(v["calibration_error"]) for v in isotonic_buckets.values() if v.get("calibration_error") is not None])
+                    probs_isotonic   = clf_isotonic.predict_proba(X)[:, 1]
+                    isotonic_buckets = compute_calibration_buckets(
+                        probs_isotonic, ["WIN" if v == 1 else "LOSS" for v in y])
+                    isotonic_err = np.mean([
+                        abs(v["calibration_error"]) for v in isotonic_buckets.values()
+                        if v.get("calibration_error") is not None])
                 except Exception:
                     isotonic_err = float("inf")
 
             if clf_isotonic is not None and isotonic_err < sigmoid_err:
-                clf = clf_isotonic
-                calibration_method = "isotonic"
-                calibration_buckets = isotonic_buckets
+                clf, calibration_method, calibration_buckets = clf_isotonic, "isotonic", isotonic_buckets
             else:
-                clf = clf_sigmoid
-                calibration_method = "sigmoid"
-                calibration_buckets = sigmoid_buckets
+                clf, calibration_method, calibration_buckets = clf_sigmoid, "sigmoid", sigmoid_buckets
 
             print(f"  [OK] Probability calibration applied ({calibration_method}).")
         except Exception as e:
             print(f"  [Warning] Calibration failed, using uncalibrated ensemble: {e}")
             clf = ensemble_clf
             clf.fit(X, y, cv=tscv)
-            calibration_method = None
-            calibration_buckets = {}
     else:
-        # Fit uncalibrated ensemble
         clf = ensemble_clf
         clf.fit(X, y, cv=tscv)
-        calibration_buckets = {}
 
-    # Compute calibration buckets on final predictions
+    # Recompute calibration buckets on full data
     try:
-        if hasattr(clf, "predict_proba"):
-            probs = clf.predict_proba(X)[:, 1]
-            calibration_buckets = compute_calibration_buckets(probs, ["WIN" if val == 1 else "LOSS" for val in y])
+        probs = clf.predict_proba(X)[:, 1]
+        calibration_buckets = compute_calibration_buckets(
+            probs, ["WIN" if v == 1 else "LOSS" for v in y])
     except Exception as e:
         print(f"  [Warning] Failed to compute calibration buckets: {e}")
 
     LOGS.mkdir(exist_ok=True)
     model_bundle = {
         "model": clf,
-        "features": feature_names,
+        "features": selected_features,   # ← chỉ lưu features đã lọc
         "version": MODEL_VERSION,
         "n_samples": int(len(y)),
         "calibrated": calibrate and len(y) >= 50,
+        "dropped_features": dropped_features,
+        "optuna_weights": best_weights,
+        "optuna_base_params": best_base_params,
     }
     joblib.dump(model_bundle, MODEL_OUT)
+
+    # Update feature_names for downstream metric reporting
+    feature_names = selected_features
 
     # 4. Feature Importance Extraction
     feature_importance = {}
