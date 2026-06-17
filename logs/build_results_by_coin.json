@@ -1,0 +1,128 @@
+{
+  "BTC": {
+    "total_trades": 1040,
+    "wins": 512,
+    "losses": 528,
+    "win_rate": 49.23
+  },
+  "ETH": {
+    "total_trades": 1104,
+    "wins": 535,
+    "losses": 569,
+    "win_rate": 48.46
+  },
+  "BNB": {
+    "total_trades": 1114,
+    "wins": 521,
+    "losses": 593,
+    "win_rate": 46.77
+  },
+  "SOL": {
+    "total_trades": 1104,
+    "wins": 541,
+    "losses": 563,
+    "win_rate": 49.0
+  },
+  "ZEC": {
+    "total_trades": 1140,
+    "wins": 549,
+    "losses": 591,
+    "win_rate": 48.16
+  },
+  "XRP": {
+    "total_trades": 1011,
+    "wins": 485,
+    "losses": 526,
+    "win_rate": 47.97
+  },
+  "DOGE": {
+    "total_trades": 1116,
+    "wins": 525,
+    "losses": 591,
+    "win_rate": 47.04
+  },
+  "WLD": {
+    "total_trades": 1085,
+    "wins": 513,
+    "losses": 572,
+    "win_rate": 47.28
+  },
+  "XLM": {
+    "total_trades": 1023,
+    "wins": 478,
+    "losses": 545,
+    "win_rate": 46.73
+  },
+  "NEAR": {
+    "total_trades": 1112,
+    "wins": 501,
+    "losses": 611,
+    "win_rate": 45.05
+  },
+  "AVAX": {
+    "total_trades": 1050,
+    "wins": 491,
+    "losses": 559,
+    "win_rate": 46.76
+  },
+  "TAO": {
+    "total_trades": 1054,
+    "wins": 493,
+    "losses": 561,
+    "win_rate": 46.77
+  },
+  "TRB": {
+    "total_trades": 1014,
+    "wins": 467,
+    "losses": 547,
+    "win_rate": 46.06
+  },
+  "AEVO": {
+    "total_trades": 973,
+    "wins": 467,
+    "losses": 506,
+    "win_rate": 48.0
+  },
+  "ENA": {
+    "total_trades": 1126,
+    "wins": 536,
+    "losses": 590,
+    "win_rate": 47.6
+  },
+  "AR": {
+    "total_trades": 961,
+    "wins": 451,
+    "losses": 510,
+    "win_rate": 46.93
+  },
+  "IOTA": {
+    "total_trades": 1063,
+    "wins": 509,
+    "losses": 554,
+    "win_rate": 47.88
+  },
+  "XPL": {
+    "total_trades": 529,
+    "wins": 252,
+    "losses": 277,
+    "win_rate": 47.64
+  },
+  "SOPH": {
+    "total_trades": 721,
+    "wins": 345,
+    "losses": 376,
+    "win_rate": 47.85
+  },
+  "TRX": {
+    "total_trades": 1238,
+    "wins": 556,
+    "losses": 682,
+    "win_rate": 44.91
+  },
+  "TRUMP": {
+    "total_trades": 904,
+    "wins": 460,
+    "losses": 444,
+    "win_rate": 50.88
+  }
+}
