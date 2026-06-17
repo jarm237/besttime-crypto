@@ -59,7 +59,7 @@ def _load_sentiment_history() -> None:
         print(f"  [Sentiment] Không tìm thấy {SENTIMENT_FILE}, dùng neutral mặc định.")
         return
     try:
-        with open(SENTIMENT_FILE, "r", encoding="utf-8") as f:
+        with open(str(SENTIMENT_FILE), "r", encoding="utf-8") as f:
             raw: dict = json.load(f)
         # Key format: "2025-06-15T00:00:00Z" → lấy phần YYYY-MM-DD
         for k, v in raw.items():
@@ -218,7 +218,7 @@ def load_candles(coin: str, interval: str, months: list[str]) -> list[dict]:
         path = DATA_DIR / f"{m}_{coin}_{interval}.csv"
         if not path.exists():
             continue
-        with open(path, "r", encoding="utf-8") as f:
+        with open(str(path), "r", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 dt = datetime.strptime(row["time"], "%Y-%m-%d %H:%M")
                 combined.append({
@@ -415,7 +415,7 @@ def build_dataset(months: list[str]) -> list[dict]:
     progress_file = LOGS_DIR / "build_progress.json"
     if progress_file.exists():
         try:
-            with open(progress_file, "r", encoding="utf-8") as f:
+            with open(str(progress_file), "r", encoding="utf-8") as f:
                 state = json.load(f)
                 all_trades = state.get("all_trades", [])
                 coin_results = state.get("coin_results", {})
@@ -454,7 +454,7 @@ def build_dataset(months: list[str]) -> list[dict]:
 
         # Lưu state sau mỗi coin để có thể resume
         try:
-            with open(progress_file, "w", encoding="utf-8") as f:
+            with open(str(progress_file), "w", encoding="utf-8") as f:
                 json.dump({
                     "coin_results": coin_results,
                     "all_trades": all_trades
@@ -469,7 +469,7 @@ def build_dataset(months: list[str]) -> list[dict]:
 
     results_file = LOGS_DIR / "build_results_by_coin.json"
     try:
-        with open(results_file, "w", encoding="utf-8") as f:
+        with open(str(results_file), "w", encoding="utf-8") as f:
             json.dump(coin_results, f, indent=2, ensure_ascii=False)
         print(f"  [Saved] Kết quả build từng coin → {results_file}")
         
@@ -507,7 +507,7 @@ def main():
             print(f"\n[ERROR] Chỉ có {len(trades)} lệnh. Cần ít nhất 30 để train.")
             sys.exit(1)
 
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        with open(str(OUTPUT_FILE), "w", encoding="utf-8") as f:
             json.dump(trades, f, indent=2, ensure_ascii=False)
         print(f"\n  [Saved] Dataset → {OUTPUT_FILE} ({len(trades)} records)")
     else:

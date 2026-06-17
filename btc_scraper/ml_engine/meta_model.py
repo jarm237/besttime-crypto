@@ -689,7 +689,22 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "optuna_weights": best_weights,
         "optuna_base_params": best_base_params,
     }
-    joblib.dump(model_bundle, MODEL_OUT)
+    try:
+        joblib.dump(model_bundle, MODEL_OUT)
+    except Exception as e:
+        # Fallback: save to system temp directory (avoids potential FS encoding issues)
+        try:
+            import tempfile, shutil
+            tmp_path = Path(tempfile.gettempdir()) / "meta_model.joblib"
+            joblib.dump(model_bundle, tmp_path)
+            # Try moving into LOGS (may fail if LOGS path has encoding issues)
+            try:
+                shutil.move(str(tmp_path), str(MODEL_OUT))
+            except Exception:
+                pass
+            print(f"  [Warning] Could not save model to {MODEL_OUT}. Saved to {tmp_path} instead: {e}")
+        except Exception as e2:
+            print(f"  [ERROR] Failed to save model bundle to both MODEL_OUT and temp: {e} / {e2}")
 
     # Update feature_names for downstream metric reporting
     feature_names = selected_features
