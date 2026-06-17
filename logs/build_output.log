@@ -1,0 +1,24 @@
+  [Init] Đang tải bảng tạm closed_positions từ MongoDB...
+  [Sentiment] Đã tải 1000 ngày sentiment từ /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/sentiment_history.json
+
+=================================================================
+  PHASE 1 — Tạo dataset từ dữ liệu lịch sử
+=================================================================
+  Tháng: ['2025_01', '2025_02', '2025_03', '2025_04', '2025_05', '2025_06', '2025_07', '2025_08', '2025_09', '2025_10', '2025_11', '2025_12', '2026_01', '2026_02', '2026_03', '2026_04', '2026_05', '2026_06']
+
+  [+] BTC ... 1029 lệnh | WIN=507 LOSS=522 WR=49.3%
+  [+] ETH ... 1098 lệnh | WIN=528 LOSS=570 WR=48.1%
+  [+] BNB ... 1097 lệnh | WIN=514 LOSS=583 WR=46.9%
+  [+] SOL ... 1099 lệnh | WIN=538 LOSS=561 WR=49.0%
+  [+] ZEC ... 1127 lệnh | WIN=546 LOSS=581 WR=48.4%
+  [+] XRP ... 1014 lệnh | WIN=492 LOSS=522 WR=48.5%
+  [+] DOGE ... 1095 lệnh | WIN=515 LOSS=580 WR=47.0%
+  [+] WLD ... 1083 lệnh | WIN=514 LOSS=569 WR=47.5%
+  [+] XLM ... 1016 lệnh | WIN=475 LOSS=541 WR=46.8%
+  [+] NEAR ... 1103 lệnh | WIN=500 LOSS=603 WR=45.3%
+  [+] AVAX ... 1047 lệnh | WIN=492 LOSS=555 WR=47.0%
+  [+] TAO ... 1056 lệnh | WIN=502 LOSS=554 WR=47.5%
+  [+] TRB ... 1004 lệnh | WIN=462 LOSS=542 WR=46.0%
+  [+] AEVO ... 975 lệnh | WIN=473 LOSS=502 WR=48.5%
+  [+] ENA ... 1116 lệnh | WIN=538 LOSS=578 WR=48.2%
+  [+] AR ... 

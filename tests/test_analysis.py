@@ -1,4 +1,5 @@
-from btc_scraper.analysis import analyze_all_market, calculate_tp_sl, is_trend_following_allowed
+from btc_scraper.analysis import analyze_all_market, calculate_tp_sl
+from btc_scraper.analysis.structure import is_trend_following_allowed
 
 
 def make_synthetic_candles(length: int = 260) -> list[dict]:

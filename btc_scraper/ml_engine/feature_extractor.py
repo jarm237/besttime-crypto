@@ -222,10 +222,10 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
         or ""
     )
     regime = str(regime_raw).upper().strip()
-    f["regime_trending_bull"]   = 1.0 if "TRENDING_BULL" in regime else 0.0
-    f["regime_trending_bear"]   = 1.0 if "TRENDING_BEAR" in regime else 0.0
+    f["regime_trending_bull"]   = 1.0 if ("BULL" in regime and "TREND" in regime) or "TRENDING_BULL" in regime else 0.0
+    f["regime_trending_bear"]   = 1.0 if ("BEAR" in regime and "TREND" in regime) or "TRENDING_BEAR" in regime else 0.0
     f["regime_ranging"]         = 1.0 if "RANGING" in regime else 0.0
-    f["regime_high_volatility"] = 1.0 if "HIGH_VOLATILITY" in regime or "VOLATILITY" in regime else 0.0
+    f["regime_high_volatility"] = 1.0 if "HIGH_VOLATILITY" in regime or "HIGH_VOL" in regime else 0.0
 
     # Đảm bảo tất cả FEATURE_SCHEMA keys có mặt và là float
     for k in FEATURE_SCHEMA:
@@ -287,10 +287,12 @@ def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float
         "sentiment_trend_down": info.get("sentiment_trend_down"),
     }
 
+    ss_val = info.get("signal_score")
+    ss_regime = ss_val.get("regime") if isinstance(ss_val, dict) else None
     regime_raw = str(
         info.get("regime")
         or info.get("market_regime")
-        or (info.get("signal_score") or {}).get("regime")
+        or ss_regime
         or ""
     ).upper()
     extra_keys.update({
@@ -328,7 +330,8 @@ def features_from_analysis(info: Dict) -> Dict[str, float]:
     f = build_meta_features(info)
 
     # Thêm legacy fields không có trong FEATURE_SCHEMA (backward compat)
-    ss = info.get("signal_score") or {}
+    ss_val = info.get("signal_score")
+    ss = ss_val if isinstance(ss_val, dict) else {}
     raw = ss.get("raw_text") or info.get("signal") or info.get("signal_raw") or ""
     flags = _text_flags(raw)
     f.update(flags)
@@ -350,9 +353,10 @@ def features_from_analysis(info: Dict) -> Dict[str, float]:
 
 def records_to_dataset(records: List[Dict]) -> Tuple[List[List[float]], List[int], List[str]]:
     """
-    Convert logged records thành X, y, feature_names dùng FEATURE_SCHEMA cố định.
+    Convert logged records thành X, y, feature_names dùng FEATURE_SCHEMA_V2 cố định.
 
-    Label: WIN -> 1, else 0 (LOSS/BREAKEVEN treated as 0).
+    Luôn re-extract features từ record để áp dụng mọi fix trong feature_extractor.
+    Label: WIN -> 1, else 0.
     """
     if not records:
         return [], [], []
@@ -361,10 +365,13 @@ def records_to_dataset(records: List[Dict]) -> Tuple[List[List[float]], List[int
     y: List[int] = []
 
     for r in records:
-        if all(k in r for k in FEATURE_SCHEMA_V2):
-            feat = r
-        else:
-            feat = build_meta_features_v2(r)
+        # Luôn re-extract để đảm bảo pattern fixes được áp dụng
+        feat = build_meta_features_v2(r)
+        # Các sentiment fields cần lấy từ cached record nếu không thể recompute
+        for sk in ("sentiment_momentum", "sentiment_recovery", "sentiment_risk",
+                   "sentiment_trend_up", "sentiment_trend_down", "fear_greed"):
+            if feat.get(sk, 0.0) == 0.0 and r.get(sk, 0.0) != 0.0:
+                feat[sk] = float(r[sk])
         row = [float(feat.get(k, 0.0)) for k in FEATURE_SCHEMA_V2]
         X.append(row)
         label = 1 if (r.get("result") == "WIN") else 0

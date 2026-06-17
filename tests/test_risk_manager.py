@@ -1,23 +1,14 @@
-import json
 import pytest
-from pathlib import Path
 from btc_scraper.trading import risk_manager
 
-def test_calculate_risk_metrics_no_file(tmp_path, monkeypatch):
-    # Mock CLOSED_POS_PATH to a non-existent file
-    test_path = tmp_path / "closed_positions_test.json"
-    monkeypatch.setattr(risk_manager, "CLOSED_POS_PATH", test_path)
-    
-    metrics = risk_manager.calculate_risk_metrics()
+def test_calculate_risk_metrics_no_file():
+    metrics = risk_manager.calculate_risk_metrics(trades_cache=[])
     assert metrics["consecutive_losses"] == 0
     assert metrics["drawdown_pct"] == 0.0
     assert metrics["risk_multiplier"] == 1.0
     assert not metrics["blocked"]
 
-def test_calculate_risk_metrics_with_trades(tmp_path, monkeypatch):
-    test_path = tmp_path / "closed_positions_test.json"
-    monkeypatch.setattr(risk_manager, "CLOSED_POS_PATH", test_path)
-    
+def test_calculate_risk_metrics_with_trades():
     # Case 1: Less than 3 consecutive losses, no drawdown block
     trades_1 = [
         {"result": "WIN", "pnl_usd_actual": 100.0},
@@ -25,10 +16,8 @@ def test_calculate_risk_metrics_with_trades(tmp_path, monkeypatch):
         {"result": "WIN", "pnl_usd_actual": 20.0},
         {"result": "LOSS", "pnl_usd_actual": -30.0},
     ]
-    with open(test_path, "w", encoding="utf-8") as f:
-        json.dump(trades_1, f)
         
-    metrics_1 = risk_manager.calculate_risk_metrics(base_capital=1000.0)
+    metrics_1 = risk_manager.calculate_risk_metrics(base_capital=1000.0, trades_cache=trades_1)
     assert metrics_1["consecutive_losses"] == 1
     assert metrics_1["risk_multiplier"] == 1.0
     # capital history: 1000 -> 1100 -> 1050 -> 1070 -> 1040
@@ -43,10 +32,8 @@ def test_calculate_risk_metrics_with_trades(tmp_path, monkeypatch):
         {"result": "LOSS", "pnl_usd_actual": -50.0},
         {"result": "LOSS", "pnl_usd_actual": -50.0},
     ]
-    with open(test_path, "w", encoding="utf-8") as f:
-        json.dump(trades_2, f)
         
-    metrics_2 = risk_manager.calculate_risk_metrics(base_capital=1000.0)
+    metrics_2 = risk_manager.calculate_risk_metrics(base_capital=1000.0, trades_cache=trades_2)
     assert metrics_2["consecutive_losses"] == 3
     assert metrics_2["risk_multiplier"] == 0.5
     # capital history: 1000 -> 1100 (peak) -> 1050 -> 1000 -> 950

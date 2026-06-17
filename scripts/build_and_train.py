@@ -361,6 +361,18 @@ def simulate_coin(coin: str, candles_15m: list[dict], mtf_candles: dict) -> list
         # ── Trích xuất features V2 ───────────────────────────────────────
         ana_copy = dict(ana)
         ana_copy["close"] = close
+
+        # ── Inject sentiment data với đúng key names ──────────────────
+        _sent       = _mock_get_sentiment()
+        _sent_trend = _mock_get_sentiment_trend()
+        ana_copy["fear_greed"]         = float(_sent.get("raw_value", 50))
+        ana_copy["sentiment_momentum"] = float(_sent_trend.get("momentum", 0.0))
+        ana_copy["sentiment_recovery"] = 1.0 if _sent_trend.get("recovery_signal") else 0.0
+        ana_copy["sentiment_risk"]     = 1.0 if _sent_trend.get("risk_signal") else 0.0
+        _td = _sent_trend.get("trend", "STABLE")
+        ana_copy["sentiment_trend_up"]   = 1.0 if _td == "UP"   else 0.0
+        ana_copy["sentiment_trend_down"] = 1.0 if _td == "DOWN" else 0.0
+
         feat = build_meta_features_v2(ana_copy, htf_trend)
 
         record = {
