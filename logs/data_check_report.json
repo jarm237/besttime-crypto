@@ -1,0 +1,566 @@
+{
+  "timestamp": 1781799870.7581782,
+  "coins_checked": [
+    {
+      "coin": "BTC",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_BTC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_BTC_15m.csv"
+      ]
+    },
+    {
+      "coin": "ETH",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_ETH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_ETH_15m.csv"
+      ]
+    },
+    {
+      "coin": "BNB",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_BNB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_BNB_15m.csv"
+      ]
+    },
+    {
+      "coin": "SOL",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_SOL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_SOL_15m.csv"
+      ]
+    },
+    {
+      "coin": "ZEC",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_ZEC_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_ZEC_15m.csv"
+      ]
+    },
+    {
+      "coin": "XRP",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_XRP_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_XRP_15m.csv"
+      ]
+    },
+    {
+      "coin": "DOGE",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\legacy_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_DOGE_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_DOGE_15m.csv"
+      ]
+    },
+    {
+      "coin": "WLD",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_WLD_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_WLD_15m.csv"
+      ]
+    },
+    {
+      "coin": "XLM",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_XLM_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_XLM_15m.csv"
+      ]
+    },
+    {
+      "coin": "NEAR",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_NEAR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_NEAR_15m.csv"
+      ]
+    },
+    {
+      "coin": "AVAX",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_AVAX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_AVAX_15m.csv"
+      ]
+    },
+    {
+      "coin": "TAO",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_TAO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_TAO_15m.csv"
+      ]
+    },
+    {
+      "coin": "TRB",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_TRB_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_TRB_15m.csv"
+      ]
+    },
+    {
+      "coin": "AEVO",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_AEVO_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_AEVO_15m.csv"
+      ]
+    },
+    {
+      "coin": "ENA",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_ENA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_ENA_15m.csv"
+      ]
+    },
+    {
+      "coin": "AR",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_AR_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_AR_15m.csv"
+      ]
+    },
+    {
+      "coin": "IOTA",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\april_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_IOTA_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_IOTA_15m.csv"
+      ]
+    },
+    {
+      "coin": "XPL",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_XPL_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_XPL_15m.csv"
+      ]
+    },
+    {
+      "coin": "SOPH",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_SOPH_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_SOPH_15m.csv"
+      ]
+    },
+    {
+      "coin": "XAUT",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\march_XAUT_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_XAUT_15m.csv"
+      ]
+    },
+    {
+      "coin": "TRX",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\april_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\august_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\december_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\february_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\january_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\july_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\june_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\march_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\may_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\november_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\october_2025_TRX_15m.csv",
+        "D:\\Workspaces\\Vọc vạch\\data\\september_2025_TRX_15m.csv"
+      ]
+    },
+    {
+      "coin": "TRUMP",
+      "files_found": [
+        "D:\\Workspaces\\Vọc vạch\\data\\june_TRUMP_15m.csv"
+      ]
+    }
+  ],
+  "missing_coins": [],
+  "found_examples": [
+    {
+      "coin": "BTC",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_BTC_15m.csv"
+    },
+    {
+      "coin": "ETH",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_ETH_15m.csv"
+    },
+    {
+      "coin": "BNB",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_BNB_15m.csv"
+    },
+    {
+      "coin": "SOL",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_SOL_15m.csv"
+    },
+    {
+      "coin": "ZEC",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_ZEC_15m.csv"
+    },
+    {
+      "coin": "XRP",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_XRP_15m.csv"
+    },
+    {
+      "coin": "DOGE",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_DOGE_15m.csv"
+    },
+    {
+      "coin": "WLD",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_WLD_15m.csv"
+    },
+    {
+      "coin": "XLM",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_XLM_15m.csv"
+    },
+    {
+      "coin": "NEAR",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_NEAR_15m.csv"
+    },
+    {
+      "coin": "AVAX",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_AVAX_15m.csv"
+    },
+    {
+      "coin": "TAO",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_TAO_15m.csv"
+    },
+    {
+      "coin": "TRB",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_TRB_15m.csv"
+    },
+    {
+      "coin": "AEVO",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_AEVO_15m.csv"
+    },
+    {
+      "coin": "ENA",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_ENA_15m.csv"
+    },
+    {
+      "coin": "AR",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_AR_15m.csv"
+    },
+    {
+      "coin": "IOTA",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_IOTA_15m.csv"
+    },
+    {
+      "coin": "XPL",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\december_2025_XPL_15m.csv"
+    },
+    {
+      "coin": "SOPH",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\august_2025_SOPH_15m.csv"
+    },
+    {
+      "coin": "XAUT",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\march_XAUT_15m.csv"
+    },
+    {
+      "coin": "TRX",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\april_2025_TRX_15m.csv"
+    },
+    {
+      "coin": "TRUMP",
+      "example": "D:\\Workspaces\\Vọc vạch\\data\\june_TRUMP_15m.csv"
+    }
+  ],
+  "migrated_files": [],
+  "fetch_ran": false,
+  "fetch_returncode": null,
+  "fetch_stdout": null,
+  "fetch_stderr": null
+}

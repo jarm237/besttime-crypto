@@ -62,5 +62,28 @@
 - Run an offline evaluation script to compute precision/recall, Brier score, and PR-AUC on recent holdout.
 - Measure inference latency by loading `logs/meta_model.joblib` and timing predictions on sample batch.
 
+## Calibration experiment (70/20/10)
+
+- Calibrated model saved: `logs/meta_model_calibrated_70_20_10.joblib`
+- Calibration report: `logs/calibration_70_20_10.json`
+- Best method selected: **isotonic** (mean calibration error = 6.16)
+- Test metrics (70/20/10 split): ROC-AUC = 0.6511, Brier = 0.2323
+- Notes: isotonic reduced mean calibration error vs uncalibrated model, but the high-confidence bucket (0.8-1.0) remains miscalibrated due to few samples (47 in test). Consider collecting more high-confidence samples or merging upper buckets.
+
+## Periodic recalibration
+
+I implemented a periodic recalibration script `scripts/periodic_recalibration.py` which:
+
+- Loads `logs/adaptive_signals_v2.json` and trains an ensemble on the latest data.
+- Uses a sequential split to reserve a calibration set and selects between `sigmoid` and `isotonic` by mean calibration error on a held-out test set.
+- Saves the selected calibrated model to `logs/meta_model_calibrated_periodic_<timestamp>.joblib` and writes a JSON report to `logs/`.
+
+Schedule suggestion:
+
+- On Linux: run weekly via cron: `0 3 * * 1 /usr/bin/python /path/to/scripts/periodic_recalibration.py`
+- On Windows: create a Scheduled Task to run the same command weekly during low-traffic hours.
+
+Would you like me to enable weekly scheduling instructions for your environment and add a simple CI check to validate updated models? 
+
 ---
 Report generated automatically from `logs/meta_model.json` and `logs/meta_feature_importance.json`.
