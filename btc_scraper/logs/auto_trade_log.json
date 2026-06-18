@@ -937,5 +937,38 @@
     "order_id": null,
     "status": "error",
     "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
+  },
+  {
+    "timestamp": "2026-06-18T20:31:22.260570",
+    "timestamp_str": "2026-06-18 20:31:22",
+    "mode": "TESTNET",
+    "coin": "TRB",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.7193,
+    "signal_score": 30,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 14.03
+  },
+  {
+    "timestamp": "2026-06-18T22:46:24.553647",
+    "timestamp_str": "2026-06-18 22:46:24",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "symbol": "NEAR/USDT",
+    "direction": "SHORT",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.504,
+    "meta_confidence_pct": 50,
+    "signal_score": 30,
+    "order_type": "market",
+    "entry_price": 2.199,
+    "sl_price": 2.2845,
+    "tp1_price": 2.1135,
+    "usdt_amount": 51.17,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
   }
 ]

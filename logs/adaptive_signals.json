@@ -433667,5 +433667,76 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "XRP",
+    "id": "73b19f95-1c51-494f-acdd-cfd9de3b9943",
+    "entry_price": 1.1708,
+    "sell_price": 1.1621,
+    "pnl_pct": 0.7431,
+    "result": "WIN",
+    "hold_hours": 3.3,
+    "exit_time": "2026-06-18 20:38",
+    "signal_raw": "NEUTRAL (BEARISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH)",
+      "meta_confidence": 0.5039787798408488,
+      "meta_confidence_pct": 50,
+      "kelly_fraction": 0.007957559681697646,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
+  },
+  {
+    "coin": "NEAR",
+    "id": "7deee605-f559-4ba5-836b-275a7798c0d6",
+    "entry_price": 2.188,
+    "sell_price": 0.2396,
+    "pnl_pct": 89.0494,
+    "result": "WIN",
+    "hold_hours": 0.3,
+    "exit_time": "2026-06-18 23:03",
+    "signal_raw": "NEUTRAL (BEARISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH)",
+      "meta_confidence": 0.5892857142857144,
+      "meta_confidence_pct": 59,
+      "kelly_fraction": 0.17857142857142883,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.3335,
+      "std_dev_pct": 1.4998
+    },
+    "regime": null
+  },
+  {
+    "coin": "NEAR",
+    "id": "80bfde35-d23d-43aa-b97d-b0f59dfd9f0e",
+    "entry_price": 2.188,
+    "sell_price": 2.207,
+    "pnl_pct": -0.8684,
+    "result": "LOSS",
+    "hold_hours": 0.0,
+    "exit_time": "2026-06-18 23:05",
+    "signal_raw": null,
+    "signal_score": {},
+    "regime": null
   }
 ]
