@@ -27,8 +27,7 @@ COINS = [
     "IOTA", 
     "XPL", 
     "NAORIS", 
-    "SOPH", 
-    "TSLAB", 
+    "SOPH",
     "XAUT", 
     "TRX",
     "TRUMP"
