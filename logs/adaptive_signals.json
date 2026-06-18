@@ -433738,5 +433738,34 @@
     "signal_raw": null,
     "signal_score": {},
     "regime": null
+  },
+  {
+    "coin": "XLM",
+    "id": "231fa1a1-c808-4705-8e4f-564f44411df4",
+    "entry_price": 0.2396,
+    "sell_price": 0.23242,
+    "pnl_pct": 2.9967,
+    "result": "WIN",
+    "hold_hours": 2.1,
+    "exit_time": "2026-06-19 01:12",
+    "signal_raw": "NEUTRAL (BEARISH-CAUTION)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH-CAUTION)",
+      "meta_confidence": 0.5039787798408488,
+      "meta_confidence_pct": 50,
+      "kelly_fraction": 0.007957559681697646,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]
