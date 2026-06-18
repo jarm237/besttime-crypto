@@ -14,12 +14,15 @@ Usage:
   python scripts/build_and_train.py
   python scripts/build_and_train.py --skip-build   # Chỉ train, dùng data có sẵn
   python scripts/build_and_train.py --no-calibrate # Train không Platt scaling
+    python scripts/build_and_train.py --coin-group majors
+    python scripts/build_and_train.py --coins BTC,ETH,SOL
 """
 import sys
 import os
 import csv
 import json
 import argparse
+import hashlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import bisect
@@ -145,60 +148,174 @@ def _mock_get_sentiment_trend(*args, **kwargs) -> dict:
         "hours_in_extreme": 0,
     }
 
-# ── Patch modules TRƯỚC KHI import analysis ─────────────────────────────────
-import btc_scraper.core.sentiment as _sentiment_mod
-_sentiment_mod.get_market_sentiment         = _mock_get_sentiment
-_sentiment_mod.get_sentiment_trend          = _mock_get_sentiment_trend
-_sentiment_mod._save_sentiment_to_history   = lambda data, **kw: None  # no-op
-
-from btc_scraper.core.db import closed_positions_col
-import btc_scraper.trading.risk_manager as _risk_mod
-
-# Lôi hết dữ liệu DB lên bảng tạm 1 lần duy nhất để tối ưu tốc độ
-print("  [Init] Đang tải bảng tạm closed_positions từ MongoDB...")
-try:
-    _TEMP_TRADES_TABLE = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
-except Exception as e:
-    print(f"  [Warning] Không thể kết nối MongoDB: {e}")
-    print("  [Warning] Sẽ tiếp tục với bảng tạm rỗng (không ảnh hưởng nhiều đến backtest).")
-    _TEMP_TRADES_TABLE = []
-    
-_original_calculate_risk_metrics = _risk_mod.calculate_risk_metrics
-
-def _cached_calculate_risk_metrics(*args, **kwargs):
-    # Truyền bảng tạm vào để tính toán thay vì query DB
-    kwargs["trades_cache"] = _TEMP_TRADES_TABLE
-    return _original_calculate_risk_metrics(*args, **kwargs)
-
-_risk_mod.calculate_risk_metrics = _cached_calculate_risk_metrics
-
-try:
-    import btc_scraper.ml_engine.signal_score as _score_mod
-    _score_mod.calculate_risk_metrics = _cached_calculate_risk_metrics
-except Exception:
-    pass
-
-# Cũng patch trên module analysis (nếu nó đã import riêng)
-try:
-    import btc_scraper.analysis as _analysis_pkg
-    _analysis_pkg.get_market_sentiment = _mock_get_sentiment
-    _analysis_pkg.get_sentiment_trend  = _mock_get_sentiment_trend
-except Exception:
-    pass
-try:
-    import btc_scraper.analysis.core as _core_mod
-    _core_mod.get_market_sentiment       = _mock_get_sentiment
-    _core_mod.get_sentiment_trend        = _mock_get_sentiment_trend
-    _core_mod._save_sentiment_to_history = lambda data, **kw: None
-except Exception:
-    pass
-
-os.environ["DISABLE_KELLY"] = "1"
-
+# ── Lazy runtime initialization ──────────────────────────────────────────────
 from btc_scraper.core.config import COINS
-from btc_scraper.analysis.core import analyze_market
-from btc_scraper.ml_engine.feature_extractor import build_meta_features_v2, FEATURE_SCHEMA_V2
-from btc_scraper.ml_engine.meta_model import train_meta_model, INPUT as MODEL_INPUT
+
+analyze_market = None
+build_meta_features_v2 = None
+FEATURE_SCHEMA_V2 = None
+train_meta_model = None
+MODEL_INPUT = None
+_TEMP_TRADES_TABLE = []
+_RUNTIME_READY = False
+
+
+def initialize_runtime_dependencies() -> None:
+    global analyze_market
+    global build_meta_features_v2
+    global FEATURE_SCHEMA_V2
+    global train_meta_model
+    global MODEL_INPUT
+    global _TEMP_TRADES_TABLE
+    global _RUNTIME_READY
+
+    if _RUNTIME_READY:
+        return
+
+    import btc_scraper.core.sentiment as _sentiment_mod
+
+    _sentiment_mod.get_market_sentiment = _mock_get_sentiment
+    _sentiment_mod.get_sentiment_trend = _mock_get_sentiment_trend
+    _sentiment_mod._save_sentiment_to_history = lambda data, **kw: None
+
+    from btc_scraper.core.db import closed_positions_col
+    import btc_scraper.trading.risk_manager as _risk_mod
+
+    print("  [Init] Đang tải bảng tạm closed_positions từ MongoDB...")
+    try:
+        _TEMP_TRADES_TABLE = list(closed_positions_col.find({}, {"_id": 0}).sort("_id", 1))
+    except Exception as e:
+        print(f"  [Warning] Không thể kết nối MongoDB: {e}")
+        print("  [Warning] Sẽ tiếp tục với bảng tạm rỗng (không ảnh hưởng nhiều đến backtest).")
+        _TEMP_TRADES_TABLE = []
+
+    _original_calculate_risk_metrics = _risk_mod.calculate_risk_metrics
+
+    def _cached_calculate_risk_metrics(*args, **kwargs):
+        kwargs["trades_cache"] = _TEMP_TRADES_TABLE
+        return _original_calculate_risk_metrics(*args, **kwargs)
+
+    _risk_mod.calculate_risk_metrics = _cached_calculate_risk_metrics
+
+    try:
+        import btc_scraper.ml_engine.signal_score as _score_mod
+        _score_mod.calculate_risk_metrics = _cached_calculate_risk_metrics
+    except Exception:
+        pass
+
+    try:
+        import btc_scraper.analysis as _analysis_pkg
+        _analysis_pkg.get_market_sentiment = _mock_get_sentiment
+        _analysis_pkg.get_sentiment_trend = _mock_get_sentiment_trend
+    except Exception:
+        pass
+
+    try:
+        import btc_scraper.analysis.core as _core_mod
+        _core_mod.get_market_sentiment = _mock_get_sentiment
+        _core_mod.get_sentiment_trend = _mock_get_sentiment_trend
+        _core_mod._save_sentiment_to_history = lambda data, **kw: None
+    except Exception:
+        pass
+
+    os.environ["DISABLE_KELLY"] = "1"
+
+    from btc_scraper.analysis.core import analyze_market as _analyze_market
+    from btc_scraper.ml_engine.feature_extractor import (
+        build_meta_features_v2 as _build_meta_features_v2,
+        FEATURE_SCHEMA_V2 as _feature_schema_v2,
+    )
+    from btc_scraper.ml_engine.meta_model import (
+        train_meta_model as _train_meta_model,
+        INPUT as _model_input,
+    )
+
+    analyze_market = _analyze_market
+    build_meta_features_v2 = _build_meta_features_v2
+    FEATURE_SCHEMA_V2 = _feature_schema_v2
+    train_meta_model = _train_meta_model
+    MODEL_INPUT = _model_input
+    _RUNTIME_READY = True
+
+
+COIN_GROUPS = {
+    "majors": ["BTC", "ETH", "BNB", "SOL", "XRP", "DOGE", "TRX"],
+    "layer1": ["ETH", "BNB", "SOL", "XRP", "XLM", "NEAR", "AVAX", "IOTA", "TRX"],
+    "ai": ["WLD", "TAO", "NAORIS", "SOPH"],
+    "meme": ["DOGE", "TRUMP"],
+    "alts": [
+        "ZEC", "XLM", "NEAR", "AVAX", "TAO", "TRB", "AEVO", "ENA",
+        "AR", "IOTA", "XPL", "NAORIS", "SOPH", "WLD", "TRUMP",
+    ],
+    "others": ["ZEC", "WLD", "TRB", "AEVO", "ENA", "AR", "XPL", "XAUT"],
+}
+
+
+def _parse_coin_tokens(values: list[str] | None) -> list[str]:
+    tokens = []
+    for value in values or []:
+        for token in value.replace(",", " ").split():
+            coin = token.strip().upper()
+            if coin:
+                tokens.append(coin)
+    return tokens
+
+
+def _ordered_unique(items: list[str]) -> list[str]:
+    seen = set()
+    ordered = []
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            ordered.append(item)
+    return ordered
+
+
+def resolve_target_coins(args: argparse.Namespace) -> list[str]:
+    selected = []
+    group_names = _parse_coin_tokens(args.coin_group)
+    for group_name in group_names:
+        group = COIN_GROUPS.get(group_name.lower())
+        if group is None:
+            raise SystemExit(
+                f"[ERROR] Coin group không hợp lệ: {group_name}. "
+                f"Hợp lệ: {', '.join(sorted(COIN_GROUPS))}"
+            )
+        selected.extend(group)
+
+    explicit_coins = _parse_coin_tokens(args.coins)
+    if explicit_coins:
+        selected.extend(explicit_coins)
+
+    excluded_coins = set(_parse_coin_tokens(args.exclude_coins))
+    if not selected:
+        selected = list(COINS)
+
+    invalid = sorted({coin for coin in selected if coin not in COINS})
+    if invalid:
+        raise SystemExit(
+            f"[ERROR] Coin không hợp lệ: {', '.join(invalid)}. "
+            f"Danh sách hợp lệ: {', '.join(COINS)}"
+        )
+
+    target_coins = [coin for coin in _ordered_unique(selected) if coin not in excluded_coins]
+    if not target_coins:
+        raise SystemExit("[ERROR] Không còn coin nào để build sau khi áp dụng filter.")
+    return target_coins
+
+
+def _coin_scope_name(coins: list[str]) -> str:
+    if coins == list(COINS):
+        return "all"
+    digest = hashlib.sha1(",".join(coins).encode("utf-8")).hexdigest()[:8]
+    return f"{len(coins)}coins_{digest}"
+
+
+def print_coin_groups() -> None:
+    print("\nAvailable coin groups:")
+    for group_name in sorted(COIN_GROUPS):
+        print(f"  - {group_name:8s}: {', '.join(COIN_GROUPS[group_name])}")
+    print()
 
 
 # ── Data Loading ─────────────────────────────────────────────────────────────
@@ -403,16 +520,18 @@ def simulate_coin(coin: str, candles_15m: list[dict], mtf_candles: dict) -> list
 
 # ── Main Pipeline ─────────────────────────────────────────────────────────────
 
-def build_dataset(months: list[str]) -> list[dict]:
+def build_dataset(months: list[str], coins: list[str]) -> list[dict]:
     print(f"\n{'='*65}")
     print("  PHASE 1 — Tạo dataset từ dữ liệu lịch sử")
     print(f"{'='*65}")
     print(f"  Tháng: {months}\n")
+    print(f"  Coins: {coins}\n")
 
     all_trades = []
     coin_results = {}
-    
-    progress_file = LOGS_DIR / "build_progress.json"
+
+    progress_scope = _coin_scope_name(coins)
+    progress_file = LOGS_DIR / f"build_progress_{progress_scope}.json"
     if progress_file.exists():
         try:
             with open(str(progress_file), "r", encoding="utf-8") as f:
@@ -425,7 +544,7 @@ def build_dataset(months: list[str]) -> list[dict]:
             all_trades = []
             coin_results = {}
 
-    for coin in COINS:
+    for coin in coins:
         if coin in coin_results:
             print(f"  [+] {coin} ... BỎ QUA (đã có kết quả)")
             continue
@@ -467,7 +586,8 @@ def build_dataset(months: list[str]) -> list[dict]:
         wins_total = sum(1 for t in all_trades if t.get("result") == "WIN")
         print(f"  WIN={wins_total} ({wins_total/len(all_trades)*100:.1f}%) | LOSS={len(all_trades)-wins_total}")
 
-    results_file = LOGS_DIR / "build_results_by_coin.json"
+    results_suffix = "" if progress_scope == "all" else f"_{progress_scope}"
+    results_file = LOGS_DIR / f"build_results_by_coin{results_suffix}.json"
     try:
         with open(str(results_file), "w", encoding="utf-8") as f:
             json.dump(coin_results, f, indent=2, ensure_ascii=False)
@@ -488,7 +608,37 @@ def main():
     parser.add_argument("--skip-build",   action="store_true")
     parser.add_argument("--no-calibrate", action="store_true")
     parser.add_argument("--n", type=int, default=200)
+    parser.add_argument(
+        "--coin-group",
+        action="append",
+        default=[],
+        help="Chọn preset nhóm coin, có thể lặp lại hoặc dùng dấu phẩy."
+    )
+    parser.add_argument(
+        "--coins",
+        action="append",
+        default=[],
+        help="Chọn coin cụ thể, ví dụ: --coins BTC,ETH,SOL"
+    )
+    parser.add_argument(
+        "--exclude-coins",
+        action="append",
+        default=[],
+        help="Loại trừ coin khỏi danh sách đã chọn."
+    )
+    parser.add_argument(
+        "--list-coin-groups",
+        action="store_true",
+        help="In ra các preset nhóm coin và thoát."
+    )
     args = parser.parse_args()
+
+    if args.list_coin_groups:
+        print_coin_groups()
+        return
+
+    target_coins = resolve_target_coins(args)
+    initialize_runtime_dependencies()
 
     LOGS_DIR.mkdir(exist_ok=True)
 
@@ -502,7 +652,7 @@ def main():
             print(f"[ERROR] Không tìm thấy dữ liệu CSV trong {DATA_DIR}")
             sys.exit(1)
 
-        trades = build_dataset(months)
+        trades = build_dataset(months, target_coins)
         if len(trades) < 30:
             print(f"\n[ERROR] Chỉ có {len(trades)} lệnh. Cần ít nhất 30 để train.")
             sys.exit(1)
@@ -520,6 +670,7 @@ def main():
     print(f"\n{'='*65}")
     print("  PHASE 2 — Train Ensemble Meta Model (V2)")
     print(f"{'='*65}")
+    print(f"  Coins     : {target_coins}")
     print(f"  Input     : {MODEL_INPUT}")
     print(f"  Estimators: {args.n} | Calibrate: {not args.no_calibrate}\n")
 
