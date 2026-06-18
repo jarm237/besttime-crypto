@@ -21,15 +21,37 @@ schtasks /Delete /TN PeriodicRecalibration /F
 
 Linux / macOS (cron)
 
-1. Edit `scripts/setup_cron.sh`, set `WORKDIR` to your repository path.
-2. Run:
+1. On Ubuntu, make sure cron is installed and running:
+
+```bash
+sudo apt update
+sudo apt install -y cron
+sudo systemctl enable --now cron
+```
+
+2. Install the default cron entry (daily at 02:00). The helper auto-detects the repository root, prefers `.venv/bin/python` when available, and calls a wrapper that rotates cron logs only when the current log exceeds the configured size threshold:
 
 ```bash
 bash scripts/setup_cron.sh
+crontab -l
+```
+
+3. Optional overrides:
+
+```bash
+SCHEDULE="0 */6 * * *" bash scripts/setup_cron.sh
+AUTO_COMMIT=1 bash scripts/setup_cron.sh
+KEEP_LOGS=14 bash scripts/setup_cron.sh
+MAX_LOG_SIZE_MB=25 bash scripts/setup_cron.sh
+LOGFILE="$PWD/logs/recalibration_ubuntu.log" bash scripts/setup_cron.sh
+bash scripts/setup_cron.sh print
+bash scripts/setup_cron.sh remove
 ```
 
 Notes & prerequisites
 
-- Ensure `python` (or `python3`) is on PATH of the account running the scheduler.
-- If you rely on virtualenv, modify the action command to activate the environment prior to running the script.
+- Ensure `python3` is installed. If the repo has `.venv`, the helper uses `.venv/bin/python` automatically.
+- Cron runs with a minimal environment, so prefer absolute paths and environment variables passed inline as shown above.
+- By default the runner keeps `7` rotated logs: `periodic_recalibration_cron.log`, `.1`, `.2`, ... You can change this with `KEEP_LOGS`.
+- Rotation only happens when the active log reaches `10 MB` by default. Change that threshold with `MAX_LOG_SIZE_MB`.
 - `AUTO_COMMIT=1` environment variable may be required for automatic push inside `periodic_recalibration.py`.

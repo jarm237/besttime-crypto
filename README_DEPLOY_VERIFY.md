@@ -54,12 +54,30 @@ powershell -ExecutionPolicy Bypass -File "D:\Workspaces\Vọc vạch\scripts\set
 schtasks /Delete /TN PeriodicRecalibration /F
 ```
 
-- Unix-like (cron): `scripts/setup_cron.sh` (chỉnh `WORKDIR` rồi chạy):
+- Ubuntu (cron): `scripts/setup_cron.sh` tự nhận diện repo root, ưu tiên `.venv/bin/python` nếu có, và chạy qua wrapper `scripts/run_periodic_recalibration.sh` để rotate log khi log hiện tại vượt ngưỡng dung lượng:
 
 ```bash
+sudo apt update
+sudo apt install -y cron
+sudo systemctl enable --now cron
+
 bash scripts/setup_cron.sh
 crontab -l  # xem entry
 ```
+
+- Đổi lịch chạy, bật auto-commit, hoặc gỡ cron job:
+
+```bash
+SCHEDULE="0 */6 * * *" bash scripts/setup_cron.sh
+AUTO_COMMIT=1 bash scripts/setup_cron.sh
+KEEP_LOGS=14 bash scripts/setup_cron.sh
+MAX_LOG_SIZE_MB=25 bash scripts/setup_cron.sh
+bash scripts/setup_cron.sh print
+bash scripts/setup_cron.sh remove
+```
+
+- Mặc định giữ `7` file log gần nhất: `logs/periodic_recalibration_cron.log`, `.1`, `.2`, ... Có thể đổi bằng `KEEP_LOGS`.
+- Mặc định chỉ rotate khi log đạt `10 MB`. Có thể đổi bằng `MAX_LOG_SIZE_MB`.
 
 **Auto-commit / Push**
 - `scripts/periodic_recalibration.py` có hỗ trợ auto-commit khi `AUTO_COMMIT=1`.

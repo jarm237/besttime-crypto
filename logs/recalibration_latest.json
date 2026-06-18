@@ -1,6 +1,6 @@
 {
   "last_run": {
-    "timestamp": "2026-06-18T15:10:45.781149",
+    "timestamp": "2026-06-18T18:07:08.207271",
     "n_total": 21482,
     "split": {
       "train": 15037,
@@ -235,8 +235,8 @@
           }
         }
       },
-      "model_path": "D:\\Workspaces\\Vọc vạch\\logs\\meta_model_calibrated_periodic_20260618T151058Z.joblib"
+      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260618T180753Z.joblib"
     },
-    "elapsed_s": 14.398406744003296
+    "elapsed_s": 48.91624116897583
   }
 }

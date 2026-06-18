@@ -1,4 +1,909 @@
 {
+  "2026-06-18T18:06:00.375328+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:23.787305+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:23.662719+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:23.524940+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:23.375058+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:23.224975+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:23.074875+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:22.888041+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:22.641224+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:22.355041+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:21.989600+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:21.652041+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:21.289558+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:20.905426+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:20.691530+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:20.440828+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:20.213607+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:20.008775+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:19.822612+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:19.602365+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:19.300156+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:19.017144+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:18.810768+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:18.581081+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:18.342275+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:18.083361+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:17.853900+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:17.630029+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:17.439456+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:17.221762+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:17.009172+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:16.734817+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:16.458060+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:16.194882+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:15.965616+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:15.724254+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:15.432154+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:15.181147+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:14.931050+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:14.711106+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:14.458847+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:14.218716+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:13.978676+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:13.774032+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:13.568943+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:13.333834+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:13.089853+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:12.860371+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:12.570241+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:12.290849+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:12.011246+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:11.760642+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:11.432150+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:11.160287+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:10.868708+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:10.551271+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:10.232443+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:09.926034+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:09.667370+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:09.314808+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:08.989731+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:08.741538+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:08.517994+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:08.198007+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:07.965562+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:07.745307+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:07.531320+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:07.323626+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:07.081758+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:06.883275+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:06.723727+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:06.555818+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:06.349951+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:06.117428+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:05.934142+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:05.749783+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:05.531158+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:05.296165+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:05.040550+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:04.773940+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:04.496451+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:04.210269+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:03.955199+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:03.681434+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:03.444249+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:03.136416+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:02.858310+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:02.588486+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T18:01:01.324335+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:56:00.653057+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:51:00.803267+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:24.231854+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:24.019518+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:23.819472+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:23.619302+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:23.370951+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:23.152950+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:22.873031+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:22.608633+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:22.258697+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:21.955705+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:21.720915+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:21.441887+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:21.186533+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:20.953739+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:20.717313+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:20.456164+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:20.119185+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:19.871981+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:19.606029+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:19.285148+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:19.029882+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:18.816648+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:18.573677+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:18.290185+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:18.022346+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:17.743823+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:17.479955+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:17.192220+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:16.888467+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:16.646516+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:16.419999+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:16.172457+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:15.931348+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:15.710515+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:15.512464+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:15.286208+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:15.024484+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:14.798054+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:14.577187+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:14.334868+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:14.124494+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:13.930861+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:13.743030+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:13.529102+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:13.275238+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:13.039602+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:12.838634+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:12.599357+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:12.405747+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:12.212825+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:11.977567+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:11.716674+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:11.436640+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:11.171094+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:10.898853+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:10.599355+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:10.260942+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:09.980068+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:09.708730+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:09.410632+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:09.004899+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:08.571902+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:08.263060+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:07.889935+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:07.594704+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:07.348291+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:07.042940+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:06.740094+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:06.448068+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:06.191326+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:05.943284+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:05.713669+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:05.441762+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:05.175215+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:04.935633+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:04.668325+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:04.456369+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:04.225527+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:04.004915+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:03.807407+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:03.623600+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:03.466023+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:03.298535+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:03.112920+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:02.918534+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:02.736465+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:02.566703+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:46:01.234962+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:41:01.319525+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
+  "2026-06-18T17:36:00.526222+00:00Z": {
+    "score": -0.7,
+    "raw_value": 15,
+    "label": "Extreme Fear"
+  },
   "2026-06-18T17:31:16.858554+00:00Z": {
     "score": -0.7,
     "raw_value": 15,
@@ -2690,911 +3595,6 @@
     "label": "Extreme Fear"
   },
   "2026-06-18T16:11:00.495293+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:06:00.966895+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:22.385432+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:21.964542+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:21.545328+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:21.069637+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:20.658300+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:20.302729+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:19.943374+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:19.534471+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:19.185478+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:18.834678+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:18.361941+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:17.954356+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:17.485928+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:17.234910+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:17.006660+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:16.757724+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:16.461361+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:16.252353+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:16.045133+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:15.857442+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:15.655009+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:15.453098+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:15.276174+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:15.067968+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:14.849234+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:14.654795+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:14.467195+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:14.264871+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:14.050282+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:13.874738+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:13.684250+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:13.461708+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:13.250792+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:13.095517+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:12.928861+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:12.719246+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:12.532079+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:12.395228+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:12.239104+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:12.065766+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:11.863533+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:11.684060+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:11.513099+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:11.314178+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:11.101497+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:10.953802+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:10.790795+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:10.587924+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:10.365848+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:10.175147+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:09.982746+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:09.788475+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:09.610068+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:09.427473+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:09.246307+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:09.041543+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:08.837617+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:08.658316+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:08.476036+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:08.308628+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:08.114272+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:07.943942+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:07.736114+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:07.529287+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:07.296367+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:07.095780+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:06.909073+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:06.706852+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:06.513318+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:06.331828+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:06.153327+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:05.963506+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:05.749102+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:05.596356+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:05.411858+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:05.228626+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:04.961502+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:04.778578+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:04.578026+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:04.346819+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:04.077012+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:03.864890+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:03.582453+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:03.242527+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:02.913829+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:02.573488+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:02.175682+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T16:01:00.970324+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:56:01.006733+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:51:01.179922+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:20.019567+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:19.816567+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:19.620288+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:19.396268+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:19.180231+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:18.977351+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:18.769990+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:18.525862+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:18.329539+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:18.120771+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:17.937363+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:17.725477+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:17.523242+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:17.320122+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:17.118621+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:16.890019+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:16.648878+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:16.452678+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:16.238257+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:16.007165+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:15.796853+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:15.580685+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:15.376254+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:15.117059+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:14.888332+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:14.662456+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:14.430461+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:14.209288+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:13.995749+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:13.771202+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:13.575812+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:13.340927+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:13.126948+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:12.913380+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:12.684509+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:12.466516+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:12.233945+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:12.046685+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:11.844167+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:11.639595+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:11.420899+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:11.242667+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:11.064886+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:10.869175+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:10.647222+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:10.443287+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:10.255784+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:10.056054+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:09.826225+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:09.650968+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:09.445475+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:09.245164+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:09.006751+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:08.780365+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:08.554459+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:08.331913+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:08.104362+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:07.905269+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:07.714034+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:07.504951+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:07.270693+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:07.070963+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:06.865850+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:06.645447+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:06.399410+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:06.193724+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:05.988639+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:05.793517+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:05.600118+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:05.451513+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:05.270132+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:05.107038+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:04.889950+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:04.717618+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:04.525908+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:04.314308+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:04.092437+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:03.911042+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:03.723799+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:03.543977+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:03.353459+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:03.200941+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:03.016170+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:02.837994+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:02.648295+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:02.482642+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:02.350155+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:46:01.288819+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:31:20.502785+00:00Z": {
-    "score": -0.7,
-    "raw_value": 15,
-    "label": "Extreme Fear"
-  },
-  "2026-06-18T15:31:20.357004+00:00Z": {
     "score": -0.7,
     "raw_value": 15,
     "label": "Extreme Fear"
