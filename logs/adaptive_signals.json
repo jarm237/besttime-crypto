@@ -433767,5 +433767,34 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "ENA",
+    "id": "d856aebd-e4a5-4ad6-b7c5-f408e0b45b0c",
+    "entry_price": 0.09357,
+    "sell_price": 0.0931,
+    "pnl_pct": 0.5023,
+    "result": "WIN",
+    "hold_hours": 0.3,
+    "exit_time": "2026-06-19 08:37",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "meta_confidence": 0.5892857142857144,
+      "meta_confidence_pct": 59,
+      "kelly_fraction": 0.17857142857142883,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]
