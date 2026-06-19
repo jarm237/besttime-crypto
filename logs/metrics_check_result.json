@@ -1,6 +1,163 @@
 {
-  "ok": true,
-  "failures": {},
+  "ok": false,
+  "failures": {
+    "time_slice.2026-01": {
+      "status": "fail",
+      "n_samples": 1267,
+      "baseline_window": [
+        "2025-10",
+        "2025-11",
+        "2025-12"
+      ],
+      "baselines": {
+        "roc_auc": 0.8707636448664506,
+        "pr_auc": 0.8509337699843856,
+        "brier": 0.1810510723818424
+      },
+      "thresholds": {
+        "roc_auc": 0.8407636448664506,
+        "pr_auc": 0.8209337699843856,
+        "brier": 0.2110510723818424
+      },
+      "metrics": {
+        "roc_auc": {
+          "status": "fail",
+          "value": 0.7190163108790723,
+          "threshold": 0.8407636448664506,
+          "grace": 0.01
+        },
+        "pr_auc": {
+          "status": "fail",
+          "value": 0.6966191875702911,
+          "threshold": 0.8209337699843856,
+          "grace": 0.01
+        },
+        "brier": {
+          "status": "pass",
+          "value": 0.21586599298390768,
+          "threshold": 0.2110510723818424,
+          "grace": 0.01
+        }
+      }
+    },
+    "time_slice.2026-02": {
+      "status": "fail",
+      "n_samples": 1207,
+      "baseline_window": [
+        "2025-11",
+        "2025-12",
+        "2026-01"
+      ],
+      "baselines": {
+        "roc_auc": 0.8141198098241516,
+        "pr_auc": 0.7955500982955038,
+        "brier": 0.19525196588414506
+      },
+      "thresholds": {
+        "roc_auc": 0.7841198098241515,
+        "pr_auc": 0.7655500982955038,
+        "brier": 0.22525196588414506
+      },
+      "metrics": {
+        "roc_auc": {
+          "status": "fail",
+          "value": 0.6846317429686808,
+          "threshold": 0.7841198098241515,
+          "grace": 0.01
+        },
+        "pr_auc": {
+          "status": "fail",
+          "value": 0.6336279218832372,
+          "threshold": 0.7655500982955038,
+          "grace": 0.01
+        },
+        "brier": {
+          "status": "pass",
+          "value": 0.22148404535660296,
+          "threshold": 0.22525196588414506,
+          "grace": 0.01
+        }
+      }
+    },
+    "time_slice.2026-03": {
+      "status": "fail",
+      "n_samples": 1292,
+      "baseline_window": [
+        "2025-12",
+        "2026-01",
+        "2026-02"
+      ],
+      "baselines": {
+        "roc_auc": 0.7518204793367677,
+        "pr_auc": 0.7194791432124482,
+        "brier": 0.2080288686093075
+      },
+      "thresholds": {
+        "roc_auc": 0.7218204793367676,
+        "pr_auc": 0.6894791432124482,
+        "brier": 0.2380288686093075
+      },
+      "metrics": {
+        "roc_auc": {
+          "status": "fail",
+          "value": 0.6440566745555564,
+          "threshold": 0.7218204793367676,
+          "grace": 0.01
+        },
+        "pr_auc": {
+          "status": "fail",
+          "value": 0.5963923827481771,
+          "threshold": 0.6894791432124482,
+          "grace": 0.01
+        },
+        "brier": {
+          "status": "pass",
+          "value": 0.23091882218097265,
+          "threshold": 0.2380288686093075,
+          "grace": 0.01
+        }
+      }
+    },
+    "time_slice.2026-04": {
+      "status": "fail",
+      "n_samples": 1257,
+      "baseline_window": [
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "baselines": {
+        "roc_auc": 0.6825682428011032,
+        "pr_auc": 0.6422131640672352,
+        "brier": 0.22275628684049442
+      },
+      "thresholds": {
+        "roc_auc": 0.6525682428011031,
+        "pr_auc": 0.6122131640672351,
+        "brier": 0.25275628684049445
+      },
+      "metrics": {
+        "roc_auc": {
+          "status": "pass",
+          "value": 0.6461841459925615,
+          "threshold": 0.6525682428011031,
+          "grace": 0.01
+        },
+        "pr_auc": {
+          "status": "fail",
+          "value": 0.5667969099966468,
+          "threshold": 0.6122131640672351,
+          "grace": 0.01
+        },
+        "brier": {
+          "status": "pass",
+          "value": 0.23131519335294928,
+          "threshold": 0.25275628684049445,
+          "grace": 0.01
+        }
+      }
+    }
+  },
   "metrics": {
     "roc_auc": 0.7868087847275441,
     "pr_auc": 0.7467949780075538,
@@ -62,5 +219,1332 @@
       "choch_bull",
       "choch_bear"
     ]
+  },
+  "checks": {
+    "global": {
+      "roc_auc": {
+        "status": "pass",
+        "value": 0.7868087847275441,
+        "threshold": 0.7,
+        "grace": 0.0
+      },
+      "pr_auc": {
+        "status": "pass",
+        "value": 0.7467949780075538,
+        "threshold": 0.6,
+        "grace": 0.0
+      },
+      "brier": {
+        "status": "pass",
+        "value": 0.19968872994764564,
+        "threshold": 0.25,
+        "grace": 0.0
+      }
+    },
+    "by_coin": {
+      "AEVO": {
+        "status": "pass",
+        "n_samples": 973,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8365946966170408,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8013333606496676,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.1875795625055591,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "AR": {
+        "status": "pass",
+        "n_samples": 1148,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7998658318425761,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7657854175298435,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.19583605131536577,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "AVAX": {
+        "status": "pass",
+        "n_samples": 1219,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.761108014653759,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.704060988926594,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20716993154978872,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "BNB": {
+        "status": "pass",
+        "n_samples": 1271,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7548267012816495,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7212806461671133,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.2081694918516354,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "BTC": {
+        "status": "pass",
+        "n_samples": 1217,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7677243243243244,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7385001739767035,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20540594405905416,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "DOGE": {
+        "status": "pass",
+        "n_samples": 1292,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7878569021137272,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7349875140891778,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20149096246612874,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "ENA": {
+        "status": "pass",
+        "n_samples": 1126,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8174519352390589,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7866598566975583,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.1899566681094647,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "ETH": {
+        "status": "pass",
+        "n_samples": 1275,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7906053544331237,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7600216543940769,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.2015229757829247,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "IOTA": {
+        "status": "pass",
+        "n_samples": 1263,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8022206126559022,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7550841811833684,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.19454203668754083,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "NEAR": {
+        "status": "pass",
+        "n_samples": 1314,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7696120891469238,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7090862417799695,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20195019168823908,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "SOL": {
+        "status": "pass",
+        "n_samples": 1294,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7787603957556639,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7560032052449287,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20325946702182823,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "SOPH": {
+        "status": "pass",
+        "n_samples": 721,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.758926919518964,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7171475182973028,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.2069742447926867,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "TAO": {
+        "status": "pass",
+        "n_samples": 1054,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8017738535576502,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7571038686050191,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.1943279262463821,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "TRB": {
+        "status": "pass",
+        "n_samples": 1197,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.783825807723726,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.728899851589898,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.1973572175225347,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "TRUMP": {
+        "status": "pass",
+        "n_samples": 904,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8047003525264395,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7981316143106847,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.19680080467822433,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "TRX": {
+        "status": "pass",
+        "n_samples": 1387,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7912875437044526,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7286667220333298,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20096075447503275,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "WLD": {
+        "status": "pass",
+        "n_samples": 1097,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.821190938122954,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7799314108275583,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18948209012942663,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "XLM": {
+        "status": "pass",
+        "n_samples": 1206,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7572137241083889,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7148397518977612,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20542964768014632,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "XPL": {
+        "status": "pass",
+        "n_samples": 529,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7092358604091457,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.6812462288707606,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.21647261815325303,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "XRP": {
+        "status": "pass",
+        "n_samples": 1181,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.7791949429880465,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7541897748267518,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.20410247630061942,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      },
+      "ZEC": {
+        "status": "pass",
+        "n_samples": 1291,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8234818485020328,
+            "threshold": 0.62,
+            "grace": 0.0
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.7908734393453087,
+            "threshold": 0.52,
+            "grace": 0.0
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.19098571572076642,
+            "threshold": 0.28,
+            "grace": 0.0
+          }
+        }
+      }
+    },
+    "by_time_slice": {
+      "2023-01": {
+        "status": "warmup",
+        "n_samples": 899,
+        "baseline_window": 0,
+        "required_window": 3,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.6277677091963546,
+            "threshold": 0.62,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.5027860905352034,
+            "threshold": 0.52,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.23143175890720954,
+            "threshold": 0.28,
+            "grace": 0.01
+          }
+        }
+      },
+      "2023-02": {
+        "status": "warmup",
+        "n_samples": 719,
+        "baseline_window": 1,
+        "required_window": 3,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.6256330829396731,
+            "threshold": 0.62,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.6115359536775217,
+            "threshold": 0.52,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.24304614786791776,
+            "threshold": 0.28,
+            "grace": 0.01
+          }
+        }
+      },
+      "2023-03": {
+        "status": "warmup",
+        "n_samples": 847,
+        "baseline_window": 2,
+        "required_window": 3,
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.6291467331491589,
+            "threshold": 0.62,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.5622142992252843,
+            "threshold": 0.52,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.23650190231162704,
+            "threshold": 0.28,
+            "grace": 0.01
+          }
+        }
+      },
+      "2023-07": {
+        "status": "skipped_insufficient_samples",
+        "n_samples": 12,
+        "min_samples": 400
+      },
+      "2025-01": {
+        "status": "pass",
+        "n_samples": 1214,
+        "baseline_window": [
+          null,
+          null,
+          null
+        ],
+        "baselines": {
+          "roc_auc": 0.6275158417617289,
+          "pr_auc": 0.5588454478126698,
+          "brier": 0.23699326969558476
+        },
+        "thresholds": {
+          "roc_auc": 0.62,
+          "pr_auc": 0.5288454478126697,
+          "brier": 0.2669932696955848
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8704382584799037,
+            "threshold": 0.62,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8589290073995496,
+            "threshold": 0.5288454478126697,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18061187868810244,
+            "threshold": 0.2669932696955848,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-02": {
+        "status": "pass",
+        "n_samples": 981,
+        "baseline_window": [
+          null,
+          null,
+          "2025-01"
+        ],
+        "baselines": {
+          "roc_auc": 0.7084060248562453,
+          "pr_auc": 0.6775597534341186,
+          "brier": 0.22005330962254907
+        },
+        "thresholds": {
+          "roc_auc": 0.6784060248562452,
+          "pr_auc": 0.6475597534341185,
+          "brier": 0.25005330962254907
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8971920252185412,
+            "threshold": 0.6784060248562452,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8799165098214689,
+            "threshold": 0.6475597534341185,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.17049390145033283,
+            "threshold": 0.25005330962254907,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-03": {
+        "status": "pass",
+        "n_samples": 1126,
+        "baseline_window": [
+          null,
+          "2025-01",
+          "2025-02"
+        ],
+        "baselines": {
+          "roc_auc": 0.7989256722825346,
+          "pr_auc": 0.7670199388154343,
+          "brier": 0.1958692274833541
+        },
+        "thresholds": {
+          "roc_auc": 0.7689256722825346,
+          "pr_auc": 0.7370199388154343,
+          "brier": 0.2258692274833541
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8664783397774797,
+            "threshold": 0.7689256722825346,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8465590171405963,
+            "threshold": 0.7370199388154343,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18104006356611435,
+            "threshold": 0.2258692274833541,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-04": {
+        "status": "pass",
+        "n_samples": 1164,
+        "baseline_window": [
+          "2025-01",
+          "2025-02",
+          "2025-03"
+        ],
+        "baselines": {
+          "roc_auc": 0.8780362078253082,
+          "pr_auc": 0.8618015114538716,
+          "brier": 0.17738194790151654
+        },
+        "thresholds": {
+          "roc_auc": 0.8480362078253082,
+          "pr_auc": 0.8318015114538716,
+          "brier": 0.20738194790151654
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8696147746795296,
+            "threshold": 0.8480362078253082,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8251289306856672,
+            "threshold": 0.8318015114538716,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.17747248644795055,
+            "threshold": 0.20738194790151654,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-05": {
+        "status": "pass",
+        "n_samples": 1282,
+        "baseline_window": [
+          "2025-02",
+          "2025-03",
+          "2025-04"
+        ],
+        "baselines": {
+          "roc_auc": 0.8777617132251835,
+          "pr_auc": 0.8505348192159108,
+          "brier": 0.1763354838214659
+        },
+        "thresholds": {
+          "roc_auc": 0.8477617132251835,
+          "pr_auc": 0.8205348192159108,
+          "brier": 0.2063354838214659
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8480824911828125,
+            "threshold": 0.8477617132251835,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8176174436463937,
+            "threshold": 0.8205348192159108,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18219178856777746,
+            "threshold": 0.2063354838214659,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-06": {
+        "status": "pass",
+        "n_samples": 1223,
+        "baseline_window": [
+          "2025-03",
+          "2025-04",
+          "2025-05"
+        ],
+        "baselines": {
+          "roc_auc": 0.8613918685466073,
+          "pr_auc": 0.8297684638242191,
+          "brier": 0.18023477952728081
+        },
+        "thresholds": {
+          "roc_auc": 0.8313918685466073,
+          "pr_auc": 0.7997684638242191,
+          "brier": 0.2102347795272808
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8661913043478262,
+            "threshold": 0.8313918685466073,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8449171669162151,
+            "threshold": 0.7997684638242191,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18429082232031477,
+            "threshold": 0.2102347795272808,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-07": {
+        "status": "pass",
+        "n_samples": 1388,
+        "baseline_window": [
+          "2025-04",
+          "2025-05",
+          "2025-06"
+        ],
+        "baselines": {
+          "roc_auc": 0.8612961900700561,
+          "pr_auc": 0.8292211804160919,
+          "brier": 0.1813183657786809
+        },
+        "thresholds": {
+          "roc_auc": 0.8312961900700561,
+          "pr_auc": 0.7992211804160919,
+          "brier": 0.2113183657786809
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8551955321476733,
+            "threshold": 0.8312961900700561,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.80614687969191,
+            "threshold": 0.7992211804160919,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.17864570248851092,
+            "threshold": 0.2113183657786809,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-08": {
+        "status": "pass",
+        "n_samples": 1154,
+        "baseline_window": [
+          "2025-05",
+          "2025-06",
+          "2025-07"
+        ],
+        "baselines": {
+          "roc_auc": 0.8564897758927706,
+          "pr_auc": 0.8228938300848396,
+          "brier": 0.18170943779220106
+        },
+        "thresholds": {
+          "roc_auc": 0.8264897758927706,
+          "pr_auc": 0.7928938300848396,
+          "brier": 0.21170943779220106
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8674387166546503,
+            "threshold": 0.8264897758927706,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8566791670005512,
+            "threshold": 0.7928938300848396,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.17875110530002214,
+            "threshold": 0.21170943779220106,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-09": {
+        "status": "pass",
+        "n_samples": 1174,
+        "baseline_window": [
+          "2025-06",
+          "2025-07",
+          "2025-08"
+        ],
+        "baselines": {
+          "roc_auc": 0.8629418510500498,
+          "pr_auc": 0.8359144045362253,
+          "brier": 0.18056254336961594
+        },
+        "thresholds": {
+          "roc_auc": 0.8329418510500498,
+          "pr_auc": 0.8059144045362253,
+          "brier": 0.21056254336961594
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8416874824092316,
+            "threshold": 0.8329418510500498,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8016993713269661,
+            "threshold": 0.8059144045362253,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18550075011073175,
+            "threshold": 0.21056254336961594,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-10": {
+        "status": "pass",
+        "n_samples": 1468,
+        "baseline_window": [
+          "2025-07",
+          "2025-08",
+          "2025-09"
+        ],
+        "baselines": {
+          "roc_auc": 0.8547739104038518,
+          "pr_auc": 0.8215084726731424,
+          "brier": 0.18096585263308826
+        },
+        "thresholds": {
+          "roc_auc": 0.8247739104038517,
+          "pr_auc": 0.7915084726731424,
+          "brier": 0.21096585263308826
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8889478160059696,
+            "threshold": 0.8247739104038517,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8627702026369366,
+            "threshold": 0.7915084726731424,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.1732633124769997,
+            "threshold": 0.21096585263308826,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-11": {
+        "status": "pass",
+        "n_samples": 1110,
+        "baseline_window": [
+          "2025-08",
+          "2025-09",
+          "2025-10"
+        ],
+        "baselines": {
+          "roc_auc": 0.8660246716899506,
+          "pr_auc": 0.840382913654818,
+          "brier": 0.17917172262925118
+        },
+        "thresholds": {
+          "roc_auc": 0.8360246716899505,
+          "pr_auc": 0.810382913654818,
+          "brier": 0.20917172262925118
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8715297344308325,
+            "threshold": 0.8360246716899505,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.8618407871324046,
+            "threshold": 0.810382913654818,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.18315333718111562,
+            "threshold": 0.20917172262925118,
+            "grace": 0.01
+          }
+        }
+      },
+      "2025-12": {
+        "status": "pass",
+        "n_samples": 1242,
+        "baseline_window": [
+          "2025-09",
+          "2025-10",
+          "2025-11"
+        ],
+        "baselines": {
+          "roc_auc": 0.8673883442820113,
+          "pr_auc": 0.842103453698769,
+          "brier": 0.18063913325628236
+        },
+        "thresholds": {
+          "roc_auc": 0.8373883442820113,
+          "pr_auc": 0.812103453698769,
+          "brier": 0.21063913325628236
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.8518133841625498,
+            "threshold": 0.8373883442820113,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.828190320183816,
+            "threshold": 0.812103453698769,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.1867365674874119,
+            "threshold": 0.21063913325628236,
+            "grace": 0.01
+          }
+        }
+      },
+      "2026-01": {
+        "status": "fail",
+        "n_samples": 1267,
+        "baseline_window": [
+          "2025-10",
+          "2025-11",
+          "2025-12"
+        ],
+        "baselines": {
+          "roc_auc": 0.8707636448664506,
+          "pr_auc": 0.8509337699843856,
+          "brier": 0.1810510723818424
+        },
+        "thresholds": {
+          "roc_auc": 0.8407636448664506,
+          "pr_auc": 0.8209337699843856,
+          "brier": 0.2110510723818424
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "fail",
+            "value": 0.7190163108790723,
+            "threshold": 0.8407636448664506,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "fail",
+            "value": 0.6966191875702911,
+            "threshold": 0.8209337699843856,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.21586599298390768,
+            "threshold": 0.2110510723818424,
+            "grace": 0.01
+          }
+        }
+      },
+      "2026-02": {
+        "status": "fail",
+        "n_samples": 1207,
+        "baseline_window": [
+          "2025-11",
+          "2025-12",
+          "2026-01"
+        ],
+        "baselines": {
+          "roc_auc": 0.8141198098241516,
+          "pr_auc": 0.7955500982955038,
+          "brier": 0.19525196588414506
+        },
+        "thresholds": {
+          "roc_auc": 0.7841198098241515,
+          "pr_auc": 0.7655500982955038,
+          "brier": 0.22525196588414506
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "fail",
+            "value": 0.6846317429686808,
+            "threshold": 0.7841198098241515,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "fail",
+            "value": 0.6336279218832372,
+            "threshold": 0.7655500982955038,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.22148404535660296,
+            "threshold": 0.22525196588414506,
+            "grace": 0.01
+          }
+        }
+      },
+      "2026-03": {
+        "status": "fail",
+        "n_samples": 1292,
+        "baseline_window": [
+          "2025-12",
+          "2026-01",
+          "2026-02"
+        ],
+        "baselines": {
+          "roc_auc": 0.7518204793367677,
+          "pr_auc": 0.7194791432124482,
+          "brier": 0.2080288686093075
+        },
+        "thresholds": {
+          "roc_auc": 0.7218204793367676,
+          "pr_auc": 0.6894791432124482,
+          "brier": 0.2380288686093075
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "fail",
+            "value": 0.6440566745555564,
+            "threshold": 0.7218204793367676,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "fail",
+            "value": 0.5963923827481771,
+            "threshold": 0.6894791432124482,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.23091882218097265,
+            "threshold": 0.2380288686093075,
+            "grace": 0.01
+          }
+        }
+      },
+      "2026-04": {
+        "status": "fail",
+        "n_samples": 1257,
+        "baseline_window": [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        "baselines": {
+          "roc_auc": 0.6825682428011032,
+          "pr_auc": 0.6422131640672352,
+          "brier": 0.22275628684049442
+        },
+        "thresholds": {
+          "roc_auc": 0.6525682428011031,
+          "pr_auc": 0.6122131640672351,
+          "brier": 0.25275628684049445
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.6461841459925615,
+            "threshold": 0.6525682428011031,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "fail",
+            "value": 0.5667969099966468,
+            "threshold": 0.6122131640672351,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.23131519335294928,
+            "threshold": 0.25275628684049445,
+            "grace": 0.01
+          }
+        }
+      },
+      "2026-05": {
+        "status": "pass",
+        "n_samples": 1413,
+        "baseline_window": [
+          "2026-02",
+          "2026-03",
+          "2026-04"
+        ],
+        "baselines": {
+          "roc_auc": 0.6582908545055995,
+          "pr_auc": 0.598939071542687,
+          "brier": 0.22790602029684162
+        },
+        "thresholds": {
+          "roc_auc": 0.6282908545055995,
+          "pr_auc": 0.568939071542687,
+          "brier": 0.2579060202968416
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.6345377695674873,
+            "threshold": 0.6282908545055995,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.5986177797631012,
+            "threshold": 0.568939071542687,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.23440427029177,
+            "threshold": 0.2579060202968416,
+            "grace": 0.01
+          }
+        }
+      },
+      "2026-06": {
+        "status": "pass",
+        "n_samples": 520,
+        "baseline_window": [
+          "2026-03",
+          "2026-04",
+          "2026-05"
+        ],
+        "baselines": {
+          "roc_auc": 0.6415928633718684,
+          "pr_auc": 0.5872690241693084,
+          "brier": 0.2322127619418973
+        },
+        "thresholds": {
+          "roc_auc": 0.62,
+          "pr_auc": 0.5572690241693083,
+          "brier": 0.2622127619418973
+        },
+        "metrics": {
+          "roc_auc": {
+            "status": "pass",
+            "value": 0.6637909329225847,
+            "threshold": 0.62,
+            "grace": 0.01
+          },
+          "pr_auc": {
+            "status": "pass",
+            "value": 0.6320661326332494,
+            "threshold": 0.5572690241693083,
+            "grace": 0.01
+          },
+          "brier": {
+            "status": "pass",
+            "value": 0.22988969679878513,
+            "threshold": 0.2622127619418973,
+            "grace": 0.01
+          }
+        }
+      }
+    }
+  },
+  "segmented_summary": {
+    "coin_count": 21,
+    "time_slice_count": 22,
+    "coin_min_samples": 250,
+    "time_slice_min_samples": 400,
+    "time_slice_rolling_window": 3,
+    "time_slice_margin": {
+      "roc_auc": 0.03,
+      "pr_auc": 0.03,
+      "brier": 0.03
+    }
   }
 }
