@@ -2,21 +2,21 @@
   "ok": true,
   "failures": {},
   "metrics": {
-    "roc_auc": 0.804596311046294,
-    "pr_auc": 0.7689000604602433,
-    "brier": 0.19542864146335023,
-    "accuracy": 0.7266548738478726,
-    "precision": 0.7783511804928396,
-    "recall": 0.5922253852949838,
-    "f1": 0.6726502397145724,
+    "roc_auc": 0.7868087847275441,
+    "pr_auc": 0.7467949780075538,
+    "brier": 0.19968872994764564,
+    "accuracy": 0.7133436286990275,
+    "precision": 0.7598360655737705,
+    "recall": 0.5739430390942862,
+    "f1": 0.6539353018240451,
     "latency": {
       "batch_size": 128,
       "runs": 20,
-      "total_time_s": 0.8514954000129364,
-      "avg_batch_time_s": 0.04257477000064682,
-      "avg_per_sample_s": 0.0003326153906300533
+      "total_time_s": 2.040146683000785,
+      "avg_batch_time_s": 0.10200733415003924,
+      "avg_per_sample_s": 0.0007969322980471815
     },
-    "n_samples": 21482,
+    "n_samples": 23959,
     "n_features_extracted": 63,
     "n_features_used": 41,
     "features_used": [
