@@ -79,6 +79,22 @@ bash scripts/setup_cron.sh remove
 - Mặc định giữ `7` file log gần nhất: `logs/periodic_recalibration_cron.log`, `.1`, `.2`, ... Có thể đổi bằng `KEEP_LOGS`.
 - Mặc định chỉ rotate khi log đạt `10 MB`. Có thể đổi bằng `MAX_LOG_SIZE_MB`.
 
+**Artifact retention policy**
+- `scripts/run_periodic_recalibration.sh` tự gọi `scripts/cleanup_recalibration_artifacts.sh` sau mỗi lần recalibration thành công.
+- Mặc định giữ lại:
+  - `3` report mới nhất: `logs/recalibration_*.json` (không đụng `logs/recalibration_latest.json`).
+  - `3` model mới nhất: `logs/meta_model_calibrated_periodic_*.joblib`.
+- Biến môi trường liên quan:
+  - `CLEANUP_ENABLED=1` (mặc định): bật/tắt cleanup sau khi chạy.
+  - `KEEP_REPORTS=3` (mặc định): số report giữ lại.
+  - `KEEP_MODELS=3` (mặc định): số model giữ lại.
+- Chạy cleanup thủ công:
+
+```bash
+KEEP_REPORTS=5 KEEP_MODELS=5 bash scripts/cleanup_recalibration_artifacts.sh
+DRY_RUN=1 KEEP_REPORTS=5 KEEP_MODELS=5 bash scripts/cleanup_recalibration_artifacts.sh
+```
+
 **Auto-commit / Push**
 - `scripts/periodic_recalibration.py` có hỗ trợ auto-commit khi `AUTO_COMMIT=1`.
 - Đảm bảo account chạy task có quyền git push (SSH key hoặc credential helper). Nếu cần chạy khi không có session người dùng, cung cấp `-User`/`-Password` cho scheduled task (cẩn thận với bảo mật).
@@ -99,7 +115,8 @@ bash scripts/setup_cron.sh remove
 - **Evaluation**: [scripts/eval_meta_model.py](scripts/eval_meta_model.py)
 - **Calibration**: [scripts/run_calibration_70_20_10.py](scripts/run_calibration_70_20_10.py)
 - **Periodic run**: [scripts/periodic_recalibration.py](scripts/periodic_recalibration.py)
-- **Scheduler helpers**: [scripts/setup_scheduled_task.ps1](scripts/setup_scheduled_task.ps1), [scripts/setup_cron.sh](scripts/setup_cron.sh)
+- **Scheduler helpers**: [scripts/setup_scheduled_task.ps1](scripts/setup_scheduled_task.ps1), [scripts/setup_cron.sh](scripts/setup_cron.sh), [scripts/run_periodic_recalibration.sh](scripts/run_periodic_recalibration.sh)
+- **Cleanup helper**: [scripts/cleanup_recalibration_artifacts.sh](scripts/cleanup_recalibration_artifacts.sh)
 - **CI workflow**: [.github/workflows/validate_model.yml](.github/workflows/validate_model.yml)
 
 **Next steps (recommended)**

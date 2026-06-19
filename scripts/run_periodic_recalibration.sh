@@ -7,6 +7,9 @@ LOGFILE="${LOGFILE:-$WORKDIR/logs/periodic_recalibration_cron.log}"
 KEEP_LOGS="${KEEP_LOGS:-7}"
 MAX_LOG_SIZE_MB="${MAX_LOG_SIZE_MB:-10}"
 AUTO_COMMIT="${AUTO_COMMIT:-0}"
+CLEANUP_ENABLED="${CLEANUP_ENABLED:-1}"
+KEEP_REPORTS="${KEEP_REPORTS:-3}"
+KEEP_MODELS="${KEEP_MODELS:-3}"
 
 if [[ -x "$WORKDIR/.venv/bin/python" ]]; then
     PYTHON_BIN="$WORKDIR/.venv/bin/python"
@@ -58,3 +61,11 @@ fi
 
 cd "$WORKDIR"
 AUTO_COMMIT="$AUTO_COMMIT" "$PYTHON_BIN" scripts/periodic_recalibration.py >> "$LOGFILE" 2>&1
+
+if [[ "$CLEANUP_ENABLED" == "1" ]]; then
+    CLEANUP_SCRIPT="$WORKDIR/scripts/cleanup_recalibration_artifacts.sh"
+    if [[ -f "$CLEANUP_SCRIPT" ]]; then
+        LOG_DIR="$WORKDIR/logs" KEEP_REPORTS="$KEEP_REPORTS" KEEP_MODELS="$KEEP_MODELS" bash "$CLEANUP_SCRIPT" >> "$LOGFILE" 2>&1 || \
+            echo "Cleanup step failed; continuing without blocking recalibration job." >> "$LOGFILE"
+    fi
+fi

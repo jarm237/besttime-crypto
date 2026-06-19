@@ -48,6 +48,23 @@ bash scripts/setup_cron.sh print
 bash scripts/setup_cron.sh remove
 ```
 
+Artifact retention policy
+
+- Runner `scripts/run_periodic_recalibration.sh` automatically triggers `scripts/cleanup_recalibration_artifacts.sh` after each successful recalibration run.
+- Default retention is:
+   - Keep latest `3` report files: `logs/recalibration_*.json` (excluding `logs/recalibration_latest.json`).
+   - Keep latest `3` model files: `logs/meta_model_calibrated_periodic_*.joblib`.
+- Cleanup is controlled by environment variables in the runner:
+   - `CLEANUP_ENABLED=1` (default): enable cleanup step.
+   - `KEEP_REPORTS=3` (default): number of report files to retain.
+   - `KEEP_MODELS=3` (default): number of model artifacts to retain.
+- Manual cleanup example:
+
+```bash
+KEEP_REPORTS=5 KEEP_MODELS=5 bash scripts/cleanup_recalibration_artifacts.sh
+DRY_RUN=1 KEEP_REPORTS=5 KEEP_MODELS=5 bash scripts/cleanup_recalibration_artifacts.sh
+```
+
 Notes & prerequisites
 
 - Ensure `python3` is installed. If the repo has `.venv`, the helper uses `.venv/bin/python` automatically.
