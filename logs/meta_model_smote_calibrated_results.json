@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-06-19T16:35:03.330593",
+  "n_samples": 23959,
+  "split": {
+    "train": 16771,
+    "calib": 3594,
+    "test": 3594
+  },
+  "methods": {
+    "ensemble_baseline": {
+      "roc_auc": 0.6495951619926179,
+      "pr_auc": 0.6163867897364979,
+      "brier": 0.23246817260250566
+    },
+    "smote_uncalibrated": {
+      "n_train_resampled": 17662,
+      "roc_auc": 0.6484471718133806,
+      "pr_auc": 0.6177395453230307,
+      "brier": 0.23260359974167097
+    },
+    "smote_calibrated_sigmoid": {
+      "roc_auc": 0.6484471718133806,
+      "pr_auc": 0.6177395453230307,
+      "brier": 0.23221652502005247
+    },
+    "smote_calibrated_isotonic": {
+      "roc_auc": 0.647727466696957,
+      "pr_auc": 0.6063250452057166,
+      "brier": 0.23303485125872875
+    }
+  }
+}

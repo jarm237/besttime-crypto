@@ -862,11 +862,35 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
     try:
         feat = build_meta_features_v2(analysis_info)
         row = [float(feat.get(k, 0.0)) for k in feature_names]
-        
+
         # Build DataFrame to provide valid feature names to avoid warnings from LGBMClassifier
         import pandas as pd
         df = pd.DataFrame([row], columns=feature_names)
         prob = float(clf.predict_proba(df)[0, 1])
+
+        # Prediction-level logging (append newline-delimited JSON)
+        try:
+            import hashlib
+            from datetime import datetime
+
+            features_json = json.dumps(row, separators=(",", ":"), ensure_ascii=False)
+            features_hash = hashlib.md5(features_json.encode("utf-8")).hexdigest()
+            log_entry = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "probability": prob,
+                "features_hash": features_hash,
+                "coin": analysis_info.get("coin"),
+                "action": analysis_info.get("action"),
+                "model_version": MODEL_VERSION,
+            }
+            LOGS.mkdir(parents=True, exist_ok=True)
+            pred_log = LOGS / "predictions.log"
+            with open(pred_log, "a", encoding="utf-8") as lf:
+                lf.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+        except Exception:
+            # Don't fail prediction if logging fails
+            pass
+
         return {"probability": prob}
     except Exception as e:
         return {"error": str(e), "probability": None}

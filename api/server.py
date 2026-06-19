@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -213,6 +214,50 @@ def get_meta_model_info():
             out["importance_error"] = str(e)
             
     return out
+
+
+@app.get("/api/meta-model/metrics")
+def get_meta_model_metrics():
+    """Trả về metrics của meta-model và sample dự đoán gần nhất từ logs/predictions.log"""
+    try:
+        from btc_scraper.ml_engine.meta_model import get_model_metrics
+        model_metrics = get_model_metrics()
+    except Exception:
+        model_metrics = {}
+
+    preds_path = os.path.join(os.path.dirname(__file__), "..", "logs", "predictions.log")
+    preds = []
+    if os.path.exists(preds_path):
+        try:
+            with open(preds_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        preds.append(json.loads(line))
+                    except Exception:
+                        # skip malformed lines
+                        continue
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể đọc predictions.log: {e}")
+
+    summary = {"total_predictions": len(preds)}
+    if preds:
+        avg_prob = sum(p.get("probability", 0.0) for p in preds) / len(preds)
+        summary["avg_probability"] = avg_prob
+        coins = {}
+        for p in preds:
+            c = p.get("coin") or "UNKNOWN"
+            coins[c] = coins.get(c, 0) + 1
+        summary["by_coin"] = coins
+
+    return {
+        "model_metrics": model_metrics,
+        "predictions_count": len(preds),
+        "predictions_sample": preds[-100:],
+        "summary": summary,
+    }
 
 @app.get("/api/performance")
 def get_performance():

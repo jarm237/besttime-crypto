@@ -24,3 +24,4 @@ stable-baselines3
 pymongo
 cryptography
 aiohttp
+imbalanced-learn

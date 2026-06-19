@@ -19,6 +19,18 @@ Mục tiêu: Sắp xếp và phân chia các khuyến nghị theo thứ tự ưu
   3. So sánh predicted_winrate vs actual_winrate trên sliding windows — cảnh báo nếu calibration_error > threshold.
   4. Dashboard nhẹ với FastAPI endpoint `/api/meta-model/metrics` (hoặc mở rộng `api/server.py`).
 
+### Progress (Giai đoạn 2) — Hoàn tất (2026-06-19)
+
+- Thực hiện logging prediction-level: `predict_meta_confidence()` giờ ghi các dòng JSON newline-delimited vào `logs/predictions.log`. Mỗi bản ghi gồm các trường: `timestamp`, `probability`, `features_hash`, `coin`, `action`, `model_version`.
+  - File thay đổi: `btc_scraper/ml_engine/meta_model.py` — thêm tính năng ghi log trong `predict_meta_confidence()`.
+
+- Thêm API nhẹ để truy vấn metrics và mẫu dự đoán gần đây: endpoint `/api/meta-model/metrics` trả về nội dung `meta_model.json`, thống kê tóm tắt và sample dự đoán (mặc định trả tối đa 100 bản ghi gần nhất).
+  - File thay đổi: `api/server.py` — thêm `get_meta_model_metrics()`.
+
+- Ghi chú: các bước job hàng ngày (rolling 7/30/90d) và alert (Slack/webhook) chưa được triển khai — đề xuất bước tiếp theo là tạo script `scripts/meta_model_monitor.py` chạy theo cron và đăng cảnh báo khi drift xảy ra.
+
+Các thay đổi trên nhằm đáp ứng yêu cầu giám sát live và cung cấp dữ liệu để xây dựng báo cáo rolling metrics/alerts.
+
 ## 3) Cải thiện cân bằng lớp / cost-sensitive training (Ưu tiên: Trung bình cao)
 - Lý do: cải thiện recall cho lớp WIN mà không phá vỡ precision.
 - Các bước:
