@@ -402,6 +402,30 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
             if not vol_spike:
                 continue   # Bỏ qua tín hiệu không có xác nhận volume
 
+            # Early gating by meta-model: if META_HARD_REJECT_THRESHOLD is set
+            try:
+                _hard = os.getenv('META_HARD_REJECT_THRESHOLD', '').strip()
+                if _hard:
+                    try:
+                        _hard_val = float(_hard)
+                    except Exception:
+                        _hard_val = None
+                else:
+                    _hard_val = None
+                if _hard_val and _hard_val > 0:
+                    try:
+                        from btc_scraper.ml_engine.meta_model import predict_meta_confidence
+                        meta_res = predict_meta_confidence({**coin_data, "signal": sig_text})
+                        p = meta_res.get('probability') if isinstance(meta_res, dict) else None
+                        if p is not None and p < _hard_val:
+                            # early skip candidate before expensive ML scoring
+                            continue
+                    except Exception:
+                        # on failure, continue normal flow
+                        pass
+            except Exception:
+                pass
+
             # Sau khi qua toàn bộ các bộ lọc cơ bản, mới gọi model ML đắt đỏ để chấm điểm & quyết định quy mô vị thế
             from btc_scraper.ml_engine.signal_score import score_signal
             score_obj = score_signal(sig_text, coin_data, {"sentiment_penalty": sentiment_penalty} if sentiment_penalty is not None else {})

@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2026-06-21T10:49:44.314049",
+    "threshold": 0.5,
+    "baseline_net": null,
+    "adjusted_net": null,
+    "baseline_log": "logs\\backtest_trades_baseline_20260621T104851.csv",
+    "adjusted_log": "logs\\backtest_trades_hardreject_50_20260621T104851.csv"
+  },
+  {
+    "timestamp": "2026-06-21T10:50:36.543556",
+    "threshold": 0.6,
+    "baseline_net": null,
+    "adjusted_net": null,
+    "baseline_log": "logs\\backtest_trades_baseline_20260621T104944.csv",
+    "adjusted_log": "logs\\backtest_trades_hardreject_60_20260621T104944.csv"
+  },
+  {
+    "timestamp": "2026-06-21T10:51:29.124735",
+    "threshold": 0.7,
+    "baseline_net": null,
+    "adjusted_net": null,
+    "baseline_log": "logs\\backtest_trades_baseline_20260621T105036.csv",
+    "adjusted_log": "logs\\backtest_trades_hardreject_70_20260621T105036.csv"
+  },
+  {
+    "timestamp": "2026-06-21T10:52:21.644317",
+    "threshold": 0.8,
+    "baseline_net": null,
+    "adjusted_net": null,
+    "baseline_log": "logs\\backtest_trades_baseline_20260621T105129.csv",
+    "adjusted_log": "logs\\backtest_trades_hardreject_80_20260621T105129.csv"
+  }
+]

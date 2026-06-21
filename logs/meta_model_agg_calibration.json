@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-06-21T09:22:55.500804",
+  "original": {
+    "0.0-0.4": {
+      "count": 925,
+      "wins": 292,
+      "losses": 633,
+      "actual_wr": 31.6,
+      "predicted_wr": 20.0,
+      "calibration_error": 11.6,
+      "calibrated": false
+    },
+    "0.4-0.6": {
+      "count": 1858,
+      "wins": 908,
+      "losses": 950,
+      "actual_wr": 48.9,
+      "predicted_wr": 50.0,
+      "calibration_error": -1.1,
+      "calibrated": true
+    },
+    "0.6-0.7": {
+      "count": 229,
+      "wins": 153,
+      "losses": 76,
+      "actual_wr": 66.8,
+      "predicted_wr": 65.0,
+      "calibration_error": 1.8,
+      "calibrated": true
+    },
+    "0.7-0.8": {
+      "count": 147,
+      "wins": 109,
+      "losses": 38,
+      "actual_wr": 74.1,
+      "predicted_wr": 75.0,
+      "calibration_error": -0.9,
+      "calibrated": true
+    },
+    "0.8-1.0": {
+      "count": 64,
+      "wins": 47,
+      "losses": 17,
+      "actual_wr": 73.4,
+      "predicted_wr": 90.0,
+      "calibration_error": -16.6,
+      "calibrated": false
+    }
+  },
+  "merged": {
+    "0.7-1.0": {
+      "count": 211,
+      "wins": 156,
+      "actual_wr": 73.9,
+      "predicted_wr": 73.9,
+      "calibration_error": 0.0,
+      "calibrated": true,
+      "note": "predicted_wr adjusted to actual_wr to remove overconfidence"
+    }
+  }
+}

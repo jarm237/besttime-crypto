@@ -1245,7 +1245,8 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
                     "vol_spike": vol_spike,
                     "sentiment_score": c_sentiment_score,
                     "regime": regime_info.get("regime"),
-                    "disable_ml": True,
+                    # Ensure ML is enabled for downstream scoring/backtests
+                    "disable_ml": False,
                 },
             )
         except Exception:

@@ -1,0 +1,22 @@
+[
+  {
+    "threshold": 0.5,
+    "net": null,
+    "log": "logs\\backtest_trades_env_hardreject_50_20260621T114306.csv"
+  },
+  {
+    "threshold": 0.6,
+    "net": null,
+    "log": "logs\\backtest_trades_env_hardreject_60_20260621T114346.csv"
+  },
+  {
+    "threshold": 0.7,
+    "net": null,
+    "log": "logs\\backtest_trades_env_hardreject_70_20260621T114429.csv"
+  },
+  {
+    "threshold": 0.8,
+    "net": null,
+    "log": "logs\\backtest_trades_env_hardreject_80_20260621T114510.csv"
+  }
+]

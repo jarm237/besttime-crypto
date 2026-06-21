@@ -7,6 +7,7 @@ import os
 import time
 from pathlib import Path
 import json
+from datetime import datetime
 
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
@@ -470,6 +471,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     kelly = None
     b_est = None
     meta_err = None
+    gated = False
 
     opt_params = _load_optimized_params()
     signal_cutoff = opt_params.get("signal_cutoff", 0.0)
@@ -530,12 +532,30 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
                 kelly = float(decayed)
         elif isinstance(meta, dict) and meta.get('error'):
             meta_err = meta['error']
+
+        # (Hard-reject gating was moved below to run outside the ML try/except)
     except Exception as e:
         if str(e) not in ('ml_disabled', 'kelly_disabled'):
             import traceback
             traceback.print_exc()
         meta_prob = None
         meta_err = str(e)
+
+    # Hard reject gate via environment variable: when set, force NEUTRAL if meta_prob < threshold
+    try:
+        import os as _os
+        _hard = _os.getenv('META_HARD_REJECT_THRESHOLD', '').strip()
+        if _hard:
+            try:
+                _hard_val = float(_hard)
+                if meta_prob is not None and meta_prob < _hard_val:
+                    action = "NEUTRAL"
+                    reason += f" | HardReject: meta_prob {meta_prob:.2f} < {_hard_val:.2f}"
+                    gated = True
+            except Exception:
+                pass
+    except Exception:
+        pass
 
     # Apply Drawdown Risk management block
     if risk_blocked:
@@ -661,6 +681,29 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     # ── Display fields (human-readable) ─────────────────────────────────────────
     display_score, display_label = map_score_to_display(int(score), action)
 
+    # Entry-time meta_prob logging for diagnostics
+    try:
+        # prefer repository top-level logs directory so all runners see the same file
+        _logs_dir = Path(__file__).parent.parent.parent / "logs"
+        _logs_dir.mkdir(parents=True, exist_ok=True)
+        _log_file = _logs_dir / "meta_prob_entry.log"
+        _entry = {
+            "ts": datetime.utcnow().isoformat(),
+            "symbol": merged.get("symbol") or merged.get("pair") or merged.get("market") or merged.get("ticker") or None,
+            "action": action,
+            "score": int(score),
+            "meta_prob": meta_prob,
+            "meta_error": meta_err,
+            "kelly": kelly,
+            "position_size": pos_size,
+            "gated": gated,
+            "reason": reason,
+        }
+        with open(_log_file, "a", encoding="utf-8") as _f:
+            _f.write(json.dumps(_entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
     return {
         "action": action,
         "score": int(score),               # internal 0-100 (0=strong sell, 100=strong buy)
@@ -669,6 +712,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         "confidence": conf,
         "position_size": pos_size,
         "raw_text": sig_text,
+        "gated": gated,
         "meta_confidence": meta_prob,
         "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,
         "kelly_fraction": kelly,

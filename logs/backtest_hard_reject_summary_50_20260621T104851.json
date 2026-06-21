@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-06-21T10:49:44.314049",
+  "threshold": 0.5,
+  "baseline_net": null,
+  "adjusted_net": null,
+  "baseline_log": "logs\\backtest_trades_baseline_20260621T104851.csv",
+  "adjusted_log": "logs\\backtest_trades_hardreject_50_20260621T104851.csv"
+}
