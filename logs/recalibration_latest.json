@@ -1,6 +1,6 @@
 {
   "last_run": {
-    "timestamp": "2026-06-19T03:52:53.411771",
+    "timestamp": "2026-06-20T19:00:02.622935",
     "n_total": 23959,
     "split": {
       "train": 16771,
@@ -131,7 +131,7 @@
       },
       "isotonic": {
         "roc_auc": 0.6371048206473582,
-        "brier": 0.23367388800132546,
+        "brier": 0.23367388800132535,
         "mean_calibration_error": 6.34,
         "buckets": {
           "0.0-0.4": {
@@ -187,7 +187,7 @@
       "error": 6.34,
       "metrics": {
         "roc_auc": 0.6371048206473582,
-        "brier": 0.23367388800132546,
+        "brier": 0.23367388800132535,
         "mean_calibration_error": 6.34,
         "buckets": {
           "0.0-0.4": {
@@ -237,8 +237,8 @@
           }
         }
       },
-      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260619T035316Z.joblib"
+      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260620T190009Z.joblib"
     },
-    "elapsed_s": 24.884907245635986
+    "elapsed_s": 7.756723403930664
   }
 }
