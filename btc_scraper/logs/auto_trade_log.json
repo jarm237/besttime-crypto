@@ -1864,5 +1864,26 @@
     "order_id": null,
     "status": "error",
     "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
+  },
+  {
+    "timestamp": "2026-06-21T22:31:34.699654",
+    "timestamp_str": "2026-06-21 22:31:34",
+    "mode": "TESTNET",
+    "coin": "ETH",
+    "symbol": "ETH/USDT",
+    "direction": "LONG",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.5893,
+    "meta_confidence_pct": 59,
+    "signal_score": 70,
+    "order_type": "market",
+    "entry_price": 1730.54,
+    "sl_price": 1718.7877,
+    "tp1_price": 1742.2923,
+    "usdt_amount": 100.0,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
   }
 ]
