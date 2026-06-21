@@ -416,7 +416,27 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                     try:
                         from btc_scraper.ml_engine.meta_model import predict_meta_confidence
                         meta_res = predict_meta_confidence({**coin_data, "signal": sig_text})
-                        p = meta_res.get('probability') if isinstance(meta_res, dict) else None
+                        p = None
+                        # meta_res may be a dict with different probability field names
+                        if isinstance(meta_res, dict):
+                            for key in ("meta_prob", "prob", "probability"):
+                                if key in meta_res and meta_res[key] is not None:
+                                    try:
+                                        p = float(meta_res[key])
+                                    except Exception:
+                                        try:
+                                            p = float(str(meta_res[key]))
+                                        except Exception:
+                                            p = None
+                                    if p is not None:
+                                        break
+                        else:
+                            # if meta_res is a plain numeric value
+                            try:
+                                p = float(meta_res)
+                            except Exception:
+                                p = None
+
                         if p is not None and p < _hard_val:
                             # early skip candidate before expensive ML scoring
                             continue
