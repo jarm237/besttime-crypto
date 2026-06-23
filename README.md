@@ -105,6 +105,34 @@ Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đá
 
 ---
 
+  ### Chạy build/train song song theo coin (parallel per-coin build & merge)
+
+  Kịch bản này cho phép chạy quá trình tạo signals (build) cho mỗi coin riêng biệt song song,
+  rồi gộp kết quả lại trước khi train meta-model.
+
+  - Tạo file per-coin: `logs/adaptive_signals_v2_{COIN}.json`
+  - Gộp tất cả file per-coin vào `logs/adaptive_signals_v2.json` và train sử dụng dataset chung.
+
+  Ví dụ — chạy 8 worker song song (auto-detect COINS từ `btc_scraper/core/config.py` hoặc dùng `--coins`):
+
+  ```bash
+  cd "d:/Workspaces/Vọc vạch"
+  # Chạy parallel build (auto-detect coins when --coins omitted)
+  python scripts/build_coins_parallel.py --jobs 8
+
+  # Sau khi hoàn tất, gộp outputs per-coin vào file dataset chung
+  python scripts/merge_adaptive_signals.py
+
+  # Train meta-model trên dataset đã gộp (dùng --skip-build để tránh rebuild)
+  python scripts/build_and_train.py --skip-build --n 200
+  ```
+
+  Gợi ý:
+  - Đặt `--jobs` bằng số process phù hợp với CPU/IO của máy (vd. 4, 8, 16).
+  - Nếu muốn chỉ build 1 vài coin, dùng `--coins BTC,ETH,SOL`.
+  - Kiểm tra `logs/` để xem files `adaptive_signals_v2_{COIN}.json` và kết quả merge.
+
+
 ## Cài đặt và Khởi chạy
 
 Hệ thống gồm 3 thành phần chạy song song:
@@ -118,7 +146,7 @@ Hệ thống gồm 3 thành phần chạy song song:
 ```bash
 # Python dependencies (Bot + API)
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Node.js dependencies (Web Dashboard)

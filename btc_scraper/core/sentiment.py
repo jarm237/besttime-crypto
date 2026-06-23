@@ -156,18 +156,32 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/s
             except Exception:
                 history = {}
         
-        # Add current timestamp → sentiment snapshot
-        now_iso = datetime.now(timezone.utc).isoformat() + "Z"
-        history[now_iso] = {
+        # Use date-only key (UTC midnight) so history stores one entry per day
+        # Format: "YYYY-MM-DDT00:00:00Z" — compatible with existing loaders
+        date_key = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00Z")
+        history[date_key] = {
             "score": sentiment_dict.get("score", 0.0),
             "raw_value": sentiment_dict.get("raw_value", 50),
             "label": sentiment_dict.get("label", "Neutral")
         }
         
-        # Keep only last 720 entries (30 days of hourly snapshots)
+        # Keep only last 720 entries (30 days) — defensive: operate on date keys
         if len(history) > 720:
             sorted_keys = sorted(history.keys(), reverse=True)
             history = {k: history[k] for k in sorted_keys[:720]}
+
+        # Defensive safety: if history appears to contain many entries for the
+        # same UTC date (indication of a prior bug), emit a warning and avoid
+        # destructive truncation. This helps prevent accidental overwrite of
+        # a restored multi-day history by a misbehaving live process.
+        dates_seen = {k[:10] for k in history.keys()}
+        if len(history) >= 100 and len(dates_seen) == 1:
+            print(
+                "  [Sentiment][Warning] Detected many entries for a single date in history;\n"
+                "  Skipping write to avoid overwriting full historical data. Run migrate_sentiment_history.py to restore.",
+                flush=True,
+            )
+            return
         
         # Save updated history
         with open(history_path, 'w', encoding='utf-8') as f:
