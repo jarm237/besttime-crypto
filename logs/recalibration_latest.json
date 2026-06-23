@@ -1,6 +1,6 @@
 {
   "last_run": {
-    "timestamp": "2026-06-21T19:00:03.494708",
+    "timestamp": "2026-06-22T19:00:03.048204",
     "n_total": 23959,
     "split": {
       "train": 16771,
@@ -75,7 +75,7 @@
     "results": {
       "uncalibrated": {
         "roc_auc": 0.641171217058212,
-        "brier": 0.2337759781939504
+        "brier": 0.23377597819395043
       },
       "sigmoid": {
         "roc_auc": 0.641171217058212,
@@ -237,8 +237,8 @@
           }
         }
       },
-      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260621T190010Z.joblib"
+      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260622T190009Z.joblib"
     },
-    "elapsed_s": 7.481684684753418
+    "elapsed_s": 7.600898027420044
   }
 }
