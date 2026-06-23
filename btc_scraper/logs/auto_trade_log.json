@@ -2443,5 +2443,26 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 590.85
+  },
+  {
+    "timestamp": "2026-06-23T12:31:13.428508",
+    "timestamp_str": "2026-06-23 12:31:13",
+    "mode": "TESTNET",
+    "coin": "XPL",
+    "symbol": "XPL/USDT",
+    "direction": "SHORT",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.504,
+    "meta_confidence_pct": 50,
+    "signal_score": 30,
+    "order_type": "market",
+    "entry_price": 0.0853,
+    "sl_price": 0.0874,
+    "tp1_price": 0.0832,
+    "usdt_amount": 80.81,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
   }
 ]

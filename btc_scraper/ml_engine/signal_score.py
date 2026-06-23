@@ -584,6 +584,32 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             reason += f" | Meta Filter: {meta_prob:.0%} < {_meta_reject_threshold:.0%} → score -{_penalty}"
     # ─────────────────────────────────────────────────────────────────────────────
 
+    # ── MTF Confluence Filter (Layer 8) ──────────────────────────────────────────
+    # Phạt tín hiệu đi ngược chiều TF lớn hơn, thưởng khi xác nhận đa khung.
+    # tf_X_bull: +1=BULL, 0=NEUTRAL, -1=BEAR (EMA cross + Chandelier + SMA50 trên TF đó)
+    try:
+        if is_buy or is_sell:
+            signal_dir = 1 if is_buy else -1
+            _mtf_weights = [
+                (int(merged.get("tf_1h_bull", 0) or 0), 8, 15),   # (tf_val, bonus, penalty)
+                (int(merged.get("tf_4h_bull", 0) or 0), 5, 10),
+                (int(merged.get("tf_1d_bull", 0) or 0), 5, 5),
+            ]
+            _mtf_score_delta = 0
+            for tf_val, bonus_mag, penalty_mag in _mtf_weights:
+                align = tf_val * signal_dir
+                if align > 0:
+                    _mtf_score_delta += signal_dir * bonus_mag
+                elif align < 0:
+                    _mtf_score_delta -= signal_dir * penalty_mag
+            if _mtf_score_delta != 0:
+                score = max(0, min(100, score + _mtf_score_delta))
+                _tf_vals = [t[0] for t in _mtf_weights]
+                reason += f" | MTF 1h={_tf_vals[0]:+d} 4h={_tf_vals[1]:+d} 1d={_tf_vals[2]:+d} adj={_mtf_score_delta:+d}"
+    except Exception:
+        pass
+    # ─────────────────────────────────────────────────────────────────────────────
+
     # ── Volatility (Standard Deviation) Sizing ──────────────────────────────────
     std_dev_pct = None
     vol_mult = 1.0

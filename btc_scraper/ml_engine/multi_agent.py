@@ -68,6 +68,23 @@ class MarketAnalystAgent(BaseAgent):
             analysis_results[f"{coin}:Binance"]["htf_trend"] = htf_trend
             analysis_results[f"{coin}:Binance"]["htf_details"] = htf_details
 
+            # Per-TF direction features cho MTF Confluence Filter
+            for tf in ["1h", "4h", "1d"]:
+                tf_data = mtf_ana_dict.get(tf, {})
+                ema9 = float(tf_data.get("ema9") or 0.0)
+                ema21 = float(tf_data.get("ema21") or 0.0)
+                close_tf = float(tf_data.get("close") or 0.0)
+                sma50 = float(tf_data.get("sma50") or 0.0)
+                chandelier = str(tf_data.get("chandelier") or "").upper()
+                if ema9 > ema21 and chandelier == "BULL" and close_tf > sma50:
+                    bull_val = 1
+                elif ema9 < ema21 and chandelier == "BEAR" and close_tf < sma50:
+                    bull_val = -1
+                else:
+                    bull_val = 0
+                tf_key = f"tf_{tf}_bull"
+                analysis_results[f"{coin}:Binance"][tf_key] = bull_val
+
         context["analysis"] = analysis_results
         context["mtf_analysis"] = mtf_analysis_results
         return context

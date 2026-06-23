@@ -5398,5 +5398,20 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "XPLUSDT_1782192674",
+    "symbol": "XPLUSDT",
+    "timestamp": 1782192674.0499375,
+    "timestamp_str": "2026-06-23 12:31:14",
+    "signal": "SELL (Crossover)",
+    "meta_prob": 0.504,
+    "signal_score": 30,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

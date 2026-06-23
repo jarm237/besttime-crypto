@@ -82,6 +82,9 @@ FEATURE_SCHEMA_V2 = FEATURE_SCHEMA + [
     "sentiment_risk",
     "sentiment_trend_up",
     "sentiment_trend_down",
+    "tf_1h_bull",   # -1/0/1: 1h trend (EMA cross + Chandelier + SMA50)
+    "tf_4h_bull",   # -1/0/1: 4h trend
+    "tf_1d_bull",   # -1/0/1: 1d trend
 ]
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -285,6 +288,9 @@ def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float
         "sentiment_risk": info.get("sentiment_risk"),
         "sentiment_trend_up": info.get("sentiment_trend_up"),
         "sentiment_trend_down": info.get("sentiment_trend_down"),
+        "tf_1h_bull": info.get("tf_1h_bull"),
+        "tf_4h_bull": info.get("tf_4h_bull"),
+        "tf_1d_bull": info.get("tf_1d_bull"),
     }
 
     ss_val = info.get("signal_score")
