@@ -1,6 +1,6 @@
 {
   "last_run": {
-    "timestamp": "2026-06-22T19:00:03.048204",
+    "timestamp": "2026-06-23T19:00:03.205494",
     "n_total": 23959,
     "split": {
       "train": 16771,
@@ -70,52 +70,55 @@
       "sentiment_recovery",
       "sentiment_risk",
       "sentiment_trend_up",
-      "sentiment_trend_down"
+      "sentiment_trend_down",
+      "tf_1h_bull",
+      "tf_4h_bull",
+      "tf_1d_bull"
     ],
     "results": {
       "uncalibrated": {
-        "roc_auc": 0.641171217058212,
-        "brier": 0.23377597819395043
+        "roc_auc": 0.6409339873430969,
+        "brier": 0.23380930452124837
       },
       "sigmoid": {
-        "roc_auc": 0.641171217058212,
-        "brier": 0.23337458734199842,
-        "mean_calibration_error": 15.48,
+        "roc_auc": 0.6409339873430969,
+        "brier": 0.2334244422272631,
+        "mean_calibration_error": 15.520000000000001,
         "buckets": {
           "0.0-0.4": {
-            "count": 812,
-            "wins": 285,
-            "losses": 527,
-            "actual_wr": 35.1,
+            "count": 807,
+            "wins": 282,
+            "losses": 525,
+            "actual_wr": 34.9,
             "predicted_wr": 20.0,
-            "calibration_error": 15.1,
+            "calibration_error": 14.9,
             "calibrated": false
           },
           "0.4-0.6": {
-            "count": 1187,
-            "wins": 582,
-            "losses": 605,
+            "count": 1192,
+            "wins": 584,
+            "losses": 608,
             "actual_wr": 49.0,
             "predicted_wr": 50.0,
             "calibration_error": -1.0,
             "calibrated": true
           },
           "0.6-0.7": {
-            "count": 287,
-            "wins": 189,
+            "count": 292,
+            "wins": 194,
             "losses": 98,
-            "actual_wr": 65.9,
+            "actual_wr": 66.4,
             "predicted_wr": 65.0,
-            "calibration_error": 0.9,
+            "calibration_error": 1.4,
             "calibrated": true
           },
           "0.7-0.8": {
-            "count": 108,
-            "wins": 85,
-            "losses": 23,
-            "actual_wr": 78.7,
+            "count": 103,
+            "wins": 81,
+            "losses": 22,
+            "actual_wr": 78.6,
             "predicted_wr": 75.0,
-            "calibration_error": 3.7,
+            "calibration_error": 3.6,
             "calibrated": true
           },
           "0.8-1.0": {
@@ -130,115 +133,115 @@
         }
       },
       "isotonic": {
-        "roc_auc": 0.6371048206473582,
-        "brier": 0.23367388800132546,
-        "mean_calibration_error": 6.34,
+        "roc_auc": 0.6360899658807851,
+        "brier": 0.2339274876602455,
+        "mean_calibration_error": 7.92,
         "buckets": {
           "0.0-0.4": {
             "count": 505,
-            "wins": 156,
-            "losses": 349,
-            "actual_wr": 30.9,
+            "wins": 155,
+            "losses": 350,
+            "actual_wr": 30.7,
             "predicted_wr": 20.0,
-            "calibration_error": 10.9,
+            "calibration_error": 10.7,
             "calibrated": false
           },
           "0.4-0.6": {
-            "count": 1568,
-            "wins": 753,
-            "losses": 815,
+            "count": 1570,
+            "wins": 754,
+            "losses": 816,
             "actual_wr": 48.0,
             "predicted_wr": 50.0,
             "calibration_error": -2.0,
             "calibrated": true
           },
           "0.6-0.7": {
-            "count": 65,
-            "wins": 37,
-            "losses": 28,
-            "actual_wr": 56.9,
+            "count": 67,
+            "wins": 41,
+            "losses": 26,
+            "actual_wr": 61.2,
             "predicted_wr": 65.0,
-            "calibration_error": -8.1,
+            "calibration_error": -3.8,
             "calibrated": true
           },
           "0.7-0.8": {
-            "count": 181,
-            "wins": 133,
-            "losses": 48,
-            "actual_wr": 73.5,
+            "count": 230,
+            "wins": 175,
+            "losses": 55,
+            "actual_wr": 76.1,
             "predicted_wr": 75.0,
-            "calibration_error": -1.5,
+            "calibration_error": 1.1,
             "calibrated": true
           },
           "0.8-1.0": {
-            "count": 78,
-            "wins": 63,
-            "losses": 15,
-            "actual_wr": 80.8,
+            "count": 25,
+            "wins": 17,
+            "losses": 8,
+            "actual_wr": 68.0,
             "predicted_wr": 90.0,
-            "calibration_error": -9.2,
-            "calibrated": true
+            "calibration_error": -22.0,
+            "calibrated": false
           }
         }
       }
     },
     "best": {
       "method": "isotonic",
-      "error": 6.34,
+      "error": 7.92,
       "metrics": {
-        "roc_auc": 0.6371048206473582,
-        "brier": 0.23367388800132546,
-        "mean_calibration_error": 6.34,
+        "roc_auc": 0.6360899658807851,
+        "brier": 0.2339274876602455,
+        "mean_calibration_error": 7.92,
         "buckets": {
           "0.0-0.4": {
             "count": 505,
-            "wins": 156,
-            "losses": 349,
-            "actual_wr": 30.9,
+            "wins": 155,
+            "losses": 350,
+            "actual_wr": 30.7,
             "predicted_wr": 20.0,
-            "calibration_error": 10.9,
+            "calibration_error": 10.7,
             "calibrated": false
           },
           "0.4-0.6": {
-            "count": 1568,
-            "wins": 753,
-            "losses": 815,
+            "count": 1570,
+            "wins": 754,
+            "losses": 816,
             "actual_wr": 48.0,
             "predicted_wr": 50.0,
             "calibration_error": -2.0,
             "calibrated": true
           },
           "0.6-0.7": {
-            "count": 65,
-            "wins": 37,
-            "losses": 28,
-            "actual_wr": 56.9,
+            "count": 67,
+            "wins": 41,
+            "losses": 26,
+            "actual_wr": 61.2,
             "predicted_wr": 65.0,
-            "calibration_error": -8.1,
+            "calibration_error": -3.8,
             "calibrated": true
           },
           "0.7-0.8": {
-            "count": 181,
-            "wins": 133,
-            "losses": 48,
-            "actual_wr": 73.5,
+            "count": 230,
+            "wins": 175,
+            "losses": 55,
+            "actual_wr": 76.1,
             "predicted_wr": 75.0,
-            "calibration_error": -1.5,
+            "calibration_error": 1.1,
             "calibrated": true
           },
           "0.8-1.0": {
-            "count": 78,
-            "wins": 63,
-            "losses": 15,
-            "actual_wr": 80.8,
+            "count": 25,
+            "wins": 17,
+            "losses": 8,
+            "actual_wr": 68.0,
             "predicted_wr": 90.0,
-            "calibration_error": -9.2,
-            "calibrated": true
+            "calibration_error": -22.0,
+            "calibrated": false
           }
         }
       },
-      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260622T190009Z.joblib"
+      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260623T190010Z.joblib"
     },
-    "elapsed_s": 7.600898027420044
+    "elapsed_s": 7.764570951461792
   }
 }
