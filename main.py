@@ -279,7 +279,7 @@ async def fetch_and_display():
         data_dir = os.path.join(os.path.dirname(__file__), "data")
         os.makedirs(data_dir, exist_ok=True)
         with open(os.path.join(data_dir, "latest_signals.json"), "w", encoding="utf-8") as f:
-            json.dump(analysis, f, ensure_ascii=False, indent=2)
+            json.dump({"analysis": analysis, "mtf_analysis": mtf_analysis}, f, ensure_ascii=False, indent=2)
     except Exception as e:
         console.print(f"[dim red]Không thể lưu latest_signals.json: {e}[/dim red]")
 
@@ -293,7 +293,7 @@ async def fetch_and_display():
         console.print(f"[bold red]Lỗi khi đánh giá vị thế: {e}[/bold red]")
 
     # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
-    message_id = send_signals_alert(analysis)
+    message_id = send_signals_alert(analysis, mtf_analysis)
 
     # 4. Đẩy phân tích đa khung thời gian và vị thế mở vào Queue cho Luồng AI xử lý ngầm
     open_positions = position_tracker.get_open_positions()

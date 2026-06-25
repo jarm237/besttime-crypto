@@ -2,7 +2,7 @@ import html
 from btc_scraper.core.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 from .api import send_telegram_message
 
-def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
+def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | None = None) -> int | None:
 
     """
     [LUỒNG CORE] Phân tích tín hiệu và gửi ngay về Telegram (< 1 giây).
@@ -176,11 +176,54 @@ def send_signals_alert(analysis_results: dict[str, dict]) -> int | None:
     missed_msg_id = _send_section("\n⏳ <b>TÍN HIỆU BỎ LỠ VẪN CÒN HIỆU LỰC:</b>", missed_valid_signals)
     active_msg_id = _send_section("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>", active_signals)
     
+    # MTF (1h/4h/1d) signals section (nếu có dữ liệu được truyền vào)
+    htf_msg_id = None
+    if mtf_analysis:
+        htf_items: list[str] = []
+        for coin, tf_map in mtf_analysis.items():
+            # tf_map expected like {"1h": {...}, "4h": {...}, "1d": {...}}
+            parts = []
+            for tf in ["1d", "4h", "1h"]:
+                info = tf_map.get(tf)
+                if not info:
+                    continue
+                from btc_scraper.ml_engine.signal_score import extract_signal_fields
+                ff = extract_signal_fields(info)
+                sig = info.get("signal", ff.get("raw", "N/A"))
+                parts.append(f"{tf.upper()}={html.escape(str(sig))}")
+            if parts:
+                htf_items.append(f"🔷 <b>{coin}</b>: {' | '.join(parts)}")
+
+        def _send_htf_section(items: list[str]) -> int | None:
+            if not items:
+                return None
+            header = f"🔔 <b>[BÁO CÁO HTF]</b> 🔔\nKhung nến: <b>1d / 4h / 1h</b>\n"
+            chunk_text = header
+            first_msg_id = None
+            for line in items:
+                if len(chunk_text) + len(line) + 1 > 4000:
+                    msg_id = send_telegram_message(chunk_text, parse_mode="HTML")
+                    if first_msg_id is None:
+                        first_msg_id = msg_id
+                    chunk_text = header + line
+                else:
+                    chunk_text += "\n" + line
+            if chunk_text != header:
+                msg_id = send_telegram_message(chunk_text, parse_mode="HTML")
+                if first_msg_id is None:
+                    first_msg_id = msg_id
+            return first_msg_id
+
+        htf_msg_id = _send_htf_section(htf_items)
+    
     # Trả về message_id ưu tiên để AI reply vào (ưu tiên Tín hiệu đáng chú ý)
     if active_msg_id is not None:
         return active_msg_id
     if missed_msg_id is not None:
         return missed_msg_id
+    # Nếu không có active/missed, ưu tiên trả về HTF nếu có
+    if htf_msg_id is not None:
+        return htf_msg_id
     return neutral_msg_id
 
 
