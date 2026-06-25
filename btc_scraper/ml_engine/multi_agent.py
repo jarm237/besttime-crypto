@@ -229,11 +229,12 @@ class ExecutionAgent(BaseAgent):
 
     async def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
+        mtf_analysis = context.get("mtf_analysis")
         
         # 1. Chạy Auto Trader (CCXT)
         try:
             from btc_scraper.trading.auto_trader import auto_trader
-            await auto_trader.evaluate_and_trade(analysis)
+            await auto_trader.evaluate_and_trade(analysis, mtf_analysis=mtf_analysis)
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")
             

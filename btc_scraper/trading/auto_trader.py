@@ -370,7 +370,7 @@ class AutoTrader:
 
     # ─── Core: Evaluate & Trade ─────────────────────────────────────────────────
 
-    async def evaluate_and_trade(self, analysis: Dict[str, Any]) -> List[Dict]:
+    async def evaluate_and_trade(self, analysis: Dict[str, Any], mtf_analysis: Optional[Dict[str, Any]] = None) -> List[Dict]:
         """
         Entry point chính. Gọi sau mỗi cycle fetch_and_display().
 
@@ -395,6 +395,45 @@ class AutoTrader:
                     "status": "error",
                     "error": str(e),
                 })
+
+        # Optionally evaluate & trade on higher timeframes (MTF)
+        try:
+            if _env_bool("AUTO_TRADE_MTF_ENABLED", False) and mtf_analysis:
+                # TF list from env or default to ['1h']
+                tfs_env = os.getenv("AUTO_TRADE_MTF_TFS", "1h").strip()
+                tfs = [x.strip() for x in tfs_env.split(",") if x.strip()] if tfs_env else ["1h"]
+                from btc_scraper.ml_engine.signal_score import evaluate_signal_score
+
+                for coin, tf_map in mtf_analysis.items():
+                    for tf in tfs:
+                        tf_ana = tf_map.get(tf)
+                        if not tf_ana:
+                            continue
+                        # Ensure close present
+                        tf_ana["close"] = tf_ana.get("close") or tf_ana.get("close_price") or 0.0
+                        try:
+                            sig_score = evaluate_signal_score(tf_ana)
+                            tf_ana["signal_score"] = sig_score
+                        except Exception:
+                            # fallback: leave as-is
+                            pass
+
+                        fake_key = f"{coin}:MTF:{tf}"
+                        try:
+                            result = await self._process_signal(fake_key, tf_ana)
+                            if result:
+                                placed.append(result)
+                        except Exception as e:
+                            _append_log({
+                                "timestamp": datetime.now().isoformat(),
+                                "key": fake_key,
+                                "mode": "DRY_RUN" if self.dry_run else "TESTNET",
+                                "status": "error",
+                                "error": str(e),
+                            })
+        except Exception:
+            # Don't fail the whole cycle if MTF trading errors
+            pass
 
         return placed
 
