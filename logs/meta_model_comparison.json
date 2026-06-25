@@ -1,0 +1,136 @@
+{
+  "baseline": {
+    "cv_auc_mean": 0.6293032213711977,
+    "cv_auc_std": 0.008421985293896546,
+    "cv_acc_mean": 0.5842433308401895,
+    "ensemble_cv_auc_mean": 0.6202810366199901,
+    "calibration_method": "isotonic",
+    "calibration_selected_error": 3.3,
+    "ensemble_weights": {
+      "rf": 0.04062943814433309,
+      "lgbm": 0.3681732297210391,
+      "catboost": 0.34905218595855153,
+      "xgboost": 0.24214514617607624
+    }
+  },
+  "retrain": {
+    "cv_auc_mean": 0.6299271057406626,
+    "cv_auc_std": 0.008342691351174422,
+    "cv_acc_mean": 0.5867364746945899,
+    "ensemble_cv_auc_mean": 0.6177910416484264,
+    "calibration_method": "sigmoid",
+    "calibration_selected_error": 5.8,
+    "ensemble_weights": {
+      "rf": 0.17257456307608393,
+      "lgbm": 0.004266505172932353,
+      "catboost": 0.5782505697736979,
+      "xgboost": 0.24490836197728572
+    }
+  },
+  "differences": {
+    "cv_auc_mean_delta": 0.0006238843694648576,
+    "cv_auc_std_delta": -0.000079293942722124,
+    "cv_acc_mean_delta": 0.0024931438544004,
+    "ensemble_cv_auc_mean_delta": -0.00248999497156371,
+    "calibration_error_delta": 2.5
+  },
+  "feature_importance_changes": [
+    {
+      "feature": "rsi",
+      "baseline_value": 0.09061959096195028,
+      "retrain_value": 0.07320750933807596,
+      "delta": -0.01741208162387432,
+      "baseline_rank": 1,
+      "retrain_rank": 1,
+      "rank_change": 0
+    },
+    {
+      "feature": "macd_hist",
+      "baseline_value": 0.05843720268263421,
+      "retrain_value": 0.04019293160752467,
+      "delta": -0.01824427107510954,
+      "baseline_rank": 2,
+      "retrain_rank": 4,
+      "rank_change": -2
+    },
+    {
+      "feature": "fear_greed",
+      "baseline_value": 0.0575350993930582,
+      "retrain_value": 0.04897784968332912,
+      "delta": -0.00855724970972908,
+      "baseline_rank": 3,
+      "retrain_rank": 2,
+      "rank_change": 1
+    },
+    {
+      "feature": "distance_resistance_pct",
+      "baseline_value": 0.05738874394656779,
+      "retrain_value": 0.04681245554959858,
+      "delta": -0.01057628839696921,
+      "baseline_rank": 4,
+      "retrain_rank": 3,
+      "rank_change": 1
+    },
+    {
+      "feature": "mtf_alignment",
+      "baseline_value": 0.053155913590803294,
+      "retrain_value": 0.03119689296852345,
+      "delta": -0.021959020622279844,
+      "baseline_rank": 5,
+      "retrain_rank": 14,
+      "rank_change": -9
+    },
+    {
+      "feature": "signal_score",
+      "baseline_value": 0.04185272887427716,
+      "retrain_value": 0.02450931384667969,
+      "delta": -0.01734341502759747,
+      "baseline_rank": 6,
+      "retrain_rank": 20,
+      "rank_change": -14
+    },
+    {
+      "feature": "return_1d",
+      "baseline_value": 0.03447245158219703,
+      "retrain_value": 0.037299161812690065,
+      "delta": 0.002826710230493035,
+      "baseline_rank": 7,
+      "retrain_rank": 5,
+      "rank_change": 2
+    },
+    {
+      "feature": "adx",
+      "baseline_value": 0.03442658167550698,
+      "retrain_value": 0.03666400339288481,
+      "delta": 0.00223742171737783,
+      "baseline_rank": 8,
+      "retrain_rank": 6,
+      "rank_change": 2
+    },
+    {
+      "feature": "roc_14",
+      "baseline_value": 0.033597610604075484,
+      "retrain_value": 0.031633737087758004,
+      "delta": -0.00196387351631748,
+      "baseline_rank": 9,
+      "retrain_rank": 12,
+      "rank_change": -3
+    },
+    {
+      "feature": "sentiment_momentum",
+      "baseline_value": 0.0323749919206479,
+      "retrain_value": 0.03650190996287309,
+      "delta": 0.00412691804222519,
+      "baseline_rank": 10,
+      "retrain_rank": 7,
+      "rank_change": 3
+    }
+  ],
+  "notes": [
+    "Overall CV AUC increased slightly (~0.00062), CV accuracy improved by ~0.25%.",
+    "Ensemble CV AUC decreased (~-0.00249); model stacking weights shifted heavily toward CatBoost and away from LightGBM.",
+    "Calibration method changed from 'isotonic' to 'sigmoid' with higher selected error (3.3 -> 5.8).",
+    "Several top features lost importance (notably 'rsi', 'macd_hist', 'mtf_alignment', 'signal_score'), while 'mfi' and 'cmf' increased in relative importance.",
+    "Recommend running SHAP on the saved model and regenerating feature correlation heatmap for deeper inspection."
+  ]
+}
