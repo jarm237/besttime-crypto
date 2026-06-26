@@ -559,8 +559,14 @@ class AutoTrader:
             self._notify_trade(log_entry)
 
         except Exception as e:
-            log_entry["status"] = "error"
-            log_entry["error"] = str(e)
+            err_str = str(e)
+            if "insufficient balance" in err_str.lower() or "margin is insufficient" in err_str.lower():
+                log_entry["status"] = "skipped"
+                log_entry["reason_skip"] = "Không đủ số dư (Insufficient balance)"
+                log_entry["error"] = err_str
+            else:
+                log_entry["status"] = "error"
+                log_entry["error"] = err_str
 
         _append_log(log_entry)
         return log_entry

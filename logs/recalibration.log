@@ -16,3 +16,5 @@
 2026-06-23T19:00:13.618608 - Auto-commit failed: Command '['git', 'push']' returned non-zero exit status 1.
 2026-06-24T19:00:10.074481 - Recalibration run saved: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260624T190010Z.json best=sigmoid error=5.7
 2026-06-24T19:00:16.005801 - Auto-commit succeeded for /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260624T190007Z.joblib
+2026-06-25T19:00:10.270282 - Recalibration run saved: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260625T190010Z.json best=sigmoid error=5.7
+2026-06-25T19:00:17.193642 - Auto-commit succeeded for /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260625T190007Z.joblib

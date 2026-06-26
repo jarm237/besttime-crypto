@@ -27,6 +27,44 @@ app.add_middleware(
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_SIGNALS_FILE = os.path.join(DATA_DIR, "latest_signals.json")
 
+
+def _normalize_signal_item(item: dict) -> dict:
+    """Ensure signal item has a stable signal_score shape for the frontend."""
+    if not isinstance(item, dict):
+        return {}
+
+    out = dict(item)
+    signal_score = out.get("signal_score")
+    if not isinstance(signal_score, dict):
+        signal_score = {}
+
+    meta_prob = signal_score.get("meta_confidence")
+    meta_pct = signal_score.get("meta_confidence_pct")
+
+    if meta_pct is None and meta_prob is not None:
+        try:
+            meta_pct = int(round(float(meta_prob) * 100))
+        except Exception:
+            meta_pct = None
+    if meta_prob is None and meta_pct is not None:
+        try:
+            meta_prob = float(meta_pct) / 100.0
+        except Exception:
+            meta_prob = None
+
+    signal_score.setdefault("action", "NEUTRAL")
+    signal_score.setdefault("score", None)
+    signal_score.setdefault("display_score", 0)
+    signal_score.setdefault("display_label", "NEUTRAL")
+    signal_score.setdefault("confidence", None)
+    signal_score.setdefault("position_size", None)
+    signal_score.setdefault("meta_error", None)
+    signal_score["meta_confidence"] = meta_prob
+    signal_score["meta_confidence_pct"] = meta_pct
+
+    out["signal_score"] = signal_score
+    return out
+
 class PositionCreate(BaseModel):
     coin: str
     entry_price: float
@@ -279,7 +317,22 @@ def get_market_signals():
     try:
         with open(LATEST_SIGNALS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            return {"signals": data}
+
+            # Hỗ trợ cả 2 định dạng file:
+            # 1) {"analysis": {...}, "mtf_analysis": {...}}
+            # 2) {...signals map...}
+            if isinstance(data, dict) and isinstance(data.get("analysis"), dict):
+                signals = data.get("analysis") or {}
+            elif isinstance(data, dict):
+                signals = data
+            else:
+                signals = {}
+
+            normalized = {}
+            for key, item in signals.items():
+                normalized[key] = _normalize_signal_item(item)
+
+            return {"signals": normalized}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Không thể đọc tín hiệu: {str(e)}")
 

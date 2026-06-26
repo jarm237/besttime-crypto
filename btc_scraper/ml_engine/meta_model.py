@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 # Force stdout/stderr to UTF-8 to support Vietnamese characters in Windows console
 if hasattr(sys.stdout, "reconfigure"):
@@ -801,22 +802,37 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
 
 _MODEL_CACHE = None
+_MODEL_LOAD_ERROR = None
 
 _CACHED_MODEL = None
 
 
 def load_model():
     """Load model từ disk, cache in memory để inference siêu nhanh."""
-    global _MODEL_CACHE
+    global _MODEL_CACHE, _MODEL_LOAD_ERROR
     if _MODEL_CACHE is not None:
         return _MODEL_CACHE
     global _CACHED_MODEL
     if _CACHED_MODEL is not None:
+        _MODEL_LOAD_ERROR = None
         return _CACHED_MODEL
 
     if not MODEL_OUT.exists():
+        _MODEL_LOAD_ERROR = f"no_model_file:{MODEL_OUT}"
         return None
     try:
+        # Backward compatibility: some historical model bundles were serialized
+        # when this module ran as __main__, so pickle points to __main__.EnsembleMetaModel.
+        # Provide that symbol before loading to prevent deserialization failure.
+        try:
+            import __main__ as _main
+            if not hasattr(_main, "EnsembleMetaModel"):
+                _main.EnsembleMetaModel = EnsembleMetaModel
+            if not hasattr(_main, "_InferenceWrapper"):
+                _main._InferenceWrapper = _InferenceWrapper
+        except Exception:
+            pass
+
         _MODEL_CACHE = joblib.load(MODEL_OUT)
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
@@ -841,9 +857,16 @@ def load_model():
                     for cls in est.calibrated_classifiers_:
                         _set_n_jobs(cls)
             _set_n_jobs(clf)
+        _MODEL_LOAD_ERROR = None
         return _MODEL_CACHE
-    except Exception:
+    except Exception as e:
+        _MODEL_LOAD_ERROR = f"model_load_failed:{e}"
         return None
+
+
+def get_model_load_error() -> Optional[str]:
+    """Return latest model load error for diagnostics."""
+    return _MODEL_LOAD_ERROR
 
 
 def predict_meta_confidence(analysis_info: dict) -> dict:
@@ -854,7 +877,8 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
     obj = load_model()
     if obj is None:
-        return {"error": "no_model", "probability": None}
+        err = get_model_load_error() or "no_model"
+        return {"error": err, "probability": None}
 
     clf = obj.get("model") if isinstance(obj, dict) else obj
     feature_names = obj.get("features", FEATURE_SCHEMA_V2) if isinstance(obj, dict) else FEATURE_SCHEMA_V2

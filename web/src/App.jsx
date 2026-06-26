@@ -6,6 +6,34 @@ import './index.css';
 
 const API_BASE = 'http://localhost:8000/api';
 
+const isFiniteNumber = (v) => typeof v === 'number' && Number.isFinite(v);
+
+const getMetaState = (signalScore) => {
+  const ss = signalScore && typeof signalScore === 'object' ? signalScore : {};
+  const error = ss.meta_error;
+
+  let pct = null;
+  if (isFiniteNumber(ss.meta_confidence_pct)) {
+    pct = Math.round(ss.meta_confidence_pct);
+  } else if (isFiniteNumber(ss.meta_confidence)) {
+    pct = Math.round(ss.meta_confidence * 100);
+  }
+
+  if (pct !== null) {
+    const color = pct >= 70 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    const label = pct >= 70 ? 'Strong' : pct >= 50 ? 'Medium' : 'Weak';
+    return { pct, color, label, status: 'ok' };
+  }
+
+  if (error === 'no_model' || (typeof error === 'string' && error.startsWith('no_model'))) {
+    return { pct: null, color: '#94a3b8', label: 'No model', status: 'no_model' };
+  }
+  if (error) {
+    return { pct: null, color: '#ef4444', label: 'Meta error', status: 'error' };
+  }
+  return { pct: null, color: '#64748b', label: 'No data', status: 'no_data' };
+};
+
 function App() {
   const [activeTab, setActiveTab] = useState('market');
   const [signals, setSignals] = useState({});
@@ -237,6 +265,9 @@ function App() {
                     const isSkipped = log.status === 'skipped';
                     const isError = log.status === 'error';
                     const isSuccess = !isSkipped && !isError;
+                    const logMetaPct = isFiniteNumber(log.meta_confidence_pct)
+                      ? Math.round(log.meta_confidence_pct)
+                      : (isFiniteNumber(log.meta_confidence) ? Math.round(log.meta_confidence * 100) : null);
 
                     return (
                       <tr key={i} style={{ opacity: isSkipped ? 0.6 : 1 }}>
@@ -248,7 +279,9 @@ function App() {
                           </span>
                         </td>
                         <td className="text-sm">{log.signal}</td>
-                        <td className="font-mono">{(log.meta_confidence * 100).toFixed(0)}% (Score: {log.signal_score})</td>
+                        <td className="font-mono">
+                          {logMetaPct !== null ? `${logMetaPct}%` : 'No data'} (Score: {log.signal_score ?? 'N/A'})
+                        </td>
                         <td className="font-mono">${log.usdt_amount ? log.usdt_amount.toFixed(2) : '0.00'}</td>
                         <td className="font-mono text-sm" style={{ whiteSpace: 'nowrap' }}>
                           <span className="text-primary">${log.entry_price?.toFixed(2)}</span> / <span className="text-red">${log.sl_price?.toFixed(2)}</span> / <span className="text-green">${log.tp1_price?.toFixed(2)}</span>
@@ -285,6 +318,12 @@ function App() {
     const metrics = metaModel.metrics || {};
     const importance = metaModel.feature_importance || {};
     const buckets = metrics.calibration_buckets || {};
+    const mace = isFiniteNumber(metrics?.calibration_info?.selected_error)
+      ? `${metrics.calibration_info.selected_error.toFixed(2)}%`
+      : 'N/A';
+    const winRatePct = (isFiniteNumber(metrics?.n_samples) && metrics.n_samples > 0 && isFiniteNumber(metrics?.label_dist?.WIN))
+      ? `${((metrics.label_dist.WIN / metrics.n_samples) * 100).toFixed(1)}%`
+      : 'N/A';
 
     return (
       <div className="flex flex-col gap-6">
@@ -313,7 +352,7 @@ function App() {
           <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
             <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Tỷ lệ Win/Loss gốc</h4>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#10b981' }}>
-              {metrics.label_dist ? `${(metrics.label_dist.WIN / metrics.n_samples * 100).toFixed(1)}%` : 'N/A'}
+              {winRatePct}
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
               Thắng: {metrics.label_dist?.WIN || 0} | Thua: {metrics.label_dist?.LOSS || 0}
@@ -323,7 +362,7 @@ function App() {
           <div className="glass-panel" style={{ marginBottom: 0, padding: '1.25rem' }}>
             <h4 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Lỗi Calibration (MACE)</h4>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.5rem', color: '#fb7185' }}>
-              12.08%
+              {mace}
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
               Phương pháp: Isotonic Regression
@@ -386,10 +425,12 @@ function App() {
                         <tr key={bucket}>
                           <td className="font-mono font-bold">{bucket}</td>
                           <td className="font-mono">{data.count}</td>
-                          <td className="font-mono">{data.predicted_wr?.toFixed(1)}%</td>
-                          <td className="font-mono" style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{data.actual_wr?.toFixed(1)}%</td>
-                          <td className="font-mono" style={{ color: err >= 0 ? '#10b981' : '#ef4444' }}>
-                            {err > 0 ? `+${err.toFixed(1)}%` : `${err.toFixed(1)}%`}
+                          <td className="font-mono">{data.predicted_wr != null ? `${data.predicted_wr.toFixed(1)}%` : 'N/A'}</td>
+                          <td className="font-mono" style={{ fontWeight: 'bold', color: '#e2e8f0' }}>
+                            {data.actual_wr != null ? `${data.actual_wr.toFixed(1)}%` : 'N/A'}
+                          </td>
+                          <td className="font-mono" style={{ color: err != null ? (err >= 0 ? '#10b981' : '#ef4444') : '#94a3b8' }}>
+                            {err != null ? (err > 0 ? `+${err.toFixed(1)}%` : `${err.toFixed(1)}%`) : 'N/A'}
                           </td>
                           <td>
                             {isOk ? (
@@ -495,14 +536,17 @@ function App() {
                   </td>
                   <td>
                     {(() => {
-                      const metaPct = data.signal_score?.meta_confidence_pct;
-                      if (metaPct == null) return <span style={{ color: '#475569', fontSize: '0.8rem' }}>N/A</span>;
-                      const color = metaPct >= 70 ? '#22c55e' : metaPct >= 50 ? '#f59e0b' : '#ef4444';
+                      const meta = getMetaState(data.signal_score);
+                      if (meta.pct == null) {
+                        return <span style={{ color: meta.color, fontSize: '0.75rem', fontWeight: 600 }}>{meta.label}</span>;
+                      }
+                      const color = meta.color;
                       return (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <div style={{ width: 36, height: 36, borderRadius: '50%', border: `2px solid ${color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color }}>
-                            {metaPct}%
+                            {meta.pct}%
                           </div>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{meta.label}</span>
                         </div>
                       );
                     })()}
@@ -868,7 +912,8 @@ function App() {
 
             {/* ── ROW 4: Meta Model Panel ── */}
             {(() => {
-              const metaPct = data.signal_score?.meta_confidence_pct;
+              const meta = getMetaState(data.signal_score);
+              const metaPct = meta.pct;
               const metaErr = data.signal_score?.meta_error;
               if (metaPct == null && !metaErr) return null;
               const metaColor = metaPct >= 70 ? '#22c55e' : metaPct >= 50 ? '#f59e0b' : '#ef4444';
