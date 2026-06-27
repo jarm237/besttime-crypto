@@ -1,11 +1,11 @@
 {
   "ppo": {
     "algorithm": "ppo",
-    "total_timesteps": 1000,
+    "total_timesteps": 500000,
     "learning_rate": 0.0003,
-    "mean_reward": -0.24999999441206455,
-    "std_reward": 0.7499999832361937,
-    "timestamp": "20260615_152925",
-    "model_path": "logs/rl_models/rl_exit_ppo_20260615_152925"
+    "mean_reward": -1.369044,
+    "std_reward": 2.0696184746377533,
+    "timestamp": "20260627_143758",
+    "model_path": "logs/rl_models\\rl_exit_ppo_20260627_143758"
   }
 }

@@ -24,7 +24,6 @@ if hasattr(sys.stderr, "reconfigure"):
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score, PredefinedSplit
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.base import BaseEstimator, ClassifierMixin
@@ -37,7 +36,7 @@ METRIC_OUT = LOGS / "meta_model.json"
 FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
 
 # Schema version — tăng lên khi đổi FEATURE_SCHEMA
-MODEL_VERSION = "v3.0"
+MODEL_VERSION = "v3.1"
 
 
 
@@ -145,6 +144,25 @@ def _import_optional_estimators():
     return estimators
 
 
+def _make_lgbm_classifier(n_estimators: int = 200, random_state: int = 42, **overrides):
+    optional = _import_optional_estimators()
+    if "lgbm" not in optional:
+        raise ImportError("LightGBM is required for Meta Model v3.1 training.")
+    params = {
+        "n_estimators": n_estimators,
+        "max_depth": 5,
+        "num_leaves": 31,
+        "learning_rate": 0.03,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "class_weight": "balanced",
+        "random_state": random_state,
+        "n_jobs": -1,
+    }
+    params.update(overrides)
+    return optional["lgbm"](**params)
+
+
 def _prepare_feature_matrix(X, feature_names=None):
     """Convert inference input into a feature-aligned DataFrame when possible."""
     if feature_names is None or len(feature_names) == 0:
@@ -183,30 +201,10 @@ class _InferenceWrapper:
 
 
 def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
-    estimators = {
-        "rf": RandomForestClassifier(
-            n_estimators=n_estimators,
-            max_depth=6,
-            min_samples_leaf=10,
-            max_features="sqrt",
-            class_weight="balanced",
-            random_state=random_state,
-            n_jobs=-1,
-        )
-    }
+    estimators = {}
     optional = _import_optional_estimators()
     if "lgbm" in optional:
-        estimators["lgbm"] = optional["lgbm"](
-            n_estimators=n_estimators,
-            max_depth=5,
-            num_leaves=31,
-            learning_rate=0.03,
-            subsample=0.8,
-            colsample_bytree=0.8,
-            class_weight="balanced",
-            random_state=random_state,
-            n_jobs=-1,
-        )
+        estimators["lgbm"] = _make_lgbm_classifier(n_estimators=n_estimators, random_state=random_state)
     if "catboost" in optional:
         estimators["catboost"] = optional["catboost"](
             iterations=n_estimators,
@@ -224,7 +222,6 @@ def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
             learning_rate=0.03,
             subsample=0.8,
             colsample_bytree=0.8,
-            use_label_encoder=False,
             eval_metric="logloss",
             n_jobs=-1,
             random_state=random_state,
@@ -242,7 +239,7 @@ def _normalize_weights(weights: dict, available: list[str]) -> list[float]:
 
 class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
     def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42, base_params=None):
-        self.weights = weights if weights is not None else {"rf": 0.20, "lgbm": 0.40, "catboost": 0.40}
+        self.weights = weights if weights is not None else {"lgbm": 0.33, "catboost": 0.33, "xgboost": 0.34}
         self.calibration = calibration  # "sigmoid", "isotonic" or None
         self.n_estimators = n_estimators
         self.random_state = random_state
@@ -261,21 +258,16 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         optional = _import_optional_estimators()
         
         # Set default base params and override with provided base_params
-        rf_params = {"n_estimators": self.n_estimators, "max_depth": 6, "min_samples_leaf": 10, "max_features": "sqrt", "class_weight": "balanced", "random_state": self.random_state, "n_jobs": -1}
-        rf_params.update(self.base_params.get("rf", {}))
-        
         lgbm_params = {"n_estimators": self.n_estimators, "max_depth": 5, "num_leaves": 31, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "class_weight": "balanced", "random_state": self.random_state, "n_jobs": -1}
         lgbm_params.update(self.base_params.get("lgbm", {}))
         
         catboost_params = {"iterations": self.n_estimators, "depth": 5, "learning_rate": 0.03, "l2_leaf_reg": 3, "verbose": 0, "thread_count": -1, "random_seed": self.random_state}
         catboost_params.update(self.base_params.get("catboost", {}))
         
-        xgboost_params = {"n_estimators": self.n_estimators, "max_depth": 5, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "use_label_encoder": False, "eval_metric": "logloss", "n_jobs": -1, "random_state": self.random_state}
+        xgboost_params = {"n_estimators": self.n_estimators, "max_depth": 5, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "eval_metric": "logloss", "n_jobs": -1, "random_state": self.random_state}
         xgboost_params.update(self.base_params.get("xgboost", {}))
 
-        estimators = {
-            "rf": RandomForestClassifier(**rf_params)
-        }
+        estimators = {}
         if "lgbm" in optional:
             estimators["lgbm"] = optional["lgbm"](**lgbm_params)
         if "catboost" in optional:
@@ -286,7 +278,7 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         # Filter weights based on availability
         available_keys = [k for k in self.weights if k in estimators]
         if not available_keys:
-            available_keys = ["rf"]
+            raise RuntimeError("No v3.1 ensemble estimators are available. Install lightgbm, catboost, or xgboost.")
             
         selected_weights = {k: self.weights[k] for k in available_keys}
         total_w = sum(selected_weights.values())
@@ -342,21 +334,6 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         return self
 
     def _prepare_for_model(self, model, X):
-        if isinstance(X, pd.DataFrame):
-            base_estimator = None
-            if isinstance(model, CalibratedClassifierCV):
-                base_estimator = getattr(model, "base_estimator", None)
-                if base_estimator is None and hasattr(model, "calibrated_classifiers_"):
-                    cc = getattr(model, "calibrated_classifiers_")
-                    if cc:
-                        base_estimator = getattr(cc[0], "estimator", None)
-            else:
-                base_estimator = model
-
-            from sklearn.ensemble import RandomForestClassifier
-            if isinstance(base_estimator, RandomForestClassifier):
-                return X.values
-
         if not isinstance(X, (np.ndarray, pd.DataFrame)):
             return np.asarray(X)
         return X
@@ -407,14 +384,7 @@ def walk_forward_eval(X: np.ndarray, y: np.ndarray, clf=None, train_window_pct: 
         X_test, y_test = X[train_end:test_end], y[train_end:test_end]
 
         if clf is None:
-            model = RandomForestClassifier(
-                n_estimators=200,
-                max_depth=8,
-                min_samples_leaf=5,
-                class_weight="balanced",
-                random_state=42,
-                n_jobs=-1,
-            )
+            model = _make_lgbm_classifier(n_estimators=200, random_state=42, max_depth=8)
         else:
             from sklearn.base import clone
             model = clone(clf)
@@ -472,10 +442,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
     # 1. Quick pre-fit to identify and drop zero-importance features
     print("  [Pre-fit] Đang xác định features có tầm quan trọng = 0...")
-    _prefit = RandomForestClassifier(
-        n_estimators=100, max_depth=6, min_samples_leaf=10,
-        class_weight="balanced", random_state=42, n_jobs=-1,
-    )
+    _prefit = _make_lgbm_classifier(n_estimators=100, random_state=42, max_depth=6)
     _prefit.fit(X, y)
     _importance = _prefit.feature_importances_
     selected_mask = _importance > 0.0
@@ -489,11 +456,8 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     else:
         selected_features = list(feature_names)
 
-    # 2. Base model CV (RandomForest) for backward-compatible comparison
-    base_clf = RandomForestClassifier(
-        n_estimators=n_estimators, max_depth=8, min_samples_leaf=5,
-        class_weight="balanced", random_state=42, n_jobs=-1,
-    )
+    # 2. Base model CV (LGBM) for backward-compatible metric comparison
+    base_clf = _make_lgbm_classifier(n_estimators=n_estimators, random_state=42, max_depth=8)
     try:
         aucs = cross_val_score(base_clf, X, y, cv=tscv, scoring="roc_auc")
         accs = cross_val_score(base_clf, X, y, cv=tscv, scoring="accuracy")
@@ -506,9 +470,9 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
     base_clf.fit(X, y)
 
-    # 3. Optuna — full search space: all 4 models + ensemble weights
+    # 3. Optuna - boosting models + ensemble weights
     best_base_params: dict = {}
-    best_weights: dict = {"rf": 0.20, "lgbm": 0.40, "catboost": 0.40}
+    best_weights: dict = {"lgbm": 0.33, "catboost": 0.33, "xgboost": 0.34}
     try:
         import optuna
         from sklearn.metrics import roc_auc_score
@@ -527,10 +491,6 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
             lgbm_subsample  = trial.suggest_float("lgbm_subsample",0.6, 1.0)
             lgbm_colsample  = trial.suggest_float("lgbm_colsample",0.6, 1.0)
 
-            # ── RF ──────────────────────────────────────────────────────
-            rf_depth        = trial.suggest_int("rf_depth",        4, 8)
-            rf_min_leaf     = trial.suggest_int("rf_min_leaf",     5, 20)
-
             # ── CatBoost ─────────────────────────────────────────────────
             cat_depth       = trial.suggest_int("cat_depth",       4, 7)
             cat_lr          = trial.suggest_float("cat_lr",        0.01, 0.1, log=True)
@@ -542,19 +502,17 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
             xgb_subsample   = trial.suggest_float("xgb_subsample",0.6, 1.0)
 
             # ── Ensemble weights ─────────────────────────────────────────
-            w_rf   = trial.suggest_float("w_rf",   0.0, 1.0)
             w_lgbm = trial.suggest_float("w_lgbm", 0.0, 1.0)
             w_cat  = trial.suggest_float("w_cat",  0.0, 1.0)
             w_xgb  = trial.suggest_float("w_xgb",  0.0, 1.0)
-            if w_rf + w_lgbm + w_cat + w_xgb == 0:
+            if w_lgbm + w_cat + w_xgb == 0:
                 return 0.0
 
-            weights = {"rf": w_rf, "lgbm": w_lgbm, "catboost": w_cat, "xgboost": w_xgb}
+            weights = {"lgbm": w_lgbm, "catboost": w_cat, "xgboost": w_xgb}
             bp = {
                 "lgbm": {"max_depth": lgbm_depth, "num_leaves": lgbm_leaves,
                          "learning_rate": lgbm_lr, "subsample": lgbm_subsample,
                          "colsample_bytree": lgbm_colsample},
-                "rf":   {"max_depth": rf_depth, "min_samples_leaf": rf_min_leaf},
                 "catboost": {"depth": cat_depth, "learning_rate": cat_lr, "l2_leaf_reg": cat_l2},
                 "xgboost":  {"max_depth": xgb_depth, "learning_rate": xgb_lr, "subsample": xgb_subsample},
             }
@@ -579,10 +537,6 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
                 "subsample": bp.get("lgbm_subsample", 0.8),
                 "colsample_bytree": bp.get("lgbm_colsample", 0.8),
             },
-            "rf": {
-                "max_depth": bp.get("rf_depth", 6),
-                "min_samples_leaf": bp.get("rf_min_leaf", 10),
-            },
             "catboost": {
                 "depth": bp.get("cat_depth", 5),
                 "learning_rate": bp.get("cat_lr", 0.03),
@@ -595,10 +549,9 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
             },
         }
         best_weights = {
-            "rf": bp.get("w_rf", 0.2),
-            "lgbm": bp.get("w_lgbm", 0.4),
-            "catboost": bp.get("w_cat", 0.4),
-            "xgboost": bp.get("w_xgb", 0.0),
+            "lgbm": bp.get("w_lgbm", 0.33),
+            "catboost": bp.get("w_cat", 0.33),
+            "xgboost": bp.get("w_xgb", 0.34),
         }
     except ImportError:
         print("  [Optuna] Thư viện optuna chưa được cài đặt. Dùng hyperparameters mặc định.")
@@ -947,7 +900,7 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser()
     p.add_argument("--train", action="store_true", help="Train meta model")
-    p.add_argument("--n", type=int, default=200, help="So cay RandomForest")
+    p.add_argument("--n", type=int, default=200, help="So estimators/iterations cho base models")
     p.add_argument("--no-calibrate", action="store_true", help="Tat Platt calibration")
     args = p.parse_args()
 

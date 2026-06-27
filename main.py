@@ -146,20 +146,31 @@ async def check_and_execute_auto_closes(recs: list[dict]):
             coin = rec["coin"]
             action = rec["recommendation"]
             current_price = rec["current_price"]
-            
-            # Kiểm tra xem có phải tín hiệu đóng (chạm SL hoặc TP2)
-            should_close = "CẮT LỖ NGAY" in action or "CHỐT LỜI TP2" in action
+
+            # ─── Full close triggers (SL, TP2, RL EXIT, RL TAKE_PROFIT) ───────
+            # NOTE: labels changed to ASCII in _generate_recommendation to avoid
+            # cp1252 crashes. This check MUST match those ASCII labels exactly.
+            should_close = (
+                "[!] CAT LO NGAY" in action        # SL hit (was: CẮT LỖ NGAY)
+                or "[TP2] CHOT LOI TP2" in action  # TP2 hit (was: CHỐT LỜI TP2)
+                or "[RL] DONG VI THE" in action     # RL action=4 EXIT
+                or "[RL] CHOT LOI FULL" in action   # RL action=3 TAKE_PROFIT
+            )
+
+            # ─── Partial close triggers (RL PARTIAL_CLOSE 50%) ────────────────
+            should_partial_close = "[RL] CHOT LOI 50%" in action  # RL action=1
+
             if should_close:
                 # Tìm xem có position nào note chứa "[AUTO-"
                 auto_pos = [p for p in open_positions if p["coin"].upper() == coin.upper() and "[AUTO-" in p.get("note", "")]
                 if auto_pos:
-                    console.print(f"[bold yellow][AutoTrade] Tự động đóng vị thế {coin} do: {action}[/bold yellow]")
+                    console.print(f"[bold yellow][AutoTrade] Tu dong dong vi the {coin} do: {action}[/bold yellow]")
                     closed_data = position_tracker.close_position(coin, current_price)
-                    
+
                     # Cập nhật kết quả vào circuit breaker của AutoTrader
-                    result_type = "LOSS" if "CẮT LỖ NGAY" in action else "WIN"
+                    result_type = "LOSS" if "CAT LO NGAY" in action else "WIN"
                     auto_trader._record_trade_result(result_type)
-                    
+
                     # Gửi tin nhắn Telegram thông báo đóng vị thế tự động
                     msg = (
                         f"[AUTO-TRADE CLOSED] {coin}\n"
@@ -171,7 +182,7 @@ async def check_and_execute_auto_closes(recs: list[dict]):
                     )
                     from btc_scraper.telegram_bot import send_telegram_message
                     send_telegram_message(msg, parse_mode=None)
-                    
+
                     # Thực hiện lệnh đặt đóng trên exchange nếu không phải dry_run
                     note = auto_pos[0].get("note", "")
                     mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
@@ -192,9 +203,28 @@ async def check_and_execute_auto_closes(recs: list[dict]):
                                     await client.create_market_buy(symbol, current_val)
                                 await client.close()
                         except Exception as ex_err:
-                            console.print(f"[bold red][AutoTrade] Lỗi đóng lệnh trên sàn: {ex_err}[/bold red]")
+                            console.print(f"[bold red][AutoTrade] Loi dong lenh tren san: {ex_err}[/bold red]")
+
+            elif should_partial_close:
+                # RL recommends closing 50% of position
+                auto_pos = [p for p in open_positions if p["coin"].upper() == coin.upper() and "[AUTO-" in p.get("note", "")]
+                if auto_pos:
+                    console.print(f"[bold cyan][AutoTrade] RL: Chot 50% vi the {coin} tai ${current_price:,.4f}[/bold cyan]")
+                    try:
+                        position_tracker.close_partial_position(coin, current_price, 50.0)
+                        msg = (
+                            f"[AUTO-TRADE PARTIAL CLOSE] {coin}\n"
+                            f"RL Agent: Chot 50% vi the\n"
+                            f"Gia chot: ${current_price:,.4f}\n"
+                            f"PnL tai thoi diem chot: {rec.get('pnl_pct', 0.0):+.2f}%"
+                        )
+                        from btc_scraper.telegram_bot import send_telegram_message
+                        send_telegram_message(msg, parse_mode=None)
+                    except Exception as partial_err:
+                        console.print(f"[bold red][AutoTrade] Loi chot 50%: {partial_err}[/bold red]")
+
     except Exception as e:
-        console.print(f"[dim red][AutoTrade] Lỗi tự động đóng vị thế: {e}[/dim red]")
+        console.print(f"[dim red][AutoTrade] Loi tu dong dong vi the: {e}[/dim red]")
 
 
 # ── Global WS Manager (khởi tạo trong main()) ────────────────────────────────

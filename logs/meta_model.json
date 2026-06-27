@@ -1,9 +1,11 @@
 {
-  "version": "v3.0",
+  "version": "v3.1",
   "n_samples": 24070,
-  "n_features": 46,
+  "n_features": 43,
   "features": [
-    "signal_score",
+    "rsi_score",
+    "macd_score",
+    "structure_score",
     "rsi",
     "macd_hist",
     "atr_pct",
@@ -22,10 +24,8 @@
     "realized_vol_50",
     "atr_percentile",
     "volatility_regime_compression",
-    "volatility_regime_breakout",
     "volatility_regime_mean_reversion",
     "volatility_regime_panic_sell",
-    "volatility_regime_low_liquidity",
     "volatility_regime_pump_risk",
     "distance_support_pct",
     "distance_resistance_pct",
@@ -41,28 +41,23 @@
     "roc_50",
     "hv20",
     "hv60",
-    "bos_bull",
-    "bos_bear",
     "choch_bull",
-    "choch_bear",
     "sentiment_momentum",
     "sentiment_recovery",
     "sentiment_trend_up",
     "sentiment_trend_down"
   ],
-  "cv_auc_mean": 0.6299271057406626,
-  "cv_auc_std": 0.008342691351174422,
-  "cv_acc_mean": 0.5867364746945899,
-  "ensemble_cv_auc_mean": 0.6177910416484264,
-  "ensemble_cv_acc_mean": 0.5828471702817252,
+  "cv_auc_mean": 0.6159870789879033,
+  "cv_auc_std": 0.019206182923705614,
+  "cv_acc_mean": 0.5802543006731489,
+  "ensemble_cv_auc_mean": 0.6241603338589082,
+  "ensemble_cv_acc_mean": 0.5893792071802544,
   "ensemble_weights": {
-    "rf": 0.17257456307608393,
-    "lgbm": 0.004266505172932353,
-    "catboost": 0.5782505697736979,
-    "xgboost": 0.24490836197728572
+    "lgbm": 0.2035234257170429,
+    "catboost": 0.5904041983830581,
+    "xgboost": 0.20607237589989896
   },
   "available_models": [
-    "rf",
     "lgbm",
     "catboost",
     "xgboost"
@@ -76,7 +71,7 @@
       "test": 3611
     },
     "selected_method": "sigmoid",
-    "selected_error": 5.8
+    "selected_error": 4.5
   },
   "label_dist": {
     "WIN": 11413,
@@ -84,39 +79,39 @@
   },
   "calibration_buckets": {
     "0.0-0.4": {
-      "count": 1088,
-      "wins": 348,
-      "losses": 740,
-      "actual_wr": 32.0,
+      "count": 1089,
+      "wins": 347,
+      "losses": 742,
+      "actual_wr": 31.9,
       "predicted_wr": 20.0,
-      "calibration_error": 12.0,
+      "calibration_error": 11.9,
       "calibrated": false
     },
     "0.4-0.6": {
-      "count": 2099,
-      "wins": 1076,
-      "losses": 1023,
-      "actual_wr": 51.3,
+      "count": 2089,
+      "wins": 1073,
+      "losses": 1016,
+      "actual_wr": 51.4,
       "predicted_wr": 50.0,
-      "calibration_error": 1.3,
+      "calibration_error": 1.4,
       "calibrated": true
     },
     "0.6-0.7": {
-      "count": 370,
-      "wins": 253,
+      "count": 375,
+      "wins": 258,
       "losses": 117,
-      "actual_wr": 68.4,
+      "actual_wr": 68.8,
       "predicted_wr": 65.0,
-      "calibration_error": 3.4,
+      "calibration_error": 3.8,
       "calibrated": true
     },
     "0.7-0.8": {
-      "count": 54,
-      "wins": 44,
-      "losses": 10,
-      "actual_wr": 81.5,
+      "count": 58,
+      "wins": 43,
+      "losses": 15,
+      "actual_wr": 74.1,
       "predicted_wr": 75.0,
-      "calibration_error": 6.5,
+      "calibration_error": -0.9,
       "calibrated": true
     },
     "0.8-1.0": {
@@ -139,8 +134,8 @@
       ],
       "n_train": 15645,
       "n_test": 3610,
-      "roc_auc": 0.6086465921923869,
-      "accuracy": 0.5770083102493074
+      "roc_auc": 0.6142436741217686,
+      "accuracy": 0.5698060941828255
     },
     {
       "train_range": [
@@ -153,8 +148,8 @@
       ],
       "n_train": 15645,
       "n_test": 3610,
-      "roc_auc": 0.6385864248440313,
-      "accuracy": 0.6030470914127424
+      "roc_auc": 0.6454570333880679,
+      "accuracy": 0.6074792243767313
     }
   ]
 }

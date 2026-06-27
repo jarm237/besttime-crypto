@@ -11,11 +11,132 @@ import os
 from datetime import datetime
 import uuid
 from typing import Literal
+import numpy as np
+from pathlib import Path
 
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
 
-# Loại bỏ các hàm load/save json cũ
+# Cache PPO model globally to avoid reloading on every cycle
+_PPO_MODEL_CACHE = None
+_LAST_MODEL_PATH = None
+
+def load_latest_ppo_model() -> str | None:
+    """Tìm file zip model PPO mới nhất."""
+    rl_dir = Path("logs/rl_models")
+    if not rl_dir.exists():
+        return None
+    matches = sorted(rl_dir.glob("rl_exit_ppo_*.zip"))
+    if matches:
+        return str(matches[-1])
+    matches_simple = sorted(rl_dir.glob("rl_exit_ppo.zip"))
+    if matches_simple:
+        return str(matches_simple[-1])
+    return None
+
+def get_ppo_model():
+    """Tải model PPO động và cache."""
+    global _PPO_MODEL_CACHE, _LAST_MODEL_PATH
+    model_path = load_latest_ppo_model()
+    if not model_path:
+        return None
+    if _PPO_MODEL_CACHE is None or _LAST_MODEL_PATH != model_path:
+        try:
+            from stable_baselines3 import PPO
+            _PPO_MODEL_CACHE = PPO.load(model_path)
+            _LAST_MODEL_PATH = model_path
+            print(f"[RL Exit Agent] Loaded model: {model_path}")
+        except Exception as e:
+            print(f"[RL Exit Agent] Warning: Lỗi khi load model: {e}")
+            return None
+    return _PPO_MODEL_CACHE
+
+def _build_rl_observation(
+    ana: dict,
+    avg_confidence: float,
+    avg_step: int,
+    weighted_entry: float,
+    current_pnl: float,
+    direction: str
+) -> np.ndarray:
+    """Tạo observation vector 18 chiều đồng bộ với TradeExitEnv."""
+    obs = np.zeros(18, dtype=np.float32)
+    
+    # Feature 0: RSI (0-100 -> -1 to 1)
+    rsi = float(ana.get("rsi", 50.0))
+    obs[0] = (rsi - 50.0) / 50.0
+    
+    # Feature 1: MACD Hist (tanh normalized)
+    macd_hist = float(ana.get("macd_hist", 0.0))
+    obs[1] = np.tanh(macd_hist)
+    
+    # Feature 2: ATR % (0, inf -> 0, 1)
+    atr_pct = float(ana.get("atr_pct", 2.0))
+    obs[2] = np.tanh(atr_pct / 2.0)
+    
+    # Feature 3: ADX (0-100 -> 0, 1)
+    adx = float(ana.get("adx", 20.0))
+    obs[3] = adx / 100.0
+    
+    # Feature 4: Entry Confidence (0-1)
+    obs[4] = float(avg_confidence)
+    
+    # Features 5-12: Regime one-hot
+    regime_names = [
+        "STRONG_TREND", "WEAK_TREND", "COMPRESSION",
+        "BREAKOUT", "MEAN_REVERSION", "PANIC_SELL",
+        "LOW_LIQUIDITY", "PUMP_RISK"
+    ]
+    raw_regime = str(ana.get("regime", "STRONG_TREND"))
+    
+    # Map raw regime
+    r = raw_regime.upper()
+    if "STRONG_TREND" in r:
+        mapped = "STRONG_TREND"
+    elif "WEAK_TREND" in r:
+        mapped = "WEAK_TREND"
+    elif "COMPRESSION" in r:
+        mapped = "COMPRESSION"
+    elif "BREAKOUT" in r:
+        mapped = "BREAKOUT"
+    elif "MEAN_REVERSION" in r:
+        mapped = "MEAN_REVERSION"
+    elif "PANIC_SELL" in r:
+        mapped = "PANIC_SELL"
+    elif "PUMP_RISK" in r:
+        mapped = "PUMP_RISK"
+    elif "LOW_LIQUIDITY" in r:
+        mapped = "LOW_LIQUIDITY"
+    elif "RANGING" in r:
+        mapped = "MEAN_REVERSION"
+    elif "HIGH_VOLATILITY" in r:
+        mapped = "PANIC_SELL"
+    else:
+        mapped = "STRONG_TREND"
+        
+    regime_idx = regime_names.index(mapped) if mapped in regime_names else 0
+    obs[5 + regime_idx] = 1.0
+    
+    # Feature 13: PnL % (-100, 100 -> -1, 1)
+    obs[13] = np.tanh(current_pnl / 5.0)
+    
+    # Feature 14: Hold time (0, max -> 0, 1) - max_episode_length = 50
+    hold_time = min(avg_step, 50)
+    obs[14] = hold_time / 50.0
+    
+    # Feature 15: Fear & Greed (-1 to 1)
+    fear_greed = float(ana.get("fear_greed", 50.0))
+    obs[15] = (fear_greed - 50.0) / 50.0
+    
+    # Feature 16: Volume Ratio (0, 10 -> 0, 1)
+    vol_ratio = float(ana.get("volume_ratio", 1.0))
+    obs[16] = np.tanh(vol_ratio / 5.0)
+    
+    # Feature 17: BB Width % (0, 10 -> 0, 1)
+    bb_width_pct = float(ana.get("bb_width_pct", 2.0))
+    obs[17] = np.tanh((bb_width_pct - 2.0) / 2.0)
+    
+    return obs
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -54,6 +175,7 @@ def add_position(
         "entry_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "status": "open",
         "note": note,
+        "trailing_sl": None,
         "last_signal": None,
         "last_price": None,
         "last_checked": None,
@@ -395,6 +517,82 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         else:
             pnl_pct = (weighted_entry - current_price) / weighted_entry * 100
 
+        # Calculate average parameters for RL observation
+        conf_list = [p.get("entry_confidence") or p.get("entry_signal_score", {}).get("meta_confidence") or 0.5 for p in pos_list]
+        avg_confidence = float(sum(float(c) for c in conf_list) / len(conf_list))
+        
+        steps_list = []
+        for p in pos_list:
+            try:
+                entry_dt = datetime.strptime(p["entry_time"], "%Y-%m-%d %H:%M")
+                elapsed_minutes = (datetime.now() - entry_dt).total_seconds() / 60
+                steps_list.append(int(elapsed_minutes / 15))
+            except Exception:
+                steps_list.append(0)
+        avg_step = int(sum(steps_list) / len(steps_list))
+
+        # Fetch PPO model and predict
+        rl_action = None
+        model = get_ppo_model()
+        if model is not None:
+            try:
+                obs = _build_rl_observation(ana, avg_confidence, avg_step, weighted_entry, pnl_pct, direction)
+                rl_action_pred, _ = model.predict(obs, deterministic=True)
+                rl_action = int(rl_action_pred)
+                print(f"[RL Exit Agent] Coin {coin}: Predicted Action {rl_action}")
+            except Exception as ex:
+                print(f"[RL Exit Agent] Warning: Error predicting action for {coin}: {ex}")
+
+        # Update trailing SL for each position individually
+        atr = float(ana.get("atr", 0.0))
+        for p in pos_list:
+            pos_id = p["id"]
+            p_tp_sl = calculate_tp_sl(
+                close=p["entry_price"],
+                signal=force_signal,
+                atr=atr,
+                support=ana.get("support", 0.0),
+                resistance=ana.get("resistance", 0.0),
+                bb_upper=ana.get("bb_upper", 0.0),
+                bb_middle=ana.get("bb_middle", 0.0),
+                bb_lower=ana.get("bb_lower", 0.0),
+            )
+            initial_sl = p_tp_sl.get("sl", p["entry_price"] * 0.98 if direction == "LONG" else p["entry_price"] * 1.02)
+            
+            curr_trailing_sl = p.get("trailing_sl")
+            if curr_trailing_sl is None:
+                curr_trailing_sl = initial_sl
+            
+            if rl_action == 2:
+                # Move to breakeven
+                curr_trailing_sl = p["entry_price"]
+            elif atr > 0:
+                if direction == "LONG":
+                    candidate_sl = current_price - 1.5 * atr
+                    curr_trailing_sl = max(curr_trailing_sl, candidate_sl)
+                else:
+                    candidate_sl = current_price + 1.5 * atr
+                    curr_trailing_sl = min(curr_trailing_sl, candidate_sl)
+            
+            try:
+                positions_col.update_one(
+                    {"id": pos_id, "status": "open"},
+                    {"$set": {"trailing_sl": curr_trailing_sl}}
+                )
+            except Exception as e:
+                print(f"Warning: Lỗi khi cập nhật trailing_sl cho position {pos_id} trên MongoDB: {e}")
+            p["trailing_sl"] = curr_trailing_sl
+            
+        # Calculate weighted average trailing SL
+        grouped_trailing_sls = [p.get("trailing_sl") for p in pos_list if p.get("trailing_sl") is not None]
+        if grouped_trailing_sls:
+            if total_invested > 0:
+                avg_trailing_sl = sum(float(p.get("trailing_sl", 0.0)) * float(p.get("invested_usdt", 0.0)) for p in pos_list) / total_invested
+            else:
+                avg_trailing_sl = sum(float(p.get("trailing_sl", 0.0)) for p in pos_list) / len(pos_list)
+        else:
+            avg_trailing_sl = sl
+
         # Aggregate invested_usdt and expected received
         invested_usdt = total_invested
         pnl_usd_actual = invested_usdt * (pnl_pct / 100)
@@ -427,19 +625,20 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         except Exception:
             pos_meta_prob = None
 
-        # Xác định khuyến nghị dựa trên entry trung bình
+        # Xác định khuyến nghị dựa trên entry trung bình và trailing SL
         rec = _generate_recommendation(
             direction=direction,
             entry=weighted_entry,
             current_price=current_price,
             pnl_pct=pnl_pct,
             signal=signal,
-            sl=sl,
+            sl=avg_trailing_sl,
             tp1=tp1,
             tp2=tp2,
+            rl_action=rl_action,
         )
 
-        dca_opp = _evaluate_dca_opportunity(pos_list, ana, current_price, pos_meta_prob)
+        dca_opp = _evaluate_dca_opportunity(pos_list, ana, current_price, pos_meta_prob, rl_action=rl_action)
 
         # Cập nhật last_signal và last_price cho mọi vị thế của coin
         try:
@@ -450,7 +649,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                     "last_price": current_price,
                     "last_checked": datetime.now().strftime("%Y-%m-%d %H:%M"),
                     "last_signal_score": ana.get("signal_score", {}),
-                    "suggested_sl": sl,
+                    "suggested_sl": avg_trailing_sl,
                     "suggested_tp1": tp1,
                     "suggested_tp2": tp2,
                     "live_meta_confidence": pos_meta_prob,
@@ -476,7 +675,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             "recommendation": rec["action"],
             "recommendation_reason": rec["reason"],
             "urgency": rec["urgency"],
-            "sl": sl,
+            "sl": avg_trailing_sl,
             "tp1": tp1,
             "tp2": tp2,
             "rr1": rr1,
@@ -491,12 +690,25 @@ def _evaluate_dca_opportunity(
     pos_list: list[dict],
     ana: dict,
     current_price: float,
-    sim_meta_prob: float | None
+    sim_meta_prob: float | None,
+    rl_action: int | None = None,
 ) -> dict | None:
     """
     Evaluate DCA opportunity for a grouped coin position.
+
+    rl_action:
+        0=HOLD, 1=PARTIAL_CLOSE_50, 2=MOVE_SL_TO_BE,
+        3=TAKE_PROFIT, 4=EXIT, 5=TRAILING_SL_ATR
+    DCA is blocked when rl_action is 1 (PARTIAL_CLOSE), 3 (TAKE_PROFIT), or 4 (EXIT).
+    DCA size is scaled by Meta Model confidence:
+        - sim_meta_prob >= 0.75 -> 1.5x initial_invested
+        - 0.65 <= sim_meta_prob < 0.75 -> 1.0x initial_invested
     """
     if not pos_list or not ana or current_price <= 0:
+        return None
+
+    # Block DCA when RL recommends closing the position
+    if rl_action is not None and rl_action in (1, 3, 4):
         return None
 
     direction = pos_list[0].get("direction", "LONG").upper()
@@ -545,17 +757,28 @@ def _evaluate_dca_opportunity(
             if not is_near_resistance:
                 return None
 
-    # Calculate DCA suggestion (default to 100% of the initial position size)
+    # Dynamic DCA sizing based on Meta Model confidence
     initial_invested = float(pos_list[0].get("invested_usdt", 0.0))
-    suggested_dca_size = initial_invested if initial_invested > 0 else 100.0
-    
-    # Calculate new average entry price
+    base_size = initial_invested if initial_invested > 0 else 100.0
+
+    if sim_meta_prob >= 0.75:
+        # High confidence: scale up DCA by 1.5x
+        suggested_dca_size = base_size * 1.5
+        confidence_label = "HIGH"
+    else:
+        # Medium confidence (0.65–0.75): standard DCA size
+        suggested_dca_size = base_size * 1.0
+        confidence_label = "MEDIUM"
+
+    # Calculate new average entry price after DCA
     new_avg_entry = (total_invested * weighted_entry + suggested_dca_size * current_price) / (total_invested + suggested_dca_size)
-    
+
     return {
         "suggested_dca_size": round(suggested_dca_size, 2),
         "new_avg_entry": round(new_avg_entry, 6),
         "sim_meta_prob": round(sim_meta_prob, 4),
+        "confidence_label": confidence_label,
+        "rl_action_at_eval": rl_action,
     }
 
 
@@ -568,50 +791,71 @@ def _generate_recommendation(
     sl: float,
     tp1: float,
     tp2: float,
+    rl_action: int | None = None,
 ) -> dict:
     """
     Logic nội bộ tạo khuyến nghị dựa trên vị thế và tín hiệu thị trường.
+
+    rl_action (optional):
+        0=HOLD, 1=PARTIAL_CLOSE_50, 2=MOVE_SL_TO_BREAKEVEN,
+        3=TAKE_PROFIT, 4=EXIT, 5=TRAILING_SL_ATR
+    RL actions take priority over rule-based signals EXCEPT hard SL/TP hits.
     """
+    # --- Hard price-based rules always take priority ---
     # SL bị chạm
     if direction == "LONG" and sl > 0 and current_price <= sl:
-        return {"action": "🚨 CẮT LỖ NGAY", "reason": f"Giá đã chạm/xuyên SL {sl}", "urgency": "HIGH"}
+        return {"action": "[!] CAT LO NGAY", "reason": f"Gia da cham/xuyen SL {sl}", "urgency": "HIGH"}
     if direction == "SHORT" and sl > 0 and current_price >= sl:
-        return {"action": "🚨 CẮT LỖ NGAY", "reason": f"Giá đã chạm/xuyên SL {sl}", "urgency": "HIGH"}
+        return {"action": "[!] CAT LO NGAY", "reason": f"Gia da cham/xuyen SL {sl}", "urgency": "HIGH"}
 
     # TP đã chạm
     if direction == "LONG":
         if tp2 > 0 and current_price >= tp2:
-            return {"action": "🎯 CHỐT LỜI TP2", "reason": f"Giá đạt TP2 {tp2} — đã đủ lãi!", "urgency": "HIGH"}
+            return {"action": "[TP2] CHOT LOI TP2", "reason": f"Gia dat TP2 {tp2} -- da du lai!", "urgency": "HIGH"}
         if tp1 > 0 and current_price >= tp1:
-            return {"action": "✅ Xem xét CHỐT TP1", "reason": f"Giá chạm TP1 {tp1} (lãi {pnl_pct:+.2f}%) — cân nhắc chốt 50%", "urgency": "MEDIUM"}
+            return {"action": "[TP1] Xem xet CHOT TP1", "reason": f"Gia cham TP1 {tp1} (lai {pnl_pct:+.2f}%) -- can nhac chot 50%", "urgency": "MEDIUM"}
     if direction == "SHORT":
         if tp2 > 0 and current_price <= tp2:
-            return {"action": "🎯 CHỐT LỜI TP2", "reason": f"Giá đạt TP2 {tp2} — đã đủ lãi!", "urgency": "HIGH"}
+            return {"action": "[TP2] CHOT LOI TP2", "reason": f"Gia dat TP2 {tp2} -- da du lai!", "urgency": "HIGH"}
         if tp1 > 0 and current_price <= tp1:
-            return {"action": "✅ Xem xét CHỐT TP1", "reason": f"Giá chạm TP1 {tp1} (lãi {pnl_pct:+.2f}%) — cân nhắc chốt 50%", "urgency": "MEDIUM"}
+            return {"action": "[TP1] Xem xet CHOT TP1", "reason": f"Gia cham TP1 {tp1} (lai {pnl_pct:+.2f}%) -- can nhac chot 50%", "urgency": "MEDIUM"}
 
-    # Tín hiệu đảo chiều mạnh ngược chiều vị thế
+    # --- RL Agent recommendations (after price rules) ---
+    RL_ACTION_LABELS = {
+        0: None,   # HOLD -> fall through to rule-based
+        1: ("[RL] CHOT LOI 50% (RL Partial Close)", "RL agent khuyen chot 50% vi the", "MEDIUM"),
+        2: ("[RL] DOI SL VE ENTRY (RL Move-to-BE)", "RL agent khuyen doi SL ve entry (breakeven)", "MEDIUM"),
+        3: ("[RL] CHOT LOI FULL (RL Take Profit)", "RL agent khuyen chot loi toan bo", "HIGH"),
+        4: ("[RL] DONG VI THE (RL Exit)", "RL agent khuyen dong vi the de bao toan von", "HIGH"),
+        5: ("[RL] TRAILING SL ATR (RL Trailing SL)", "RL agent kich hoat trailing SL theo ATR", "LOW"),
+    }
+    if rl_action is not None and rl_action in RL_ACTION_LABELS:
+        rl_label = RL_ACTION_LABELS[rl_action]
+        if rl_label is not None:  # action 0 (HOLD) falls through
+            return {"action": rl_label[0], "reason": rl_label[1], "urgency": rl_label[2]}
+
+    # --- Tín hiệu đảo chiều mạnh ngược chiều vị thế ---
     if direction == "LONG" and any(x in signal for x in ["STRONG SELL", "SELL (Crossover)", "SELL (Break-SMA50)", "SELL (SFP"]):
-        action = "⚠️ XEM XÉT ĐÓNG LỆNH" if pnl_pct > 0 else "⚠️ CÂN NHẮC CẮT LỖ"
-        return {"action": action, "reason": f"Xuất hiện tín hiệu đảo chiều: {signal}", "urgency": "MEDIUM"}
+        action = "[!] XEM XET DONG LENH" if pnl_pct > 0 else "[!] CAN NHAC CAT LO"
+        return {"action": action, "reason": f"Xuat hien tin hieu dao chieu: {signal}", "urgency": "MEDIUM"}
     if direction == "SHORT" and any(x in signal for x in ["STRONG BUY", "BUY (Crossover)", "BUY (SFP"]):
-        action = "⚠️ XEM XÉT ĐÓNG LỆNH" if pnl_pct > 0 else "⚠️ CÂN NHẮC CẮT LỖ"
-        return {"action": action, "reason": f"Xuất hiện tín hiệu đảo chiều: {signal}", "urgency": "MEDIUM"}
+        action = "[!] XEM XET DONG LENH" if pnl_pct > 0 else "[!] CAN NHAC CAT LO"
+        return {"action": action, "reason": f"Xuat hien tin hieu dao chieu: {signal}", "urgency": "MEDIUM"}
 
     # Đang lỗ nặng (> 3%)
     if pnl_pct < -3.0:
-        return {"action": "⚠️ CẢNH BÁO LỖ", "reason": f"Đang lỗ {pnl_pct:.2f}% — xem xét lại kế hoạch", "urgency": "MEDIUM"}
+        return {"action": "[WARN] CANH BAO LO", "reason": f"Dang lo {pnl_pct:.2f}% -- xem xet lai ke hoach", "urgency": "MEDIUM"}
 
     # Bình thường — giữ lệnh
     trend_note = ""
     if direction == "LONG" and "BULLISH" in signal:
-        trend_note = " — xu hướng đang hỗ trợ vị thế"
+        trend_note = " -- xu huong dang ho tro vi the"
     elif direction == "SHORT" and "BEARISH" in signal:
-        trend_note = " — xu hướng đang hỗ trợ vị thế"
+        trend_note = " -- xu huong dang ho tro vi the"
 
     return {
-        "action": f"💤 GIỮ LỆNH ({pnl_pct:+.2f}%)",
-        "reason": f"Chưa chạm TP/SL{trend_note}. Tín hiệu: {signal}",
+        "action": f"[HOLD] GIU LENH ({pnl_pct:+.2f}%)",
+        "reason": f"Chua cham TP/SL{trend_note}. Tin hieu: {signal}",
         "urgency": "LOW",
     }
 

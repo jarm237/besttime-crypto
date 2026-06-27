@@ -277,16 +277,27 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
             dca_size = dca_opp["suggested_dca_size"]
             new_avg_entry = dca_opp["new_avg_entry"]
             sim_meta = int(round(dca_opp["sim_meta_prob"] * 100))
-            
+            dca_conf_label = dca_opp.get("confidence_label", "MEDIUM")
+            rl_at_eval = dca_opp.get("rl_action_at_eval")
+
             new_entry_format = ",.4f" if new_avg_entry > 0 and new_avg_entry < 10 else ",.2f"
             new_avg_entry_str = f"{new_avg_entry:{new_entry_format}}"
-            
+
+            # Map rl_action number to readable label
+            RL_LABEL_MAP = {0: "HOLD", 2: "TRAILING-BE", 5: "TRAILING-SL", None: "N/A"}
+            rl_label_str = RL_LABEL_MAP.get(rl_at_eval, str(rl_at_eval))
+
+            # Confidence icon
+            conf_icon = "🔥" if dca_conf_label == "HIGH" else "🟡"
+
             line = (
                 f"{icon} <b>[KHUYẾN NGHỊ DCA] {coin} ({direction})</b>: {pnl_text}\n"
                 f"  👉 <b>Khuyên dùng DCA thêm ${dca_size:.2f} USDT tại {current_price_str}</b>\n"
                 f"  💰 Entry cũ: <code>{entry_price_str}</code> | Entry mới: <code>{new_avg_entry_str}</code>\n"
                 f"  🤖 <b>XS thắng DCA: {sim_meta}%</b> (Reversal Prob)\n"
+                f"  {conf_icon} Confidence: <b>{dca_conf_label}</b> | RL lúc đánh giá: {rl_label_str}\n"
             )
+
         else:
             line = (
                 f"{icon} <b>{coin}</b> ({direction}){meta_part}: {pnl_text}\n"

@@ -7,17 +7,207 @@ Actions: HOLD, PARTIAL_CLOSE_50, MOVE_SL_TO_BREAKEVEN, TAKE_PROFIT, EXIT
 Reward: PnL - drawdown_penalty + sharpe_bonus
 """
 
+import os
+import csv
+import glob
+import json
+import math
+import pickle
+from datetime import datetime
+import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-import numpy as np
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple, Any, List
+
+from btc_scraper.analysis.core import analyze_market, calculate_tp_sl
+
+
+def load_sentiment_history(sentiment_file: str = "logs/sentiment_history.json") -> dict:
+    """Load historical sentiment Fear & Greed values by date."""
+    if not os.path.exists(sentiment_file):
+        return {}
+    try:
+        with open(sentiment_file, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        sentiment_by_date = {}
+        for k, v in raw.items():
+            date_key = k[:10]  # "YYYY-MM-DD"
+            if date_key not in sentiment_by_date:
+                sentiment_by_date[date_key] = {
+                    "score": float(v.get("score", 0.0)),
+                    "raw_value": int(v.get("raw_value", 50)),
+                    "label": str(v.get("label", "Neutral")),
+                }
+        return sentiment_by_date
+    except Exception as e:
+        print(f"[RL Environment] Error loading sentiment history: {e}")
+        return {}
+
+
+def load_and_prepare_candles(
+    data_dir: str = "data/historical_18m",
+    sentiment_file: str = "logs/sentiment_history.json",
+    coins: List[str] = None,
+    cache_file: str = "data/rl_candle_cache.pkl",
+) -> dict:
+    """
+    Load all 15m candle CSVs for target coins, run analyze_market ONCE per coin
+    to populate indicators, and cache results.
+    
+    Uses a disk-level pickle cache so indicators are only computed once across
+    all training runs. Delete data/rl_candle_cache.pkl to force recompute.
+    """
+    # ── Check disk cache first ──────────────────────────────────────────────
+    if cache_file and os.path.exists(cache_file):
+        try:
+            print(f"[RL Environment] Loading indicator cache from {cache_file}...")
+            with open(cache_file, "rb") as f:
+                cached = pickle.load(f)
+            # Filter to requested coins if specified
+            if coins:
+                target = set(c.upper() for c in coins)
+                cached = {k: v for k, v in cached.items() if k in target}
+            if cached:
+                print(f"[RL Environment] Cache hit: {list(cached.keys())} ({sum(len(v) for v in cached.values()):,} total candles)")
+                return cached
+        except Exception as e:
+            print(f"[RL Environment] Cache load failed ({e}), recomputing...")
+
+    sentiment_by_date = load_sentiment_history(sentiment_file)
+    sorted_dates = sorted(sentiment_by_date.keys())
+    
+    # Target coins set
+    target_coins = set(c.upper() for c in coins) if coins else None
+    
+    # Find matching CSV files
+    csv_pattern = os.path.join(data_dir, "*_15m.csv")
+    csv_files = glob.glob(csv_pattern)
+    
+    coin_files = {}
+    for f in csv_files:
+        parts = os.path.basename(f).split("_")
+        if len(parts) >= 3:
+            coin = parts[-2].upper()
+            if target_coins and coin not in target_coins:
+                continue
+            if coin not in coin_files:
+                coin_files[coin] = []
+            coin_files[coin].append(f)
+            
+    coin_candles = {}
+    
+    # Temporarily mock sentiment module inside analyze_market to avoid DB/network issues
+    import btc_scraper.core.sentiment as _sent_mod
+    import btc_scraper.analysis.core as _analysis_core
+    
+    orig_get_sentiment = _sent_mod.get_market_sentiment
+    orig_get_trend = _sent_mod.get_sentiment_trend
+    orig_save_sentiment = _sent_mod._save_sentiment_to_history
+    
+    # Mock date context variable
+    mock_date_ctx = "2026-01-01"
+    
+    def mock_get_market_sentiment():
+        if mock_date_ctx in sentiment_by_date:
+            return sentiment_by_date[mock_date_ctx]
+        import bisect
+        idx = bisect.bisect_right(sorted_dates, mock_date_ctx) - 1
+        if idx >= 0:
+            return sentiment_by_date[sorted_dates[idx]]
+        return {"score": 0.0, "raw_value": 50, "label": "Neutral"}
+        
+    def mock_get_sentiment_trend(current_sentiment=None):
+        return {
+            "trend": "STABLE",
+            "momentum": 0.0,
+            "recovery_signal": False,
+            "risk_signal": False,
+        }
+        
+    _sent_mod.get_market_sentiment = mock_get_market_sentiment
+    _sent_mod.get_sentiment_trend = mock_get_sentiment_trend
+    _sent_mod._save_sentiment_to_history = lambda *a, **k: None
+    
+    _analysis_core.get_market_sentiment = mock_get_market_sentiment
+    _analysis_core.get_sentiment_trend = mock_get_sentiment_trend
+    _analysis_core._save_sentiment_to_history = lambda *a, **k: None
+    
+    try:
+        for coin, files in coin_files.items():
+            print(f"[RL Environment] Loading and calculating indicators for {coin}...")
+            combined = []
+            for path in files:
+                with open(path, "r", encoding="utf-8") as f:
+                    for row in csv.DictReader(f):
+                        dt = datetime.strptime(row["time"], "%Y-%m-%d %H:%M")
+                        combined.append({
+                            "time": row["time"],
+                            "time_dt": dt,
+                            "open": float(row["open"]),
+                            "high": float(row["high"]),
+                            "low": float(row["low"]),
+                            "close": float(row["close"]),
+                            "volume": float(row["volume"]),
+                            "is_warmup": int(row.get("is_warmup", 0)),
+                        })
+            
+            if not combined:
+                continue
+                
+            # Dedup and sort
+            seen = set()
+            dedup = []
+            for c in combined:
+                if c["time"] not in seen:
+                    seen.add(c["time"])
+                    dedup.append(c)
+            dedup.sort(key=lambda x: x["time_dt"])
+            
+            # Run analyze_market in one pass
+            if len(dedup) >= 220:
+                mock_date_ctx = dedup[-1]["time"][:10]
+                try:
+                    analyze_market(dedup)
+                except Exception as e:
+                    print(f"[RL Environment] Warning: analyze_market failed on {coin}: {e}")
+                    
+                # Fill fear_greed based on actual historical dates
+                for c in dedup:
+                    c_date = c["time"][:10]
+                    sent = sentiment_by_date.get(c_date, {"raw_value": 50})
+                    c["fear_greed"] = float(sent.get("raw_value", 50))
+                    # Remove non-serialisable datetime object before caching
+                    c.pop("time_dt", None)
+                    
+                coin_candles[coin] = dedup
+                print(f"[RL Environment] Successfully processed {len(dedup)} candles for {coin}.")
+    finally:
+        # Restore original sentiment functions
+        _sent_mod.get_market_sentiment = orig_get_sentiment
+        _sent_mod.get_sentiment_trend = orig_get_trend
+        _sent_mod._save_sentiment_to_history = orig_save_sentiment
+        _analysis_core.get_market_sentiment = orig_get_sentiment
+        _analysis_core.get_sentiment_trend = orig_get_trend
+        _analysis_core._save_sentiment_to_history = orig_save_sentiment
+    
+    # ── Save to disk cache ──────────────────────────────────────────────────
+    if coin_candles and cache_file:
+        try:
+            os.makedirs(os.path.dirname(cache_file) if os.path.dirname(cache_file) else ".", exist_ok=True)
+            with open(cache_file, "wb") as f:
+                pickle.dump(coin_candles, f, protocol=pickle.HIGHEST_PROTOCOL)
+            print(f"[RL Environment] Indicator cache saved to {cache_file} ({os.path.getsize(cache_file)/1024/1024:.1f} MB)")
+        except Exception as e:
+            print(f"[RL Environment] Warning: could not save cache: {e}")
+        
+    return coin_candles
 
 
 class TradeExitEnv(gym.Env):
     """
-    Gymnasium environment for trading exit management.
+    Gymnasium environment for trading exit management with real price progression.
     
-    State Space (10 features):
+    State Space (18 features):
     - rsi (0-100) normalized to (-1, 1)
     - macd_hist (-inf, inf) normalized to (-1, 1)
     - atr (0, inf) normalized to (0, 1)
@@ -25,41 +215,34 @@ class TradeExitEnv(gym.Env):
     - meta_confidence (0-1)
     - regime (0-7) one-hot encoded to 8 features
     - pnl_pct (-100, 100) normalized to (-1, 1)
-    - hold_time (0-500 bars) normalized to (0, 1)
+    - hold_time (0-max_episode_length) normalized to (0, 1)
     - fear_greed (-100, 100) normalized to (-1, 1)
     - volume_ratio (0, 10) normalized to (0, 1)
+    - bbands_width (0, 10) normalized to (0, 1)
     Total: 10 + 8 regime features = 18 features
     
-    Action Space (5 discrete actions):
+    Action Space (6 discrete actions):
     0: HOLD
     1: PARTIAL_CLOSE_50
     2: MOVE_SL_TO_BREAKEVEN
     3: TAKE_PROFIT
     4: EXIT
-    
-    Reward:
-    - Base: PnL
-    - Penalty: -drawdown if underwater
-    - Bonus: +sharpe if exit at peak
+    5: TRAILING_SL_ATR
     """
     
     metadata = {"render_modes": ["human"]}
     
+    # Class-level cache to avoid loading CSVs twice when train/eval envs are created
+    _COIN_CANDLES_CACHE = None
+    
     def __init__(self, trades: list[dict], config: dict = None):
-        """
-        Initialize environment.
-        
-        Args:
-            trades: List of trade dicts with OHLCV + indicators
-            config: Config dict with reward params, episode length, etc.
-        """
         super().__init__()
         
         self.trades = trades
         self.config = config or {}
         
         # Environment parameters
-        self.max_episode_length = self.config.get("max_episode_length", 100)
+        self.max_episode_length = self.config.get("max_episode_length", 50)
         self.reward_scale = self.config.get("reward_scale", 1.0)
         self.drawdown_penalty = self.config.get("drawdown_penalty", 0.5)
         self.sharpe_bonus = self.config.get("sharpe_bonus", 0.2)
@@ -69,14 +252,76 @@ class TradeExitEnv(gym.Env):
             low=-1.0, high=1.0, shape=(18,), dtype=np.float32
         )
         
-        # Action space: 5 discrete actions
-        self.action_space = spaces.Discrete(5)
+        # Action space: 6 discrete actions
+        self.action_space = spaces.Discrete(6)
+        
+        # Load and cache candles
+        if TradeExitEnv._COIN_CANDLES_CACHE is None:
+            target_coins = list(set(t.get("coin", "BTC").upper() for t in trades))
+            TradeExitEnv._COIN_CANDLES_CACHE = load_and_prepare_candles(
+                data_dir="data/historical_18m",
+                sentiment_file="logs/sentiment_history.json",
+                coins=target_coins
+            )
+            
+        self.coin_candles = TradeExitEnv._COIN_CANDLES_CACHE
+        
+        # Find candle index for each entry signal
+        self.valid_trades = []
+        for t in trades:
+            coin = t.get("coin", "BTC").upper()
+            entry_time = t.get("entry_time")
+            if coin in self.coin_candles and entry_time:
+                candles = self.coin_candles[coin]
+                found_idx = None
+                for idx, c in enumerate(candles):
+                    if c["time"] == entry_time:
+                        found_idx = idx
+                        break
+                if found_idx is not None:
+                    # Only simulate if we have enough future candles
+                    if len(candles) - found_idx > self.max_episode_length:
+                        trade_copy = dict(t)
+                        trade_copy["coin"] = coin
+                        trade_copy["candle_idx"] = found_idx
+                        self.valid_trades.append(trade_copy)
+                        
+        if not self.valid_trades:
+            print("[WARN] No trades matched with historical candles. Falling back to dummy mode.")
+            # Dummy fallback if no candles matched
+            self.valid_trades = [{"coin": "BTC", "candle_idx": 0, "signal_raw": "BUY"}]
+            self.coin_candles = {"BTC": [{"time": "2026-01-01 00:00", "close": 100.0, "high": 101.0, "low": 99.0, "volume": 100.0, "rsi": 50.0, "macd_hist": 0.0, "atr": 1.0, "adx": 20.0, "regime": "STRONG_TREND"} for _ in range(200)]}
+            
+        print(f"[RL Environment] Successfully matched {len(self.valid_trades)} / {len(trades)} trades with candles.")
+        
+        # Pre-classify trades for Curriculum Learning
+        self.easy_trades = []
+        self.hard_trades = []
+        easy_regimes = {"STRONG_TREND_BULL", "STRONG_TREND_BEAR", "STRONG_TREND", "BREAKOUT"}
+        for t in self.valid_trades:
+            coin = t["coin"]
+            idx = t["candle_idx"]
+            candle = self.coin_candles[coin][idx]
+            regime = candle.get("regime", "STRONG_TREND")
+            if regime in easy_regimes:
+                self.easy_trades.append(t)
+            else:
+                self.hard_trades.append(t)
+                
+        if not self.easy_trades:
+            self.easy_trades = self.valid_trades
+            
+        self.curriculum_phase = "easy"
+        self.active_trades = self.easy_trades
+        self.trailing_sl_active = False
         
         # Episode state
         self.current_step = 0
         self.current_trade_idx = 0
         self.entry_price = 0.0
-        self.entry_pnl = 0.0
+        self.sl = 0.0
+        self.tp = 0.0
+        self.direction = "LONG"
         self.max_pnl = 0.0
         self.episode_rewards = []
         self.episode_done_reason = ""
@@ -87,181 +332,332 @@ class TradeExitEnv(gym.Env):
             "BREAKOUT", "MEAN_REVERSION", "PANIC_SELL",
             "LOW_LIQUIDITY", "PUMP_RISK"
         ]
-    
+        
+    def set_curriculum_phase(self, phase: str):
+        self.curriculum_phase = phase
+        if phase == "easy":
+            self.active_trades = self.easy_trades
+        else:
+            self.active_trades = self.valid_trades
+        print(f"[RL Env] Curriculum phase set to '{phase}'. Active trades: {len(self.active_trades)}")
+        
     def reset(self, seed=None, options=None) -> Tuple[np.ndarray, Dict]:
         """Reset environment to initial state."""
         super().reset(seed=seed)
         
         self.current_step = 0
-        self.current_trade_idx = self.np_random.integers(0, len(self.trades))
         self.episode_rewards = []
         self.episode_done_reason = ""
+        self.trailing_sl_active = False
         
-        # Get initial trade
-        trade = self.trades[self.current_trade_idx]
-        self.entry_price = trade.get("entry_price", trade.get("close", 100.0))
-        self.entry_pnl = 0.0
+        # Select trade
+        self.current_trade_idx = self.np_random.integers(0, len(self.active_trades))
+        self.trade = self.active_trades[self.current_trade_idx]
+        
+        self.coin = self.trade["coin"]
+        self.entry_candle_idx = self.trade["candle_idx"]
+        
+        # Setup initial entry candle state
+        entry_candle = self.coin_candles[self.coin][self.entry_candle_idx]
+        self.entry_price = entry_candle["close"]
         self.max_pnl = 0.0
         
-        obs = self._get_observation(trade, 0)
-        info = {}
+        # Direction
+        sig = str(self.trade.get("signal_raw", "BUY")).upper()
+        self.direction = "SHORT" if "SELL" in sig or "SHORT" in sig else "LONG"
+        
+        # Compute dynamic TP & SL
+        tp_sl = calculate_tp_sl(
+            close=entry_candle["close"],
+            signal=self.trade.get("signal_raw", "BUY"),
+            atr=entry_candle.get("atr", 1.0),
+            support=entry_candle.get("support", 0.0),
+            resistance=entry_candle.get("resistance", 0.0),
+            bb_upper=entry_candle.get("bb_upper", 0.0),
+            bb_middle=entry_candle.get("bb_middle", 0.0),
+            bb_lower=entry_candle.get("bb_lower", 0.0),
+            regime=entry_candle.get("regime")
+        )
+        self.sl = tp_sl["sl"]
+        self.tp = tp_sl["tp1"]
+        
+        obs = self._get_observation(entry_candle, 0)
+        info = {
+            "coin": self.coin,
+            "direction": self.direction,
+            "entry_time": entry_candle["time"],
+            "entry_price": self.entry_price,
+            "sl": self.sl,
+            "tp": self.tp,
+        }
         
         return obs, info
-    
+        
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict]:
-        """
-        Execute one step.
+        """Execute one time step."""
+        # Index in preloaded candles
+        idx = self.entry_candle_idx + self.current_step
         
-        Args:
-            action: Action index (0-4)
+        # Safety check if we exceed data range
+        if idx >= len(self.coin_candles[self.coin]):
+            terminated = True
+            reward = 0.0
+            truncated = False
+            dummy_obs = np.zeros(18, dtype=np.float32)
+            info = {
+                "current_pnl": 0.0,
+                "max_pnl": self.max_pnl,
+                "done_reason": "DATA_END",
+                "step": self.current_step,
+            }
+            return dummy_obs, reward, terminated, truncated, info
             
-        Returns:
-            (observation, reward, terminated, truncated, info)
-        """
-        trade = self.trades[self.current_trade_idx]
-        current_price = trade.get("close", 100.0)
+        candle = self.coin_candles[self.coin][idx]
         
-        # Compute PnL
-        current_pnl = ((current_price - self.entry_price) / self.entry_price) * 100
+        # Update trailing SL if active
+        if self.trailing_sl_active:
+            atr = float(candle.get("atr", 1.0))
+            if self.direction == "LONG":
+                candidate_sl = candle["close"] - 1.5 * atr
+                self.sl = max(self.sl, candidate_sl)
+            else:
+                candidate_sl = candle["close"] + 1.5 * atr
+                self.sl = min(self.sl, candidate_sl)
+        
+        # Calculate current PnL
+        if self.direction == "LONG":
+            current_pnl = ((candle["close"] - self.entry_price) / self.entry_price) * 100
+        else:
+            current_pnl = ((self.entry_price - candle["close"]) / self.entry_price) * 100
+            
         self.max_pnl = max(self.max_pnl, current_pnl)
         
         reward = 0.0
         terminated = False
         done_reason = ""
         
-        # Action-based logic
-        if action == 0:  # HOLD
-            reward = 0.01  # Small reward for staying in
+        # 1. Check if TP or SL was hit at this candle
+        hit_sl = False
+        hit_tp = False
         
-        elif action == 1:  # PARTIAL_CLOSE_50
-            # Realize 50% at current price
-            partial_pnl = current_pnl * 0.5
-            reward = partial_pnl * self.reward_scale
-            terminated = True
-            done_reason = "PARTIAL_CLOSE_50"
-        
-        elif action == 2:  # MOVE_SL_TO_BREAKEVEN
-            # Safe move but locks profit
-            if current_pnl > 0:
-                reward = 0.05  # Small bonus for locking gains
+        if self.direction == "LONG":
+            if candle["low"] <= self.sl:
+                hit_sl = True
+            if candle["high"] >= self.tp:
+                hit_tp = True
+        else:
+            if candle["high"] >= self.sl:
+                hit_sl = True
+            if candle["low"] <= self.tp:
+                hit_tp = True
+                
+        if hit_sl:
+            if self.direction == "LONG":
+                sl_pnl = ((self.sl - self.entry_price) / self.entry_price) * 100
             else:
-                reward = -0.02  # Penalty for moving SL when losing
-        
-        elif action == 3:  # TAKE_PROFIT
-            # Fully exit at current price
-            final_pnl = current_pnl
-            reward = final_pnl * self.reward_scale
-            
-            # Bonus if exiting near peak
-            if final_pnl > self.max_pnl * 0.9:  # Within 10% of peak
-                reward += self.sharpe_bonus
-            
+                sl_pnl = ((self.entry_price - self.sl) / self.entry_price) * 100
+            reward = sl_pnl * self.reward_scale - self.drawdown_penalty
+            reward = max(reward, -5.0)  # Cap max loss penalty
             terminated = True
-            done_reason = "TAKE_PROFIT"
-        
-        elif action == 4:  # EXIT
-            # Emergency exit
-            final_pnl = current_pnl
-            reward = final_pnl * self.reward_scale
-            
-            # Penalty for exiting underwater
-            if final_pnl < 0:
-                reward -= self.drawdown_penalty
-            
+            done_reason = "SL_HIT"
+        elif hit_tp:
+            if self.direction == "LONG":
+                tp_pnl = ((self.tp - self.entry_price) / self.entry_price) * 100
+            else:
+                tp_pnl = ((self.entry_price - self.tp) / self.entry_price) * 100
+            reward = tp_pnl * self.reward_scale + self.sharpe_bonus * 2.0  # Extra bonus for full TP hit
             terminated = True
-            done_reason = "EXIT"
-        
+            done_reason = "TP_HIT"
+            
+        # 2. Process Agent actions if not force-terminated
+        if not terminated:
+            if action == 0:  # HOLD
+                # Small time-decay reward tied to direction of PnL movement
+                # Positive PnL → reward holding; negative PnL → slight penalty to encourage SL
+                if current_pnl > 0:
+                    reward = 0.01 + current_pnl * 0.002  # Tiny bonus for profitable holds
+                else:
+                    reward = -0.002  # Mild penalty for holding losing trade (reduced from -0.005)
+                
+            elif action == 1:  # PARTIAL_CLOSE_50
+                partial_pnl = current_pnl * 0.5
+                reward = partial_pnl * self.reward_scale
+                if current_pnl > 0:
+                    reward += 0.05  # Bonus for locking in profits
+                terminated = True
+                done_reason = "PARTIAL_CLOSE_50"
+                
+            elif action == 2:  # MOVE_SL_TO_BREAKEVEN
+                self.sl = self.entry_price
+                if current_pnl >= 1.0:
+                    reward = 0.15  # Strong reward for securing a solid trade
+                elif current_pnl > 0:
+                    reward = 0.10  # Good risk management move
+                else:
+                    reward = -0.02  # Moving SL to BE when in loss is suboptimal but slightly less penalized
+                    
+            elif action == 3:  # TAKE_PROFIT
+                reward = current_pnl * self.reward_scale
+                # Bonus for exiting near or above max_pnl
+                if self.max_pnl > 0 and current_pnl >= self.max_pnl * 0.8:
+                    reward += self.sharpe_bonus
+                elif current_pnl > 0:
+                    reward += self.sharpe_bonus * 0.3  # Partial bonus for any profit exit
+                terminated = True
+                done_reason = "TAKE_PROFIT"
+                
+            elif action == 4:  # EXIT
+                reward = current_pnl * self.reward_scale
+                if current_pnl < 0:
+                    # Calculate loss if we were to hit current SL
+                    if self.direction == "LONG":
+                        sl_pnl = ((self.sl - self.entry_price) / self.entry_price) * 100
+                    else:
+                        sl_pnl = ((self.entry_price - self.sl) / self.entry_price) * 100
+                    
+                    # Capital preservation: if current_pnl is better than sl_pnl, reward the saved amount
+                    if current_pnl > sl_pnl:
+                        saved_pnl = current_pnl - sl_pnl
+                        reward += saved_pnl * 0.15
+                    else:
+                        # Otherwise penalize normally
+                        reward -= self.drawdown_penalty * 1.5
+                elif current_pnl > 0:
+                    # Small bonus for cutting early profit (better than nothing)
+                    reward += self.sharpe_bonus * 0.3
+                terminated = True
+                done_reason = "EXIT"
+                
+            elif action == 5:  # TRAILING_SL_ATR
+                self.trailing_sl_active = True
+                # Immediately apply trailing SL update for current step
+                atr = float(candle.get("atr", 1.0))
+                if self.direction == "LONG":
+                    candidate_sl = candle["close"] - 1.5 * atr
+                    self.sl = max(self.sl, candidate_sl)
+                else:
+                    candidate_sl = candle["close"] + 1.5 * atr
+                    self.sl = min(self.sl, candidate_sl)
+                
+                if current_pnl > 0:
+                    reward = 0.12  # Encouraged trailing SL when profitable
+                else:
+                    reward = 0.0  # Trailing SL when in a drawdown is good defensive behavior (neutral reward)
+                
         self.current_step += 1
         self.episode_rewards.append(reward)
         
-        # Truncate if max episode length reached
+        # Check max episode length
         truncated = self.current_step >= self.max_episode_length
-        if truncated:
+        if truncated and not terminated:
+            terminated = True
             done_reason = "MAX_STEPS"
-        
-        # Get next observation
-        next_obs = self._get_observation(trade, self.current_step)
+            reward = current_pnl * self.reward_scale
+            self.episode_rewards.append(reward)
+            
+        # Fetch next candle observation
+        next_idx = min(idx + 1, len(self.coin_candles[self.coin]) - 1)
+        next_candle = self.coin_candles[self.coin][next_idx]
+        next_obs = self._get_observation(next_candle, self.current_step)
         
         info = {
             "current_pnl": current_pnl,
             "max_pnl": self.max_pnl,
             "done_reason": done_reason,
             "step": self.current_step,
+            "sl": self.sl,
+            "tp": self.tp,
         }
         
         return next_obs, reward, terminated, truncated, info
-    
-    def _get_observation(self, trade: dict, step: int) -> np.ndarray:
-        """
-        Compute observation vector (18 features).
         
-        Args:
-            trade: Trade dict with indicators
-            step: Current step in episode
-            
-        Returns:
-            Normalized observation array (18,)
-        """
+    def _get_observation(self, candle: dict, step: int) -> np.ndarray:
+        """Compute normalized observation vector (18 features)."""
         obs = np.zeros(18, dtype=np.float32)
         
         # Feature 0: RSI (0-100 -> -1 to 1)
-        rsi = float(trade.get("rsi", 50.0))
+        rsi = float(candle.get("rsi", 50.0))
         obs[0] = (rsi - 50) / 50.0
         
-        # Feature 1: MACD Hist (normalize by bounds)
-        macd_hist = float(trade.get("macd_hist", 0.0))
-        obs[1] = np.tanh(macd_hist / 0.01)  # Normalize with reasonable bound
+        # Feature 1: MACD Hist (tanh normalized)
+        macd_hist = float(candle.get("macd_hist", 0.0))
+        obs[1] = np.tanh(macd_hist)
         
-        # Feature 2: ATR (0, inf -> 0, 1)
-        atr = float(trade.get("atr", 1.0))
-        close = float(trade.get("close", 100.0))
-        atr_pct = (atr / close) * 100 if close > 0 else 0.0
-        obs[2] = np.tanh(atr_pct / 2.0)  # Typical ATR is 1-3% of price
+        # Feature 2: ATR % (0, inf -> 0, 1)
+        atr_pct = float(candle.get("atr_pct", 2.0))
+        obs[2] = np.tanh(atr_pct / 2.0)
         
         # Feature 3: ADX (0-100 -> 0, 1)
-        adx = float(trade.get("adx", 20.0))
+        adx = float(candle.get("adx", 20.0))
         obs[3] = adx / 100.0
         
-        # Feature 4: Meta Confidence (0-1)
-        meta_conf = trade.get("meta_confidence", 0.5)
-        if isinstance(meta_conf, str):
-            meta_conf = 0.5  # Default if string value
+        # Feature 4: Entry Confidence (0-1)
+        meta_conf = self.trade.get("meta_confidence", 0.5)
+        if meta_conf is None or isinstance(meta_conf, str):
+            ss = self.trade.get("signal_score")
+            if isinstance(ss, dict):
+                meta_conf = ss.get("meta_confidence", 0.5)
+            else:
+                meta_conf = 0.5
         obs[4] = float(meta_conf)
         
-        # Features 5-12: Regime one-hot (8 values)
-        regime = str(trade.get("regime", "STRONG_TREND"))
-        regime_idx = self.regime_names.index(regime) if regime in self.regime_names else 0
+        # Features 5-12: Regime one-hot
+        regime = str(candle.get("regime", "STRONG_TREND"))
+        mapped = self._map_regime(regime)
+        regime_idx = self.regime_names.index(mapped) if mapped in self.regime_names else 0
         obs[5 + regime_idx] = 1.0
         
         # Feature 13: PnL % (-100, 100 -> -1, 1)
-        current_price = float(trade.get("close", 100.0))
-        current_pnl = ((current_price - self.entry_price) / self.entry_price) * 100 if self.entry_price > 0 else 0.0
-        obs[13] = np.tanh(current_pnl / 50.0)
+        if self.direction == "LONG":
+            current_pnl = ((candle["close"] - self.entry_price) / self.entry_price) * 100
+        else:
+            current_pnl = ((self.entry_price - candle["close"]) / self.entry_price) * 100
+        obs[13] = np.tanh(current_pnl / 5.0)
         
-        # Feature 14: Hold time (bars, 0-500 -> 0, 1)
+        # Feature 14: Hold time (0, max -> 0, 1)
         hold_time = min(step, self.max_episode_length)
         obs[14] = hold_time / self.max_episode_length
         
-        # Feature 15: Fear & Greed (-100, 100 -> -1, 1)
-        fear_greed = float(trade.get("fear_greed", 0.0))
-        obs[15] = fear_greed / 100.0
+        # Feature 15: Fear & Greed (-1 to 1)
+        fear_greed = float(candle.get("fear_greed", 50.0))
+        obs[15] = (fear_greed - 50) / 50.0
         
         # Feature 16: Volume Ratio (0, 10 -> 0, 1)
-        vol_ratio = float(trade.get("volume_ratio", 1.0))
+        vol_ratio = float(candle.get("volume_ratio", 1.0))
         obs[16] = np.tanh(vol_ratio / 5.0)
         
-        # Feature 17: Spare/composite feature
-        bbands_width = float(trade.get("bbands_width", 2.0))
-        obs[17] = np.tanh((bbands_width - 2.0) / 2.0)
+        # Feature 17: BB Width % (0, 10 -> 0, 1)
+        bb_width_pct = float(candle.get("bb_width_pct", 2.0))
+        obs[17] = np.tanh((bb_width_pct - 2.0) / 2.0)
         
         return obs
-    
+        
+    def _map_regime(self, raw_regime: str) -> str:
+        r = str(raw_regime).upper()
+        if "STRONG_TREND" in r:
+            return "STRONG_TREND"
+        if "WEAK_TREND" in r:
+            return "WEAK_TREND"
+        if "COMPRESSION" in r:
+            return "COMPRESSION"
+        if "BREAKOUT" in r:
+            return "BREAKOUT"
+        if "MEAN_REVERSION" in r:
+            return "MEAN_REVERSION"
+        if "PANIC_SELL" in r:
+            return "PANIC_SELL"
+        if "PUMP_RISK" in r:
+            return "PUMP_RISK"
+        if "LOW_LIQUIDITY" in r:
+            return "LOW_LIQUIDITY"
+        if "RANGING" in r:
+            return "MEAN_REVERSION"
+        if "HIGH_VOLATILITY" in r:
+            return "PANIC_SELL"
+        return "STRONG_TREND"
+        
     def render(self, mode="human"):
-        """Render environment state."""
-        if self.current_trade_idx < len(self.trades):
-            trade = self.trades[self.current_trade_idx]
-            print(f"Step: {self.current_step}, Trade: {trade.get('symbol', '?')}, "
-                  f"Close: {trade.get('close', '?'):.2f}, Rewards: {np.sum(self.episode_rewards):.4f}")
+        pass
 
 
 class MultiTradeExitEnv(TradeExitEnv):
@@ -271,46 +667,59 @@ class MultiTradeExitEnv(TradeExitEnv):
     """
     
     def __init__(self, trades: list[dict], config: dict = None, trades_per_episode: int = 5):
-        """
-        Initialize multi-trade environment.
-        
-        Args:
-            trades: List of trade dicts
-            config: Config dict
-            trades_per_episode: Number of trades per episode
-        """
         super().__init__(trades, config)
         self.trades_per_episode = trades_per_episode
         self.trades_completed = 0
-    
+        
     def reset(self, seed=None, options=None) -> Tuple[np.ndarray, Dict]:
-        """Reset for next batch of trades."""
-        super().reset(seed=seed, options=options)
+        obs, info = super().reset(seed=seed, options=options)
         self.trades_completed = 0
-        return self._get_observation(self.trades[self.current_trade_idx], 0), {}
-    
+        return obs, info
+        
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict]:
-        """
-        Execute step and auto-cycle trades when terminated.
-        """
         obs, reward, terminated, truncated, info = super().step(action)
         
-        # Auto-cycle to next trade if terminated
         if terminated:
             self.trades_completed += 1
             
-            # Move to next trade or signal episode end
             if self.trades_completed < self.trades_per_episode:
-                self.current_trade_idx = (self.current_trade_idx + 1) % len(self.trades)
                 self.current_step = 0
-                self.entry_price = self.trades[self.current_trade_idx].get("entry_price", 
-                                                                             self.trades[self.current_trade_idx].get("close", 100.0))
+                
+                # Pick a random trade
+                self.current_trade_idx = self.np_random.integers(0, len(self.active_trades))
+                self.trade = self.active_trades[self.current_trade_idx]
+                
+                self.coin = self.trade["coin"]
+                self.entry_candle_idx = self.trade["candle_idx"]
+                
+                # Reset candle entry state
+                entry_candle = self.coin_candles[self.coin][self.entry_candle_idx]
+                self.entry_price = entry_candle["close"]
                 self.max_pnl = 0.0
-                obs = self._get_observation(self.trades[self.current_trade_idx], 0)
+                
+                sig = str(self.trade.get("signal_raw", "BUY")).upper()
+                self.direction = "SHORT" if "SELL" in sig or "SHORT" in sig else "LONG"
+                
+                tp_sl = calculate_tp_sl(
+                    close=entry_candle["close"],
+                    signal=self.trade.get("signal_raw", "BUY"),
+                    atr=entry_candle.get("atr", 1.0),
+                    support=entry_candle.get("support", 0.0),
+                    resistance=entry_candle.get("resistance", 0.0),
+                    bb_upper=entry_candle.get("bb_upper", 0.0),
+                    bb_middle=entry_candle.get("bb_middle", 0.0),
+                    bb_lower=entry_candle.get("bb_lower", 0.0),
+                    regime=entry_candle.get("regime")
+                )
+                self.sl = tp_sl["sl"]
+                self.tp = tp_sl["tp1"]
+                self.trailing_sl_active = False
+                
+                obs = self._get_observation(entry_candle, 0)
                 terminated = False  # Don't terminate yet
             else:
-                terminated = True  # Episode done
+                terminated = True
                 info["total_trades"] = self.trades_completed
                 info["episode_reward"] = np.sum(self.episode_rewards)
-        
+                
         return obs, reward, terminated, truncated, info

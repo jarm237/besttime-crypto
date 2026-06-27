@@ -8,9 +8,9 @@ Algorithms:
 - A2C (Advantage Actor-Critic)
 
 Usage:
-    python train_rl_exit_manager.py --algo ppo --train --steps 100000
-    python train_rl_exit_manager.py --algo dqn --train --steps 100000
-    python train_rl_exit_manager.py --algo a2c --train --steps 100000
+    python train_rl_exit_manager.py --algo ppo --train --steps 500000
+    python train_rl_exit_manager.py --algo dqn --train --steps 500000
+    python train_rl_exit_manager.py --algo a2c --train --steps 500000
 """
 
 import os
@@ -26,122 +26,96 @@ import pandas as pd
 from stable_baselines3 import PPO, DQN, A2C
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
+from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
+from stable_baselines3.common.monitor import Monitor
 
 from btc_scraper.ml_engine.rl_trading_env import TradeExitEnv, MultiTradeExitEnv
 
 
-def load_trade_data(csv_path: str = "logs/adaptive_signals.json") -> list[dict]:
+class CurriculumCallback(BaseCallback):
     """
-    Load historical trade data from adaptive_signals.json.
-    
-    Args:
-        csv_path: Path to signals file
+    Callback to switch environment curriculum phase from 'easy' to 'full'
+    after a specific number of training timesteps.
+    """
+    def __init__(self, switch_step: int = 150000, verbose: int = 1):
+        super().__init__(verbose)
+        self.switch_step = switch_step
+        self.switched = False
         
-    Returns:
-        List of trade dicts with indicators
+    def _on_step(self) -> bool:
+        if not self.switched and self.num_timesteps >= self.switch_step:
+            self.switched = True
+            if self.verbose > 0:
+                print(f"\n[Curriculum] Switch step reached ({self.num_timesteps} >= {self.switch_step}).")
+                print("[Curriculum] Switching environment to FULL dataset...")
+            
+            if self.training_env is not None:
+                if hasattr(self.training_env, "env_method"):
+                    self.training_env.env_method("set_curriculum_phase", "full")
+                elif hasattr(self.training_env, "set_curriculum_phase"):
+                    self.training_env.set_curriculum_phase("full")
+        return True
+
+
+def load_trade_data(csv_path: str = "logs/adaptive_signals_v2.json") -> list[dict]:
+    """
+    Load historical trade data from adaptive_signals_v2.json.
     """
     if not os.path.exists(csv_path):
         print(f"[WARN] File not found: {csv_path}")
-        # Generate synthetic trades for testing
-        return generate_synthetic_trades(n=100)
-    
+        fallback_path = "logs/adaptive_signals.json"
+        if os.path.exists(fallback_path):
+            print(f"[INFO] Falling back to {fallback_path}")
+            csv_path = fallback_path
+        else:
+            return generate_synthetic_trades(n=100)
+            
     try:
-        with open(csv_path, "r") as f:
+        with open(csv_path, "r", encoding="utf-8") as f:
             signals = json.load(f)
-        
+            
         trades = []
         for sig_dict in signals:
             trade = {
-                "symbol": sig_dict.get("symbol", "BTC"),
-                "time": sig_dict.get("time", ""),
-                "close": sig_dict.get("close", 100.0),
-                "high": sig_dict.get("high", 101.0),
-                "low": sig_dict.get("low", 99.0),
-                "volume": sig_dict.get("volume", 1000.0),
-                "rsi": sig_dict.get("rsi", 50.0),
-                "macd_hist": sig_dict.get("macd_hist", 0.0),
-                "atr": sig_dict.get("atr", 1.0),
-                "adx": sig_dict.get("adx", 20.0),
-                "meta_confidence": sig_dict.get("signal_score", {}).get("confidence", 0.5) if isinstance(sig_dict.get("signal_score"), dict) else 0.5,
-                "regime": sig_dict.get("regime", "STRONG_TREND"),
-                "fear_greed": sig_dict.get("sentiment", {}).get("score", 0.0) * 100 if isinstance(sig_dict.get("sentiment"), dict) else 0.0,
-                "volume_ratio": 1.0,  # Can be computed from volume data
-                "bbands_width": 2.0,
-                "entry_price": sig_dict.get("close", 100.0),
+                "coin": sig_dict.get("coin", "BTC").upper(),
+                "entry_time": sig_dict.get("entry_time", sig_dict.get("time", "")),
+                "signal_raw": sig_dict.get("signal_raw", sig_dict.get("signal", "BUY")),
+                "meta_confidence": sig_dict.get("meta_confidence", 0.5),
             }
             trades.append(trade)
-        
+            
         print(f"[OK] Loaded {len(trades)} trades from {csv_path}")
         return trades
-    
     except Exception as e:
         print(f"[ERROR] Failed to load trades: {e}")
         return generate_synthetic_trades(n=100)
 
 
 def generate_synthetic_trades(n: int = 100) -> list[dict]:
-    """
-    Generate synthetic trades for testing.
-    
-    Args:
-        n: Number of trades
-        
-    Returns:
-        List of trade dicts
-    """
+    """Generate synthetic trades for fallback testing."""
     trades = []
-    base_price = 100.0
-    
     for i in range(n):
-        price = base_price + np.random.randn() * 5
         trades.append({
-            "symbol": f"SYN_{i}",
-            "time": f"2026-01-{(i % 28) + 1:02d}",
-            "close": price,
-            "high": price + 1,
-            "low": price - 1,
-            "volume": 1000 + np.random.randint(-100, 100),
-            "rsi": 50 + np.random.randn() * 20,
-            "macd_hist": np.random.randn() * 0.01,
-            "atr": 1.0 + np.random.rand(),
-            "adx": 20 + np.random.randn() * 15,
-            "meta_confidence": np.random.rand() * 0.5 + 0.25,
-            "regime": np.random.choice(["STRONG_TREND", "WEAK_TREND", "COMPRESSION", "BREAKOUT"]),
-            "fear_greed": np.random.randn() * 50,
-            "volume_ratio": np.random.rand() * 2 + 0.5,
-            "bbands_width": np.random.rand() * 2 + 1.5,
-            "entry_price": price,
+            "coin": "SYN_BTC",
+            "entry_time": "2026-01-01 00:00",
+            "signal_raw": "BUY",
+            "meta_confidence": 0.5,
         })
-    
     return trades
 
 
 def train_agent(
     algorithm: str,
     trades: list[dict],
-    total_timesteps: int = 100000,
+    total_timesteps: int = 500000,
     learning_rate: float = 3e-4,
-    eval_frequency: int = 10000,
-    n_eval_episodes: int = 10,
+    eval_frequency: int = 20000,
+    n_eval_episodes: int = 20,
     save_dir: str = "logs/rl_models",
     no_warm_start: bool = False,
 ) -> Tuple[str, Dict]:
     """
     Train an RL agent.
-    
-    Args:
-        algorithm: 'ppo', 'dqn', or 'a2c'
-        trades: List of trade dicts
-        total_timesteps: Total training steps
-        learning_rate: Learning rate
-        eval_frequency: Eval every N steps
-        n_eval_episodes: Number of eval episodes
-        save_dir: Where to save models
-        no_warm_start: If True, do not load previous models
-        
-    Returns:
-        (model_path, metrics_dict)
     """
     os.makedirs(save_dir, exist_ok=True)
     
@@ -152,8 +126,8 @@ def train_agent(
         models = glob.glob(pattern)
         if models:
             latest_model = max(models, key=os.path.getctime)
-    
-    # Create environment
+            
+    # Create environments
     env = MultiTradeExitEnv(
         trades=trades,
         config={
@@ -165,8 +139,7 @@ def train_agent(
         trades_per_episode=5
     )
     
-    # Create eval environment
-    eval_env = MultiTradeExitEnv(
+    _eval_env_base = MultiTradeExitEnv(
         trades=trades,
         config={
             "max_episode_length": 50,
@@ -177,7 +150,13 @@ def train_agent(
         trades_per_episode=5
     )
     
-    # Create model
+    # Ensure eval_env starts with full phase for realistic evaluations
+    _eval_env_base.set_curriculum_phase("full")
+    
+    # Wrap with Monitor for proper evaluation stats
+    eval_env = Monitor(_eval_env_base)
+    
+    # Create model path
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_path = os.path.join(save_dir, f"rl_exit_{algorithm}_{timestamp}")
     
@@ -199,6 +178,10 @@ def train_agent(
                     n_steps=2048,
                     batch_size=64,
                     n_epochs=10,
+                    ent_coef=0.02,  # Higher entropy encourages exploration of exit strategies
+                    vf_coef=0.5,
+                    gamma=0.99,
+                    gae_lambda=0.95,
                     verbose=1,
                 )
         
@@ -228,10 +211,9 @@ def train_agent(
                     learning_rate=learning_rate,
                     verbose=1,
                 )
-        
         else:
             raise ValueError(f"Unknown algorithm: {algorithm}")
-        
+            
         # Callbacks
         eval_callback = EvalCallback(
             eval_env,
@@ -242,8 +224,14 @@ def train_agent(
             verbose=1,
         )
         
+        # Switch phase at 30% of total_timesteps
+        switch_step = int(total_timesteps * 0.3)
+        curriculum_callback = CurriculumCallback(switch_step=switch_step, verbose=1)
+        
+        callback = CallbackList([eval_callback, curriculum_callback])
+        
         # Train
-        model.learn(total_timesteps=total_timesteps, callback=eval_callback)
+        model.learn(total_timesteps=total_timesteps, callback=callback)
         
         # Save final model
         model.save(model_path)
@@ -265,32 +253,21 @@ def train_agent(
         }
         
         return model_path, metrics
-    
+        
     finally:
         env.close()
-        eval_env.close()
+        _eval_env_base.close()
 
 
 def compare_agents(
     agent_paths: Dict[str, str],
     trades: list[dict],
-    n_episodes: int = 20,
+    n_episodes: int = 30,
 ) -> Dict:
-    """
-    Compare multiple trained agents on the same test set.
-    
-    Args:
-        agent_paths: Dict of {algorithm: model_path}
-        trades: Test trades
-        n_episodes: Number of evaluation episodes
-        
-    Returns:
-        Comparison results dict
-    """
+    """Compare multiple trained agents."""
     print("\n[COMPARE] Evaluating agents...")
     
     results = {}
-    
     for algo, path in agent_paths.items():
         env = MultiTradeExitEnv(
             trades=trades,
@@ -302,9 +279,9 @@ def compare_agents(
             },
             trades_per_episode=5
         )
+        env.set_curriculum_phase("full")
         
         try:
-            # Load model
             if algo.lower() == "ppo":
                 model = PPO.load(path, env=env)
             elif algo.lower() == "dqn":
@@ -313,8 +290,7 @@ def compare_agents(
                 model = A2C.load(path, env=env)
             else:
                 continue
-            
-            # Evaluate
+                
             mean_reward, std_reward = evaluate_policy(
                 model, env, n_eval_episodes=n_episodes
             )
@@ -324,15 +300,12 @@ def compare_agents(
                 "std_reward": float(std_reward),
                 "model_path": path,
             }
-            
             print(f"  {algo.upper():>5}: reward={mean_reward:.4f} ± {std_reward:.4f}")
-        
         except Exception as e:
             print(f"  {algo.upper():>5}: [ERROR] {e}")
-        
         finally:
             env.close()
-    
+            
     return results
 
 
@@ -342,9 +315,9 @@ def main():
                         help="Algorithm to train")
     parser.add_argument("--train", action="store_true", help="Train models")
     parser.add_argument("--compare", action="store_true", help="Compare trained models")
-    parser.add_argument("--steps", type=int, default=100000, help="Total training steps")
-    parser.add_argument("--n-trades", type=int, default=200, help="Number of trades to use")
-    parser.add_argument("--no-warm-start", action="store_true", help="Do not load previous models (train from scratch)")
+    parser.add_argument("--steps", type=int, default=500000, help="Total training steps")
+    parser.add_argument("--n-trades", type=int, default=20000, help="Number of trades to use")
+    parser.add_argument("--no-warm-start", action="store_true", help="Train from scratch")
     
     args = parser.parse_args()
     
@@ -354,7 +327,7 @@ def main():
         print(f"[WARN] Only {len(trades)} trades available, using all")
     else:
         trades = trades[:args.n_trades]
-    
+        
     # Train
     if args.train:
         results_file = "logs/rl_training_results.json"
@@ -364,7 +337,7 @@ def main():
             algos = ["ppo", "dqn", "a2c"]
         else:
             algos = [args.algo]
-        
+            
         for algo in algos:
             model_path, metrics = train_agent(
                 algorithm=algo,
@@ -373,12 +346,12 @@ def main():
                 no_warm_start=args.no_warm_start,
             )
             results[algo] = metrics
-        
+            
         # Save results
         with open(results_file, "w") as f:
             json.dump(results, f, indent=2)
         print(f"\n[OK] Training results saved to {results_file}")
-    
+        
     # Compare
     if args.compare:
         agent_paths = {
@@ -393,10 +366,9 @@ def main():
         if not agent_paths:
             print("[WARN] No trained models found. Run with --train first.")
             return
+            
+        comparison = compare_agents(agent_paths, trades, n_episodes=30)
         
-        comparison = compare_agents(agent_paths, trades, n_episodes=20)
-        
-        # Save comparison
         with open("logs/rl_comparison.json", "w") as f:
             json.dump(comparison, f, indent=2)
         print(f"\n[OK] Comparison saved to logs/rl_comparison.json")

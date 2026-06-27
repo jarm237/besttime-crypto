@@ -13,10 +13,12 @@ from typing import Dict, List, Tuple, Any
 import math
 
 # ─── CANONICAL FEATURE SCHEMA ──────────────────────────────────────────────────
-# 14 features cố định cho Meta Model (RandomForest).
-# Thứ tự KHÔNG quan trọng (RandomForest không cần), nhưng tên PHẢI nhất quán.
+# Base features cố định cho Meta Model.
+# Tên feature PHẢI nhất quán giữa training và runtime inference.
 FEATURE_SCHEMA = [
-    "signal_score",           # 0-100: điểm tín hiệu tổng hợp
+    "rsi_score",              # 0-100: RSI-derived bullish score
+    "macd_score",             # 0-100: MACD histogram bullish score
+    "structure_score",        # 0-100: market-structure bullish score
     "rsi",                    # 0-100: RSI 14 của khung 15m
     "macd_hist",              # float: MACD histogram (bình thường hóa theo close)
     "atr_pct",                # float: ATR / close * 100 (volatility %)
@@ -124,6 +126,50 @@ def _text_flags(sig_raw: str) -> Dict[str, int]:
     }
 
 
+def _clamp(v: float, lo: float = 0.0, hi: float = 100.0) -> float:
+    return max(lo, min(hi, v))
+
+
+def _score_rsi(rsi: float) -> float:
+    if rsi <= 30.0:
+        return 100.0
+    if rsi >= 70.0:
+        return 0.0
+    return _clamp((70.0 - rsi) / 40.0 * 100.0)
+
+
+def _score_macd(macd_hist_pct: float) -> float:
+    return _clamp(50.0 + math.tanh(macd_hist_pct * 10.0) * 50.0)
+
+
+def _score_structure(info: Dict) -> float:
+    score = 50.0
+
+    def flag(name: str) -> bool:
+        return bool(_safe_float(info.get(name), default=0.0))
+
+    if flag("higher_high") or flag("bos_bull") or flag("choch_bull"):
+        score += 25.0
+    if flag("lower_low") or flag("bos_bear") or flag("choch_bear"):
+        score -= 25.0
+
+    msb = info.get("market_structure_break")
+    if isinstance(msb, str):
+        msb_norm = msb.upper()
+        if "BULL" in msb_norm or msb_norm in {"UP", "BUY", "LONG"}:
+            score += 25.0
+        elif "BEAR" in msb_norm or msb_norm in {"DOWN", "SELL", "SHORT"}:
+            score -= 25.0
+    else:
+        msb_val = _safe_float(msb, default=0.0)
+        if msb_val > 0:
+            score += 25.0
+        elif msb_val < 0:
+            score -= 25.0
+
+    return _clamp(score)
+
+
 def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     """
     Build feature dict theo FEATURE_SCHEMA cố định để feed vào Meta Model.
@@ -141,24 +187,23 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     """
     f: Dict[str, float] = {}
 
-    ss = info.get("signal_score") or {}
     close = _safe_float(info.get("close", 0.0) or info.get("close_price", 0.0))
 
-    # 1. signal_score (0-100)
-    if isinstance(ss, dict):
-        f["signal_score"] = _safe_float(ss.get("score") or info.get("score"), default=50.0)
-    else:
-        f["signal_score"] = _safe_float(ss, default=50.0)
+    # 1-2. rsi and RSI-derived bullish score
+    rsi = _safe_float(info.get("rsi") or info.get("rsi_15m"), default=50.0)
+    f["rsi"] = rsi
+    f["rsi_score"] = _score_rsi(rsi)
 
-    # 2. rsi (0-100)
-    f["rsi"] = _safe_float(info.get("rsi") or info.get("rsi_15m"), default=50.0)
-
-    # 3. macd_hist (bình thường hóa theo close nếu có)
+    # 3-4. macd_hist and MACD-derived bullish score
     macd_hist = _safe_float(info.get("macd_hist"), default=0.0)
     if close > 0 and abs(macd_hist) > 0:
         f["macd_hist"] = macd_hist / close * 100  # normalize thành %
     else:
         f["macd_hist"] = macd_hist
+    f["macd_score"] = _score_macd(f["macd_hist"])
+
+    # 5. market-structure bullish score
+    f["structure_score"] = _score_structure(info)
 
     # 4. atr_pct = ATR / close * 100
     atr = _safe_float(info.get("atr") or info.get("atr_15m"), default=0.0)
@@ -220,7 +265,6 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     # 11-14. Regime one-hot
     regime_raw = (
         info.get("regime")
-        or (ss.get("regime") if isinstance(ss, dict) else None)
         or info.get("market_regime")
         or ""
     )
@@ -293,12 +337,9 @@ def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float
         "tf_1d_bull": info.get("tf_1d_bull"),
     }
 
-    ss_val = info.get("signal_score")
-    ss_regime = ss_val.get("regime") if isinstance(ss_val, dict) else None
     regime_raw = str(
         info.get("regime")
         or info.get("market_regime")
-        or ss_regime
         or ""
     ).upper()
     extra_keys.update({
