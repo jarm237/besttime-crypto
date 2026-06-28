@@ -20,6 +20,9 @@ from gymnasium import spaces
 from typing import Dict, Tuple, Any, List
 
 from btc_scraper.analysis.core import analyze_market, calculate_tp_sl
+from btc_scraper.ml_engine.timegan import postprocess_synthetic_sequences
+from btc_scraper.ml_engine.timegan import OHLCVScaler
+from datetime import timedelta
 
 
 def load_sentiment_history(sentiment_file: str = "logs/sentiment_history.json") -> dict:
@@ -201,6 +204,64 @@ def load_and_prepare_candles(
             print(f"[RL Environment] Warning: could not save cache: {e}")
         
     return coin_candles
+
+
+def synthetic_sequences_to_candles(
+    sequences,
+    scaler: OHLCVScaler,
+    coin: str = "SYN",
+    start_time: str = "2026-01-01 00:00",
+    freq_minutes: int = 15,
+    device: str = "cpu",
+) -> List[dict]:
+    """Convert synthetic OHLCV sequences into a list of candle dicts suitable for the RL env.
+
+    Accepts either a NumPy array (N, T, 5) or a torch.Tensor (on CPU or CUDA). Uses
+    `postprocess_synthetic_sequences` to inverse-transform using the provided `scaler`.
+
+    Returns a list of dicts with keys matching `load_and_prepare_candles` output.
+    """
+    # Postprocess back to real scale (handles GPU tensors)
+    real = postprocess_synthetic_sequences(sequences, scaler, device=device)
+
+    # Use the first sequence if multiple provided
+    if real.ndim == 3 and real.shape[0] >= 1:
+        seq = real[0]
+    else:
+        raise ValueError("Expected sequences shape (N, T, 5)")
+
+    # Build time series
+    t0 = datetime.strptime(start_time, "%Y-%m-%d %H:%M")
+    candles = []
+    for i in range(seq.shape[0]):
+        o, h, l, c, v = map(float, seq[i])
+        ts = (t0 + timedelta(minutes=i * freq_minutes)).strftime("%Y-%m-%d %H:%M")
+        candles.append({
+            "time": ts,
+            "open": o,
+            "high": h,
+            "low": l,
+            "close": c,
+            "volume": v,
+            # minimal indicator placeholders (can be expanded later)
+            "rsi": None,
+            "macd_hist": 0.0,
+            "atr": None,
+            "adx": 20.0,
+            "regime": "SYNTHETIC",
+            "is_warmup": 0,
+        })
+    # compute proper indicators from full sequence
+    from btc_scraper.ml_engine.timegan import compute_indicators
+
+    indicators = compute_indicators(real[np.newaxis, :, :], sma_windows=(3, 5), rsi_period=14, atr_period=14)
+    rsi = indicators.get("rsi_14")[0]
+    atr = indicators.get("atr_14")[0]
+    for i in range(len(candles)):
+        candles[i]["rsi"] = float(rsi[i]) if not np.isnan(rsi[i]) else 50.0
+        candles[i]["atr"] = float(atr[i]) if not np.isnan(atr[i]) else max(1.0, abs(candles[i]["high"] - candles[i]["low"]))
+
+    return candles
 
 
 class TradeExitEnv(gym.Env):

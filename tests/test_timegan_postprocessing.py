@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from btc_scraper.ml_engine.timegan import OHLCVScaler, postprocess_synthetic_sequences, compute_simple_indicators
+from btc_scraper.ml_engine.timegan import OHLCVScaler, postprocess_synthetic_sequences, compute_indicators
 
 
 def test_postprocessing_and_indicators_on_gpu_if_available():
@@ -23,6 +23,9 @@ def test_postprocessing_and_indicators_on_gpu_if_available():
 
     assert real.shape == (8, 12, 5)
 
-    indicators = compute_simple_indicators(real, windows=(3, 5))
+    indicators = compute_indicators(real, sma_windows=(3, 5), rsi_period=14, atr_period=14)
     assert 'sma_3' in indicators and 'sma_5' in indicators
     assert indicators['sma_3'].shape == (8, 12)
+    assert 'rsi_14' in indicators and 'atr_14' in indicators
+    assert indicators['rsi_14'].shape == (8, 12)
+    assert indicators['atr_14'].shape == (8, 12)

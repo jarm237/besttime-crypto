@@ -291,3 +291,104 @@ def compute_simple_indicators(sequences: np.ndarray, windows: Sequence[int] = (3
             sma[:, t] = closes[:, start : t + 1].mean(axis=1)
         out[f"sma_{w}"] = sma
     return out
+
+
+def compute_rsi(sequences: np.ndarray, period: int = 14) -> np.ndarray:
+    """Compute RSI for close prices in sequences. Returns shape (N, T).
+
+    Uses Wilder smoothing (EMA-like) for average gains and losses.
+    """
+    seq = np.asarray(sequences, dtype=np.float32)
+    if seq.ndim != 3 or seq.shape[2] < 4:
+        raise ValueError("sequences must be (N, T, >=4) to compute RSI")
+    closes = seq[:, :, 3]
+    N, T = closes.shape
+    rsi = np.full((N, T), np.nan, dtype=np.float32)
+
+    if period <= 0:
+        return rsi
+
+    # compute deltas
+    deltas = np.diff(closes, axis=1)
+
+    # initial average gains/losses
+    for i in range(N):
+        if T <= 1:
+            continue
+        gains = np.where(deltas[i] > 0, deltas[i], 0.0)
+        losses = np.where(deltas[i] < 0, -deltas[i], 0.0)
+        # first avg over first `period` values (if available)
+        if deltas.shape[1] >= period:
+            avg_gain = gains[:period].mean()
+            avg_loss = losses[:period].mean()
+            # RSI for index period -> set at position period
+            rs = avg_gain / (avg_loss + 1e-8)
+            rsi[i, period] = 100.0 - (100.0 / (1.0 + rs))
+            # iterate forward
+            for t in range(period + 1, T):
+                g = gains[t - 1]
+                l = losses[t - 1]
+                avg_gain = (avg_gain * (period - 1) + g) / period
+                avg_loss = (avg_loss * (period - 1) + l) / period
+                rs = avg_gain / (avg_loss + 1e-8)
+                rsi[i, t] = 100.0 - (100.0 / (1.0 + rs))
+        else:
+            # not enough data; compute simple RSI where possible
+            for t in range(1, T):
+                window_gains = np.where(deltas[i, :t] > 0, deltas[i, :t], 0.0)
+                window_losses = np.where(deltas[i, :t] < 0, -deltas[i, :t], 0.0)
+                ag = window_gains.mean() if window_gains.size else 0.0
+                al = window_losses.mean() if window_losses.size else 0.0
+                rs = ag / (al + 1e-8)
+                rsi[i, t] = 100.0 - (100.0 / (1.0 + rs))
+
+    return rsi
+
+
+def compute_atr(sequences: np.ndarray, period: int = 14) -> np.ndarray:
+    """Compute ATR from sequences. Returns shape (N, T).
+
+    ATR uses True Range and Wilder smoothing.
+    """
+    seq = np.asarray(sequences, dtype=np.float32)
+    if seq.ndim != 3 or seq.shape[2] < 4:
+        raise ValueError("sequences must be (N, T, >=4) to compute ATR")
+    highs = seq[:, :, 1]
+    lows = seq[:, :, 2]
+    closes = seq[:, :, 3]
+    N, T = closes.shape
+    atr = np.full((N, T), np.nan, dtype=np.float32)
+    if period <= 0:
+        return atr
+
+    # compute true ranges
+    prev_close = np.concatenate([closes[:, :1], closes[:, :-1]], axis=1)
+    tr = np.maximum(highs - lows, np.maximum(np.abs(highs - prev_close), np.abs(lows - prev_close)))
+
+    for i in range(N):
+        if T <= 0:
+            continue
+        if T >= period:
+            # initial ATR is simple mean of first `period` TR values (positions 0..period-1)
+            init = tr[i, :period].mean()
+            atr[i, period - 1] = init
+            prev_atr = init
+            for t in range(period, T):
+                prev_atr = (prev_atr * (period - 1) + tr[i, t]) / period
+                atr[i, t] = prev_atr
+            # fill earlier positions with cumulative mean
+            for t in range(0, period - 1):
+                atr[i, t] = tr[i, : t + 1].mean()
+        else:
+            # not enough data: cumulative mean
+            for t in range(T):
+                atr[i, t] = tr[i, : t + 1].mean()
+
+    return atr
+
+
+def compute_indicators(sequences: np.ndarray, sma_windows: Sequence[int] = (3, 5), rsi_period: int = 14, atr_period: int = 14) -> Dict[str, np.ndarray]:
+    out = compute_simple_indicators(sequences, windows=sma_windows)
+    out[f"rsi_{rsi_period}"] = compute_rsi(sequences, period=rsi_period)
+    out[f"atr_{atr_period}"] = compute_atr(sequences, period=atr_period)
+    return out
