@@ -388,7 +388,54 @@ def compute_atr(sequences: np.ndarray, period: int = 14) -> np.ndarray:
 
 
 def compute_indicators(sequences: np.ndarray, sma_windows: Sequence[int] = (3, 5), rsi_period: int = 14, atr_period: int = 14) -> Dict[str, np.ndarray]:
+    """Compute a set of indicators from sequences.
+
+    Parameters:
+    - sequences: (N, T, 5)
+    - sma_windows: windows for simple moving averages
+    - rsi_period: period for RSI (Wilder smoothing)
+    - atr_period: period for ATR (Wilder smoothing)
+    - ema_spans: optional list of spans to compute EMA for `close`
+    - compute_obv: whether to compute On-Balance Volume
+    """
     out = compute_simple_indicators(sequences, windows=sma_windows)
     out[f"rsi_{rsi_period}"] = compute_rsi(sequences, period=rsi_period)
     out[f"atr_{atr_period}"] = compute_atr(sequences, period=atr_period)
     return out
+
+
+def compute_ema(sequences: np.ndarray, span: int = 10) -> np.ndarray:
+    """Compute EMA of close prices for each sequence. Returns (N, T)."""
+    seq = np.asarray(sequences, dtype=np.float32)
+    closes = seq[:, :, 3]
+    N, T = closes.shape
+    ema = np.full((N, T), np.nan, dtype=np.float32)
+    if span <= 0:
+        return ema
+    alpha = 2.0 / (span + 1.0)
+    for i in range(N):
+        prev = closes[i, 0]
+        ema[i, 0] = prev
+        for t in range(1, T):
+            prev = alpha * closes[i, t] + (1 - alpha) * prev
+            ema[i, t] = prev
+    return ema
+
+
+def compute_obv(sequences: np.ndarray) -> np.ndarray:
+    """Compute On-Balance Volume (OBV) for each sequence. Returns (N, T)."""
+    seq = np.asarray(sequences, dtype=np.float32)
+    closes = seq[:, :, 3]
+    vols = seq[:, :, 4]
+    N, T = closes.shape
+    obv = np.zeros((N, T), dtype=np.float32)
+    for i in range(N):
+        running = 0.0
+        obv[i, 0] = running
+        for t in range(1, T):
+            if closes[i, t] > closes[i, t - 1]:
+                running += vols[i, t]
+            elif closes[i, t] < closes[i, t - 1]:
+                running -= vols[i, t]
+            obv[i, t] = running
+    return obv

@@ -213,6 +213,7 @@ def synthetic_sequences_to_candles(
     start_time: str = "2026-01-01 00:00",
     freq_minutes: int = 15,
     device: str = "cpu",
+    indicator_params: dict | None = None,
 ) -> List[dict]:
     """Convert synthetic OHLCV sequences into a list of candle dicts suitable for the RL env.
 
@@ -254,12 +255,33 @@ def synthetic_sequences_to_candles(
     # compute proper indicators from full sequence
     from btc_scraper.ml_engine.timegan import compute_indicators
 
-    indicators = compute_indicators(real[np.newaxis, :, :], sma_windows=(3, 5), rsi_period=14, atr_period=14)
+    params = indicator_params or {}
+    sma_windows = params.get("sma_windows", (3, 5))
+    rsi_period = params.get("rsi_period", 14)
+    atr_period = params.get("atr_period", 14)
+    ema_spans = params.get("ema_spans", [])
+    compute_obv_flag = params.get("obv", True)
+
+    indicators = compute_indicators(real[np.newaxis, :, :], sma_windows=sma_windows, rsi_period=rsi_period, atr_period=atr_period)
+    # optional EMA and OBV
+    if ema_spans:
+        from btc_scraper.ml_engine.timegan import compute_ema
+        for span in ema_spans:
+            indicators[f"ema_{span}"] = compute_ema(real[np.newaxis, :, :], span=span)[0]
+    if compute_obv_flag:
+        from btc_scraper.ml_engine.timegan import compute_obv
+        indicators["obv"] = compute_obv(real[np.newaxis, :, :])[0]
     rsi = indicators.get("rsi_14")[0]
     atr = indicators.get("atr_14")[0]
     for i in range(len(candles)):
         candles[i]["rsi"] = float(rsi[i]) if not np.isnan(rsi[i]) else 50.0
         candles[i]["atr"] = float(atr[i]) if not np.isnan(atr[i]) else max(1.0, abs(candles[i]["high"] - candles[i]["low"]))
+        # optional EMAs/OBV attached for downstream usage
+        for span in ema_spans:
+            key = f"ema_{span}"
+            candles[i][key] = float(indicators.get(key)[i]) if key in indicators else None
+        if compute_obv_flag:
+            candles[i]["obv"] = float(indicators.get("obv")[i]) if "obv" in indicators else 0.0
 
     return candles
 

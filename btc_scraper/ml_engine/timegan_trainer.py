@@ -39,6 +39,7 @@ def pretrain_autoencoder(
     lr: float = 1e-3,
     device: Optional[str] = None,
     save_path: Optional[str] = None,
+    resume_from: Optional[str] = None,
     checkpoint_interval: int = 0,
     verbose: bool = False,
 ) -> Dict[str, List[float]]:
@@ -64,7 +65,21 @@ def pretrain_autoencoder(
 
     losses: List[float] = []
 
-    for epoch in range(epochs):
+    # resume support: if resume_from provided and exists, load model + optimizer state
+    start_epoch = 0
+    if resume_from and os.path.exists(resume_from):
+        ck = torch.load(resume_from, map_location=device)
+        emb.load_state_dict(ck.get("embedder_state", {}))
+        rec.load_state_dict(ck.get("recovery_state", {}))
+        if "opt_state" in ck:
+            try:
+                opt.load_state_dict(ck["opt_state"])
+            except Exception:
+                # optimizer state may be incompatible across PyTorch versions/devices
+                logger.warning("Could not load optimizer state from %s", resume_from)
+        start_epoch = int(ck.get("epoch", 0))
+
+    for epoch in range(start_epoch, epochs):
         emb.train(); rec.train()
         epoch_loss = 0.0
         n = 0
@@ -88,11 +103,20 @@ def pretrain_autoencoder(
         if save_path and checkpoint_interval and (epoch + 1) % checkpoint_interval == 0:
             path = _make_checkpoint_path(save_path, "autoencoder", epoch + 1)
             os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-            torch.save({"embedder_state": emb.state_dict(), "recovery_state": rec.state_dict(), "epoch": epoch + 1}, path)
+            torch.save({
+                "embedder_state": emb.state_dict(),
+                "recovery_state": rec.state_dict(),
+                "opt_state": opt.state_dict(),
+                "epoch": epoch + 1,
+            }, path)
 
     if save_path and not checkpoint_interval:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
-        torch.save({"embedder_state": emb.state_dict(), "recovery_state": rec.state_dict()}, save_path)
+        torch.save({
+            "embedder_state": emb.state_dict(),
+            "recovery_state": rec.state_dict(),
+            "opt_state": opt.state_dict(),
+        }, save_path)
 
     return {"losses": losses}
 
@@ -105,6 +129,7 @@ def pretrain_supervisor(
     device: Optional[str] = None,
     emb_state_dict: Optional[dict] = None,
     save_path: Optional[str] = None,
+    resume_from: Optional[str] = None,
     checkpoint_interval: int = 0,
     verbose: bool = False,
 ) -> Dict[str, List[float]]:
@@ -136,7 +161,19 @@ def pretrain_supervisor(
 
     losses: List[float] = []
 
-    for epoch in range(epochs):
+    # resume support
+    start_epoch = 0
+    if resume_from and os.path.exists(resume_from):
+        ck = torch.load(resume_from, map_location=device)
+        sup.load_state_dict(ck.get("supervisor_state", {}))
+        if "opt_state" in ck:
+            try:
+                opt.load_state_dict(ck["opt_state"])
+            except Exception:
+                logger.warning("Could not load supervisor optimizer state from %s", resume_from)
+        start_epoch = int(ck.get("epoch", 0))
+
+    for epoch in range(start_epoch, epochs):
         sup.train(); emb.eval()
         epoch_loss = 0.0
         n = 0
@@ -166,11 +203,15 @@ def pretrain_supervisor(
         if save_path and checkpoint_interval and (epoch + 1) % checkpoint_interval == 0:
             path = _make_checkpoint_path(save_path, "supervisor", epoch + 1)
             os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-            torch.save({"supervisor_state": sup.state_dict(), "epoch": epoch + 1}, path)
+            torch.save({
+                "supervisor_state": sup.state_dict(),
+                "opt_state": opt.state_dict(),
+                "epoch": epoch + 1,
+            }, path)
 
     if save_path and not checkpoint_interval:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
-        torch.save({"supervisor_state": sup.state_dict()}, save_path)
+        torch.save({"supervisor_state": sup.state_dict(), "opt_state": opt.state_dict()}, save_path)
 
     return {"losses": losses}
 
@@ -185,6 +226,7 @@ def train_timegan_adversarial(
     rec_state_dict: Optional[dict] = None,
     sup_state_dict: Optional[dict] = None,
     save_path: Optional[str] = None,
+    resume_from: Optional[str] = None,
     checkpoint_interval: int = 0,
     verbose: bool = False,
 ) -> Dict[str, List[float]]:
@@ -231,7 +273,26 @@ def train_timegan_adversarial(
     d_losses: List[float] = []
     g_losses: List[float] = []
 
-    for epoch in range(epochs):
+    # resume support
+    start_epoch = 0
+    if resume_from and os.path.exists(resume_from):
+        ck = torch.load(resume_from, map_location=device)
+        gen.load_state_dict(ck.get("generator_state", {}))
+        sup.load_state_dict(ck.get("supervisor_state", {}))
+        disc.load_state_dict(ck.get("discriminator_state", {}))
+        if "opt_d_state" in ck:
+            try:
+                opt_d.load_state_dict(ck["opt_d_state"])
+            except Exception:
+                logger.warning("Could not load discriminator optimizer state from %s", resume_from)
+        if "opt_g_state" in ck:
+            try:
+                opt_g.load_state_dict(ck["opt_g_state"])
+            except Exception:
+                logger.warning("Could not load generator optimizer state from %s", resume_from)
+        start_epoch = int(ck.get("epoch", 0))
+
+    for epoch in range(start_epoch, epochs):
         epoch_d = 0.0
         epoch_g = 0.0
         n = 0
@@ -293,6 +354,8 @@ def train_timegan_adversarial(
                 "generator_state": gen.state_dict(),
                 "supervisor_state": sup.state_dict(),
                 "discriminator_state": disc.state_dict(),
+                "opt_d_state": opt_d.state_dict(),
+                "opt_g_state": opt_g.state_dict(),
                 "epoch": epoch + 1,
             }, path)
 
@@ -302,6 +365,8 @@ def train_timegan_adversarial(
             "generator_state": gen.state_dict(),
             "supervisor_state": sup.state_dict(),
             "discriminator_state": disc.state_dict(),
+            "opt_d_state": opt_d.state_dict(),
+            "opt_g_state": opt_g.state_dict(),
         }, save_path)
 
     return {"d_losses": d_losses, "g_losses": g_losses}
