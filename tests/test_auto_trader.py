@@ -258,3 +258,91 @@ def test_dca_evaluation():
     res = _evaluate_dca_opportunity(pos_list_3, ana, 55000.0, 0.8)
     assert res is None
 
+    # Test case 6: RL action constraints (only action 5 is allowed, others are blocked)
+    res_rl_trail = _evaluate_dca_opportunity(pos_list, ana, 58200.0, 0.72, rl_action=5)
+    assert res_rl_trail is not None
+
+    for act in [0, 1, 2, 3, 4]:
+        res_rl_blocked = _evaluate_dca_opportunity(pos_list, ana, 58200.0, 0.72, rl_action=act)
+        assert res_rl_blocked is None
+
+
+def test_trailing_sl_activation_flow(monkeypatch):
+    import btc_scraper.trading.position_tracker as pt
+    
+    # 1. Mock get_open_positions
+    mock_positions = [
+        {
+            "coin": "BTC",
+            "id": "test-pos-id-1",
+            "direction": "LONG",
+            "entry_price": 60000.0,
+            "invested_usdt": 100.0,
+            "entry_time": "2026-06-28 10:00",
+            "status": "open",
+            "trailing_sl": None,
+            "trailing_sl_active": False,
+        }
+    ]
+    monkeypatch.setattr(pt, "get_open_positions", lambda: mock_positions)
+    
+    # 2. Mock positions_col
+    class DummyCol:
+        def update_one(self, filter, update):
+            for p in mock_positions:
+                if p["id"] == filter.get("id"):
+                    p.update(update["$set"])
+        def update_many(self, filter, update):
+            for p in mock_positions:
+                if p["coin"] == filter.get("coin"):
+                    p.update(update["$set"])
+                    
+    monkeypatch.setattr(pt, "positions_col", DummyCol())
+    
+    # 3. Mock RL exit model behavior
+    context = {"rl_action": 0}  # Start with HOLD
+    class DummyModel:
+        def predict(self, obs, deterministic=True):
+            return context["rl_action"], None
+            
+    monkeypatch.setattr(pt, "get_ppo_model", lambda: DummyModel())
+    
+    # 4. Dummy analysis results
+    analysis_results = {
+        "BTC:Binance": {
+            "close": 61000.0,
+            "atr": 1000.0,
+            "support": 59000.0,
+            "resistance": 62000.0,
+            "bb_upper": 63000.0,
+            "bb_middle": 61000.0,
+            "bb_lower": 59000.0,
+            "signal": "BUY"
+        }
+    }
+    
+    # Step A: Run with rl_action = 0 (HOLD).
+    # Since trailing_sl_active is False and action is 0, trailing_sl should NOT activate.
+    context["rl_action"] = 0
+    pt.evaluate_positions(analysis_results)
+    assert not mock_positions[0]["trailing_sl_active"]
+    assert mock_positions[0]["trailing_sl"] is None
+    
+    # Step B: Run with rl_action = 5 (TRAILING_SL_ATR).
+    # This should activate trailing_sl and set its value.
+    context["rl_action"] = 5
+    pt.evaluate_positions(analysis_results)
+    assert mock_positions[0]["trailing_sl_active"]
+    assert mock_positions[0]["trailing_sl"] is not None
+    
+    first_activated_sl = mock_positions[0]["trailing_sl"]
+    
+    # Step C: Run with rl_action = 0 (HOLD) but trailing_sl_active is now True.
+    # It should continue to update trailing SL.
+    context["rl_action"] = 0
+    pt.evaluate_positions(analysis_results)
+    assert mock_positions[0]["trailing_sl_active"]
+    assert mock_positions[0]["trailing_sl"] >= first_activated_sl
+
+
+

@@ -22,7 +22,11 @@ _PPO_MODEL_CACHE = None
 _LAST_MODEL_PATH = None
 
 def load_latest_ppo_model() -> str | None:
-    """Tìm file zip model PPO mới nhất."""
+    """Tìm file zip model PPO mới nhất, ưu tiên model rl_exit_ppo_20260627_143758.zip."""
+    target_model = Path("logs/rl_models/rl_exit_ppo_20260627_143758.zip")
+    if target_model.exists():
+        return str(target_model)
+        
     rl_dir = Path("logs/rl_models")
     if not rl_dir.exists():
         return None
@@ -176,6 +180,7 @@ def add_position(
         "status": "open",
         "note": note,
         "trailing_sl": None,
+        "trailing_sl_active": False,
         "last_signal": None,
         "last_price": None,
         "last_checked": None,
@@ -545,6 +550,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
 
         # Update trailing SL for each position individually
         atr = float(ana.get("atr", 0.0))
+        is_any_trailing_active = any(p.get("trailing_sl_active", False) for p in pos_list) or (rl_action == 5)
         for p in pos_list:
             pos_id = p["id"]
             p_tp_sl = calculate_tp_sl(
@@ -560,13 +566,13 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             initial_sl = p_tp_sl.get("sl", p["entry_price"] * 0.98 if direction == "LONG" else p["entry_price"] * 1.02)
             
             curr_trailing_sl = p.get("trailing_sl")
-            if curr_trailing_sl is None:
-                curr_trailing_sl = initial_sl
             
             if rl_action == 2:
                 # Move to breakeven
                 curr_trailing_sl = p["entry_price"]
-            elif atr > 0:
+            elif is_any_trailing_active and atr > 0:
+                if curr_trailing_sl is None:
+                    curr_trailing_sl = initial_sl
                 if direction == "LONG":
                     candidate_sl = current_price - 1.5 * atr
                     curr_trailing_sl = max(curr_trailing_sl, candidate_sl)
@@ -577,11 +583,15 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             try:
                 positions_col.update_one(
                     {"id": pos_id, "status": "open"},
-                    {"$set": {"trailing_sl": curr_trailing_sl}}
+                    {"$set": {
+                        "trailing_sl": curr_trailing_sl,
+                        "trailing_sl_active": is_any_trailing_active
+                    }}
                 )
             except Exception as e:
                 print(f"Warning: Lỗi khi cập nhật trailing_sl cho position {pos_id} trên MongoDB: {e}")
             p["trailing_sl"] = curr_trailing_sl
+            p["trailing_sl_active"] = is_any_trailing_active
             
         # Calculate weighted average trailing SL
         grouped_trailing_sls = [p.get("trailing_sl") for p in pos_list if p.get("trailing_sl") is not None]
@@ -707,8 +717,9 @@ def _evaluate_dca_opportunity(
     if not pos_list or not ana or current_price <= 0:
         return None
 
-    # Block DCA when RL recommends closing the position
-    if rl_action is not None and rl_action in (1, 3, 4):
+    # Block DCA unless RL recommends TRAILING_SL_ATR (5) or is not loaded (None).
+    # If RL agent recommends HOLD (0), PARTIAL CLOSE (1), MOVE TO BE (2), TAKE PROFIT (3), or EXIT (4), do not DCA.
+    if rl_action is not None and rl_action != 5:
         return None
 
     direction = pos_list[0].get("direction", "LONG").upper()
