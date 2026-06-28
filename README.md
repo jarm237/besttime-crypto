@@ -1,3 +1,47 @@
+# TimeGAN Pipeline (minimal)
+
+Short guide to the preprocessing, model modules, and training helpers added in this workspace.
+
+Quick Start
+- Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+- Run test suite:
+
+```bash
+python -m pytest -q
+```
+
+Examples
+- Autoencoder pretrain (quick smoke):
+
+```bash
+python -c "from btc_scraper.ml_engine.timegan_trainer import pretrain_autoencoder; import numpy as np; data=np.random.rand(200,24,5).astype('float32'); print(pretrain_autoencoder(data, epochs=3, batch_size=32))"
+```
+
+- Supervisor supervised pretrain (example):
+
+```bash
+python -c "from btc_scraper.ml_engine.timegan_trainer import pretrain_supervisor; import numpy as np; data=np.random.rand(256,24,5).astype('float32'); print(pretrain_supervisor(data, epochs=4))"
+```
+
+- Adversarial training (smoke run):
+
+```bash
+python -c "from btc_scraper.ml_engine.timegan_trainer import train_timegan_adversarial; import numpy as np; data=np.random.rand(256,24,5).astype('float32'); print(train_timegan_adversarial(data, epochs=4))"
+```
+
+Key files
+- `btc_scraper/ml_engine/timegan.py` — preprocessing, scalers, and Dataset.
+- `btc_scraper/ml_engine/timegan_model.py` — model modules (Embedder, Recovery, Generator, Supervisor, Discriminator).
+- `btc_scraper/ml_engine/timegan_trainer.py` — pretraining and adversarial training helpers.
+- `tests/` — unit and smoke tests for the pipeline.
+
+Notes
+- The training functions are minimal and intended for smoke testing and development. For production training, add checkpointing, logging, dataset streaming, and hyperparameter tuning.
 # besttime-crypto
 
 Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích tín hiệu kỹ thuật qua **6 lớp lọc thuật toán**, kết hợp **Gemini AI** để đưa ra nhận định thị trường đa khung thời gian, tích hợp **Fear & Greed Index** và **RAG từ lịch sử giao dịch** — gửi cảnh báo qua Telegram theo thời gian thực.
