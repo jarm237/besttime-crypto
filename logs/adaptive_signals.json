@@ -436710,5 +436710,35 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "NEAR",
+    "id": "b8c4760f-1d26-42cd-98b5-238a1acd9ef3",
+    "entry_price": 1.884,
+    "sell_price": 1.909,
+    "pnl_pct": -1.327,
+    "result": "LOSS",
+    "hold_hours": 0.2,
+    "exit_time": "2026-06-27 23:31",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "gated": false,
+      "meta_confidence": 0.3685048544848691,
+      "meta_confidence_pct": 37,
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0578,
+      "std_dev_pct": 1.8908
+    },
+    "regime": null
   }
 ]
