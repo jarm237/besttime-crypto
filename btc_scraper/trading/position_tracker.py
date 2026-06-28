@@ -14,12 +14,21 @@ from typing import Literal
 import numpy as np
 from pathlib import Path
 
+import torch
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
 
 # Cache PPO model globally to avoid reloading on every cycle
 _PPO_MODEL_CACHE = None
 _LAST_MODEL_PATH = None
+
+
+def _get_default_device() -> str:
+    try:
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
 
 def load_latest_ppo_model() -> str | None:
     """Tìm file zip model PPO mới nhất, ưu tiên model rl_exit_ppo_20260627_143758.zip."""
@@ -38,7 +47,7 @@ def load_latest_ppo_model() -> str | None:
         return str(matches_simple[-1])
     return None
 
-def get_ppo_model():
+def get_ppo_model(device: str = "auto"):
     """Tải model PPO động và cache."""
     global _PPO_MODEL_CACHE, _LAST_MODEL_PATH
     model_path = load_latest_ppo_model()
@@ -47,9 +56,14 @@ def get_ppo_model():
     if _PPO_MODEL_CACHE is None or _LAST_MODEL_PATH != model_path:
         try:
             from stable_baselines3 import PPO
-            _PPO_MODEL_CACHE = PPO.load(model_path)
+            if device == "auto":
+                device = _get_default_device()
+            elif device == "cuda" and not torch.cuda.is_available():
+                print("[RL Exit Agent] CUDA requested but not available. Falling back to CPU.")
+                device = "cpu"
+            _PPO_MODEL_CACHE = PPO.load(model_path, device=device)
             _LAST_MODEL_PATH = model_path
-            print(f"[RL Exit Agent] Loaded model: {model_path}")
+            print(f"[RL Exit Agent] Loaded model: {model_path} on device={device}")
         except Exception as e:
             print(f"[RL Exit Agent] Warning: Lỗi khi load model: {e}")
             return None

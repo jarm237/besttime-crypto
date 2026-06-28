@@ -11,6 +11,7 @@ Usage:
     python train_rl_exit_manager.py --algo ppo --train --steps 500000
     python train_rl_exit_manager.py --algo dqn --train --steps 500000
     python train_rl_exit_manager.py --algo a2c --train --steps 500000
+    python train_rl_exit_manager.py --algo ppo --train --steps 500000 --device cuda
 """
 
 import os
@@ -23,6 +24,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+import torch
 from stable_baselines3 import PPO, DQN, A2C
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -104,6 +106,13 @@ def generate_synthetic_trades(n: int = 100) -> list[dict]:
     return trades
 
 
+def _get_default_device() -> str:
+    try:
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
+
 def train_agent(
     algorithm: str,
     trades: list[dict],
@@ -113,6 +122,7 @@ def train_agent(
     n_eval_episodes: int = 20,
     save_dir: str = "logs/rl_models",
     no_warm_start: bool = False,
+    device: str = "auto",
 ) -> Tuple[str, Dict]:
     """
     Train an RL agent.
@@ -160,16 +170,27 @@ def train_agent(
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_path = os.path.join(save_dir, f"rl_exit_{algorithm}_{timestamp}")
     
+    if device == "auto":
+        device = _get_default_device()
+    elif device == "cuda" and not torch.cuda.is_available():
+        print("[WARN] CUDA requested but not available. Falling back to CPU.")
+        device = "cpu"
     print(f"\n[RL] Training {algorithm.upper()} agent...")
     print(f"  Total timesteps: {total_timesteps:,}")
     print(f"  Learning rate: {learning_rate}")
+    print(f"  Device: {device}")
     print(f"  Saving to: {model_path}")
     
     try:
         if algorithm.lower() == "ppo":
             if latest_model:
                 print(f"[RL] Warm-starting PPO from {os.path.basename(latest_model)}...")
-                model = PPO.load(latest_model, env=env, custom_objects={"learning_rate": learning_rate})
+                model = PPO.load(
+                    latest_model,
+                    env=env,
+                    device=device,
+                    custom_objects={"learning_rate": learning_rate},
+                )
             else:
                 model = PPO(
                     "MlpPolicy",
@@ -183,12 +204,13 @@ def train_agent(
                     gamma=0.99,
                     gae_lambda=0.95,
                     verbose=1,
+                    device=device,
                 )
         
         elif algorithm.lower() == "dqn":
             if latest_model:
                 print(f"[RL] Warm-starting DQN from {os.path.basename(latest_model)}...")
-                model = DQN.load(latest_model, env=env, custom_objects={"learning_rate": learning_rate})
+                model = DQN.load(latest_model, env=env, device=device, custom_objects={"learning_rate": learning_rate})
             else:
                 model = DQN(
                     "MlpPolicy",
@@ -198,18 +220,20 @@ def train_agent(
                     learning_starts=10000,
                     target_update_interval=10000,
                     verbose=1,
+                    device=device,
                 )
         
         elif algorithm.lower() == "a2c":
             if latest_model:
                 print(f"[RL] Warm-starting A2C from {os.path.basename(latest_model)}...")
-                model = A2C.load(latest_model, env=env, custom_objects={"learning_rate": learning_rate})
+                model = A2C.load(latest_model, env=env, device=device, custom_objects={"learning_rate": learning_rate})
             else:
                 model = A2C(
                     "MlpPolicy",
                     env,
                     learning_rate=learning_rate,
                     verbose=1,
+                    device=device,
                 )
         else:
             raise ValueError(f"Unknown algorithm: {algorithm}")
@@ -263,11 +287,18 @@ def compare_agents(
     agent_paths: Dict[str, str],
     trades: list[dict],
     n_episodes: int = 30,
+    device: str = "auto",
 ) -> Dict:
     """Compare multiple trained agents."""
     print("\n[COMPARE] Evaluating agents...")
     
     results = {}
+    if device == "auto":
+        device = _get_default_device()
+    elif device == "cuda" and not torch.cuda.is_available():
+        print("[WARN] CUDA requested for evaluation but not available. Falling back to CPU.")
+        device = "cpu"
+
     for algo, path in agent_paths.items():
         env = MultiTradeExitEnv(
             trades=trades,
@@ -283,11 +314,11 @@ def compare_agents(
         
         try:
             if algo.lower() == "ppo":
-                model = PPO.load(path, env=env)
+                model = PPO.load(path, env=env, device=device)
             elif algo.lower() == "dqn":
-                model = DQN.load(path, env=env)
+                model = DQN.load(path, env=env, device=device)
             elif algo.lower() == "a2c":
-                model = A2C.load(path, env=env)
+                model = A2C.load(path, env=env, device=device)
             else:
                 continue
                 
@@ -318,6 +349,8 @@ def main():
     parser.add_argument("--steps", type=int, default=500000, help="Total training steps")
     parser.add_argument("--n-trades", type=int, default=20000, help="Number of trades to use")
     parser.add_argument("--no-warm-start", action="store_true", help="Train from scratch")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "cuda"],
+                        help="Device for model training/evaluation")
     
     args = parser.parse_args()
     
@@ -344,6 +377,7 @@ def main():
                 trades=trades,
                 total_timesteps=args.steps,
                 no_warm_start=args.no_warm_start,
+                device=args.device,
             )
             results[algo] = metrics
             
@@ -367,7 +401,7 @@ def main():
             print("[WARN] No trained models found. Run with --train first.")
             return
             
-        comparison = compare_agents(agent_paths, trades, n_episodes=30)
+        comparison = compare_agents(agent_paths, trades, n_episodes=30, device=args.device)
         
         with open("logs/rl_comparison.json", "w") as f:
             json.dump(comparison, f, indent=2)

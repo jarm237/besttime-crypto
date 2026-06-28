@@ -237,6 +237,109 @@ def _normalize_weights(weights: dict, available: list[str]) -> list[float]:
     return [selected[k] / total for k in available]
 
 
+def _safe_float(v, default: float = 0.0) -> float:
+    try:
+        if v is None:
+            return default
+        return float(v)
+    except Exception:
+        return default
+
+
+def _normalize_probability(value: float) -> float:
+    try:
+        return max(0.0, min(1.0, float(value)))
+    except Exception:
+        return 0.0
+
+
+def _extract_tp_sl_profile(analysis_info: dict) -> dict:
+    tp_sl = analysis_info.get("tp_sl") if isinstance(analysis_info.get("tp_sl"), dict) else {}
+    entry = _safe_float(
+        tp_sl.get("entry") or analysis_info.get("entry") or analysis_info.get("close") or analysis_info.get("close_price"),
+        0.0,
+    )
+    sl = _safe_float(tp_sl.get("sl") or analysis_info.get("sl"), 0.0)
+    tp1 = _safe_float(tp_sl.get("tp1") or analysis_info.get("tp1"), 0.0)
+    tp2 = _safe_float(tp_sl.get("tp2") or analysis_info.get("tp2"), 0.0)
+    rr1 = _safe_float(tp_sl.get("rr1") or analysis_info.get("rr1"), 0.0)
+    rr2 = _safe_float(tp_sl.get("rr2") or analysis_info.get("rr2"), 0.0)
+
+    direction_text = str(analysis_info.get("action") or analysis_info.get("signal") or "").upper()
+    is_short = any(token in direction_text for token in ("SELL", "SHORT", "BEAR"))
+    is_long = any(token in direction_text for token in ("BUY", "LONG", "BULL"))
+    if not is_short and not is_long:
+        is_long = True
+
+    if entry <= 0:
+        entry = 1.0
+
+    def to_pct(value: float) -> float:
+        if value <= 0:
+            return 0.0
+        return abs((entry - value) / entry * 100.0) if is_short else abs((value - entry) / entry * 100.0)
+
+    sl_pct = to_pct(sl) if sl > 0 else _safe_float(analysis_info.get("sl_pct") or analysis_info.get("stop_loss_pct"), 1.0)
+    tp1_pct = to_pct(tp1) if tp1 > 0 else 0.0
+    tp2_pct = to_pct(tp2) if tp2 > 0 else 0.0
+
+    if tp1_pct <= 0.0 and rr1 > 0.0 and sl_pct > 0.0:
+        tp1_pct = rr1 * sl_pct
+    if tp2_pct <= 0.0 and rr2 > 0.0 and sl_pct > 0.0:
+        tp2_pct = rr2 * sl_pct
+    if tp1_pct <= 0.0 and tp2_pct > 0.0:
+        tp1_pct = max(1.0, tp2_pct / 2.0)
+    if tp2_pct <= 0.0 and tp1_pct > 0.0:
+        tp2_pct = max(tp1_pct * 1.5, tp1_pct)
+    if sl_pct <= 0.0:
+        sl_pct = max(1.0, tp1_pct * 0.5)
+
+    return {
+        "entry": entry,
+        "sl_pct": float(sl_pct),
+        "tp1_pct": float(tp1_pct),
+        "tp2_pct": float(tp2_pct),
+        "direction": "SHORT" if is_short else "LONG",
+    }
+
+
+def _compute_expected_value_metrics(prob: float, analysis_info: dict) -> dict:
+    prob = _normalize_probability(prob)
+    profile = _extract_tp_sl_profile(analysis_info)
+
+    tp1_prob = prob if profile["tp2_pct"] <= 0.0 else prob * 0.70
+    tp2_prob = 0.0 if profile["tp2_pct"] <= 0.0 else prob * 0.30
+    prob_sl = 1.0 - prob
+
+    expected_return = (
+        tp1_prob * profile["tp1_pct"]
+        + tp2_prob * profile["tp2_pct"]
+        - prob_sl * profile["sl_pct"]
+    )
+    expected_drawdown = prob_sl * profile["sl_pct"]
+    expected_hold_time = _safe_float(
+        analysis_info.get("expected_hold_time")
+        or analysis_info.get("hold_hours")
+        or analysis_info.get("hold_time")
+        or analysis_info.get("hold_bars")
+        or 4.0,
+        4.0,
+    )
+
+    return {
+        "expected_return": round(expected_return, 4),
+        "expected_drawdown": round(expected_drawdown, 4),
+        "expected_hold_time": round(expected_hold_time, 2),
+        "prob_tp1": round(tp1_prob, 4),
+        "prob_tp2": round(tp2_prob, 4),
+        "prob_sl": round(prob_sl, 4),
+        "tp1_pct": round(profile["tp1_pct"], 4),
+        "tp2_pct": round(profile["tp2_pct"], 4),
+        "sl_pct": round(profile["sl_pct"], 4),
+        "ev": round(expected_return, 4),
+    }
+
+
 class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
     def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42, base_params=None):
         self.weights = weights if weights is not None else {"lgbm": 0.33, "catboost": 0.33, "xgboost": 0.34}
@@ -479,9 +582,8 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         optuna.logging.set_verbosity(optuna.logging.WARNING)
         print("  [Optuna] Đang tìm kiếm siêu tham số tối ưu (40 trials)...")
 
-        split_idx = int(len(y) * 0.8)
-        X_t, X_v = X[:split_idx], X[split_idx:]
-        y_t, y_v = y[:split_idx], y[split_idx:]
+        # Determine CV splits for Optuna objective
+        optuna_tscv = TimeSeriesSplit(n_splits=3)
 
         def objective(trial):
             # ── LGBM ────────────────────────────────────────────────────
@@ -517,10 +619,27 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
                 "xgboost":  {"max_depth": xgb_depth, "learning_rate": xgb_lr, "subsample": xgb_subsample},
             }
 
-            model = EnsembleMetaModel(weights=weights, base_params=bp, n_estimators=80)
-            model.fit(X_t, y_t)
-            preds = model.predict_proba(X_v)[:, 1]
-            return float(roc_auc_score(y_v, preds))
+            # Evaluate with TimeSeriesSplit to prevent overfitting
+            fold_aucs = []
+            for train_idx, val_idx in optuna_tscv.split(X):
+                X_train, X_val = X[train_idx], X[val_idx]
+                y_train, y_val = y[train_idx], y[val_idx]
+
+                # Need both classes to compute ROC-AUC
+                if len(np.unique(y_val)) < 2 or len(np.unique(y_train)) < 2:
+                    continue
+
+                model = EnsembleMetaModel(weights=weights, base_params=bp, n_estimators=80)
+                try:
+                    model.fit(X_train, y_train)
+                    preds = model.predict_proba(X_val)[:, 1]
+                    fold_aucs.append(float(roc_auc_score(y_val, preds)))
+                except Exception:
+                    pass
+
+            if not fold_aucs:
+                return 0.0
+            return float(np.mean(fold_aucs))
 
         study = optuna.create_study(direction="maximize")
         study.optimize(objective, n_trials=40)
@@ -845,6 +964,8 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
         df = pd.DataFrame([row], columns=feature_names)
         prob = float(clf.predict_proba(df)[0, 1])
 
+        ev_metrics = _compute_expected_value_metrics(prob, analysis_info)
+
         # Prediction-level logging (append newline-delimited JSON)
         try:
             import hashlib
@@ -858,7 +979,9 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 "features_hash": features_hash,
                 "coin": analysis_info.get("coin"),
                 "action": analysis_info.get("action"),
+                "signal": analysis_info.get("signal"),
                 "model_version": MODEL_VERSION,
+                **ev_metrics,
             }
             LOGS.mkdir(parents=True, exist_ok=True)
             pred_log = LOGS / "predictions.log"
@@ -868,7 +991,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             # Don't fail prediction if logging fails
             pass
 
-        return {"probability": prob}
+        return {"probability": prob, **ev_metrics}
     except Exception as e:
         return {"error": str(e), "probability": None}
 

@@ -1,0 +1,296 @@
+"""
+Tests for MetaDecisionEngine (btc_scraper/ml_engine/decision_engine.py).
+
+Coverage:
+  - _sentiment_support, _regime_support, _volatility_support helpers
+  - compute_posterior weighted fusion
+  - decide() action classification: BUY, SELL, HOLD, IGNORE, INCREASE, REDUCE
+  - decide() when model is missing (graceful error)
+  - decide() when model is present (integration with predict_meta_confidence)
+  - custom weight configuration
+"""
+import pytest
+import numpy as np
+
+import btc_scraper.ml_engine.meta_model as mm
+from btc_scraper.ml_engine.decision_engine import MetaDecisionEngine, DEFAULT_EVIDENCE_WEIGHTS
+
+
+# ---------------------------------------------------------------------------
+# Fixture: isolate model/log paths and reset in-memory model cache
+# ---------------------------------------------------------------------------
+@pytest.fixture
+def clean_engine(tmp_path):
+    """Redirect meta_model paths + reset cache for each test."""
+    original_model_out = mm.MODEL_OUT
+    original_model_cache = mm._MODEL_CACHE
+    original_model_error = mm._MODEL_LOAD_ERROR
+    original_logs = mm.LOGS
+
+    mm.MODEL_OUT = tmp_path / "meta_model.joblib"
+    mm.LOGS = tmp_path
+    mm._MODEL_CACHE = None
+    mm._MODEL_LOAD_ERROR = None
+
+    yield MetaDecisionEngine()
+
+    mm.MODEL_OUT = original_model_out
+    mm.LOGS = original_logs
+    mm._MODEL_CACHE = original_model_cache
+    mm._MODEL_LOAD_ERROR = original_model_error
+
+
+@pytest.fixture
+def engine_with_model(tmp_path):
+    """Provide a MetaDecisionEngine with a real (tiny) model saved to disk."""
+    from btc_scraper.ml_engine.meta_model import EnsembleMetaModel, _import_optional_estimators
+    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2
+    import joblib
+
+    estimators = _import_optional_estimators()
+    if not estimators:
+        pytest.skip("No LGBM/CatBoost/XGBoost available.")
+
+    original_model_out = mm.MODEL_OUT
+    original_model_cache = mm._MODEL_CACHE
+    original_model_error = mm._MODEL_LOAD_ERROR
+    original_logs = mm.LOGS
+
+    mm.MODEL_OUT = tmp_path / "meta_model.joblib"
+    mm.LOGS = tmp_path
+    mm._MODEL_CACHE = None
+    mm._MODEL_LOAD_ERROR = None
+
+    n_features = len(FEATURE_SCHEMA_V2)
+    X = np.random.rand(40, n_features)
+    y = np.array([0, 1] * 20)
+    weights = {k: 1.0 for k in estimators}
+    model = EnsembleMetaModel(weights=weights, calibration="sigmoid", n_estimators=5, random_state=0)
+    model.fit(X, y, cv=2)
+    joblib.dump({"model": model, "features": FEATURE_SCHEMA_V2, "version": mm.MODEL_VERSION}, mm.MODEL_OUT)
+
+    engine = MetaDecisionEngine()
+    yield engine
+
+    mm.MODEL_OUT = original_model_out
+    mm.LOGS = original_logs
+    mm._MODEL_CACHE = original_model_cache
+    mm._MODEL_LOAD_ERROR = original_model_error
+
+
+# ---------------------------------------------------------------------------
+# Helper support functions
+# ---------------------------------------------------------------------------
+
+class TestSentimentSupport:
+    def test_buy_high_fg_returns_high(self):
+        engine = MetaDecisionEngine()
+        score = engine._sentiment_support({"signal": "BUY", "fear_greed": 85})
+        assert score > 0.6, f"Expected >0.6, got {score}"
+
+    def test_buy_low_fg_returns_lower(self):
+        engine = MetaDecisionEngine()
+        score = engine._sentiment_support({"signal": "BUY", "fear_greed": 10})
+        assert score < 0.5, f"Expected <0.5, got {score}"
+
+    def test_sell_low_fg_returns_high(self):
+        engine = MetaDecisionEngine()
+        score = engine._sentiment_support({"signal": "SELL", "fear_greed": 10})
+        assert score > 0.5, f"Expected >0.5, got {score}"
+
+    def test_neutral_signal_returns_midpoint(self):
+        engine = MetaDecisionEngine()
+        score = engine._sentiment_support({"signal": "NEUTRAL", "fear_greed": 50})
+        assert score == 0.5
+
+    def test_missing_fg_defaults_to_midpoint(self):
+        engine = MetaDecisionEngine()
+        score = engine._sentiment_support({"signal": "BUY"})
+        # fg defaults to 50, momentum defaults to 0 -> should be around 0.5
+        assert 0.3 <= score <= 0.7
+
+
+class TestRegimeSupport:
+    def test_bull_trend_supports_buy(self):
+        engine = MetaDecisionEngine()
+        score = engine._regime_support({"signal": "BUY", "regime": "STRONG_TREND_BULL"})
+        assert score >= 0.8
+
+    def test_bull_trend_opposes_sell(self):
+        engine = MetaDecisionEngine()
+        score = engine._regime_support({"signal": "SELL", "regime": "TRENDING_BULL"})
+        assert score <= 0.2
+
+    def test_bear_trend_supports_sell(self):
+        engine = MetaDecisionEngine()
+        score = engine._regime_support({"signal": "SELL", "regime": "TRENDING_BEAR"})
+        assert score >= 0.8
+
+    def test_ranging_returns_neutral(self):
+        engine = MetaDecisionEngine()
+        score = engine._regime_support({"signal": "BUY", "regime": "RANGING"})
+        assert score == 0.5
+
+    def test_unknown_regime_returns_neutral(self):
+        engine = MetaDecisionEngine()
+        score = engine._regime_support({"signal": "BUY", "regime": "UNKNOWN_REGIME"})
+        assert score == 0.5
+
+
+class TestVolatilitySupport:
+    def test_panic_high_vol_returns_low(self):
+        engine = MetaDecisionEngine()
+        score = engine._volatility_support({"atr_percentile": 90})
+        assert score <= 0.3
+
+    def test_moderate_vol(self):
+        engine = MetaDecisionEngine()
+        # atr_percentile=55 falls into >= 40 bucket -> 0.75
+        score = engine._volatility_support({"atr_percentile": 55})
+        assert score == 0.75
+
+    def test_boundary_vol_60(self):
+        engine = MetaDecisionEngine()
+        # atr_percentile=65 falls into >= 60 bucket -> 0.5
+        score = engine._volatility_support({"atr_percentile": 65})
+        assert score == 0.5
+
+    def test_low_vol_returns_high(self):
+        engine = MetaDecisionEngine()
+        score = engine._volatility_support({"atr_percentile": 20})
+        assert score >= 0.85
+
+    def test_high_atr_pct_returns_low(self):
+        engine = MetaDecisionEngine()
+        score = engine._volatility_support({"atr_pct": 4.0})
+        assert score <= 0.3
+
+
+# ---------------------------------------------------------------------------
+# compute_posterior
+# ---------------------------------------------------------------------------
+
+class TestComputePosterior:
+    def test_all_high_gives_high_posterior(self):
+        engine = MetaDecisionEngine()
+        p = engine.compute_posterior(0.9, 0.9, 0.9, 0.9)
+        assert p >= 0.85
+
+    def test_all_low_gives_low_posterior(self):
+        engine = MetaDecisionEngine()
+        p = engine.compute_posterior(0.1, 0.1, 0.1, 0.1)
+        assert p <= 0.15
+
+    def test_midpoint(self):
+        engine = MetaDecisionEngine()
+        p = engine.compute_posterior(0.5, 0.5, 0.5, 0.5)
+        assert abs(p - 0.5) < 0.01
+
+    def test_custom_weights(self):
+        engine = MetaDecisionEngine(weights={"meta": 1.0, "sentiment": 0.0, "regime": 0.0, "volatility": 0.0})
+        p = engine.compute_posterior(0.9, 0.1, 0.1, 0.1)
+        assert p >= 0.85, "Custom weight should make meta dominate"
+
+    def test_output_clamped_to_01(self):
+        engine = MetaDecisionEngine()
+        p = engine.compute_posterior(1.5, 1.5, 1.5, 1.5)
+        assert 0.0 <= p <= 1.0
+        p = engine.compute_posterior(-0.5, -0.5, -0.5, -0.5)
+        assert 0.0 <= p <= 1.0
+
+
+# ---------------------------------------------------------------------------
+# decide() without model
+# ---------------------------------------------------------------------------
+
+class TestDecideNoModel:
+    def test_returns_neutral_when_no_model(self, clean_engine):
+        result = clean_engine.decide({"coin": "BTC", "signal": "BUY"})
+        assert result["action"] == "NEUTRAL"
+        assert result["posterior_probability"] is None
+        assert result["meta_probability"] is None
+        assert "error" in result
+
+    def test_result_is_dict(self, clean_engine):
+        result = clean_engine.decide({"coin": "ETH", "signal": "SELL"})
+        assert isinstance(result, dict)
+
+
+# ---------------------------------------------------------------------------
+# decide() with model — action classification
+# ---------------------------------------------------------------------------
+
+class TestDecideWithModel:
+    def test_returns_dict_with_required_keys(self, engine_with_model):
+        required = {
+            "action", "posterior_probability", "meta_probability",
+            "sentiment_support", "regime_support", "volatility_support",
+            "expected_return", "expected_drawdown", "expected_hold_time",
+            "prob_tp1", "prob_tp2", "prob_sl", "meta_ev", "reason",
+        }
+        result = engine_with_model.decide({
+            "coin": "BTC", "signal": "BUY", "action": "BUY",
+            "rsi": 55.0, "macd_hist": 0.01, "atr_pct": 1.2,
+            "fear_greed": 60, "regime": "TRENDING_BULL",
+        })
+        assert required.issubset(result.keys()), f"Missing keys: {required - result.keys()}"
+
+    def test_action_is_valid_enum(self, engine_with_model):
+        valid_actions = {"BUY", "SELL", "HOLD", "IGNORE", "INCREASE", "REDUCE", "NEUTRAL"}
+        result = engine_with_model.decide({
+            "coin": "BTC", "signal": "BUY", "action": "BUY",
+            "rsi": 60.0, "atr_pct": 1.0, "fear_greed": 70,
+        })
+        assert result["action"] in valid_actions
+
+    def test_posterior_in_range_01(self, engine_with_model):
+        result = engine_with_model.decide({
+            "coin": "ETH", "signal": "BUY", "action": "BUY",
+            "rsi": 55.0, "atr_pct": 1.5,
+        })
+        p = result["posterior_probability"]
+        assert p is not None
+        assert 0.0 <= p <= 1.0
+
+    def test_reason_string_contains_components(self, engine_with_model):
+        result = engine_with_model.decide({"coin": "SOL", "signal": "BUY", "action": "BUY"})
+        reason = result.get("reason", "")
+        assert "meta_prob=" in reason
+        assert "posterior=" in reason
+        assert "ev=" in reason
+
+    def test_ignore_when_ev_too_small(self, monkeypatch, tmp_path):
+        """Force action=IGNORE by injecting prob=0.5 with symmetric TP/SL (+0.01% / -0.01%).
+        EV = 0.5*tp1_pct - 0.5*sl_pct ~ 0 -> abs(EV) < min_ev_pct(0.05) -> IGNORE."""
+        from btc_scraper.ml_engine import meta_model as _mm
+        from btc_scraper.ml_engine import decision_engine as _de
+
+        original_cache = _mm._MODEL_CACHE
+        _mm._MODEL_CACHE = None
+
+        # Inject a stub that bypasses model loading and returns prob=0.5 + EV computation
+        def _stub(info):
+            from btc_scraper.ml_engine.meta_model import _compute_expected_value_metrics
+            return {"probability": 0.5, **_compute_expected_value_metrics(0.5, info)}
+
+        monkeypatch.setattr(_de, "predict_meta_confidence", _stub)
+
+        engine = MetaDecisionEngine()
+        # Use field names that _extract_tp_sl_profile actually reads: entry, sl, tp1
+        result = engine.decide({
+            "coin": "BTC",
+            "signal": "BUY",
+            "action": "BUY",
+            "entry": 100.0,
+            "tp1": 100.01,   # +0.01%
+            "sl":  99.99,    # -0.01%
+        })
+
+        _mm._MODEL_CACHE = original_cache
+
+        assert result["action"] == "IGNORE", (
+            f"Expected IGNORE for near-zero EV, got {result['action']} "
+            f"(expected_return={result.get('expected_return')})"
+        )
+
+

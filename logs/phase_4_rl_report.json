@@ -1,7 +1,7 @@
 {
   "phase": 4,
   "title": "Reinforcement Learning Exit Manager \u2014 Phase 2 Optimized",
-  "date": "2026-06-27T14:44:48.941469",
+  "date": "2026-06-28T17:02:55.319435",
   "n_eval_episodes": 50,
   "environment": {
     "state_space": 18,
@@ -31,47 +31,47 @@
   },
   "rl_agents": {
     "ppo": {
-      "mean_reward": -1.497822170022086,
-      "std_reward": 2.8367251685075336,
-      "mean_pnl": -0.02655673788426912,
+      "mean_reward": -2.380139668774663,
+      "std_reward": 1.5806322674100244,
+      "mean_pnl": 0.16127914028143628,
       "action_distribution": {
-        "HOLD": 254,
-        "PARTIAL_CLOSE_50": 78,
-        "MOVE_SL_BE": 11,
-        "TAKE_PROFIT": 82,
-        "EXIT": 1,
-        "TRAILING_SL_ATR": 230
+        "HOLD": 280,
+        "PARTIAL_CLOSE_50": 84,
+        "MOVE_SL_BE": 3,
+        "TAKE_PROFIT": 79,
+        "EXIT": 3,
+        "TRAILING_SL_ATR": 262
       },
       "done_reasons": {
-        "PARTIAL_CLOSE_50": 59,
-        "TAKE_PROFIT": 64,
-        "SL_HIT": 109,
-        "TP_HIT": 17,
-        "EXIT": 1
+        "SL_HIT": 112,
+        "PARTIAL_CLOSE_50": 60,
+        "TAKE_PROFIT": 55,
+        "TP_HIT": 21,
+        "EXIT": 2
       },
       "n_episodes": 50
     }
   },
   "rule_based": {
-    "mean_reward": -2.5614371411003263,
-    "std_reward": 2.8792095693397206,
-    "mean_pnl": -0.17210201311125503,
-    "win_rate": 0.26422764227642276,
+    "mean_reward": -2.9150168148086584,
+    "std_reward": 3.016251340681221,
+    "mean_pnl": 0.09779332257612282,
+    "win_rate": 0.23404255319148937,
     "done_reasons": {
-      "TP_HIT": 65,
-      "SL_HIT": 179,
-      "MAX_STEPS": 2
+      "SL_HIT": 174,
+      "TP_HIT": 55,
+      "MAX_STEPS": 6
     },
     "n_episodes": 50
   },
   "comparison_summary": {
     "best_agent": "ppo",
-    "rule_based_mean_reward": -2.5614371411003263,
-    "rule_based_win_rate": 0.26422764227642276,
+    "rule_based_mean_reward": -2.9150168148086584,
+    "rule_based_win_rate": 0.23404255319148937,
     "rl_improvements": {
       "ppo": {
-        "delta_reward": 1.0636149710782403,
-        "mean_reward": -1.497822170022086
+        "delta_reward": 0.5348771460339954,
+        "mean_reward": -2.380139668774663
       }
     }
   }

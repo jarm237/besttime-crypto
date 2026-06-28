@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 BASE = os.path.dirname(__file__)
 ADAPTIVE_LOG = os.path.join(BASE, "..", "..", "logs", "adaptive_signals.json")
 ADAPTIVE_MODEL = os.path.join(BASE, "..", "..", "logs", "adaptive_model.json")
+ADAPTIVE_MODEL_JOBLIB = os.path.join(BASE, "..", "logs", "adaptive_model.joblib")
 
 
 def _ensure_dir(path: str) -> None:
@@ -177,7 +178,7 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         clf.fit(X, y)
 
         # Save model and metadata
-        model_path = os.path.join(os.path.dirname(__file__), "..", "logs", "adaptive_model.joblib")
+        model_path = ADAPTIVE_MODEL_JOBLIB
         _ensure_dir(model_path)
         joblib.dump({"model": clf, "features": feature_names}, model_path)
 

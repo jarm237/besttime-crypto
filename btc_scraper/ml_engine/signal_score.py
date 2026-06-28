@@ -468,6 +468,10 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
 
     # ── Meta Model Confidence + Kelly Position Sizing ──────────────────────────
     meta_prob = None
+    meta_expected_return = None
+    meta_expected_drawdown = None
+    meta_expected_hold_time = None
+    meta_decision = {}
     kelly = None
     b_est = None
     meta_err = None
@@ -719,7 +723,12 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             "action": action,
             "score": int(score),
             "meta_prob": meta_prob,
+            "meta_expected_return": meta_expected_return,
+            "meta_expected_drawdown": meta_expected_drawdown,
+            "meta_expected_hold_time": meta_expected_hold_time,
             "meta_error": meta_err,
+            "meta_decision": meta_decision.get("action") if isinstance(meta_decision, dict) else None,
+            "posterior_probability": meta_decision.get("posterior_probability") if isinstance(meta_decision, dict) else None,
             "kelly": kelly,
             "position_size": pos_size,
             "gated": gated,
@@ -741,6 +750,10 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         "gated": gated,
         "meta_confidence": meta_prob,
         "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,
+        "meta_expected_return": meta_expected_return,
+        "meta_expected_drawdown": meta_expected_drawdown,
+        "meta_expected_hold_time": meta_expected_hold_time,
+        "meta_decision": meta_decision,
         "kelly_fraction": kelly,
         "b_estimate": b_est,
         "meta_error": meta_err,

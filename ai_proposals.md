@@ -1,548 +1,203 @@
-# AI Quant Trading Platform Roadmap
+# Lộ Trình Phát Triển: besttime-crypto Tiến Lên AI Quant Research Platform
 
-> Mục tiêu: Phát triển **besttime-crypto** từ một hệ thống Signal Bot thành một **AI Quant Trading Platform** có khả năng tự học, tự tối ưu và tự quản lý danh mục đầu tư.
-
----
-
-# Giai đoạn 1: Củng cố nền tảng dữ liệu & Feature Engineering (✅ Đã hoàn thành)
-**Thời gian thực hiện:** 1-2 tuần (Hoàn thành ngày 12/06/2026)
-
-## Mục tiêu
-
-- Tăng chất lượng dữ liệu đầu vào cho ML.
-- Giảm overfitting.
-- Nâng AUC từ ~0.64 → ~0.67.
+Bản kế hoạch này chi tiết hóa lộ trình 5 giai đoạn nhằm chuyển đổi hệ thống **besttime-crypto** từ một bot giao dịch bán tự động thành một **Nền tảng Nghiên cứu Định lượng Trí tuệ Nhân tạo (AI Quant Research Platform)** toàn diện, giải quyết các thiếu sót về bộ não trung tâm, quản lý danh mục đa tài sản, mô hình giá trị kỳ vọng (Expected Value), và RL Position Management.
 
 ---
 
-## Công việc cần thực hiện
+## 1. Mục Tiêu Chiến Lược & Kiến Trúc Tổng Thể
 
-### 1. Market Regime Detection v2
-
-#### Trạng thái hiện tại
+Kiến trúc phân tầng hiện tại rất xuất sắc, đảm bảo tính mô-đun hóa cao. Bước tiếp theo là đưa vào một **Bộ Não Trung Tâm (Meta Decision Engine)** và một **Bộ Máy Danh Mục (Portfolio Intelligence Engine)** nằm ở giữa lớp chấm điểm tín hiệu và thực thi giao dịch.
 
 ```
-Trending Bull
-Trending Bear
-Ranging
-High Volatility
-```
-
-#### Mục tiêu mới
-
-```
-Strong Trend
-Weak Trend
-Compression
-Breakout
-Mean Reversion
-Panic Sell
-Low Liquidity
-Pump Risk
-```
-
-#### Feature đề xuất
-
-- ADX Percentile
-- ATR Percentile
-- BB Width Percentile
-- Historical Volatility
-- Volume Percentile
-- Trend Strength Score
-
----
-
-### 2. Bổ sung Feature Engineering
-
-#### Momentum Features
-
-```
-return_15m
-return_1h
-return_4h
-return_1d
-roc_14
-roc_50
-```
-
-#### Trend Features
-
-```
-ema9_slope
-ema21_slope
-sma50_slope
-sma200_slope
-ema_distance_zscore
-```
-
-#### Volatility Features
-
-```
-realized_vol_20
-realized_vol_50
-atr_percentile
-volatility_regime
-```
-
-#### Market Structure Features
-
-```
-distance_support_pct
-distance_resistance_pct
-higher_high
-lower_low
-market_structure_break
-```
-
-#### Liquidity Features
-
-```
-obv
-cmf
-mfi
-volume_acceleration
-volume_percentile
+       [ Data Layer: Candles, Volatility, Sentiment, Order Book, Macro ]
+                                     │
+                                     ▼
+        [ Technical Analysis Indicators ]   [ Market Regime Detection ]
+                                     │                   │
+                                     └───────────┬───────┘
+                                                 │
+                                                 ▼
+             [ Signal Scoring (ML) & Expected Value Predictions ]
+                                                 │
+                                                 ▼
+        ┌─────────────────────────────────────────────────────────────────┐
+        │                 META DECISION ENGINE (Central Brain)            │
+        │  ─────────────────────────────────────────────────────────────  │
+        │  • Bayesian Confidence Network (Posterior Probabilities)        │
+        │  • Voting Ensemble (ML Signals, Market Sentiment, Regime Filters)│
+        └────────────────────────────────┬────────────────────────────────┘
+                                         │
+                                         ▼
+        ┌─────────────────────────────────────────────────────────────────┐
+        │            PORTFOLIO INTELLIGENCE ENGINE (Portfolio Level)      │
+        │  ─────────────────────────────────────────────────────────────  │
+        │  • Correlation Matrix Filter                                    │
+        │  • Exposure Manager & Risk Allocation (VaR / CVaR Limits)       │
+        │  • Kelly Fraction & MVO Optimizer (Position Sizing)             │
+        └────────────────────────────────┬────────────────────────────────┘
+                                         │
+                                         ▼
+        ┌─────────────────────────────────────────────────────────────────┐
+        │             RL POSITION MANAGER (Reinforcement Learning)        │
+        │  ─────────────────────────────────────────────────────────────  │
+        │  • Actions: HOLD, INCREASE, REDUCE, MOVE_SL, HEDGE, DO_NOTHING  │
+        │  • LSTM/Transformer Policy (Sequential Memory)                  │
+        └────────────────────────────────┬────────────────────────────────┘
+                                         │
+                                         ▼
+                            [ Execution & DB Persistence ]
 ```
 
 ---
 
-### 3. Explainable AI
+## 2. Kế Hoạch Chi Tiết 5 Giai Đoạn
 
-#### Triển khai
+### GIAI ĐOẠN 1: Tăng Cường Độ Bền Vận Hành & Nền Tảng Ổn Định (Production Resilience)
+* **Thời gian**: Tháng 1
+* **Mục tiêu**: Đưa hệ thống lên mức độ tin cậy cấp doanh nghiệp (Production-Grade), giải quyết các rủi ro vận hành.
 
-- SHAP Values
-- Permutation Importance
-- Feature Correlation Analysis
-
-#### Mục tiêu
-
-- Loại bỏ feature không tạo alpha:Fear & Greed
-- Volume Ratio
-
-- Xác định feature đóng góp lớn nhất.
-
----
-
-### Deliverables
-
-```
-FEATURE_SCHEMA:
-14 features
-↓
-40-60 features
-```
-
-```
-Regime:
-4 trạng thái
-↓
-8-10 trạng thái
-```
-
-```
-Target ROC-AUC:
-0.64
-↓
-0.67+
-```
+#### Các đầu việc kỹ thuật:
+1. **Database Circuit Breaker**:
+   * Triển khai module `core/circuit_breaker.py` để giám sát kết nối MongoDB Atlas & Redis.
+   * Khi mất kết nối, tự động định tuyến các thao tác ghi dữ liệu/trạng thái vị thế vào SQLite local (`data/offline_buffer.db`).
+   * Viết worker ngầm chạy `sync_offline_data()` tự động đẩy dữ liệu từ SQLite lên MongoDB khi kết nối khôi phục.
+2. **Graceful Shutdown & Process Supervision**:
+   * Sửa đổi [main.py](file:///d:/Workspaces/Vọc vạch/main.py) để quản lý tín hiệu hệ thống (`SIGINT`, `SIGTERM`).
+   * Gửi sentinel `None` vào queue của `ai_worker` và đóng các luồng WebSocket Binance một cách chủ động.
+   * Quản lý tiến trình con (như `continuous_learning.py`) thông qua việc lưu file PID và chấm dứt tiến trình khi dừng ứng dụng.
+3. **Atomic File Writes**:
+   * Viết helper `atomic_write(file_path, data)` sử dụng cơ chế ghi tạm `.tmp` sau đó `os.replace` để tránh hỏng file khi mất nguồn.
+4. **Health Check Endpoint & Monitoring Metrics**:
+   * Tích hợp một luồng HTTP daemon siêu nhẹ (FastAPI/Flask) hoặc Prometheus Client trong `main.py` để xuất các chỉ số:
+     * `ws_latency_ms`: Độ trễ WebSocket của Binance.
+     * `db_connection_status`: Trạng thái kết nối DB (0 hoặc 1).
+     * `queue_size`: Kích thước hàng đợi của AI Analyst.
+5. **Mở rộng Test Coverage cho ML/RL**:
+   * Tạo [test_rl_env.py](file:///d:/Workspaces/Vọc vạch/tests/test_rl_env.py) để chạy thử nghiệm huấn luyện mô hình PPO với 100 timesteps trên dữ liệu giả lập.
+   * Bổ sung unit test cho `meta_model` và `adaptive_scoring`.
 
 ---
 
-# Giai đoạn 2: Ensemble Machine Learning (✅ Đã hoàn thành)
-**Thời gian thực hiện:** 2-4 tuần (Hoàn thành ngày 13/06/2026)
+### GIAI ĐOẠN 2: Bộ Quản Trị Danh Mục Thông Minh (Portfolio Intelligence & Risk Allocation)
+* **Thời gian**: Tháng 2 - Tháng 3
+* **Mục tiêu**: Loại bỏ việc mở vị thế mù quáng cho các tài sản có tương quan cao, tối ưu hóa phân bổ vốn ở cấp danh mục.
 
-## Mục tiêu
-
-- Tăng độ chính xác dự báo xác suất thắng.
-- Giảm variance của Random Forest.
-
----
-
-## Công việc cần thực hiện
-
-### 1. Triển khai nhiều mô hình
-
-#### RandomForest
-
-```
-Ưu điểm:
-- Dễ giải thích
-- Chống overfit tương đối tốt
-```
-
-#### LightGBM
-
-```
-Ưu điểm:
-- Huấn luyện nhanh
-- Hiệu quả với tabular data
-```
-
-#### CatBoost
-
-```
-Ưu điểm:
-- Xử lý feature categorical tốt
-- Ít cần tuning
-```
-
-#### XGBoost
-
-```
-Ưu điểm:
-- Mạnh trong bài toán classification
-```
+#### Các đầu việc kỹ thuật:
+1. **Correlation Engine**:
+   * Xây dựng module `analysis/correlation.py` để tính toán ma trận tương quan lăn (rolling correlation matrix) 30 ngày của giá Altcoin dựa trên dữ liệu nến 1h.
+   * Thiết lập bộ lọc: Nếu một tín hiệu BUY xuất hiện trên đồng Altcoin B, nhưng danh mục đang giữ đồng Altcoin A có độ tương quan $R_{A,B} > 0.75$, hệ thống sẽ:
+     * Hoặc gộp chung giới hạn rủi ro.
+     * Hoặc từ chối mở lệnh mới trên B nếu tổng rủi ro của nhóm vượt ngưỡng.
+2. **Exposure Manager**:
+   * Tính toán rủi ro danh mục theo Sector (ví dụ: L1, L2, DeFi, Meme, AI) để tránh tập trung vốn vào một nhóm coin khi có sự kiện thị trường.
+   * Giới hạn tỷ lệ USDT/Stablecoin trong tài khoản để luôn duy trì đệm thanh khoản.
+3. **Dynamic Position Sizing bằng Kelly Fraction & VaR (Value at Risk)**:
+   * Chuyển đổi định lượng vốn từ mức cố định (ví dụ $100) sang tính toán động:
+     $$\text{Size} = \text{Total Capital} \times f^* \times \text{Risk Multiplier}$$
+     Trong đó Kelly Fraction $f^* = p - \frac{q}{b}$ ($p$: tỷ lệ thắng, $b$: tỷ lệ win/loss).
+   * Triển khai mô hình tính toán **VaR (Value at Risk - Độ lệch rủi ro tối đa)** và **CVaR (Conditional VaR - Kỳ vọng tổn thất vượt mức VaR)** cho toàn bộ danh mục để tự động cắt giảm quy mô các lệnh khi biên độ biến động chung tăng đột biến.
 
 ---
 
-### 2. Ensemble Voting
+### GIAI ĐOẠN 3: Bộ Não Quyết Định & Mô Hình Giá Tri Kỳ Vọng (Decision & Expected Value Intelligence)
+* **Thời gian**: Tháng 4 - Tháng 5
+* **Mục tiêu**: Chuyển đổi mô hình phân loại nhị phân (Meta Model) thành mô hình giá trị kỳ vọng (Expected Value) và tích hợp bộ não trung tâm.
 
-```
-p_win =
-0.20 * RandomForest +
-0.40 * LightGBM +
-0.40 * CatBoost
-```
-
----
-
-### 3. Probability Calibration
-Áp dụng:
-
-- Platt Scaling
-- Isotonic Regression
-
----
-
-### 4. Walk Forward Validation
-
-```
-Train:
-Jan-Jun
-
-Test:
-Jul
-
-Train:
-Feb-Jul
-
-Test:
-Aug
-...
-```
+#### Các đầu việc kỹ thuật:
+1. **Expected Value (EV) Model**:
+   * Nâng cấp mô hình [meta_model.py](file:///d:/Workspaces/Vọc vạch/btc_scraper/ml_engine/meta_model.py) để chuyển từ dự báo xác suất thắng/thua đơn thuần sang dự đoán đa biến số:
+     * $\text{Expected Return}$ (Lợi nhuận kỳ vọng - tỷ lệ phần trăm).
+     * $\text{Expected Drawdown}$ (Mức sụt giảm tài sản kỳ vọng tối đa).
+     * $\text{Expected Hold Time}$ (Số lượng nến dự kiến giữ vị thế).
+     * Xác suất đạt $\text{TP1}$, $\text{TP2}$, và $\text{SL}$.
+   * Kết hợp các dự đoán này để tính toán giá trị kỳ vọng:
+     $$E(PnL) = (P_{TP1} \times TP1_{pct}) + (P_{TP2} \times TP2_{pct}) - (P_{SL} \times SL_{pct})$$
+2. **Central Meta Decision Engine**:
+   * Xây dựng lớp quyết định trung tâm `MetaDecisionEngine` tại `btc_scraper/ml_engine/decision_engine.py`.
+   * **Bayesian Network Integration**: Kết hợp các nguồn thông tin không đồng nhất (Tín hiệu chỉ báo, ML score, Sentiment, Market Regime, Volatility, Macro) làm các biến đầu vào để tính toán xác suất hậu nghiệm (Posterior Probability) cho hướng đi của giá.
+   * Cấu hình logic biểu quyết (Voting Ensemble): Cho phép các mô hình thành phần biểu quyết. Quyết định đầu ra sẽ linh hoạt hơn:
+     * `BUY` / `SELL`: Mở vị thế đầy đủ.
+     * `INCREASE` / `REDUCE`: Gia tăng/giảm tỷ trọng lệnh hiện có.
+     * `HOLD`: Tiếp tục giữ nguyên trạng thái.
+     * `IGNORE`: Bỏ qua tín hiệu (tắt nhiễu).
 
 ---
 
-### Deliverables
+### GIAI ĐOẠN 4: Quản Trị Vị Thế Bằng Học Tăng Cường (RL Position Manager)
+* **Thời gian**: Tháng 6 - Tháng 7 - Tháng 8
+* **Mục tiêu**: Thay thế RL Exit Manager đơn thuần bằng một Agent quản trị vị thế động toàn diện, tích hợp bộ nhớ chuỗi.
 
-```
-Adaptive Model:
-RandomForest
-↓
-Ensemble Model
-```
-
-```
-Target ROC-AUC:
-0.67
-↓
-0.70+
-```
-
----
-
-# Giai đoạn 3: Dynamic Trading Engine (✅ Đã hoàn thành)
-**Thời gian thực hiện:** 1 tháng (Hoàn thành ngày 14/06/2026)
-
-## Mục tiêu
-
-- Tự động tối ưu tham số.
-- Tăng expectancy của hệ thống.
+#### Các đầu việc kỹ thuật:
+1. **Tái thiết kế Environment (`TradeManagementEnv`)**:
+   * Cập nhật không gian trạng thái (State Space) bao gồm cả trạng thái ma trận tương quan danh mục, mức tiếp xúc rủi ro hiện tại và dự đoán EV.
+   * **Mở rộng Action Space**:
+     * `0: HOLD` (Giữ nguyên).
+     * `1: INCREASE` (Mua/Bán thêm - DCA thông minh).
+     * `2: REDUCE` (Bán bớt - chốt 25%/50% vị thế).
+     * `3: MOVE_SL` (Dịch stop loss).
+     * `4: HEDGE` (Mở vị thế đối ứng để bảo vệ tài khoản).
+     * `5: DO_NOTHING`.
+2. **LSTM / Transformer Policy**:
+   * Thay thế MLP bằng mạng Recurrent Neural Network (LSTM/GRU) hoặc kiến trúc Transformer mini để lưu vết các bước chuyển trạng thái giá của các nến trước đó.
+   * Giúp Agent nhận diện được mẫu hình chuyển động (Price Action) thay vì các chỉ số tĩnh.
+3. **Tái định hình Reward Shaping**:
+   * Xóa bỏ hoàn toàn các phần thưởng heuristic khuyến khích Agent dịch SL hoặc an toàn giả tạo.
+   * Thiết lập hàm thưởng tập trung thẳng vào **Net PnL** (đã trừ phí giao dịch & trượt giá) kết hợp với phạt biến động (Sharpe/Sortino ratio của episode).
 
 ---
 
-## Công việc cần thực hiện
+### GIAI ĐOẠN 5: Trí Tuệ Thích Ứng & Mô Phỏng Thị Trường (World Model & Simulation)
+* **Thời gian**: Tháng 9 trở đi
+* **Mục tiêu**: Xây dựng một thế giới giả lập thị trường để mô hình tự học thông qua Self-play và Causal AI.
 
-### 1. Bayesian Optimization (Optuna)
-Tối ưu:
-
-```
-atr_sl_mult
-atr_tp_mult
-ema_period
-rsi_threshold
-signal_cutoff
-position_size
-```
+#### Các đầu việc kỹ thuật:
+1. **Synthetic Market Generation (Tạo lập thị trường nhân tạo)**:
+   * Sử dụng mạng sinh như GANs hoặc TimeGAN để tạo ra hàng triệu kịch bản biến động giá Altcoin giả lập (bao gồm cả các đợt flash crash, bull run giả, sideway kéo dài) để huấn luyện RL Agent mà không sợ bị Overfitting dữ liệu lịch sử.
+2. **Causal World Model (Mô hình Nhân quả)**:
+   * Huấn luyện mô hình hiểu được tác động nhân quả giữa các biến số vĩ mô/on-chain (ví dụ: `Fed Interest Rate` -> `DXY` -> `BTC Price` -> `Altcoin Season`).
+   * Sử dụng cấu trúc đồ thị nhân quả (Causal Graph) để giúp Central Brain suy luận tốt hơn trong các bối cảnh thị trường chưa từng xảy ra.
 
 ---
 
-### 2. Dynamic TP/SL
+## 3. Các File Đề Xuất Thay Đổi & Tạo Mới (Giai đoạn 1)
 
-#### Hiện tại
+Dưới đây là các tệp tin trong hệ thống sẽ được sửa đổi hoặc tạo mới ngay trong **Giai đoạn 1 (Production Resilience)**:
 
-```
-TP = ATR × 3.5
-SL = ATR × 1.2
-```
+### `[MODIFY]` [main.py](file:///d:/Workspaces/Vọc vạch/main.py)
+* **Nội dung thay đổi**: Tích hợp cờ tín hiệu Graceful Shutdown, kết nối Prometheus metrics exporter, và cấu hình bắt lỗi mất kết nối DB toàn cục để gọi Circuit Breaker.
 
-#### Đề xuất
+### `[NEW]` [core/circuit_breaker.py](file:///d:/Workspaces/Vọc vạch/btc_scraper/core/circuit_breaker.py)
+* **Nội dung tạo mới**: Lớp điều phối Circuit Breaker. Theo dõi MongoDB Atlas. Nếu phát hiện lỗi mạng kéo dài, chuyển hướng ghi dữ liệu vào SQLite local.
 
-```
-if regime == "StrongTrend":
-    TP = ATR × 5
-elif regime == "Range":
-    TP = ATR × 2
-```
+### `[MODIFY]` [position_tracker.py](file:///d:/Workspaces/Vọc vạch/btc_scraper/trading/position_tracker.py)
+* **Nội dung thay đổi**: Sửa đổi cơ chế ghi log/cập nhật vị thế. Tích hợp ghi file atomic cho các log predictions local.
+
+### `[NEW]` [tests/test_rl_env.py](file:///d:/Workspaces/Vọc vạch/tests/test_rl_env.py)
+* **Nội dung tạo mới**: File kiểm thử liên tục (Smoke Test) cho RL Environment và Meta Model. Chạy tự động trong CI pipeline để phát hiện regression.
 
 ---
 
-### 3. Dynamic Position Sizing
+## 4. Kế Hoạch Xác Minh (Verification Plan)
 
-#### Kelly Criterion
+### Kiểm thử Tự động (Automated Testing)
+1. **Smoke Test cho RL**:
+   ```bash
+   pytest tests/test_rl_env.py -v
+   ```
+2. **Kiểm thử Circuit Breaker**:
+   * Viết mock test ngắt kết nối mạng với MongoDB Atlas và xác minh dữ liệu vị thế được lưu chính xác vào SQLite local. Khôi phục kết nối và kiểm tra đồng bộ dữ liệu.
 
-```
-f* = (bp - q)/b
-```
-Trong đó:
-
-```
-b = reward/risk
-p = win probability
-q = 1-p
-```
-
-#### Position Size
-
-```
-position_size = 0.25 * kelly_fraction
-```
+### Xác minh Thủ công (Manual Verification)
+1. **Mô phỏng Graceful Shutdown**:
+   * Chạy `python main.py` và gửi tín hiệu `Ctrl+C` (SIGINT). Xác minh trên log xem AI Analyst thread và WebSocket stream có thoát tuần tự mà không có Exception ngắt quãng nào.
+2. **Kiểm tra Health Check API**:
+   * Truy cập `http://localhost:8000/health` và xác nhận định dạng JSON xuất ra đúng các trường thông tin hiệu năng hệ thống.
 
 ---
 
-### 4. Dynamic Risk Management
+## 5. Câu Hỏi Cần Alignment
 
-```
-if losing_streak >= 3:
-    risk_per_trade *= 0.5
-
-if drawdown >= 10:
-    disable_auto_trade()
-```
-
----
-
-### Deliverables
-
-```
-Fixed TP/SL
-↓
-Dynamic TP/SL
-```
-
-```
-Fixed Position Size
-↓
-Adaptive Position Size
-```
-
----
-
-# Giai đoạn 4: Reinforcement Learning (✅ Đã hoàn thành)
-**Thời gian thực hiện:** 1-2 tháng (Hoàn thành ngày 14/06/2026)
-
-## Mục tiêu
-
-- Tối ưu hành vi quản lý lệnh.
-- Tự học chiến lược thoát lệnh.
-
----
-
-## Thiết kế môi trường RL
-
-### State
-
-```
-rsi
-macd
-atr
-adx
-meta_confidence
-regime
-pnl_pct
-hold_time
-fear_greed
-volume_ratio
-```
-
----
-
-### Actions
-
-```
-HOLD
-PARTIAL_CLOSE_50
-MOVE_SL_TO_BREAKEVEN
-TAKE_PROFIT
-EXIT
-```
-
----
-
-### Reward Function
-
-```
-reward =
-pnl
-- drawdown_penalty
-+ sharpe_bonus
-```
-
----
-
-## Công nghệ đề xuất
-
-```
-Gymnasium
-Stable-Baselines3
-PPO
-DQN
-A2C
-```
-
----
-
-### Deliverables
-
-```
-Rule-based Exit
-↓
-RL-based Exit Management
-```
-
----
-
-# Giai đoạn 5: AI Quant Platform & Portfolio Management (✅ Đã hoàn thành)
-**Thời gian thực hiện:** dài hạn (Hoàn thành ngày 14/06/2026)
-
-## Mục tiêu
-Biến hệ thống thành nền tảng giao dịch định lượng hoàn chỉnh.
-
----
-
-## Công việc cần thực hiện
-
-### 1. Portfolio Optimization
-
-#### Tính toán:
-
-- Sharpe Ratio
-- Sortino Ratio
-- Maximum Drawdown
-- Correlation Matrix
-
----
-
-### 2. Capital Allocation
-
-```
-BTC = 30%
-ETH = 20%
-SOL = 15%
-BNB = 10%
-Others = 25%
-```
-Sử dụng:
-
-- Mean Variance Optimization
-- Risk Parity
-- Kelly Portfolio
-
----
-
-### 3. Online Learning
-
-```
-Trade Closed
-↓
-Append Dataset
-↓
-Incremental Training
-↓
-Update Model
-↓
-Deploy
-```
-
----
-
-### 4. Multi-Agent AI System
-
-#### Agent 1
-
-```
-Market Analyst
-```
-
-#### Agent 2
-
-```
-Signal Generator
-```
-
-#### Agent 3
-
-```
-Risk Manager
-```
-
-#### Agent 4
-
-```
-Portfolio Manager
-```
-
-#### Agent 5
-
-```
-Execution Agent
-```
-
----
-
-### Deliverables
-
-```
-Signal Bot
-↓
-AI-assisted Trading
-↓
-Adaptive Trading
-↓
-Self-learning Trading System
-↓
-AI Quant Platform
-```
-
----
-
-# Roadmap Tổng thể
-
-```
-Phase 1
-Feature Engineering + Regime Detection [✅ Hoàn thành]
-        ↓
-Phase 2
-Ensemble ML + Walk Forward Validation [✅ Hoàn thành]
-        ↓
-Phase 3
-Dynamic TP/SL + Kelly + Optuna [✅ Hoàn thành]
-        ↓
-Phase 4
-Reinforcement Learning Exit Manager [✅ Hoàn thành]
-        ↓
-Phase 5
-Portfolio Optimization + Multi-Agent AI [✅ Hoàn thành]
-        ↓
-AI Quant Trading Platform
-```
+> [!IMPORTANT]
+> Vui lòng phản hồi các điểm dưới đây để tối ưu hóa bản kế hoạch:
+> 1. **Khung thời gian huấn luyện**: Bạn có yêu cầu giới hạn về hạ tầng tính toán (ví dụ: chỉ chạy trên CPU thông thường hay có hỗ trợ GPU) cho phần huấn luyện RL Position Manager ở Giai đoạn 4 không? Việc này sẽ ảnh hưởng đến quyết định chọn LSTM hay các cấu trúc Transformer phức tạp hơn.
+> 2. **Cơ sở dữ liệu Local Buffer**: Cho Giai đoạn 1, SQLite là lựa chọn mặc định của tôi vì nó không cần cài đặt thêm service nào trên máy chủ. Bạn có muốn sử dụng Redis local hoặc một giải pháp lưu trữ khác để làm Local Buffer không?

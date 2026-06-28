@@ -47,15 +47,15 @@
     "sentiment_trend_up",
     "sentiment_trend_down"
   ],
-  "cv_auc_mean": 0.6159870789879033,
-  "cv_auc_std": 0.019206182923705614,
-  "cv_acc_mean": 0.5802543006731489,
-  "ensemble_cv_auc_mean": 0.6241603338589082,
-  "ensemble_cv_acc_mean": 0.5893792071802544,
+  "cv_auc_mean": 0.6128517043039198,
+  "cv_auc_std": 0.022514085884314805,
+  "cv_acc_mean": 0.5725255547245076,
+  "ensemble_cv_auc_mean": 0.6210383347064773,
+  "ensemble_cv_acc_mean": 0.5850411368735976,
   "ensemble_weights": {
-    "lgbm": 0.2035234257170429,
-    "catboost": 0.5904041983830581,
-    "xgboost": 0.20607237589989896
+    "lgbm": 0.015453718046387099,
+    "catboost": 0.8025549808441872,
+    "xgboost": 0.18199130110942568
   },
   "available_models": [
     "lgbm",
@@ -71,7 +71,7 @@
       "test": 3611
     },
     "selected_method": "sigmoid",
-    "selected_error": 4.5
+    "selected_error": 3.775
   },
   "label_dist": {
     "WIN": 11413,
@@ -79,39 +79,39 @@
   },
   "calibration_buckets": {
     "0.0-0.4": {
-      "count": 1089,
-      "wins": 347,
-      "losses": 742,
-      "actual_wr": 31.9,
+      "count": 1143,
+      "wins": 387,
+      "losses": 756,
+      "actual_wr": 33.9,
       "predicted_wr": 20.0,
-      "calibration_error": 11.9,
+      "calibration_error": 13.9,
       "calibrated": false
     },
     "0.4-0.6": {
-      "count": 2089,
-      "wins": 1073,
-      "losses": 1016,
-      "actual_wr": 51.4,
+      "count": 1899,
+      "wins": 950,
+      "losses": 949,
+      "actual_wr": 50.0,
       "predicted_wr": 50.0,
-      "calibration_error": 1.4,
+      "calibration_error": 0.0,
       "calibrated": true
     },
     "0.6-0.7": {
-      "count": 375,
-      "wins": 258,
-      "losses": 117,
-      "actual_wr": 68.8,
+      "count": 485,
+      "wins": 321,
+      "losses": 164,
+      "actual_wr": 66.2,
       "predicted_wr": 65.0,
-      "calibration_error": 3.8,
+      "calibration_error": 1.2,
       "calibrated": true
     },
     "0.7-0.8": {
-      "count": 58,
-      "wins": 43,
-      "losses": 15,
-      "actual_wr": 74.1,
+      "count": 84,
+      "wins": 63,
+      "losses": 21,
+      "actual_wr": 75.0,
       "predicted_wr": 75.0,
-      "calibration_error": -0.9,
+      "calibration_error": 0.0,
       "calibrated": true
     },
     "0.8-1.0": {
@@ -134,8 +134,8 @@
       ],
       "n_train": 15645,
       "n_test": 3610,
-      "roc_auc": 0.6142436741217686,
-      "accuracy": 0.5698060941828255
+      "roc_auc": 0.6312144906529591,
+      "accuracy": 0.5858725761772853
     },
     {
       "train_range": [
@@ -148,8 +148,8 @@
       ],
       "n_train": 15645,
       "n_test": 3610,
-      "roc_auc": 0.6454570333880679,
-      "accuracy": 0.6074792243767313
+      "roc_auc": 0.6283724586209374,
+      "accuracy": 0.5925207756232687
     }
   ]
 }

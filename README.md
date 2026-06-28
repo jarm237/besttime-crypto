@@ -93,6 +93,10 @@ Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đá
   ```bash
   python train_rl_exit_manager.py --algo ppo --train --steps 100000 --n-trades 500
   ```
+  Hoặc chạy trên GPU nếu có:
+  ```bash
+  python train_rl_exit_manager.py --algo ppo --train --steps 100000 --n-trades 500 --device cuda
+  ```
 - Để đánh giá kết quả RL và so sánh rule-based exit:
   ```bash
   python evaluate_rl_phase4.py

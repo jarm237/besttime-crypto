@@ -8,6 +8,7 @@ Uses the TradeExitEnv with actual candle price data for meaningful comparison.
 import os
 import json
 import numpy as np
+import torch
 from pathlib import Path
 from datetime import datetime
 
@@ -47,6 +48,8 @@ def make_env(trades: list[dict]) -> MultiTradeExitEnv:
             "reward_scale": 1.0,
             "drawdown_penalty": 0.5,
             "sharpe_bonus": 0.2,
+            "commission_fee": 0.001,
+            "slippage_pct": 0.0005,
         },
         trades_per_episode=5,
     )
@@ -58,24 +61,38 @@ def make_env(trades: list[dict]) -> MultiTradeExitEnv:
 # RL Agent Evaluation
 # ──────────────────────────────────────────────────────────────────────────────
 
+def _get_default_device() -> str:
+    try:
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
+
 def evaluate_rl_agent(
     algo: str,
     model_path: str,
     trades: list[dict],
     n_episodes: int = 50,
+    device: str = "auto",
 ) -> dict:
     """Evaluate a single RL agent over n_episodes and collect per-episode metrics."""
-    print(f"\n[EVAL] Evaluating {algo.upper()} agent ({n_episodes} episodes)...")
+    if device == "auto":
+        device = _get_default_device()
+    elif device == "cuda" and not torch.cuda.is_available():
+        print("[WARN] CUDA requested but not available. Falling back to CPU.")
+        device = "cpu"
+
+    print(f"\n[EVAL] Evaluating {algo.upper()} agent ({n_episodes} episodes) on device={device}...")
 
     env = make_env(trades)
 
     try:
         if algo.lower() == "ppo":
-            model = PPO.load(model_path, env=env)
+            model = PPO.load(model_path, env=env, device=device)
         elif algo.lower() == "dqn":
-            model = DQN.load(model_path, env=env)
+            model = DQN.load(model_path, env=env, device=device)
         elif algo.lower() == "a2c":
-            model = A2C.load(model_path, env=env)
+            model = A2C.load(model_path, env=env, device=device)
         else:
             raise ValueError(f"Unknown algorithm: {algo}")
     except Exception as e:
@@ -244,7 +261,7 @@ def generate_phase_4_report(n_episodes: int = 50):
         # Share candle cache — only load once
         TradeExitEnv._COIN_CANDLES_CACHE = None
         for algo, path in models.items():
-            result = evaluate_rl_agent(algo, path, trades, n_episodes=n_episodes)
+            result = evaluate_rl_agent(algo, path, trades, n_episodes=n_episodes, device="auto")
             if result:
                 report["rl_agents"][algo] = result
 

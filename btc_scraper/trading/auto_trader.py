@@ -46,6 +46,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
+from btc_scraper.analysis.correlation import correlation_engine, SECTOR_MAP
+from btc_scraper.trading.exposure_manager import exposure_manager
+
 BASE_DIR = Path(__file__).parent.parent
 AUTO_TRADE_LOG = BASE_DIR / "logs" / "auto_trade_log.json"
 CIRCUIT_BREAKER_STATE = BASE_DIR / "logs" / "auto_trade_circuit.json"
@@ -468,6 +471,21 @@ class AutoTrader:
         if self._has_open_position(coin, direction):
             return None
 
+        # --- 1. Correlation Filter (Bộ lọc tương quan) ---
+        open_positions = exposure_manager.get_open_positions()
+        for p in open_positions:
+            open_coin = p.get("coin", "").upper()
+            if open_coin != coin:
+                corr = correlation_engine.get_correlation(open_coin, coin)
+                if corr > 0.75:
+                    log_entry = self._build_skip_log(
+                        coin, signal, meta_prob, score, 
+                        f"Tuong quan cao voi vi the dang mo {open_coin} ({corr:.2f} > 0.75)", 
+                        ana
+                    )
+                    _append_log(log_entry)
+                    return log_entry
+
         # Lấy TP/SL data
         tp_sl = ana.get("tp_sl") or {}
         entry_price = tp_sl.get("entry") or ana.get("close") or 0.0
@@ -498,6 +516,36 @@ class AutoTrader:
 
         if usdt_amount <= 0:
             log_entry = self._build_skip_log(coin, signal, meta_prob, score, "Kelly Fraction <= 0 (Ky vong am)", ana)
+            _append_log(log_entry)
+            return log_entry
+
+        # --- 2. Portfolio VaR Sizing Scale Down ---
+        max_var_size = exposure_manager.calculate_max_size_by_var_limit(coin, open_positions, real_balance)
+        if usdt_amount > max_var_size:
+            print(f"[VaR Sizing] Scale down {coin} size from {usdt_amount:.2f} to {max_var_size:.2f} due to Portfolio VaR limit")
+            usdt_amount = max_var_size
+
+        # --- 3. Exposure Caps (Total, Sector, Single) Scale Down ---
+        total_pct, coin_pct, sector_pct = exposure_manager.get_portfolio_exposures(real_balance)
+        sector = SECTOR_MAP.get(coin, "OTHER")
+        remaining_single = max(0.0, (0.15 - coin_pct.get(coin, 0.0)) * real_balance)
+        remaining_sector = max(0.0, (0.35 - sector_pct.get(sector, 0.0)) * real_balance)
+        remaining_total = max(0.0, (0.75 - total_pct) * real_balance)
+        
+        max_exposure_size = min(remaining_single, remaining_sector, remaining_total)
+        if usdt_amount > max_exposure_size:
+            print(f"[Exposure Sizing] Scale down {coin} size from {usdt_amount:.2f} to {max_exposure_size:.2f} due to Exposure caps")
+            usdt_amount = max_exposure_size
+
+        usdt_amount = round(usdt_amount, 2)
+
+        # Check if amount is below minimum notional
+        if usdt_amount < self.min_trade_usdt:
+            log_entry = self._build_skip_log(
+                coin, signal, meta_prob, score, 
+                f"Size lenh sau co gian {usdt_amount:.2f} USDT < min {self.min_trade_usdt:.2f} USDT", 
+                ana
+            )
             _append_log(log_entry)
             return log_entry
 

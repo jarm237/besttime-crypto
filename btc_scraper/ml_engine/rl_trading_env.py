@@ -246,6 +246,11 @@ class TradeExitEnv(gym.Env):
         self.reward_scale = self.config.get("reward_scale", 1.0)
         self.drawdown_penalty = self.config.get("drawdown_penalty", 0.5)
         self.sharpe_bonus = self.config.get("sharpe_bonus", 0.2)
+        self.commission_fee = self.config.get("commission_fee", 0.001)  # Default: 0.1% fee per side (entry + exit)
+        self.slippage_pct = self.config.get("slippage_pct", 0.0005)      # Default: 0.05% slippage per side (entry + exit)
+        # Decision interval: number of environment steps per agent decision (1 = every candle)
+        # To use 1-hour decisions on 15m data, set decision_interval=4
+        self.decision_interval = int(self.config.get("decision_interval", 1))
         
         # State space: 18 continuous features
         self.observation_space = spaces.Box(
@@ -266,21 +271,22 @@ class TradeExitEnv(gym.Env):
             
         self.coin_candles = TradeExitEnv._COIN_CANDLES_CACHE
         
+        # Build time-to-index lookup maps for O(1) matching
+        candle_time_maps = {}
+        for coin, candles in self.coin_candles.items():
+            candle_time_maps[coin] = {c["time"]: idx for idx, c in enumerate(candles)}
+
         # Find candle index for each entry signal
         self.valid_trades = []
         for t in trades:
             coin = t.get("coin", "BTC").upper()
             entry_time = t.get("entry_time")
             if coin in self.coin_candles and entry_time:
-                candles = self.coin_candles[coin]
-                found_idx = None
-                for idx, c in enumerate(candles):
-                    if c["time"] == entry_time:
-                        found_idx = idx
-                        break
+                time_map = candle_time_maps.get(coin, {})
+                found_idx = time_map.get(entry_time)
                 if found_idx is not None:
                     # Only simulate if we have enough future candles
-                    if len(candles) - found_idx > self.max_episode_length:
+                    if len(self.coin_candles[coin]) - found_idx > self.max_episode_length:
                         trade_copy = dict(t)
                         trade_copy["coin"] = coin
                         trade_copy["candle_idx"] = found_idx
@@ -415,14 +421,20 @@ class TradeExitEnv(gym.Env):
         candle = self.coin_candles[self.coin][idx]
         
         # Update trailing SL if active
+        became_risk_free = False
         if self.trailing_sl_active:
+            old_sl = self.sl
             atr = float(candle.get("atr", 1.0))
             if self.direction == "LONG":
                 candidate_sl = candle["close"] - 1.5 * atr
                 self.sl = max(self.sl, candidate_sl)
+                if old_sl <= self.entry_price and self.sl > self.entry_price:
+                    became_risk_free = True
             else:
                 candidate_sl = candle["close"] + 1.5 * atr
                 self.sl = min(self.sl, candidate_sl)
+                if old_sl >= self.entry_price and self.sl < self.entry_price:
+                    became_risk_free = True
         
         # Calculate current PnL
         if self.direction == "LONG":
@@ -432,14 +444,16 @@ class TradeExitEnv(gym.Env):
             
         self.max_pnl = max(self.max_pnl, current_pnl)
         
+        # Simplified reward: use realized Net PnL (percentage) minus transaction costs.
+        # Remove heuristic bonuses so agent optimizes for actual PnL after costs.
         reward = 0.0
         terminated = False
         done_reason = ""
-        
+
         # 1. Check if TP or SL was hit at this candle
         hit_sl = False
         hit_tp = False
-        
+
         if self.direction == "LONG":
             if candle["low"] <= self.sl:
                 hit_sl = True
@@ -450,87 +464,68 @@ class TradeExitEnv(gym.Env):
                 hit_sl = True
             if candle["low"] <= self.tp:
                 hit_tp = True
-                
-        if hit_sl:
-            if self.direction == "LONG":
-                sl_pnl = ((self.sl - self.entry_price) / self.entry_price) * 100
+
+        # Helper to compute total round-trip cost percentage (in same units as current_pnl)
+        def _round_trip_cost_pct(factor: float = 1.0) -> float:
+            return (2 * self.commission_fee + 2 * self.slippage_pct) * 100 * float(factor)
+
+        if hit_sl or hit_tp:
+            # Realized PnL at SL/TP
+            if hit_sl:
+                if self.direction == "LONG":
+                    realized_pnl = ((self.sl - self.entry_price) / self.entry_price) * 100
+                    done_reason = "SL_HIT"
+                else:
+                    realized_pnl = ((self.entry_price - self.sl) / self.entry_price) * 100
+                    done_reason = "SL_HIT"
             else:
-                sl_pnl = ((self.entry_price - self.sl) / self.entry_price) * 100
-            reward = sl_pnl * self.reward_scale - self.drawdown_penalty
-            reward = max(reward, -5.0)  # Cap max loss penalty
+                if self.direction == "LONG":
+                    realized_pnl = ((self.tp - self.entry_price) / self.entry_price) * 100
+                    done_reason = "TP_HIT"
+                else:
+                    realized_pnl = ((self.entry_price - self.tp) / self.entry_price) * 100
+                    done_reason = "TP_HIT"
+
+            reward = realized_pnl * self.reward_scale - _round_trip_cost_pct()
             terminated = True
-            done_reason = "SL_HIT"
-        elif hit_tp:
-            if self.direction == "LONG":
-                tp_pnl = ((self.tp - self.entry_price) / self.entry_price) * 100
-            else:
-                tp_pnl = ((self.entry_price - self.tp) / self.entry_price) * 100
-            reward = tp_pnl * self.reward_scale + self.sharpe_bonus * 2.0  # Extra bonus for full TP hit
-            terminated = True
-            done_reason = "TP_HIT"
-            
+
+        # Determine whether agent action should be applied this step according to decision interval
+        action_allowed = (self.current_step % max(1, self.decision_interval) == 0)
+
         # 2. Process Agent actions if not force-terminated
         if not terminated:
+            # If action isn't allowed this step, treat as HOLD
+            if not action_allowed:
+                action = 0
+
             if action == 0:  # HOLD
-                # Small time-decay reward tied to direction of PnL movement
-                # Positive PnL → reward holding; negative PnL → slight penalty to encourage SL
-                if current_pnl > 0:
-                    reward = 0.01 + current_pnl * 0.002  # Tiny bonus for profitable holds
-                else:
-                    reward = -0.002  # Mild penalty for holding losing trade (reduced from -0.005)
-                
+                # No heuristic reward; leave as zero to let realized outcomes drive learning
+                reward = 0.0
+
             elif action == 1:  # PARTIAL_CLOSE_50
-                partial_pnl = current_pnl * 0.5
-                reward = partial_pnl * self.reward_scale
-                if current_pnl > 0:
-                    reward += 0.05  # Bonus for locking in profits
+                partial_realized = current_pnl * 0.5
+                reward = partial_realized * self.reward_scale - _round_trip_cost_pct(0.5)
                 terminated = True
                 done_reason = "PARTIAL_CLOSE_50"
-                
+
             elif action == 2:  # MOVE_SL_TO_BREAKEVEN
                 self.sl = self.entry_price
-                if current_pnl >= 1.0:
-                    reward = 0.15  # Strong reward for securing a solid trade
-                elif current_pnl > 0:
-                    reward = 0.10  # Good risk management move
-                else:
-                    reward = -0.02  # Moving SL to BE when in loss is suboptimal but slightly less penalized
-                    
+                reward = 0.0
+
             elif action == 3:  # TAKE_PROFIT
-                reward = current_pnl * self.reward_scale
-                # Bonus for exiting near or above max_pnl
-                if self.max_pnl > 0 and current_pnl >= self.max_pnl * 0.8:
-                    reward += self.sharpe_bonus
-                elif current_pnl > 0:
-                    reward += self.sharpe_bonus * 0.3  # Partial bonus for any profit exit
+                # Immediate exit at current price
+                reward = current_pnl * self.reward_scale - _round_trip_cost_pct()
                 terminated = True
                 done_reason = "TAKE_PROFIT"
-                
+
             elif action == 4:  # EXIT
-                reward = current_pnl * self.reward_scale
-                if current_pnl < 0:
-                    # Calculate loss if we were to hit current SL
-                    if self.direction == "LONG":
-                        sl_pnl = ((self.sl - self.entry_price) / self.entry_price) * 100
-                    else:
-                        sl_pnl = ((self.entry_price - self.sl) / self.entry_price) * 100
-                    
-                    # Capital preservation: if current_pnl is better than sl_pnl, reward the saved amount
-                    if current_pnl > sl_pnl:
-                        saved_pnl = current_pnl - sl_pnl
-                        reward += saved_pnl * 0.15
-                    else:
-                        # Otherwise penalize normally
-                        reward -= self.drawdown_penalty * 1.5
-                elif current_pnl > 0:
-                    # Small bonus for cutting early profit (better than nothing)
-                    reward += self.sharpe_bonus * 0.3
+                reward = current_pnl * self.reward_scale - _round_trip_cost_pct()
                 terminated = True
                 done_reason = "EXIT"
-                
+
             elif action == 5:  # TRAILING_SL_ATR
                 self.trailing_sl_active = True
-                # Immediately apply trailing SL update for current step
+                old_sl = self.sl
                 atr = float(candle.get("atr", 1.0))
                 if self.direction == "LONG":
                     candidate_sl = candle["close"] - 1.5 * atr
@@ -538,21 +533,19 @@ class TradeExitEnv(gym.Env):
                 else:
                     candidate_sl = candle["close"] + 1.5 * atr
                     self.sl = min(self.sl, candidate_sl)
-                
-                if current_pnl > 0:
-                    reward = 0.12  # Encouraged trailing SL when profitable
-                else:
-                    reward = 0.0  # Trailing SL when in a drawdown is good defensive behavior (neutral reward)
-                
+
+                reward = 0.0
+
+        # Advance step and record reward
         self.current_step += 1
         self.episode_rewards.append(reward)
-        
+
         # Check max episode length
         truncated = self.current_step >= self.max_episode_length
         if truncated and not terminated:
             terminated = True
             done_reason = "MAX_STEPS"
-            reward = current_pnl * self.reward_scale
+            reward = current_pnl * self.reward_scale - _round_trip_cost_pct()
             self.episode_rewards.append(reward)
             
         # Fetch next candle observation
