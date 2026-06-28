@@ -100,6 +100,30 @@ def get_ppo_model(device: str = "auto"):
             return None
     return _PPO_MODEL_CACHE
 
+
+def _log_rl_shadow_prediction(
+    coin: str,
+    rl_action: int,
+    pos_meta_prob: float | None,
+    position_id: str | None = None,
+) -> None:
+    if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() != "true":
+        return
+    try:
+        from scripts.shadow_log import log_rl_shadow_prediction
+
+        symbol = f"{coin}USDT"
+        log_rl_shadow_prediction(
+            symbol=symbol,
+            rl_action=rl_action,
+            meta_prob=float(pos_meta_prob or 0.0),
+            position_id=position_id,
+            note="RL Exit shadow recommendation",
+        )
+    except Exception as e:
+        print(f"[RL Exit Shadow] Failed to log RL shadow prediction for {coin}: {e}")
+
+
 def _build_rl_observation(
     ana: dict,
     avg_confidence: float,
@@ -749,6 +773,14 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         # Read shadow mode from env variable
         shadow_mode = os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true"
 
+        if shadow_mode and rl_action is not None:
+            _log_rl_shadow_prediction(
+                coin,
+                rl_action,
+                pos_meta_prob,
+                position_id=pos_list[0].get("id"),
+            )
+
         # Xác định khuyến nghị dựa trên entry trung bình và trailing SL
         rec = _generate_recommendation(
             direction=direction,
@@ -805,6 +837,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             "tp2": tp2,
             "rr1": rr1,
             "live_meta_confidence": pos_meta_prob,
+            "shadow_mode": shadow_mode,
             "dca_opportunity": dca_opp,
         })
 

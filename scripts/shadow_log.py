@@ -36,6 +36,58 @@ def _save(data: List[Dict]) -> None:
     with open(SHADOW_LOG, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+RL_SHADOW_LOG = BASE / "logs" / "rl_exit_shadow_predictions.json"
+
+
+def _load_rl_shadow() -> List[Dict]:
+    if not RL_SHADOW_LOG.exists():
+        return []
+    try:
+        with open(RL_SHADOW_LOG, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_rl_shadow(data: List[Dict]) -> None:
+    RL_SHADOW_LOG.parent.mkdir(exist_ok=True)
+    with open(RL_SHADOW_LOG, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def log_rl_shadow_prediction(
+    symbol: str,
+    rl_action: int,
+    meta_prob: float,
+    position_id: Optional[str] = None,
+    note: Optional[str] = None,
+) -> str:
+    """Ghi lại prediction của RL Exit trong chế độ Shadow Mode."""
+    records = _load_rl_shadow()
+    prediction_id = f"{symbol}_RL_{int(time.time())}"
+    action_labels = {
+        0: "HOLD",
+        1: "PARTIAL_CLOSE_50",
+        2: "MOVE_SL_TO_BE",
+        3: "TAKE_PROFIT",
+        4: "EXIT",
+        5: "TRAILING_SL_ATR",
+    }
+    record = {
+        "prediction_id": prediction_id,
+        "symbol": symbol,
+        "timestamp": time.time(),
+        "timestamp_str": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "rl_action": int(rl_action),
+        "action_label": action_labels.get(int(rl_action), f"RL_{rl_action}"),
+        "meta_prob": round(float(meta_prob), 4),
+        "position_id": position_id,
+        "note": note,
+    }
+    records.append(record)
+    _save_rl_shadow(records)
+    return prediction_id
+
 
 def log_signal_prediction(
     symbol: str,

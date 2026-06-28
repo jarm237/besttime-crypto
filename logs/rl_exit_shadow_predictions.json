@@ -1,0 +1,13 @@
+[
+  {
+    "prediction_id": "BTCUSDT_RL_1782662082",
+    "symbol": "BTCUSDT",
+    "timestamp": 1782662082.547761,
+    "timestamp_str": "2026-06-28 22:54:42",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  }
+]

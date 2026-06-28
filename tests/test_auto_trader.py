@@ -435,4 +435,84 @@ def test_confidence_gate_and_shadow_mode(monkeypatch):
     assert "[SHADOW-RL] DONG VI THE" in recs[0]["recommendation"]
 
 
+def test_rl_exit_shadow_logging(monkeypatch):
+    import btc_scraper.trading.position_tracker as pt
+    import scripts.shadow_log as sl
+
+    mock_positions = [{
+        "id": "test_pos_shadow",
+        "coin": "BTC",
+        "entry_price": 60000.0,
+        "direction": "LONG",
+        "invested_usdt": 100.0,
+        "entry_time": "2026-01-01 00:00",
+        "status": "open",
+        "trailing_sl": None,
+        "trailing_sl_active": False,
+        "note": "[AUTO-TEST]"
+    }]
+
+    class DummyCol:
+        def find(self, *args, **kwargs):
+            return mock_positions
+        def find_one(self, *args, **kwargs):
+            return mock_positions[0]
+        def update_one(self, filter_q, update_q):
+            set_dict = update_q.get("$set", {})
+            for k, v in set_dict.items():
+                mock_positions[0][k] = v
+        def update_many(self, filter_q, update_q):
+            set_dict = update_q.get("$set", {})
+            for k, v in set_dict.items():
+                mock_positions[0][k] = v
+
+    monkeypatch.setattr(pt, "positions_col", DummyCol())
+
+    class DummyExitModel:
+        def predict(self, obs, *args, **kwargs):
+            return 4, None
+
+    monkeypatch.setattr(pt, "get_ppo_model", lambda: DummyExitModel())
+
+    class DummyCorrEngine:
+        def get_correlation(self, a, b):
+            return 0.5
+    monkeypatch.setattr("btc_scraper.analysis.correlation.correlation_engine", DummyCorrEngine())
+
+    called = []
+    def fake_rl_log(symbol, rl_action, meta_prob, position_id=None, note=None):
+        called.append((symbol, rl_action, meta_prob, position_id, note))
+        return "rl_shadow_id"
+
+    monkeypatch.setattr(sl, "log_rl_shadow_prediction", fake_rl_log)
+
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.meta_model.predict_meta_confidence",
+        lambda *args, **kwargs: {"probability": 0.30}
+    )
+    monkeypatch.setenv("RL_EXIT_SHADOW_MODE", "true")
+
+    analysis_results = {
+        "BTC:Binance": {
+            "close": 60100.0,
+            "atr": 1000.0,
+            "support": 59000.0,
+            "resistance": 62000.0,
+            "bb_upper": 63000.0,
+            "bb_middle": 61000.0,
+            "bb_lower": 59000.0,
+            "signal": "BUY"
+        }
+    }
+
+    recs = pt.evaluate_positions(analysis_results)
+    assert len(recs) == 1
+    assert called, "RL exit shadow log should be emitted"
+    assert called[0][0] == "BTCUSDT"
+    assert called[0][1] == 4
+    assert called[0][2] == 0.30
+    assert called[0][3] == "test_pos_shadow"
+    assert called[0][4] == "RL Exit shadow recommendation"
+
+
 
