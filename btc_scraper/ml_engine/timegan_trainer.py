@@ -17,6 +17,20 @@ from btc_scraper.ml_engine.timegan_model import Embedder, Recovery
 from btc_scraper.ml_engine.timegan_model import Generator, Discriminator
 from btc_scraper.ml_engine.timegan_model import Supervisor
 
+import time
+import logging
+
+logger = logging.getLogger("timegan")
+
+
+def _make_checkpoint_path(base: str, prefix: str, epoch: int) -> str:
+    if os.path.isdir(base):
+        return os.path.join(base, f"{prefix}_epoch{epoch}.pt")
+    root, ext = os.path.splitext(base)
+    if ext:
+        return f"{root}_{prefix}_epoch{epoch}{ext}"
+    return f"{base}_{prefix}_epoch{epoch}.pt"
+
 
 def pretrain_autoencoder(
     sequences: np.ndarray,
@@ -25,6 +39,8 @@ def pretrain_autoencoder(
     lr: float = 1e-3,
     device: Optional[str] = None,
     save_path: Optional[str] = None,
+    checkpoint_interval: int = 0,
+    verbose: bool = False,
 ) -> Dict[str, List[float]]:
     """Pretrain Embedder+Recovery as an autoencoder.
 
@@ -66,7 +82,15 @@ def pretrain_autoencoder(
         avg = epoch_loss / max(1, n)
         losses.append(avg)
 
-    if save_path:
+        if verbose:
+            logger.info("AE epoch %d loss=%.6f", epoch + 1, avg)
+
+        if save_path and checkpoint_interval and (epoch + 1) % checkpoint_interval == 0:
+            path = _make_checkpoint_path(save_path, "autoencoder", epoch + 1)
+            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+            torch.save({"embedder_state": emb.state_dict(), "recovery_state": rec.state_dict(), "epoch": epoch + 1}, path)
+
+    if save_path and not checkpoint_interval:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         torch.save({"embedder_state": emb.state_dict(), "recovery_state": rec.state_dict()}, save_path)
 
@@ -81,6 +105,8 @@ def pretrain_supervisor(
     device: Optional[str] = None,
     emb_state_dict: Optional[dict] = None,
     save_path: Optional[str] = None,
+    checkpoint_interval: int = 0,
+    verbose: bool = False,
 ) -> Dict[str, List[float]]:
     """Supervised pretraining for the `Supervisor` network.
 
@@ -134,7 +160,15 @@ def pretrain_supervisor(
         avg = epoch_loss / max(1, n)
         losses.append(avg)
 
-    if save_path:
+        if verbose:
+            logger.info("Supervisor epoch %d loss=%.6f", epoch + 1, avg)
+
+        if save_path and checkpoint_interval and (epoch + 1) % checkpoint_interval == 0:
+            path = _make_checkpoint_path(save_path, "supervisor", epoch + 1)
+            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+            torch.save({"supervisor_state": sup.state_dict(), "epoch": epoch + 1}, path)
+
+    if save_path and not checkpoint_interval:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         torch.save({"supervisor_state": sup.state_dict()}, save_path)
 
@@ -151,6 +185,8 @@ def train_timegan_adversarial(
     rec_state_dict: Optional[dict] = None,
     sup_state_dict: Optional[dict] = None,
     save_path: Optional[str] = None,
+    checkpoint_interval: int = 0,
+    verbose: bool = False,
 ) -> Dict[str, List[float]]:
     """Simplified adversarial training for TimeGAN components.
 
@@ -247,7 +283,20 @@ def train_timegan_adversarial(
         d_losses.append(epoch_d / max(1, n))
         g_losses.append(epoch_g / max(1, n))
 
-    if save_path:
+        if verbose:
+            logger.info("Adv epoch %d d_loss=%.6f g_loss=%.6f", epoch + 1, d_losses[-1], g_losses[-1])
+
+        if save_path and checkpoint_interval and (epoch + 1) % checkpoint_interval == 0:
+            path = _make_checkpoint_path(save_path, "adv", epoch + 1)
+            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+            torch.save({
+                "generator_state": gen.state_dict(),
+                "supervisor_state": sup.state_dict(),
+                "discriminator_state": disc.state_dict(),
+                "epoch": epoch + 1,
+            }, path)
+
+    if save_path and not checkpoint_interval:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         torch.save({
             "generator_state": gen.state_dict(),
@@ -256,6 +305,78 @@ def train_timegan_adversarial(
         }, save_path)
 
     return {"d_losses": d_losses, "g_losses": g_losses}
+
+
+def run_stage3_pipeline(
+    sequences: np.ndarray,
+    ae_epochs: int = 5,
+    sup_epochs: int = 5,
+    adv_epochs: int = 5,
+    batch_size: int = 64,
+    lr: float = 1e-3,
+    device: Optional[str] = None,
+    checkpoint_dir: Optional[str] = None,
+    verbose: bool = False,
+) -> Dict[str, object]:
+    """Run Stage 3 pipeline end-to-end:
+    1) autoencoder pretrain
+    2) supervisor supervised pretrain
+    3) adversarial training
+
+    Saves intermediate checkpoints to `checkpoint_dir` if provided.
+    Returns a dict with losses and checkpoint paths.
+    """
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if not isinstance(sequences, np.ndarray):
+        sequences = np.asarray(sequences, dtype=np.float32)
+
+    if checkpoint_dir:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+
+    ae_ck = os.path.join(checkpoint_dir or ".", "autoencoder.pt")
+    sup_ck = os.path.join(checkpoint_dir or ".", "supervisor.pt")
+    adv_ck = os.path.join(checkpoint_dir or ".", "adversarial.pt")
+
+    if verbose:
+        logger.info("Stage3: starting autoencoder pretrain")
+    ae_out = pretrain_autoencoder(
+        sequences, epochs=ae_epochs, batch_size=batch_size, lr=lr, device=device, save_path=ae_ck, verbose=verbose
+    )
+
+    # load embedder/recovery states
+    ae_state = torch.load(ae_ck, map_location=device)
+
+    if verbose:
+        logger.info("Stage3: starting supervisor pretrain")
+    sup_out = pretrain_supervisor(
+        sequences, epochs=sup_epochs, batch_size=batch_size, lr=lr, device=device, emb_state_dict=ae_state.get("embedder_state"), save_path=sup_ck, verbose=verbose
+    )
+
+    sup_state = torch.load(sup_ck, map_location=device)
+
+    if verbose:
+        logger.info("Stage3: starting adversarial training")
+    adv_out = train_timegan_adversarial(
+        sequences,
+        epochs=adv_epochs,
+        batch_size=batch_size,
+        lr=lr,
+        device=device,
+        emb_state_dict=ae_state.get("embedder_state"),
+        rec_state_dict=ae_state.get("recovery_state"),
+        sup_state_dict=sup_state.get("supervisor_state"),
+        save_path=adv_ck,
+        verbose=verbose,
+    )
+
+    return {
+        "autoencoder": ae_out,
+        "supervisor": sup_out,
+        "adversarial": adv_out,
+        "checkpoints": {"autoencoder": ae_ck, "supervisor": sup_ck, "adversarial": adv_ck},
+    }
 
 
 if __name__ == "__main__":
