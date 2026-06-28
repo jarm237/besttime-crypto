@@ -213,3 +213,81 @@ def save_sequences(sequences: np.ndarray, output_path: str) -> None:
 
 def load_sequences(output_path: str) -> np.ndarray:
     return np.load(output_path)
+
+
+def _enforce_ohlc_constraints(sequences: np.ndarray, eps: float = 1e-6) -> np.ndarray:
+    """Ensure High/Low are consistent with Open/Close and High>=Low.
+
+    Modifies a copy of sequences and returns it.
+    """
+    seq = sequences.copy()
+    opens = seq[:, :, 0]
+    highs = seq[:, :, 1]
+    lows = seq[:, :, 2]
+    closes = seq[:, :, 3]
+
+    highs = np.maximum(highs, np.maximum(opens, closes))
+    lows = np.minimum(lows, np.minimum(opens, closes))
+    # ensure high >= low
+    mask = highs < lows
+    if np.any(mask):
+        highs[mask] = lows[mask] + eps
+
+    seq[:, :, 1] = highs
+    seq[:, :, 2] = lows
+    return seq
+
+
+def postprocess_synthetic_sequences(
+    sequences, scaler: OHLCVScaler, device: str = "cpu", enforce_ohlc: bool = True
+) -> np.ndarray:
+    """Inverse-transform synthetic sequences (scaled) back to original OHLCV.
+
+    Parameters:
+    - sequences: np.ndarray or torch.Tensor of shape (N, T, 5). If torch and on GPU,
+      the tensor will be moved to CPU for inverse transform.
+    - scaler: fitted `OHLCVScaler` instance.
+    - device: hint for device where sequences live ("cpu" or "cuda").
+    - enforce_ohlc: whether to correct High/Low post-hoc.
+
+    Returns:
+    - NumPy array (N, T, 5) with real-scale OHLCV values.
+    """
+    if isinstance(sequences, torch.Tensor):
+        if sequences.device.type == "cuda" and device == "cuda":
+            arr = sequences.detach().to("cpu").numpy()
+        else:
+            arr = sequences.detach().numpy()
+    else:
+        arr = np.asarray(sequences, dtype=np.float32)
+
+    if arr.ndim != 3 or arr.shape[2] != len(OHLCV_FEATURES):
+        raise ValueError("synthetic sequences must have shape (N, T, 5)")
+
+    real = scaler.inverse_transform(arr)
+    if enforce_ohlc:
+        real = _enforce_ohlc_constraints(real)
+    return real
+
+
+def compute_simple_indicators(sequences: np.ndarray, windows: Sequence[int] = (3, 5)) -> Dict[str, np.ndarray]:
+    """Compute simple moving averages on `close` for given windows.
+
+    Returns a dict mapping `sma_{w}` -> array shape (N, T).
+    """
+    seq = np.asarray(sequences, dtype=np.float32)
+    if seq.ndim != 3 or seq.shape[2] < 4:
+        raise ValueError("sequences must be (N, T, >=4) to compute indicators")
+
+    closes = seq[:, :, 3]
+    N, T = closes.shape
+    out: Dict[str, np.ndarray] = {}
+    for w in windows:
+        sma = np.full((N, T), np.nan, dtype=np.float32)
+        if w <= 0:
+            continue
+        for t in range(T):
+            start = max(0, t - w + 1)
+            sma[:, t] = closes[:, start : t + 1].mean(axis=1)
+        out[f"sma_{w}"] = sma
+    return out
