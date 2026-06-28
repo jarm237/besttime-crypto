@@ -25,7 +25,8 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import torch
-from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3 import DQN, A2C
+from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
@@ -184,16 +185,16 @@ def train_agent(
     try:
         if algorithm.lower() == "ppo":
             if latest_model:
-                print(f"[RL] Warm-starting PPO from {os.path.basename(latest_model)}...")
-                model = PPO.load(
+                print(f"[RL] Warm-starting RecurrentPPO from {os.path.basename(latest_model)}...")
+                model = RecurrentPPO.load(
                     latest_model,
                     env=env,
                     device=device,
                     custom_objects={"learning_rate": learning_rate},
                 )
             else:
-                model = PPO(
-                    "MlpPolicy",
+                model = RecurrentPPO(
+                    "MlpLstmPolicy",
                     env,
                     learning_rate=learning_rate,
                     n_steps=2048,
@@ -314,7 +315,7 @@ def compare_agents(
         
         try:
             if algo.lower() == "ppo":
-                model = PPO.load(path, env=env, device=device)
+                model = RecurrentPPO.load(path, env=env, device=device)
             elif algo.lower() == "dqn":
                 model = DQN.load(path, env=env, device=device)
             elif algo.lower() == "a2c":

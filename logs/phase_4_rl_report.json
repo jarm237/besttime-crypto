@@ -1,7 +1,7 @@
 {
   "phase": 4,
   "title": "Reinforcement Learning Exit Manager \u2014 Phase 2 Optimized",
-  "date": "2026-06-28T17:02:55.319435",
+  "date": "2026-06-28T17:28:30.550367",
   "n_eval_episodes": 50,
   "environment": {
     "state_space": 18,
@@ -19,59 +19,106 @@
     "curriculum": "Easy \u2192 Full (Curriculum Learning)"
   },
   "training_results": {
-    "ppo": {
-      "algorithm": "ppo",
-      "total_timesteps": 500000,
+    "a2c": {
+      "algorithm": "a2c",
+      "total_timesteps": 100000,
       "learning_rate": 0.0003,
-      "mean_reward": -1.369044,
-      "std_reward": 2.0696184746377533,
-      "timestamp": "20260627_143758",
-      "model_path": "logs/rl_models\\rl_exit_ppo_20260627_143758"
+      "mean_reward": -0.6732912500000001,
+      "std_reward": 0.6115017612289334,
+      "timestamp": "20260628_172702",
+      "model_path": "logs/rl_models\\rl_exit_a2c_20260628_172702"
     }
   },
   "rl_agents": {
     "ppo": {
-      "mean_reward": -2.380139668774663,
-      "std_reward": 1.5806322674100244,
-      "mean_pnl": 0.16127914028143628,
+      "mean_reward": -0.6708984023287087,
+      "std_reward": 1.1627446894093225,
+      "mean_pnl": -0.030409650043264597,
       "action_distribution": {
-        "HOLD": 280,
-        "PARTIAL_CLOSE_50": 84,
-        "MOVE_SL_BE": 3,
-        "TAKE_PROFIT": 79,
+        "HOLD": 139,
+        "PARTIAL_CLOSE_50": 130,
+        "MOVE_SL_BE": 43,
+        "TAKE_PROFIT": 40,
         "EXIT": 3,
-        "TRAILING_SL_ATR": 262
+        "TRAILING_SL_ATR": 128
       },
       "done_reasons": {
-        "SL_HIT": 112,
-        "PARTIAL_CLOSE_50": 60,
-        "TAKE_PROFIT": 55,
+        "SL_HIT": 104,
+        "TP_HIT": 15,
+        "PARTIAL_CLOSE_50": 94,
+        "TAKE_PROFIT": 34,
+        "EXIT": 3
+      },
+      "n_episodes": 50
+    },
+    "dqn": {
+      "mean_reward": -0.358190430423635,
+      "std_reward": 0.6719617823381822,
+      "mean_pnl": -0.06175643895039626,
+      "action_distribution": {
+        "HOLD": 288,
+        "PARTIAL_CLOSE_50": 172,
+        "MOVE_SL_BE": 74,
+        "TAKE_PROFIT": 4,
+        "EXIT": 1,
+        "TRAILING_SL_ATR": 151
+      },
+      "done_reasons": {
+        "SL_HIT": 92,
+        "PARTIAL_CLOSE_50": 132,
         "TP_HIT": 21,
-        "EXIT": 2
+        "TAKE_PROFIT": 4,
+        "EXIT": 1
+      },
+      "n_episodes": 50
+    },
+    "a2c": {
+      "mean_reward": -0.5418524379044068,
+      "std_reward": 0.4672972031573047,
+      "mean_pnl": -0.042561146827567356,
+      "action_distribution": {
+        "HOLD": 0,
+        "PARTIAL_CLOSE_50": 0,
+        "MOVE_SL_BE": 433,
+        "TAKE_PROFIT": 0,
+        "EXIT": 0,
+        "TRAILING_SL_ATR": 0
+      },
+      "done_reasons": {
+        "SL_HIT": 246,
+        "TP_HIT": 4
       },
       "n_episodes": 50
     }
   },
   "rule_based": {
-    "mean_reward": -2.9150168148086584,
-    "std_reward": 3.016251340681221,
-    "mean_pnl": 0.09779332257612282,
-    "win_rate": 0.23404255319148937,
+    "mean_reward": -0.48992041763833444,
+    "std_reward": 1.5070876942218012,
+    "mean_pnl": 0.10390300949727349,
+    "win_rate": 0.26639344262295084,
     "done_reasons": {
-      "SL_HIT": 174,
-      "TP_HIT": 55,
-      "MAX_STEPS": 6
+      "SL_HIT": 178,
+      "TP_HIT": 65,
+      "MAX_STEPS": 1
     },
     "n_episodes": 50
   },
   "comparison_summary": {
-    "best_agent": "ppo",
-    "rule_based_mean_reward": -2.9150168148086584,
-    "rule_based_win_rate": 0.23404255319148937,
+    "best_agent": "dqn",
+    "rule_based_mean_reward": -0.48992041763833444,
+    "rule_based_win_rate": 0.26639344262295084,
     "rl_improvements": {
       "ppo": {
-        "delta_reward": 0.5348771460339954,
-        "mean_reward": -2.380139668774663
+        "delta_reward": -0.18097798469037424,
+        "mean_reward": -0.6708984023287087
+      },
+      "dqn": {
+        "delta_reward": 0.13172998721469942,
+        "mean_reward": -0.358190430423635
+      },
+      "a2c": {
+        "delta_reward": -0.05193202026607241,
+        "mean_reward": -0.5418524379044068
       }
     }
   }

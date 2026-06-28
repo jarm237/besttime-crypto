@@ -20,6 +20,7 @@ optuna
 scipy
 
 stable-baselines3
+sb3-contrib
 
 pymongo
 cryptography

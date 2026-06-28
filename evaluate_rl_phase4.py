@@ -12,7 +12,8 @@ import torch
 from pathlib import Path
 from datetime import datetime
 
-from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3 import DQN, A2C
+from sb3_contrib import RecurrentPPO
 
 from btc_scraper.ml_engine.rl_trading_env import TradeExitEnv, MultiTradeExitEnv
 from train_rl_exit_manager import load_trade_data
@@ -88,7 +89,7 @@ def evaluate_rl_agent(
 
     try:
         if algo.lower() == "ppo":
-            model = PPO.load(model_path, env=env, device=device)
+            model = RecurrentPPO.load(model_path, env=env, device=device)
         elif algo.lower() == "dqn":
             model = DQN.load(model_path, env=env, device=device)
         elif algo.lower() == "a2c":
@@ -111,9 +112,23 @@ def evaluate_rl_agent(
         terminated = False
         ep_reward = 0.0
         ep_pnl = 0.0
+        
+        # Track LSTM states for RecurrentPPO
+        lstm_states = None
+        episode_start = np.ones((1,), dtype=bool)
 
         while not terminated:
-            action, _ = model.predict(obs, deterministic=True)
+            if algo.lower() == "ppo":
+                action, lstm_states = model.predict(
+                    obs,
+                    state=lstm_states,
+                    episode_start=episode_start,
+                    deterministic=True
+                )
+                episode_start = np.zeros((1,), dtype=bool)
+            else:
+                action, _ = model.predict(obs, deterministic=True)
+                
             obs, reward, terminated, truncated, info = env.step(int(action))
             ep_reward += reward
             action_counts[int(action)] += 1

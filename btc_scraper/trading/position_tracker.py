@@ -21,6 +21,7 @@ from btc_scraper.core.db import positions_col, closed_positions_col, closed_trad
 # Cache PPO model globally to avoid reloading on every cycle
 _PPO_MODEL_CACHE = None
 _LAST_MODEL_PATH = None
+_LSTM_STATE_CACHE = {}
 
 
 def _get_default_device() -> str:
@@ -55,15 +56,15 @@ def get_ppo_model(device: str = "auto"):
         return None
     if _PPO_MODEL_CACHE is None or _LAST_MODEL_PATH != model_path:
         try:
-            from stable_baselines3 import PPO
+            from sb3_contrib import RecurrentPPO
             if device == "auto":
                 device = _get_default_device()
             elif device == "cuda" and not torch.cuda.is_available():
                 print("[RL Exit Agent] CUDA requested but not available. Falling back to CPU.")
                 device = "cpu"
-            _PPO_MODEL_CACHE = PPO.load(model_path, device=device)
+            _PPO_MODEL_CACHE = RecurrentPPO.load(model_path, device=device)
             _LAST_MODEL_PATH = model_path
-            print(f"[RL Exit Agent] Loaded model: {model_path} on device={device}")
+            print(f"[RL Exit Agent] Loaded RecurrentPPO model: {model_path} on device={device}")
         except Exception as e:
             print(f"[RL Exit Agent] Warning: Lỗi khi load model: {e}")
             return None
@@ -224,6 +225,7 @@ def close_position(coin: str, sell_price: float) -> dict:
         - hold_hours: thời gian nắm giữ
     """
     coin = coin.upper()
+    _LSTM_STATE_CACHE.pop(coin, None)
 
     pos = positions_col.find_one({"coin": coin, "status": "open"}, {"_id": 0})
     if not pos:
@@ -556,8 +558,25 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         if model is not None:
             try:
                 obs = _build_rl_observation(ana, avg_confidence, avg_step, weighted_entry, pnl_pct, direction)
-                rl_action_pred, _ = model.predict(obs, deterministic=True)
+                
+                # Retrieve cached LSTM states for this coin
+                lstm_cache_key = coin.upper()
+                if lstm_cache_key not in _LSTM_STATE_CACHE:
+                    lstm_states = None
+                    episode_start = np.ones((1,), dtype=bool)
+                else:
+                    lstm_states, episode_start = _LSTM_STATE_CACHE[lstm_cache_key]
+
+                rl_action_pred, next_lstm_states = model.predict(
+                    obs,
+                    state=lstm_states,
+                    episode_start=episode_start,
+                    deterministic=True
+                )
                 rl_action = int(rl_action_pred)
+                
+                # Cache the updated LSTM hidden state
+                _LSTM_STATE_CACHE[lstm_cache_key] = (next_lstm_states, np.zeros((1,), dtype=bool))
                 print(f"[RL Exit Agent] Coin {coin}: Predicted Action {rl_action}")
             except Exception as ex:
                 print(f"[RL Exit Agent] Warning: Error predicting action for {coin}: {ex}")

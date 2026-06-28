@@ -367,6 +367,7 @@ class TradeExitEnv(gym.Env):
         entry_candle = self.coin_candles[self.coin][self.entry_candle_idx]
         self.entry_price = entry_candle["close"]
         self.max_pnl = 0.0
+        self.prev_pnl = 0.0
         
         # Direction
         sig = str(self.trade.get("signal_raw", "BUY")).upper()
@@ -444,8 +445,8 @@ class TradeExitEnv(gym.Env):
             
         self.max_pnl = max(self.max_pnl, current_pnl)
         
-        # Simplified reward: use realized Net PnL (percentage) minus transaction costs.
-        # Remove heuristic bonuses so agent optimizes for actual PnL after costs.
+        # Dense reward shaping: use the step-to-step difference in Net PnL (percentage).
+        # Total reward accumulated over the episode will equal final realized Net PnL.
         reward = 0.0
         terminated = False
         done_reason = ""
@@ -486,7 +487,9 @@ class TradeExitEnv(gym.Env):
                     realized_pnl = ((self.entry_price - self.tp) / self.entry_price) * 100
                     done_reason = "TP_HIT"
 
-            reward = realized_pnl * self.reward_scale - _round_trip_cost_pct()
+            net_pnl = realized_pnl - _round_trip_cost_pct()
+            reward = (net_pnl - self.prev_pnl) * self.reward_scale
+            self.prev_pnl = net_pnl
             terminated = True
 
         # Determine whether agent action should be applied this step according to decision interval
@@ -499,33 +502,39 @@ class TradeExitEnv(gym.Env):
                 action = 0
 
             if action == 0:  # HOLD
-                # No heuristic reward; leave as zero to let realized outcomes drive learning
-                reward = 0.0
+                reward = (current_pnl - self.prev_pnl) * self.reward_scale
+                self.prev_pnl = current_pnl
 
             elif action == 1:  # PARTIAL_CLOSE_50
                 partial_realized = current_pnl * 0.5
-                reward = partial_realized * self.reward_scale - _round_trip_cost_pct(0.5)
+                net_pnl = partial_realized - _round_trip_cost_pct(0.5)
+                reward = (net_pnl - self.prev_pnl) * self.reward_scale
+                self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "PARTIAL_CLOSE_50"
 
             elif action == 2:  # MOVE_SL_TO_BREAKEVEN
                 self.sl = self.entry_price
-                reward = 0.0
+                reward = (current_pnl - self.prev_pnl) * self.reward_scale
+                self.prev_pnl = current_pnl
 
             elif action == 3:  # TAKE_PROFIT
                 # Immediate exit at current price
-                reward = current_pnl * self.reward_scale - _round_trip_cost_pct()
+                net_pnl = current_pnl - _round_trip_cost_pct()
+                reward = (net_pnl - self.prev_pnl) * self.reward_scale
+                self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "TAKE_PROFIT"
 
             elif action == 4:  # EXIT
-                reward = current_pnl * self.reward_scale - _round_trip_cost_pct()
+                net_pnl = current_pnl - _round_trip_cost_pct()
+                reward = (net_pnl - self.prev_pnl) * self.reward_scale
+                self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "EXIT"
 
             elif action == 5:  # TRAILING_SL_ATR
                 self.trailing_sl_active = True
-                old_sl = self.sl
                 atr = float(candle.get("atr", 1.0))
                 if self.direction == "LONG":
                     candidate_sl = candle["close"] - 1.5 * atr
@@ -534,7 +543,8 @@ class TradeExitEnv(gym.Env):
                     candidate_sl = candle["close"] + 1.5 * atr
                     self.sl = min(self.sl, candidate_sl)
 
-                reward = 0.0
+                reward = (current_pnl - self.prev_pnl) * self.reward_scale
+                self.prev_pnl = current_pnl
 
         # Advance step and record reward
         self.current_step += 1
@@ -545,8 +555,10 @@ class TradeExitEnv(gym.Env):
         if truncated and not terminated:
             terminated = True
             done_reason = "MAX_STEPS"
-            reward = current_pnl * self.reward_scale - _round_trip_cost_pct()
-            self.episode_rewards.append(reward)
+            net_pnl = current_pnl - _round_trip_cost_pct()
+            reward = (net_pnl - self.prev_pnl) * self.reward_scale
+            self.prev_pnl = net_pnl
+            self.episode_rewards[-1] = reward
             
         # Fetch next candle observation
         next_idx = min(idx + 1, len(self.coin_candles[self.coin]) - 1)
@@ -563,6 +575,7 @@ class TradeExitEnv(gym.Env):
         }
         
         return next_obs, reward, terminated, truncated, info
+
         
     def _get_observation(self, candle: dict, step: int) -> np.ndarray:
         """Compute normalized observation vector (18 features)."""

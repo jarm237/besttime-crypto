@@ -1,11 +1,11 @@
 {
-  "ppo": {
-    "algorithm": "ppo",
-    "total_timesteps": 500000,
+  "a2c": {
+    "algorithm": "a2c",
+    "total_timesteps": 100000,
     "learning_rate": 0.0003,
-    "mean_reward": -1.369044,
-    "std_reward": 2.0696184746377533,
-    "timestamp": "20260627_143758",
-    "model_path": "logs/rl_models\\rl_exit_ppo_20260627_143758"
+    "mean_reward": -0.6732912500000001,
+    "std_reward": 0.6115017612289334,
+    "timestamp": "20260628_172702",
+    "model_path": "logs/rl_models\\rl_exit_a2c_20260628_172702"
   }
 }

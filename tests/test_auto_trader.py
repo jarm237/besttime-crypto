@@ -302,7 +302,7 @@ def test_trailing_sl_activation_flow(monkeypatch):
     # 3. Mock RL exit model behavior
     context = {"rl_action": 0}  # Start with HOLD
     class DummyModel:
-        def predict(self, obs, deterministic=True):
+        def predict(self, obs, *args, **kwargs):
             return context["rl_action"], None
             
     monkeypatch.setattr(pt, "get_ppo_model", lambda: DummyModel())
