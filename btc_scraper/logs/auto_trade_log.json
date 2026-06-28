@@ -3859,5 +3859,63 @@
     "status": "placed",
     "error": null,
     "filled_price": 100.0
+  },
+  {
+    "timestamp": "2026-06-28T22:16:09.903228",
+    "timestamp_str": "2026-06-28 22:16:09",
+    "mode": "TESTNET",
+    "coin": "AVAX",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.6842,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 6.336
+  },
+  {
+    "timestamp": "2026-06-28T22:16:10.559648",
+    "timestamp_str": "2026-06-28 22:16:10",
+    "mode": "TESTNET",
+    "coin": "ENA",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.6917,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0761
+  },
+  {
+    "timestamp": "2026-06-28T22:24:10.152557",
+    "timestamp_str": "2026-06-28 22:24:10",
+    "mode": "DRY_RUN",
+    "coin": "NEAR",
+    "signal": "BUY",
+    "meta_confidence": 0.8,
+    "signal_score": 80,
+    "status": "skipped",
+    "reason_skip": "Tuong quan cao voi vi the dang mo SOL (0.80 > 0.75)",
+    "entry_price": 5.0
+  },
+  {
+    "timestamp": "2026-06-28T22:24:10.159852",
+    "timestamp_str": "2026-06-28 22:24:10",
+    "mode": "DRY_RUN",
+    "coin": "ETH",
+    "symbol": "ETH/USDT",
+    "direction": "LONG",
+    "signal": "BUY",
+    "meta_confidence": 0.8,
+    "meta_confidence_pct": 80,
+    "signal_score": 80,
+    "order_type": "market",
+    "entry_price": 100.0,
+    "sl_price": 80.0,
+    "tp1_price": 0.0,
+    "usdt_amount": 100.0,
+    "account_balance_est": 1000.0,
+    "order_id": "mock-buy-id",
+    "status": "placed",
+    "error": null,
+    "filled_price": 100.0
   }
 ]

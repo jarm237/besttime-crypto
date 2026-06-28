@@ -23,6 +23,36 @@ _PPO_MODEL_CACHE = None
 _LAST_MODEL_PATH = None
 _LSTM_STATE_CACHE = {}
 
+_LSTM_CACHE_FILE = "logs/rl_lstm_cache.pkl"
+
+def save_lstm_cache():
+    """Lưu _LSTM_STATE_CACHE xuống file pickle."""
+    try:
+        os.makedirs(os.path.dirname(_LSTM_CACHE_FILE), exist_ok=True)
+        import pickle
+        with open(_LSTM_CACHE_FILE, "wb") as f:
+            pickle.dump(_LSTM_STATE_CACHE, f)
+    except Exception as e:
+        print(f"[RL Exit Agent] Warning: Không thể lưu LSTM cache: {e}")
+
+def load_lstm_cache():
+    """Khôi phục _LSTM_STATE_CACHE từ file pickle."""
+    global _LSTM_STATE_CACHE
+    if os.path.exists(_LSTM_CACHE_FILE):
+        try:
+            import pickle
+            with open(_LSTM_CACHE_FILE, "rb") as f:
+                _LSTM_STATE_CACHE = pickle.load(f)
+            print(f"[RL Exit Agent] Restored LSTM state cache from {_LSTM_CACHE_FILE} (found {len(_LSTM_STATE_CACHE)} keys)")
+        except Exception as e:
+            print(f"[RL Exit Agent] Warning: Không thể khôi phục LSTM cache: {e}")
+            _LSTM_STATE_CACHE = {}
+    else:
+        _LSTM_STATE_CACHE = {}
+
+# Khôi phục cache ngay khi load module
+load_lstm_cache()
+
 
 def _get_default_device() -> str:
     try:
@@ -235,6 +265,7 @@ def close_position(coin: str, sell_price: float) -> dict:
     """
     coin = coin.upper()
     _LSTM_STATE_CACHE.pop(coin, None)
+    save_lstm_cache()
 
     pos = positions_col.find_one({"coin": coin, "status": "open"}, {"_id": 0})
     if not pos:
@@ -592,6 +623,31 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                 corrs.append(corr_val)
         avg_correlation = float(np.mean(corrs)) if corrs else 0.5
 
+        # Predict success probability of the position using Meta Model
+        pos_meta_prob = None
+        try:
+            from btc_scraper.ml_engine.meta_model import predict_meta_confidence
+            eval_info = dict(ana)
+            if direction == "LONG":
+                eval_info["signal"] = "BUY"
+                eval_info["signal_score"] = {
+                    "action": "BUY",
+                    "score": 70,
+                    "confidence": "MEDIUM"
+                }
+            else:
+                eval_info["signal"] = "SELL"
+                eval_info["signal_score"] = {
+                    "action": "SELL",
+                    "score": 30,
+                    "confidence": "MEDIUM"
+                }
+            res = predict_meta_confidence(eval_info)
+            if res and res.get("probability") is not None:
+                pos_meta_prob = float(res["probability"])
+        except Exception:
+            pos_meta_prob = None
+
         # Fetch PPO model and predict
         rl_action = None
         model = get_ppo_model()
@@ -615,8 +671,15 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                 )
                 rl_action = int(rl_action_pred)
                 
+                # Confidence Gate: only execute PARTIAL_CLOSE (1), TAKE_PROFIT (3), or EXIT (4) if pos_meta_prob is None or < 0.45.
+                # Otherwise, override to HOLD (0).
+                if rl_action in [1, 3, 4] and pos_meta_prob is not None and pos_meta_prob >= 0.45:
+                    print(f"[Confidence Gate] Override RL Action {rl_action} to 0 (HOLD) for {coin} because meta confidence {pos_meta_prob:.4f} >= 0.45")
+                    rl_action = 0
+
                 # Cache the updated LSTM hidden state
                 _LSTM_STATE_CACHE[lstm_cache_key] = (next_lstm_states, np.zeros((1,), dtype=bool))
+                save_lstm_cache()
                 print(f"[RL Exit Agent] Coin {coin}: Predicted Action {rl_action}")
             except Exception as ex:
                 print(f"[RL Exit Agent] Warning: Error predicting action for {coin}: {ex}")
@@ -683,30 +746,8 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         fee_usd = (invested_usdt * 0.001) + (gross_received * 0.001) if invested_usdt > 0 else 0.0
         expected_received_usdt = gross_received - fee_usd if invested_usdt > 0 else 0.0
 
-        # Predict success probability of the position using Meta Model
-        pos_meta_prob = None
-        try:
-            from btc_scraper.ml_engine.meta_model import predict_meta_confidence
-            eval_info = dict(ana)
-            if direction == "LONG":
-                eval_info["signal"] = "BUY"
-                eval_info["signal_score"] = {
-                    "action": "BUY",
-                    "score": 70,
-                    "confidence": "MEDIUM"
-                }
-            else:
-                eval_info["signal"] = "SELL"
-                eval_info["signal_score"] = {
-                    "action": "SELL",
-                    "score": 30,
-                    "confidence": "MEDIUM"
-                }
-            res = predict_meta_confidence(eval_info)
-            if res and res.get("probability") is not None:
-                pos_meta_prob = float(res["probability"])
-        except Exception:
-            pos_meta_prob = None
+        # Read shadow mode from env variable
+        shadow_mode = os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true"
 
         # Xác định khuyến nghị dựa trên entry trung bình và trailing SL
         rec = _generate_recommendation(
@@ -719,6 +760,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
             tp1=tp1,
             tp2=tp2,
             rl_action=rl_action,
+            shadow_mode=shadow_mode,
         )
 
         dca_opp = _evaluate_dca_opportunity(pos_list, ana, current_price, pos_meta_prob, rl_action=rl_action)
@@ -876,6 +918,7 @@ def _generate_recommendation(
     tp1: float,
     tp2: float,
     rl_action: int | None = None,
+    shadow_mode: bool = False,
 ) -> dict:
     """
     Logic nội bộ tạo khuyến nghị dựa trên vị thế và tín hiệu thị trường.
@@ -916,7 +959,10 @@ def _generate_recommendation(
     if rl_action is not None and rl_action in RL_ACTION_LABELS:
         rl_label = RL_ACTION_LABELS[rl_action]
         if rl_label is not None:  # action 0 (HOLD) falls through
-            return {"action": rl_label[0], "reason": rl_label[1], "urgency": rl_label[2]}
+            action_name = rl_label[0]
+            if shadow_mode:
+                action_name = action_name.replace("[RL]", "[SHADOW-RL]")
+            return {"action": action_name, "reason": rl_label[1], "urgency": rl_label[2]}
 
     # --- Tín hiệu đảo chiều mạnh ngược chiều vị thế ---
     if direction == "LONG" and any(x in signal for x in ["STRONG SELL", "SELL (Crossover)", "SELL (Break-SMA50)", "SELL (SFP"]):

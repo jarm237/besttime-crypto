@@ -345,4 +345,94 @@ def test_trailing_sl_activation_flow(monkeypatch):
     assert mock_positions[0]["trailing_sl"] >= first_activated_sl
 
 
+def test_confidence_gate_and_shadow_mode(monkeypatch):
+    import btc_scraper.trading.position_tracker as pt
+    
+    # 1. Setup mock database records
+    mock_positions = [{
+        "id": "test_pos_confidence",
+        "coin": "BTC",
+        "entry_price": 60000.0,
+        "direction": "LONG",
+        "invested_usdt": 100.0,
+        "entry_time": "2026-01-01 00:00",
+        "status": "open",
+        "trailing_sl": None,
+        "trailing_sl_active": False,
+        "note": "[AUTO-TEST]"
+    }]
+    
+    class DummyCol:
+        def find(self, *args, **kwargs):
+            return mock_positions
+        def find_one(self, *args, **kwargs):
+            return mock_positions[0]
+        def update_one(self, filter_q, update_q):
+            set_dict = update_q.get("$set", {})
+            for k, v in set_dict.items():
+                mock_positions[0][k] = v
+        def update_many(self, filter_q, update_q):
+            set_dict = update_q.get("$set", {})
+            for k, v in set_dict.items():
+                mock_positions[0][k] = v
+
+    monkeypatch.setattr(pt, "positions_col", DummyCol())
+    
+    # 2. Mock PPO model predicting EXIT (4)
+    class DummyExitModel:
+        def predict(self, obs, *args, **kwargs):
+            return 4, None  # RL action 4 = EXIT
+            
+    monkeypatch.setattr(pt, "get_ppo_model", lambda: DummyExitModel())
+
+    # 3. Mock CorrelationEngine
+    class DummyCorrEngine:
+        def get_correlation(self, a, b):
+            return 0.5
+    monkeypatch.setattr("btc_scraper.analysis.correlation.correlation_engine", DummyCorrEngine())
+
+    # 4. Dummy analysis results
+    analysis_results = {
+        "BTC:Binance": {
+            "close": 60100.0,
+            "atr": 1000.0,
+            "support": 59000.0,
+            "resistance": 62000.0,
+            "bb_upper": 63000.0,
+            "bb_middle": 61000.0,
+            "bb_lower": 59000.0,
+            "signal": "BUY"
+        }
+    }
+
+    # Case A: Meta Model confidence is high (0.75).
+    # Confidence Gate should override EXIT (4) to HOLD (0).
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.meta_model.predict_meta_confidence",
+        lambda *args, **kwargs: {"probability": 0.75}
+    )
+    monkeypatch.setenv("RL_EXIT_SHADOW_MODE", "false")
+    recs = pt.evaluate_positions(analysis_results)
+    # Overridden to HOLD, so recommendation should be hold
+    assert len(recs) == 1
+    assert "GIU LENH" in recs[0]["recommendation"]
+
+    # Case B: Meta Model confidence is low (0.30).
+    # Confidence Gate should NOT override, so recommendation should be EXIT ([RL] DONG VI THE).
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.meta_model.predict_meta_confidence",
+        lambda *args, **kwargs: {"probability": 0.30}
+    )
+    recs = pt.evaluate_positions(analysis_results)
+    assert len(recs) == 1
+    assert "[RL] DONG VI THE" in recs[0]["recommendation"]
+
+    # Case C: Shadow Mode is enabled and meta model confidence is low.
+    # Recommendation should be transformed to [SHADOW-RL] DONG VI THE.
+    monkeypatch.setenv("RL_EXIT_SHADOW_MODE", "true")
+    recs = pt.evaluate_positions(analysis_results)
+    assert len(recs) == 1
+    assert "[SHADOW-RL] DONG VI THE" in recs[0]["recommendation"]
+
+
 

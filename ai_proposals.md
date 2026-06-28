@@ -191,7 +191,7 @@ Kiến trúc phân tầng hiện tại rất xuất sắc, đảm bảo tính m�
   * Các agent RL do đó có xu hướng đóng non và partial close quá sớm nhằm bảo toàn điểm số, trong khi baseline chờ TP/SL cứng và bắt kịp nhiều sóng hồi.
 * **A2C đã ổn định hơn nhưng chưa hiệu quả**
   * A2C không còn collapsing hành vi partial close; nó giữ nhiều hơn (`3082` lần HOLD) và trailing SL `122` lần.
-  * Tuy nhiên PnL vẫn âm `-0.0987%`, vì agent chưa cân bằng được giữa giảm drawdown và tối đa hoá lợi nhuận.
+  * Tuy nhiên, PnL vẫn âm `-0.0987%`, vì agent chưa cân bằng tốt giữa giảm drawdown và tối đa hoá lợi nhuận.
 
 ### Lộ trình chuẩn bị Phase 5
 1. **Triển khai Shadow Mode (Forward Testing)**
@@ -210,16 +210,26 @@ Kiến trúc phân tầng hiện tại rất xuất sắc, đảm bảo tính m�
   * Lưu `_LSTM_STATE_CACHE` xuống file temporary khi dừng bot.
   * Khôi phục cache khi khởi động lại để không mất chuỗi trạng thái cho vị thế đang mở.
 
+### Báo Cáo Phase 5: Tích Hợp Live & Tinh Chỉnh Hành Vi RL Exit Manager
+* **Tích hợp thành công 3 tính năng cốt lõi vào `position_tracker.py`**:
+  1. Chế độ Shadow Mode để forward testing mà không đặt lệnh thật.
+  2. Confidence Gate cho các hành động đóng lệnh/non nhằm giảm chốt non.
+  3. LSTM State Persistence để bảo toàn trạng thái ẩn qua restart.
+* **Hiệu quả kiểm thử**:
+  * Đã bổ sung unit test `test_confidence_gate_and_shadow_mode` vào `tests/test_auto_trader.py`.
+  * Toàn bộ hệ thống đã vượt qua **61/61 tests PASSED**.
+
 ### Giai đoạn tiếp theo
 * Phase 4 hiện tại đã sẵn sàng để chuyển sang bước kiểm nghiệm live và tinh chỉnh hành vi RL.
-* Phase 5 nên tập trung vào:
-  1. Forward testing / shadow mode.
-  2. Confidence-based RL gating.
-  3. Giải pháp lưu giữ và phục hồi trạng thái LSTM qua chu kỳ restart.
+* Trước khi vào Phase 5, cần hoàn thiện các bước sau:
+  1. Tinh chỉnh reward/objective policy để giảm hành vi đóng lệnh non.
+  2. Mở rộng đánh giá và so sánh trực tiếp với rule-based benchmark.
+  3. Triển khai Shadow Mode trong `position_tracker.py` để ghi nhận khuyến nghị RL mà không đóng lệnh thật.
+  4. Thêm Confidence Gate cho `PARTIAL_CLOSE` / `EXIT` dựa trên `meta_confidence`.
+  5. Lưu và khôi phục `_LSTM_STATE_CACHE` qua cycle restart.
 
-### Ghi chú bổ sung
-* Phase 4 hiện là một nền tảng kỹ thuật đầy đủ nhưng vẫn cần tối ưu thêm reward/objective policy.
-* Rule-based baseline vẫn là benchmark quan trọng để đảm bảo RL không bị * **Thời gian**: Tháng 9 trở đi
+### PHASE 5: Trí Tuệ Thích Ứng & Mô Phỏng Thị Trường (World Model & Simulation)
+* **Thời gian**: Tháng 9 trở đi
 * **Mục tiêu**: Xây dựng một thế giới giả lập thị trường để mô hình tự học thông qua Self-play và Causal AI.
 
 #### Các đầu việc kỹ thuật:
