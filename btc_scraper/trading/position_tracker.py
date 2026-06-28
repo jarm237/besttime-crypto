@@ -76,10 +76,12 @@ def _build_rl_observation(
     avg_step: int,
     weighted_entry: float,
     current_pnl: float,
-    direction: str
+    direction: str,
+    min_pnl: float,
+    average_correlation: float
 ) -> np.ndarray:
-    """Tạo observation vector 18 chiều đồng bộ với TradeExitEnv."""
-    obs = np.zeros(18, dtype=np.float32)
+    """Tạo observation vector 20 chiều đồng bộ với TradeExitEnv."""
+    obs = np.zeros(20, dtype=np.float32)
     
     # Feature 0: RSI (0-100 -> -1 to 1)
     rsi = float(ana.get("rsi", 50.0))
@@ -155,7 +157,14 @@ def _build_rl_observation(
     bb_width_pct = float(ana.get("bb_width_pct", 2.0))
     obs[17] = np.tanh((bb_width_pct - 2.0) / 2.0)
     
+    # Feature 18: Max drawdown since entry (min_pnl)
+    obs[18] = np.tanh(min_pnl / 5.0)
+    
+    # Feature 19: Average market correlation
+    obs[19] = average_correlation
+    
     return obs
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -552,12 +561,43 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                 steps_list.append(0)
         avg_step = int(sum(steps_list) / len(steps_list))
 
+        # Track and update min_pnl for each position
+        min_pnl_list = []
+        for p in pos_list:
+            p_entry = float(p.get("entry_price", 0.0))
+            if p_entry > 0:
+                p_pnl = ((current_price - p_entry) / p_entry * 100) if direction == "LONG" else ((p_entry - current_price) / p_entry * 100)
+            else:
+                p_pnl = 0.0
+            p_min_pnl = p.get("min_pnl")
+            if p_min_pnl is None:
+                p_min_pnl = p_pnl
+            else:
+                p_min_pnl = min(float(p_min_pnl), p_pnl)
+            
+            # Update min_pnl in database
+            positions_col.update_one({"id": p["id"]}, {"$set": {"min_pnl": p_min_pnl}})
+            p["min_pnl"] = p_min_pnl
+            min_pnl_list.append(p_min_pnl)
+            
+        avg_min_pnl = sum(min_pnl_list) / len(min_pnl_list) if min_pnl_list else 0.0
+
+        # Compute average correlation with the rest of whitelist assets
+        from btc_scraper.analysis.correlation import correlation_engine, SECTOR_MAP
+        target = coin.upper()
+        corrs = []
+        for other_coin in SECTOR_MAP.keys():
+            if other_coin != target:
+                corr_val = correlation_engine.get_correlation(target, other_coin)
+                corrs.append(corr_val)
+        avg_correlation = float(np.mean(corrs)) if corrs else 0.5
+
         # Fetch PPO model and predict
         rl_action = None
         model = get_ppo_model()
         if model is not None:
             try:
-                obs = _build_rl_observation(ana, avg_confidence, avg_step, weighted_entry, pnl_pct, direction)
+                obs = _build_rl_observation(ana, avg_confidence, avg_step, weighted_entry, pnl_pct, direction, avg_min_pnl, avg_correlation)
                 
                 # Retrieve cached LSTM states for this coin
                 lstm_cache_key = coin.upper()

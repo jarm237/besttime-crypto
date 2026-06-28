@@ -30,7 +30,7 @@ def test_trade_exit_env_spaces(dummy_trades):
     env = TradeExitEnv(trades=dummy_trades)
     
     # Verify action and observation space
-    assert env.observation_space.shape == (18,)
+    assert env.observation_space.shape == (20,)
     assert env.observation_space.dtype == np.float32
     assert env.action_space.n == 6
     
@@ -45,7 +45,7 @@ def test_trade_exit_env_reset_and_step(dummy_trades):
     
     # Test reset
     obs, info = env.reset(seed=42)
-    assert obs.shape == (18,)
+    assert obs.shape == (20,)
     assert isinstance(obs, np.ndarray)
     assert "coin" in info
     assert "direction" in info
@@ -53,7 +53,7 @@ def test_trade_exit_env_reset_and_step(dummy_trades):
     
     # Test step with HOLD action (0)
     next_obs, reward, terminated, truncated, info = env.step(0)
-    assert next_obs.shape == (18,)
+    assert next_obs.shape == (20,)
     assert isinstance(reward, float)
     assert isinstance(terminated, bool)
     assert isinstance(truncated, bool)
@@ -94,9 +94,10 @@ def test_ppo_smoke_train(dummy_trades):
     )
     
     try:
-        # Initialize small PPO agent
-        model = PPO(
-            "MlpPolicy",
+        from sb3_contrib import RecurrentPPO
+        # Initialize small RecurrentPPO agent
+        model = RecurrentPPO(
+            "MlpLstmPolicy",
             env,
             learning_rate=3e-4,
             n_steps=64,
@@ -114,7 +115,7 @@ def test_ppo_smoke_train(dummy_trades):
             model.save(model_path)
             assert os.path.exists(f"{model_path}.zip")
             
-            loaded_model = PPO.load(model_path, env=env)
+            loaded_model = RecurrentPPO.load(model_path, env=env)
             assert loaded_model is not None
             
             # Predict an action

@@ -1,11 +1,29 @@
 {
+  "ppo": {
+    "algorithm": "ppo",
+    "total_timesteps": 100000,
+    "learning_rate": 0.0003,
+    "mean_reward": -2.36652345,
+    "std_reward": 0.8979997160324983,
+    "timestamp": "20260628_215012",
+    "model_path": "logs/rl_models\\rl_exit_ppo_20260628_215012"
+  },
+  "dqn": {
+    "algorithm": "dqn",
+    "total_timesteps": 100000,
+    "learning_rate": 0.0003,
+    "mean_reward": -2.2544734,
+    "std_reward": 1.4967660383470558,
+    "timestamp": "20260628_220105",
+    "model_path": "logs/rl_models\\rl_exit_dqn_20260628_220105"
+  },
   "a2c": {
     "algorithm": "a2c",
     "total_timesteps": 100000,
     "learning_rate": 0.0003,
-    "mean_reward": -0.6732912500000001,
-    "std_reward": 0.6115017612289334,
-    "timestamp": "20260628_172702",
-    "model_path": "logs/rl_models\\rl_exit_a2c_20260628_172702"
+    "mean_reward": -2.22957925,
+    "std_reward": 1.5259015767893052,
+    "timestamp": "20260628_220215",
+    "model_path": "logs/rl_models\\rl_exit_a2c_20260628_220215"
   }
 }

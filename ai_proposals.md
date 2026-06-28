@@ -146,8 +146,80 @@ Kiến trúc phân tầng hiện tại rất xuất sắc, đảm bảo tính m�
 
 ---
 
-### GIAI ĐOẠN 5: Trí Tuệ Thích Ứng & Mô Phỏng Thị Trường (World Model & Simulation)
-* **Thời gian**: Tháng 9 trở đi
+### PHASE 4 SUMMARY: Đánh giá trước khi bước vào Giai Đoạn 5
+* **Tiến độ hiện tại**:
+  * Đã hoàn tất tích hợp `RecurrentPPO` với `MlpLstmPolicy` cho agent RL.
+  * Reward function đã được đơn giản hoá về Net PnL step-to-step, loại bỏ các bonus heuristic.
+  * `sb3-contrib` đã được cài đặt và chạy thành công trên CPU.
+  * Đã thực thi huấn luyện ngắn `10000` steps cho PPO LSTM và lưu model tại `logs/rl_models/rl_exit_ppo_*.zip`.
+* **Kết quả đánh giá ban đầu** (20 episodes):
+  * Rule-based baseline: Mean PnL `0.4479%`, Mean Reward `0.2963`.
+  * PPO LSTM: Mean PnL `0.1812%`, Mean Reward `-0.5959`.
+  * DQN: Mean PnL `0.0045%`, Mean Reward `-0.3447`.
+  * A2C: Mean PnL `-0.0503%`, Mean Reward `-0.5269`.
+  * Action behaviors:
+    * PPO tập trung vào `HOLD`, `PARTIAL_CLOSE_50`, `TRAILING_SL_ATR`.
+    * DQN thêm `MOVE_SL_BE` và `TRAILING_SL_ATR`.
+    * A2C chủ yếu `MOVE_SL_BE`.
+* **Xác nhận ổn định**:
+  * `python -m pytest -q` chạy thành công `60 passed`.
+* **Kết luận**:
+  * Phase 4 đã đạt mức “hệ thống hoạt động” và có thể đánh giá được.
+  * RL agents hiện vẫn chưa vượt được rule-based baseline, nên cần tinh chỉnh reward/objective và hành vi chốt lệnh trước khi chuyển sang Phase 5.
+
+### Báo Cáo Nâng Cao: RL Exit Manager (100 Episodes)
+* **Mở rộng State Space**: đã tích hợp thêm hai đặc trưng mới gồm `Max Drawdown` và `Portfolio Correlation`, nâng tổng số chiều trạng thái lên `20`.
+* **Terminal Reward**: đã áp dụng cơ chế Terminal Reward nhằm định hướng hành vi chốt lệnh cuối episode và giảm hiện tượng RL chỉ tối ưu reward trung gian.
+
+#### Kết quả 100 episodes
+| Chỉ số vận hành | Rule-Based (Hold TP/SL) | PPO Agent (LSTM Policy) | DQN Agent | A2C Agent |
+| :--- | :---: | :---: | :---: | :---: |
+| **Mean Reward** | `-1.8638` | **`-2.1499`** | `-2.2656` | `-2.3118` |
+| **Mean PnL thực tế** | **`+0.1577%`** | `+0.0643%` | `+0.0641%` | `-0.0987%` |
+| **SL Hit (Chạm SL cứng)** | 356 | 335 | **235** | 371 |
+| **TP Hit (Chạm TP cứng)** | 131 | 67 | 87 | 115 |
+| **Partial Close 50** | N/A | 76 | **177** | 0 |
+| **Exit chủ động** | N/A | **22** | 1 | 0 |
+| **Max Steps (Hết nến)** | 6 | 0 | 0 | 5 |
+
+#### Phân tích chiến thuật và PnL
+* **PPO & DQN: phòng thủ chủ động**
+  * PPO sử dụng bộ nhớ LSTM để dịch chuyển SL về Entry `304` lần và chốt lời từng phần `76` lần, giúp giảm SL cứng xuống `335`.
+  * DQN cực kỳ risk-averse với `177` partial close và `310` trailing SL, dẫn đến SL cứng chỉ `235` lần (giảm 34% so với baseline).
+* **Lý do Rule-based vẫn cao hơn về PnL**
+  * Reward hiện tại vẫn phạt nặng các vị thế dính SL cứng (`drawdown_penalty = -0.50`).
+  * Các agent RL do đó có xu hướng đóng non và partial close quá sớm nhằm bảo toàn điểm số, trong khi baseline chờ TP/SL cứng và bắt kịp nhiều sóng hồi.
+* **A2C đã ổn định hơn nhưng chưa hiệu quả**
+  * A2C không còn collapsing hành vi partial close; nó giữ nhiều hơn (`3082` lần HOLD) và trailing SL `122` lần.
+  * Tuy nhiên PnL vẫn âm `-0.0987%`, vì agent chưa cân bằng được giữa giảm drawdown và tối đa hoá lợi nhuận.
+
+### Lộ trình chuẩn bị Phase 5
+1. **Triển khai Shadow Mode (Forward Testing)**
+  * Kích hoạt bằng cấu hình `.env`:
+    ```env
+    RL_EXIT_MANAGER_ENABLED=true
+    RL_EXIT_SHADOW_MODE=true
+    ```
+  * Trong [position_tracker.py](file:///d:/Workspaces/Vọc vạch/btc_scraper/trading/position_tracker.py), khi `evaluate_positions()` dự đoán RL action ở chế độ shadow thì chỉ log khuyến nghị, không gọi API đóng lệnh.
+
+2. **Confidence Gate cho RL action**
+  * Thực hiện các action `PARTIAL_CLOSE` / `EXIT` chỉ khi `meta_confidence < 0.45`.
+  * Nếu confidence còn cao, ưu tiên `HOLD` để giảm tình trạng đóng non khi thị trường vẫn còn biến động thuận lợi.
+
+3. **Graceful Shutdown cho LSTM Cache**
+  * Lưu `_LSTM_STATE_CACHE` xuống file temporary khi dừng bot.
+  * Khôi phục cache khi khởi động lại để không mất chuỗi trạng thái cho vị thế đang mở.
+
+### Giai đoạn tiếp theo
+* Phase 4 hiện tại đã sẵn sàng để chuyển sang bước kiểm nghiệm live và tinh chỉnh hành vi RL.
+* Phase 5 nên tập trung vào:
+  1. Forward testing / shadow mode.
+  2. Confidence-based RL gating.
+  3. Giải pháp lưu giữ và phục hồi trạng thái LSTM qua chu kỳ restart.
+
+### Ghi chú bổ sung
+* Phase 4 hiện là một nền tảng kỹ thuật đầy đủ nhưng vẫn cần tối ưu thêm reward/objective policy.
+* Rule-based baseline vẫn là benchmark quan trọng để đảm bảo RL không bị * **Thời gian**: Tháng 9 trở đi
 * **Mục tiêu**: Xây dựng một thế giới giả lập thị trường để mô hình tự học thông qua Self-play và Causal AI.
 
 #### Các đầu việc kỹ thuật:

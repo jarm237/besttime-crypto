@@ -1,8 +1,8 @@
 {
   "phase": 4,
   "title": "Reinforcement Learning Exit Manager \u2014 Phase 2 Optimized",
-  "date": "2026-06-28T17:28:30.550367",
-  "n_eval_episodes": 50,
+  "date": "2026-06-28T22:04:18.840425",
+  "n_eval_episodes": 100,
   "environment": {
     "state_space": 18,
     "action_space": 6,
@@ -19,106 +19,123 @@
     "curriculum": "Easy \u2192 Full (Curriculum Learning)"
   },
   "training_results": {
+    "ppo": {
+      "algorithm": "ppo",
+      "total_timesteps": 100000,
+      "learning_rate": 0.0003,
+      "mean_reward": -2.36652345,
+      "std_reward": 0.8979997160324983,
+      "timestamp": "20260628_215012",
+      "model_path": "logs/rl_models\\rl_exit_ppo_20260628_215012"
+    },
+    "dqn": {
+      "algorithm": "dqn",
+      "total_timesteps": 100000,
+      "learning_rate": 0.0003,
+      "mean_reward": -2.2544734,
+      "std_reward": 1.4967660383470558,
+      "timestamp": "20260628_220105",
+      "model_path": "logs/rl_models\\rl_exit_dqn_20260628_220105"
+    },
     "a2c": {
       "algorithm": "a2c",
       "total_timesteps": 100000,
       "learning_rate": 0.0003,
-      "mean_reward": -0.6732912500000001,
-      "std_reward": 0.6115017612289334,
-      "timestamp": "20260628_172702",
-      "model_path": "logs/rl_models\\rl_exit_a2c_20260628_172702"
+      "mean_reward": -2.22957925,
+      "std_reward": 1.5259015767893052,
+      "timestamp": "20260628_220215",
+      "model_path": "logs/rl_models\\rl_exit_a2c_20260628_220215"
     }
   },
   "rl_agents": {
     "ppo": {
-      "mean_reward": -0.6708984023287087,
-      "std_reward": 1.1627446894093225,
-      "mean_pnl": -0.030409650043264597,
+      "mean_reward": -2.1499221798175023,
+      "std_reward": 1.3626528581795496,
+      "mean_pnl": 0.06428351214612897,
       "action_distribution": {
-        "HOLD": 139,
-        "PARTIAL_CLOSE_50": 130,
-        "MOVE_SL_BE": 43,
-        "TAKE_PROFIT": 40,
-        "EXIT": 3,
-        "TRAILING_SL_ATR": 128
+        "HOLD": 1637,
+        "PARTIAL_CLOSE_50": 88,
+        "MOVE_SL_BE": 304,
+        "TAKE_PROFIT": 0,
+        "EXIT": 27,
+        "TRAILING_SL_ATR": 9
       },
       "done_reasons": {
-        "SL_HIT": 104,
-        "TP_HIT": 15,
-        "PARTIAL_CLOSE_50": 94,
-        "TAKE_PROFIT": 34,
-        "EXIT": 3
+        "SL_HIT": 335,
+        "TP_HIT": 67,
+        "PARTIAL_CLOSE_50": 76,
+        "EXIT": 22
       },
-      "n_episodes": 50
+      "n_episodes": 100
     },
     "dqn": {
-      "mean_reward": -0.358190430423635,
-      "std_reward": 0.6719617823381822,
-      "mean_pnl": -0.06175643895039626,
+      "mean_reward": -2.265558636151097,
+      "std_reward": 1.210276630928554,
+      "mean_pnl": 0.0641011003888986,
       "action_distribution": {
-        "HOLD": 288,
-        "PARTIAL_CLOSE_50": 172,
-        "MOVE_SL_BE": 74,
-        "TAKE_PROFIT": 4,
-        "EXIT": 1,
-        "TRAILING_SL_ATR": 151
+        "HOLD": 1420,
+        "PARTIAL_CLOSE_50": 238,
+        "MOVE_SL_BE": 154,
+        "TAKE_PROFIT": 0,
+        "EXIT": 2,
+        "TRAILING_SL_ATR": 310
       },
       "done_reasons": {
-        "SL_HIT": 92,
-        "PARTIAL_CLOSE_50": 132,
-        "TP_HIT": 21,
-        "TAKE_PROFIT": 4,
+        "SL_HIT": 235,
+        "TP_HIT": 87,
+        "PARTIAL_CLOSE_50": 177,
         "EXIT": 1
       },
-      "n_episodes": 50
+      "n_episodes": 100
     },
     "a2c": {
-      "mean_reward": -0.5418524379044068,
-      "std_reward": 0.4672972031573047,
-      "mean_pnl": -0.042561146827567356,
+      "mean_reward": -2.311789147483779,
+      "std_reward": 1.4288010472559478,
+      "mean_pnl": -0.09872335183105582,
       "action_distribution": {
-        "HOLD": 0,
+        "HOLD": 3082,
         "PARTIAL_CLOSE_50": 0,
-        "MOVE_SL_BE": 433,
+        "MOVE_SL_BE": 167,
         "TAKE_PROFIT": 0,
         "EXIT": 0,
-        "TRAILING_SL_ATR": 0
+        "TRAILING_SL_ATR": 122
       },
       "done_reasons": {
-        "SL_HIT": 246,
-        "TP_HIT": 4
+        "SL_HIT": 371,
+        "TP_HIT": 115,
+        "MAX_STEPS": 5
       },
-      "n_episodes": 50
+      "n_episodes": 100
     }
   },
   "rule_based": {
-    "mean_reward": -0.48992041763833444,
-    "std_reward": 1.5070876942218012,
-    "mean_pnl": 0.10390300949727349,
-    "win_rate": 0.26639344262295084,
+    "mean_reward": -1.8638234849769746,
+    "std_reward": 1.7011599880403137,
+    "mean_pnl": 0.15770126409039203,
+    "win_rate": 0.2657200811359026,
     "done_reasons": {
-      "SL_HIT": 178,
-      "TP_HIT": 65,
-      "MAX_STEPS": 1
+      "SL_HIT": 356,
+      "TP_HIT": 131,
+      "MAX_STEPS": 6
     },
-    "n_episodes": 50
+    "n_episodes": 100
   },
   "comparison_summary": {
-    "best_agent": "dqn",
-    "rule_based_mean_reward": -0.48992041763833444,
-    "rule_based_win_rate": 0.26639344262295084,
+    "best_agent": "rule_based",
+    "rule_based_mean_reward": -1.8638234849769746,
+    "rule_based_win_rate": 0.2657200811359026,
     "rl_improvements": {
       "ppo": {
-        "delta_reward": -0.18097798469037424,
-        "mean_reward": -0.6708984023287087
+        "delta_reward": -0.28609869484052775,
+        "mean_reward": -2.1499221798175023
       },
       "dqn": {
-        "delta_reward": 0.13172998721469942,
-        "mean_reward": -0.358190430423635
+        "delta_reward": -0.4017351511741225,
+        "mean_reward": -2.265558636151097
       },
       "a2c": {
-        "delta_reward": -0.05193202026607241,
-        "mean_reward": -0.5418524379044068
+        "delta_reward": -0.4479656625068045,
+        "mean_reward": -2.311789147483779
       }
     }
   }

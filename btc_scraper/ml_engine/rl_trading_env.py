@@ -252,9 +252,9 @@ class TradeExitEnv(gym.Env):
         # To use 1-hour decisions on 15m data, set decision_interval=4
         self.decision_interval = int(self.config.get("decision_interval", 1))
         
-        # State space: 18 continuous features
+        # State space: 20 continuous features
         self.observation_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(18,), dtype=np.float32
+            low=-1.0, high=1.0, shape=(20,), dtype=np.float32
         )
         
         # Action space: 6 discrete actions
@@ -368,6 +368,7 @@ class TradeExitEnv(gym.Env):
         self.entry_price = entry_candle["close"]
         self.max_pnl = 0.0
         self.prev_pnl = 0.0
+        self.min_pnl = 0.0
         
         # Direction
         sig = str(self.trade.get("signal_raw", "BUY")).upper()
@@ -438,12 +439,14 @@ class TradeExitEnv(gym.Env):
                     became_risk_free = True
         
         # Calculate current PnL
+        # Calculate current PnL
         if self.direction == "LONG":
             current_pnl = ((candle["close"] - self.entry_price) / self.entry_price) * 100
         else:
             current_pnl = ((self.entry_price - candle["close"]) / self.entry_price) * 100
             
         self.max_pnl = max(self.max_pnl, current_pnl)
+        self.min_pnl = min(self.min_pnl, current_pnl)
         
         # Dense reward shaping: use the step-to-step difference in Net PnL (percentage).
         # Total reward accumulated over the episode will equal final realized Net PnL.
@@ -489,6 +492,11 @@ class TradeExitEnv(gym.Env):
 
             net_pnl = realized_pnl - _round_trip_cost_pct()
             reward = (net_pnl - self.prev_pnl) * self.reward_scale
+            # Apply terminal profiling reward
+            if hit_tp:
+                reward += self.sharpe_bonus
+            elif hit_sl:
+                reward -= self.drawdown_penalty
             self.prev_pnl = net_pnl
             terminated = True
 
@@ -509,6 +517,11 @@ class TradeExitEnv(gym.Env):
                 partial_realized = current_pnl * 0.5
                 net_pnl = partial_realized - _round_trip_cost_pct(0.5)
                 reward = (net_pnl - self.prev_pnl) * self.reward_scale
+                # Apply profiling reward
+                if net_pnl > 0:
+                    reward += self.sharpe_bonus
+                else:
+                    reward -= self.drawdown_penalty
                 self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "PARTIAL_CLOSE_50"
@@ -522,6 +535,10 @@ class TradeExitEnv(gym.Env):
                 # Immediate exit at current price
                 net_pnl = current_pnl - _round_trip_cost_pct()
                 reward = (net_pnl - self.prev_pnl) * self.reward_scale
+                if net_pnl > 0:
+                    reward += self.sharpe_bonus
+                else:
+                    reward -= self.drawdown_penalty
                 self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "TAKE_PROFIT"
@@ -529,6 +546,10 @@ class TradeExitEnv(gym.Env):
             elif action == 4:  # EXIT
                 net_pnl = current_pnl - _round_trip_cost_pct()
                 reward = (net_pnl - self.prev_pnl) * self.reward_scale
+                if net_pnl > 0:
+                    reward += self.sharpe_bonus
+                else:
+                    reward -= self.drawdown_penalty
                 self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "EXIT"
@@ -557,8 +578,14 @@ class TradeExitEnv(gym.Env):
             done_reason = "MAX_STEPS"
             net_pnl = current_pnl - _round_trip_cost_pct()
             reward = (net_pnl - self.prev_pnl) * self.reward_scale
+            # Apply profiling reward
+            if net_pnl > 0:
+                reward += self.sharpe_bonus
+            elif net_pnl < 0:
+                reward -= self.drawdown_penalty
             self.prev_pnl = net_pnl
             self.episode_rewards[-1] = reward
+
             
         # Fetch next candle observation
         next_idx = min(idx + 1, len(self.coin_candles[self.coin]) - 1)
@@ -578,8 +605,8 @@ class TradeExitEnv(gym.Env):
 
         
     def _get_observation(self, candle: dict, step: int) -> np.ndarray:
-        """Compute normalized observation vector (18 features)."""
-        obs = np.zeros(18, dtype=np.float32)
+        """Compute normalized observation vector (20 features)."""
+        obs = np.zeros(20, dtype=np.float32)
         
         # Feature 0: RSI (0-100 -> -1 to 1)
         rsi = float(candle.get("rsi", 50.0))
@@ -635,6 +662,19 @@ class TradeExitEnv(gym.Env):
         # Feature 17: BB Width % (0, 10 -> 0, 1)
         bb_width_pct = float(candle.get("bb_width_pct", 2.0))
         obs[17] = np.tanh((bb_width_pct - 2.0) / 2.0)
+        
+        # Feature 18: Max drawdown since entry (min_pnl)
+        obs[18] = np.tanh(self.min_pnl / 5.0)
+        
+        # Feature 19: Average market correlation
+        from btc_scraper.analysis.correlation import correlation_engine, SECTOR_MAP
+        target = self.coin.upper()
+        corrs = []
+        for other_coin in SECTOR_MAP.keys():
+            if other_coin != target:
+                corr_val = correlation_engine.get_correlation(target, other_coin)
+                corrs.append(corr_val)
+        obs[19] = float(np.mean(corrs)) if corrs else 0.5
         
         return obs
         
