@@ -3917,5 +3917,26 @@
     "status": "placed",
     "error": null,
     "filled_price": 100.0
+  },
+  {
+    "timestamp": "2026-06-28T23:16:09.473539",
+    "timestamp_str": "2026-06-28 23:16:09",
+    "mode": "TESTNET",
+    "coin": "TRB",
+    "symbol": "TRB/USDT",
+    "direction": "SHORT",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.5259,
+    "meta_confidence_pct": 53,
+    "signal_score": 52,
+    "order_type": "market",
+    "entry_price": 13.46,
+    "sl_price": 13.5975,
+    "tp1_price": 13.3225,
+    "usdt_amount": 75.0,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
   }
 ]
