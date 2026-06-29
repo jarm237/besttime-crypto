@@ -3972,5 +3972,29 @@
     "status": "placed",
     "error": null,
     "filled_price": 100.0
+  },
+  {
+    "timestamp": "2026-06-29T06:46:08.209763",
+    "timestamp_str": "2026-06-29 06:46:08",
+    "mode": "TESTNET",
+    "coin": "ETH",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.5961,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 1574.19
+  },
+  {
+    "timestamp": "2026-06-29T06:46:09.032410",
+    "timestamp_str": "2026-06-29 06:46:09",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.5813,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 1.844
   }
 ]

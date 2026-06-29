@@ -450,7 +450,18 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         else:
             base = _base_score_from_text(sig_text)
             score = _apply_context_adjustments(base, data or {}, context or {})
+            
         action = map_score_to_action(score)
+        
+        # Chỉ cho phép các tín hiệu WEAK được đảo chiều nếu bị trừ điểm.
+        # Các tín hiệu thường/mạnh sẽ giữ nguyên chiều gốc.
+        is_weak = "WEAK" in sig_text.upper()
+        if not is_weak:
+            if is_buy and action != "BUY":
+                action = "BUY"
+            elif is_sell and action != "SELL":
+                action = "SELL"
+                
         conf = map_score_to_confidence(score)
 
         # If adaptive model provided base_pos (from above), use it; else derive from score
