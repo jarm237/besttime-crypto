@@ -18,6 +18,7 @@ import os
 import glob
 import json
 import argparse
+import pickle
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple
@@ -32,7 +33,11 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
 from stable_baselines3.common.monitor import Monitor
 
-from btc_scraper.ml_engine.rl_trading_env import TradeExitEnv, MultiTradeExitEnv
+from btc_scraper.ml_engine.rl_trading_env import TradeExitEnv, MultiTradeExitEnv, load_and_prepare_candles
+from btc_scraper.ml_engine.timegan import compute_indicators
+
+
+SYNTHETIC_COIN = "SYN"
 
 
 class CurriculumCallback(BaseCallback):
@@ -107,6 +112,96 @@ def generate_synthetic_trades(n: int = 100) -> list[dict]:
     return trades
 
 
+def load_synthetic_training_data(
+    candle_path: str = "data/rl_synthetic_candles.pkl",
+    max_sequences: int | None = 5000,
+    max_episode_length: int = 50,
+    coin: str = SYNTHETIC_COIN,
+) -> tuple[dict[str, list[dict]], list[dict]]:
+    """Load TimeGAN candles and convert them into RL env candles + entry trades.
+
+    The Stage 4/5 generator stores real-scale OHLCV arrays in
+    `data/rl_synthetic_candles.pkl`. The training env needs a long candle list
+    and trade entry timestamps, so this stitches sequences into one synthetic
+    market series and creates evenly spaced BUY entries.
+    """
+    if not candle_path or not os.path.exists(candle_path):
+        return {}, []
+
+    with open(candle_path, "rb") as f:
+        data = pickle.load(f)
+
+    sequences = data.get("sequences") if isinstance(data, dict) else data
+    sequences = np.asarray(sequences, dtype=np.float32)
+    if sequences.ndim != 3 or sequences.shape[2] != 5:
+        raise ValueError(f"Expected synthetic sequences shape (N, T, 5), got {sequences.shape}")
+
+    if max_sequences is not None and max_sequences > 0:
+        sequences = sequences[:max_sequences]
+
+    if sequences.size == 0:
+        return {}, []
+
+    seq_len = int(sequences.shape[1])
+    flat = sequences.reshape(-1, 5).astype(np.float32)
+    indicators = compute_indicators(flat[np.newaxis, :, :], rsi_period=14, atr_period=14)
+    rsi = indicators["rsi_14"][0]
+    atr = indicators["atr_14"][0]
+
+    start = pd.Timestamp("2026-01-01 00:00")
+    candles: list[dict] = []
+    for idx, row in enumerate(flat):
+        o, h, l, c, v = map(float, row)
+        high = max(h, o, c)
+        low = min(l, o, c)
+        candles.append({
+            "time": (start + pd.Timedelta(minutes=15 * idx)).strftime("%Y-%m-%d %H:%M"),
+            "open": o,
+            "high": high,
+            "low": low,
+            "close": c,
+            "volume": max(0.0, v),
+            "rsi": float(rsi[idx]) if np.isfinite(rsi[idx]) else 50.0,
+            "macd_hist": 0.0,
+            "atr": float(atr[idx]) if np.isfinite(atr[idx]) else max(1e-8, high - low),
+            "atr_pct": (float(atr[idx]) / c * 100.0) if np.isfinite(atr[idx]) and c > 0 else 1.0,
+            "adx": 20.0,
+            "regime": "SYNTHETIC",
+            "fear_greed": 50.0,
+            "volume_ratio": 1.0,
+            "bb_width_pct": 2.0,
+            "is_warmup": 0,
+        })
+
+    stride = max(1, min(seq_len, max_episode_length))
+    trades = []
+    last_entry = max(0, len(candles) - max_episode_length - 1)
+    for entry_idx in range(0, last_entry, stride):
+        trades.append({
+            "coin": coin,
+            "entry_time": candles[entry_idx]["time"],
+            "signal_raw": "BUY",
+            "meta_confidence": 0.5,
+            "source": "timegan",
+        })
+
+    print(
+        f"[OK] Loaded TimeGAN curriculum data: {len(candles):,} candles, "
+        f"{len(trades):,} trades from {candle_path}"
+    )
+    return {coin: candles}, trades
+
+
+def _apply_synthetic_curriculum(env: MultiTradeExitEnv, synthetic_coin: str = SYNTHETIC_COIN) -> None:
+    synthetic_coin = synthetic_coin.upper()
+    synthetic_trades = [t for t in env.valid_trades if t.get("coin") == synthetic_coin]
+    if synthetic_trades:
+        env.easy_trades = synthetic_trades
+        env.active_trades = env.easy_trades
+        env.curriculum_phase = "easy"
+        print(f"[RL Env] Synthetic curriculum phase enabled: {len(env.easy_trades)} synthetic trades")
+
+
 def _get_default_device() -> str:
     try:
         return "cuda" if torch.cuda.is_available() else "cpu"
@@ -124,6 +219,8 @@ def train_agent(
     save_dir: str = "logs/rl_models",
     no_warm_start: bool = False,
     device: str = "auto",
+    synthetic_candle_cache: dict[str, list[dict]] | None = None,
+    synthetic_trades: list[dict] | None = None,
 ) -> Tuple[str, Dict]:
     """
     Train an RL agent.
@@ -138,34 +235,30 @@ def train_agent(
         if models:
             latest_model = max(models, key=os.path.getctime)
             
-    # Create environments
-    env = MultiTradeExitEnv(
-        trades=trades,
-        config={
-            "max_episode_length": 50,
-            "reward_scale": 1.0,
-            "drawdown_penalty": 0.5,
-            "sharpe_bonus": 0.2,
-        },
-        trades_per_episode=5
-    )
-    
-    _eval_env_base = MultiTradeExitEnv(
-        trades=trades,
-        config={
-            "max_episode_length": 50,
-            "reward_scale": 1.0,
-            "drawdown_penalty": 0.5,
-            "sharpe_bonus": 0.2,
-        },
-        trades_per_episode=5
-    )
-    
-    # Ensure eval_env starts with full phase for realistic evaluations
-    _eval_env_base.set_curriculum_phase("full")
-    
-    # Wrap with Monitor for proper evaluation stats
-    eval_env = Monitor(_eval_env_base)
+    max_episode_length = 50
+    env_config = {
+        "max_episode_length": max_episode_length,
+        "reward_scale": 1.0,
+        "drawdown_penalty": 0.5,
+        "sharpe_bonus": 0.2,
+    }
+
+    previous_candle_cache = TradeExitEnv._COIN_CANDLES_CACHE
+    using_synthetic = bool(synthetic_candle_cache and synthetic_trades)
+    training_trades = list(trades)
+    if using_synthetic:
+        target_coins = sorted({t.get("coin", "BTC").upper() for t in trades})
+        historical_cache = load_and_prepare_candles(
+            data_dir="data/historical_18m",
+            sentiment_file="logs/sentiment_history.json",
+            coins=target_coins,
+        )
+        TradeExitEnv._COIN_CANDLES_CACHE = {**historical_cache, **synthetic_candle_cache}
+        training_trades = list(synthetic_trades or []) + training_trades
+        print(
+            f"[RL] Training path includes TimeGAN data: "
+            f"{len(synthetic_trades or []):,} synthetic trades + {len(trades):,} historical trades"
+        )
     
     # Create model path
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -182,7 +275,30 @@ def train_agent(
     print(f"  Device: {device}")
     print(f"  Saving to: {model_path}")
     
+    env = None
+    _eval_env_base = None
     try:
+        # Create environments after optional synthetic cache injection.
+        env = MultiTradeExitEnv(
+            trades=training_trades,
+            config=env_config,
+            trades_per_episode=5
+        )
+        if using_synthetic:
+            _apply_synthetic_curriculum(env)
+
+        _eval_env_base = MultiTradeExitEnv(
+            trades=training_trades,
+            config=env_config,
+            trades_per_episode=5
+        )
+
+        # Ensure eval_env starts with full phase for realistic evaluations.
+        _eval_env_base.set_curriculum_phase("full")
+
+        # Wrap with Monitor for proper evaluation stats.
+        eval_env = Monitor(_eval_env_base)
+
         if algorithm.lower() == "ppo":
             if latest_model:
                 print(f"[RL] Warm-starting RecurrentPPO from {os.path.basename(latest_model)}...")
@@ -275,13 +391,19 @@ def train_agent(
             "std_reward": float(std_reward),
             "timestamp": timestamp,
             "model_path": model_path,
+            "synthetic_curriculum": using_synthetic,
+            "synthetic_trades": len(synthetic_trades or []),
         }
         
         return model_path, metrics
         
     finally:
-        env.close()
-        _eval_env_base.close()
+        if env is not None:
+            env.close()
+        if _eval_env_base is not None:
+            _eval_env_base.close()
+        if using_synthetic:
+            TradeExitEnv._COIN_CANDLES_CACHE = previous_candle_cache
 
 
 def compare_agents(
@@ -352,6 +474,12 @@ def main():
     parser.add_argument("--no-warm-start", action="store_true", help="Train from scratch")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "cuda"],
                         help="Device for model training/evaluation")
+    parser.add_argument("--synthetic-candles", type=str, default="data/rl_synthetic_candles.pkl",
+                        help="TimeGAN candle pickle used for synthetic curriculum")
+    parser.add_argument("--synthetic-sequences", type=int, default=5000,
+                        help="Max TimeGAN sequences to load for curriculum; use 0 for all")
+    parser.add_argument("--no-synthetic-curriculum", action="store_true",
+                        help="Disable automatic TimeGAN curriculum even if rl_synthetic_candles.pkl exists")
     
     args = parser.parse_args()
     
@@ -361,9 +489,21 @@ def main():
         print(f"[WARN] Only {len(trades)} trades available, using all")
     else:
         trades = trades[:args.n_trades]
-        
+
     # Train
     if args.train:
+        synthetic_cache = {}
+        synthetic_trades = []
+        if not args.no_synthetic_curriculum:
+            max_sequences = None if args.synthetic_sequences == 0 else args.synthetic_sequences
+            synthetic_cache, synthetic_trades = load_synthetic_training_data(
+                candle_path=args.synthetic_candles,
+                max_sequences=max_sequences,
+                max_episode_length=50,
+            )
+            if not synthetic_trades:
+                print(f"[INFO] No TimeGAN curriculum data loaded from {args.synthetic_candles}; using historical path only.")
+
         results_file = "logs/rl_training_results.json"
         results = {}
         
@@ -379,6 +519,8 @@ def main():
                 total_timesteps=args.steps,
                 no_warm_start=args.no_warm_start,
                 device=args.device,
+                synthetic_candle_cache=synthetic_cache,
+                synthetic_trades=synthetic_trades,
             )
             results[algo] = metrics
             

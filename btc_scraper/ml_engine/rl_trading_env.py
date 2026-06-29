@@ -4,7 +4,7 @@ RL Trading Environment for Exit Management (Phase 4)
 Gymnasium-based environment for learning optimal exit strategies.
 State: market indicators + position state
 Actions: HOLD, PARTIAL_CLOSE_50, MOVE_SL_TO_BREAKEVEN, TAKE_PROFIT, EXIT
-Reward: PnL - drawdown_penalty + sharpe_bonus
+Reward: step-to-step delta of net PnL after commission and slippage
 """
 
 import os
@@ -262,15 +262,16 @@ def synthetic_sequences_to_candles(
     ema_spans = params.get("ema_spans", [])
     compute_obv_flag = params.get("obv", True)
 
-    indicators = compute_indicators(real[np.newaxis, :, :], sma_windows=sma_windows, rsi_period=rsi_period, atr_period=atr_period)
+    seq_batch = seq[np.newaxis, :, :]
+    indicators = compute_indicators(seq_batch, sma_windows=sma_windows, rsi_period=rsi_period, atr_period=atr_period)
     # optional EMA and OBV
     if ema_spans:
         from btc_scraper.ml_engine.timegan import compute_ema
         for span in ema_spans:
-            indicators[f"ema_{span}"] = compute_ema(real[np.newaxis, :, :], span=span)[0]
+            indicators[f"ema_{span}"] = compute_ema(seq_batch, span=span)[0]
     if compute_obv_flag:
         from btc_scraper.ml_engine.timegan import compute_obv
-        indicators["obv"] = compute_obv(real[np.newaxis, :, :])[0]
+        indicators["obv"] = compute_obv(seq_batch)[0]
     rsi = indicators.get("rsi_14")[0]
     atr = indicators.get("atr_14")[0]
     for i in range(len(candles)):
@@ -327,6 +328,8 @@ class TradeExitEnv(gym.Env):
         # Environment parameters
         self.max_episode_length = self.config.get("max_episode_length", 50)
         self.reward_scale = self.config.get("reward_scale", 1.0)
+        # Legacy config keys kept for backward compatibility. Reward is now
+        # pure net PnL delta, so these values are intentionally not applied.
         self.drawdown_penalty = self.config.get("drawdown_penalty", 0.5)
         self.sharpe_bonus = self.config.get("sharpe_bonus", 0.2)
         self.commission_fee = self.config.get("commission_fee", 0.001)  # Default: 0.1% fee per side (entry + exit)
@@ -494,7 +497,7 @@ class TradeExitEnv(gym.Env):
             terminated = True
             reward = 0.0
             truncated = False
-            dummy_obs = np.zeros(18, dtype=np.float32)
+            dummy_obs = np.zeros(self.observation_space.shape, dtype=np.float32)
             info = {
                 "current_pnl": 0.0,
                 "max_pnl": self.max_pnl,
@@ -575,11 +578,6 @@ class TradeExitEnv(gym.Env):
 
             net_pnl = realized_pnl - _round_trip_cost_pct()
             reward = (net_pnl - self.prev_pnl) * self.reward_scale
-            # Apply terminal profiling reward
-            if hit_tp:
-                reward += self.sharpe_bonus
-            elif hit_sl:
-                reward -= self.drawdown_penalty
             self.prev_pnl = net_pnl
             terminated = True
 
@@ -600,11 +598,6 @@ class TradeExitEnv(gym.Env):
                 partial_realized = current_pnl * 0.5
                 net_pnl = partial_realized - _round_trip_cost_pct(0.5)
                 reward = (net_pnl - self.prev_pnl) * self.reward_scale
-                # Apply profiling reward
-                if net_pnl > 0:
-                    reward += self.sharpe_bonus
-                else:
-                    reward -= self.drawdown_penalty
                 self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "PARTIAL_CLOSE_50"
@@ -618,10 +611,6 @@ class TradeExitEnv(gym.Env):
                 # Immediate exit at current price
                 net_pnl = current_pnl - _round_trip_cost_pct()
                 reward = (net_pnl - self.prev_pnl) * self.reward_scale
-                if net_pnl > 0:
-                    reward += self.sharpe_bonus
-                else:
-                    reward -= self.drawdown_penalty
                 self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "TAKE_PROFIT"
@@ -629,10 +618,6 @@ class TradeExitEnv(gym.Env):
             elif action == 4:  # EXIT
                 net_pnl = current_pnl - _round_trip_cost_pct()
                 reward = (net_pnl - self.prev_pnl) * self.reward_scale
-                if net_pnl > 0:
-                    reward += self.sharpe_bonus
-                else:
-                    reward -= self.drawdown_penalty
                 self.prev_pnl = net_pnl
                 terminated = True
                 done_reason = "EXIT"
@@ -661,11 +646,6 @@ class TradeExitEnv(gym.Env):
             done_reason = "MAX_STEPS"
             net_pnl = current_pnl - _round_trip_cost_pct()
             reward = (net_pnl - self.prev_pnl) * self.reward_scale
-            # Apply profiling reward
-            if net_pnl > 0:
-                reward += self.sharpe_bonus
-            elif net_pnl < 0:
-                reward -= self.drawdown_penalty
             self.prev_pnl = net_pnl
             self.episode_rewards[-1] = reward
 

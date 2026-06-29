@@ -61,6 +61,65 @@ def test_trade_exit_env_reset_and_step(dummy_trades):
     assert "done_reason" in info
 
 
+def test_trade_exit_env_data_end_observation_shape(dummy_trades):
+    env = TradeExitEnv(trades=dummy_trades, config={"max_episode_length": 10})
+    env.reset(seed=42)
+
+    env.current_step = len(env.coin_candles[env.coin])
+    obs, reward, terminated, truncated, info = env.step(0)
+
+    assert obs.shape == env.observation_space.shape
+    assert obs.dtype == np.float32
+    assert terminated is True
+    assert truncated is False
+    assert info["done_reason"] == "DATA_END"
+
+
+def test_trade_exit_env_exit_reward_is_pure_net_pnl():
+    previous_cache = TradeExitEnv._COIN_CANDLES_CACHE
+    candles = [
+        {
+            "time": f"2026-01-01 00:0{i}",
+            "open": 100.0,
+            "high": 100.0,
+            "low": 100.0,
+            "close": 100.0,
+            "volume": 1000.0,
+            "rsi": 50.0,
+            "macd_hist": 0.0,
+            "atr": 1.0,
+            "atr_pct": 1.0,
+            "adx": 20.0,
+            "regime": "STRONG_TREND",
+            "fear_greed": 50.0,
+        }
+        for i in range(5)
+    ]
+    TradeExitEnv._COIN_CANDLES_CACHE = {"TST": candles}
+
+    try:
+        env = TradeExitEnv(
+            trades=[{"coin": "TST", "entry_time": candles[0]["time"], "signal_raw": "BUY"}],
+            config={
+                "max_episode_length": 2,
+                "commission_fee": 0.001,
+                "slippage_pct": 0.0005,
+                "drawdown_penalty": 99.0,
+                "sharpe_bonus": 99.0,
+            },
+        )
+        env.reset(seed=42)
+
+        _, reward, terminated, _, info = env.step(4)
+
+        assert terminated is True
+        assert info["done_reason"] == "EXIT"
+        assert reward == pytest.approx(-0.3)
+        assert sum(env.episode_rewards) == pytest.approx(-0.3)
+    finally:
+        TradeExitEnv._COIN_CANDLES_CACHE = previous_cache
+
+
 def test_multi_trade_exit_env_cycle(dummy_trades):
     env = MultiTradeExitEnv(trades=dummy_trades, config={"max_episode_length": 5}, trades_per_episode=2)
     obs, info = env.reset()
