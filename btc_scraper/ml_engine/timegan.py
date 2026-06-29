@@ -22,11 +22,29 @@ OHLCV_FEATURES = ["open", "high", "low", "close", "volume"]
 
 
 def _extract_coin_from_filename(filename: str) -> str:
+    """Extract coin symbol from CSV filename.
+    
+    Supports formats:
+    - 2025_01_BTC_15m.csv -> BTC
+    - april_2025_BTC_15m.csv -> BTC
+    - BTC_15m.csv -> BTC
+    - BTC_1d.csv -> BTC
+    """
     base = os.path.basename(filename)
-    match = re.search(r"_([A-Za-z0-9]+)_15m\.csv$", base)
+    
+    # Try pattern with timeframe (15m, 1d, 1h, 4h)
+    # Matches: anything_COIN_15m.csv, anything_COIN_1d.csv, etc.
+    match = re.search(r"([A-Za-z0-9]{2,5})_(15m|1d|1h|4h)\.csv$", base)
     if match:
         return match.group(1).upper()
-    return os.path.splitext(base)[0].upper()
+    
+    # Fallback: get last part before .csv
+    base_name = os.path.splitext(base)[0]
+    parts = base_name.split("_")
+    if parts:
+        return parts[-1].upper()
+    
+    return base_name.upper()
 
 
 def _validate_sequence_array(sequences: np.ndarray, seq_len: int) -> None:
