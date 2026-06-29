@@ -141,7 +141,7 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
                 
                 escaped_ms_sig = html.escape(ms_sig)
                 ms_line = (
-                    f"{ms_emoji} <b>{coin}</b> (Bỏ lỡ {ms['age_minutes']}p trước): <b>{escaped_ms_sig}</b>\n"
+                    f"{ms_emoji} <b>{coin}</b> (Tín hiệu cũ {ms['age_minutes']}p trước): <b>{escaped_ms_sig}</b>\n"
                     f"  Entry cũ: <code>{ms_entry_str}</code> | Giá hiện tại: <code>{price_str}</code>\n"
                     f"  SL: <code>{ms_sl_str}</code> | TP1: <code>{ms_tp1_str}</code> (R:R {ms_tp_sl.get('rr1', 0.0)}) | TP2: <code>{ms_tp2_str}</code> (R:R {ms_tp_sl.get('rr2', 0.0)})"
                 )
@@ -173,7 +173,7 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         return first_msg_id
 
     neutral_msg_id = _send_section("\n📈 <b>Trạng thái thị trường:</b>", neutral_signals)
-    missed_msg_id = _send_section("\n⏳ <b>TÍN HIỆU BỎ LỠ VẪN CÒN HIỆU LỰC:</b>", missed_valid_signals)
+    missed_msg_id = _send_section("\n⏳ <b>THEO DÕI TÍN HIỆU ĐÃ CÓ TRƯỚC ĐÓ:</b>", missed_valid_signals)
     active_msg_id = _send_section("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>", active_signals)
     
     # MTF (1h/4h/1d) signals section (nếu có dữ liệu được truyền vào)

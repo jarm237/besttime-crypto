@@ -3,6 +3,7 @@ import os
 import json
 from pathlib import Path
 from btc_scraper.trading.auto_trader import AutoTrader, _load_circuit, _save_circuit, CIRCUIT_BREAKER_STATE
+from btc_scraper.ml_engine.signal_score import score_signal, _primary_signal_action
 
 def test_should_trade(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.85")
@@ -94,6 +95,15 @@ def test_compute_position_size():
     # position_usdt = 5 / 0.02 = 250 capped to 100 USDT
     size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.51, rr_ratio=1.0)
     assert size == 100.0
+
+
+def test_signal_score_parses_primary_action():
+    raw_signal = "SELL (Break-SMA50) [BUY 52% LOW] | Meta: 60%"
+    assert _primary_signal_action(raw_signal) == "SELL"
+    res = score_signal(raw_signal, {"close": 1574.19}, {})
+    assert res["action"] == "SELL"
+    assert res["display_label"].startswith("SELL")
+
 
 def test_circuit_breaker(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_CIRCUIT_BREAKER_N", "5")

@@ -62,11 +62,7 @@ def _get_default_device() -> str:
 
 
 def load_latest_ppo_model() -> str | None:
-    """Tìm file zip model PPO mới nhất, ưu tiên model rl_exit_ppo_20260627_143758.zip."""
-    target_model = Path("logs/rl_models/rl_exit_ppo_20260627_143758.zip")
-    if target_model.exists():
-        return str(target_model)
-        
+    """Tìm file zip model PPO mới nhất."""
     rl_dir = Path("logs/rl_models")
     if not rl_dir.exists():
         return None

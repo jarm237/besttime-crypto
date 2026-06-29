@@ -755,7 +755,7 @@ def analyze_market(candles: list[dict]) -> dict:
     # Quét tín hiệu bỏ lỡ (dùng chung 1 logic hàm chuẩn)
     missed_signals = []
     current_close = close_prices[-1]
-    for offset in [-2, -3]:
+    for offset in [-2, -3, -4, -5, -6]:
         if len(candles) < abs(offset) + 50:
             continue
         

@@ -86,21 +86,48 @@ def _load_adaptive_model():
     return None
 
 
+import re
+
+_SIGNAL_ACTION_RE = re.compile(r"\b(STRONG BUY|WEAK BUY|STRONG SELL|WEAK SELL|BUY|SELL|BULL|BEAR)\b", flags=re.IGNORECASE)
+
+
+def _primary_signal_action(sig_text: str) -> str:
+    """Return primary action from raw signal text: BUY, SELL, or NEUTRAL."""
+    if not sig_text:
+        return "NEUTRAL"
+    s = str(sig_text).upper()
+    if "NEUTRAL" in s or "ERROR" in s:
+        return "NEUTRAL"
+
+    match = _SIGNAL_ACTION_RE.search(str(sig_text))
+    if not match:
+        return "NEUTRAL"
+
+    token = match.group(1).upper()
+    if "SELL" in token or token == "BEAR":
+        return "SELL"
+    return "BUY"
+
+
 def _base_score_from_text(sig_text: str) -> int:
     s = sig_text.upper() if sig_text else ""
-    if "STRONG BUY" in s or "STRONG BUY" in s:
-        return 90
-    if "BUY" in s and "WEAK" not in s:
+    action = _primary_signal_action(sig_text)
+    if action == "BUY":
+        if "STRONG BUY" in s:
+            return 90
+        if "WEAK BUY" in s or ("WEAK" in s and "BUY" in s):
+            return 55
+        if "BUY" in s:
+            return 70
         return 70
-    if "WEAK BUY" in s or "WEAK" in s and "BUY" in s:
-        return 55
-    if "STRONG SELL" in s:
-        return 10
-    if "SELL" in s and "WEAK" not in s:
+    if action == "SELL":
+        if "STRONG SELL" in s:
+            return 10
+        if "WEAK SELL" in s:
+            return 45
+        if "SELL" in s:
+            return 30
         return 30
-    if "WEAK SELL" in s:
-        return 45
-    # Neutral / other
     return 50
 
 
@@ -109,10 +136,11 @@ def _apply_context_adjustments(score: int, data: Dict, context: Dict) -> int:
     if context.get("vol_spike"):
         score += 5
 
+    signal_action = _primary_signal_action(data.get("signal", ""))
     # trend / market regime
-    if context.get("above_sma200") and "BUY" in data.get("signal", ""):
+    if context.get("above_sma200") and signal_action == "BUY":
         score += 5
-    if context.get("below_sma200") and "SELL" in data.get("signal", ""):
+    if context.get("below_sma200") and signal_action == "SELL":
         score -= 0  # keep for now
 
     # ATR shock reduces confidence
@@ -395,9 +423,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     # reason accumulates filter notes appended throughout the function
     reason: str = ""
 
-    s_upper = sig_text.upper() if sig_text else ""
-    is_buy = ("BUY" in s_upper or "BULL" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
-    is_sell = ("SELL" in s_upper or "BEAR" in s_upper) and "NEUTRAL" not in s_upper and "ERROR" not in s_upper
+    action_from_text = _primary_signal_action(sig_text)
+    is_buy = action_from_text == "BUY"
+    is_sell = action_from_text == "SELL"
 
     merged = {}
     if isinstance(data, dict):
@@ -425,8 +453,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
                 prob = float(model.predict_proba([row])[0][1])
                 prob_percent = int(round(prob * 100))
 
-                is_buy = "BUY" in sig_text.upper() or "BULL" in sig_text.upper()
-                is_sell = "SELL" in sig_text.upper() or "BEAR" in sig_text.upper()
+                action_from_text = _primary_signal_action(sig_text)
+                is_buy = action_from_text == "BUY"
+                is_sell = action_from_text == "SELL"
 
                 if is_buy:
                     # 50% win rate -> 50, 100% win rate -> 100
@@ -450,18 +479,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         else:
             base = _base_score_from_text(sig_text)
             score = _apply_context_adjustments(base, data or {}, context or {})
-            
-        action = map_score_to_action(score)
-        
-        # Chỉ cho phép các tín hiệu WEAK được đảo chiều nếu bị trừ điểm.
-        # Các tín hiệu thường/mạnh sẽ giữ nguyên chiều gốc.
-        is_weak = "WEAK" in sig_text.upper()
-        if not is_weak:
-            if is_buy and action != "BUY":
-                action = "BUY"
-            elif is_sell and action != "SELL":
-                action = "SELL"
-                
+        action = action_from_text if action_from_text in ("BUY", "SELL") else map_score_to_action(score)
         conf = map_score_to_confidence(score)
 
         # If adaptive model provided base_pos (from above), use it; else derive from score
