@@ -2462,5 +2462,93 @@
     "meta_prob": 0.55,
     "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782801070",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782801070.4302537,
+    "timestamp_str": "2026-06-30 13:31:10",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6445,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782801363",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782801363.265936,
+    "timestamp_str": "2026-06-30 13:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6179,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782801663",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782801663.8062947,
+    "timestamp_str": "2026-06-30 13:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6331,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782801967",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782801967.680804,
+    "timestamp_str": "2026-06-30 13:46:07",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5524,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782802263",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782802263.8593833,
+    "timestamp_str": "2026-06-30 13:51:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5284,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782802564",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782802564.080087,
+    "timestamp_str": "2026-06-30 13:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5267,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782802872",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782802872.2820075,
+    "timestamp_str": "2026-06-30 14:01:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5556,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1782803163",
+    "symbol": "ZECUSDT",
+    "timestamp": 1782803163.8997862,
+    "timestamp_str": "2026-06-30 14:06:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5488,
+    "position_id": "16f9bc5c-4f4f-474c-ac94-e517064eb449",
+    "note": "RL Exit shadow recommendation"
   }
 ]

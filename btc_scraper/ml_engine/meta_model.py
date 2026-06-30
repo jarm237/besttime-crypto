@@ -12,7 +12,7 @@ import sys
 import json
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 # Force stdout/stderr to UTF-8 to support Vietnamese characters in Windows console
@@ -969,12 +969,12 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
         # Prediction-level logging (append newline-delimited JSON)
         try:
             import hashlib
-            from datetime import datetime
+            from datetime import datetime, timezone
 
             features_json = json.dumps(row, separators=(",", ":"), ensure_ascii=False)
             features_hash = hashlib.md5(features_json.encode("utf-8")).hexdigest()
             log_entry = {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "probability": prob,
                 "features_hash": features_hash,
                 "coin": analysis_info.get("coin"),

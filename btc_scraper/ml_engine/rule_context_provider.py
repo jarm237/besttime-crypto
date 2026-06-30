@@ -9,7 +9,7 @@ Future providers (Bayesian, RL, LLM) will implement the same interface.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 from btc_scraper.ml_engine.context_provider import (
@@ -144,7 +144,7 @@ class RuleContextProvider(ContextProvider):
         if self._engine is None:
             logger.warning("[RuleContextProvider] Engine not loaded, returning passthrough report")
             return ContextReport(
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 provider_name=self.name,
                 original_score=original_score,
                 adjusted_score=original_score,
@@ -193,7 +193,7 @@ class RuleContextProvider(ContextProvider):
         )
 
         return ContextReport(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             provider_name=self.name,
             world_state=world_state.to_dict(),
             original_score=original_score,
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     is_valid, msg = provider.validate()
     print(f"✓ Validation: {is_valid} — {msg}")
 
-    state = WorldState(timestamp=datetime.utcnow(), regime=MarketRegime.RISK_OFF)
+    state = WorldState(timestamp=datetime.now(timezone.utc), regime=MarketRegime.RISK_OFF)
     state.macro.DXY = 107.0
     state.macro.VIX = 28.0
     state.macro.RealYield = 2.1

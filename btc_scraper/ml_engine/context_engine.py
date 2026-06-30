@@ -9,7 +9,7 @@ import json
 import re
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict, field
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 
@@ -251,7 +251,7 @@ class ContextEngine:
             adjusted_score=adjusted_score,
             breakdown=breakdown,
             adjustments=all_adjustments,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             total_confidence=total_confidence,
             risk_level=risk_level,
             stop_processing=stop_processing,
@@ -290,7 +290,7 @@ class ContextEngine:
                 for layer in self.layers
             },
             "adjustments": [asdict(a) for a in all_adjustments],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
 

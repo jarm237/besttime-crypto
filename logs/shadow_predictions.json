@@ -8593,5 +8593,20 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "XLMUSDT_1782809170",
+    "symbol": "XLMUSDT",
+    "timestamp": 1782809170.9746022,
+    "timestamp_str": "2026-06-30 15:46:10",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.4958,
+    "signal_score": 52,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

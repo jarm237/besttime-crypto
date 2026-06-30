@@ -7,7 +7,7 @@ import os
 import time
 from pathlib import Path
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
@@ -745,9 +745,10 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         # prefer repository top-level logs directory so all runners see the same file
         _logs_dir = Path(__file__).parent.parent.parent / "logs"
         _logs_dir.mkdir(parents=True, exist_ok=True)
-        _log_file = _logs_dir / "meta_prob_entry.log"
+        _entry_ts = datetime.now(timezone.utc).isoformat()
+        _log_file = _logs_dir / f"meta_prob_entry_{_entry_ts[:10]}.log"
         _entry = {
-            "ts": datetime.utcnow().isoformat(),
+            "ts": _entry_ts,
             "symbol": merged.get("symbol") or merged.get("pair") or merged.get("market") or merged.get("ticker") or None,
             "action": action,
             "score": int(score),

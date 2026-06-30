@@ -15,7 +15,7 @@ Usage:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from btc_scraper.core.event_bus import EventBus, Event, EventType
@@ -66,7 +66,7 @@ def _on_macro_event(
     elif indicator in ("BondYield", "US10Y") and value is not None:
         state.macro.BondYield = float(value)
 
-    state.macro.updated_at = datetime.utcnow()
+    state.macro.updated_at = datetime.now(timezone.utc)
     world_state_manager.update_state(state)
 
     if priority >= 8:
@@ -152,7 +152,7 @@ def _on_funding_spike(
     if oi_delta is not None:
         state.liquidity.OI_Delta = float(oi_delta)
 
-    state.liquidity.updated_at = datetime.utcnow()
+    state.liquidity.updated_at = datetime.now(timezone.utc)
     world_state_manager.update_state(state)
 
 
@@ -257,7 +257,6 @@ def unregister_causal_event_handlers(
 
 
 if __name__ == "__main__":
-    from datetime import datetime
     from btc_scraper.core.event_bus import get_event_bus
     from btc_scraper.core.world_state import get_world_state_manager, WorldState
 
@@ -266,7 +265,7 @@ if __name__ == "__main__":
     wsm = get_world_state_manager()
 
     # Create initial world state
-    state = WorldState(timestamp=datetime.utcnow())
+    state = WorldState(timestamp=datetime.now(timezone.utc))
     state.macro.DXY = 104.0
     wsm.update_state(state)
 
@@ -276,7 +275,7 @@ if __name__ == "__main__":
     # Publish test events
     bus.publish(Event(
         type=EventType.MACRO_EVENT,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         source="test",
         data={"indicator": "CPI", "value": 3.7},
         priority=9,
@@ -284,7 +283,7 @@ if __name__ == "__main__":
 
     bus.publish(Event(
         type=EventType.MARKET_REGIME_CHANGE,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         source="regime_detector",
         data={"new_regime": "risk_off", "liquidity_regime": "low"},
         priority=8,

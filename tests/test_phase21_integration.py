@@ -14,7 +14,7 @@ Run:
 import sys
 import os
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Ensure the project root is on the path when running directly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -44,7 +44,7 @@ from btc_scraper.ml_engine.context_provider import RiskLevel
 
 @pytest.fixture
 def world_state():
-    state = WorldState(timestamp=datetime.utcnow(), regime=MarketRegime.RISK_ON)
+    state = WorldState(timestamp=datetime.now(timezone.utc), regime=MarketRegime.RISK_ON)
     state.macro.DXY = 103.0
     state.macro.VIX = 16.0
     state.macro.RealYield = 1.2
@@ -57,7 +57,7 @@ def world_state():
 
 @pytest.fixture
 def risk_off_state():
-    state = WorldState(timestamp=datetime.utcnow(), regime=MarketRegime.RISK_OFF)
+    state = WorldState(timestamp=datetime.now(timezone.utc), regime=MarketRegime.RISK_OFF)
     state.macro.DXY = 108.0
     state.macro.VIX = 35.0
     state.macro.RealYield = 2.5
@@ -181,7 +181,7 @@ class TestCausalEventHandlers:
         self.bus = EventBus()
         self.wsm = WorldStateManager()
 
-        state = WorldState(timestamp=datetime.utcnow())
+        state = WorldState(timestamp=datetime.now(timezone.utc))
         state.macro.DXY = 104.0
         self.wsm.update_state(state)
 
@@ -195,7 +195,7 @@ class TestCausalEventHandlers:
 
         self.bus.publish(Event(
             type=EventType.MACRO_EVENT,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="test",
             data={"indicator": "CPI", "value": 3.9},
             priority=9,
@@ -209,7 +209,7 @@ class TestCausalEventHandlers:
 
         self.bus.publish(Event(
             type=EventType.MACRO_EVENT,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="test",
             data={"indicator": "DXY", "value": 106.5},
             priority=7,
@@ -223,7 +223,7 @@ class TestCausalEventHandlers:
 
         self.bus.publish(Event(
             type=EventType.MARKET_REGIME_CHANGE,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="regime_detector",
             data={"new_regime": "risk_off", "liquidity_regime": "low"},
             priority=8,
@@ -238,7 +238,7 @@ class TestCausalEventHandlers:
 
         self.bus.publish(Event(
             type=EventType.FUNDING_SPIKE,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="binance_futures",
             data={"asset": "BTC", "funding_z": 3.1, "oi_delta": 18.5},
             priority=7,
@@ -254,7 +254,7 @@ class TestCausalEventHandlers:
 
         self.bus.publish(Event(
             type=EventType.RULES_RELOADED,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="config_watcher",
             data={},
             priority=5,
@@ -276,7 +276,7 @@ class TestCausalEventHandlers:
         # Publish — should NOT update state
         self.bus.publish(Event(
             type=EventType.MACRO_EVENT,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="test",
             data={"indicator": "DXY", "value": 999.0},
             priority=9,
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     print("=" * 60)
 
     # Quick smoke test outside pytest
-    state = WorldState(timestamp=datetime.utcnow(), regime=MarketRegime.RISK_OFF)
+    state = WorldState(timestamp=datetime.now(timezone.utc), regime=MarketRegime.RISK_OFF)
     state.macro.DXY = 108.0
     state.macro.VIX = 32.0
     state.liquidity.Funding_Z = 2.5
@@ -312,12 +312,12 @@ if __name__ == "__main__":
 
     bus = EventBus()
     wsm = WorldStateManager()
-    wsm.update_state(WorldState(timestamp=datetime.utcnow()))
+    wsm.update_state(WorldState(timestamp=datetime.now(timezone.utc)))
     sub_ids = register_causal_event_handlers(bus, wsm, provider)
 
     bus.publish(Event(
         type=EventType.MACRO_EVENT,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         source="test",
         data={"indicator": "CPI", "value": 4.1},
         priority=9,
@@ -327,7 +327,7 @@ if __name__ == "__main__":
 
     bus.publish(Event(
         type=EventType.MARKET_REGIME_CHANGE,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         source="test",
         data={"new_regime": "risk_off"},
         priority=8,

@@ -97,12 +97,60 @@ Với nền móng v2.0 đã hoàn tất, lộ trình sẽ tập trung vào Integ
 | `btc_scraper/ml_engine/decision_engine.py` | Added `decide_with_provider()` method | ✅ MODIFIED |
 | `tests/test_phase21_integration.py` | 18 integration tests — all passed | ✅ NEW |
 
-### Phase 3.0 (Learning & Causal Discovery)
-- [ ] Triển khai `BayesianContextProvider` để xử lý bối cảnh theo nguyên lý xác suất.
-- [ ] Áp dụng thuật toán Causal Discovery (FCI / PC) để tự động phát hiện quan hệ từ dữ liệu, cập nhật source thành `learned`.
-- [ ] Bật cờ `enable_learned_rules` và chạy phương pháp Hybrid (Manual + Learned).
+### Phase 3.0 (Learning & Causal Discovery) ✅ COMPLETE
+- [x] Triển khai `BayesianContextProvider` — Gaussian log-likelihood inference trên 6 features (DXY, VIX, Funding_Z, FearGreed, RealYield, OI_Delta). Weights loaded từ `causal_graph.json` edge confidences.
+- [x] Triển khai `CausalDiscoveryEngine` — Lagged correlation + simplified Granger causality. Discovered edges ghi vào `causal_graph.json` với `source="learned"`. Không bao giờ ghi đè manual edges.
+- [x] Triển khai `HybridContextProvider` — Blends Rule-based + Bayesian với configurable alpha (0.0=rules only → 1.0=Bayesian only). Đọc flag `enable_learned_rules` từ `context_rules.json` cho phép rollout an toàn.
+- [x] Integration Test — `tests/test_phase30_learning.py` — **33/33 PASSED**.
+- [x] Combined test suite (Phase 2.1 + 3.0) — **51/51 PASSED**.
 
-### Phase 4 & Phase 5 (Future)
-- **Phase 4**: Scenario Simulation & Counterfactual Analysis (dựa trên module Replay và Snapshot).
-- **Phase 5**: Digital Twin / World Model Prediction.
-- **Phase 6**: Multi-Agent Collaboration.
+**Files Created:**
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/bayesian_context_provider.py` | Gaussian Bayesian inference on WorldState features | ✅ NEW |
+| `btc_scraper/ml_engine/causal_discovery.py` | Granger causality discovery + graph writer | ✅ NEW |
+| `btc_scraper/ml_engine/hybrid_context_provider.py` | Alpha-blended Rule+Bayesian provider | ✅ NEW |
+| `tests/test_phase30_learning.py` | 33 integration tests — all passed | ✅ NEW |
+
+**Deployment Guide — Safe Rollout:**
+1. **alpha=0.0** (default): Identical behavior to Phase 2.1 — safe to deploy immediately
+2. **enable_learned_rules=false**: Bayesian ignored even if alpha>0 — extra safety gate
+3. Run `CausalDiscoveryEngine.discover()` on 6-12 months historical data weekly
+4. Review learned edges before enabling `enable_learned_rules=true` in `context_rules.json`
+5. Gradually increase alpha (0.1 → 0.2 → 0.3) while monitoring shadow mode PnL
+
+### Phase 4.0: Scenario Simulation & Counterfactual Analysis (Simulated Interventions)
+Cho phép chạy thử nghiệm giả định (Intervention - Do-calculus) và phân tích phản thực tế (Counterfactual) trên lịch sử giao dịch bằng cách tận dụng hệ thống Replay và Snapshot hiện tại.
+- [ ] **Triển khai `CausalSimulator`**:
+  * Nhận một `WorldState` snapshot hiện tại hoặc quá khứ.
+  * Cho phép người dùng áp dụng một can thiệp (ví dụ: Can thiệp $do(DXY = 110)$ hoặc $do(VIX = 35)$).
+  * Lan truyền tác động (propagate impact) qua các edge hoạt động trong `causal_graph.json` dựa trên `weight` và `lag` để cập nhật các biến phụ thuộc (như `BTC`, `LiquidationRisk`).
+  * Trả về một `SimulatedWorldState`.
+- [ ] **Triển khai `CounterfactualEngine`**:
+  * Phân tích các trade thua lỗ trong lịch sử (từ trade log hoặc database).
+  * Chạy giả lập: "Nếu tại thời điểm t, một tin tức vĩ mô cực xấu (ví dụ: FOMC rate hike) xảy ra sớm hơn 2 giờ, hệ thống có đóng vị thế kịp thời không?".
+  * So sánh PnL thực tế với PnL giả định để đánh giá độ nhạy của luật.
+- [ ] **Tích hợp CLI & API endpoints**:
+  * Cung cấp lệnh CLI `python -m btc_scraper.ml_engine.simulator --state-id <id> --intervention "DXY=+5%"` để debug nhanh.
+
+### Phase 5.0: Digital Twin & World Model Prediction (Dự báo trạng thái thế giới)
+Xây dựng một "Digital Twin" (bản sao số) của thị trường dựa trên đồ thị nhân quả để dự báo các bước chuyển dịch trạng thái tiếp theo (State Transition Model).
+- [ ] **Triển khai `WorldModelPredictor`**:
+  * Dự báo phân phối xác suất của `WorldState` tại thời điểm $t+1$ dựa trên trạng thái hiện tại $S_t$ và đồ thị nhân quả: $P(S_{t+1} | S_t)$.
+  * Ràng buộc các dự đoán phi tuyến bằng các mối quan hệ nhân quả vật lý đã biết (ví dụ: DXY tăng mạnh chắc chắn tạo áp lực giảm lên giá BTC sau $N$ chu kỳ).
+- [ ] **Triển khai Causal Anomaly Detection**:
+  * So sánh liên tục giữa `WorldState` thực tế thu thập được và trạng thái dự đoán từ `WorldModel`.
+  * Nếu phát hiện độ lệch lớn (Significant Deviation) vượt quá ngưỡng tin cậy, kích hoạt cảnh báo phá vỡ cấu trúc nhân quả (Structural Break / Regime Drift) và phát sự kiện `REGIME_CHANGE` trên Event Bus.
+
+### Phase 6.0: Multi-Agent Causal Collaboration (Đồng thuận nhân quả đa Agent)
+Chia nhỏ hệ thống context thành các Sub-Agent chuyên biệt giao tiếp phi tập trung qua Event Bus và thống nhất quyết định thông qua phân tích nhân quả.
+- [ ] **Thiết lập các Sub-Agent chuyên trách**:
+  * `MacroAgent`: Giám sát DXY, Yields, FedRate và phát đi đánh giá rủi ro vĩ mô.
+  * `LiquidityAgent`: Giám sát Funding, Orderbook, OI Delta và phát đi cảnh báo thanh lý.
+  * `SentimentAgent`: Giám sát Fear & Greed, tin tức mạng xã hội.
+- [ ] **Triển khai Consensus Engine (Causal Voting / Bayesian Fusion)**:
+  * Khi các Agent đưa ra các nhận định mâu thuẫn (ví dụ: Macro báo BEARISH nhưng Sentiment báo BULLISH).
+  * Consensus Engine sẽ duyệt đồ thị nhân quả hiện tại để xác định Agent nào có biến tác động trực tiếp và mạnh hơn lên `BTC` tại Regime hiện tại để ưu tiên trọng số (Dynamic Weighting).
+  * Xuất ra quyết định điều chỉnh cuối cùng thống nhất và ghi nhận vào log.
+
+
