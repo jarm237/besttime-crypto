@@ -4,6 +4,8 @@ from .meta_model import predict_meta_confidence
 
 if TYPE_CHECKING:
     from .context_engine import ContextReport
+    from .context_provider import ContextProvider
+    from btc_scraper.core.world_state import WorldState
 
 DEFAULT_EVIDENCE_WEIGHTS = {
     "meta": 0.55,
@@ -244,4 +246,56 @@ class MetaDecisionEngine:
             "context_adjustments": adjustments,
             "stop_processing": stop_processing,
             "reason": " | ".join(reason_parts),
+        }
+
+    def decide_with_provider(
+        self,
+        analysis_info: Dict,
+        context_provider: "ContextProvider",
+        world_state: "WorldState",
+    ) -> Dict:
+        """
+        Make decision using the ContextProvider interface (Phase 2.1).
+
+        This is the preferred entry point in the v2.0 architecture.
+        DecisionEngine is fully decoupled from the concrete implementation
+        — it only depends on the ContextProvider interface and WorldState.
+
+        Args:
+            analysis_info: Base analysis dict (same as decide()).
+            context_provider: Any ContextProvider implementation
+                              (RuleContextProvider, BayesianContextProvider, etc.).
+            world_state: Current unified WorldState.
+
+        Returns:
+            Enhanced decision dict, same shape as decide_with_context().
+        """
+        # Get base decision
+        base_decision = self.decide(analysis_info)
+        if base_decision.get("error") or base_decision.get("posterior_probability") is None:
+            return base_decision
+
+        # Check if provider wants to apply context in current market conditions
+        if not context_provider.should_apply_context(world_state):
+            base_decision["context_provider"] = context_provider.name
+            base_decision["context_skipped"] = True
+            return base_decision
+
+        original_posterior = base_decision.get("posterior_probability", 0.5)
+
+        # Generate context report via provider
+        try:
+            report = context_provider.generate_context_report(original_posterior, world_state)
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).error(
+                f"[DecisionEngine] ContextProvider '{context_provider.name}' failed: {exc}"
+            )
+            return base_decision
+
+        # Delegate to decide_with_context using serialized report
+        return {
+            **self.decide_with_context(analysis_info, report.to_dict()),
+            "context_provider": context_provider.name,
+            "context_skipped": False,
         }

@@ -83,12 +83,19 @@ Hỗ trợ đồ thị động (Dynamic Graph) và truyền dẫn độ tin cậ
 
 Với nền móng v2.0 đã hoàn tất, lộ trình sẽ tập trung vào Integration và Learning:
 
-### Phase 2.1 (Integration & Go-Live)
-- [ ] Chuyển đổi toàn bộ `ContextEngine` cũ sang dùng `RuleContextProvider` (implement interface mới).
-- [ ] Update `decision_engine.py` để chấp nhận object `ContextProvider`.
-- [ ] Đăng ký (Subscribe) module tính toán bối cảnh vào Event Bus để nhận `MACRO_EVENT`, `REGIME_CHANGE`.
-- [ ] Định tuyến Telegram Alerts để đọc thông báo trực tiếp từ Event Bus thay vì gọi hàm trực tiếp.
-- [ ] Chạy Integration Test tổng thể toàn hệ thống.
+### Phase 2.1 (Integration & Go-Live) ✅ COMPLETE
+- [x] Tạo `RuleContextProvider` — Wrap `ContextEngine` vào interface `ContextProvider` (`btc_scraper/ml_engine/rule_context_provider.py`).
+- [x] Update `decision_engine.py` — Thêm method `decide_with_provider(analysis_info, context_provider, world_state)` để DecisionEngine hoàn toàn không phụ thuộc vào implementation cụ thể.
+- [x] Tạo `causal_event_handlers.py` — Đăng ký (Subscribe) 4 loại event trên Bus: `MACRO_EVENT`, `REGIME_CHANGE`, `FUNDING_SPIKE`, `RULES_RELOADED`.
+- [x] Viết và chạy Integration Test — `tests/test_phase21_integration.py` — **18/18 PASSED**.
+
+**Files Created/Modified:**
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/rule_context_provider.py` | Bridges ContextEngine ↔ ContextProvider interface | ✅ NEW |
+| `btc_scraper/ml_engine/causal_event_handlers.py` | Event Bus subscriptions (MACRO, REGIME, FUNDING) | ✅ NEW |
+| `btc_scraper/ml_engine/decision_engine.py` | Added `decide_with_provider()` method | ✅ MODIFIED |
+| `tests/test_phase21_integration.py` | 18 integration tests — all passed | ✅ NEW |
 
 ### Phase 3.0 (Learning & Causal Discovery)
 - [ ] Triển khai `BayesianContextProvider` để xử lý bối cảnh theo nguyên lý xác suất.
