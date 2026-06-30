@@ -224,17 +224,20 @@ Hệ thống hiện đã sẵn sàng 100% để bước vào các đầu việc 
 ### PHASE 5: Trí Tuệ Thích Ứng & Mô Phỏng Thị Trường (World Model & Simulation)
 * **Thời gian**: Tháng 9 trở đi
 * **Mục tiêu**: Xây dựng một thế giới giả lập thị trường để mô hình tự học thông qua Self-play và Causal AI.
+* **Trạng thái hiện tại**: **Hoàn thành Part 1 (TimeGAN)**. Chuẩn bị bước sang Part 2 (Causal AI).
 
 #### Các đầu việc kỹ thuật:
-1. **Synthetic Market Generation (Tạo lập thị trường nhân tạo)**:
-   * Sử dụng mạng sinh như GANs hoặc TimeGAN để tạo ra hàng triệu kịch bản biến động giá Altcoin giả lập (bao gồm cả các đợt flash crash, bull run giả, sideway kéo dài) để huấn luyện RL Agent mà không sợ bị Overfitting dữ liệu lịch sử.
-2. **Causal World Model (Mô hình Nhân quả)**:
+1. **Synthetic Market Generation (Tạo lập thị trường nhân tạo)**: ✅ **HOÀN THÀNH**
+   * Đã triển khai thành công mô hình TimeGAN. 
+   * Đã tích hợp pipeline tiền xử lý, huấn luyện đa giai đoạn, sinh dữ liệu nhân tạo và tích hợp Curriculum Learning cho RL.
+   * Dataset nến giả lập chất lượng cao đã sẵn sàng để huấn luyện nâng cao RL Agent.
+2. **Causal World Model (Mô hình Nhân quả)**: ⏳ **NEXT STEP**
    * Huấn luyện mô hình hiểu được tác động nhân quả giữa các biến số vĩ mô/on-chain (ví dụ: `Fed Interest Rate` -> `DXY` -> `BTC Price` -> `Altcoin Season`).
    * Sử dụng cấu trúc đồ thị nhân quả (Causal Graph) để giúp Central Brain suy luận tốt hơn trong các bối cảnh thị trường chưa từng xảy ra.
 
 ---
 
-## Nghiên Cứu Kiến Trúc: Triển Khai TimeGAN Sinh Dữ Liệu Thị Trường Nhân Tạo
+## Báo Cáo Triển Khai TimeGAN (Đã Hoàn Thành)
 
 Tài liệu này trình bày chi tiết về kiến trúc toán học, mô hình hóa dữ liệu, sơ đồ hoạt động và lộ trình triển khai mã nguồn cho **Mô hình tạo lập thị trường nhân tạo (TimeGAN)** phục vụ hệ thống giao dịch **besttime-crypto**.
 

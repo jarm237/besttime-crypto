@@ -1,7 +1,9 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 
 from .meta_model import predict_meta_confidence
 
+if TYPE_CHECKING:
+    from .context_engine import ContextReport
 
 DEFAULT_EVIDENCE_WEIGHTS = {
     "meta": 0.55,
@@ -181,4 +183,65 @@ class MetaDecisionEngine:
             "prob_sl": meta.get("prob_sl"),
             "meta_ev": meta.get("expected_return"),
             "reason": " | ".join(reason),
+        }
+
+    def decide_with_context(
+        self,
+        analysis_info: Dict,
+        context_report: Optional[Dict] = None,
+    ) -> Dict:
+        """
+        Make decision incorporating causal context adjustment.
+        
+        Args:
+            analysis_info: Base analysis information
+            context_report: ContextReport dict (from ContextEngine)
+            
+        Returns:
+            Enhanced decision dict with context adjustments
+        """
+        # Get base decision
+        base_decision = self.decide(analysis_info)
+
+        if not context_report or base_decision.get("error"):
+            return base_decision
+
+        # Extract context adjustments
+        original_posterior = base_decision.get("posterior_probability", 0.5)
+        adjusted_posterior = context_report.get("adjusted_score", original_posterior)
+        adjustments = context_report.get("adjustments", [])
+        stop_processing = context_report.get("stop_processing", False)
+        risk_level = context_report.get("risk_level", "LOW")
+
+        # Check if we should override decision due to stop_processing
+        if stop_processing and risk_level in ["CRITICAL", "HIGH"]:
+            base_decision["action"] = "REDUCE" if base_decision["action"] in ["BUY", "INCREASE"] else base_decision["action"]
+            base_decision["action"] = "HOLD" if base_decision["action"] == "NEUTRAL" else base_decision["action"]
+
+        # Recalculate action based on adjusted posterior
+        action = base_decision["action"]
+        if adjusted_posterior >= self.buy_threshold:
+            action = "BUY" if base_decision.get("expected_return", 0) >= self.min_ev_pct else "INCREASE"
+        elif adjusted_posterior <= self.sell_threshold:
+            action = "SELL" if base_decision.get("expected_return", 0) <= -self.min_ev_pct else "REDUCE"
+        elif self.hold_threshold <= adjusted_posterior <= 1.0 - self.hold_threshold:
+            action = "HOLD"
+
+        # Build enhanced reason
+        reason_parts = [base_decision.get("reason", "")]
+        if adjustments:
+            top_adjustments = sorted(adjustments, key=lambda x: abs(x.get("impact", 0)), reverse=True)[:2]
+            for adj in top_adjustments:
+                reason_parts.append(f"[{adj['layer']}] {adj['reason']}")
+
+        return {
+            **base_decision,
+            "action": action,
+            "posterior_probability": original_posterior,
+            "adjusted_posterior": adjusted_posterior,
+            "context_adjustment": adjusted_posterior - original_posterior,
+            "context_risk_level": risk_level,
+            "context_adjustments": adjustments,
+            "stop_processing": stop_processing,
+            "reason": " | ".join(reason_parts),
         }

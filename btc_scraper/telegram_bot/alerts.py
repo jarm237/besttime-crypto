@@ -310,3 +310,188 @@ def send_position_recommendations(recommendations: list[dict]) -> None:
     message = "\n".join(message_lines)
     send_telegram_message(message, parse_mode="HTML")
 
+
+def send_causal_analysis_alert(decision_with_reasoning: dict) -> int | None:
+    """
+    [PHASE 4] Gửi phân tích nhân quả chi tiết về Telegram.
+    
+    Hiển thị:
+    - Causal pathway từ macro drivers đến BTC/ETH
+    - Root causes chính tác động
+    - Confidence breakdown
+    
+    Args:
+        decision_with_reasoning: Output từ causal_reasoning.explain_decision()
+    """
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID or not decision_with_reasoning:
+        return None
+
+    causal_reasoning = decision_with_reasoning.get("causal_reasoning", {})
+    if not causal_reasoning:
+        return None
+
+    target = causal_reasoning.get("target", "BTC")
+    explanation = causal_reasoning.get("explanation", "")
+    root_causes = causal_reasoning.get("root_causes", [])
+    primary_path = causal_reasoning.get("primary_path", {})
+
+    # Build message
+    lines = [
+        "🧬 <b>[PHÂN TÍCH NHÂN QUẢ - CAUSAL ANALYSIS]</b> 🧬",
+        f"Mục tiêu: <b>{target}</b>",
+        "",
+        f"💡 <i>{explanation}</i>",
+        "",
+    ]
+
+    # Root causes
+    if root_causes:
+        lines.append("<b>🔗 Nguyên nhân gốc (Root Causes):</b>")
+        for cause, conf in root_causes[:3]:
+            conf_pct = int(round(conf * 100))
+            lines.append(f"  • {cause} ({conf_pct}% confidence)")
+        lines.append("")
+
+    # Primary pathway
+    if primary_path:
+        path = primary_path.get("path", [])
+        confidence = primary_path.get("confidence", 0)
+        effect = primary_path.get("effect_direction", "neutral")
+        num_hops = primary_path.get("num_hops", 0)
+
+        path_str = " → ".join(path) if path else "N/A"
+        effect_emoji = "📈" if effect == "positive" else "📉"
+        conf_pct = int(round(confidence * 100))
+
+        lines.append(f"<b>{effect_emoji} Đường dẫn chính:</b>")
+        lines.append(f"  <code>{path_str}</code>")
+        lines.append(f"  Confidence: {conf_pct}% | Hops: {num_hops}")
+        lines.append("")
+
+    message = "\n".join(lines)
+    return send_telegram_message(message, parse_mode="HTML")
+
+
+def send_context_adjustment_alert(context_report: dict, original_decision: dict) -> int | None:
+    """
+    [PHASE 3] Gửi thông báo điều chỉnh Context lên Telegram.
+    
+    Hiển thị:
+    - Original score vs Adjusted score
+    - Context adjustments layer-by-layer
+    - Risk level warning
+    
+    Args:
+        context_report: Output từ context_engine.generate_context_report()
+        original_decision: Output từ decision_engine.decide()
+    """
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return None
+
+    if not context_report:
+        return None
+
+    original_score = context_report.get("original_score", 0.5)
+    adjusted_score = context_report.get("adjusted_score", 0.5)
+    risk_level = context_report.get("risk_level", "LOW")
+    adjustments = context_report.get("adjustments", [])
+    stop_processing = context_report.get("stop_processing", False)
+
+    # Risk level emoji
+    risk_emoji = {
+        "LOW": "🟢",
+        "MEDIUM": "🟡",
+        "HIGH": "🔴",
+        "CRITICAL": "🔴🔴",
+    }.get(risk_level, "⚪")
+
+    # Build message
+    lines = [
+        f"⚙️ <b>[ĐIỀU CHỈNH CONTEXT - CONTEXT ADJUSTMENT]</b> ⚙️",
+        "",
+        f"Điểm gốc: <code>{original_score:.2f}</code> → Điểm điều chỉnh: <code>{adjusted_score:.2f}</code>",
+        f"Mức độ rủi ro: {risk_emoji} <b>{risk_level}</b>",
+        "",
+    ]
+
+    # Adjustments by layer
+    if adjustments:
+        lines.append("<b>🎯 Điều chỉnh từng layer:</b>")
+        
+        by_layer = {}
+        for adj in adjustments:
+            layer = adj.get("layer", "unknown")
+            if layer not in by_layer:
+                by_layer[layer] = []
+            by_layer[layer].append(adj)
+
+        for layer, layer_adjustments in by_layer.items():
+            total_impact = sum(a.get("impact", 0) for a in layer_adjustments)
+            impact_emoji = "📈" if total_impact >= 0 else "📉"
+            lines.append(f"  {impact_emoji} <b>{layer}</b>: {total_impact:+.3f}")
+
+            for adj in layer_adjustments[:2]:  # Show top 2 per layer
+                reason = adj.get("reason", "")
+                impact = adj.get("impact", 0)
+                lines.append(f"    • {reason} ({impact:+.3f})")
+
+        lines.append("")
+
+    # Stop processing warning
+    if stop_processing:
+        lines.append("⚠️ <b>[CẢNH BÁO] Context engine DỪNG xử lý - Điều kiện nguy hiểm phát hiện!</b>")
+        lines.append("")
+
+    message = "\n".join(lines)
+    return send_telegram_message(message, parse_mode="HTML")
+
+
+def send_shadow_mode_report(
+    original_decision: dict,
+    context_adjusted_decision: dict,
+    context_report: dict,
+) -> int | None:
+    """
+    [VERIFICATION PLAN] Gửi báo cáo so sánh Original vs Context-Adjusted qua Telegram.
+    
+    Dùng trong Shadow Mode để theo dõi PnL nếu trade theo cách cũ vs cách mới.
+    
+    Args:
+        original_decision: Original decision (Meta Model only)
+        context_adjusted_decision: Decision với Context adjustment
+        context_report: Context report
+    """
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return None
+
+    original_action = original_decision.get("action", "NEUTRAL")
+    adjusted_action = context_adjusted_decision.get("action", "NEUTRAL")
+    
+    original_posterior = original_decision.get("posterior_probability", 0.5)
+    adjusted_posterior = context_adjusted_decision.get("adjusted_posterior", 0.5)
+
+    # Build message
+    lines = [
+        "📊 <b>[SHADOW MODE - SO SÁNH KQUA]</b> 📊",
+        "",
+        "<b>Quyết định cũ (Meta Model only):</b>",
+        f"  Action: <b>{original_action}</b> | Posterior: {original_posterior:.3f}",
+        "",
+        "<b>Quyết định mới (với Context Adjustment):</b>",
+        f"  Action: <b>{adjusted_action}</b> | Posterior: {adjusted_posterior:.3f}",
+        "",
+    ]
+
+    # Decision change
+    if original_action != adjusted_action:
+        lines.append(f"⚠️ <b>THAY ĐỔI QUYẾT ĐỊNH:</b> {original_action} → {adjusted_action}")
+        lines.append("")
+
+    # Context impact
+    context_adjustment = context_adjusted_decision.get("context_adjustment", 0)
+    lines.append(f"Impact của Context: {context_adjustment:+.3f}")
+
+    message = "\n".join(lines)
+    return send_telegram_message(message, parse_mode="HTML")
+
+
