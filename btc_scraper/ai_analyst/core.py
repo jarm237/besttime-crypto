@@ -89,7 +89,7 @@ def analyze_with_gemini(
             "   - Moi co hoi phai bao gom: Hanh dong (BUY/SELL/HOLD), Khung thoi gian chuan, Ly do cu the, "
             "Gia tham khao Entry, Target (chot loi), Stop Loss (cat lo).\n"
             "   - Co the su dung truc tiep cac muc entry, sl, tp1, tp2 da duoc tinh toan san o muc 'Khuyen nghi TP/SL' hoac tu dieu chinh neu thay can thiet dua tren phan tich da khung.\n"
-            "   - Dac biet xem xet cac tin hieu da bi bo qua trong 30p qua (neu co). Neu mot tin hieu van co trang thai 'Running (Van con hieu luc)' va gia hien tai van dang gan vung Entry cu, hay danh gia xem co the gia gia nhap muon (late entry) duoc khong.\n"
+            "   - Dac biet xem xet cac tin hieu da bi bo qua trong 90p qua (neu co). Neu mot tin hieu van co trang thai 'Running (Van con hieu luc)' va gia hien tai van dang gan vung Entry cu, hay danh gia xem co the gia gia nhap muon (late entry) duoc khong.\n"
             "   - Neu khong co co hoi ro rang, hay giai thich vi sao va khuyen nen dung ngoai quan sat.\n\n"
             "Luu y quan trong:\n"
             "- Viet bang tieng Viet, ngan gon va suc tich (khoang 300-400 tu).\n"

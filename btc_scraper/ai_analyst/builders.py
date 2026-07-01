@@ -72,7 +72,7 @@ def _build_coin_block(key: str, info: dict) -> str:
 
     missed_signals = info.get("missed_signals", [])
     if missed_signals:
-        lines.append("  Tin hieu mua/ban da bo qua trong 30p qua:")
+        lines.append("  Tin hieu mua/ban da bo qua trong 90p qua:")
         for ms in missed_signals:
             ms_tp = ms["tp_sl"]
             lines.append(

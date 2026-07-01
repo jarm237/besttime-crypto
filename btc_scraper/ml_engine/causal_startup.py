@@ -20,6 +20,10 @@ class CausalSystemInitializer:
         self.context_engine = None
         self.reasoning_engine = None
         self.scenario_simulator = None
+        self.simulator = None
+        self.predictor = None
+        self.anomaly_detector = None
+        self.consensus_engine = None
         self.initialized = False
 
     def initialize(self, config: Optional[Dict] = None) -> bool:
@@ -62,10 +66,21 @@ class CausalSystemInitializer:
             logger.info(f"✓ Context engine initialized with rules")
 
             # Step 4: Initialize reasoning engine
-            logger.info("\n[4/4] Initializing causal reasoning engine...")
+            logger.info("\n[4/6] Initializing causal reasoning engine...")
             if not self._load_reasoning_engine():
                 raise RuntimeError("Reasoning engine initialization failed")
             logger.info(f"✓ Reasoning engine initialized")
+
+            # Step 5: Initialize runtime simulation/prediction components
+            logger.info("\n[5/6] Initializing runtime causal runtime components...")
+            if not self._load_runtime_components(graph_path):
+                raise RuntimeError("Runtime causal components initialization failed")
+            logger.info("✓ Runtime causal components initialized")
+
+            # Step 6: Initialize event-driven runtime hooks
+            logger.info("\n[6/6] Finalizing causal runtime hooks...")
+            self._register_runtime_hooks()
+            logger.info("✓ Causal runtime hooks ready")
 
             self.initialized = True
             logger.info("\n" + "="*80)
@@ -120,6 +135,39 @@ class CausalSystemInitializer:
             logger.error(f"Reasoning engine initialization error: {str(e)}")
             return False
 
+    def _load_runtime_components(self, graph_path: str) -> bool:
+        """Initialize runtime components used by the bot loop."""
+        try:
+            from .causal_simulator import CausalSimulator
+            from .world_model_predictor import WorldModelPredictor
+            from .causal_anomaly_detector import CausalAnomalyDetector
+            from .agents.consensus_engine import CausalConsensusEngine
+
+            self.simulator = CausalSimulator(graph_path=graph_path)
+            self.predictor = WorldModelPredictor(graph_path=graph_path)
+            self.anomaly_detector = CausalAnomalyDetector()
+            self.consensus_engine = CausalConsensusEngine(graph_path=graph_path)
+            self.scenario_simulator = self.simulator
+            return True
+        except Exception as e:
+            logger.error(f"Runtime components initialization error: {str(e)}")
+            return False
+
+    def _register_runtime_hooks(self) -> None:
+        """Register an event bus bridge when the runtime services are available."""
+        try:
+            from btc_scraper.core.event_bus import get_event_bus
+            from btc_scraper.ml_engine.causal_event_handlers import register_causal_event_handlers
+            from btc_scraper.core.world_state import get_world_state_manager
+
+            event_bus = get_event_bus()
+            world_state_manager = get_world_state_manager()
+            register_causal_event_handlers(event_bus, world_state_manager)
+            self.event_bus = event_bus
+            self.world_state_manager = world_state_manager
+        except Exception as e:
+            logger.debug(f"Runtime hooks registration skipped: {str(e)}")
+
     def get_components(self) -> Dict:
         """Return initialized components."""
         if not self.initialized:
@@ -129,6 +177,12 @@ class CausalSystemInitializer:
             "graph": self.graph,
             "context_engine": self.context_engine,
             "reasoning_engine": self.reasoning_engine,
+            "simulator": self.simulator,
+            "predictor": self.predictor,
+            "anomaly_detector": self.anomaly_detector,
+            "consensus_engine": self.consensus_engine,
+            "event_bus": getattr(self, "event_bus", None),
+            "world_state_manager": getattr(self, "world_state_manager", None),
         }
 
 

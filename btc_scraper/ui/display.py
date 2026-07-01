@@ -173,7 +173,7 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
 
 
 def make_missed_signals_table(analysis_results: dict[str, dict]) -> Table | None:
-    """Tạo bảng các tín hiệu mua/bán có thể đã bị bỏ qua trong 15-30 phút qua"""
+    """Tạo bảng các tín hiệu mua/bán có thể đã bị bỏ qua trong vòng 90 phút qua"""
     # Gom tất cả các missed_signals của các coin lại
     all_missed = []
     for key, ana in analysis_results.items():
@@ -185,7 +185,7 @@ def make_missed_signals_table(analysis_results: dict[str, dict]) -> Table | None
         return None
         
     table = Table(
-        title="[bold orange3]CAC TIN HIEU CO THE DA BI BO QUA (15 - 30 PHUT TRUOC)[/]",
+        title="[bold orange3]CAC TIN HIEU CO THE DA BI BO QUA (TRONG VONG 90 PHUT TRUOC)[/]",
         box=box.DOUBLE_EDGE,
         border_style="orange3",
         header_style="bold orange3",
@@ -383,7 +383,7 @@ def print_all(results: dict[str, dict[str, list[dict]]], analysis_results: dict[
         console.print(missed_table)
         console.print()
     else:
-        console.print("[dim]>> Khong co tin hieu Mua/Ban nao bi bo lo trong 30 phut qua.[/dim]\n")
+        console.print("[dim]>> Khong co tin hieu Mua/Ban nao bi bo lo trong 90 phut qua.[/dim]\n")
 
     # In bảng vốn tối thiểu khuyến nghị
     min_cap_table = make_min_capital_table(analysis_results)

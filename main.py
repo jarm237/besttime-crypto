@@ -32,6 +32,8 @@ from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.candle_store import candle_store
 from btc_scraper.exchanges.binance_ws import BinanceWebSocketManager
+from btc_scraper.ml_engine.causal_startup import initialize_causal_system_at_startup
+from btc_scraper.collectors.macro_collector import load_macro_state, fetch_and_save_macro
 
 
 def _classify_mtf_signal(signal: str) -> str:
@@ -230,6 +232,9 @@ async def check_and_execute_auto_closes(recs: list[dict]):
 # ── Global WS Manager (khởi tạo trong main()) ────────────────────────────────
 _ws_manager: BinanceWebSocketManager | None = None
 
+# ── Causal System singleton — khởi tạo một lần trong async_main() ─────────────
+_CAUSAL_COMPONENTS: dict = {}
+
 
 async def _get_candles_for_coin(coin: str, interval: str = "15m", session=None) -> list[dict]:
     """
@@ -248,6 +253,62 @@ async def _get_candles_for_coin(coin: str, interval: str = "15m", session=None) 
         return await fetch_ohlcv(coin, session)
     limit = MTF_INTERVALS.get(interval, 50)
     return await fetch_ohlcv_tf(coin, interval, limit, session)
+
+
+async def _run_causal_runtime_pass(
+    state_payload: dict | None = None,
+    causal_components: dict | None = None,
+) -> dict:
+    """Execute the causal runtime analysis pass using pre-initialized causal components."""
+    try:
+        from btc_scraper.core.world_state import WorldState, get_world_state_manager, MarketRegime, LiquidityRegime
+        from btc_scraper.ml_engine.world_model_predictor import WorldModelPredictor
+        from btc_scraper.ml_engine.causal_anomaly_detector import CausalAnomalyDetector
+        from btc_scraper.ml_engine.agents.macro_agent import MacroAgent
+        from btc_scraper.ml_engine.agents.liquidity_agent import LiquidityAgent
+        from btc_scraper.ml_engine.agents.sentiment_agent import SentimentAgent
+        from btc_scraper.ml_engine.agents.consensus_engine import CausalConsensusEngine
+
+        # Dùng singleton đã khởi tạo từ async_main() — không gọi lại mỗi chu kỳ
+        components = causal_components or _CAUSAL_COMPONENTS
+
+        manager = get_world_state_manager()
+        state = state_payload or {}
+        macro_state = load_macro_state()
+        world_state = WorldState(timestamp=__import__('datetime').datetime.now(__import__('datetime').timezone.utc))
+        world_state.regime = MarketRegime.RISK_ON if state.get("signal") == "bullish" else MarketRegime.RISK_OFF
+        world_state.liquidity_regime = LiquidityRegime.NORMAL
+        world_state.macro.DXY = float(state.get("macro", {}).get("DXY", macro_state.get("DXY", 100.0)))
+        world_state.macro.RealYield = float(state.get("macro", {}).get("RealYield", 0.0))
+        world_state.macro.VIX = float(state.get("macro", {}).get("VIX", macro_state.get("VIX", 20.0)))
+        world_state.macro.BondYield = float(macro_state.get("BondYield", 4.5))
+        world_state.liquidity.BTC_Funding = float(state.get("liquidity", {}).get("BTC_Funding", 0.0))
+        world_state.liquidity.OI_Delta = float(state.get("liquidity", {}).get("OI_Delta", 0.0))
+        world_state.crypto.BTC_Price = float(state.get("crypto", {}).get("BTC_Price", 0.0))
+        world_state.sentiment.FearGreed = float(state.get("sentiment", {}).get("FearGreed", 50.0))
+        manager.update_state(world_state)
+
+        predictor = components.get("predictor") or WorldModelPredictor(graph_path="data/causal_graph.json")
+        anomaly_detector = components.get("anomaly_detector") or CausalAnomalyDetector()
+        consensus_engine = components.get("consensus_engine") or CausalConsensusEngine(graph_path="data/causal_graph.json")
+
+        prediction = predictor.predict_next_state(world_state)
+        anomaly = anomaly_detector.detect(world_state, prediction)
+        reports = [
+            MacroAgent().assess(world_state),
+            LiquidityAgent().assess(world_state),
+            SentimentAgent().assess(world_state),
+        ]
+        consensus = consensus_engine.decide(world_state, reports)
+
+        return {
+            "prediction": prediction,
+            "anomaly": anomaly,
+            "consensus": consensus,
+        }
+    except Exception as exc:
+        console.print(f"[dim yellow]Causal runtime pass skipped: {exc}[/dim yellow]")
+        return {}
 
 
 async def fetch_and_display():
@@ -300,6 +361,69 @@ async def fetch_and_display():
     analysis = context["analysis"]
     mtf_analysis = context["mtf_analysis"]
 
+    try:
+        # Phase A fix: đọc đúng key "BTC:Binance" và lấy fear_greed từ đúng path
+        btc_ana = analysis.get("BTC:Binance", {})
+        _sentiment = btc_ana.get("sentiment") or {}
+        fear_greed = float(
+            _sentiment.get("raw_value")
+            or btc_ana.get("fear_greed")
+            or 50.0
+        )
+        macro_state = load_macro_state()
+        causal_payload = {
+            "signal": btc_ana.get("signal", "neutral"),
+            "macro": {
+                "DXY": float(macro_state.get("DXY", 100.0)),
+                "RealYield": 0.0,
+                "VIX": float(macro_state.get("VIX", 20.0)),
+            },
+            "liquidity": {
+                "BTC_Funding": float(btc_ana.get("funding_rate") or btc_ana.get("funding") or 0.0),
+                "OI_Delta":    float(btc_ana.get("oi_delta") or 0.0),
+            },
+            "crypto": {
+                "BTC_Price": float(btc_ana.get("close", 0.0)),
+            },
+            "sentiment": {
+                "FearGreed": fear_greed,
+            },
+        }
+        causal_result = await _run_causal_runtime_pass(causal_payload, _CAUSAL_COMPONENTS)
+
+        # Phase B: dùng causal output để tác động vào analysis + log
+        if causal_result:
+            is_anomaly      = causal_result.get("anomaly", {}).get("is_anomaly", False)
+            consensus_sig   = causal_result.get("consensus", {}).get("signal", "neutral")
+            deviation_score = causal_result.get("anomaly", {}).get("deviation_score", 0.0)
+
+            console.print(
+                f"[dim cyan]Causal: consensus={consensus_sig} | "
+                f"anomaly={is_anomaly} (score={deviation_score:.3f})[/dim cyan]"
+            )
+
+            # Đánh dấu causal_anomaly_warning vào signal_score của tất cả coin
+            if is_anomaly:
+                console.print("[bold red]⚠️  [Causal] Structural anomaly detected — thêm cảnh báo vào tín hiệu.[/bold red]")
+                for _key in analysis:
+                    _sig_score = analysis[_key].get("signal_score") or {}
+                    if _sig_score.get("action") in ("BUY", "SELL"):
+                        _sig_score["causal_anomaly_warning"] = True
+                        _sig_score["causal_deviation_score"] = deviation_score
+                        analysis[_key]["signal_score"] = _sig_score
+
+            # Log warning khi consensus causal ngược chiều tín hiệu kỹ thuật
+            if consensus_sig == "bearish":
+                buy_coins = [k.split(":")[0] for k, v in analysis.items() if "BUY" in str(v.get("signal", ""))]
+                if buy_coins:
+                    console.print(f"[yellow]⚠️  [Causal] Consensus=BEARISH nhưng có BUY signal: {buy_coins}[/yellow]")
+            elif consensus_sig == "bullish":
+                sell_coins = [k.split(":")[0] for k, v in analysis.items() if "SELL" in str(v.get("signal", ""))]
+                if sell_coins:
+                    console.print(f"[yellow]⚠️  [Causal] Consensus=BULLISH nhưng có SELL signal: {sell_coins}[/yellow]")
+    except Exception as causal_exc:
+        console.print(f"[dim yellow]Causal runtime hook skipped: {causal_exc}[/dim yellow]")
+
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)
 
@@ -348,7 +472,7 @@ async def fetch_and_analyze_open_positions_only():
         
         for i, coin in enumerate(coins_to_check):
             binance_candles = res_15m[i]
-            ana = analyze_market(binance_candles)
+            ana = analyze_market(binance_candles, coin)
             ana["close"] = binance_candles[-1]["close"] if (binance_candles and "error" not in binance_candles[0]) else 0.0
             analysis[f"{coin}:Binance"] = ana
             
@@ -466,7 +590,7 @@ async def async_main():
     )
 
     # ── Khởi tạo WebSocket Manager ────────────────────────────────────────────
-    global _ws_manager
+    global _ws_manager, _CAUSAL_COMPONENTS
     try:
         _ws_manager = BinanceWebSocketManager(
             coins=COINS,
@@ -481,6 +605,24 @@ async def async_main():
     except Exception as ws_err:
         console.print(f"[bold red]  [WebSocket] Lỗi khởi động WS, sẽ dùng REST fallback: {ws_err}[/bold red]\n")
         _ws_manager = None
+    # ──────────────────────────────────────────────────────────────────────────
+
+    # ── Khởi tạo collector macro và Causal System (singleton) ───────────────
+    try:
+        fetch_and_save_macro()
+        console.print("[bold cyan]  [Macro Collector] Cập nhật macro state thành công.[/bold cyan]\n")
+    except Exception as macro_err:
+        console.print(f"[dim yellow]  [Macro Collector] Bỏ qua cập nhật macro: {macro_err}[/dim yellow]\n")
+
+    try:
+        _CAUSAL_COMPONENTS = initialize_causal_system_at_startup({
+            "graph_path": "data/causal_graph.json",
+            "rules_path": "data/context_rules.json",
+        })
+        console.print("[bold green]  [Causal System] Khởi tạo thành công.[/bold green]\n")
+    except Exception as causal_init_err:
+        console.print(f"[bold yellow]  [Causal System] Lỗi khởi tạo, chạy không có causal context: {causal_init_err}[/bold yellow]\n")
+        _CAUSAL_COMPONENTS = {}
     # ──────────────────────────────────────────────────────────────────────────
 
     # Hiển thị trạng thái Shadow Mode & Meta Model khi khởi động

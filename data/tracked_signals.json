@@ -1,0 +1,91 @@
+{
+  "TRUMP": [],
+  "TAO": [],
+  "AVAX": [],
+  "XLM": [],
+  "AEVO": [],
+  "NEAR": [],
+  "AR": [],
+  "TRB": [],
+  "ETH": [],
+  "IOTA": [
+    {
+      "time": "2026-07-01 17:00",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 0.0373,
+      "tp_sl": {
+        "entry": 0.0373,
+        "sl": 0.0394,
+        "tp1": 0.0357,
+        "tp2": 0.0342,
+        "rr1": 0.76,
+        "rr2": 1.52,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 0,
+      "created_at_ts": 1782900664.8095303
+    }
+  ],
+  "BNB": [],
+  "ENA": [],
+  "XPL": [
+    {
+      "time": "2026-07-01 15:45",
+      "signal": "SELL (Crossover)",
+      "entry": 0.09034,
+      "tp_sl": {
+        "entry": 0.0903,
+        "sl": 0.0933,
+        "tp1": 0.0874,
+        "tp2": 0.0854,
+        "rr1": 1.0,
+        "rr2": 1.71,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 85,
+      "created_at_ts": 1782895551.7967722
+    },
+    {
+      "time": "2026-07-01 16:30",
+      "signal": "SELL (Crossover)",
+      "entry": 0.09117,
+      "tp_sl": {
+        "entry": 0.0912,
+        "sl": 0.0942,
+        "tp1": 0.0882,
+        "tp2": 0.0854,
+        "rr1": 1.0,
+        "rr2": 1.94,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 40,
+      "created_at_ts": 1782898264.8413055
+    }
+  ],
+  "TRX": [
+    {
+      "time": "2026-07-01 15:45",
+      "signal": "SELL (Crossover)",
+      "entry": 0.3163,
+      "tp_sl": {
+        "entry": 0.3163,
+        "sl": 0.3174,
+        "tp1": 0.3152,
+        "tp2": 0.315,
+        "rr1": 1.0,
+        "rr2": 1.18,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 85,
+      "created_at_ts": 1782895552.4401312
+    }
+  ]
+}

@@ -15,6 +15,7 @@ from .structure import (
     _structure_flags, is_bullish_sfp, is_bearish_sfp, is_trend_following_allowed,
     wick_ratios, calculate_smc_structure
 )
+from .signal_tracker import signal_tracker
 REGIME_MULTIPLIERS_MAP = {
     "STRONG_TREND_BULL": {"tp_scale": 1.2, "sl_scale": 0.8},
     "STRONG_TREND_BEAR": {"tp_scale": 1.2, "sl_scale": 0.8},
@@ -195,7 +196,7 @@ def calculate_tp_sl(
     }
 
 
-def analyze_market(candles: list[dict]) -> dict:
+def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
     """
     Phân tích dữ liệu nến của một sàn giao dịch.
     Trả về chỉ số hiện tại (RSI, EMA9, EMA21, SMA50, SMA200, MACD, Bollinger Bands,
@@ -752,52 +753,25 @@ def analyze_market(candles: list[dict]) -> dict:
             "bb_upper": c["bb_upper"], "bb_middle": c["bb_middle"], "bb_lower": c["bb_lower"]
         })
 
-    # Quét tín hiệu bỏ lỡ (dùng chung 1 logic hàm chuẩn)
+    # Theo dõi tín hiệu (Signal Tracker)
     missed_signals = []
     current_close = close_prices[-1]
-    for offset in [-2, -3, -4, -5, -6]:
-        if len(candles) < abs(offset) + 50:
-            continue
-        
-        t = offset
-        past_sig, past_reason, past_tp_sl, past_data, _ = _evaluate_candle_signal(t)
-        
-        # Chỉ xét tín hiệu Mua/Bán rõ ràng, loại bỏ NEUTRAL và WEAK
-        if ("BUY" in past_sig and "WEAK" not in past_sig) or ("SELL" in past_sig and "WEAK" not in past_sig):
-            idx = len(candles) + t
-            past_time = candles[idx]["time"]
-            age_min = abs(offset) * 15
-            past_close = close_prices[idx]
+    
+    if coin_name:
+        # 1. Đăng ký tín hiệu hiện tại nếu hợp lệ
+        if ("BUY" in current_sig and "WEAK" not in current_sig) or ("SELL" in current_sig and "WEAK" not in current_sig):
+            current_time = candles[-1]["time"]
+            signal_tracker.register_signal(
+                coin=coin_name,
+                signal_time=current_time,
+                signal=current_sig,
+                entry=current_close,
+                tp_sl=current_tp_sl,
+                reason=current_reason
+            )
             
-            sl_level = past_tp_sl["sl"]
-            tp1_level = past_tp_sl["tp1"]
-            tp2_level = past_tp_sl["tp2"]
-            
-            status = "Running (Van con hieu luc)"
-            if "BUY" in past_sig:
-                if current_close <= sl_level:
-                    status = "Hit SL (Da can SL)"
-                elif current_close >= tp2_level:
-                    status = "Hit TP2 (Da dat TP2)"
-                elif current_close >= tp1_level:
-                    status = "Hit TP1 (Da dat TP1)"
-            elif "SELL" in past_sig:
-                if current_close >= sl_level:
-                    status = "Hit SL (Da can SL)"
-                elif current_close <= tp2_level:
-                    status = "Hit TP2 (Da dat TP2)"
-                elif current_close <= tp1_level:
-                    status = "Hit TP1 (Da dat TP1)"
-                    
-            missed_signals.append({
-                "time": past_time,
-                "age_minutes": age_min,
-                "signal": past_sig,
-                "entry": past_close,
-                "tp_sl": past_tp_sl,
-                "reason": past_reason,
-                "status": status
-            })
+        # 2. Đánh giá và lấy danh sách tín hiệu đang theo dõi
+        missed_signals = signal_tracker.evaluate_signals(coin_name, current_close)
 
     res = {
         **current_data,

@@ -134,38 +134,79 @@ Với nền móng v2.0 đã hoàn tất, lộ trình sẽ tập trung vào Integ
 
 Cho phép chạy thử nghiệm giả định (Intervention - Do-calculus) và phân tích phản thực tế (Counterfactual) trên lịch sử giao dịch bằng cách tận dụng hệ thống Replay và Snapshot hiện tại.
 
-- [ ] **Triển khai `CausalSimulator`**:
+> **Foundation đã có**: `btc_scraper/ml_engine/scenario_interface.py` — Abstract classes (`Scenario`, `DigitalTwin`, `CounterfactualAnalyzer`), `ScenarioLibrary` với 6 predefined scenarios, và `ScenarioSimulator` cơ bản. Triển khai Phase 4 đã được hoàn tất bằng lớp simulator thực tế và engine counterfactual dùng WorldState hiện có.
+
+- [x] **Triển khai `CausalSimulator`** (`btc_scraper/ml_engine/causal_simulator.py`):
   - Nhận một `WorldState` snapshot hiện tại hoặc quá khứ.
   - Cho phép người dùng áp dụng một can thiệp (ví dụ: Can thiệp $do(DXY = 110)$ hoặc $do(VIX = 35)$).
-  - Lan truyền tác động (propagate impact) qua các edge hoạt động trong `causal_graph.json` dựa trên `weight` và `lag` để cập nhật các biến phụ thuộc (như `BTC`, `LiquidationRisk`).
+  - Lan truyền tác động (propagate impact) qua các edge hoạt động trong `causal_graph.json` dựa trên `weight` và `lag` để cập nhật các biến phụ thuộc (như `BTC`, `ETH`, `Sentiment`).
   - Trả về một `SimulatedWorldState`.
-- [ ] **Triển khai `CounterfactualEngine`**:
+- [x] **Triển khai `CounterfactualEngine`** (`btc_scraper/ml_engine/counterfactual_engine.py`):
   - Phân tích các trade thua lỗ trong lịch sử (từ trade log hoặc database).
   - Chạy giả lập: "Nếu tại thời điểm t, một tin tức vĩ mô cực xấu (ví dụ: FOMC rate hike) xảy ra sớm hơn 2 giờ, hệ thống có đóng vị thế kịp thời không?".
   - So sánh PnL thực tế với PnL giả định để đánh giá độ nhạy của luật.
-- [ ] **Tích hợp CLI & API endpoints**:
+- [x] **Tích hợp CLI & API endpoints**:
   - Cung cấp lệnh CLI `python -m btc_scraper.ml_engine.simulator --state-id <id> --intervention "DXY=+5%"` để debug nhanh.
+- [x] **Viết Integration Test** — `tests/test_phase40_simulation.py`
+
+**Files đã tạo/cập nhật:**
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/causal_simulator.py` | CausalSimulator — propagate interventions | ✅ DONE |
+| `btc_scraper/ml_engine/counterfactual_engine.py` | CounterfactualEngine — what-if trade analysis | ✅ DONE |
+| `btc_scraper/ml_engine/simulator.py` | CLI parsing helpers for interventions | ✅ DONE |
+| `tests/test_phase40_simulation.py` | Integration tests | ✅ DONE |
+
+**Verification:**
+- Chạy: `./.venv/bin/python -m pytest -q tests/test_phase40_simulation.py`
+- Kết quả: `3 passed in 2.43s`
 
 ### Phase 5.0: Digital Twin & World Model Prediction (Dự báo trạng thái thế giới)
 
 Xây dựng một "Digital Twin" (bản sao số) của thị trường dựa trên đồ thị nhân quả để dự báo các bước chuyển dịch trạng thái tiếp theo (State Transition Model).
 
-- [ ] **Triển khai `WorldModelPredictor`**:
+- [x] **Triển khai `WorldModelPredictor`** (`btc_scraper/ml_engine/world_model_predictor.py`):
   - Dự báo phân phối xác suất của `WorldState` tại thời điểm $t+1$ dựa trên trạng thái hiện tại $S_t$ và đồ thị nhân quả: $P(S_{t+1} | S_t)$.
   - Ràng buộc các dự đoán phi tuyến bằng các mối quan hệ nhân quả vật lý đã biết (ví dụ: DXY tăng mạnh chắc chắn tạo áp lực giảm lên giá BTC sau $N$ chu kỳ).
-- [ ] **Triển khai Causal Anomaly Detection**:
+- [x] **Triển khai Causal Anomaly Detection** (`btc_scraper/ml_engine/causal_anomaly_detector.py`):
   - So sánh liên tục giữa `WorldState` thực tế thu thập được và trạng thái dự đoán từ `WorldModel`.
   - Nếu phát hiện độ lệch lớn (Significant Deviation) vượt quá ngưỡng tin cậy, kích hoạt cảnh báo phá vỡ cấu trúc nhân quả (Structural Break / Regime Drift) và phát sự kiện `REGIME_CHANGE` trên Event Bus.
+- [x] **Viết Integration Test** — `tests/test_phase50_world_model.py`
+
+**Files đã tạo/cập nhật:**
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/world_model_predictor.py` | Digital Twin — state transition prediction | ✅ DONE |
+| `btc_scraper/ml_engine/causal_anomaly_detector.py` | Structural break & regime drift detection | ✅ DONE |
+| `tests/test_phase50_world_model.py` | Integration tests | ✅ DONE |
+
+**Verification:**
+- Chạy: `./.venv/bin/python -m pytest -q tests/test_phase50_world_model.py`
+- Kết quả: `2 passed in 4.55s`
 
 ### Phase 6.0: Multi-Agent Causal Collaboration (Đồng thuận nhân quả đa Agent)
 
 Chia nhỏ hệ thống context thành các Sub-Agent chuyên biệt giao tiếp phi tập trung qua Event Bus và thống nhất quyết định thông qua phân tích nhân quả.
 
-- [ ] **Thiết lập các Sub-Agent chuyên trách**:
-  - `MacroAgent`: Giám sát DXY, Yields, FedRate và phát đi đánh giá rủi ro vĩ mô.
-  - `LiquidityAgent`: Giám sát Funding, Orderbook, OI Delta và phát đi cảnh báo thanh lý.
-  - `SentimentAgent`: Giám sát Fear & Greed, tin tức mạng xã hội.
-- [ ] **Triển khai Consensus Engine (Causal Voting / Bayesian Fusion)**:
+- [x] **Thiết lập các Sub-Agent chuyên trách**:
+  - `MacroAgent` (`btc_scraper/ml_engine/agents/macro_agent.py`): Giám sát DXY, Yields, FedRate và phát đi đánh giá rủi ro vĩ mô.
+  - `LiquidityAgent` (`btc_scraper/ml_engine/agents/liquidity_agent.py`): Giám sát Funding, Orderbook, OI Delta và phát đi cảnh báo thanh lý.
+  - `SentimentAgent` (`btc_scraper/ml_engine/agents/sentiment_agent.py`): Giám sát Fear & Greed, tin tức mạng xã hội.
+- [x] **Triển khai Consensus Engine** (`btc_scraper/ml_engine/agents/consensus_engine.py`) **(Causal Voting / Bayesian Fusion)**:
   - Khi các Agent đưa ra các nhận định mâu thuẫn (ví dụ: Macro báo BEARISH nhưng Sentiment báo BULLISH).
   - Consensus Engine sẽ duyệt đồ thị nhân quả hiện tại để xác định Agent nào có biến tác động trực tiếp và mạnh hơn lên `BTC` tại Regime hiện tại để ưu tiên trọng số (Dynamic Weighting).
   - Xuất ra quyết định điều chỉnh cuối cùng thống nhất và ghi nhận vào log.
+- [x] **Viết Integration Test** — `tests/test_phase60_multiagent.py`
+
+**Files đã tạo/cập nhật:**
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/agents/macro_agent.py` | MacroAgent — DXY, Yields, FedRate watcher | ✅ DONE |
+| `btc_scraper/ml_engine/agents/liquidity_agent.py` | LiquidityAgent — Funding, OI, Orderbook watcher | ✅ DONE |
+| `btc_scraper/ml_engine/agents/sentiment_agent.py` | SentimentAgent — Fear&Greed, social watcher | ✅ DONE |
+| `btc_scraper/ml_engine/agents/consensus_engine.py` | Causal Voting / Bayesian Fusion | ✅ DONE |
+| `tests/test_phase60_multiagent.py` | Integration tests | ✅ DONE |
+
+**Verification:**
+- Chạy: `./.venv/bin/python -m pytest -q tests/test_phase60_multiagent.py`
+- Kết quả: `2 passed in 9.04s`

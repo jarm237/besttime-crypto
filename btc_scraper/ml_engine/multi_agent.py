@@ -45,7 +45,7 @@ class MarketAnalystAgent(BaseAgent):
             candles_15m = raw_candles.get(coin, [])
             if not candles_15m or "error" in candles_15m[0]:
                 continue
-            ana = analyze_market(candles_15m)
+            ana = analyze_market(candles_15m, coin)
             ana["close"] = candles_15m[-1]["close"]
             analysis_results[f"{coin}:Binance"] = ana
 
@@ -55,7 +55,7 @@ class MarketAnalystAgent(BaseAgent):
             for tf in ["1h", "4h", "1d"]:
                 tf_candles = coin_mtf.get(tf, [])
                 if tf_candles and "error" not in tf_candles[0]:
-                    tf_ana = analyze_market(tf_candles)
+                    tf_ana = analyze_market(tf_candles, coin)
                     tf_ana["close"] = tf_candles[-1]["close"]
                     mtf_ana_dict[tf] = tf_ana
             
@@ -99,6 +99,7 @@ class SignalGeneratorAgent(BaseAgent):
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
         from btc_scraper.ml_engine.signal_score import evaluate_signal_score
+        from btc_scraper.ml_engine.causal_context_bridge import enhance_signal_with_causal_context
         
         signals_info = []
         for key, ana in list(analysis.items()):
@@ -106,6 +107,31 @@ class SignalGeneratorAgent(BaseAgent):
             # Chấm điểm và dự báo xác suất thắng
             sig_score = evaluate_signal_score(ana)
             ana["signal_score"] = sig_score
+
+            # Phase C: Tích hợp Causal Context (alpha=0.0 = safe mode, chỉ rules)
+            try:
+                causal_enhanced = enhance_signal_with_causal_context(
+                    ana=ana,
+                    analysis_info={**ana, **sig_score},
+                    alpha=float(os.environ.get("CAUSAL_ALPHA", "0.0")),
+                )
+                if causal_enhanced and not causal_enhanced.get("error"):
+                    ana["causal_decision"] = causal_enhanced
+                    risk_level = causal_enhanced.get("context_risk_level", "LOW")
+                    ana["causal_context_risk"] = risk_level
+                    ana["causal_context_skipped"] = causal_enhanced.get("context_skipped", False)
+
+                    # Safe gate: only override to NEUTRAL for CRITICAL risk.
+                    if risk_level == "CRITICAL" and sig_score.get("action") in ("BUY", "SELL"):
+                        sig_score["action"] = "NEUTRAL"
+                        sig_score["causal_overridden"] = True
+                        console.print(f"[bold red][CausalGate] {coin}: Action → NEUTRAL (CRITICAL risk)[/bold red]")
+                    elif risk_level in ("HIGH", "MEDIUM") and sig_score.get("action") in ("BUY", "SELL"):
+                        sig_score["causal_warning"] = True
+                        sig_score["causal_risk_level"] = risk_level
+                        console.print(f"[yellow][CausalGate] {coin}: Elevated risk ({risk_level}) — warning only[/yellow]")
+            except Exception as _ce:
+                pass  # Graceful degradation: causal context không ảnh hưởng core flow
             
             # Đọc cutoff và thông tin Kelly mặc định
             meta_conf = sig_score.get("meta_confidence", 0.5)
@@ -257,6 +283,49 @@ class ExecutionAgent(BaseAgent):
                     )
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi ghi shadow log: {e}[/dim red]")
+
+        # 3. Phase D: Counterfactual analysis cho lệnh thua gần nhất
+        try:
+            import json as _json, os as _os
+            from btc_scraper.ml_engine.causal_context_bridge import build_world_state_from_ana
+            from btc_scraper.ml_engine.counterfactual_engine import CounterfactualEngine
+            from btc_scraper.trading import position_tracker
+
+            # Lấy 10 lệnh đã đóng gần nhất từ performance summary
+            perf = position_tracker.get_performance_summary("ALL")
+            closed_trades = perf.get("trades", []) if isinstance(perf, dict) else []
+            # Chỉ xử lý các lệnh thua gần nhất (pnl_pct < -0.5%)
+            losing_trades = [
+                t for t in closed_trades[-10:]
+                if isinstance(t, dict) and float(t.get("pnl_pct") or 0) < -0.5
+            ]
+
+            if losing_trades:
+                cf_engine = CounterfactualEngine()
+                cf_logs = []
+                log_path = _os.path.join("logs", "counterfactual_log.json")
+                if _os.path.exists(log_path):
+                    with open(log_path, encoding="utf-8") as _f:
+                        cf_logs = _json.load(_f)
+
+                for trade in losing_trades[-3:]:   # Tối đa 3 lệnh/chu kỳ để tránh overhead
+                    coin = trade.get("coin", "BTC")
+                    ana = analysis.get(f"{coin}:Binance", {})
+                    base_state = build_world_state_from_ana(ana)
+                    if base_state is None:
+                        continue
+                    try:
+                        cf_result = cf_engine.analyze_trade(trade, base_state)
+                        cf_logs.append(cf_result)
+                    except Exception:
+                        pass
+
+                # Giữ tối đa 200 bản ghi gần nhất
+                _os.makedirs("logs", exist_ok=True)
+                with open(log_path, "w", encoding="utf-8") as _f:
+                    _json.dump(cf_logs[-200:], _f, ensure_ascii=False, indent=2, default=str)
+        except Exception as cf_err:
+            console.print(f"[dim][ExecutionAgent] Counterfactual skipped: {cf_err}[/dim]")
             
         return context
 
