@@ -7,8 +7,8 @@ from btc_scraper.core.config import MONGODB_URI
 _db_uri = MONGODB_URI or "mongodb://localhost:27017/"
 
 # Kết nối MongoDB (singleton)
-if "mongodb+srv://" in _db_uri:
-    client = MongoClient(_db_uri, tlsCAFile=certifi.where())
+if "mongodb+srv://" in _db_uri or "mongodb.net" in _db_uri:
+    client = MongoClient(_db_uri, tls=True, tlsCAFile=certifi.where())
 else:
     client = MongoClient(_db_uri)
 
