@@ -89,23 +89,33 @@ class RegimeFeatureBuilder:
             transition_flag.rolling(self.config.transition_window, min_periods=1).mean().clip(0.0, 1.0)
         )
 
-        vol_proxy = pd.to_numeric(out.get("atr_pct", out.get("realized_vol_20", 0.0)), errors="coerce").fillna(0.0)
+        if "atr_pct" in out.columns:
+            vol_proxy = pd.to_numeric(out["atr_pct"], errors="coerce").fillna(0.0)
+        elif "realized_vol_20" in out.columns:
+            vol_proxy = pd.to_numeric(out["realized_vol_20"], errors="coerce").fillna(0.0)
+        else:
+            vol_proxy = pd.Series(0.0, index=out.index)
         out["regime_volatility_state"] = np.select(
             [vol_proxy >= self.config.high_vol_threshold, vol_proxy <= self.config.low_vol_threshold],
             ["HIGH_VOL", "LOW_VOL"],
             default="NORMAL_VOL",
         )
 
-        trend_proxy = pd.to_numeric(out.get("ema9_slope", 0.0), errors="coerce").fillna(0.0) - pd.to_numeric(
-            out.get("ema21_slope", 0.0), errors="coerce"
-        ).fillna(0.0)
+        ema9 = pd.to_numeric(out["ema9_slope"], errors="coerce").fillna(0.0) if "ema9_slope" in out.columns else pd.Series(0.0, index=out.index)
+        ema21 = pd.to_numeric(out["ema21_slope"], errors="coerce").fillna(0.0) if "ema21_slope" in out.columns else pd.Series(0.0, index=out.index)
+        trend_proxy = ema9 - ema21
         out["regime_trend_state"] = np.select(
             [trend_proxy > 0.0, trend_proxy < 0.0],
             ["UPTREND", "DOWNTREND"],
             default="FLAT",
         )
 
-        liquidity_proxy = pd.to_numeric(out.get("volume_ratio", out.get("liquidity_pressure", 1.0)), errors="coerce").fillna(1.0)
+        if "volume_ratio" in out.columns:
+            liquidity_proxy = pd.to_numeric(out["volume_ratio"], errors="coerce").fillna(1.0)
+        elif "liquidity_pressure" in out.columns:
+            liquidity_proxy = pd.to_numeric(out["liquidity_pressure"], errors="coerce").fillna(1.0)
+        else:
+            liquidity_proxy = pd.Series(1.0, index=out.index)
         out["regime_liquidity_state"] = np.select(
             [liquidity_proxy >= 1.5, liquidity_proxy <= 0.8],
             ["HIGH", "LOW"],
@@ -121,11 +131,24 @@ class RegimeFeatureBuilder:
         out["regime_risk_off"] = out["regime_bear_trend"].astype(int)
         out["regime_transitioning"] = (out["regime"] == "TRANSITIONING").astype(int)
 
-        rsi = pd.to_numeric(out.get("rsi", 0.0), errors="coerce").fillna(0.0)
-        funding = pd.to_numeric(out.get("funding_rate", 0.0), errors="coerce").fillna(0.0)
-        dxy = pd.to_numeric(out.get("dxy", out.get("DXY", 0.0)), errors="coerce").fillna(0.0)
-        oi_delta = pd.to_numeric(out.get("open_interest_delta", out.get("oi_delta", 0.0)), errors="coerce").fillna(0.0)
-        orderbook_imbalance = pd.to_numeric(out.get("orderbook_imbalance", 0.0), errors="coerce").fillna(0.0)
+        rsi = pd.to_numeric(out["rsi"], errors="coerce").fillna(0.0) if "rsi" in out.columns else pd.Series(0.0, index=out.index)
+        funding = pd.to_numeric(out["funding_rate"], errors="coerce").fillna(0.0) if "funding_rate" in out.columns else pd.Series(0.0, index=out.index)
+        
+        if "dxy" in out.columns:
+            dxy = pd.to_numeric(out["dxy"], errors="coerce").fillna(0.0)
+        elif "DXY" in out.columns:
+            dxy = pd.to_numeric(out["DXY"], errors="coerce").fillna(0.0)
+        else:
+            dxy = pd.Series(0.0, index=out.index)
+            
+        if "open_interest_delta" in out.columns:
+            oi_delta = pd.to_numeric(out["open_interest_delta"], errors="coerce").fillna(0.0)
+        elif "oi_delta" in out.columns:
+            oi_delta = pd.to_numeric(out["oi_delta"], errors="coerce").fillna(0.0)
+        else:
+            oi_delta = pd.Series(0.0, index=out.index)
+            
+        orderbook_imbalance = pd.to_numeric(out["orderbook_imbalance"], errors="coerce").fillna(0.0) if "orderbook_imbalance" in out.columns else pd.Series(0.0, index=out.index)
 
         out["rsi_x_regime_bull"] = rsi * out["regime_bull_trend"]
         out["funding_x_regime_risk_on"] = funding * out["regime_risk_on"]

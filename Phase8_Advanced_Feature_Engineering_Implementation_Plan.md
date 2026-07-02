@@ -23,6 +23,7 @@
 - Sprint 8 (Feature Validation) is implemented in code.
 - Sprint 9 (Dataset Builder v3) is implemented in code.
 - Sprint 10 (ML Pipeline Integration) is implemented in code.
+- Sprint 11 (Label Quality Monitoring) is implemented in code.
 
 ### Completed in Repository
 
@@ -75,6 +76,10 @@
   - Dataset v3 training pipeline using new labels from Sprint 9 outputs.
   - Sequential train/calibration/test flow with optional sigmoid/isotonic calibration.
   - Walk-forward validation, model comparison report, and fallback metadata to old model.
+- Implemented `label_quality.py` with:
+  - Label distribution reporting (triple barrier, meta label, trade-quality bucket).
+  - Quality metrics (executable rate, imbalance ratio, pnl summary).
+  - Fallback label reconstruction from dataset v3 when labels layer is empty.
 - Added scripts:
   - `scripts/build_feature_store_v2.py`.
   - `scripts/generate_triple_barrier_labels.py`.
@@ -88,6 +93,7 @@
   - `scripts/build_ml_dataset_v3.py`.
   - `scripts/build_dataset_v3.py`.
   - `scripts/train_meta_model_v3.py`.
+  - `scripts/build_label_quality_report.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
@@ -100,6 +106,8 @@
   - `tests/test_feature_validator.py`.
   - `tests/test_dataset_builder_v3.py`.
   - `tests/test_meta_model_v3.py`.
+  - `tests/test_label_quality_report.py`.
+  - `tests/test_phase8_pipeline.py`.
 
 ### Environment Blockers (Current Machine)
 
@@ -151,6 +159,9 @@ python3 scripts/build_dataset_v3.py \
 python3 scripts/train_meta_model_v3.py \
   --dataset data/feature_store/training/ml_dataset_v3.parquet \
   --output-dir logs
+python3 scripts/build_label_quality_report.py \
+  --fallback data/feature_store/training/ml_dataset_v3.parquet \
+  --output data/feature_store/labels/label_quality_report.json
 ```
 
 ---
@@ -1360,6 +1371,40 @@ feature_importance_v3.json
 - Walk-forward validation is supported.
 - Model comparison report exists.
 - Old model remains fallback.
+
+---
+
+## Sprint 11 — Label Quality Monitoring
+
+### Progress Snapshot
+
+- Status: **DONE (code completed, tests passed, artifacts generated)**
+- Completed files:
+  - `btc_scraper/feature_engineering/label_quality.py`
+  - `scripts/build_label_quality_report.py`
+  - `tests/test_label_quality_report.py`
+  - `tests/test_phase8_pipeline.py`
+
+### Tasks
+
+- Implement label quality reporter.
+- Add fallback logic when labels layer is unavailable.
+- Generate `label_quality_report.json` artifact.
+- Add Phase 8 pipeline smoke test file.
+
+### Deliverables
+
+```text
+label_quality_report.json
+tests/test_phase8_pipeline.py
+```
+
+### Acceptance Criteria
+
+- Report includes triple/meta/trade-quality distributions.
+- Report computes label quality metrics and warnings.
+- Report can be generated from dataset v3 fallback.
+- Phase 8 pipeline smoke test exists and passes.
 
 ---
 

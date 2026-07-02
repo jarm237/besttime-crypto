@@ -9943,5 +9943,35 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "ETHUSDT_1782990071",
+    "symbol": "ETHUSDT",
+    "timestamp": 1782990071.8170645,
+    "timestamp_str": "2026-07-02 18:01:11",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4077,
+    "signal_score": 32,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "XRPUSDT_1782990071",
+    "symbol": "XRPUSDT",
+    "timestamp": 1782990071.8227353,
+    "timestamp_str": "2026-07-02 18:01:11",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3962,
+    "signal_score": 32,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

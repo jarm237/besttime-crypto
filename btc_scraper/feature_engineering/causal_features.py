@@ -78,33 +78,63 @@ class CausalFeatureBuilder:
         else:
             out["causal_context_adjustment"] = pd.to_numeric(context_adj_source, errors="coerce").fillna(0.0)
 
-        out["causal_overridden"] = out.get("causal_overridden", False).astype(bool).astype(int)
-        out["causal_context_skipped"] = out.get("context_skipped", out.get("causal_context_skipped", False)).astype(bool).astype(int)
+        if "causal_overridden" in out.columns:
+            out["causal_overridden"] = out["causal_overridden"].astype(bool).astype(int)
+        else:
+            out["causal_overridden"] = 0
 
-        out["causal_primary_path_confidence"] = pd.to_numeric(
-            out.get("causal_primary_path_confidence", out.get("confidence", 0.0)),
-            errors="coerce",
-        ).fillna(0.0)
-        if out["causal_primary_path_confidence"].max(skipna=True) > 1.0:
-            out["causal_primary_path_confidence"] = out["causal_primary_path_confidence"] / 100.0
-        out["causal_primary_path_confidence"] = out["causal_primary_path_confidence"].clip(0.0, 1.0)
+        if "context_skipped" in out.columns:
+            out["causal_context_skipped"] = out["context_skipped"].astype(bool).astype(int)
+        elif "causal_context_skipped" in out.columns:
+            out["causal_context_skipped"] = out["causal_context_skipped"].astype(bool).astype(int)
+        else:
+            out["causal_context_skipped"] = 0
 
-        out["causal_num_rules_fired"] = pd.to_numeric(
-            out.get("causal_num_rules_fired", out.get("context_adjustments_count", 0)),
-            errors="coerce",
-        ).fillna(0).astype(int)
+        if "causal_primary_path_confidence" in out.columns:
+            confidence = pd.to_numeric(out["causal_primary_path_confidence"], errors="coerce").fillna(0.0)
+        elif "confidence" in out.columns:
+            confidence = pd.to_numeric(out["confidence"], errors="coerce").fillna(0.0)
+        else:
+            confidence = pd.Series(0.0, index=out.index)
+        
+        if confidence.max(skipna=True) > 1.0:
+            confidence = confidence / 100.0
+        out["causal_primary_path_confidence"] = confidence.clip(0.0, 1.0)
 
-        out["causal_num_active_edges"] = pd.to_numeric(
-            out.get("causal_num_active_edges", out.get("num_active_edges", 0)),
-            errors="coerce",
-        ).fillna(0).astype(int)
+        if "causal_num_rules_fired" in out.columns:
+            out["causal_num_rules_fired"] = pd.to_numeric(out["causal_num_rules_fired"], errors="coerce").fillna(0).astype(int)
+        elif "context_adjustments_count" in out.columns:
+            out["causal_num_rules_fired"] = pd.to_numeric(out["context_adjustments_count"], errors="coerce").fillna(0).astype(int)
+        else:
+            out["causal_num_rules_fired"] = 0
 
-        out["cf_delta_pnl"] = pd.to_numeric(out.get("cf_delta_pnl", out.get("delta_pnl", 0.0)), errors="coerce").fillna(0.0)
-        out["cf_intervention_node"] = out.get("cf_intervention_node", out.get("counterfactual_feature", ""))
-        out["cf_intervention_value"] = pd.to_numeric(
-            out.get("cf_intervention_value", out.get("counterfactual_value", 0.0)),
-            errors="coerce",
-        ).fillna(0.0)
+        if "causal_num_active_edges" in out.columns:
+            out["causal_num_active_edges"] = pd.to_numeric(out["causal_num_active_edges"], errors="coerce").fillna(0).astype(int)
+        elif "num_active_edges" in out.columns:
+            out["causal_num_active_edges"] = pd.to_numeric(out["num_active_edges"], errors="coerce").fillna(0).astype(int)
+        else:
+            out["causal_num_active_edges"] = 0
+
+        if "cf_delta_pnl" in out.columns:
+            out["cf_delta_pnl"] = pd.to_numeric(out["cf_delta_pnl"], errors="coerce").fillna(0.0)
+        elif "delta_pnl" in out.columns:
+            out["cf_delta_pnl"] = pd.to_numeric(out["delta_pnl"], errors="coerce").fillna(0.0)
+        else:
+            out["cf_delta_pnl"] = 0.0
+
+        if "cf_intervention_node" in out.columns:
+            pass
+        elif "counterfactual_feature" in out.columns:
+            out["cf_intervention_node"] = out["counterfactual_feature"]
+        else:
+            out["cf_intervention_node"] = ""
+
+        if "cf_intervention_value" in out.columns:
+            out["cf_intervention_value"] = pd.to_numeric(out["cf_intervention_value"], errors="coerce").fillna(0.0)
+        elif "counterfactual_value" in out.columns:
+            out["cf_intervention_value"] = pd.to_numeric(out["counterfactual_value"], errors="coerce").fillna(0.0)
+        else:
+            out["cf_intervention_value"] = 0.0
 
         out["causal_risk_LOW"] = (out["causal_risk_level"] == "LOW").astype(int)
         out["causal_risk_MEDIUM"] = (out["causal_risk_level"] == "MEDIUM").astype(int)

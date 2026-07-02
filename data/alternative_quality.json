@@ -82,5 +82,19 @@
     "is_healthy": true,
     "issue_count": 0,
     "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T10:54:23.738441+00:00",
+    "payload_timestamp": "2026-07-02T10:54:15.475272+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T11:01:13.658383+00:00",
+    "payload_timestamp": "2026-07-02T10:54:15.475272+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
   }
 ]

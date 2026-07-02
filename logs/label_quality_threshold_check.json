@@ -1,0 +1,58 @@
+{
+  "ok": true,
+  "thresholds": {
+    "min_triple_rows": 100,
+    "min_meta_rows": 100,
+    "min_trade_quality_rows": 100,
+    "min_executable_signal_rate": 0.8,
+    "min_meta_execute_rate": 0.4,
+    "max_meta_class_imbalance_ratio": 3.0,
+    "max_warning_count": 0
+  },
+  "checks": {
+    "counts.triple_barrier_rows": {
+      "status": "pass",
+      "value": 300,
+      "threshold": 100,
+      "mode": "min"
+    },
+    "counts.meta_label_rows": {
+      "status": "pass",
+      "value": 300,
+      "threshold": 100,
+      "mode": "min"
+    },
+    "counts.trade_quality_rows": {
+      "status": "pass",
+      "value": 300,
+      "threshold": 100,
+      "mode": "min"
+    },
+    "quality_metrics.executable_signal_rate": {
+      "status": "pass",
+      "value": 1.0,
+      "threshold": 0.8,
+      "mode": "min"
+    },
+    "quality_metrics.meta_execute_rate": {
+      "status": "pass",
+      "value": 0.47,
+      "threshold": 0.4,
+      "mode": "min"
+    },
+    "quality_metrics.meta_class_imbalance_ratio": {
+      "status": "pass",
+      "value": 1.127659574468085,
+      "threshold": 3.0,
+      "mode": "max"
+    },
+    "warnings.count": {
+      "status": "pass",
+      "value": 0,
+      "threshold": 0,
+      "mode": "max"
+    }
+  },
+  "failures": {},
+  "source_generated_at": "2026-07-02T10:59:34.408160+00:00"
+}

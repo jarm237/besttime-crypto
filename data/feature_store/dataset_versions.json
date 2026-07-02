@@ -26,5 +26,33 @@
       "group_1_fracdiff_features",
       "group_2_alternative_features"
     ]
+  },
+  {
+    "dataset_version": "v3_2026_07_02",
+    "created_at": "2026-07-02T10:53:23.149287+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_02",
+    "created_at": "2026-07-02T10:55:13.162581+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
   }
 ]

@@ -90,7 +90,10 @@ class AlternativeFeatureBuilder:
         frame_after: pd.DataFrame,
         generated_columns: list[str],
     ) -> dict[str, Any]:
-        missing_before = frame_before[self.BASE_COLUMNS].isna().sum().to_dict()
+        missing_before = {
+            col: int(frame_before[col].isna().sum()) if col in frame_before.columns else len(frame_before)
+            for col in self.BASE_COLUMNS
+        }
         total_rows = max(len(frame_before), 1)
         missing_before_ratio = {
             col: float(count) / float(total_rows)
