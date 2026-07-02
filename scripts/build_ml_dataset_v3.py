@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -40,7 +41,7 @@ def load_frame(path: Path) -> pd.DataFrame:
             raise ValueError("JSON input must be dict/list or {records: [...]}")
         return pd.DataFrame(raw)
     if suffix == ".csv":
-        return pd.read_csv(path)
+        return smart_read_csv(path)
     if suffix in {".parquet", ".pq"}:
         return pd.read_parquet(path)
     raise ValueError(f"Unsupported input format: {suffix}")

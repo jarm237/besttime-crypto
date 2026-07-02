@@ -36,7 +36,7 @@ os.environ['DISABLE_KELLY'] = '1'
 BASE_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
-from btc_scraper.core.config import COINS
+from btc_scraper.core.config import COINS, FRESH_TRAINING_DATA_DIR
 from btc_scraper.analysis import analyze_market, analyze_all_market
 from btc_scraper.ml_engine.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT, EnsembleMetaModel
 from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
@@ -53,7 +53,10 @@ def mock_get_market_sentiment():
 btc_scraper.core.sentiment.get_market_sentiment = mock_get_market_sentiment
 btc_scraper.analysis.get_market_sentiment = mock_get_market_sentiment
 
-DATA_DIR = BASE_DIR / "data" / "historical_18m"
+if FRESH_TRAINING_DATA_DIR.is_absolute():
+    DATA_DIR = FRESH_TRAINING_DATA_DIR
+else:
+    DATA_DIR = BASE_DIR / FRESH_TRAINING_DATA_DIR
 LOGS_DIR = BASE_DIR / "logs"
 
 # Configs

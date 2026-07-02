@@ -15,6 +15,8 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
+from btc_scraper.core.config import FRESH_TRAINING_DATA_DIR
 
 try:
     import torch
@@ -64,7 +66,7 @@ def _validate_sequence_array(sequences: np.ndarray, seq_len: int) -> None:
 
 
 def load_historical_15m_sequences(
-    data_dir: str = "data/historical_18m",
+    data_dir: str | None = None,
     seq_len: int = 24,
     coins: Optional[Sequence[str]] = None,
     min_candles: Optional[int] = None,
@@ -80,6 +82,13 @@ def load_historical_15m_sequences(
     Returns:
         NumPy array with shape (N, seq_len, 5).
     """
+    # Resolve data_dir default to fresh training data dir
+    if data_dir is None:
+        if FRESH_TRAINING_DATA_DIR.is_absolute():
+            data_dir = str(FRESH_TRAINING_DATA_DIR)
+        else:
+            data_dir = str(Path(__file__).resolve().parents[2] / FRESH_TRAINING_DATA_DIR)
+
     source_path = Path(data_dir)
     csv_pattern = str(source_path / "**" / "*_15m.csv")
     paths = sorted(glob.glob(csv_pattern, recursive=True))
@@ -93,7 +102,8 @@ def load_historical_15m_sequences(
             continue
 
         try:
-            df = pd.read_csv(path, parse_dates=["time"] if "time" in pd.read_csv(path, nrows=0).columns else [])
+            header = smart_read_csv(path, data_dir=data_dir, nrows=0)
+            df = smart_read_csv(path, data_dir=data_dir, parse_dates=["time"] if "time" in header.columns else [])
         except Exception:
             continue
 

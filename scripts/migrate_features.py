@@ -11,9 +11,13 @@ sys.path.append(str(BASE_DIR))
 
 from btc_scraper.analysis.core import analyze_market
 from btc_scraper.ml_engine.feature_extractor import build_meta_features_v2
-from btc_scraper.core.config import COINS
+from btc_scraper.core.config import COINS, FRESH_TRAINING_DATA_DIR
 
-DATA_DIR = BASE_DIR / "data" / "historical_18m"
+# Resolve data dir: prefer configured fresh training data dir
+if FRESH_TRAINING_DATA_DIR.is_absolute():
+    DATA_DIR = Path(FRESH_TRAINING_DATA_DIR)
+else:
+    DATA_DIR = BASE_DIR / FRESH_TRAINING_DATA_DIR
 
 def get_available_months() -> list[str]:
     months = set()
@@ -72,7 +76,7 @@ def main():
     print(f"Đã tải {len(records)} lệnh cũ từ {input_file}")
     
     months = get_available_months()
-    print(f"Sử dụng dữ liệu local từ {len(months)} tháng trong thư mục data/historical_18m.")
+    print(f"Sử dụng dữ liệu local từ {len(months)} tháng trong thư mục {DATA_DIR}.")
 
     # Tải dữ liệu vào memory
     print("Đang tải dữ liệu nến 15m vào bộ nhớ...")

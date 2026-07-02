@@ -29,13 +29,14 @@ def test_stage3_with_real_data():
     print("\n[1/5] Loading sequences from historical data...")
     import glob
     import pandas as pd
+    from btc_scraper.core.io import smart_read_csv
     
     all_sequences = []
     csv_files = sorted(glob.glob(str(DATA_DIR / "*.csv")))[:10]  # First 10 files for testing
     
     for csv_file in csv_files:
         try:
-            df = pd.read_csv(csv_file)
+            df = smart_read_csv(csv_file)
             data = df[['open', 'high', 'low', 'close', 'volume']].values.astype(np.float32)
             
             # Create sequences (24 timesteps)

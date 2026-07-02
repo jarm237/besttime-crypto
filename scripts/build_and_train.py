@@ -37,7 +37,13 @@ BASE_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
 # ── Config ──────────────────────────────────────────────────────────────────
-DATA_DIR         = BASE_DIR / "data" / "historical_18m"
+from btc_scraper.core.config import FRESH_TRAINING_DATA_DIR
+
+# Resolve DATA_DIR: use fresh training data dir from config (env override supported)
+if FRESH_TRAINING_DATA_DIR.is_absolute():
+    DATA_DIR = FRESH_TRAINING_DATA_DIR
+else:
+    DATA_DIR = BASE_DIR / FRESH_TRAINING_DATA_DIR
 LOGS_DIR         = BASE_DIR / "logs"
 SENTIMENT_FILE   = LOGS_DIR / "sentiment_history.json"
 OUTPUT_FILE      = LOGS_DIR / "adaptive_signals_v2.json"

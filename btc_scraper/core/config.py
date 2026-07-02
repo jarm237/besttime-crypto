@@ -55,3 +55,7 @@ _raw_keys = [
 ]
 GEMINI_API_KEYS: list[str] = [k for k in _raw_keys if k]  # Lọc bỏ None/rỗng
 GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else None  # tương thích ngược
+
+# Default fresh training data folder (can be overridden via env var)
+from pathlib import Path
+FRESH_TRAINING_DATA_DIR = Path(os.getenv("FRESH_TRAINING_DATA_DIR", "data/fresh_training_data_2023_2026"))

@@ -19,11 +19,17 @@ BASE = Path(__file__).resolve().parent.parent
 if str(BASE) not in sys.path:
     sys.path.insert(0, str(BASE))
 
-from btc_scraper.core.config import COINS as DEFAULT_COINS
+from btc_scraper.core.config import COINS as DEFAULT_COINS, FRESH_TRAINING_DATA_DIR
 
 
 def _discover_default_months() -> list[str]:
-    candidates = [BASE / "data" / "historical_18m", BASE / "data"]
+    # Prefer fresh training data dir first
+    candidates = []
+    if FRESH_TRAINING_DATA_DIR.is_absolute():
+        candidates.append(Path(FRESH_TRAINING_DATA_DIR))
+    else:
+        candidates.append(BASE / FRESH_TRAINING_DATA_DIR)
+    candidates.append(BASE / "data")
     months = set()
     for root in candidates:
         if not root.exists():

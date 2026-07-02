@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -49,21 +50,23 @@ def load_signals(path: Path) -> pd.DataFrame:
             raise ValueError("JSON input must be a list of records")
         return pd.DataFrame(raw)
     if suffix == ".csv":
-        return pd.read_csv(path)
+        return smart_read_csv(path)
     if suffix in {".parquet", ".pq"}:
         return pd.read_parquet(path)
     raise ValueError(f"Unsupported input format: {suffix}")
 
 
 def _read_csv_candle(path: Path) -> pd.DataFrame:
-    frame = pd.read_csv(path)
+    from btc_scraper.core.io import smart_read_csv
+
+    frame = smart_read_csv(path)
     frame["source_file"] = path.name
     return frame
 
 
 def load_candles_for_coin(data_dir: Path, coin: str, timeframe: str) -> pd.DataFrame:
     pattern = f"*_{coin.upper()}_{timeframe}.csv"
-    matches = sorted(data_dir.glob(pattern))
+    matches = sorted(data_dir.rglob(pattern))
     if not matches:
         return pd.DataFrame()
 

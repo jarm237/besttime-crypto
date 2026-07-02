@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 
 from btc_scraper.core.paths import build_data_path
 
@@ -84,7 +85,7 @@ class FeatureStoreV2:
         if parquet_path.exists():
             return pd.read_parquet(parquet_path)
         if csv_path.exists():
-            return pd.read_csv(csv_path)
+            return smart_read_csv(csv_path)
 
         raise FileNotFoundError(f"No table found for {name} in layer {layer}")
 

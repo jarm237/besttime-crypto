@@ -8,6 +8,7 @@ Reward: step-to-step delta of net PnL after commission and slippage
 """
 
 import os
+from pathlib import Path
 import csv
 import glob
 import json
@@ -23,6 +24,7 @@ from btc_scraper.analysis.core import analyze_market, calculate_tp_sl
 from btc_scraper.ml_engine.timegan import postprocess_synthetic_sequences
 from btc_scraper.ml_engine.timegan import OHLCVScaler
 from datetime import timedelta
+from btc_scraper.core.config import FRESH_TRAINING_DATA_DIR
 
 
 def load_sentiment_history(sentiment_file: str = "logs/sentiment_history.json") -> dict:
@@ -48,7 +50,7 @@ def load_sentiment_history(sentiment_file: str = "logs/sentiment_history.json") 
 
 
 def load_and_prepare_candles(
-    data_dir: str = "data/historical_18m",
+    data_dir: str | None = None,
     sentiment_file: str = "logs/sentiment_history.json",
     coins: List[str] = None,
     cache_file: str = "data/rl_candle_cache.pkl",
@@ -82,6 +84,13 @@ def load_and_prepare_candles(
     # Target coins set
     target_coins = set(c.upper() for c in coins) if coins else None
     
+    # Resolve data_dir default to fresh training data dir
+    if not data_dir:
+        if FRESH_TRAINING_DATA_DIR.is_absolute():
+            data_dir = str(FRESH_TRAINING_DATA_DIR)
+        else:
+            data_dir = str(Path(__file__).resolve().parents[2] / FRESH_TRAINING_DATA_DIR)
+
     # Find matching CSV files
     csv_pattern = os.path.join(data_dir, "*_15m.csv")
     csv_files = glob.glob(csv_pattern)
@@ -350,7 +359,7 @@ class TradeExitEnv(gym.Env):
         if TradeExitEnv._COIN_CANDLES_CACHE is None:
             target_coins = list(set(t.get("coin", "BTC").upper() for t in trades))
             TradeExitEnv._COIN_CANDLES_CACHE = load_and_prepare_candles(
-                data_dir="data/historical_18m",
+                data_dir=None,
                 sentiment_file="logs/sentiment_history.json",
                 coins=target_coins
             )

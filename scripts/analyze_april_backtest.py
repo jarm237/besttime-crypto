@@ -163,7 +163,9 @@ def main():
         return
 
     if PANDAS_AVAILABLE:
-        df = pd.read_csv(csv_path)
+        from btc_scraper.core.io import smart_read_csv
+
+        df = smart_read_csv(csv_path)
         col_candidates = [c for c in df.columns if 'signal' in c]
         sig_col = col_candidates[0] if col_candidates else None
         if sig_col is None:
@@ -196,7 +198,7 @@ def main():
         for p in files:
             try:
                 if PANDAS_AVAILABLE:
-                    d = pd.read_csv(p)
+                    d = smart_read_csv(p)
                     for _, r in d.iterrows():
                         rd = dict(r.dropna().to_dict())
                         rd['_source'] = str(p.name)

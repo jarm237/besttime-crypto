@@ -2,9 +2,12 @@ import os
 import glob
 import json
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 import numpy as np
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
+from btc_scraper.core.config import FRESH_TRAINING_DATA_DIR
+from pathlib import Path
 
 # Nhóm ngành (Sectors) định nghĩa cho hệ thống
 SECTOR_MAP = {
@@ -33,8 +36,15 @@ class CorrelationEngine:
     dựa trên nến 1h lịch sử.
     """
 
-    def __init__(self, data_dir: str = "data/historical_18m", cache_path: str = "logs/portfolio_correlation.json"):
-        self.data_dir = data_dir
+    def __init__(self, data_dir: str | None = None, cache_path: str = "logs/portfolio_correlation.json"):
+        # Resolve default data dir to fresh training data folder
+        if data_dir is None:
+            if FRESH_TRAINING_DATA_DIR.is_absolute():
+                self.data_dir = str(FRESH_TRAINING_DATA_DIR)
+            else:
+                self.data_dir = str(Path(__file__).resolve().parents[2] / FRESH_TRAINING_DATA_DIR)
+        else:
+            self.data_dir = data_dir
         self.cache_path = cache_path
         self.correlation_matrix: Optional[pd.DataFrame] = None
         self.covariance_matrix: Optional[pd.DataFrame] = None
@@ -90,15 +100,23 @@ class CorrelationEngine:
         """
         print(f"[Correlation Engine] Calculating correlation matrix for last {lookback_days} days...")
         
-        csv_pattern = os.path.join(self.data_dir, "*_1h.csv")
-        csv_files = glob.glob(csv_pattern)
+        # Search recursively for monthly 1h CSVs under the data dir
+        csv_files = list(Path(self.data_dir).rglob("*_1h_*.csv"))
+        csv_files = [str(p) for p in sorted(csv_files)]
         
         # Nhóm file theo coin
         coin_files: Dict[str, List[str]] = {}
         for f in csv_files:
-            parts = os.path.basename(f).split("_")
-            if len(parts) >= 3 and parts[-1] == "1h.csv":
-                coin = parts[-2].upper()
+            base = os.path.basename(f)
+            # Expect formats like BTC_1h_2023-01.csv or april_2025_BTC_1h.csv
+            parts = os.path.splitext(base)[0].split("_")
+            # Find coin token as the first all-letter segment
+            coin = None
+            for part in parts:
+                if part.isalpha() and part.upper() == part:
+                    coin = part.upper()
+                    break
+            if coin:
                 coin_files.setdefault(coin, []).append(f)
                 
         if not coin_files:
@@ -113,7 +131,10 @@ class CorrelationEngine:
             combined_rows = []
             for path in paths:
                 try:
-                    df_temp = pd.read_csv(path)
+                    try:
+                        df_temp = smart_read_csv(path)
+                    except Exception:
+                        df_temp = pd.read_csv(path)
                     if "time" in df_temp.columns and "close" in df_temp.columns:
                         combined_rows.append(df_temp[["time", "close"]])
                 except Exception as e:

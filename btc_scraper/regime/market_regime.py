@@ -16,6 +16,7 @@ from typing import Dict
 
 import numpy as np
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 import os
 from pathlib import Path
 
@@ -241,7 +242,7 @@ def save_json(d: Dict, path: str):
 
 
 def _load_csv(path: str) -> pd.DataFrame:
-    df = pd.read_csv(path)
+    df = smart_read_csv(path)
     # require time sorting
     if "timestamp" in df.columns:
         df = df.sort_values("timestamp")

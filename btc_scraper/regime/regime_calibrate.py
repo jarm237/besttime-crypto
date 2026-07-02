@@ -17,12 +17,13 @@ import json
 from pathlib import Path
 
 import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 
 from btc_scraper.regime.market_regime import calculate_adx, calculate_atr, _get_col
 
 
 def _load_csv(path: str) -> pd.DataFrame:
-    df = pd.read_csv(path)
+    df = smart_read_csv(path)
     if "timestamp" in df.columns:
         df = df.sort_values("timestamp")
     elif "time" in df.columns:

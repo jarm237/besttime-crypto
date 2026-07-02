@@ -10,9 +10,15 @@ import requests
 
 # Thêm path để import từ core
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from btc_scraper.core.config import COINS
+from btc_scraper.core.config import COINS, FRESH_TRAINING_DATA_DIR
+from pathlib import Path
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "historical_18m")
+# Resolve DATA_DIR to fresh training data dir (create if missing)
+base = Path(os.path.dirname(os.path.dirname(__file__)))
+if FRESH_TRAINING_DATA_DIR.is_absolute():
+    DATA_DIR = Path(FRESH_TRAINING_DATA_DIR)
+else:
+    DATA_DIR = base / FRESH_TRAINING_DATA_DIR
 os.makedirs(DATA_DIR, exist_ok=True)
 
 BINANCE_BASE = "https://api.binance.com"

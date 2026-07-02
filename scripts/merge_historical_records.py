@@ -17,11 +17,16 @@ BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
 
 from scripts import build_and_train as bt
+from btc_scraper.core.config import FRESH_TRAINING_DATA_DIR
 
 
 def detect_coins(month: str) -> list[str]:
     data_dir = BASE / "data"
-    hist_dir = data_dir / "historical_18m"
+    # Prefer fresh training data dir
+    if FRESH_TRAINING_DATA_DIR.is_absolute():
+        hist_dir = Path(FRESH_TRAINING_DATA_DIR)
+    else:
+        hist_dir = BASE / FRESH_TRAINING_DATA_DIR
 
     def _coins_from(dir_path: Path) -> list[str]:
         coins = set()
