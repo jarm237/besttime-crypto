@@ -58,20 +58,95 @@ class ContextReport:
 class ExpressionEvaluator:
     """Evaluates conditional expressions in context rules."""
 
+    _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\b")
+    _NUMERIC_LITERAL_RE = r"[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?"
+
     def __init__(self, context_data: Dict):
         """Initialize evaluator with market context data."""
         self.context = context_data
 
     def _flatten_context(self) -> Dict:
         """Flatten nested context dict for expression evaluation."""
-        flat = {}
-        for key, value in self.context.items():
+        flat: Dict[str, object] = {}
+
+        def _walk(prefix: str, value: object) -> None:
             if isinstance(value, dict):
                 for subkey, subvalue in value.items():
-                    flat[f"{key}.{subkey}"] = subvalue
+                    next_prefix = f"{prefix}.{subkey}" if prefix else str(subkey)
+                    _walk(next_prefix, subvalue)
             else:
-                flat[key] = value
+                flat[prefix] = value
+
+        for key, value in self.context.items():
+            _walk(str(key), value)
+
         return flat
+
+    def _normalize_expression(self, expression: str) -> str:
+        """Normalize rule operators/booleans into Python syntax."""
+        normalized = expression
+        normalized = re.sub(r"\bAND\b", "and", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\bOR\b", "or", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\bNOT\b", "not", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\bTRUE\b", "True", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\bFALSE\b", "False", normalized, flags=re.IGNORECASE)
+        return normalized
+
+    def _coerce_numeric_string(self, value: str) -> str | None:
+        """Return a normalized numeric literal string when value is numeric-like."""
+        stripped = value.strip()
+        if not stripped:
+            return None
+
+        # Handle common feed formats like "70.5%" and "1,234.5"
+        normalized = stripped.replace(",", "")
+        if normalized.endswith("%"):
+            normalized = normalized[:-1].strip()
+
+        if re.fullmatch(r"[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?", normalized):
+            return normalized
+
+        return None
+
+    def _extract_numeric_comparison_tokens(self, expression: str) -> set[str]:
+        """Find identifiers participating in numeric comparisons (>, <, >=, <=)."""
+        tokens: set[str] = set()
+        ident = r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*"
+        number = self._NUMERIC_LITERAL_RE
+
+        # identifier > 70
+        for match in re.finditer(rf"\b({ident})\b\s*(?:>=|<=|>|<)\s*({number})\b", expression):
+            tokens.add(match.group(1))
+
+        # 70 < identifier
+        for match in re.finditer(rf"\b({number})\b\s*(?:>=|<=|>|<)\s*({ident})\b", expression):
+            tokens.add(match.group(2))
+
+        return tokens
+
+    def _resolve_identifier(self, token: str, flat_context: Dict[str, object]) -> str:
+        """Resolve a token to a Python literal representation."""
+        if token in {"and", "or", "not", "True", "False"}:
+            return token
+
+        if token in flat_context:
+            value = flat_context[token]
+
+            # Some upstream feeds serialize numbers as strings (e.g. "72.5").
+            # Convert these to numeric literals so comparisons like BTC_RSI > 70 work.
+            if isinstance(value, str):
+                coerced = self._coerce_numeric_string(value)
+                if coerced is not None:
+                    return coerced
+
+            return repr(value)
+
+        # UPPER_CASE tokens in rules are enum-like string constants, e.g. HIGH/UP/SHORT.
+        if re.fullmatch(r"[A-Z][A-Z0-9_]*", token):
+            return repr(token)
+
+        # Missing variables default to zero so numeric comparisons short-circuit to False.
+        return "0"
 
     def evaluate(self, expression: str) -> bool:
         """
@@ -82,23 +157,45 @@ class ExpressionEvaluator:
         if expression.lower() == "always":
             return True
 
+        normalized = expression
+        prepared = expression
         try:
             flat = self._flatten_context()
+            normalized = self._normalize_expression(expression)
+            numeric_comparison_tokens = self._extract_numeric_comparison_tokens(normalized)
 
-            # Replace context variables in expression
-            for key, value in flat.items():
-                # Handle string values
-                if isinstance(value, str):
-                    expression = re.sub(rf'\b{key}\b', f"'{value}'", expression)
-                else:
-                    expression = re.sub(rf'\b{key}\b', str(value), expression)
+            def _replace_identifier(match: re.Match) -> str:
+                token = match.group(0)
+
+                # Tokens used in numeric comparisons must always resolve to numeric values.
+                if token in numeric_comparison_tokens:
+                    if token not in flat:
+                        return "0"
+
+                    raw_value = flat[token]
+                    if isinstance(raw_value, str):
+                        coerced = self._coerce_numeric_string(raw_value)
+                        if coerced is None:
+                            return "0"
+                        return coerced
+
+                resolved = self._resolve_identifier(token, flat)
+                return resolved
+
+            prepared = self._IDENTIFIER_RE.sub(_replace_identifier, normalized)
 
             # Evaluate the expression
-            result = eval(expression, {"__builtins__": {}}, {})
+            result = eval(prepared, {"__builtins__": {}}, {})
             return bool(result)
 
         except Exception as e:
-            logger.warning(f"Failed to evaluate expression '{expression}': {str(e)}")
+            logger.warning(
+                "Failed to evaluate expression '%s': %s | normalized='%s' | prepared='%s'",
+                expression,
+                str(e),
+                normalized,
+                prepared,
+            )
             return False
 
 
@@ -122,6 +219,9 @@ class ContextEngine:
 
     def _get_rules_by_layer(self, layer: str) -> List[Dict]:
         """Get rules for a specific layer."""
+        if layer == "market" and "crypto_context_rules" in self.rules:
+            return self.rules["crypto_context_rules"]
+
         key = f"{layer}_context_rules"
         if key in self.rules:
             return self.rules[key]

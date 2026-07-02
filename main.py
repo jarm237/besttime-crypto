@@ -437,12 +437,29 @@ async def fetch_and_display():
             # Đánh dấu causal_anomaly_warning vào signal_score của tất cả coin
             if is_anomaly:
                 console.print("[bold red]⚠️  [Causal] Structural anomaly detected — thêm cảnh báo vào tín hiệu.[/bold red]")
+                warning_tag = "⚠ CAUSAL ANOMALY"
                 for _key in analysis:
+                    _ana = analysis[_key]
                     _sig_score = analysis[_key].get("signal_score") or {}
-                    if _sig_score.get("action") in ("BUY", "SELL"):
+                    _action = str(_sig_score.get("action") or "").upper()
+                    _signal_text = str(_ana.get("signal", "") or "")
+                    _signal_text_upper = _signal_text.upper()
+                    _is_actionable_signal = (
+                        _action in ("BUY", "SELL")
+                        or (
+                            "NEUTRAL" not in _signal_text_upper
+                            and any(token in _signal_text_upper for token in ("BUY", "SELL", "LONG", "SHORT"))
+                        )
+                    )
+
+                    if _is_actionable_signal:
                         _sig_score["causal_anomaly_warning"] = True
                         _sig_score["causal_deviation_score"] = deviation_score
-                        analysis[_key]["signal_score"] = _sig_score
+                        _ana["signal_score"] = _sig_score
+
+                        # Gắn cảnh báo trực tiếp vào signal để hiển thị rõ trên mọi kênh.
+                        if warning_tag not in _signal_text:
+                            _ana["signal"] = f"{_signal_text} | {warning_tag}" if _signal_text else warning_tag
 
             # Log warning khi consensus causal ngược chiều tín hiệu kỹ thuật
             if consensus_sig == "bearish":

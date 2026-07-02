@@ -7,6 +7,7 @@ import os
 import time
 import gzip
 import shutil
+import warnings
 from pathlib import Path
 import json
 from datetime import datetime, timezone, timedelta
@@ -128,7 +129,13 @@ def _load_adaptive_model():
         import joblib
         model_path = os.path.join(os.path.dirname(__file__), "..", "logs", "adaptive_model.joblib")
         if os.path.exists(model_path):
-            data = joblib.load(model_path)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message=r".*xgboost.*(No visible GPU is found|Device is changed from GPU to CPU|Changing updater from `grow_gpu_hist`).*",
+                    category=UserWarning,
+                )
+                data = joblib.load(model_path)
             # Fix n_jobs issue for single sample inference
             model = data.get("model") if isinstance(data, dict) else data
             def set_n_jobs(est):

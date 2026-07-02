@@ -11,6 +11,7 @@ Usage:
 import sys
 import json
 import os
+import warnings
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -946,7 +947,13 @@ def load_model():
         except Exception:
             pass
 
-        _MODEL_CACHE = joblib.load(MODEL_OUT)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r".*xgboost.*(No visible GPU is found|Device is changed from GPU to CPU|Changing updater from `grow_gpu_hist`).*",
+                category=UserWarning,
+            )
+            _MODEL_CACHE = joblib.load(MODEL_OUT)
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
             feature_names = _MODEL_CACHE.get("features")
