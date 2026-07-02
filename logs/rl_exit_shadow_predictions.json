@@ -2605,5 +2605,60 @@
     "meta_prob": 0.6,
     "position_id": "90f2b6e6-0468-44ce-9711-446a9c95e77b",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1782976299",
+    "symbol": "BTCUSDT",
+    "timestamp": 1782976299.2459967,
+    "timestamp_str": "2026-07-02 14:11:39",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4615,
+    "position_id": "test-pos-id-1",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1782976299",
+    "symbol": "BTCUSDT",
+    "timestamp": 1782976299.278027,
+    "timestamp_str": "2026-07-02 14:11:39",
+    "rl_action": 5,
+    "action_label": "TRAILING_SL_ATR",
+    "meta_prob": 0.4615,
+    "position_id": "test-pos-id-1",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1782976299",
+    "symbol": "BTCUSDT",
+    "timestamp": 1782976299.2963889,
+    "timestamp_str": "2026-07-02 14:11:39",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4615,
+    "position_id": "test-pos-id-1",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1782976299",
+    "symbol": "BTCUSDT",
+    "timestamp": 1782976299.3042858,
+    "timestamp_str": "2026-07-02 14:11:39",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1782976570",
+    "symbol": "ETHUSDT",
+    "timestamp": 1782976570.569034,
+    "timestamp_str": "2026-07-02 14:16:10",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4574,
+    "position_id": "078facca-e52f-460f-b0ca-6d00f71f971d",
+    "note": "RL Exit shadow recommendation"
   }
 ]

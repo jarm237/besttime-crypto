@@ -5170,5 +5170,63 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 1.96
+  },
+  {
+    "timestamp": "2026-07-02T14:07:52.032392",
+    "timestamp_str": "2026-07-02 14:07:52",
+    "mode": "TESTNET",
+    "coin": "XPL",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4615,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0919
+  },
+  {
+    "timestamp": "2026-07-02T14:11:44.603764",
+    "timestamp_str": "2026-07-02 14:11:44",
+    "mode": "DRY_RUN",
+    "coin": "NEAR",
+    "signal": "BUY",
+    "meta_confidence": 0.8,
+    "signal_score": 80,
+    "status": "skipped",
+    "reason_skip": "Tuong quan cao voi vi the dang mo SOL (0.80 > 0.75)",
+    "entry_price": 5.0
+  },
+  {
+    "timestamp": "2026-07-02T14:11:44.610658",
+    "timestamp_str": "2026-07-02 14:11:44",
+    "mode": "DRY_RUN",
+    "coin": "ETH",
+    "symbol": "ETH/USDT",
+    "direction": "LONG",
+    "signal": "BUY",
+    "meta_confidence": 0.8,
+    "meta_confidence_pct": 80,
+    "signal_score": 80,
+    "order_type": "market",
+    "entry_price": 100.0,
+    "sl_price": 80.0,
+    "tp1_price": 0.0,
+    "usdt_amount": 100.0,
+    "account_balance_est": 1000.0,
+    "order_id": "mock-buy-id",
+    "status": "placed",
+    "error": null,
+    "filled_price": 100.0
+  },
+  {
+    "timestamp": "2026-07-02T15:01:09.186745",
+    "timestamp_str": "2026-07-02 15:01:09",
+    "mode": "TESTNET",
+    "coin": "IOTA",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.2532,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0402
   }
 ]
