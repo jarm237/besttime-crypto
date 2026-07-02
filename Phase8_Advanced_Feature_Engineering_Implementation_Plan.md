@@ -22,6 +22,7 @@
 - Sprint 7 (Fractional Differencing) is implemented in code.
 - Sprint 8 (Feature Validation) is implemented in code.
 - Sprint 9 (Dataset Builder v3) is implemented in code.
+- Sprint 10 (ML Pipeline Integration) is implemented in code.
 
 ### Completed in Repository
 
@@ -70,6 +71,10 @@
   - Point-in-time-safe as-of joins (`backward`) across feature groups.
   - Label merge with fallback extraction from base input when labels layer is empty.
   - Dataset v3 metadata + reproducibility version write via Feature Store v2.
+- Implemented `meta_model_v3.py` with:
+  - Dataset v3 training pipeline using new labels from Sprint 9 outputs.
+  - Sequential train/calibration/test flow with optional sigmoid/isotonic calibration.
+  - Walk-forward validation, model comparison report, and fallback metadata to old model.
 - Added scripts:
   - `scripts/build_feature_store_v2.py`.
   - `scripts/generate_triple_barrier_labels.py`.
@@ -82,6 +87,7 @@
   - `scripts/build_feature_validation_reports.py`.
   - `scripts/build_ml_dataset_v3.py`.
   - `scripts/build_dataset_v3.py`.
+  - `scripts/train_meta_model_v3.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
@@ -93,6 +99,7 @@
   - `tests/test_fractional_diff.py`.
   - `tests/test_feature_validator.py`.
   - `tests/test_dataset_builder_v3.py`.
+  - `tests/test_meta_model_v3.py`.
 
 ### Environment Blockers (Current Machine)
 
@@ -141,6 +148,9 @@ python3 scripts/build_dataset_v3.py \
   --base data/feature_store/derived/cross_sectional_features.parquet \
   --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet \
   --output data/feature_store/training/ml_dataset_v3.parquet
+python3 scripts/train_meta_model_v3.py \
+  --dataset data/feature_store/training/ml_dataset_v3.parquet \
+  --output-dir logs
 ```
 
 ---
@@ -1321,7 +1331,11 @@ ml_dataset_v3_metadata.json
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, tests passed, artifacts generated)**
+- Completed files:
+  - `btc_scraper/ml_engine/meta_model_v3.py`
+  - `scripts/train_meta_model_v3.py`
+  - `tests/test_meta_model_v3.py`
 
 ### Tasks
 

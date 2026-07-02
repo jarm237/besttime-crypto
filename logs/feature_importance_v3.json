@@ -1,0 +1,223 @@
+{
+  "version": "v3",
+  "top_features": [
+    {
+      "feature": "ema_distance_zscore",
+      "importance": 0.03604341391263805
+    },
+    {
+      "feature": "adx",
+      "importance": 0.03246098949322303
+    },
+    {
+      "feature": "roc_14",
+      "importance": 0.02897218921162018
+    },
+    {
+      "feature": "mfi",
+      "importance": 0.02875134957769794
+    },
+    {
+      "feature": "cmf",
+      "importance": 0.028360565701263316
+    },
+    {
+      "feature": "return_1d",
+      "importance": 0.026541081650418286
+    },
+    {
+      "feature": "distance_resistance_pct",
+      "importance": 0.026310149287326542
+    },
+    {
+      "feature": "entry_dayofweek",
+      "importance": 0.026291486663979013
+    },
+    {
+      "feature": "regime_strong_trend",
+      "importance": 0.025520470586759464
+    },
+    {
+      "feature": "macd_hist",
+      "importance": 0.025066447535863345
+    },
+    {
+      "feature": "mtf_alignment",
+      "importance": 0.02425257177636876
+    },
+    {
+      "feature": "ema9_slope",
+      "importance": 0.02399506896515243
+    },
+    {
+      "feature": "return_4h",
+      "importance": 0.023912401940623967
+    },
+    {
+      "feature": "atr_percentile",
+      "importance": 0.023745682858407575
+    },
+    {
+      "feature": "sentiment_trend_up",
+      "importance": 0.023659401269731827
+    },
+    {
+      "feature": "volume_ratio",
+      "importance": 0.02321399081063983
+    },
+    {
+      "feature": "fracdiff_source_log_price",
+      "importance": 0.022916281341310157
+    },
+    {
+      "feature": "rsi",
+      "importance": 0.022708637232335824
+    },
+    {
+      "feature": "ema21_slope",
+      "importance": 0.022313329375954174
+    },
+    {
+      "feature": "volume_acceleration",
+      "importance": 0.022312580428027005
+    },
+    {
+      "feature": "return_15m",
+      "importance": 0.022294139353145316
+    },
+    {
+      "feature": "ema_distance_pct",
+      "importance": 0.02202455974692035
+    },
+    {
+      "feature": "roc_50",
+      "importance": 0.02166532281388186
+    },
+    {
+      "feature": "fracdiff_d_0_00",
+      "importance": 0.021326692135584344
+    },
+    {
+      "feature": "sentiment_momentum",
+      "importance": 0.02131407343979967
+    },
+    {
+      "feature": "bb_width_pct",
+      "importance": 0.02060476795944495
+    },
+    {
+      "feature": "distance_support_pct",
+      "importance": 0.01986782198969996
+    },
+    {
+      "feature": "fear_greed",
+      "importance": 0.019866595216770977
+    },
+    {
+      "feature": "realized_vol_20",
+      "importance": 0.019841539972741875
+    },
+    {
+      "feature": "return_1h",
+      "importance": 0.01982178029108282
+    },
+    {
+      "feature": "sma50_slope",
+      "importance": 0.019785128879295722
+    },
+    {
+      "feature": "hv20",
+      "importance": 0.019689427496000944
+    },
+    {
+      "feature": "hv60",
+      "importance": 0.018447705560855635
+    },
+    {
+      "feature": "obv",
+      "importance": 0.01805792569039049
+    },
+    {
+      "feature": "realized_vol_50",
+      "importance": 0.017618462046856635
+    },
+    {
+      "feature": "atr_pct",
+      "importance": 0.01752194796206151
+    },
+    {
+      "feature": "fracdiff_return_1_raw",
+      "importance": 0.017061992063802822
+    },
+    {
+      "feature": "volume_percentile",
+      "importance": 0.016339701140354206
+    },
+    {
+      "feature": "entry_hour",
+      "importance": 0.015580991726854076
+    },
+    {
+      "feature": "regime_compression",
+      "importance": 0.014769634514689135
+    },
+    {
+      "feature": "regime_ranging",
+      "importance": 0.012754804937269057
+    },
+    {
+      "feature": "signal_score",
+      "importance": 0.012012578259452022
+    },
+    {
+      "feature": "volatility_regime_panic_sell",
+      "importance": 0.011351235410685355
+    },
+    {
+      "feature": "volatility_regime_mean_reversion",
+      "importance": 0.010705553840505377
+    },
+    {
+      "feature": "sentiment_trend_down",
+      "importance": 0.010195701555386193
+    },
+    {
+      "feature": "regime_trending_bull",
+      "importance": 0.009892490318867866
+    },
+    {
+      "feature": "higher_high",
+      "importance": 0.008070217385805855
+    },
+    {
+      "feature": "market_structure_break",
+      "importance": 0.006386198741483589
+    },
+    {
+      "feature": "sentiment_recovery",
+      "importance": 0.006268991510463069
+    },
+    {
+      "feature": "volatility_regime_pump_risk",
+      "importance": 0.0052379277356874275
+    }
+  ],
+  "feature_groups": [
+    {
+      "group": "technical_cross_sectional",
+      "importance": 0.8465880100067243
+    },
+    {
+      "group": "regime",
+      "importance": 0.09210702445257822
+    },
+    {
+      "group": "fractional_diff",
+      "importance": 0.06130496554069732
+    },
+    {
+      "group": "cross_sectional",
+      "importance": 0.0
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "version": "v3",
+  "calibration_method": null,
+  "test_metrics": {
+    "roc_auc": 0.6,
+    "accuracy": 0.6,
+    "brier": 0.24148965484317095
+  },
+  "buckets": {
+    "0.0-0.4": {
+      "count": 12,
+      "wins": 5,
+      "losses": 7,
+      "actual_wr": 41.67,
+      "predicted_wr": 20.0,
+      "calibration_error": 21.67,
+      "calibrated": false
+    },
+    "0.4-0.6": {
+      "count": 31,
+      "wins": 13,
+      "losses": 18,
+      "actual_wr": 41.94,
+      "predicted_wr": 50.0,
+      "calibration_error": -8.06,
+      "calibrated": true
+    },
+    "0.6-0.7": {
+      "count": 2,
+      "actual_wr": null,
+      "predicted_wr": null,
+      "calibration_error": null,
+      "calibrated": false
+    },
+    "0.7-0.8": {
+      "count": 0,
+      "actual_wr": null,
+      "predicted_wr": null,
+      "calibration_error": null,
+      "calibrated": false
+    },
+    "0.8-1.0": {
+      "count": 0,
+      "actual_wr": null,
+      "predicted_wr": null,
+      "calibration_error": null,
+      "calibrated": false
+    }
+  }
+}

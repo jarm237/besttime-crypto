@@ -1,0 +1,169 @@
+{
+  "version": "v3",
+  "created_at": "2026-07-02T10:45:15.883436+00:00",
+  "dataset_path": "data/feature_store/training/ml_dataset_v3.parquet",
+  "n_samples": 300,
+  "n_features": 79,
+  "features": [
+    "signal_score",
+    "rsi",
+    "macd_hist",
+    "atr_pct",
+    "volume_ratio",
+    "fear_greed",
+    "ema_distance_pct",
+    "bb_width_pct",
+    "adx",
+    "mtf_alignment",
+    "regime_trending_bull",
+    "regime_trending_bear",
+    "regime_ranging",
+    "regime_high_volatility",
+    "return_15m",
+    "return_1h",
+    "return_4h",
+    "return_1d",
+    "ema9_slope",
+    "ema21_slope",
+    "sma50_slope",
+    "sma200_slope",
+    "ema_distance_zscore",
+    "realized_vol_20",
+    "realized_vol_50",
+    "atr_percentile",
+    "volatility_regime_compression",
+    "volatility_regime_breakout",
+    "volatility_regime_mean_reversion",
+    "volatility_regime_panic_sell",
+    "volatility_regime_low_liquidity",
+    "volatility_regime_pump_risk",
+    "distance_support_pct",
+    "distance_resistance_pct",
+    "higher_high",
+    "lower_low",
+    "market_structure_break",
+    "obv",
+    "cmf",
+    "mfi",
+    "volume_acceleration",
+    "volume_percentile",
+    "roc_14",
+    "roc_50",
+    "hv20",
+    "hv60",
+    "bos_bull",
+    "bos_bear",
+    "choch_bull",
+    "choch_bear",
+    "sentiment_momentum",
+    "sentiment_recovery",
+    "sentiment_risk",
+    "sentiment_trend_up",
+    "sentiment_trend_down",
+    "tf_1h_bull",
+    "tf_4h_bull",
+    "tf_1d_bull",
+    "regime_strong_trend",
+    "regime_weak_trend",
+    "regime_compression",
+    "regime_breakout",
+    "regime_mean_reversion",
+    "regime_panic_sell",
+    "regime_low_liquidity",
+    "regime_pump_risk",
+    "fracdiff_source_log_price",
+    "fracdiff_return_1_raw",
+    "fracdiff_d_0_00",
+    "fracdiff_d_0_20",
+    "fracdiff_d_0_40",
+    "fracdiff_d_0_60",
+    "fracdiff_d_0_80",
+    "fracdiff_d_selected",
+    "fracdiff_price",
+    "fracdiff_return_1",
+    "coin_AEVO",
+    "entry_hour",
+    "entry_dayofweek"
+  ],
+  "label_column": "result",
+  "label_distribution": {
+    "WIN": 141,
+    "LOSS": 159
+  },
+  "calibration_method": null,
+  "split": {
+    "train": 210,
+    "calib": 45,
+    "test": 45
+  },
+  "test_metrics": {
+    "roc_auc": 0.6,
+    "accuracy": 0.6,
+    "brier": 0.24148965484317095
+  },
+  "walk_forward": [
+    {
+      "train_range": [
+        0,
+        195
+      ],
+      "test_range": [
+        195,
+        240
+      ],
+      "n_train": 195,
+      "n_test": 45,
+      "roc_auc": 0.632,
+      "accuracy": 0.6444444444444445,
+      "brier": 0.2366150769036695
+    },
+    {
+      "train_range": [
+        45,
+        240
+      ],
+      "test_range": [
+        240,
+        285
+      ],
+      "n_train": 195,
+      "n_test": 45,
+      "roc_auc": 0.5830039525691699,
+      "accuracy": 0.5555555555555556,
+      "brier": 0.24760668624028254
+    }
+  ],
+  "model_comparison": {
+    "baseline_old_style": {
+      "roc_auc": 0.6040000000000001,
+      "accuracy": 0.5333333333333333,
+      "brier": 0.29283670698636216
+    },
+    "new_model_v3": {
+      "roc_auc": 0.6,
+      "accuracy": 0.6,
+      "brier": 0.24148965484317095
+    },
+    "delta_roc_auc": -0.004000000000000115,
+    "delta_accuracy": 0.06666666666666665,
+    "delta_brier": -0.05134705214319121,
+    "legacy_metrics_file": "logs/meta_model.json",
+    "legacy_metrics_loaded": true
+  },
+  "fallback": {
+    "old_model_path": "logs/meta_model.joblib",
+    "old_model_exists": true,
+    "strategy": "keep_old_model_as_fallback"
+  },
+  "config": {
+    "label_column": "result",
+    "time_column": "entry_time",
+    "coin_column": "coin",
+    "positive_label": "WIN",
+    "calibration": true,
+    "random_state": 42,
+    "train_ratio": 0.7,
+    "calib_ratio": 0.15,
+    "walk_forward_splits": 3
+  }
+}
