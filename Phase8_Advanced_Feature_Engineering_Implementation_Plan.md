@@ -19,6 +19,7 @@
 - Sprint 4 (Regime and Causal Features) is implemented in code.
 - Sprint 5 (Alternative Data Features) is implemented in code.
 - Sprint 6 (Cross-Sectional Features) is implemented in code.
+- Sprint 7 (Fractional Differencing) is implemented in code.
 - Runtime execution in current shell is blocked by missing Python dependencies.
 
 ### Completed in Repository
@@ -55,6 +56,10 @@
   - Coin ranking per timestamp from point-in-time returns.
   - Relative strength vs BTC and ETH baselines.
   - Sector/cluster-aware ranking and group excess-return features.
+- Implemented `fractional_diff.py` with:
+  - Fractional differencing transform for configurable candidate `d` values.
+  - Coin/timeframe-level `d` selection using ADF-style stationarity t-statistics.
+  - Optional enable/disable config and stationarity report payload builder.
 - Added scripts:
   - `scripts/build_feature_store_v2.py`.
   - `scripts/generate_triple_barrier_labels.py`.
@@ -63,6 +68,7 @@
   - `scripts/build_causal_features.py`.
   - `scripts/build_alternative_features.py`.
   - `scripts/build_cross_sectional_features.py`.
+  - `scripts/build_fracdiff_features.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
@@ -71,6 +77,7 @@
   - `tests/test_causal_features.py`.
   - `tests/test_alternative_features.py`.
   - `tests/test_cross_sectional_features.py`.
+  - `tests/test_fractional_diff.py`.
 
 ### Environment Blockers (Current Machine)
 
@@ -107,6 +114,10 @@ python3 scripts/build_alternative_features.py \
 python3 scripts/build_cross_sectional_features.py \
   --input logs/adaptive_signals_v2.json \
   --output data/feature_store/derived/cross_sectional_features.parquet
+python3 scripts/build_fracdiff_features.py \
+  --input logs/adaptive_signals_v2.json \
+  --output data/feature_store/derived/fracdiff_features.parquet \
+  --report data/feature_store/derived/fracdiff_report.json
 ```
 
 ---
@@ -1187,7 +1198,11 @@ cross_sectional_features.parquet
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/fractional_diff.py`
+  - `scripts/build_fracdiff_features.py`
+  - `tests/test_fractional_diff.py`
 
 ### Tasks
 

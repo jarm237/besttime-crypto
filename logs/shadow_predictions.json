@@ -9928,5 +9928,20 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "AEVOUSDT_1782988269",
+    "symbol": "AEVOUSDT",
+    "timestamp": 1782988269.0042286,
+    "timestamp_str": "2026-07-02 17:31:09",
+    "signal": "WEAK BUY (Crossover-Sentiment)",
+    "meta_prob": 0.6176,
+    "signal_score": 48,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

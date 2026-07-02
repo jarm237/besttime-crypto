@@ -4,6 +4,7 @@ from .alternative_features import AlternativeFeatureBuilder, AlternativeFeatureC
 from .causal_features import CausalFeatureBuilder, CausalFeatureConfig
 from .cross_sectional_features import CrossSectionalFeatureBuilder, CrossSectionalFeatureConfig
 from .feature_store import FeatureStoreV2
+from .fractional_diff import FractionalDiffBuilder, FractionalDiffConfig
 from .meta_labeling import MetaLabeler, MetaLabelingConfig
 from .regime_features import RegimeFeatureBuilder, RegimeFeatureConfig
 from .triple_barrier import TripleBarrierConfig, TripleBarrierLabeler
@@ -16,6 +17,8 @@ __all__ = [
     "CrossSectionalFeatureBuilder",
     "CrossSectionalFeatureConfig",
     "FeatureStoreV2",
+    "FractionalDiffBuilder",
+    "FractionalDiffConfig",
     "MetaLabeler",
     "MetaLabelingConfig",
     "RegimeFeatureBuilder",

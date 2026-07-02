@@ -1,0 +1,56 @@
+{
+  "timeframe": "15m",
+  "enabled": true,
+  "rows": 300,
+  "price_source": "return_15m",
+  "config": {
+    "enabled": true,
+    "d_candidates": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "adf_critical_value": -2.86,
+    "weight_threshold": 1e-05,
+    "max_weight_size": 256,
+    "min_valid_ratio": 0.3,
+    "epsilon": 1e-09
+  },
+  "coins": [
+    {
+      "coin": "AEVO",
+      "selected_d": 0.8,
+      "chosen_feature": "fracdiff_d_0_80",
+      "stationarity": [
+        {
+          "d": 0.0,
+          "adf_t_stat": -0.11743671552656369,
+          "valid_ratio": 1.0
+        },
+        {
+          "d": 0.2,
+          "adf_t_stat": -0.836525627159561,
+          "valid_ratio": 0.15
+        },
+        {
+          "d": 0.4,
+          "adf_t_stat": -2.5472792667061412,
+          "valid_ratio": 0.15
+        },
+        {
+          "d": 0.6,
+          "adf_t_stat": -4.3439618601759085,
+          "valid_ratio": 0.15
+        },
+        {
+          "d": 0.8,
+          "adf_t_stat": -7.217307081388944,
+          "valid_ratio": 0.24333333333333335
+        }
+      ],
+      "rows": 300
+    }
+  ]
+}
