@@ -94,6 +94,7 @@
   - `scripts/build_dataset_v3.py`.
   - `scripts/train_meta_model_v3.py`.
   - `scripts/build_label_quality_report.py`.
+  - `scripts/check_label_quality_threshold.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
@@ -162,6 +163,9 @@ python3 scripts/train_meta_model_v3.py \
 python3 scripts/build_label_quality_report.py \
   --fallback data/feature_store/training/ml_dataset_v3.parquet \
   --output data/feature_store/labels/label_quality_report.json
+python3 scripts/check_label_quality_threshold.py \
+  --report data/feature_store/labels/label_quality_report.json \
+  --output logs/label_quality_threshold_check.json
 ```
 
 ---
@@ -1382,20 +1386,24 @@ feature_importance_v3.json
 - Completed files:
   - `btc_scraper/feature_engineering/label_quality.py`
   - `scripts/build_label_quality_report.py`
+  - `scripts/check_label_quality_threshold.py`
   - `tests/test_label_quality_report.py`
   - `tests/test_phase8_pipeline.py`
+  - `.github/workflows/validate_model.yml`
 
 ### Tasks
 
 - Implement label quality reporter.
 - Add fallback logic when labels layer is unavailable.
 - Generate `label_quality_report.json` artifact.
+- Add threshold gate for label quality report (CI fail on violations).
 - Add Phase 8 pipeline smoke test file.
 
 ### Deliverables
 
 ```text
 label_quality_report.json
+label_quality_threshold_check.json
 tests/test_phase8_pipeline.py
 ```
 
@@ -1404,6 +1412,8 @@ tests/test_phase8_pipeline.py
 - Report includes triple/meta/trade-quality distributions.
 - Report computes label quality metrics and warnings.
 - Report can be generated from dataset v3 fallback.
+- Threshold checker returns non-zero exit code when any label quality threshold fails.
+- Existing CI workflow runs label quality build + threshold gate.
 - Phase 8 pipeline smoke test exists and passes.
 
 ---

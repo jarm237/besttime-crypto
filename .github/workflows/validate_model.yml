@@ -30,3 +30,23 @@ jobs:
       - name: Check metrics vs baseline
         run: |
           python scripts/check_metrics_threshold.py
+
+      - name: Build label quality report (Phase 8)
+        run: |
+          if [ -f data/feature_store/training/ml_dataset_v3.parquet ]; then
+            python scripts/build_label_quality_report.py \
+              --fallback data/feature_store/training/ml_dataset_v3.parquet \
+              --output data/feature_store/labels/label_quality_report.json
+          else
+            echo "Skipping label quality report build: fallback dataset not found"
+          fi
+
+      - name: Check label quality thresholds
+        run: |
+          if [ -f data/feature_store/labels/label_quality_report.json ]; then
+            python scripts/check_label_quality_threshold.py \
+              --report data/feature_store/labels/label_quality_report.json \
+              --output logs/label_quality_threshold_check.json
+          else
+            echo "Skipping label quality threshold check: report not found"
+          fi

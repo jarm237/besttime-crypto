@@ -16,6 +16,7 @@ app = FastAPI(title="Market Regime Dashboard")
 
 REGIME_PATH = Path(__file__).parent.parent / "logs" / "market_regime_latest.json"
 REGIME_CONFIG = Path(__file__).parent / "regime_config.json"
+LABEL_QUALITY_PATH = Path(__file__).resolve().parents[2] / "data" / "feature_store" / "labels" / "label_quality_report.json"
 
 
 def _load_latest():
@@ -87,6 +88,23 @@ def get_meta_model():
     except Exception as e:
         out["importance_error"] = str(e)
     return out
+
+
+@app.get("/label_quality", response_class=JSONResponse)
+def get_label_quality():
+    """Return latest Phase 8 label quality report."""
+    if not LABEL_QUALITY_PATH.exists():
+        return {
+            "message": "no_label_quality_report",
+            "path": str(LABEL_QUALITY_PATH),
+        }
+    try:
+        with open(LABEL_QUALITY_PATH, "r", encoding="utf-8") as f:
+            report = json.load(f)
+        report["source_path"] = str(LABEL_QUALITY_PATH)
+        return report
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @app.post("/meta_model/predict", response_class=JSONResponse)
@@ -255,6 +273,28 @@ def index(request: Request):
             <div id="applyMsg" style="color:var(--muted);margin-top:8px;font-size:13px"></div>
           </div>
         </div>
+
+        <div class="card" style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:16px;color:var(--muted);font-weight:700">Phase 8 Label Quality</div>
+            <div style="color:var(--muted);font-size:12px">Auto-loaded from label_quality_report.json</div>
+          </div>
+          <div class="meta" style="margin-top:10px">
+            <div class="stat">Triple rows: <strong id="lqTripleRows">-</strong></div>
+            <div class="stat">Meta rows: <strong id="lqMetaRows">-</strong></div>
+            <div class="stat">Trade rows: <strong id="lqTradeRows">-</strong></div>
+            <div class="stat">Exec rate: <strong id="lqExecRate">-</strong></div>
+            <div class="stat">Meta rate: <strong id="lqMetaRate">-</strong></div>
+            <div class="stat">Imbalance: <strong id="lqImbalance">-</strong></div>
+            <div class="stat">Warnings: <strong id="lqWarningsCount">-</strong></div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+            <pre id="lqDistTriple" class="json" style="flex:1;min-width:220px;max-height:120px">{}</pre>
+            <pre id="lqDistMeta" class="json" style="flex:1;min-width:220px;max-height:120px">{}</pre>
+            <pre id="lqDistTrade" class="json" style="flex:1;min-width:220px;max-height:120px">{}</pre>
+          </div>
+          <pre id="lqWarnings" class="json" style="margin-top:10px;max-height:100px">[]</pre>
+        </div>
       </div>
 
       <script>
@@ -345,6 +385,43 @@ def index(request: Request):
         const applySuggestBtn = document.getElementById('applySuggestBtn');
         const applyMsg = document.getElementById('applyMsg');
 
+        // label quality panel
+        function fmtPct(v){
+          if (typeof v !== 'number') return '-';
+          return (v * 100).toFixed(2) + '%';
+        }
+
+        async function loadLabelQuality(){
+          try{
+            const r = await fetch('/label_quality');
+            const j = await r.json();
+            if(j && j.message === 'no_label_quality_report'){
+              document.getElementById('lqWarnings').textContent = JSON.stringify([j.message], null, 2);
+              return;
+            }
+
+            const counts = j.counts || {};
+            const metrics = j.quality_metrics || {};
+            const dist = j.distributions || {};
+            const warnings = Array.isArray(j.warnings) ? j.warnings : [];
+
+            document.getElementById('lqTripleRows').textContent = String(counts.triple_barrier_rows ?? '-');
+            document.getElementById('lqMetaRows').textContent = String(counts.meta_label_rows ?? '-');
+            document.getElementById('lqTradeRows').textContent = String(counts.trade_quality_rows ?? '-');
+            document.getElementById('lqExecRate').textContent = fmtPct(metrics.executable_signal_rate);
+            document.getElementById('lqMetaRate').textContent = fmtPct(metrics.meta_execute_rate);
+            document.getElementById('lqImbalance').textContent = (typeof metrics.meta_class_imbalance_ratio === 'number') ? metrics.meta_class_imbalance_ratio.toFixed(3) : '-';
+            document.getElementById('lqWarningsCount').textContent = String(warnings.length);
+
+            document.getElementById('lqDistTriple').textContent = JSON.stringify(dist.triple_barrier_label || {}, null, 2);
+            document.getElementById('lqDistMeta').textContent = JSON.stringify(dist.meta_label || {}, null, 2);
+            document.getElementById('lqDistTrade').textContent = JSON.stringify(dist.trade_quality_bucket || {}, null, 2);
+            document.getElementById('lqWarnings').textContent = JSON.stringify(warnings, null, 2);
+          }catch(e){
+            document.getElementById('lqWarnings').textContent = JSON.stringify(['label_quality_fetch_failed', String(e)], null, 2);
+          }
+        }
+
         async function loadSuggested(){
           try{
             const r = await fetch('/tuning');
@@ -374,6 +451,8 @@ def index(request: Request):
         refreshSuggestBtn.addEventListener('click', loadSuggested);
         applySuggestBtn.addEventListener('click', applySuggested);
         setTimeout(loadSuggested, 600);
+        setTimeout(loadLabelQuality, 700);
+        setInterval(loadLabelQuality, 8000);
       </script>
     </body>
     </html>

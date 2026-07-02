@@ -37,8 +37,13 @@ python scripts/pack_model.py
 
 **CI (GitHub Actions)**
 - Một workflow mẫu đã được thêm: `.github/workflows/validate_model.yml`.
-- Mỗi push trên `logs/**` và `scripts/**` sẽ chạy `eval_meta_model.py` rồi `check_metrics_threshold.py`.
+- Mỗi push trên `logs/**` và `scripts/**` sẽ chạy:
+  - `eval_meta_model.py`
+  - `check_metrics_threshold.py`
+  - `build_label_quality_report.py`
+  - `check_label_quality_threshold.py`
 - Điều chỉnh ngưỡng trong `scripts/check_metrics_threshold.py` nếu muốn.
+- Điều chỉnh ngưỡng label quality trong `scripts/check_label_quality_threshold.py` nếu muốn.
 
 **Scheduling (Periodic Recalibration)**
 - Windows (PowerShell helper): `scripts/setup_scheduled_task.ps1`.
