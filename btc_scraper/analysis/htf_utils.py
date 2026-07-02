@@ -41,3 +41,14 @@ def summarize_htf_trend(mtf_data: Dict[str, dict]) -> str:
     if counts["BEAR"] > counts["BULL"]:
         return "BEARISH-MIXED"
     return "NEUTRAL"
+
+
+def format_htf_details(mtf_data: Dict[str, dict]) -> str:
+    """Format HTF details into string (e.g. 1D=BULL | 4H=BEAR | 1H=NEUTRAL)."""
+    parts = []
+    for tf in ["1d", "4h", "1h"]:
+        info = mtf_data.get(tf)
+        if info:
+            parts.append(f"{tf.upper()}={info.get('signal', 'N/A')}")
+    return " | ".join(parts)
+

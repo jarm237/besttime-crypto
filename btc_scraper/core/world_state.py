@@ -97,6 +97,24 @@ class RiskLayer:
 
 
 @dataclass
+class AlternativeDataLayer:
+    """Alternative data features that enrich the market state."""
+    exchange_netflow: float = 0.0
+    whale_score: float = 0.0
+    stablecoin_supply: float = 0.0
+    etf_flow: float = 0.0
+    options_iv: float = 0.0
+    orderbook_imbalance: float = 0.0
+    liquidity_pressure: float = 0.0
+    macro_pressure: float = 0.0
+    funding_pressure: float = 0.0
+    stablecoin_momentum: float = 0.0
+    etf_momentum: float = 0.0
+    risk_on_score: float = 0.0
+    updated_at: Optional[datetime] = None
+
+
+@dataclass
 class WorldState:
     """
     Unified market state snapshot.
@@ -113,6 +131,7 @@ class WorldState:
     crypto: CryptoLayer = field(default_factory=CryptoLayer)
     sentiment: SentimentLayer = field(default_factory=SentimentLayer)
     risk: RiskLayer = field(default_factory=RiskLayer)
+    alternative: AlternativeDataLayer = field(default_factory=AlternativeDataLayer)
     
     # Metadata
     is_snapshot: bool = False  # Whether loaded from snapshot
@@ -133,13 +152,14 @@ class WorldState:
             "crypto": asdict(self.crypto),
             "sentiment": asdict(self.sentiment),
             "risk": asdict(self.risk),
+            "alternative": asdict(self.alternative),
             "is_snapshot": self.is_snapshot,
             "snapshot_id": self.snapshot_id,
             "source": self.source,
             "custom_indicators": self.custom_indicators,
         }
         # Convert datetime fields to ISO format
-        for layer_name in ["macro", "liquidity", "crypto", "sentiment", "risk"]:
+        for layer_name in ["macro", "liquidity", "crypto", "sentiment", "risk", "alternative"]:
             if result[layer_name]["updated_at"]:
                 result[layer_name]["updated_at"] = result[layer_name]["updated_at"].isoformat()
         
@@ -185,6 +205,13 @@ class WorldState:
         })
         if data.get("risk", {}).get("updated_at"):
             risk.updated_at = datetime.fromisoformat(data["risk"]["updated_at"])
+
+        alternative = AlternativeDataLayer(**{
+            k: v for k, v in data.get("alternative", {}).items()
+            if k != "updated_at"
+        })
+        if data.get("alternative", {}).get("updated_at"):
+            alternative.updated_at = datetime.fromisoformat(data["alternative"]["updated_at"])
         
         regime = MarketRegime(data.get("regime", "unknown"))
         liquidity_regime = LiquidityRegime(data.get("liquidity_regime", "normal"))
@@ -198,6 +225,7 @@ class WorldState:
             crypto=crypto,
             sentiment=sentiment,
             risk=risk,
+            alternative=alternative,
             is_snapshot=data.get("is_snapshot", False),
             snapshot_id=data.get("snapshot_id"),
             source=data.get("source", "realtime"),

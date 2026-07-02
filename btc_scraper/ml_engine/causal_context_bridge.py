@@ -20,6 +20,7 @@ import datetime
 from typing import Dict, Optional
 
 from btc_scraper.collectors.macro_collector import load_macro_state
+from btc_scraper.collectors.alternative_data import load_alternative_data
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,21 @@ def build_world_state_from_ana(ana: Dict):
         state.macro.VIX = float(macro_state.get("VIX", 20.0))
         state.macro.RealYield = float(macro_state.get("RealYield", 0.0))
         state.macro.BondYield = float(macro_state.get("BondYield", 4.5))
+
+        # Alternative data features with safe defaults
+        alt_state = load_alternative_data()
+        state.alternative.exchange_netflow = float(alt_state.get("exchange_netflow", 0.0))
+        state.alternative.whale_score = float(alt_state.get("whale_score", 0.0))
+        state.alternative.stablecoin_supply = float(alt_state.get("stablecoin_supply", 0.0))
+        state.alternative.etf_flow = float(alt_state.get("etf_flow", 0.0))
+        state.alternative.options_iv = float(alt_state.get("options_iv", 0.0))
+        state.alternative.orderbook_imbalance = float(alt_state.get("orderbook_imbalance", 0.0))
+        state.alternative.liquidity_pressure = float(alt_state.get("liquidity_pressure", 0.0))
+        state.alternative.macro_pressure = float(alt_state.get("macro_pressure", 0.0))
+        state.alternative.funding_pressure = float(alt_state.get("funding_pressure", 0.0))
+        state.alternative.stablecoin_momentum = float(alt_state.get("stablecoin_momentum", 0.0))
+        state.alternative.etf_momentum = float(alt_state.get("etf_momentum", 0.0))
+        state.alternative.risk_on_score = float(alt_state.get("risk_on_score", 0.0))
 
         return state
     except Exception as exc:

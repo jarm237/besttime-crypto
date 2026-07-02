@@ -62,9 +62,9 @@ class MarketAnalystAgent(BaseAgent):
             mtf_analysis_results[coin] = mtf_ana_dict
             
             # Gắn HTF Trend
-            from main import _summarize_htf_trend, _format_htf_details
-            htf_trend = _summarize_htf_trend(mtf_ana_dict)
-            htf_details = _format_htf_details(mtf_ana_dict)
+            from btc_scraper.analysis.htf_utils import summarize_htf_trend, format_htf_details
+            htf_trend = summarize_htf_trend(mtf_ana_dict)
+            htf_details = format_htf_details(mtf_ana_dict)
             analysis_results[f"{coin}:Binance"]["htf_trend"] = htf_trend
             analysis_results[f"{coin}:Binance"]["htf_details"] = htf_details
 

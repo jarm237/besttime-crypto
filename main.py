@@ -59,12 +59,11 @@ def _summarize_htf_trend(mtf_data: dict[str, dict]) -> str:
 
 
 def _format_htf_details(mtf_data: dict[str, dict]) -> str:
-    parts = []
-    for tf in ["1d", "4h", "1h"]:
-        info = mtf_data.get(tf)
-        if info:
-            parts.append(f"{tf.upper()}={info.get('signal', 'N/A')}")
-    return " | ".join(parts)
+    try:
+        from btc_scraper.analysis.htf_utils import format_htf_details
+        return format_htf_details(mtf_data)
+    except Exception:
+        return ""
 
 console = Console()
 
