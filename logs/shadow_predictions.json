@@ -9508,5 +9508,50 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1782955484",
+    "symbol": "NEARUSDT",
+    "timestamp": 1782955484.719667,
+    "timestamp_str": "2026-07-02 08:24:44",
+    "signal": "WEAK BUY (Crossover-Sentiment)",
+    "meta_prob": 0.4574,
+    "signal_score": 48,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1782956777",
+    "symbol": "NEARUSDT",
+    "timestamp": 1782956777.4519353,
+    "timestamp_str": "2026-07-02 08:46:17",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4077,
+    "signal_score": 32,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1782957510",
+    "symbol": "NEARUSDT",
+    "timestamp": 1782957510.8287635,
+    "timestamp_str": "2026-07-02 08:58:30",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.4574,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

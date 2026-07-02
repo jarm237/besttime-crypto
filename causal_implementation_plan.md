@@ -1,6 +1,70 @@
 # Kế Hoạch Triển Khai & Kiến Trúc Causal World Model (v2.0)
 
+> **Cập nhật lần cuối**: 02/07/2026 | **Trạng thái tổng thể**: ✅ Phase 2.1 → Phase D HOÀN TẤT | **Test Suite**: 196/196 PASSED
+
+## Quick Status Dashboard
+
+| Phase | Tên | Tests | Trạng thái | Deployment |
+|-------|-----|-------|-----------|-----------|
+| **2.1** | Integration & Go-Live | 18/18 ✅ | Production | `decide_with_provider()` active |
+| **3.0** | Learning & Discovery | 33/33 ✅ | Production | `CAUSAL_ALPHA=0.0` (safe mode) |
+| **4.0** | Scenario Simulation | 3/3 ✅ | Production | CLI + API available |
+| **5.0** | Digital Twin | 2/2 ✅ | Production | `WorldModelPredictor` active |
+| **6.0** | Multi-Agent Collaboration | 2/2 ✅ | Production | `ConsensusEngine` active |
+| **A** | CausalContextBridge | 10/10 ✅ | Production | Singleton init on startup |
+| **B** | CausalGate in SignalAgent | — ✅ | Production | CRITICAL→NEUTRAL gate active |
+| **C** | decide_with_provider entry | — ✅ | Production | Default entry point |
+| **D** | Counterfactual in Execution | — ✅ | Production | Auto-logs losing trades |
+| **Total** | **All Phases** | **196/196** | **✅ Production** | **CAUSAL_ALPHA=0.0** |
+
+### Deployment Config (hiện tại)
+
+```env
+# Causal Safe Mode (default — tương đương Phase 2.1 behavior)
+CAUSAL_ALPHA=0.0
+
+# Để kích hoạt Bayesian blending sau shadow mode validation:
+# CAUSAL_ALPHA=0.1   → 90% rules + 10% Bayesian
+# CAUSAL_ALPHA=0.3   → 70% rules + 30% Bayesian (sau nhiều tuần validation)
+```
+
+```json5
+// data/context_rules.json
+{
+  "enable_learned_rules": false,     // true sau khi review CausalDiscovery output
+  "causal_alpha_override": null,     // null → đọc từ env var CAUSAL_ALPHA
+  "causal_discovery_min_confidence": 0.6
+}
+```
+
+### Tất cả Files đã tạo (Phase A-D)
+
+| File | Phase | Purpose |
+|------|-------|---------|
+| `btc_scraper/ml_engine/causal_context_bridge.py` | A | Singleton bridge, WorldState builder |
+| `btc_scraper/ml_engine/bayesian_context_provider.py` | 3.0 | Gaussian Bayesian inference |
+| `btc_scraper/ml_engine/hybrid_context_provider.py` | 3.0 | Alpha-blended Rule+Bayesian |
+| `btc_scraper/ml_engine/causal_simulator.py` | 4.0 | Do-calculus intervention simulator |
+| `btc_scraper/ml_engine/counterfactual_engine.py` | D | What-if trade analysis |
+| `btc_scraper/ml_engine/world_model_predictor.py` | 5.0 | Digital Twin state predictor |
+| `btc_scraper/ml_engine/causal_anomaly_detector.py` | 5.0 | Structural break detection |
+| `btc_scraper/ml_engine/agents/macro_agent.py` | 6.0 | DXY/Yields watcher |
+| `btc_scraper/ml_engine/agents/liquidity_agent.py` | 6.0 | Funding/OI watcher |
+| `btc_scraper/ml_engine/agents/sentiment_agent.py` | 6.0 | Fear&Greed watcher |
+| `btc_scraper/ml_engine/agents/consensus_engine.py` | 6.0 | Bayesian Fusion / Causal Voting |
+| `btc_scraper/analysis/signal_tracker.py` | — | Persistent signal state (TTL 90m) |
+| `btc_scraper/collectors/macro_collector.py` | — | DXY, VIX, RealYield fetcher |
+| `tests/test_causal_context_bridge.py` | A | 10 integration tests |
+| `tests/test_causal_runtime_integration.py` | A-D | End-to-end runtime |
+| `tests/test_phase40_simulation.py` | 4.0 | Simulator + Counterfactual |
+| `tests/test_phase50_world_model.py` | 5.0 | Digital Twin + Anomaly |
+| `tests/test_phase60_multiagent.py` | 6.0 | Multi-Agent Consensus |
+
+---
+
 Tài liệu này mô tả chi tiết kiến trúc nền tảng **Architecture v2.0** của Causal World Model trong hệ thống `besttime-crypto`. Phiên bản này đã chuyển đổi từ kiến trúc module tĩnh sang **Event-Driven Architecture** (hướng sự kiện) với khả năng quản lý trạng thái tập trung (Centralized State Management), sẵn sàng cho các giai đoạn nâng cao (Causal Discovery, World Model, RL, LLM).
+
+---
 
 ---
 
@@ -210,3 +274,66 @@ Chia nhỏ hệ thống context thành các Sub-Agent chuyên biệt giao tiếp
 **Verification:**
 - Chạy: `./.venv/bin/python -m pytest -q tests/test_phase60_multiagent.py`
 - Kết quả: `2 passed in 9.04s`
+
+---
+
+### Phase A: CausalContextBridge + WorldState Integration ✅ COMPLETE
+
+Bridge singleton kết nối `HybridContextProvider` và `MetaDecisionEngine` vào `SignalGeneratorAgent` mà không coupling trực tiếp `ml_engine` internals vào `multi_agent.py`.
+
+- [x] **Tạo `causal_context_bridge.py`**: Singleton `HybridContextProvider` và `MetaDecisionEngine`, `build_world_state_from_ana()` map analysis dict → WorldState.
+- [x] **Kết nối macro_collector**: `load_macro_state()` cung cấp DXY/VIX/RealYield từ collector cho WorldState (với fallback defaults an toàn).
+- [x] **Graceful Degradation**: Toàn bộ causal flow wrapped trong try/except — không bao giờ làm gián đoạn core trading.
+- [x] **Tests**: `tests/test_causal_context_bridge.py` — **10/10 PASSED**.
+
+**Files Created/Modified:**
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/causal_context_bridge.py` | Singleton bridge + WorldState builder | ✅ NEW |
+| `tests/test_causal_context_bridge.py` | 10 integration tests | ✅ NEW |
+
+### Phase B: CausalGate trong SignalGeneratorAgent ✅ COMPLETE
+
+Tích hợp `enhance_signal_with_causal_context()` vào `SignalGeneratorAgent.run()` với safety gate logic:
+
+- [x] **CRITICAL risk** → Override `action` sang `NEUTRAL` (hard gate).
+- [x] **HIGH/MEDIUM risk** → Set `causal_warning=True` flag (soft gate, không override).
+- [x] **LOW risk** → Pass through không thay đổi.
+- [x] **CAUSAL_ALPHA env var**: Điều chỉnh mức blend Rule/Bayesian từ deployment config.
+
+### Phase C: decide_with_provider() ✅ COMPLETE
+
+- [x] **`MetaDecisionEngine.decide_with_provider()`**: Preferred entry point v2.0 — decoupled hoàn toàn khỏi implementation cụ thể.
+- [x] Mọi thay đổi ContextProvider (Rule → Bayesian → RL → LLM) không yêu cầu sửa DecisionEngine.
+
+### Phase D: CounterfactualEngine trong ExecutionAgent ✅ COMPLETE
+
+- [x] **Tự động phân tích lệnh thua**: Lấy 10 closed trades gần nhất, lọc PnL < -0.5%, xử lý tối đa 3/cycle.
+- [x] **Ghi `logs/counterfactual_log.json`**: Persist kết quả phân tích, giới hạn 200 bản ghi mới nhất.
+- [x] **Shock mặc định**: DXY +5% propagated qua causal graph để estimate counterfactual exit price.
+
+**Verification toàn bộ suite (02/07/2026):**
+- Chạy: `./.venv/bin/python -m pytest tests/ -q`
+- Kết quả: **196 passed, 14 warnings, 5 subtests passed in 371.59s**
+
+---
+
+## 5. NEXT STEPS (Recommended)
+
+### Sprint 1-2 (Hardening)
+- [ ] Fix circular import: tách `_summarize_htf_trend` → `btc_scraper/analysis/htf_utils.py`
+- [ ] Implement graceful shutdown (`shutdown_event`, sentinel `ai_queue`)
+- [ ] Atomic file write utility (`write-tmp + os.replace`)
+- [ ] Pin dependencies: `pip freeze > requirements-lock.txt`
+
+### Sprint 3-4 (Causal Activation)
+- [ ] 2-4 tuần shadow mode baseline với `CAUSAL_ALPHA=0.0`
+- [ ] Activate `CAUSAL_ALPHA=0.1` → monitor shadow PnL delta
+- [ ] Weekly `CausalDiscoveryEngine.discover()` trên 6 tháng data
+- [ ] Grafana dashboard cho causal monitoring metrics
+
+### Sprint 5-8 (RL Improvement)
+- [ ] Simplify reward function (bỏ heuristic bonuses)
+- [ ] Chuyển sang `MlpLstmPolicy` (SB3-Contrib)
+- [ ] Tăng step size từ 15m → 1h
+- [ ] Thêm asset-specific volatility features vào State Space

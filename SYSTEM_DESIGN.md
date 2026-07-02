@@ -1,89 +1,130 @@
 # AI Quant Trading System Design Document (TDD)
 
-Tài liệu này đóng vai trò là **Technical Design Document (TDD)** tổng thể, mô tả toàn bộ kiến trúc, luồng dữ liệu, feature engineering và định hướng phát triển từ một Signal Bot thành nền tảng **AI Quant Trading Platform** hoàn chỉnh.
+> **Cập nhật lần cuối**: 02/07/2026 — Architecture v2.1 (Causal World Model production-integrated)
+
+Tài liệu này đóng vai trò là **Technical Design Document (TDD)** tổng thể, mô tả kiến trúc, luồng dữ liệu, feature engineering, Causal AI stack và định hướng phát triển của nền tảng **AI Quant Trading Platform**.
 
 ---
 
 ## 1. Architecture Diagram
 
-Sơ đồ kiến trúc tổng thể mô tả luồng xử lý từ dữ liệu thị trường cho đến bước thực thi lệnh tự động.
+Sơ đồ kiến trúc tổng thể phản ánh kiến trúc v2.1 (Event-Driven + Causal World Model):
 
 ```text
-Market Data (Binance OHLCV)
-            │
-            ▼
-Indicator Engine
-(ATR, RSI, EMA, SMA, MACD, BB)
-            │
-            ▼
-Signal Engine (7 Layers)
-            │
-            ▼
-Feature Extractor
-            │
-            ▼
-Meta Model (RF/Ensemble)
-            │
-            ▼
-Signal Scoring
-(meta_confidence)
-            │
-            ▼
-Risk Manager
-(Position Sizing, Circuit Breaker)
-            │
-            ▼
-Portfolio Optimizer
-            │
-            ▼
-Execution Engine (CCXT)
-            │
-            ▼
-Position Manager
-            │
-            ▼
-RL Exit Agent
-            │
-            ▼
-Dashboard + Telegram + API
+Market Data (Binance WebSocket / REST fallback)
+             │
+             ▼
+     CandleStore (thread-safe)
+             │
+             ▼
+   MarketAnalystAgent (MTF: 15m/1h/4h/1d)
+             │
+             ▼
+   Indicator Engine (vectorized Pandas/NumPy)
+   (ATR, RSI, EMA9/21, SMA50/200, MACD, BB, Chandelier)
+             │
+             ▼
+   Signal Engine (7 Layers)
+   L1: SMA200 Trend → L2: SMA50 Pullback → L3: EMA Crossover
+   L4: Chandelier → L5: Volume+SFP → L6: Fear&Greed → L7: ML Scoring
+             │
+             ▼
+   SignalGeneratorAgent
+   ├─ Feature Extractor → Meta Model (RF+LGBM+CatBoost+XGB)
+   ├─ Signal Score + Kelly Fraction
+   └─ CausalContextBridge ──────────────────────────────────────┐
+             │                                                   │
+             ▼                                                   ▼
+   CausalGate (CRITICAL→NEUTRAL)           WorldStateManager (5 layers)
+             │                              ├─ Macro (DXY, VIX, RealYield)
+             ▼                              ├─ Liquidity (Funding, OI)
+   RiskManagerAgent                         ├─ Crypto (BTC, ETH prices)
+   (Drawdown gate, risk multiplier)         ├─ Sentiment (FearGreed)
+             │                              └─ Risk (Drawdown, Vol)
+             ▼                                        │
+   PortfolioManagerAgent (MVO)                        ▼
+             │                             HybridContextProvider
+             ▼                             ├─ RuleContextProvider (alpha=0)
+   RLExitAgent (PPO model)                 └─ BayesianContextProvider (alpha>0)
+             │                                        │
+             ▼                                        ▼
+   ExecutionAgent (CCXT async)          MetaDecisionEngine.decide_with_provider()
+   ├─ Shadow Log                                      │
+   └─ CounterfactualEngine ─────────────────────────────
+             │
+             ▼
+   logs/counterfactual_log.json
+             │
+             ▼
+   Dashboard + Telegram + API (port 8000)
 ```
 
 ---
 
 ## 2. Data Pipeline
 
-### 2.1. Data Flow
-
-Luồng dữ liệu liên tục phục vụ cho quá trình **Continuous Learning**.
+### 2.1. Data Flow — Continuous Learning
 
 ```text
-Binance API
+Binance WebSocket (realtime)
       │
       ▼
-OHLCV Cache
+CandleStore (in-memory, thread-safe RLock)
       │
       ▼
-Feature Extraction
+Feature Extraction (vectorized Pandas/NumPy)
       │
       ▼
-Signal Generation
+Signal Generation (7 layers)
       │
       ▼
-Trade Execution
+ML Ensemble Scoring (meta_confidence, kelly_fraction)
       │
       ▼
-Closed Positions
+Causal Context Enhancement (HybridContextProvider)
       │
       ▼
-ML Dataset
+Trade Execution (CCXT async / Dry Run)
       │
       ▼
-Continuous Learning
+Closed Positions → MongoDB Atlas
+      │
+      ▼
+ML Dataset (logs/adaptive_signals_v2.json)
+      │
+      ▼
+Continuous Learning (scripts/continuous_learning.py — weekly)
 ```
 
-### 2.2. Dataset Schema
+### 2.2. Causal Context Data Flow (v2.0)
 
-Dữ liệu được chuẩn hoá thành một bộ khung (schema) rõ ràng để hỗ trợ Retrain, Feature Selection, Explainable AI và Dataset Versioning.
+```text
+Analysis Dict (coin)
+      │
+      ▼
+build_world_state_from_ana()
+      │  ├─ sentiment.FearGreed
+      │  ├─ liquidity.BTC_Funding, OI_Delta
+      │  ├─ crypto.BTC_Price
+      │  └─ macro.DXY/VIX/RealYield (from macro_collector)
+      ▼
+WorldState
+      │
+      ▼
+HybridContextProvider.generate_context_report(score, state)
+      │  ├─ RuleContextProvider (rule-based adjustments)
+      │  └─ BayesianContextProvider (Gaussian inference, alpha-blended)
+      ▼
+ContextReport (adjusted_score, risk_level, adjustments)
+      │
+      ▼
+MetaDecisionEngine.decide_with_provider()
+      │
+      ▼
+Enhanced Decision {action, posterior, context_risk_level, context_adjustment}
+```
+
+### 2.3. Dataset Schema
 
 ```python
 timestamp               # Thời gian đóng nến
@@ -92,132 +133,188 @@ direction               # Chiều vị thế (LONG / SHORT)
 signal_score            # Điểm tín hiệu rule-based
 rsi                     # Relative Strength Index
 macd_hist               # MACD Histogram
-atr_pct                 # Normalized ATR (độ biến động)
-volume_ratio            # Đột biến thanh khoản
-fear_greed              # Chỉ số F&G Index (-1.0 đến 1.0)
-ema_distance_pct        # Khoảng cách từ giá đến đường EMA
-bb_width_pct            # Độ nén Bollinger Bands
-adx                     # Sức mạnh xu hướng
-mtf_alignment           # Đồng thuận đa khung thời gian
-regime                  # Trạng thái thị trường
-meta_confidence         # Xác suất chiến thắng (mô hình AI dự đoán)
-entry_price             # Giá vào lệnh
-sl_price                # Giá Stop Loss
-tp_price                # Giá Take Profit
-hold_hours              # Thời gian giữ lệnh (giờ)
-is_win                  # Label mục tiêu (1 = Win, 0 = Loss)
+atr_pct                 # Normalized ATR
+volume_ratio            # Volume spike ratio
+fear_greed              # Fear & Greed Index (-1.0 → +1.0)
+ema_distance_pct        # Khoảng cách EMA
+bb_width_pct            # Bollinger Bands width
+adx                     # Trend strength
+mtf_alignment           # MTF confluence (-1/0/+1 per timeframe)
+regime                  # Market regime (8 states)
+meta_confidence         # ML win probability [0,1]
+causal_risk_level       # Causal context risk (LOW/MEDIUM/HIGH/CRITICAL)
+causal_alpha            # Blending factor used
+entry_price / sl_price / tp_price
+hold_hours
+is_win                  # Target label (1=Win, 0=Loss)
 ```
 
 ---
 
-## 3. Feature Engineering Roadmap
+## 3. Multi-Agent Architecture
 
-Hệ thống đang mở rộng bộ đặc trưng kỹ thuật từ **14 Features** lên **40-60 Features** để tăng cường sức mạnh phán đoán cho các mô hình Machine Learning.
+6 Agent chạy tuần tự trong `AgentOrchestrator`:
+
+| Agent | Vai trò | File |
+|-------|---------|------|
+| `MarketAnalystAgent` | Phân tích 15m + MTF (1h/4h/1d), HTF Trend Summary | `ml_engine/multi_agent.py` |
+| `SignalGeneratorAgent` | ML scoring + Causal Context Bridge + CausalGate | `ml_engine/multi_agent.py` |
+| `RiskManagerAgent` | Drawdown gate (<10%), risk multiplier (consecutive losses) | `ml_engine/multi_agent.py` |
+| `PortfolioManagerAgent` | MVO allocation khi ≥2 tín hiệu đồng thời | `ml_engine/multi_agent.py` |
+| `RLExitAgent` | Load PPO model, shadow mode logging | `ml_engine/multi_agent.py` |
+| `ExecutionAgent` | CCXT async, shadow log, CounterfactualEngine hook | `ml_engine/multi_agent.py` |
+
+---
+
+## 4. Causal World Model Stack (v2.1)
+
+### 4.1. 5 Thành phần Nền tảng (Phase 2.0)
+
+| Component | File | Vai trò |
+|-----------|------|---------|
+| `WorldStateManager` | `core/world_state.py` | Single source of truth, thread-safe (RLock) |
+| `EventBus` | `core/event_bus.py` | Pub/Sub, 10 event types, ready for Kafka/Redis |
+| `ContextProvider` | `ml_engine/context_provider.py` | Abstract interface — strategy pattern |
+| `SnapshotManager` | `core/feature_snapshot.py` | Replay/Debug/Counterfactual |
+| `CausalMonitor` | `ml_engine/causal_monitoring.py` | Metrics & JSON dashboard |
+
+### 4.2. Các Phase Đã Triển Khai
+
+| Phase | Mô tả | Test | Trạng thái |
+|-------|-------|------|-----------|
+| **2.1** | RuleContextProvider, CausalEventHandlers, `decide_with_provider()` | 18/18 | ✅ Production |
+| **3.0** | BayesianContextProvider, CausalDiscoveryEngine, HybridContextProvider | 33/33 | ✅ Production |
+| **4.0** | CausalSimulator, CounterfactualEngine, CLI | 3/3 | ✅ Production |
+| **5.0** | WorldModelPredictor, CausalAnomalyDetector | 2/2 | ✅ Production |
+| **6.0** | MacroAgent, LiquidityAgent, SentimentAgent, ConsensusEngine | 2/2 | ✅ Production |
+| **A** | CausalContextBridge, build_world_state_from_ana(), singleton | 10/10 | ✅ Production |
+| **B** | CausalGate trong SignalGeneratorAgent | — | ✅ Production |
+| **C** | decide_with_provider() entry point | — | ✅ Production |
+| **D** | CounterfactualEngine hook trong ExecutionAgent | — | ✅ Production |
+
+### 4.3. Triển Khai An Toàn (Safe Rollout)
+
+```bash
+# Bước 1: Alpha=0.0 (rule-only) — default, an toàn tuyệt đối
+CAUSAL_ALPHA=0.0
+
+# Bước 2: Sau 2-4 tuần shadow mode → xem xét
+CAUSAL_ALPHA=0.1    # 90% rules + 10% Bayesian
+
+# Bước 3: Weekly discovery (recommended)
+python -c "from btc_scraper.ml_engine.causal_discovery import CausalDiscoveryEngine; CausalDiscoveryEngine().discover()"
+
+# Bước 4: Enable learned rules trong context_rules.json
+# "enable_learned_rules": true
+```
+
+---
+
+## 5. Feature Engineering
+
+Bộ đặc trưng **40+ features** qua Feature Extractor:
 
 ### Momentum
 ```python
-return_15m
-return_1h
-return_4h
-return_1d
-roc_14
-roc_50
+return_15m, return_1h, return_4h, return_1d, roc_14, roc_50
 ```
 
 ### Trend
 ```python
-ema9_slope
-ema21_slope
-sma50_slope
-sma200_slope
-trend_strength
+ema9_slope, ema21_slope, sma50_slope, sma200_slope, trend_strength
+tf_1h_bull, tf_4h_bull, tf_1d_bull   # MTF per-TF direction features
 ```
 
 ### Volatility
 ```python
-realized_vol_20
-realized_vol_50
-atr_percentile
-hv20
-hv60
+realized_vol_20, realized_vol_50, atr_percentile, hv20, hv60
 ```
 
 ### Liquidity
 ```python
-obv
-cmf
-mfi
-volume_percentile
-volume_acceleration
+obv, cmf, mfi, volume_percentile, volume_acceleration
 ```
 
 ### Market Structure
 ```python
-distance_support
-distance_resistance
-higher_high
-lower_low
-bos
-choch
+distance_support, distance_resistance, higher_high, lower_low, bos, choch
 ```
+
+### Causal/Macro (Phase 3.0+)
+```python
+DXY, VIX, RealYield, BondYield, BTC_Funding, OI_Delta, FearGreed
+causal_risk_level, causal_alpha
+```
+
+**Anti-overfitting**: Feature Correlation Filter loại bỏ features > 0.85 correlation.
 
 ---
 
-## 4. Explainable AI (XAI)
-
-XAI được áp dụng để đảm bảo AI Quant Trading không phải là một "hộp đen", cho phép giải thích được lý do đằng sau các quyết định vào lệnh.
+## 6. Explainable AI (XAI)
 
 ### Feature Importance
-Đánh giá mức độ quan trọng của đặc trưng trực tiếp từ cây quyết định:
 ```python
-RandomForest.feature_importances_
+RandomForest.feature_importances_   # Direct tree importance
 ```
 
-### SHAP (SHapley Additive exPlanations)
-Phân tích chi tiết mức đóng góp của từng feature vào một dự đoán cụ thể:
+### SHAP
 ```python
-shap.TreeExplainer
+shap.TreeExplainer   # Per-prediction feature contribution
 ```
 
-### Permutation Importance
-Đo lường độ sụt giảm độ chính xác của model khi giá trị của một tính năng bị xáo trộn:
+### Causal Reasoning (`CausalReasoningEngine`)
 ```python
-sklearn.inspection.permutation_importance
+engine = CausalReasoningEngine("data/causal_graph.json")
+reasoning = engine.generate_reasoning_tree(target="BTC", signal_direction="BUY")
+print(reasoning.explanation)
+# "BUY signal driven by: DXY, RealYield. Primary path: FedRate → BondYield → DXY → BTC. Confidence: 82%."
 ```
-
-**Tích hợp Dashboard:**
-- Top Alpha Features (Những đặc trưng mang lại lợi thế cao nhất)
-- Feature Drift (Cảnh báo khi phân phối dữ liệu đầu vào bị lệch)
-- Feature Correlation (Mức độ tương quan giữa các đặc trưng)
 
 ---
 
-## 5. Dynamic Position Sizing
+## 7. Dynamic Position Sizing
 
-Thay vì rủi ro cố định `Risk = 2%` cho mọi lệnh, hệ thống sử dụng **Kelly Fraction** để phân bổ vốn tối ưu dựa trên độ tin cậy của lệnh. Rõ ràng, một tín hiệu có `95% confidence` phải được vào vốn mạnh hơn so với `85% confidence`.
-
-### Kelly Fraction Formula
-
+### Kelly Fraction
 $$f^* = \frac{bp - q}{b}$$
 
-Trong đó:
-- **b** = Reward/Risk Ratio (Tỷ lệ lợi nhuận / rủi ro)
-- **p** = `meta_confidence` (Xác suất thắng dự đoán bởi AI)
-- **q** = $1 - p$ (Xác suất thua)
+- **b** = Reward/Risk Ratio
+- **p** = `meta_confidence` (xác suất thắng từ ML)
+- **q** = 1 − p
 
-**Triển khai:**
 ```python
-# Giảm hệ số Kelly (Fractional Kelly) để quản trị rủi ro tốt hơn
-position_size = 0.25 * kelly_fraction
+position_size = 0.25 * kelly_fraction   # Fractional Kelly (25%)
+```
+
+### Portfolio Optimization (MVO — khi ≥2 tín hiệu đồng thời)
+```python
+# Mean-Variance Optimization
+weights = PortfolioManager(method="MVO", risk_aversion=2.0, max_weight=0.30)
+         .allocate_weights(signals_info, raw_candles)
 ```
 
 ---
 
-## 6. Walk Forward Validation
+## 8. Reinforcement Learning Exit Manager
 
-Thay vì sử dụng k-fold CV truyền thống (gây rò rỉ dữ liệu trong chuỗi thời gian), hệ thống áp dụng kỹ thuật cửa sổ trượt để kiểm thử liên tục.
+### Môi trường (Gymnasium)
+- **State Space**: 18D — RSI, MACD Hist, ATR%, ADX, BB Width, meta_confidence, fear_greed, volume_ratio, PnL%, hold_time, Market Regime (8-dim one-hot)
+- **Action Space**: 6 discrete — `HOLD`, `PARTIAL_CLOSE_50`, `MOVE_SL_BREAKEVEN`, `TAKE_PROFIT`, `EXIT`, `TRAILING_SL_ATR`
+- **Reward**: Net PnL ± drawdown penalty ± holding penalty/bonus − transaction cost 0.3%
 
-**Sliding Window Strategy:**
+### Kết quả thực nghiệm (PPO 500k steps):
+| Metric | Rule-Based | RL Agent (PPO) |
+|--------|-----------|---------------|
+| Mean Reward | -4.157 | **-2.509** (+1.648) |
+| Mean PnL | -0.134% | -0.304% |
+| SL Hit Rate | 72.1% | 40.4% |
+
+**Known Issue**: Nghịch lý Reward-PnL — PPO chốt lời non, phí 0.3% ăn 30-60% lợi nhuận.  
+**Roadmap**: Simplify reward → net PnL; chuyển sang `MlpLstmPolicy`; tăng step size 15m→1h.
+
+---
+
+## 9. Walk Forward Validation
+
 ```text
 Train: Jan-Jun  -->  Test: Jul
 Train: Feb-Jul  -->  Test: Aug
@@ -225,127 +322,95 @@ Train: Mar-Aug  -->  Test: Sep
 ...
 ```
 
-**Các Metrics đo lường hiệu năng:**
-- ROC-AUC
-- Accuracy, Precision, Recall, F1-Score
-- Profit Factor
-- Sharpe Ratio
-- Max Drawdown (MDD)
+**Metrics**: ROC-AUC, Accuracy, Precision/Recall/F1, Profit Factor, Sharpe Ratio, Max Drawdown.
 
 ---
 
-## 7. Market Regime Engine v2
+## 10. Portfolio Metrics
 
-Nâng cấp bộ phân tích cấu trúc vĩ mô để đánh giá sâu hơn về "Thời tiết thị trường".
+$$\text{Sharpe} = \frac{R_p - R_f}{\sigma_p}, \quad \text{Sortino} = \frac{R_p - R_f}{\sigma_{\text{downside}}}$$
 
-**Các trạng thái:**
-```text
-Strong Trend
-Weak Trend
-Compression
-Breakout
-Mean Reversion
-Panic Sell
-Low Liquidity
-Pump Risk
-```
-
-**Tác động của Regime:**
-- **TP/SL**: Nới rộng biên độ TP trong `Strong Trend`, đánh nhanh thắng nhanh trong `Ranging`.
-- **Position Size**: Giảm khối lượng khi `Low Liquidity` hoặc `Panic Sell`.
-- **Meta Threshold**: Tăng độ khó khi ra quyết định trong thị trường nhiễu.
-- **RL Reward**: Thay đổi hàm thưởng cho tác tử (agent) thoát lệnh tự động.
+$$\text{MDD} = \frac{\text{Peak} - \text{Trough}}{\text{Peak}}, \quad \text{Calmar} = \frac{\text{CAGR}}{\text{MDD}}$$
 
 ---
 
-## 8. Portfolio Metrics
+## 11. Online Learning Workflow
 
-Hệ thống đánh giá hiệu suất rủi ro tổng thể của danh mục bằng các chỉ số chuyên sâu thay vì chỉ tập trung vào PnL tuyệt đối.
-
-### Sharpe Ratio
-Đo lường lợi nhuận vượt trội trên mỗi đơn vị rủi ro tổng thể.
-$$S = \frac{R_p - R_f}{\sigma_p}$$
-
-### Sortino Ratio
-Đo lường lợi nhuận trên mỗi đơn vị rủi ro giảm giá (chỉ tính những lệnh lỗ).
 ```text
-Sortino = (Rp − Rf) / DownsideDeviation
-```
-
-### Maximum Drawdown (MDD)
-Sự sụt giảm tài khoản lớn nhất từ mức đỉnh.
-```text
-MDD = (Peak − Trough) / Peak
-```
-
-### Calmar Ratio
-Đo lường sự ổn định của lợi nhuận so với rủi ro sụt giảm cực đại.
-```text
-Calmar = CAGR / MaxDrawdown
+Closed Trade → Append Dataset → Feature Validation
+      → Retrain Candidate → Walk Forward Eval
+      → Concept Drift Check (ROC-AUC ≥ 0.55)
+      → Deploy Model → Shadow Prediction → Production
 ```
 
 ---
 
-## 9. Online Learning Workflow
+## 12. Market Regime Engine
 
-Quy trình tự động tinh chỉnh (fine-tuning) model với dữ liệu thị trường mới nhất.
+8 trạng thái thị trường (one-hot encoded trong RL state space):
+
+| Regime | Tác động |
+|--------|---------|
+| `STRONG_TREND` | Nới rộng TP, dùng Trailing SL |
+| `WEAK_TREND` | Bình thường |
+| `COMPRESSION` | Giảm position size, chờ breakout |
+| `BREAKOUT` | Tăng tốc entry |
+| `MEAN_REVERSION` | TP nhanh, SL chặt |
+| `PANIC_SELL` | Block BUY, giảm size |
+| `LOW_LIQUIDITY` | Giảm size, tránh market order |
+| `PUMP_RISK` | Block SELL, cảnh báo |
+
+---
+
+## 13. Signal Tracker (Persistent)
+
+`SignalTracker` theo dõi trạng thái tín hiệu bền vững qua file `data/tracked_signals.json`:
+
+- **TTL**: 90 phút — tự động prune signals cũ.
+- **States**: `Running`, `Hit TP1`, `Hit TP2`, `Hit SL`.
+- **Evaluation**: Mỗi scan so sánh current_close với TP1/TP2/SL của mỗi signal còn active.
+- **Integration**: `signal_tracker.register_signal()` được gọi trong `analysis/core.py`; tracked signals hiển thị trong Telegram alerts dưới "THEO DÕI TÍN HIỆU ĐÃ CÓ".
+
+---
+
+## 14. Lộ trình Phát triển (Roadmap)
 
 ```text
-Closed Trade
-      │
-      ▼
-Append Dataset
-      │
-      ▼
-Feature Validation
-      │
-      ▼
-Retrain Candidate Model
-      │
-      ▼
-Walk Forward Evaluation
-      │
-      ▼
-Concept Drift Detection
-      │
-      ▼
-Deploy New Model
-      │
-      ▼
-Shadow Prediction
-      │
-      ▼
-Production
+Phase 1-4 ✅   Feature Engineering + Regime + Ensemble ML + RL Exit
+Phase 5 ✅     Portfolio Optimization (MVO + Risk Parity)
+Phase 6 ✅     Multi-Agent AI (6 agents + AgentOrchestrator)
+Phase 2.1 ✅   Causal Integration: RuleContextProvider + Event Bus
+Phase 3.0 ✅   Learning: BayesianContextProvider + CausalDiscovery
+Phase 4.0 ✅   Simulation: CausalSimulator + CounterfactualEngine
+Phase 5.0 ✅   Digital Twin: WorldModelPredictor + AnomalyDetector
+Phase 6.0 ✅   Multi-Agent Causal: ConsensusEngine + Sub-Agents
+Phase A-D ✅   Production Integration: Bridge → Gate → Counterfactual
+               ↓
+[HIỆN TẠI] Hardening Sprint
+- Fix circular import (multi_agent.py → main.py)
+- Graceful shutdown + atomic file writes
+- Pin dependencies (requirements-lock.txt)
+               ↓
+Causal Activation Sprint
+- CAUSAL_ALPHA=0.1 (sau shadow mode validation)
+- Weekly CausalDiscovery on 6-month data
+- Grafana/Prometheus observability
+               ↓
+RL Improvement Sprint
+- Simplify reward (net PnL focus)
+- MlpLstmPolicy (sequential memory)
+- Step size 15m → 1h
+               ↓
+RLContextProvider (v4.0)
+- Learn context adjustments from shadow mode data
+               ↓
+LLMContextProvider (v5.0)
+- Gemini AI real-time macro reasoning
 ```
 
 ---
 
-## 10. Lộ trình phát triển tổng thể (Roadmap)
-
-```text
-Phase 1
-Feature Engineering + Regime Detection
-        │
-        ▼
-Phase 2
-Ensemble ML + Explainable AI
-        │
-        ▼
-Phase 3
-Dynamic TP/SL + Kelly Sizing
-        │
-        ▼
-Phase 4
-RL Exit Manager
-        │
-        ▼
-Phase 5
-Portfolio Optimization
-        │
-        ▼
-Phase 6
-Online Learning + Multi-Agent AI
-        │
-        ▼
-AI Quant Trading Platform
-```
+**Document Version**: 3.0.0  
+**Last Updated**: 2026-07-02  
+**Architecture**: v2.1 (Event-Driven Causal AI)  
+**Test Coverage**: 196/196 PASSED ✅

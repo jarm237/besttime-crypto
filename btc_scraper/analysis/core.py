@@ -757,9 +757,15 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
     missed_signals = []
     current_close = close_prices[-1]
     
+    def _is_actionable_signal(sig: str) -> bool:
+        sig_text = str(sig).upper()
+        if "NEUTRAL" in sig_text:
+            return False
+        return "BUY" in sig_text or "SELL" in sig_text or "SHORT" in sig_text
+
     if coin_name:
         # 1. Đăng ký tín hiệu hiện tại nếu hợp lệ
-        if ("BUY" in current_sig and "WEAK" not in current_sig) or ("SELL" in current_sig and "WEAK" not in current_sig):
+        if _is_actionable_signal(current_sig):
             current_time = candles[-1]["time"]
             signal_tracker.register_signal(
                 coin=coin_name,

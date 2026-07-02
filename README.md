@@ -1,291 +1,152 @@
-# TimeGAN Pipeline (minimal)
+# besttime-crypto — AI Quant Trading Platform
 
-Short guide to the preprocessing, model modules, and training helpers added in this workspace.
+Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kết hợp **7 lớp lọc kỹ thuật**, **ML Ensemble**, **Reinforcement Learning Exit Manager** và **Causal World Model** — gửi cảnh báo thời gian thực qua Telegram và trực quan hoá qua Web Dashboard.
 
-Quick Start
-- Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-- Run test suite:
-
-```bash
-python -m pytest -q
-```
-
-Examples
-- Autoencoder pretrain (quick smoke):
-
-```bash
-python -c "from btc_scraper.ml_engine.timegan_trainer import pretrain_autoencoder; import numpy as np; data=np.random.rand(200,24,5).astype('float32'); print(pretrain_autoencoder(data, epochs=3, batch_size=32))"
-```
-
-- Supervisor supervised pretrain (example):
-
-```bash
-python -c "from btc_scraper.ml_engine.timegan_trainer import pretrain_supervisor; import numpy as np; data=np.random.rand(256,24,5).astype('float32'); print(pretrain_supervisor(data, epochs=4))"
-```
-
-- Adversarial training (smoke run):
-
-```bash
-python -c "from btc_scraper.ml_engine.timegan_trainer import train_timegan_adversarial; import numpy as np; data=np.random.rand(256,24,5).astype('float32'); print(train_timegan_adversarial(data, epochs=4))"
-```
-
-Key files
-- `btc_scraper/ml_engine/timegan.py` — preprocessing, scalers, and Dataset.
-- `btc_scraper/ml_engine/timegan_model.py` — model modules (Embedder, Recovery, Generator, Supervisor, Discriminator).
-- `btc_scraper/ml_engine/timegan_trainer.py` — pretraining and adversarial training helpers.
-- `tests/` — unit and smoke tests for the pipeline.
-
-Notes
-- The training functions are minimal and intended for smoke testing and development. For production training, add checkpointing, logging, dataset streaming, and hyperparameter tuning.
-# besttime-crypto
-
-Hệ thống Bot tự động cào dữ liệu tiền điện tử, phân tích tín hiệu kỹ thuật qua **6 lớp lọc thuật toán**, kết hợp **Gemini AI** để đưa ra nhận định thị trường đa khung thời gian, tích hợp **Fear & Greed Index** và **RAG từ lịch sử giao dịch** — gửi cảnh báo qua Telegram theo thời gian thực.
-
-## Tính năng
-
-- **Quét đa coin tự động** cho danh sách cấu hình (BTC, ETH, BNB, SOL, XRP...) mỗi 15 phút.
-- **Phân tích kỹ thuật 6 lớp lọc** bằng Python thuần: RSI, EMA, SMA, MACD, Bollinger Bands, ATR, Chandelier Exit, Volume SMA, SFP.
-- **Phân tích đa khung thời gian (MTF)**: Thu thập thêm nến 1h / 4h / 1d để gửi cho Gemini AI đánh giá xu hướng lớn hơn.
-- **Fear & Greed Index (Lớp 6)**: Lấy từ `alternative.me/fng`, cache 1h. Tự động hạ cấp tín hiệu BUY khi Extreme Fear, hạ cấp SELL khi Extreme Greed.
-- **Gemini AI Analyst**: Tổng hợp toàn bộ tín hiệu 15m + MTF + sentiment + lịch sử giao dịch (RAG) để đưa ra nhận định thị trường bằng tiếng Việt.
-- **Quản lý vị thế thủ công (Position Tracker)**: Nhập lệnh đã khớp, bot tự động giám sát và gửi khuyến nghị Chốt Lời / Cắt Lỗ qua Telegram mỗi 5 phút.
-- **Tự động đặt lệnh (Auto Trading - CCXT)**: Khi mô hình ML chấm điểm xác suất thắng đạt ngưỡng tin cậy cao (≥ 85%), bot tự động đặt lệnh Market trên Binance Testnet/Sandbox. Hỗ trợ chế độ chạy mô phỏng an toàn (`DRY_RUN=true`).
-- **Tự động đóng vị thế (Auto Close)**: Bot tự động đặt lệnh đóng vị thế trên sàn Binance Testnet khi vị thế chạm mức SL/TP khuyến nghị.
-- **Cơ chế bảo vệ (Circuit Breaker)**: Tự động dừng giao dịch 24h nếu gặp chuỗi 5 lệnh thua liên tiếp và giới hạn tần suất tối đa 5 lệnh/ngày.
-- **Web Dashboard**: Giao diện React / Vite tại `http://localhost:3000`, bao gồm các tab:
-  - `Tín Hiệu Thị Trường` — bảng signal, RSI, trend, inter-market context và meta confidence.
-  - `Vị Thế Đang Mở` — quản lý position, thêm lệnh mới, đóng lệnh và xem PnL hiện tại.
-  - `CCXT Auto Trading Monitor` — trạng thái AutoTrader, Circuit Breaker, daily trade limit và audit log.
-  - `Meta Model Analytics` — load metrics, feature importance và calibration buckets.
-  - `Gemini AI Insights` — hiển thị báo cáo Gemini AI từ `data/latest_ai_analysis.json`.
-- **Backend API**: `api/server.py` phục vụ dữ liệu cho Dashboard qua các endpoint `/api/market-signals`, `/api/positions`, `/api/performance`, `/api/ai-analysis`, `/api/auto-trade/status`, `/api/auto-trade/logs`, `/api/meta-model`, v.v.
-- **Backtest**: Script `backtest_eval.py` đánh giá chất lượng tín hiệu theo win rate, Profit Factor và hold period tối ưu.
-- **Telegram Alerts**: Gửi bảng tín hiệu + AI report tự động sau mỗi chu kỳ quét.
+> **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI  
+> **Test Suite**: ✅ **196/196 PASSED** (02/07/2026)  
+> **Trạng thái**: Production-ready với paper trading và live trading có giám sát
 
 ---
 
-## Backtest & Hiệu năng ML (Kết quả đã xác minh)
+## Tính năng chính
 
-Trên bộ dữ liệu lịch sử **18 tháng** (Tháng 1/2025 - Tháng 6/2026) với **18,904 mẫu giao dịch đóng**:
-
-- **Mô hình Adaptive (Random Forest):**
-  - **Time-Series CV ROC-AUC:** `0.620 ± 0.010` (Rất ổn định qua các chu kỳ)
-  - **Holdout ROC-AUC:** `0.642`
-  - **Accuracy:** `62%`
-- **Mô hình Meta Confidence:**
-  - **CV ROC-AUC:** `0.6355 ± 0.0081`
-  - **Hiệu chuẩn xác suất (Platt Sigmoid):** Đã áp dụng thành công cho các bucket xác suất dự đoán (sai số <10%).
-
----
-
-## Quản lý Vị thế (Position Tracker)
-
-Công cụ CLI `./pos` giúp ghi nhận và theo dõi vị thế giao dịch. Bot tự động kiểm tra TP/SL và tín hiệu đảo chiều sau mỗi lần quét.
-
-### Cú pháp CLI
-
-```bash
-# Thêm vị thế LONG (Spot) — nhập coin và giá mua
-./pos add BTC 68000 -n "Mua Spot tích luỹ"
-
-# Thêm vị thế SHORT (Futures)
-./pos add ETH 3500 SHORT -n "Tín hiệu SFP bắt đỉnh"
-
-# Thêm vị thế kèm số vốn thực tế (để tính PnL USD chính xác)
-./pos add BNB 595 --usdt 200
-
-# Xem danh sách vị thế đang mở
-./pos list
-
-# Đóng vị thế và ghi nhận PnL
-./pos close BTC 70000
-
-# Xem tổng hợp hiệu suất chiến lược (Win Rate, Profit Factor, R)
-./pos perf
-```
-
-Sau khi lưu vị thế, bot sẽ gửi cảnh báo Telegram ngay khi:
-
-- 🚨 Giá chạm **Stop Loss**
-- 🎯 Giá đạt **TP1 hoặc TP2**
-- ⚠️ Xuất hiện **tín hiệu đảo chiều** ngược hướng vị thế
-
-Các thông số bao gồm: `Win Rate`, `Profit Factor`, `Max Consecutive Losses` và `Tổng P&L`. Lưu ý: Việc đóng lệnh sẽ tự động ghi dữ liệu vào hệ thống AI để huấn luyện (Adaptive Scoring).
-
-#### 5. Huấn luyện Mô hình AI (Adaptive, Meta & RL)
-
-Bot tích hợp mô hình Machine Learning và Reinforcement Learning để đánh giá tín hiệu và quản lý thoát lệnh:
-
-- Để huấn luyện lại mô hình Adaptive & xuất signals log từ dữ liệu lịch sử (18 tháng):
-  ```bash
-  python train_april_model.py
-  ```
-- Để huấn luyện lại mô hình Meta Confidence & ensemble với walk-forward validation:
-  ```bash
-  python -m btc_scraper.meta_model --train
-  ```
-  Ghi chú: Phiên bản mới `v2.0-ensemble` hỗ trợ huấn luyện ensemble (RandomForest + LightGBM/CatBoost/XGBoost nếu được cài) và walk-forward evaluation.
-  ```bash
-  pip install lightgbm catboost xgboost
-  ```
-- Để huấn luyện mô hình RL Exit Manager (Phase 4):
-  ```bash
-  python train_rl_exit_manager.py --algo ppo --train --steps 100000 --n-trades 500
-  ```
-  Hoặc chạy trên GPU nếu có:
-  ```bash
-  python train_rl_exit_manager.py --algo ppo --train --steps 100000 --n-trades 500 --device cuda
-  ```
-- Để đánh giá kết quả RL và so sánh rule-based exit:
-  ```bash
-  python evaluate_rl_phase4.py
-  ```
-- **Hệ thống đa tác nhân & Tối ưu danh mục (Phase 5):**
-  Hệ thống chạy qua `AgentOrchestrator` trong `btc_scraper/multi_agent.py`. Bạn có thể chạy unit tests để kiểm tra logic phân bổ danh mục (MVO & Risk Parity):
-  ```bash
-  pytest tests/test_portfolio_manager.py
-  ```
+- **Quét đa coin tự động** (BTC, ETH, BNB, SOL, XRP...) mỗi 15 phút qua Binance WebSocket.
+- **Phân tích kỹ thuật 7 lớp lọc** vectorized bằng Pandas/NumPy: ATR, RSI, EMA, SMA, MACD, Bollinger Bands, Chandelier Exit, Volume SMA, SFP.
+- **Phân tích đa khung thời gian (MTF)**: Nến 15m / 1h / 4h / 1d — HTF Trend Summary và MTF Confluence Filter.
+- **Causal World Model (Architecture v2.0)**:
+  - `WorldState` — unified state object với 5 layers (Macro, Liquidity, Crypto, Sentiment, Risk).
+  - `HybridContextProvider` — kết hợp Rule-based + Bayesian inference, điều chỉnh bởi `CAUSAL_ALPHA` env var.
+  - `CausalGate` — CRITICAL risk override sang NEUTRAL, HIGH/MEDIUM risk warning trong `SignalGeneratorAgent`.
+  - `CounterfactualEngine` — tự động phân tích lệnh thua, lưu `logs/counterfactual_log.json`.
+- **ML Ensemble**: RandomForest + LightGBM + CatBoost + XGBoost với Optuna hyperparameter tuning, Platt calibration, Feature Correlation Filter.
+- **Reinforcement Learning Exit Manager (PPO)**: Môi trường Gymnasium 18D state / 6 actions — học chiến lược đóng lệnh tối ưu.
+- **Signal Tracker**: Theo dõi trạng thái tín hiệu bền vững (active, TP1/TP2 hit, SL hit) qua `data/tracked_signals.json`, TTL 90 phút.
+- **Fear & Greed Index (Lớp 6)**: `alternative.me/fng`, cache 1h — tự động hạ cấp tín hiệu theo sentiment cực đoan.
+- **Gemini AI Analyst**: Tổng hợp tín hiệu 15m + MTF + lịch sử giao dịch (RAG) → nhận định thị trường tiếng Việt.
+- **Auto Trading (CCXT)**: Tự động đặt/đóng lệnh Market trên Binance Testnet/Mainnet. Hỗ trợ chế độ Dry Run.
+- **Portfolio Optimization**: Mean-Variance Optimization (MVO) khi có ≥ 2 tín hiệu đồng thời.
+- **Circuit Breaker**: Dừng tự động 24h sau 5 lệnh thua liên tiếp; giới hạn 5 lệnh/ngày.
+- **Web Dashboard**: React/Vite tại `http://localhost:3000`:
+  - `Tín Hiệu Thị Trường` — bảng signal, RSI, trend, meta confidence.
+  - `Vị Thế Đang Mở` — quản lý position, mở/đóng lệnh, xem PnL.
+  - `CCXT Auto Trading Monitor` — trạng thái AutoTrader, Circuit Breaker, audit log.
+  - `Meta Model Analytics` — feature importance, calibration buckets.
+  - `Gemini AI Insights` — báo cáo từ `data/latest_ai_analysis.json`.
+- **Backend API**: FastAPI `api/server.py` (port 8000) phục vụ Dashboard.
+- **Telegram Alerts**: Bảng tín hiệu + AI report + Causal risk level sau mỗi chu kỳ.
 
 ---
 
-  ### Chạy build/train song song theo coin (parallel per-coin build & merge)
+## Backtest & Hiệu năng ML
 
-  Kịch bản này cho phép chạy quá trình tạo signals (build) cho mỗi coin riêng biệt song song,
-  rồi gộp kết quả lại trước khi train meta-model.
+Trên bộ dữ liệu lịch sử **18 tháng** (01/2025 - 06/2026) với **18,904 mẫu giao dịch đóng**:
 
-  - Tạo file per-coin: `logs/adaptive_signals_v2_{COIN}.json`
-  - Gộp tất cả file per-coin vào `logs/adaptive_signals_v2.json` và train sử dụng dataset chung.
+| Metric | Adaptive Model (RF) | Meta Confidence Model |
+|--------|--------------------|-----------------------|
+| **Time-Series CV ROC-AUC** | `0.620 ± 0.010` | `0.6355 ± 0.0081` |
+| **Holdout ROC-AUC** | `0.642` | — |
+| **Accuracy** | 62% | — |
+| **Platt Calibration** | — | ✅ (sai số < 10%) |
 
-  Ví dụ — chạy 8 worker song song (auto-detect COINS từ `btc_scraper/core/config.py` hoặc dùng `--coins`):
+### Backtest tín hiệu (8,000 nến):
 
-  ```bash
-  cd "d:/Workspaces/Vọc vạch"
-  # Chạy parallel build (auto-detect coins when --coins omitted)
-  python scripts/build_coins_parallel.py --jobs 8
+| Nhóm tín hiệu | Hold tối ưu | Win Rate | Profit Factor |
+|---------------|------------|---------|---------------|
+| **STRONG BUY** | 1h (4 nến) | **70.5%** | **2.95** |
+| **STRONG SELL** | 6h (24 nến) | **66.4%** | **2.92** |
+| WEAK BUY | — | ~35% | 0.24 |
+| WEAK SELL | — | ~25% | 0.54 |
 
-  # Sau khi hoàn tất, gộp outputs per-coin vào file dataset chung
-  python scripts/merge_adaptive_signals.py
-
-  # Train meta-model trên dataset đã gộp (dùng --skip-build để tránh rebuild)
-  python scripts/build_and_train.py --skip-build --n 200
-  ```
-
-  Gợi ý:
-  - Đặt `--jobs` bằng số process phù hợp với CPU/IO của máy (vd. 4, 8, 16).
-  - Nếu muốn chỉ build 1 vài coin, dùng `--coins BTC,ETH,SOL`.
-  - Kiểm tra `logs/` để xem files `adaptive_signals_v2_{COIN}.json` và kết quả merge.
-
+---
 
 ## Cài đặt và Khởi chạy
 
 Hệ thống gồm 3 thành phần chạy song song:
 
-1. **Bot cốt lõi** (`main.py`) — Quét tín hiệu, gọi AI, gửi Telegram, giao dịch tự động.
-2. **Backend API** (`api/server.py`) — FastAPI phục vụ dữ liệu cho Web Dashboard (cổng 8000).
-3. **Web Dashboard** (`web/`) — Giao diện React / Vite (cổng 3000).
+1. **Bot cốt lõi** (`main.py`) — Quét tín hiệu, Causal AI, giao dịch tự động.
+2. **Backend API** (`api/server.py`) — FastAPI (port 8000).
+3. **Web Dashboard** (`web/`) — React/Vite (port 3000).
 
 ### Bước 1: Cài đặt môi trường
 
 ```bash
-# Python dependencies (Bot + API)
-python -m venv venv
+python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Node.js dependencies (Web Dashboard)
-cd web
-npm install
-cd ..
+cd web && npm install && cd ..
 ```
 
 ### Bước 2: Cấu hình `.env`
 
-Tạo file `.env` ở thư mục gốc:
-
 ```env
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-TELEGRAM_CHAT_ID=your_chat_id_here
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
 
-# Gemini AI — hỗ trợ nhiều key để round-robin tránh hết quota
+# Gemini AI — hỗ trợ nhiều key round-robin
 GEMINI_API_KEY_1=your_gemini_api_key
 GEMINI_API_KEY_2=optional_second_key
-GEMINI_API_KEY_3=optional_third_key
 
-# ── Auto-Trading (CCXT) ──────────────────────────────────────────────────────
-AUTO_TRADE_DRY_RUN=true                # true = chỉ mô phỏng, false = live testnet
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://...
+MONGODB_DB_NAME=besttime_crypto
+
+# Auto-Trading (CCXT)
+AUTO_TRADE_DRY_RUN=true
 AUTO_TRADE_BINANCE_API_KEY=your_binance_testnet_api_key
 AUTO_TRADE_BINANCE_API_SECRET=your_binance_testnet_api_secret
-AUTO_TRADE_BINANCE_TESTNET=true        # true = testnet, false = mainnet
+AUTO_TRADE_BINANCE_TESTNET=true
+
+# Causal World Model
+CAUSAL_ALPHA=0.0      # 0.0=rule-only (safe), 0.1+ cần shadow mode validation
 ```
 
-### Bước 3: Khởi chạy toàn bộ hệ thống
-
-**Cách nhanh nhất** — chạy cả 3 dịch vụ bằng một lệnh:
+### Bước 3: Khởi chạy
 
 ```bash
+# Khởi chạy tất cả cùng lúc
 ./start.sh
 # Windows: .\start.ps1
+
+# Hoặc từng phần:
+python main.py             # Bot cốt lõi
+python api/server.py       # Backend API (port 8000)
+cd web && npm run dev -- --port 3000 --host   # Dashboard
 ```
 
-Nhấn `Ctrl + C` để tắt toàn bộ.
-
-Sau khi chạy, truy cập Web Dashboard:
-
-```bash
-http://localhost:3000
-```
-
-Hoặc khởi động riêng từng phần:
-
-- **Backend API:** `python api/server.py` (port 8000)
-- **Web Dashboard:** `cd web && npm run dev -- --port 3000 --host`
+Truy cập: **http://localhost:3000**
 
 ---
 
-### Chạy thủ công từng phần
-
-**Tab 1 — Bot cốt lõi:**
+## Quản lý Vị thế (CLI)
 
 ```bash
-python main.py
+./pos add BTC 68000 -n "Mua Spot tích luỹ"          # Thêm LONG
+./pos add ETH 3500 SHORT -n "Tín hiệu SFP bắt đỉnh"  # Thêm SHORT
+./pos add BNB 595 --usdt 200                          # Với số vốn thực tế
+./pos list                                            # Xem vị thế đang mở
+./pos close BTC 70000                                 # Đóng và ghi PnL
+./pos perf                                            # Tổng hợp hiệu suất
 ```
-
-- **Gửi báo cáo phân tích tự động qua tin nhắn Telegram.**
-- **AI RAG & Machine Learning**: Đánh giá độ tin cậy của tín hiệu dựa trên mô hình học máy Adaptive. Tự động tính kích thước vị thế (Position Sizing).
-- Quét tổng quát mỗi 15 phút: lấy dữ liệu, phân tích, gọi AI, gửi Telegram.
-- Quét khẩn cấp mỗi 5 phút: chỉ theo dõi coin đang có vị thế mở.
-- **Continuous Learning & Báo cáo Tuần**: Tự động tải lại dữ liệu thị trường và huấn luyện lại AI vào 23:30 Chủ Nhật hàng tuần, kèm theo báo cáo tổng kết tuần lúc 23:45.
-
-**Tab 2 — Backend API:**
-
-```bash
-python api/server.py
-```
-
-**Tab 3 — Web Dashboard:**
-
-```bash
-cd web
-npm run dev -- --port 3000 --host
-```
-
-Truy cập: **[http://localhost:3000](http://localhost:3000)**
 
 ---
 
-## Chạy Backtest
+## Huấn luyện Mô hình AI
 
 ```bash
-# Đánh giá chất lượng tín hiệu (win rate, profit factor, hold period)
-python -X utf8 backtest_eval.py
+# Huấn luyện Adaptive Model + Meta Confidence (Ensemble)
+python train_april_model.py
+python -m btc_scraper.ml_engine.meta_model --train
 
-# Backtest đầy đủ với báo cáo PnL chi tiết
-python backtest.py
+# Huấn luyện RL Exit Manager (PPO)
+python train_rl_exit_manager.py --algo ppo --train --steps 100000
+
+# Đánh giá RL vs rule-based exit
+python evaluate_rl_phase4.py
+
+# Chạy CausalDiscoveryEngine (khuyến nghị hàng tuần)
+python -c "from btc_scraper.ml_engine.causal_discovery import CausalDiscoveryEngine; e=CausalDiscoveryEngine(); e.discover()"
 ```
 
 ---
@@ -293,8 +154,46 @@ python backtest.py
 ## Chạy Unit Test
 
 ```bash
+# Toàn bộ test suite (196 tests)
 pytest
-pytest tests/test_analysis.py   # Chỉ test module phân tích
+
+# Riêng từng nhóm
+pytest tests/test_causal_context_bridge.py   # Phase A-D integration
+pytest tests/test_phase21_integration.py      # Phase 2.1 (18 tests)
+pytest tests/test_phase30_learning.py         # Phase 3.0 (33 tests)
+pytest tests/test_decision_engine.py          # MetaDecisionEngine
+pytest tests/test_auto_trader.py              # AutoTrader
+pytest tests/test_portfolio_manager.py        # Portfolio MVO
+```
+
+---
+
+## Chuẩn bị Dữ liệu ML
+
+```bash
+# Cào dữ liệu lịch sử
+python fetch_historical_range.py
+
+# Xuất dataset ML + RAG context
+python scripts/prepare_ml_data.py
+python scripts/generate_rag_prompts.py
+
+# Parallel build per-coin + merge + train
+python scripts/build_coins_parallel.py --jobs 8
+python scripts/merge_adaptive_signals.py
+python scripts/build_and_train.py --skip-build --n 200
+```
+
+---
+
+## Chạy Backtest
+
+```bash
+# Đánh giá chất lượng tín hiệu
+python -X utf8 backtest_eval.py
+
+# Backtest đầy đủ PnL
+python backtest.py
 ```
 
 ---
@@ -303,81 +202,106 @@ pytest tests/test_analysis.py   # Chỉ test module phân tích
 
 ```
 besttime-crypto/
-├── main.py                      # Entry point + scheduler + AI worker thread
-├── backtest.py                  # Full historical backtest
-├── backtest_eval.py             # Signal quality evaluator (win rate × hold period)
-├── trading_strategies_summary.md # Tài liệu công thức và chiến lược kỹ thuật
-├── requirements.txt
-├── .env                         # API keys (không commit)
+├── main.py                          # Entry point: WebSocket, scheduler, AI worker
 ├── btc_scraper/
-│   ├── config.py               # COINS, INTERVAL, LIMIT, API keys
-│   ├── analysis.py             # Indicators + 6-layer signal logic + TP/SL
-│   ├── sentiment.py            # Fear & Greed Index (cached)
-│   ├── ai_analyst.py           # Gemini AI prompt builder (MTF + RAG)
-│   ├── position_tracker.py     # Position management + performance metrics
-│   ├── auto_trader.py          # Đặt lệnh tự động và ngắt mạch (Circuit Breaker)
-│   ├── ccxt_client.py          # Wrapper tương tác Binance Testnet bằng CCXT
-│   ├── telegram_bot.py         # Telegram broadcaster
-│   ├── display.py              # Rich terminal table rendering
-│   └── exchanges/
-│       └── binance.py          # Binance OHLCV API
+│   ├── analysis/
+│   │   ├── core.py                  # 7-layer signal engine (vectorized Pandas/NumPy)
+│   │   ├── indicators.py            # ATR, RSI, EMA, SMA, MACD, BB, Chandelier
+│   │   ├── signal_tracker.py        # Persistent signal state tracking (TTL 90m)
+│   │   ├── correlation.py           # MTF correlation matrix
+│   │   └── structure.py             # Market structure (support/resistance)
+│   ├── core/
+│   │   ├── world_state.py           # WorldState — 5-layer unified state (v2.0)
+│   │   ├── event_bus.py             # Pub/Sub Event Bus (v2.0)
+│   │   ├── feature_snapshot.py      # Snapshot & Replay (v2.0)
+│   │   ├── ccxt_client.py           # CCXT Binance async wrapper
+│   │   ├── config.py                # COINS, INTERVAL, LIMIT
+│   │   ├── db.py                    # MongoDB Atlas connection
+│   │   ├── filters.py               # Signal filters
+│   │   └── sentiment.py             # Fear & Greed Index (cached)
+│   ├── ml_engine/
+│   │   ├── meta_model.py            # Ensemble ML (RF + LightGBM + CatBoost + XGBoost)
+│   │   ├── signal_score.py          # Adaptive scoring + Kelly fraction
+│   │   ├── decision_engine.py       # MetaDecisionEngine (decide_with_provider)
+│   │   ├── causal_context_bridge.py # Phase A: Singleton bridge + WorldState builder
+│   │   ├── hybrid_context_provider.py # Phase 3.1: Alpha-blended Rule+Bayesian
+│   │   ├── bayesian_context_provider.py # Phase 3.0: Gaussian inference
+│   │   ├── rule_context_provider.py # Phase 2.0: Rule-based
+│   │   ├── context_provider.py      # Abstract ContextProvider interface
+│   │   ├── context_engine.py        # Multi-layer rule processor
+│   │   ├── causal_discovery.py      # Granger causality discovery
+│   │   ├── causal_graph.py          # Graph analysis (paths, influencers)
+│   │   ├── causal_reasoning.py      # Explainable reasoning engine
+│   │   ├── causal_simulator.py      # Do-calculus intervention simulator
+│   │   ├── counterfactual_engine.py # Phase D: What-if trade analysis
+│   │   ├── causal_monitoring.py     # Metrics & monitoring dashboard
+│   │   ├── causal_startup.py        # Startup validation
+│   │   ├── causal_event_handlers.py # Event Bus subscriptions
+│   │   ├── world_model_predictor.py # Digital Twin state predictor
+│   │   ├── causal_anomaly_detector.py # Structural break detection
+│   │   ├── shadow_mode_tracker.py   # A/B shadow mode tracking
+│   │   ├── ab_backtest.py           # A/B backtest comparator
+│   │   ├── rl_trading_env.py        # Gymnasium RL environment (18D/6A)
+│   │   ├── feature_extractor.py     # Feature extraction pipeline
+│   │   ├── multi_agent.py           # AgentOrchestrator (6 agents)
+│   │   ├── timegan.py               # TimeGAN synthetic data
+│   │   └── agents/
+│   │       ├── macro_agent.py       # Phase 6.0: DXY/Yields/FedRate watcher
+│   │       ├── liquidity_agent.py   # Phase 6.0: Funding/OI/Orderbook watcher
+│   │       ├── sentiment_agent.py   # Phase 6.0: Fear&Greed/social watcher
+│   │       └── consensus_engine.py  # Phase 6.0: Causal Voting / Bayesian Fusion
+│   ├── trading/
+│   │   ├── auto_trader.py           # CCXT async auto-trading
+│   │   ├── position_tracker.py      # Position management + RL inference
+│   │   ├── portfolio_manager.py     # MVO + Risk Parity
+│   │   ├── exposure_manager.py      # Exposure & drawdown limits
+│   │   └── risk_manager.py          # Circuit breaker + loss streak
+│   ├── collectors/
+│   │   └── macro_collector.py       # DXY, VIX, RealYield, BondYield fetcher
+│   ├── telegram_bot/
+│   │   └── alerts.py                # Telegram alert builders
+│   ├── ai_analyst/
+│   │   └── ...                      # Gemini AI RAG analyst
+│   └── regime/                      # Market regime detection
 ├── api/
-│   └── server.py               # FastAPI backend (port 8000)
-├── web/                        # React / Vite frontend (port 3000)
+│   └── server.py                    # FastAPI backend (port 8000)
+├── web/                             # React/Vite frontend (port 3000)
 ├── data/
-│   ├── positions.json          # Open + closed positions store
-│   ├── latest_signals.json     # Latest analysis snapshot (read by Web)
-│   └── latest_ai_analysis.json # Latest Gemini AI report (read by Web)
+│   ├── causal_graph.json            # Knowledge graph (v2.0)
+│   ├── context_rules.json           # Context rules config (v2.0)
+│   ├── tracked_signals.json         # Persistent signal state
+│   ├── latest_signals.json          # Latest analysis snapshot
+│   └── latest_ai_analysis.json      # Latest Gemini AI report
 ├── logs/
-│   ├── closed_positions.json   # Append-only closed trade log (RAG source)
-│   ├── auto_trade_log.json     # Nhật ký giao dịch tự động (Audit Log)
-│   └── auto_trade_circuit.json # Trạng thái Circuit Breaker
+│   ├── counterfactual_log.json      # Phase D: Counterfactual analysis results
+│   ├── auto_trade_log.json          # Auto trade audit log
+│   ├── auto_trade_circuit.json      # Circuit Breaker state
+│   └── rl_models/                   # Trained PPO model checkpoints
 ├── scripts/
-│   ├── manage_positions.py     # CLI backend for ./pos
-│   ├── prepare_ml_data.py      # Export ML training data + RAG context
-│   ├── generate_rag_prompts.py # Generate RAG narratives for Gemini
-│   ├── continuous_learning.py  # Retrain Adaptive Model tự động hàng tuần
-│   └── weekly_job.py           # Sinh Weekly Report tự động hàng tuần
-├── tests/
-│   ├── test_analysis.py        # Kiểm thử module phân tích
-│   ├── test_auto_trader.py     # Kiểm thử AutoTrader
-│   └── test_filters.py         # Kiểm thử các bộ lọc
-└── pos                         # ./pos CLI shortcut script
+│   ├── continuous_learning.py       # Weekly auto-retrain
+│   ├── weekly_job.py                # Weekly report generator
+│   ├── build_coins_parallel.py      # Parallel per-coin build
+│   └── ...
+├── tests/                           # 196 tests (100% PASS)
+├── train_rl_exit_manager.py         # RL Exit Manager training
+├── evaluate_rl_phase4.py            # RL evaluation vs rule-based
+├── backtest.py / backtest_eval.py   # Backtesting scripts
+├── ARCHITECTURE_v2.md               # Architecture v2.0 technical doc
+├── SYSTEM_DESIGN.md                 # System Design Document (TDD)
+├── causal_implementation_plan.md    # Causal AI roadmap & status
+├── system_evaluation_report.md      # Deep system evaluation report
+└── trading_strategies_summary.md    # Indicators & trading strategies
 ```
 
 ---
 
-## Chuẩn bị Dữ liệu cho ML
+## Tài liệu Kỹ thuật
 
-Để cào dữ liệu lịch sử trên diện rộng phục vụ huấn luyện mô hình:
-
-```bash
-# Cào dữ liệu lịch sử theo tháng (cấu hình trong fetch_historical_range.py)
-python fetch_historical_range.py
-```
-
-Để sử dụng lịch sử giao dịch thực tế cho machine learning, chạy:
-
-```bash
-# Xuất dataset ML + RAG context từ lịch sử giao dịch
-python scripts/prepare_ml_data.py
-
-# Sinh narratives RAG cho Gemini AI
-python scripts/generate_rag_prompts.py
-```
-
-**Output:**
-
-- `data/ml_training_data.csv` — Dataset 30+ cột cho model training
-- `data/ml_rag_context.json` — Structured RAG context (win rate, directional stats, scenarios)
-- `data/rag_prompts.md` — Markdown narratives để tích hợp vào Gemini prompt
-
-**Xem chi tiết:** [ML_DATA_GUIDE.md](ML_DATA_GUIDE.md)
-
----
-
-## Tài liệu Thiết kế Hệ thống (System Design)
-
-Để xem chi tiết kiến trúc tổng thể, luồng dữ liệu, tính năng Explainable AI, Dynamic Position Sizing và định hướng phát triển từ một Signal Bot thành nền tảng **AI Quant Trading Platform** hoàn chỉnh, vui lòng tham khảo:
-
-**👉 [SYSTEM DESIGN DOCUMENT (TDD)](SYSTEM_DESIGN.md)**
+| Tài liệu | Mô tả |
+|----------|-------|
+| [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md) | Technical Design Document — kiến trúc, data pipeline, XAI, RL |
+| [ARCHITECTURE_v2.md](ARCHITECTURE_v2.md) | Causal World Model v2.1 — Event-Driven Architecture |
+| [causal_implementation_plan.md](causal_implementation_plan.md) | Roadmap & status chi tiết Phase 2.1 → Phase D |
+| [trading_strategies_summary.md](trading_strategies_summary.md) | Công thức kỹ thuật, signal layers, TP/SL, RL |
+| [system_evaluation_report.md](system_evaluation_report.md) | Đánh giá sâu hệ thống (02/07/2026) |
+| [ML_DATA_GUIDE.md](ML_DATA_GUIDE.md) | Hướng dẫn chuẩn bị data ML |

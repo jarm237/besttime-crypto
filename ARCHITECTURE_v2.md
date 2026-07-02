@@ -6,6 +6,9 @@
 |-----------|------|-------|-----------|
 | 1.0 | 2026-06-30 | Phase 1-4: Knowledge Graph, Context Engine, Causal Reasoning, Shadow Mode | ✓ Hoàn thành |
 | **2.0** | **2026-06-30** | **5 Thành Phần Nền Tảng: World State, Event Bus, ContextProvider, Snapshot, Monitoring** | **✓ Hoàn thành** |
+| **2.1** | **2026-07-01** | **Phase 2.1-D: RuleContextProvider, BayesianContextProvider, HybridContextProvider, CausalContextBridge, CounterfactualEngine — tích hợp production** | **✓ Hoàn thành** |
+
+> **Trạng thái hiện tại (02/07/2026)**: Test suite **196/196 PASSED** — Toàn bộ Phase 2.1 → Phase D đã được tích hợp production.
 
 ---
 
@@ -171,8 +174,9 @@ class ContextProvider(ABC):
 
 | Phiên Bản | Provider | Approach | Status |
 |-----------|----------|----------|--------|
-| v2.0 | `RuleContextProvider` | Rule-based (current) | ✓ Ready |
-| v3.0 | `BayesianContextProvider` | Probabilistic | 🔮 Planned |
+| v2.0 | `RuleContextProvider` | Rule-based | ✓ Ready (Production) |
+| v3.0 | `BayesianContextProvider` | Probabilistic Gaussian | ✓ Implemented (alpha=0.0 → safe mode) |
+| v3.1 | `HybridContextProvider` | Alpha-blended Rule+Bayesian | ✓ Production (CAUSAL_ALPHA env var) |
 | v4.0 | `RLContextProvider` | Reinforcement Learning | 🔮 Planned |
 | v5.0 | `LLMContextProvider` | Large Language Model | 🔮 Planned |
 
@@ -763,30 +767,93 @@ class LLMContextProvider(ContextProvider):
 | `data/causal_graph.json` | v1.0 → v2.0 | Added: layer, is_active, source, propagate_confidence |
 | `data/context_rules.json` | v1.0 → v2.0 | Added: source field, metadata |
 
+### New Modules (Phase A-D — Production Integration)
+| File | Purpose | Status |
+|------|---------|--------|
+| `btc_scraper/ml_engine/causal_context_bridge.py` | Singleton bridge: WorldState builder + HybridContextProvider init | ✅ Production |
+| `btc_scraper/ml_engine/bayesian_context_provider.py` | Gaussian log-likelihood Bayesian inference | ✅ Production |
+| `btc_scraper/ml_engine/hybrid_context_provider.py` | Alpha-blended Rule + Bayesian (CAUSAL_ALPHA env var) | ✅ Production |
+| `btc_scraper/ml_engine/causal_simulator.py` | Do-calculus intervention simulator | ✅ Production |
+| `btc_scraper/ml_engine/counterfactual_engine.py` | What-if trade analysis, logs/counterfactual_log.json | ✅ Production |
+| `btc_scraper/ml_engine/world_model_predictor.py` | Digital Twin: predict next WorldState | ✅ Production |
+| `btc_scraper/ml_engine/causal_anomaly_detector.py` | Structural break & anomaly detection | ✅ Production |
+| `btc_scraper/ml_engine/agents/macro_agent.py` | Phase 6.0: DXY/Yields/FedRate watcher | ✅ Production |
+| `btc_scraper/ml_engine/agents/liquidity_agent.py` | Phase 6.0: Funding/OI/Orderbook watcher | ✅ Production |
+| `btc_scraper/ml_engine/agents/sentiment_agent.py` | Phase 6.0: Fear&Greed/social watcher | ✅ Production |
+| `btc_scraper/ml_engine/agents/consensus_engine.py` | Phase 6.0: Causal Voting + Bayesian Fusion | ✅ Production |
+| `btc_scraper/analysis/signal_tracker.py` | Persistent signal tracking (TTL 90m, data/tracked_signals.json) | ✅ Production |
+| `btc_scraper/collectors/macro_collector.py` | DXY, VIX, RealYield, BondYield fetcher | ✅ Production |
+
+### New Test Files (Phase A-D)
+| File | Tests | Coverage |
+|------|-------|---------|
+| `tests/test_causal_context_bridge.py` | 10 | CausalContextBridge, WorldState builder, singleton |
+| `tests/test_causal_runtime_integration.py` | 3 | End-to-end runtime integration |
+| `tests/test_phase40_simulation.py` | 3 | CausalSimulator, CounterfactualEngine |
+| `tests/test_phase50_world_model.py` | 2 | WorldModelPredictor, AnomalyDetector |
+| `tests/test_phase60_multiagent.py` | 2 | ConsensusEngine, Sub-Agents |
+
+**Tổng cộng: 196/196 tests PASSED (02/07/2026)**
+
+---
+
+## Known Issues & Technical Debt
+
+### ⚠️ High Priority
+
+| Issue | Mô tả | File | Giải pháp đề xuất |
+|-------|-------|------|------------------|
+| **Circular Import** | `MarketAnalystAgent.run()` import `_summarize_htf_trend` từ `main.py` | `ml_engine/multi_agent.py` | Tách sang `analysis/htf_utils.py` |
+| **Graceful Shutdown** | `ai_worker` và `start_telegram_listener` bị kill đột ngột | `main.py` | `shutdown_event = asyncio.Event()`, sentinel `None` vào `ai_queue` |
+| **File I/O non-atomic** | `json.dump()` trực tiếp → file corrupt khi crash | nhiều nơi | `write_atomic(tmp_path, target_path)` pattern |
+
+### ⚠️ Medium Priority
+
+| Issue | Mô tả | Giải pháp |
+|-------|-------|----------|
+| **CAUSAL_ALPHA = 0.0** | Bayesian provider triển khai nhưng chưa active | Activate `0.1` sau 2-4 tuần shadow mode |
+| **MacroCollector staleness** | `load_macro_state()` → DXY/VIX stale nếu không chạy collector thường xuyên | Thêm freshness check + auto-schedule |
+| **RL Reward-PnL Paradox** | PPO optimize reward nhân tạo → PnL thực giảm | Simplify reward → net PnL; `MlpLstmPolicy` |
+| **No dependency lock** | `requirements.txt` unpinned | `pip freeze > requirements-lock.txt` |
+| **Subprocess PID tracking** | `continuous_learning.py` không có PID tracking | Ghi PID + `process.wait()` khi shutdown |
+
+### ℹ️ Low Priority (Warnings)
+
+| Warning | Mô tả |
+|---------|-------|
+| XGBoost GPU fallback | Không có GPU → tự động CPU, chỉ xuất hiện khi load model |
+| LightGBM feature names | Inference không có DataFrame wrapper → UserWarning |
+| `test_stage1_pipeline.py` return non-None | Nên dùng `assert` thay vì `return` |
+
 ---
 
 ## Next Steps
 
-### Immediate (Phase 2.1)
-- [ ] Integrate RuleContextProvider with new interface
-- [ ] Update decision_engine.py to use ContextProvider
-- [ ] Update all alert functions to read from Event Bus
-- [ ] Run integration tests (all modules compile)
+### Đã hoàn thành (Phase 2.1 → Phase D) ✅
+- [x] Integrate `RuleContextProvider` with new ContextProvider interface
+- [x] Update `decision_engine.py` — `decide_with_provider()` method
+- [x] Implement `BayesianContextProvider` (Gaussian log-likelihood)
+- [x] Create `CausalDiscoveryEngine` (Granger causality + graph writer)
+- [x] Implement `HybridContextProvider` (alpha-blended Rule+Bayesian)
+- [x] Scenario Simulator (`CausalSimulator`) + Counterfactual Analysis (`CounterfactualEngine`)
+- [x] Digital Twin / World Model (`WorldModelPredictor`)
+- [x] Causal Anomaly Detector (`CausalAnomalyDetector`)
+- [x] Multi-Agent Collaboration (`MacroAgent`, `LiquidityAgent`, `SentimentAgent`, `ConsensusEngine`)
+- [x] Production Integration: `CausalContextBridge` → `SignalGeneratorAgent` → `ExecutionAgent`
+- [x] **196/196 integration tests PASSED** (02/07/2026)
 
-### Short-term (Phase 3.0)
-- [ ] Implement BayesianContextProvider
-- [ ] Create Causal Discovery Algorithm
-- [ ] Enable learned_rules in config
-- [ ] Hybrid rule + learned approach
-
-### Medium-term (Phase 4.0+)
-- [ ] Implement RLContextProvider (RL agent learns adjustments)
-- [ ] Scenario Simulator (counterfactual analysis)
-- [ ] Digital Twin (world model prediction)
-- [ ] Multi-Agent Collaboration
+### Tiếp theo (Hardening & Activation)
+- [ ] Fix circular import: `multi_agent.py` → `main.py` (tách HTF utils sang `analysis/htf_utils.py`)
+- [ ] Graceful shutdown: `shutdown_event`, sentinel `ai_queue`, PID tracking subprocesses
+- [ ] Atomic file write utility (`write-tmp + os.replace`)
+- [ ] Pin dependencies: `pip freeze > requirements-lock.txt`
+- [ ] Activate `CAUSAL_ALPHA=0.1` sau 2-4 tuần shadow mode baseline
+- [ ] Weekly `CausalDiscoveryEngine.discover()` trên 6 tháng data
+- [ ] Implement `RLContextProvider` (v4.0) — learn context adjustments từ shadow mode data
+- [ ] Grafana/Prometheus observability dashboard
 
 ---
 
-**Architecture Document Version**: 2.0.0  
-**Last Updated**: 2026-06-30  
-**Status**: Foundation Complete ✓
+**Architecture Document Version**: 2.1.0
+**Last Updated**: 2026-07-02
+**Status**: Foundation + Phase 2.1-D Complete ✓ | Production Integrated ✓ | 196/196 Tests PASSED ✓

@@ -437384,5 +437384,39 @@
       "std_dev_pct": 0.5169
     },
     "regime": null
+  },
+  {
+    "coin": "ETH",
+    "id": "90f2b6e6-0468-44ce-9711-446a9c95e77b",
+    "entry_price": 100.0,
+    "sell_price": 1619.7,
+    "pnl_pct": 1519.7,
+    "result": "WIN",
+    "hold_hours": 0.1,
+    "exit_time": "2026-07-02 09:06",
+    "signal_raw": "NEUTRAL (BEARISH-CAUTION)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH-CAUTION)",
+      "gated": false,
+      "meta_confidence": 0.5568513119533528,
+      "meta_confidence_pct": 56,
+      "meta_expected_return": null,
+      "meta_expected_drawdown": null,
+      "meta_expected_hold_time": null,
+      "meta_decision": {},
+      "kelly_fraction": 0.1137026239067056,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

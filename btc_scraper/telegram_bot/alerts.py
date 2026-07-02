@@ -19,6 +19,12 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
     missed_valid_signals = []
     
     from btc_scraper.ml_engine.signal_score import extract_signal_fields
+    def _is_actionable_alert(signal_text: str) -> bool:
+        sig_text = str(signal_text).upper()
+        if "NEUTRAL" in sig_text:
+            return False
+        return any(token in sig_text for token in ("BUY", "SELL", "SHORT", "LONG"))
+
     for key, ana in analysis_results.items():
         coin, exchange = key.split(":")
         sig_fields = extract_signal_fields(ana)
@@ -30,11 +36,11 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         price_str = f"{close_val:{val_format}}"
         
         emoji = "⚪"
-        if "STRONG BUY" in sig:
+        if "STRONG BUY" in sig or "LONG" in sig:
             emoji = "🟢🟢"
         elif "BUY" in sig:
             emoji = "🟢"
-        elif "STRONG SELL" in sig:
+        elif "STRONG SELL" in sig or "SHORT" in sig:
             emoji = "🔴🔴"
         elif "SELL" in sig:
             emoji = "🔴"
@@ -120,7 +126,7 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
                 
                 line += f"\n  💰 <b>Vốn tối thiểu (lãi ≥$5)</b>: Spot <code>{_fmt(net_spot)}</code> | +BNB <code>{_fmt(net_bnb)}</code> | Fut <code>{_fmt(net_fut)}</code>"
             
-        if "BUY" in sig or "SELL" in sig:
+        if _is_actionable_alert(sig):
             active_signals.append(line)
         else:
             neutral_signals.append(line)
