@@ -1,0 +1,44 @@
+[
+  {
+    "checked_at": "2026-07-02T09:38:26.230692+00:00",
+    "payload_timestamp": "2026-07-02T09:38:17.801214+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T09:38:32.434578+00:00",
+    "payload_timestamp": "2026-07-02T09:38:26.231915+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T09:38:37.739043+00:00",
+    "payload_timestamp": "2026-07-02T09:38:26.231915+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T09:46:12.508884+00:00",
+    "payload_timestamp": "2026-07-02T09:38:26.231915+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T09:53:40.542460+00:00",
+    "payload_timestamp": "2026-07-02T09:53:32.578871+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-02T10:01:11.486858+00:00",
+    "payload_timestamp": "2026-07-02T09:53:32.578871+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  }
+]

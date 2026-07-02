@@ -5262,5 +5262,62 @@
     "status": "placed",
     "error": null,
     "filled_price": 100.0
+  },
+  {
+    "timestamp": "2026-07-02T16:46:10.043415",
+    "timestamp_str": "2026-07-02 16:46:10",
+    "mode": "TESTNET",
+    "coin": "ETH",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4077,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 1640.01
+  },
+  {
+    "timestamp": "2026-07-02T16:46:10.861975",
+    "timestamp_str": "2026-07-02 16:46:10",
+    "mode": "TESTNET",
+    "coin": "SOL",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.323,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 79.3
+  },
+  {
+    "timestamp": "2026-07-02T17:01:08.306924",
+    "timestamp_str": "2026-07-02 17:01:08",
+    "mode": "TESTNET",
+    "coin": "BTC",
+    "symbol": "BTC/USDT",
+    "direction": "SHORT",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4615,
+    "meta_confidence_pct": 46,
+    "signal_score": 52,
+    "order_type": "market",
+    "entry_price": 61116.34,
+    "sl_price": 61547.7073,
+    "tp1_price": 60516.7705,
+    "usdt_amount": 75.0,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: binance {\"code\":-2015,\"msg\":\"Invalid API-key, IP, or permissions for action\"}"
+  },
+  {
+    "timestamp": "2026-07-02T17:01:09.839539",
+    "timestamp_str": "2026-07-02 17:01:09",
+    "mode": "TESTNET",
+    "coin": "ETH",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4077,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 1641.76
   }
 ]

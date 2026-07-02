@@ -4,6 +4,70 @@
 > Phase: **8 — Advanced Feature Engineering**  
 > Goal: tăng chất lượng alpha bằng cách nâng cấp nhãn huấn luyện, feature store, regime-aware features và validation pipeline.  
 > Created: 2026-07-02
+> Last Progress Update: 2026-07-02
+
+---
+
+## 0. Implementation Progress (Live)
+
+### Current Status
+
+- Phase 8 implementation has started.
+- Sprint 1 (Foundation) is implemented in code.
+- Sprint 2 (Triple Barrier Labeling) is implemented in code.
+- Sprint 3 (Meta Labeling) is implemented in code.
+- Runtime execution in current shell is blocked by missing Python dependencies.
+
+### Completed in Repository
+
+- Added new package: `btc_scraper/feature_engineering/`.
+- Implemented `feature_store.py` with:
+  - Feature Store v2 folder bootstrap.
+  - Table save/load (parquet/csv).
+  - Feature metadata registry.
+  - Dataset version metadata + source hash.
+- Implemented `triple_barrier.py` with:
+  - LONG/SHORT support.
+  - ATR-based dynamic barriers.
+  - TP/SL/timeout outcomes.
+  - MFE/MAE and barrier diagnostics fields.
+- Implemented `label_engine.py` as orchestration entrypoint.
+- Implemented `meta_labeling.py` with:
+  - Primary signal/direction extraction.
+  - Meta label generation (`execute` vs `skip`).
+  - Trade quality scoring and bucketization (A/B/C/D).
+- Added scripts:
+  - `scripts/build_feature_store_v2.py`.
+  - `scripts/generate_triple_barrier_labels.py`.
+  - `scripts/generate_meta_labels.py`.
+- Added tests:
+  - `tests/test_feature_store.py`.
+  - `tests/test_triple_barrier.py`.
+  - `tests/test_meta_labeling.py`.
+
+### Environment Blockers (Current Machine)
+
+- `python3 scripts/build_feature_store_v2.py` failed because `pandas` is not installed in the active Python environment.
+- `python3 scripts/generate_triple_barrier_labels.py ...` failed for the same reason.
+- `python3 -m pytest ...` failed because `pytest` is not installed in the active Python environment.
+
+### Next Execution Step (After Environment Ready)
+
+Run in repo root:
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 scripts/build_feature_store_v2.py
+python3 scripts/generate_triple_barrier_labels.py \
+  --input logs/adaptive_signals_v2.json \
+  --output data/feature_store/labels/triple_barrier_labels.parquet \
+  --data-dir data \
+  --timeframe 15m
+python3 scripts/generate_meta_labels.py \
+  --input data/feature_store/labels/triple_barrier_labels.parquet \
+  --output-meta data/feature_store/labels/meta_labels.parquet \
+  --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+```
 
 ---
 
@@ -879,6 +943,14 @@ OrderbookImbalance → ShortTermPressure
 
 ## Sprint 1 — Foundation
 
+### Progress Snapshot
+
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/feature_store.py`
+  - `scripts/build_feature_store_v2.py`
+  - `tests/test_feature_store.py`
+
 ### Tasks
 
 - Create `feature_engineering/` package.
@@ -906,6 +978,15 @@ BaseFeatureBuilder
 
 ## Sprint 2 — Triple Barrier Labeling
 
+### Progress Snapshot
+
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/triple_barrier.py`
+  - `btc_scraper/feature_engineering/label_engine.py`
+  - `scripts/generate_triple_barrier_labels.py`
+  - `tests/test_triple_barrier.py`
+
 ### Tasks
 
 - Implement `triple_barrier.py`.
@@ -932,6 +1013,14 @@ data/feature_store/labels/triple_barrier_labels.parquet
 
 ## Sprint 3 — Meta Labeling
 
+### Progress Snapshot
+
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/meta_labeling.py`
+  - `scripts/generate_meta_labels.py`
+  - `tests/test_meta_labeling.py`
+
 ### Tasks
 
 - Implement `meta_labeling.py`.
@@ -956,6 +1045,10 @@ trade_quality_labels.parquet
 ---
 
 ## Sprint 4 — Regime and Causal Features
+
+### Progress Snapshot
+
+- Status: **NOT STARTED**
 
 ### Tasks
 
@@ -982,6 +1075,10 @@ causal_features.parquet
 
 ## Sprint 5 — Alternative Data Features
 
+### Progress Snapshot
+
+- Status: **NOT STARTED**
+
 ### Tasks
 
 - Build `alternative_features.py`.
@@ -1006,6 +1103,10 @@ alternative_feature_quality_report.json
 
 ## Sprint 6 — Cross-Sectional Features
 
+### Progress Snapshot
+
+- Status: **NOT STARTED**
+
 ### Tasks
 
 - Build `cross_sectional_features.py`.
@@ -1028,6 +1129,10 @@ cross_sectional_features.parquet
 ---
 
 ## Sprint 7 — Fractional Differencing
+
+### Progress Snapshot
+
+- Status: **NOT STARTED**
 
 ### Tasks
 
@@ -1052,6 +1157,10 @@ fracdiff_report.json
 ---
 
 ## Sprint 8 — Feature Validation
+
+### Progress Snapshot
+
+- Status: **NOT STARTED**
 
 ### Tasks
 
@@ -1078,6 +1187,10 @@ feature_rejection_report.json
 
 ## Sprint 9 — Dataset Builder v3
 
+### Progress Snapshot
+
+- Status: **NOT STARTED**
+
 ### Tasks
 
 - Implement `dataset_builder_v3.py`.
@@ -1103,6 +1216,10 @@ ml_dataset_v3_metadata.json
 ---
 
 ## Sprint 10 — ML Pipeline Integration
+
+### Progress Snapshot
+
+- Status: **NOT STARTED**
 
 ### Tasks
 
