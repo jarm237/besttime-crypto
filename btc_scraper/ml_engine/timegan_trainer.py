@@ -8,9 +8,18 @@ import os
 import math
 
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
+
+try:
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import DataLoader
+except Exception as exc:  # pragma: no cover - environment dependent
+    torch = None
+    nn = None
+    DataLoader = None
+    TORCH_IMPORT_ERROR = exc
+else:
+    TORCH_IMPORT_ERROR = None
 
 from btc_scraper.ml_engine.timegan import AltcoinSequenceDataset, OHLCVScaler
 from btc_scraper.ml_engine.timegan_model import Embedder, Recovery

@@ -631,6 +631,17 @@ def main():
         action="store_true",
         help="In ra các preset nhóm coin và thoát."
     )
+    parser.add_argument(
+        "--use-gpu",
+        action="store_true",
+        help="Train the meta-model with GPU backends when available."
+    )
+    parser.add_argument(
+        "--device-id",
+        type=int,
+        default=int(os.environ.get("TRAIN_DEVICE_ID", "0")),
+        help="GPU device id to use for GPU training."
+    )
     args = parser.parse_args()
 
     if args.list_coin_groups:
@@ -679,6 +690,8 @@ def main():
             n_estimators=args.n,
             cv=5,
             calibrate=not args.no_calibrate,
+            use_gpu=args.use_gpu or os.environ.get("TRAIN_USE_GPU", "0") == "1",
+            device_id=args.device_id,
         )
         print(f"\n{'='*65}")
         print("  HOÀN TẤT!")

@@ -47,22 +47,22 @@
     "sentiment_trend_up",
     "sentiment_trend_down"
   ],
-  "cv_auc_mean": 0.6128517043039198,
-  "cv_auc_std": 0.022514085884314805,
-  "cv_acc_mean": 0.5725255547245076,
-  "ensemble_cv_auc_mean": 0.6210383347064773,
-  "ensemble_cv_acc_mean": 0.5850411368735976,
+  "cv_auc_mean": 0.6159859295611525,
+  "cv_auc_std": 0.019198808848846595,
+  "cv_acc_mean": 0.580304163550237,
+  "ensemble_cv_auc_mean": 0.625446122772586,
+  "ensemble_cv_acc_mean": 0.5857392171528297,
   "ensemble_weights": {
-    "lgbm": 0.015453718046387099,
-    "catboost": 0.8025549808441872,
-    "xgboost": 0.18199130110942568
+    "lgbm": 0.02321706118089427,
+    "catboost": 0.6963867842946749,
+    "xgboost": 0.2803961545244309
   },
   "available_models": [
     "lgbm",
     "catboost",
     "xgboost"
   ],
-  "calibration_method": "sigmoid",
+  "calibration_method": "isotonic",
   "calibrated": true,
   "calibration_info": {
     "split": {
@@ -70,8 +70,8 @@
       "calib": 3610,
       "test": 3611
     },
-    "selected_method": "sigmoid",
-    "selected_error": 3.775
+    "selected_method": "isotonic",
+    "selected_error": 4.9
   },
   "label_dist": {
     "WIN": 11413,
@@ -79,47 +79,49 @@
   },
   "calibration_buckets": {
     "0.0-0.4": {
-      "count": 1143,
-      "wins": 387,
-      "losses": 756,
-      "actual_wr": 33.9,
+      "count": 923,
+      "wins": 279,
+      "losses": 644,
+      "actual_wr": 30.2,
       "predicted_wr": 20.0,
-      "calibration_error": 13.9,
+      "calibration_error": 10.2,
       "calibrated": false
     },
     "0.4-0.6": {
-      "count": 1899,
-      "wins": 950,
-      "losses": 949,
-      "actual_wr": 50.0,
+      "count": 1917,
+      "wins": 935,
+      "losses": 982,
+      "actual_wr": 48.8,
       "predicted_wr": 50.0,
-      "calibration_error": 0.0,
+      "calibration_error": -1.2,
       "calibrated": true
     },
     "0.6-0.7": {
-      "count": 485,
-      "wins": 321,
-      "losses": 164,
-      "actual_wr": 66.2,
+      "count": 614,
+      "wins": 388,
+      "losses": 226,
+      "actual_wr": 63.2,
       "predicted_wr": 65.0,
-      "calibration_error": 1.2,
+      "calibration_error": -1.8,
       "calibrated": true
     },
     "0.7-0.8": {
-      "count": 84,
-      "wins": 63,
-      "losses": 21,
-      "actual_wr": 75.0,
+      "count": 100,
+      "wins": 73,
+      "losses": 27,
+      "actual_wr": 73.0,
       "predicted_wr": 75.0,
-      "calibration_error": 0.0,
+      "calibration_error": -2.0,
       "calibrated": true
     },
     "0.8-1.0": {
-      "count": 0,
-      "actual_wr": null,
-      "predicted_wr": null,
-      "calibration_error": null,
-      "calibrated": false
+      "count": 57,
+      "wins": 46,
+      "losses": 11,
+      "actual_wr": 80.7,
+      "predicted_wr": 90.0,
+      "calibration_error": -9.3,
+      "calibrated": true
     }
   },
   "walk_forward": [
@@ -134,8 +136,8 @@
       ],
       "n_train": 15645,
       "n_test": 3610,
-      "roc_auc": 0.6312144906529591,
-      "accuracy": 0.5858725761772853
+      "roc_auc": 0.6159110728845416,
+      "accuracy": 0.5722991689750693
     },
     {
       "train_range": [
@@ -148,8 +150,8 @@
       ],
       "n_train": 15645,
       "n_test": 3610,
-      "roc_auc": 0.6283724586209374,
-      "accuracy": 0.5925207756232687
+      "roc_auc": 0.640781069280055,
+      "accuracy": 0.6
     }
   ]
 }

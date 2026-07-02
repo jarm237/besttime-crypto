@@ -9,8 +9,15 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict
 
 import numpy as np
-import torch
 import logging
+
+try:
+    import torch
+except Exception as exc:  # pragma: no cover - environment dependent
+    torch = None
+    TORCH_IMPORT_ERROR = exc
+else:
+    TORCH_IMPORT_ERROR = None
 
 from btc_scraper.ml_engine.timegan_model import (
     Embedder, Recovery, Generator, Supervisor, Discriminator
@@ -26,6 +33,8 @@ def load_timegan_checkpoint(
     hidden_dim: int = 64,
     device: str = "cpu"
 ) -> Tuple[Generator, Recovery]:
+    if torch is None:
+        raise ImportError(f"PyTorch is unavailable: {TORCH_IMPORT_ERROR}")
     """Load pre-trained Generator and Recovery from checkpoint.
     
     Args:
@@ -88,6 +97,8 @@ def generate_synthetic_sequences(
     batch_size: int = 256,
     device: str = "cpu"
 ) -> np.ndarray:
+    if torch is None:
+        raise ImportError(f"PyTorch is unavailable: {TORCH_IMPORT_ERROR}")
     """Generate synthetic OHLCV sequences using trained generator + recovery.
     
     Args:

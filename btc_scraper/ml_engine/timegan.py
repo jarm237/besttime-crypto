@@ -15,8 +15,17 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
-import torch
-from torch.utils.data import Dataset, DataLoader
+
+try:
+    import torch
+    from torch.utils.data import Dataset, DataLoader
+except Exception as exc:  # pragma: no cover - environment dependent
+    torch = None
+    Dataset = object
+    DataLoader = None
+    TORCH_IMPORT_ERROR = exc
+else:
+    TORCH_IMPORT_ERROR = None
 
 OHLCV_FEATURES = ["open", "high", "low", "close", "volume"]
 
@@ -187,6 +196,8 @@ class AltcoinSequenceDataset(Dataset):
     """PyTorch Dataset for TimeGAN OHLCV sequences."""
 
     def __init__(self, sequences: np.ndarray):
+        if torch is None:
+            raise ImportError(f"PyTorch is unavailable: {TORCH_IMPORT_ERROR}")
         sequences = np.asarray(sequences, dtype=np.float32)
         if sequences.ndim != 3 or sequences.shape[2] != len(OHLCV_FEATURES):
             raise ValueError(
@@ -211,7 +222,9 @@ def build_timegan_dataloader(
     shuffle: bool = True,
     num_workers: int = 0,
     pin_memory: bool = False,
-) -> DataLoader:
+):
+    if torch is None or DataLoader is None:
+        raise ImportError(f"PyTorch is unavailable: {TORCH_IMPORT_ERROR}")
     dataset = AltcoinSequenceDataset(sequences)
     return DataLoader(
         dataset,

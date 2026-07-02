@@ -8,6 +8,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import runpy
 from pathlib import Path
 
@@ -19,6 +20,12 @@ def main():
 
     # Load build_and_train into an isolated namespace
     ns = runpy.run_path("scripts/build_and_train.py")
+
+    use_gpu = os.environ.get("USE_GPU", "0") == "1"
+    device_id = int(os.environ.get("GPU_DEVICE_ID", "0"))
+    if use_gpu:
+        os.environ["TRAIN_USE_GPU"] = "1"
+        os.environ["TRAIN_DEVICE_ID"] = str(device_id)
 
     # Initialize runtime and load sentiment history
     ns.get("initialize_runtime_dependencies", lambda: None)()

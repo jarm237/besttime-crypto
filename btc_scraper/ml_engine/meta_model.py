@@ -144,7 +144,29 @@ def _import_optional_estimators():
     return estimators
 
 
-def _make_lgbm_classifier(n_estimators: int = 200, random_state: int = 42, **overrides):
+def _get_backend_kwargs(backend: str, use_gpu: bool = False, device_id: int = 0) -> dict:
+    if not use_gpu:
+        return {}
+    if backend == "lgbm":
+        return {
+            "device": "gpu",
+            "gpu_platform_id": 0,
+            "gpu_device_id": device_id,
+        }
+    if backend == "catboost":
+        return {
+            "task_type": "GPU",
+            "devices": f"{device_id}",
+        }
+    if backend == "xgboost":
+        return {
+            "tree_method": "hist",
+            "device": f"cuda:{device_id}",
+        }
+    return {}
+
+
+def _make_lgbm_classifier(n_estimators: int = 200, random_state: int = 42, use_gpu: bool = False, device_id: int = 0, **overrides):
     optional = _import_optional_estimators()
     if "lgbm" not in optional:
         raise ImportError("LightGBM is required for Meta Model v3.1 training.")
@@ -158,7 +180,10 @@ def _make_lgbm_classifier(n_estimators: int = 200, random_state: int = 42, **ove
         "class_weight": "balanced",
         "random_state": random_state,
         "n_jobs": -1,
+        "verbosity": -1,
+        "verbose": -1,
     }
+    params.update(_get_backend_kwargs("lgbm", use_gpu=use_gpu, device_id=device_id))
     params.update(overrides)
     return optional["lgbm"](**params)
 
@@ -200,32 +225,41 @@ class _InferenceWrapper:
         return self._estimator.predict(self._prepare(X), *args, **kwargs)
 
 
-def _build_estimators(n_estimators: int = 200, random_state: int = 42) -> dict:
+def _build_estimators(n_estimators: int = 200, random_state: int = 42, use_gpu: bool = False, device_id: int = 0) -> dict:
     estimators = {}
     optional = _import_optional_estimators()
     if "lgbm" in optional:
-        estimators["lgbm"] = _make_lgbm_classifier(n_estimators=n_estimators, random_state=random_state)
-    if "catboost" in optional:
-        estimators["catboost"] = optional["catboost"](
-            iterations=n_estimators,
-            depth=5,
-            learning_rate=0.03,
-            l2_leaf_reg=3,
-            verbose=0,
-            thread_count=-1,
-            random_seed=random_state,
-        )
-    if "xgboost" in optional:
-        estimators["xgboost"] = optional["xgboost"](
+        estimators["lgbm"] = _make_lgbm_classifier(
             n_estimators=n_estimators,
-            max_depth=5,
-            learning_rate=0.03,
-            subsample=0.8,
-            colsample_bytree=0.8,
-            eval_metric="logloss",
-            n_jobs=-1,
             random_state=random_state,
+            use_gpu=use_gpu,
+            device_id=device_id,
         )
+    if "catboost" in optional:
+        catboost_params = {
+            "iterations": n_estimators,
+            "depth": 5,
+            "learning_rate": 0.03,
+            "l2_leaf_reg": 3,
+            "verbose": 0,
+            "thread_count": -1,
+            "random_seed": random_state,
+        }
+        catboost_params.update(_get_backend_kwargs("catboost", use_gpu=use_gpu, device_id=device_id))
+        estimators["catboost"] = optional["catboost"](**catboost_params)
+    if "xgboost" in optional:
+        xgboost_params = {
+            "n_estimators": n_estimators,
+            "max_depth": 5,
+            "learning_rate": 0.03,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8,
+            "eval_metric": "logloss",
+            "n_jobs": -1,
+            "random_state": random_state,
+        }
+        xgboost_params.update(_get_backend_kwargs("xgboost", use_gpu=use_gpu, device_id=device_id))
+        estimators["xgboost"] = optional["xgboost"](**xgboost_params)
     return estimators
 
 
@@ -341,12 +375,14 @@ def _compute_expected_value_metrics(prob: float, analysis_info: dict) -> dict:
 
 
 class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
-    def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42, base_params=None):
+    def __init__(self, weights=None, calibration=None, n_estimators=200, random_state=42, base_params=None, use_gpu: bool = False, device_id: int = 0):
         self.weights = weights if weights is not None else {"lgbm": 0.33, "catboost": 0.33, "xgboost": 0.34}
         self.calibration = calibration  # "sigmoid", "isotonic" or None
         self.n_estimators = n_estimators
         self.random_state = random_state
         self.base_params = base_params if base_params is not None else {}
+        self.use_gpu = use_gpu
+        self.device_id = device_id
         self.classes_ = np.array([0, 1])
         self.models_ = {}
         self.normalized_weights_ = {}
@@ -361,14 +397,17 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         optional = _import_optional_estimators()
         
         # Set default base params and override with provided base_params
-        lgbm_params = {"n_estimators": self.n_estimators, "max_depth": 5, "num_leaves": 31, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "class_weight": "balanced", "random_state": self.random_state, "n_jobs": -1}
+        lgbm_params = {"n_estimators": self.n_estimators, "max_depth": 5, "num_leaves": 31, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "class_weight": "balanced", "random_state": self.random_state, "n_jobs": -1, "verbosity": -1, "verbose": -1}
         lgbm_params.update(self.base_params.get("lgbm", {}))
+        lgbm_params.update(_get_backend_kwargs("lgbm", use_gpu=self.use_gpu, device_id=self.device_id))
         
         catboost_params = {"iterations": self.n_estimators, "depth": 5, "learning_rate": 0.03, "l2_leaf_reg": 3, "verbose": 0, "thread_count": -1, "random_seed": self.random_state}
         catboost_params.update(self.base_params.get("catboost", {}))
+        catboost_params.update(_get_backend_kwargs("catboost", use_gpu=self.use_gpu, device_id=self.device_id))
         
         xgboost_params = {"n_estimators": self.n_estimators, "max_depth": 5, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.8, "eval_metric": "logloss", "n_jobs": -1, "random_state": self.random_state}
         xgboost_params.update(self.base_params.get("xgboost", {}))
+        xgboost_params.update(_get_backend_kwargs("xgboost", use_gpu=self.use_gpu, device_id=self.device_id))
 
         estimators = {}
         if "lgbm" in optional:
@@ -517,7 +556,7 @@ def walk_forward_eval(X: np.ndarray, y: np.ndarray, clf=None, train_window_pct: 
     return results
 
 
-def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = True):
+def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = True, use_gpu: bool = False, device_id: int = 0):
     """
     Train the ensemble meta model on adaptive_signals.json.
 
@@ -538,6 +577,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
     print(f"  Training với {len(y)} samples, {len(feature_names)} features")
     print(f"  Label distribution: WIN={y.sum()}, LOSS={len(y)-y.sum()}")
+    print(f"  [Backend] Meta-model training backend: {'GPU' if use_gpu else 'CPU'} (device_id={device_id})")
 
     # Determine CV splits
     cv_splits = min(cv, max(2, len(y) // 10))
@@ -545,7 +585,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 
     # 1. Quick pre-fit to identify and drop zero-importance features
     print("  [Pre-fit] Đang xác định features có tầm quan trọng = 0...")
-    _prefit = _make_lgbm_classifier(n_estimators=100, random_state=42, max_depth=6)
+    _prefit = _make_lgbm_classifier(n_estimators=100, random_state=42, max_depth=6, use_gpu=use_gpu, device_id=device_id)
     _prefit.fit(X, y)
     _importance = _prefit.feature_importances_
     selected_mask = _importance > 0.0
@@ -560,7 +600,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         selected_features = list(feature_names)
 
     # 2. Base model CV (LGBM) for backward-compatible metric comparison
-    base_clf = _make_lgbm_classifier(n_estimators=n_estimators, random_state=42, max_depth=8)
+    base_clf = _make_lgbm_classifier(n_estimators=n_estimators, random_state=42, max_depth=8, use_gpu=use_gpu, device_id=device_id)
     try:
         aucs = cross_val_score(base_clf, X, y, cv=tscv, scoring="roc_auc")
         accs = cross_val_score(base_clf, X, y, cv=tscv, scoring="accuracy")
@@ -629,7 +669,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
                 if len(np.unique(y_val)) < 2 or len(np.unique(y_train)) < 2:
                     continue
 
-                model = EnsembleMetaModel(weights=weights, base_params=bp, n_estimators=80)
+                model = EnsembleMetaModel(weights=weights, base_params=bp, n_estimators=80, use_gpu=use_gpu, device_id=device_id)
                 try:
                     model.fit(X_train, y_train)
                     preds = model.predict_proba(X_val)[:, 1]
@@ -681,6 +721,7 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
     ensemble_clf = EnsembleMetaModel(
         weights=best_weights, base_params=best_base_params,
         calibration=None, n_estimators=n_estimators,
+        use_gpu=use_gpu, device_id=device_id,
     )
     ensemble_cv_auc = None
     ensemble_cv_acc = None

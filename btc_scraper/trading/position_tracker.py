@@ -14,7 +14,14 @@ from typing import Literal
 import numpy as np
 from pathlib import Path
 
-import torch
+try:
+    import torch
+except Exception as exc:  # pragma: no cover - environment dependent
+    torch = None
+    TORCH_IMPORT_ERROR = exc
+else:
+    TORCH_IMPORT_ERROR = None
+
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
 
@@ -55,6 +62,8 @@ load_lstm_cache()
 
 
 def _get_default_device() -> str:
+    if torch is None:
+        return "cpu"
     try:
         return "cuda" if torch.cuda.is_available() else "cpu"
     except Exception:

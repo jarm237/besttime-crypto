@@ -12,8 +12,69 @@ These are minimal implementations with clear input/output shapes and smoke tests
 
 from typing import Optional
 
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+except Exception as exc:  # pragma: no cover - environment dependent
+    torch = None
+    nn = None
+    TORCH_IMPORT_ERROR = exc
+else:
+    TORCH_IMPORT_ERROR = None
+
+
+if nn is None:
+    class _TorchFallbackModule:  # pragma: no cover - environment fallback
+        def __init__(self, *args, **kwargs):
+            raise ImportError(f"PyTorch is unavailable: {TORCH_IMPORT_ERROR}")
+
+    class _TorchFallbackLinear(_TorchFallbackModule):
+        pass
+
+    class _TorchFallbackGRU(_TorchFallbackModule):
+        pass
+
+    class _TorchFallbackModuleBase(_TorchFallbackModule):
+        pass
+
+    class Module(_TorchFallbackModuleBase):
+        pass
+
+    class Linear(_TorchFallbackLinear):
+        pass
+
+    class GRU(_TorchFallbackGRU):
+        pass
+
+    class Identity(_TorchFallbackModule):
+        pass
+
+    class ReLU(_TorchFallbackModule):
+        pass
+
+    class Sigmoid(_TorchFallbackModule):
+        pass
+
+    class Sequential(_TorchFallbackModule):
+        pass
+
+    class Parameter(_TorchFallbackModule):
+        pass
+
+    class Tensor(_TorchFallbackModule):
+        pass
+
+    nn = type("nn", (), {
+        "Module": Module,
+        "Linear": Linear,
+        "GRU": GRU,
+        "Identity": Identity,
+        "ReLU": ReLU,
+        "Sigmoid": Sigmoid,
+        "Sequential": Sequential,
+        "Parameter": Parameter,
+        "Tensor": Tensor,
+    })
 
 
 class _GRUBlock(nn.Module):
