@@ -1,0 +1,83 @@
+{
+  "nodes": [
+    {"id": "DXY"},
+    {"id": "VIX"},
+    {"id": "RealYield"},
+    {"id": "Funding"},
+    {"id": "Sentiment"},
+    {"id": "BTC"},
+    {"id": "ETH"}
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "from": "DXY",
+      "to": "BTC",
+      "effect": "negative",
+      "weight": 0.85,
+      "lag": "1d",
+      "confidence": 0.85,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Manual edge: strong USD strength pressure on BTC price"
+    },
+    {
+      "id": "edge_2",
+      "from": "VIX",
+      "to": "BTC",
+      "effect": "negative",
+      "weight": 0.78,
+      "lag": "1d",
+      "confidence": 0.78,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Manual edge: volatility spike pressure on BTC price"
+    },
+    {
+      "id": "edge_3",
+      "from": "RealYield",
+      "to": "BTC",
+      "effect": "negative",
+      "weight": 0.72,
+      "lag": "1d",
+      "confidence": 0.72,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Manual edge: rising real yields pressure on BTC price"
+    },
+    {
+      "id": "edge_4",
+      "from": "Funding",
+      "to": "BTC",
+      "effect": "negative",
+      "weight": 0.65,
+      "lag": "4h",
+      "confidence": 0.65,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Manual edge: elevated funding pressure on BTC price"
+    },
+    {
+      "id": "edge_5",
+      "from": "Sentiment",
+      "to": "BTC",
+      "effect": "positive",
+      "weight": 0.80,
+      "lag": "4h",
+      "confidence": 0.80,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Manual edge: bullish sentiment support for BTC price"
+    }
+  ]
+}
