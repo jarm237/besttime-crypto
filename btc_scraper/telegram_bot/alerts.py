@@ -35,23 +35,39 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         val_format = ",.4f" if close_val < 10 else ",.2f"
         price_str = f"{close_val:{val_format}}"
         
-        emoji = "⚪"
-        if "STRONG BUY" in sig or "LONG" in sig:
-            emoji = "🟢🟢"
-        elif "BUY" in sig:
-            emoji = "🟢"
-        elif "STRONG SELL" in sig or "SHORT" in sig:
-            emoji = "🔴🔴"
-        elif "SELL" in sig:
-            emoji = "🔴"
-            
-        escaped_sig = html.escape(sig)
-        escaped_reason = html.escape(ana.get("reason", ""))
         sig_score = ana.get("signal_score", {}) or {}
         display_label = sig_score.get("display_label")  # e.g. "BUY 80%" / "SELL 75%" / "NEUTRAL"
         display_score = sig_score.get("display_score")  # sức mạnh theo chiều action 0-100
         confidence = sig_score.get("confidence")
         meta_pct = sig_score.get("meta_confidence_pct")  # int 0-100 hoặc None
+
+        # Đồng bộ nhãn hiển thị để tránh mâu thuẫn kiểu "STRONG SELL" nhưng điểm thấp/confidence LOW.
+        sig_for_display = str(sig)
+        try:
+            score_num = float(display_score) if display_score is not None else None
+        except Exception:
+            score_num = None
+        low_conviction = (confidence == "LOW") or (score_num is not None and score_num < 60)
+        if low_conviction:
+            up = sig_for_display.upper()
+            if "STRONG BUY" in up:
+                sig_for_display = sig_for_display.replace("STRONG BUY", "WEAK BUY")
+            elif "STRONG SELL" in up:
+                sig_for_display = sig_for_display.replace("STRONG SELL", "WEAK SELL")
+
+        emoji = "⚪"
+        up_sig_display = sig_for_display.upper()
+        if "STRONG BUY" in up_sig_display or "LONG" in up_sig_display:
+            emoji = "🟢🟢"
+        elif "BUY" in up_sig_display:
+            emoji = "🟢"
+        elif "STRONG SELL" in up_sig_display or "SHORT" in up_sig_display:
+            emoji = "🔴🔴"
+        elif "SELL" in up_sig_display:
+            emoji = "🔴"
+
+        escaped_sig = html.escape(sig_for_display)
+        escaped_reason = html.escape(ana.get("reason", ""))
 
         # Fallback nếu bot đang chạy mà chưa có display_label (dữ liệu cũ)
         if display_label is None:

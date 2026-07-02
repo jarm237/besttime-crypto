@@ -326,6 +326,7 @@ class AutoTrader:
         signal: str,
         meta_confidence: float,
         signal_score: int,
+        sig_score_obj: Dict[str, Any] | None = None,
     ) -> tuple[bool, str]:
         """
         Kiểm tra xem có nên trade không.
@@ -353,7 +354,19 @@ class AutoTrader:
                 f"Meta confidence {meta_confidence:.1%} < nguong {self.meta_threshold:.1%}"
             )
 
-        # 5. Signal score threshold
+        # 5. Xung đột: meta cao nhưng signal_score thấp + causal anomaly => no-trade.
+        # Bảo vệ khỏi false positive khi world-model báo bất thường cấu trúc.
+        sig_score_obj = sig_score_obj or {}
+        has_causal_anomaly = bool(sig_score_obj.get("causal_anomaly_warning")) or ("CAUSAL ANOMALY" in signal.upper())
+        meta_high_threshold = max(float(self.meta_threshold), 0.60)
+        low_signal_threshold = max(int(self.score_threshold), 70)
+        if has_causal_anomaly and meta_confidence >= meta_high_threshold and signal_score <= low_signal_threshold:
+            return False, (
+                f"Conflict gate: meta cao ({meta_confidence:.1%}) nhung score thap ({signal_score}) "
+                f"+ causal anomaly"
+            )
+
+        # 6. Signal score threshold
         if signal_score < self.score_threshold:
             return False, f"Score {signal_score} < nguong {self.score_threshold}"
 
@@ -453,7 +466,13 @@ class AutoTrader:
             return None
 
         # Kiểm tra should_trade
-        ok, reason = self.should_trade(coin, signal, float(meta_prob), int(score))
+        ok, reason = self.should_trade(
+            coin,
+            signal,
+            float(meta_prob),
+            int(score),
+            sig_score_obj=sig_score,
+        )
         if not ok:
             return None  # Không log skip bình thường để tránh spam
 
