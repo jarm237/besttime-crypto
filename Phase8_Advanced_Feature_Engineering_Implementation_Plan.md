@@ -16,6 +16,7 @@
 - Sprint 1 (Foundation) is implemented in code.
 - Sprint 2 (Triple Barrier Labeling) is implemented in code.
 - Sprint 3 (Meta Labeling) is implemented in code.
+- Sprint 4 (Regime and Causal Features) is implemented in code.
 - Runtime execution in current shell is blocked by missing Python dependencies.
 
 ### Completed in Repository
@@ -36,14 +37,26 @@
   - Primary signal/direction extraction.
   - Meta label generation (`execute` vs `skip`).
   - Trade quality scoring and bucketization (A/B/C/D).
+- Implemented `regime_features.py` with:
+  - Regime normalization and confidence fields.
+  - Regime duration and transition probability features.
+  - Regime one-hot features and interaction terms.
+- Implemented `causal_features.py` with:
+  - Causal risk normalization and one-hot encoding.
+  - Context adjustment and causal diagnostics fields.
+  - Counterfactual feature outputs (`cf_delta_pnl`, intervention fields).
 - Added scripts:
   - `scripts/build_feature_store_v2.py`.
   - `scripts/generate_triple_barrier_labels.py`.
   - `scripts/generate_meta_labels.py`.
+  - `scripts/build_regime_features.py`.
+  - `scripts/build_causal_features.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
   - `tests/test_meta_labeling.py`.
+  - `tests/test_regime_features.py`.
+  - `tests/test_causal_features.py`.
 
 ### Environment Blockers (Current Machine)
 
@@ -67,6 +80,12 @@ python3 scripts/generate_meta_labels.py \
   --input data/feature_store/labels/triple_barrier_labels.parquet \
   --output-meta data/feature_store/labels/meta_labels.parquet \
   --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+python3 scripts/build_regime_features.py \
+  --input logs/adaptive_signals_v2.json \
+  --output data/feature_store/regime/regime_features.parquet
+python3 scripts/build_causal_features.py \
+  --input logs/adaptive_signals_v2.json \
+  --output data/feature_store/causal/causal_features.parquet
 ```
 
 ---
@@ -1048,7 +1067,14 @@ trade_quality_labels.parquet
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/regime_features.py`
+  - `btc_scraper/feature_engineering/causal_features.py`
+  - `scripts/build_regime_features.py`
+  - `scripts/build_causal_features.py`
+  - `tests/test_regime_features.py`
+  - `tests/test_causal_features.py`
 
 ### Tasks
 
