@@ -37,6 +37,9 @@ from btc_scraper.core.candle_store import candle_store
 from btc_scraper.exchanges.binance_ws import BinanceWebSocketManager
 from btc_scraper.ml_engine.causal_startup import initialize_causal_system_at_startup
 from btc_scraper.collectors.macro_collector import load_macro_state, fetch_and_save_macro
+from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
+from btc_scraper.collectors.alternative_quality import CollectorHealthMonitor, DataQualityDashboard
+from btc_scraper.collectors.alternative_data import load_alternative_data
 
 
 def _classify_mtf_signal(signal: str) -> str:
@@ -249,6 +252,21 @@ _ws_manager: BinanceWebSocketManager | None = None
 # ── Causal System singleton — khởi tạo một lần trong async_main() ─────────────
 _CAUSAL_COMPONENTS: dict = {}
 
+# ── Alternative Data Scheduler & Health Monitor ───────────────────────────────
+_alt_data_scheduler: AlternativeDataScheduler | None = None
+_alt_health_monitor: CollectorHealthMonitor | None = None
+
+
+def _send_alt_data_telegram_alert(alert) -> None:
+    """Forward critical alternative-data quality alerts to Telegram."""
+    try:
+        if alert.level == "critical":
+            from btc_scraper.telegram_bot import send_telegram_message
+            msg = f"⚠️ [ALT DATA] {alert.source}: {alert.message}"
+            send_telegram_message(msg, parse_mode=None)
+    except Exception:
+        pass  # Never crash the monitor callback
+
 
 async def _get_candles_for_coin(coin: str, interval: str = "15m", session=None) -> list[dict]:
     """
@@ -437,6 +455,23 @@ async def fetch_and_display():
                     console.print(f"[yellow]⚠️  [Causal] Consensus=BULLISH nhưng có SELL signal: {sell_coins}[/yellow]")
     except Exception as causal_exc:
         console.print(f"[dim yellow]Causal runtime hook skipped: {causal_exc}[/dim yellow]")
+
+    # ── Alternative Data quality check & summary ──────────────────────────
+    try:
+        if _alt_health_monitor is not None:
+            alt_payload = load_alternative_data()
+            _alt_health_monitor.record_collection("alternative_data", alt_payload, success=True)
+            _risk_on = float(alt_payload.get("risk_on_score", 0.0))
+            _macro_p = float(alt_payload.get("macro_pressure", 0.0))
+            _funding_p = float(alt_payload.get("funding_pressure", 0.0))
+            console.print(
+                f"[dim cyan]Alt Data: risk_on={_risk_on:.2f} | "
+                f"macro_pressure={_macro_p:.2f} | "
+                f"funding_pressure={_funding_p:.3f}[/dim cyan]"
+            )
+    except Exception as alt_exc:
+        console.print(f"[dim yellow]Alt Data check skipped: {alt_exc}[/dim yellow]")
+    # ─────────────────────────────────────────────────────────────────────
 
     # Hiển thị bảng giá & chỉ báo ở Terminal
     print_all(results, analysis)
@@ -637,6 +672,33 @@ async def async_main():
     except Exception as causal_init_err:
         console.print(f"[bold yellow]  [Causal System] Lỗi khởi tạo, chạy không có causal context: {causal_init_err}[/bold yellow]\n")
         _CAUSAL_COMPONENTS = {}
+    # ──────────────────────────────────────────────────────────────────────────
+
+    # ── Khởi tạo Alternative Data Scheduler & Quality Monitor ──────────────
+    global _alt_data_scheduler, _alt_health_monitor
+    try:
+        _alt_health_monitor = CollectorHealthMonitor(
+            dashboard=DataQualityDashboard(quality_log_path=str(build_data_path("alternative_quality.json"))),
+            on_alert=_send_alt_data_telegram_alert,
+        )
+        _alt_data_scheduler = AlternativeDataScheduler(
+            interval_seconds=max(60, FETCH_INTERVAL_MINUTES * 60),
+            on_success=lambda payload: _alt_health_monitor.record_collection("alternative_data", payload, success=True),
+            on_failure=lambda exc: _alt_health_monitor.record_collection("alternative_data", {}, success=False),
+        )
+        first_payload = _alt_data_scheduler.run_once(force=True)
+        n_fields = sum(1 for k, v in first_payload.items() if k != "timestamp" and v != 0.0)
+        console.print(
+            f"[bold cyan]  [Alternative Data] Scheduler started "
+            f"(interval={FETCH_INTERVAL_MINUTES * 60}s) | "
+            f"First collection: {len(first_payload)} fields ({n_fields} non-zero)[/bold cyan]\n"
+        )
+        if not args.once:
+            _alt_data_scheduler.start(daemon=True)
+    except Exception as alt_err:
+        console.print(f"[dim yellow]  [Alternative Data] Khởi tạo thất bại, bỏ qua: {alt_err}[/dim yellow]\n")
+        _alt_data_scheduler = None
+        _alt_health_monitor = None
     # ──────────────────────────────────────────────────────────────────────────
 
     # Hiển thị trạng thái Shadow Mode & Meta Model khi khởi động
@@ -849,6 +911,8 @@ async def async_main():
     finally:
         shutdown_event.set()
         ai_queue.put(None)
+        if _alt_data_scheduler is not None:
+            _alt_data_scheduler.stop(timeout=5.0)
         _cleanup_managed_processes()
 
 
