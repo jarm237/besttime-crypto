@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+from pathlib import Path
 from typing import Dict, Optional
 
 try:
@@ -12,7 +13,9 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     yf = None
 
-DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "macro_state.json")
+from btc_scraper.core.paths import build_data_path
+
+DATA_FILE = str(build_data_path("macro_state.json"))
 
 MACRO_TICKERS = {
     "DXY": "DX-Y.NYB",
@@ -58,6 +61,19 @@ def load_macro_state() -> Dict[str, float | str]:
         pass
 
     return {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}
+
+
+def is_macro_state_fresh(path: str | os.PathLike[str] | None = None, max_age_seconds: int = 3600) -> bool:
+    """Return True when the macro state file exists and was updated recently."""
+    target = Path(path or DATA_FILE)
+    if not target.exists():
+        return False
+
+    try:
+        age_seconds = time.time() - target.stat().st_mtime
+    except OSError:
+        return False
+    return age_seconds <= max_age_seconds
 
 
 def _write_macro_state(payload: Dict[str, float | str]) -> None:

@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Literal
@@ -26,6 +26,90 @@ app.add_middleware(
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_SIGNALS_FILE = os.path.join(DATA_DIR, "latest_signals.json")
+
+
+def _get_queue_size() -> int:
+    try:
+        import main as main_module
+        q = getattr(main_module, "ai_queue", None)
+        if q is not None and hasattr(q, "qsize"):
+            return q.qsize()
+    except Exception:
+        pass
+    return 0
+
+
+def _get_ws_health() -> int:
+    try:
+        import main as main_module
+        ws_manager = getattr(main_module, "_ws_manager", None)
+        if ws_manager is not None and hasattr(ws_manager, "is_healthy"):
+            return 1 if ws_manager.is_healthy() else 0
+    except Exception:
+        pass
+    return 0
+
+
+def _get_db_conn_ok() -> int:
+    try:
+        from btc_scraper.core.db import client as mongodb_client
+        mongodb_client.admin.command("ping")
+        return 1
+    except Exception:
+        return 0
+
+
+def _get_causal_alpha() -> float:
+    try:
+        from btc_scraper.ml_engine.causal_context_bridge import _get_causal_alpha as _alpha_fn
+        return float(_alpha_fn())
+    except Exception:
+        try:
+            return float(os.environ.get("CAUSAL_ALPHA", "0.0"))
+        except Exception:
+            return 0.0
+
+
+def _get_rl_model_version() -> str:
+    try:
+        from btc_scraper.trading.position_tracker import load_latest_ppo_model
+        model_path = load_latest_ppo_model()
+        if not model_path:
+            return "none"
+        return os.path.basename(model_path)
+    except Exception:
+        return "none"
+
+
+def _escape_label_value(value: str) -> str:
+    return str(value).replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+
+
+def _metrics_response() -> Response:
+    queue_size = _get_queue_size()
+    ws_health = _get_ws_health()
+    db_conn_ok = _get_db_conn_ok()
+    causal_alpha = _get_causal_alpha()
+    rl_model_version = _get_rl_model_version()
+
+    lines = [
+        "# HELP besttime_queue_size Size of AI analysis queue",
+        "# TYPE besttime_queue_size gauge",
+        f"besttime_queue_size {queue_size}",
+        "# HELP besttime_ws_healthy Binance websocket health state (1 healthy, 0 unhealthy)",
+        "# TYPE besttime_ws_healthy gauge",
+        f"besttime_ws_healthy {ws_health}",
+        "# HELP besttime_db_conn_ok MongoDB connection health (1 ok, 0 fail)",
+        "# TYPE besttime_db_conn_ok gauge",
+        f"besttime_db_conn_ok {db_conn_ok}",
+        "# HELP besttime_causal_alpha Current CAUSAL_ALPHA blending factor",
+        "# TYPE besttime_causal_alpha gauge",
+        f"besttime_causal_alpha {causal_alpha}",
+        "# HELP besttime_rl_model_info Latest RL model version info label",
+        "# TYPE besttime_rl_model_info gauge",
+        f"besttime_rl_model_info{{version=\"{_escape_label_value(rl_model_version)}\"}} 1",
+    ]
+    return Response("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
 
 
 def _normalize_signal_item(item: dict) -> dict:
@@ -340,6 +424,11 @@ def get_market_signals():
 def get_config():
     """Lấy danh sách cấu hình, bao gồm danh sách COINS."""
     return {"coins": COINS}
+
+@app.get("/metrics")
+def get_metrics():
+    """Expose Prometheus metrics for Grafana / Prometheus scraping."""
+    return _metrics_response()
 
 if __name__ == "__main__":
     import uvicorn

@@ -28,7 +28,7 @@ class SignalTracker:
         except Exception as e:
             print(f"[SignalTracker] Error saving tracked signals: {e}")
 
-    def register_signal(self, coin: str, signal_time: str, signal: str, entry: float, tp_sl: dict, reason: str):
+    def register_signal(self, coin: str, signal_time: str, signal: str, entry: float, tp_sl: dict, reason: str, current_price: float | None = None):
         """
         Registers a new valid signal to track.
         Avoids duplicates if a signal with the same timestamp and type already exists for the coin.
@@ -46,6 +46,7 @@ class SignalTracker:
             "time": signal_time,
             "signal": signal,
             "entry": entry,
+            "current_price": float(current_price) if current_price is not None else float(entry),
             "tp_sl": tp_sl,
             "reason": reason,
             "status": "Running (Van con hieu luc)",
@@ -72,6 +73,10 @@ class SignalTracker:
             age_mins = int((current_ts - created_at) / 60.0)
             if s.get("age_minutes") != age_mins:
                 s["age_minutes"] = age_mins
+                changed = True
+
+            if s.get("current_price") != current_close:
+                s["current_price"] = current_close
                 changed = True
                 
             # If age > MAX_AGE_MINUTES, prune it

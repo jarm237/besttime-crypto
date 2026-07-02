@@ -11,10 +11,12 @@ import schedule
 from rich.console import Console
 from rich.panel import Panel
 
+import os
 import queue
 import threading
 import asyncio
 import aiohttp
+import subprocess
 
 # Buoc stdout sang UTF-8 de hien thi tieng Viet va ky tu dac biet
 if hasattr(sys.stdout, "reconfigure"):
@@ -29,6 +31,7 @@ from btc_scraper.ui.display import print_all
 from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations, start_telegram_listener
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
+from btc_scraper.core.paths import build_data_path, build_logs_path, build_scripts_path
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.candle_store import candle_store
 from btc_scraper.exchanges.binance_ws import BinanceWebSocketManager
@@ -46,27 +49,13 @@ def _classify_mtf_signal(signal: str) -> str:
 
 
 def _summarize_htf_trend(mtf_data: dict[str, dict]) -> str:
-    if not mtf_data:
+    # Delegate to helper in btc_scraper.analysis.htf_utils to avoid circular imports
+    try:
+        from btc_scraper.analysis.htf_utils import summarize_htf_trend
+        return summarize_htf_trend(mtf_data)
+    except Exception:
+        # Fallback conservative value
         return "NEUTRAL"
-
-    counts = {"BULL": 0, "BEAR": 0, "NEUTRAL": 0}
-    for tf in ["1d", "4h", "1h"]:
-        info = mtf_data.get(tf)
-        if not info:
-            continue
-        from btc_scraper.ml_engine.signal_score import extract_signal_fields
-        sig_fields = extract_signal_fields(info)
-        counts[_classify_mtf_signal(info.get("signal", sig_fields.get("raw", "")))] += 1
-
-    if counts["BULL"] >= 2 and counts["BEAR"] == 0:
-        return "BULLISH"
-    if counts["BEAR"] >= 2 and counts["BULL"] == 0:
-        return "BEARISH"
-    if counts["BULL"] > counts["BEAR"]:
-        return "BULLISH-MIXED"
-    if counts["BEAR"] > counts["BULL"]:
-        return "BEARISH-MIXED"
-    return "NEUTRAL"
 
 
 def _format_htf_details(mtf_data: dict[str, dict]) -> str:
@@ -89,6 +78,27 @@ SCHEDULER_RESTART_WAIT = 15  # Thời gian chờ (giây) trước khi restart sc
 
 # ─── Queue & Background AI Worker ─────────────────────────────────────────────
 ai_queue: queue.Queue = queue.Queue()
+shutdown_event = threading.Event()
+managed_processes: list[subprocess.Popen] = []
+
+
+def _track_process(proc: subprocess.Popen) -> None:
+    managed_processes.append(proc)
+
+
+def _cleanup_managed_processes() -> None:
+    for proc in list(managed_processes):
+        if proc.poll() is None:
+            try:
+                proc.terminate()
+                proc.wait(timeout=5)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+    managed_processes.clear()
+
 
 def ai_worker():
     """
@@ -96,7 +106,12 @@ def ai_worker():
     gửi reply nhận định lên Telegram mà không ảnh hưởng tới luồng Core.
     """
     while True:
-        item = ai_queue.get()
+        if shutdown_event.is_set():
+            break
+        try:
+            item = ai_queue.get(timeout=1)
+        except queue.Empty:
+            continue
         if item is None:
             break
         if len(item) == 4:
@@ -125,9 +140,9 @@ def ai_worker():
                 
             # Lưu AI report cho web dashboard
             import json, os, time
-            data_dir = os.path.join(os.path.dirname(__file__), "data")
+            data_dir = build_data_path()
             os.makedirs(data_dir, exist_ok=True)
-            with open(os.path.join(data_dir, "latest_ai_analysis.json"), "w", encoding="utf-8") as f:
+            with open(data_dir / "latest_ai_analysis.json", "w", encoding="utf-8") as f:
                 json.dump({"timestamp": time.time(), "report": ai_report}, f, ensure_ascii=False)
                 
         except Exception as e:
@@ -628,8 +643,8 @@ async def async_main():
     # Hiển thị trạng thái Shadow Mode & Meta Model khi khởi động
     try:
         import os, time as _time, json as _json
-        shadow_log_path = os.path.join(os.path.dirname(__file__), "logs", "shadow_predictions.json")
-        meta_metric_path = os.path.join(os.path.dirname(__file__), "logs", "meta_model.json")
+        shadow_log_path = str(build_logs_path("shadow_predictions.json"))
+        meta_metric_path = str(build_logs_path("meta_model.json"))
 
         # Meta Model status
         if os.path.exists(meta_metric_path):
@@ -690,14 +705,14 @@ async def async_main():
         # ─────────────────────────────────────────────────────────────────────
 
         def run_weekly_report_job():
-            import subprocess, os
             console.print("[bold yellow]Đang chạy Weekly Report...[/bold yellow]")
-            subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "scripts", "weekly_job.py")])
+            proc = subprocess.Popen([sys.executable, str(build_scripts_path("weekly_job.py"))])
+            _track_process(proc)
             
         def run_continuous_learning_job():
-            import subprocess, os
             console.print("[bold yellow]Đang chạy Continuous Learning Pipeline...[/bold yellow]")
-            subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "scripts", "continuous_learning.py")])
+            proc = subprocess.Popen([sys.executable, str(build_scripts_path("continuous_learning.py"))])
+            _track_process(proc)
 
         schedule.every().sunday.at("23:30").do(run_continuous_learning_job)
         schedule.every().sunday.at("23:45").do(run_weekly_report_job)
@@ -710,7 +725,7 @@ async def async_main():
             Sau khi gửi xong, tự hủy job này khỏi schedule.
             """
             import os, time as _time
-            shadow_log_path = os.path.join(os.path.dirname(__file__), "logs", "shadow_predictions.json")
+            shadow_log_path = str(build_logs_path("shadow_predictions.json"))
 
             if not os.path.exists(shadow_log_path):
                 return  # chưa có dữ liệu shadow mode, bỏ qua
@@ -819,6 +834,9 @@ async def async_main():
         if not ai_queue.empty():
             console.print("\n[dim]Đang đợi AI Worker hoàn thành phân tích...[/dim]")
             ai_queue.join()
+        shutdown_event.set()
+        ai_queue.put(None)
+        _cleanup_managed_processes()
         return
 
     # Khởi động listener Telegram nhận lệnh từ người dùng
@@ -829,6 +847,10 @@ async def async_main():
         await run_scheduler()
     except KeyboardInterrupt:
         console.print("\n[bold red]Đã dừng.[/bold red]")
+    finally:
+        shutdown_event.set()
+        ai_queue.put(None)
+        _cleanup_managed_processes()
 
 
 def main():
@@ -836,6 +858,10 @@ def main():
         asyncio.run(async_main())
     except KeyboardInterrupt:
         console.print("\n[bold red]Đã dừng.[/bold red]")
+    finally:
+        shutdown_event.set()
+        ai_queue.put(None)
+        _cleanup_managed_processes()
 
 if __name__ == "__main__":
     main()

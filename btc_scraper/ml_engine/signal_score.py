@@ -5,9 +5,11 @@ Giai đoạn 1-5 (cơ bản): chuyển rule text -> điểm, tổng hợp, ánh 
 from typing import Dict
 import os
 import time
+import gzip
+import shutil
 from pathlib import Path
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
@@ -51,6 +53,67 @@ def _use_kelly() -> bool:
         return os.environ.get('DISABLE_KELLY', '') != '1'
     except Exception:
         return True
+
+
+def _get_meta_prob_log_dir() -> Path:
+    return Path(__file__).parent.parent.parent / "logs"
+
+
+def _get_meta_prob_log_path(logs_dir: Path | None = None, ts: datetime | None = None) -> Path:
+    ts = ts or datetime.now(timezone.utc)
+    logs_dir = logs_dir or _get_meta_prob_log_dir()
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    return logs_dir / f"meta_prob_entry_{ts.strftime('%Y-%m-%d')}.log"
+
+
+def _rotate_meta_prob_log(log_path: Path, max_bytes: int | None = None) -> None:
+    max_bytes = max_bytes if max_bytes is not None else int(os.getenv("META_PROB_LOG_MAX_BYTES", str(10 * 1024 * 1024)))
+    if not log_path.exists():
+        return
+    if log_path.stat().st_size < max_bytes:
+        return
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    rotated_path = log_path.parent / f"{log_path.name}.{timestamp}.gz"
+    try:
+        with log_path.open("rb") as src, gzip.open(rotated_path, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+        log_path.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
+def _prune_meta_prob_logs(logs_dir: Path | None = None, retention_days: int | None = None) -> None:
+    logs_dir = logs_dir or _get_meta_prob_log_dir()
+    retention_days = retention_days if retention_days is not None else int(os.getenv("META_PROB_LOG_RETENTION_DAYS", "7"))
+    if retention_days < 0:
+        return
+    cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+    try:
+        for path in logs_dir.glob("meta_prob_entry_*"):
+            if not path.is_file():
+                continue
+            try:
+                mtime = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+            except Exception:
+                continue
+            if mtime < cutoff:
+                path.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
+def _append_meta_prob_entry(entry: Dict) -> None:
+    try:
+        logs_dir = _get_meta_prob_log_dir()
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        _prune_meta_prob_logs(logs_dir)
+        log_path = _get_meta_prob_log_path(logs_dir)
+        _rotate_meta_prob_log(log_path)
+        with log_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
 
 # Lazy-loaded model cache (joblib sklearn model + feature names)
 _ADAPTIVE_MODEL = None
@@ -742,11 +805,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
 
     # Entry-time meta_prob logging for diagnostics
     try:
-        # prefer repository top-level logs directory so all runners see the same file
-        _logs_dir = Path(__file__).parent.parent.parent / "logs"
-        _logs_dir.mkdir(parents=True, exist_ok=True)
         _entry_ts = datetime.now(timezone.utc).isoformat()
-        _log_file = _logs_dir / f"meta_prob_entry_{_entry_ts[:10]}.log"
         _entry = {
             "ts": _entry_ts,
             "symbol": merged.get("symbol") or merged.get("pair") or merged.get("market") or merged.get("ticker") or None,
@@ -764,8 +823,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             "gated": gated,
             "reason": reason,
         }
-        with open(_log_file, "a", encoding="utf-8") as _f:
-            _f.write(json.dumps(_entry, ensure_ascii=False) + "\n")
+        _append_meta_prob_entry(_entry)
     except Exception:
         pass
 

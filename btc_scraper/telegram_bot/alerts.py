@@ -139,6 +139,12 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
                 ms_emoji = "⏳ 🟢" if "BUY" in ms_sig else "⏳ 🔴"
                 ms_val_format = ",.4f" if ms["entry"] < 10 else ",.2f"
                 ms_entry_str = f"{ms['entry']:{ms_val_format}}"
+
+                try:
+                    ms_current_price = float(ms.get("current_price", close_val))
+                except (TypeError, ValueError):
+                    ms_current_price = None
+                ms_current_price_str = f"{ms_current_price:{ms_val_format}}" if ms_current_price is not None and ms_current_price > 0 else "-"
                 
                 ms_tp_sl = ms["tp_sl"]
                 ms_sl_str = f"{ms_tp_sl.get('sl', 0.0):{ms_val_format}}"
@@ -148,7 +154,7 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
                 escaped_ms_sig = html.escape(ms_sig)
                 ms_line = (
                     f"{ms_emoji} <b>{coin}</b> (Tín hiệu cũ {ms['age_minutes']}p trước): <b>{escaped_ms_sig}</b>\n"
-                    f"  Entry cũ: <code>{ms_entry_str}</code> | Giá hiện tại: <code>{price_str}</code>\n"
+                    f"  Entry cũ: <code>{ms_entry_str}</code> | Giá hiện tại: <code>{ms_current_price_str}</code>\n"
                     f"  SL: <code>{ms_sl_str}</code> | TP1: <code>{ms_tp1_str}</code> (R:R {ms_tp_sl.get('rr1', 0.0)}) | TP2: <code>{ms_tp2_str}</code> (R:R {ms_tp_sl.get('rr2', 0.0)})"
                 )
                 missed_valid_signals.append(ms_line)

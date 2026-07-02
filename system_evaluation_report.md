@@ -348,25 +348,26 @@ Tính đến **02/07/2026**, hệ thống `besttime-crypto` đã đạt đến m
 | 4 | Graceful shutdown: `shutdown_event`, sentinel `ai_queue` | `main.py` | 3h |
 | 5 | Subprocess PID tracking + cleanup | `main.py` | 2h |
 | 6 | MacroCollector freshness check (max_age = 3600s) | `collectors/macro_collector.py` | 1h |
+| 7 | Tái cấu trúc thư mục `data` & tập trung hóa paths (Đề án an toàn) | `core/paths.py` (NEW) + refactor | 4h |
 
 ### 🟢 P2 — Sprint 3-4 (2 tuần)
 
 | # | Task | File | Effort |
 |---|------|------|--------|
-| 7 | Shadow mode 2 tuần với `CAUSAL_ALPHA=0.0` → log shadow metrics | `causal_monitoring.py` | — |
-| 8 | Activate `CAUSAL_ALPHA=0.1` + monitor shadow PnL delta | `.env` | 15m |
-| 9 | Weekly `CausalDiscoveryEngine.discover()` → cron Sunday 23:00 | `scripts/weekly_job.py` | 2h |
-| 10 | Grafana dashboard: Prometheus metrics endpoint `/metrics` | `api/server.py` | 4h |
+| 8 | Shadow mode 2 tuần với `CAUSAL_ALPHA=0.0` → log shadow metrics | `causal_monitoring.py` | — |
+| 9 | Activate `CAUSAL_ALPHA=0.1` + monitor shadow PnL delta | `.env` | 15m |
+| 10 | Weekly `CausalDiscoveryEngine.discover()` → cron Sunday 23:00 | `scripts/weekly_job.py` | 2h |
+| 11 | Grafana dashboard: Prometheus metrics endpoint `/metrics` | `api/server.py` | 4h |
 
 ### 🔵 P3 — Sprint 5-8 (1 tháng)
 
 | # | Task | File | Effort |
 |---|------|------|--------|
-| 11 | Simplify RL reward → net PnL only (remove heuristic bonuses) | `rl_trading_env.py` | 4h |
-| 12 | Switch RL policy: `MlpLstmPolicy` (SB3-Contrib) | `train_rl_exit_manager.py` | 3h |
-| 13 | RL step size: 15m → 1h candles | `rl_trading_env.py` | 2h |
-| 14 | DB Circuit Breaker: SQLite local buffer khi MongoDB Atlas down | `core/db.py` | 6h |
-| 15 | `RLContextProvider` v4.0: học context adjustments từ shadow data | `ml_engine/rl_context_provider.py` (NEW) | 2 weeks |
+| 12 | Simplify RL reward → net PnL only (remove heuristic bonuses) | `rl_trading_env.py` | 4h |
+| 13 | Switch RL policy: `MlpLstmPolicy` (SB3-Contrib) | `train_rl_exit_manager.py` | 3h |
+| 14 | RL step size: 15m → 1h candles | `rl_trading_env.py` | 2h |
+| 15 | DB Circuit Breaker: SQLite local buffer khi MongoDB Atlas down | `core/db.py` | 6h |
+| 16 | `RLContextProvider` v4.0: học context adjustments từ shadow data | `ml_engine/rl_context_provider.py` (NEW) | 2 weeks |
 
 ---
 

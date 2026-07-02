@@ -773,7 +773,8 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
                 signal=current_sig,
                 entry=current_close,
                 tp_sl=current_tp_sl,
-                reason=current_reason
+                reason=current_reason,
+                current_price=current_close,
             )
             
         # 2. Đánh giá và lấy danh sách tín hiệu đang theo dõi
