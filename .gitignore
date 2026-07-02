@@ -7,3 +7,5 @@ venv/
 .venv/
 
 /data/rl_candle_cache.pkl
+
+/data/fresh_training_data_2023_2026/*
