@@ -20,7 +20,8 @@
 - Sprint 5 (Alternative Data Features) is implemented in code.
 - Sprint 6 (Cross-Sectional Features) is implemented in code.
 - Sprint 7 (Fractional Differencing) is implemented in code.
-- Runtime execution in current shell is blocked by missing Python dependencies.
+- Sprint 8 (Feature Validation) is implemented in code.
+- Sprint 9 (Dataset Builder v3) is implemented in code.
 
 ### Completed in Repository
 
@@ -60,6 +61,15 @@
   - Fractional differencing transform for configurable candidate `d` values.
   - Coin/timeframe-level `d` selection using ADF-style stationarity t-statistics.
   - Optional enable/disable config and stationarity report payload builder.
+- Implemented `feature_validator.py` with:
+  - Missing-value screening and high-missing feature flagging.
+  - Correlation grouping/filtering for redundant feature blocking.
+  - Leakage-risk detection (name-based and label-correlation checks).
+  - PSI drift computation and high-drift rejection logic.
+- Implemented `dataset_builder_v3.py` with:
+  - Point-in-time-safe as-of joins (`backward`) across feature groups.
+  - Label merge with fallback extraction from base input when labels layer is empty.
+  - Dataset v3 metadata + reproducibility version write via Feature Store v2.
 - Added scripts:
   - `scripts/build_feature_store_v2.py`.
   - `scripts/generate_triple_barrier_labels.py`.
@@ -69,6 +79,9 @@
   - `scripts/build_alternative_features.py`.
   - `scripts/build_cross_sectional_features.py`.
   - `scripts/build_fracdiff_features.py`.
+  - `scripts/build_feature_validation_reports.py`.
+  - `scripts/build_ml_dataset_v3.py`.
+  - `scripts/build_dataset_v3.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
@@ -78,6 +91,8 @@
   - `tests/test_alternative_features.py`.
   - `tests/test_cross_sectional_features.py`.
   - `tests/test_fractional_diff.py`.
+  - `tests/test_feature_validator.py`.
+  - `tests/test_dataset_builder_v3.py`.
 
 ### Environment Blockers (Current Machine)
 
@@ -118,6 +133,14 @@ python3 scripts/build_fracdiff_features.py \
   --input logs/adaptive_signals_v2.json \
   --output data/feature_store/derived/fracdiff_features.parquet \
   --report data/feature_store/derived/fracdiff_report.json
+python3 scripts/build_feature_validation_reports.py \
+  --input data/feature_store/derived/fracdiff_features.parquet \
+  --quality-output data/feature_store/derived/feature_quality_report.json \
+  --rejection-output data/feature_store/derived/feature_rejection_report.json
+python3 scripts/build_dataset_v3.py \
+  --base data/feature_store/derived/cross_sectional_features.parquet \
+  --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet \
+  --output data/feature_store/training/ml_dataset_v3.parquet
 ```
 
 ---
@@ -996,7 +1019,7 @@ OrderbookImbalance → ShortTermPressure
 
 ### Progress Snapshot
 
-- Status: **DONE (code completed, runtime pending environment setup)**
+- Status: **DONE (code completed, tests passed, artifacts generated)**
 - Completed files:
   - `btc_scraper/feature_engineering/feature_store.py`
   - `scripts/build_feature_store_v2.py`
@@ -1031,7 +1054,7 @@ BaseFeatureBuilder
 
 ### Progress Snapshot
 
-- Status: **DONE (code completed, runtime pending environment setup)**
+- Status: **DONE (code completed, tests passed, artifacts generated)**
 - Completed files:
   - `btc_scraper/feature_engineering/triple_barrier.py`
   - `btc_scraper/feature_engineering/label_engine.py`
@@ -1066,7 +1089,7 @@ data/feature_store/labels/triple_barrier_labels.parquet
 
 ### Progress Snapshot
 
-- Status: **DONE (code completed, runtime pending environment setup)**
+- Status: **DONE (code completed, tests passed, artifacts generated)**
 - Completed files:
   - `btc_scraper/feature_engineering/meta_labeling.py`
   - `scripts/generate_meta_labels.py`
@@ -1230,7 +1253,11 @@ fracdiff_report.json
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/feature_validator.py`
+  - `scripts/build_feature_validation_reports.py`
+  - `tests/test_feature_validator.py`
 
 ### Tasks
 
@@ -1259,7 +1286,12 @@ feature_rejection_report.json
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/dataset_builder_v3.py`
+  - `scripts/build_ml_dataset_v3.py`
+  - `scripts/build_dataset_v3.py`
+  - `tests/test_dataset_builder_v3.py`
 
 ### Tasks
 

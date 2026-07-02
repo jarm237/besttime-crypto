@@ -1,0 +1,257 @@
+{
+  "rows": 300,
+  "numeric_feature_count": 77,
+  "accepted_feature_count": 56,
+  "rejected_feature_count": 21,
+  "accepted_features": [
+    "signal_score",
+    "rsi",
+    "macd_hist",
+    "bb_width_pct",
+    "adx",
+    "mtf_alignment",
+    "regime_trending_bull",
+    "regime_trending_bear",
+    "regime_ranging",
+    "regime_high_volatility",
+    "return_1h",
+    "return_4h",
+    "return_1d",
+    "ema9_slope",
+    "sma50_slope",
+    "sma200_slope",
+    "ema_distance_zscore",
+    "atr_percentile",
+    "volatility_regime_compression",
+    "volatility_regime_breakout",
+    "volatility_regime_mean_reversion",
+    "volatility_regime_panic_sell",
+    "volatility_regime_low_liquidity",
+    "volatility_regime_pump_risk",
+    "distance_support_pct",
+    "distance_resistance_pct",
+    "higher_high",
+    "lower_low",
+    "market_structure_break",
+    "cmf",
+    "mfi",
+    "volume_acceleration",
+    "volume_percentile",
+    "roc_14",
+    "roc_50",
+    "bos_bull",
+    "bos_bear",
+    "choch_bull",
+    "choch_bear",
+    "sentiment_recovery",
+    "sentiment_risk",
+    "sentiment_trend_up",
+    "sentiment_trend_down",
+    "tf_1h_bull",
+    "tf_4h_bull",
+    "tf_1d_bull",
+    "regime_strong_trend",
+    "regime_weak_trend",
+    "regime_compression",
+    "regime_breakout",
+    "regime_mean_reversion",
+    "regime_panic_sell",
+    "regime_low_liquidity",
+    "regime_pump_risk",
+    "fracdiff_return_1_raw",
+    "fracdiff_d_selected"
+  ],
+  "rejected_features": [
+    "atr_pct",
+    "ema21_slope",
+    "ema_distance_pct",
+    "fear_greed",
+    "fracdiff_d_0_00",
+    "fracdiff_d_0_20",
+    "fracdiff_d_0_40",
+    "fracdiff_d_0_60",
+    "fracdiff_d_0_80",
+    "fracdiff_price",
+    "fracdiff_return_1",
+    "fracdiff_source_log_price",
+    "hv20",
+    "hv60",
+    "obv",
+    "pnl_pct",
+    "realized_vol_20",
+    "realized_vol_50",
+    "return_15m",
+    "sentiment_momentum",
+    "volume_ratio"
+  ],
+  "missing": {
+    "threshold": 0.3,
+    "flagged": [
+      {
+        "feature": "fracdiff_d_0_20",
+        "missing_rate": 0.85
+      },
+      {
+        "feature": "fracdiff_d_0_40",
+        "missing_rate": 0.85
+      },
+      {
+        "feature": "fracdiff_d_0_60",
+        "missing_rate": 0.85
+      },
+      {
+        "feature": "fracdiff_d_0_80",
+        "missing_rate": 0.7566666666666667
+      },
+      {
+        "feature": "fracdiff_price",
+        "missing_rate": 0.7566666666666667
+      },
+      {
+        "feature": "fracdiff_return_1",
+        "missing_rate": 0.76
+      }
+    ]
+  },
+  "correlation": {
+    "threshold": 0.95,
+    "groups": [
+      [
+        "ema21_slope",
+        "ema_distance_pct"
+      ],
+      [
+        "fracdiff_d_0_00",
+        "fracdiff_source_log_price"
+      ],
+      [
+        "fracdiff_return_1_raw",
+        "return_15m"
+      ],
+      [
+        "hv20",
+        "realized_vol_20"
+      ],
+      [
+        "hv60",
+        "realized_vol_50"
+      ],
+      [
+        "volume_acceleration",
+        "volume_ratio"
+      ]
+    ],
+    "pairs": [
+      {
+        "feature_a": "volume_ratio",
+        "feature_b": "volume_acceleration",
+        "abs_corr": 1.0
+      },
+      {
+        "feature_a": "ema_distance_pct",
+        "feature_b": "ema21_slope",
+        "abs_corr": 0.9551052152222717
+      },
+      {
+        "feature_a": "return_15m",
+        "feature_b": "fracdiff_return_1_raw",
+        "abs_corr": 0.999946503817809
+      },
+      {
+        "feature_a": "realized_vol_20",
+        "feature_b": "hv20",
+        "abs_corr": 1.0
+      },
+      {
+        "feature_a": "realized_vol_50",
+        "feature_b": "hv60",
+        "abs_corr": 0.9810591550823481
+      },
+      {
+        "feature_a": "fracdiff_source_log_price",
+        "feature_b": "fracdiff_d_0_00",
+        "abs_corr": 1.0
+      }
+    ]
+  },
+  "leakage": {
+    "threshold": 0.995,
+    "label_column": "result",
+    "findings": [
+      {
+        "feature": "pnl_pct",
+        "reason": "name_pattern"
+      }
+    ]
+  },
+  "psi": {
+    "threshold": 0.2,
+    "reject_threshold": 0.4,
+    "findings": [
+      {
+        "feature": "atr_pct",
+        "psi": 0.5819302476415837
+      },
+      {
+        "feature": "fear_greed",
+        "psi": 9.179657387972906
+      },
+      {
+        "feature": "bb_width_pct",
+        "psi": 0.32577090825165567
+      },
+      {
+        "feature": "adx",
+        "psi": 0.20797277225459326
+      },
+      {
+        "feature": "ema9_slope",
+        "psi": 0.32761925997560415
+      },
+      {
+        "feature": "ema21_slope",
+        "psi": 0.4019391558256885
+      },
+      {
+        "feature": "distance_support_pct",
+        "psi": 0.24120310535311795
+      },
+      {
+        "feature": "obv",
+        "psi": 0.5289283235829465
+      },
+      {
+        "feature": "volume_percentile",
+        "psi": 0.2431656666648198
+      },
+      {
+        "feature": "roc_50",
+        "psi": 0.3029782040389841
+      },
+      {
+        "feature": "hv20",
+        "psi": 0.4113440196660504
+      },
+      {
+        "feature": "hv60",
+        "psi": 1.887648242943949
+      },
+      {
+        "feature": "sentiment_momentum",
+        "psi": 0.4683832207511966
+      },
+      {
+        "feature": "fracdiff_d_0_00",
+        "psi": 11.512810335715578
+      }
+    ]
+  },
+  "config": {
+    "max_missing_rate": 0.3,
+    "correlation_threshold": 0.95,
+    "leakage_corr_threshold": 0.995,
+    "psi_threshold": 0.2,
+    "psi_reject_threshold": 0.4,
+    "psi_bins": 10
+  }
+}
