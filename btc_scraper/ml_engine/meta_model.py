@@ -160,9 +160,10 @@ def _get_backend_kwargs(backend: str, use_gpu: bool = False, device_id: int = 0)
             "devices": f"{device_id}",
         }
     if backend == "xgboost":
+        device = "gpu" if device_id == 0 else f"gpu:{device_id}"
         return {
             "tree_method": "hist",
-            "device": f"cuda:{device_id}",
+            "device": device,
         }
     return {}
 
@@ -206,6 +207,18 @@ def _prepare_feature_matrix(X, feature_names=None):
     if X_arr.ndim == 1:
         return pd.DataFrame([X_arr], columns=feature_names)
     return pd.DataFrame(X_arr, columns=feature_names)
+
+
+def model_predict_proba(model, X, feature_names=None, *args, **kwargs):
+    """Run predict_proba while preserving feature names when available."""
+    prepared = _prepare_feature_matrix(X, feature_names)
+    return model.predict_proba(prepared, *args, **kwargs)
+
+
+def model_predict(model, X, feature_names=None, *args, **kwargs):
+    """Run predict while preserving feature names when available."""
+    prepared = _prepare_feature_matrix(X, feature_names)
+    return model.predict(prepared, *args, **kwargs)
 
 
 class _InferenceWrapper:

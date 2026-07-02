@@ -163,6 +163,16 @@ def test_ensemble_meta_model():
     assert all(p in [0, 1] for p in preds)
 
 
+def test_xgboost_gpu_device_string():
+    params0 = mm._get_backend_kwargs("xgboost", use_gpu=True, device_id=0)
+    assert params0["tree_method"] == "hist"
+    assert params0["device"] == "gpu"
+
+    params1 = mm._get_backend_kwargs("xgboost", use_gpu=True, device_id=1)
+    assert params1["tree_method"] == "hist"
+    assert params1["device"] == "gpu:1"
+
+
 def test_predict_meta_confidence(temp_logs_dir):
     # Test predict when model is missing
     res_no_model = predict_meta_confidence({"coin": "BTC", "action": "BUY"})

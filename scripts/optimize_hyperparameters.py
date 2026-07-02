@@ -23,7 +23,7 @@ btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
 from btc_scraper.core.config import COINS
 from btc_scraper.analysis import analyze_all_market, calculate_tp_sl
 from btc_scraper.ml_engine.signal_score import compute_kelly_fraction, _estimate_b
-from btc_scraper.ml_engine.meta_model import load_model
+from btc_scraper.ml_engine.meta_model import load_model, model_predict_proba
 from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
@@ -88,7 +88,7 @@ def pre_extract_candidates():
                 try:
                     feat = build_meta_features(ana)
                     row = [float(feat.get(k, 0.0)) for k in feature_names]
-                    meta_prob = float(clf.predict_proba([row])[0, 1])
+                    meta_prob = float(model_predict_proba(clf, [row], feature_names)[0, 1])
                 except Exception:
                     meta_prob = 0.5
 

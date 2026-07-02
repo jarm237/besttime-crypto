@@ -74,7 +74,15 @@ def main():
     # Compute predictions
     print("Computing predictions and metrics...")
     try:
-        probs = model.predict_proba(X_sel)
+        # If we have feature names used by the model, present X as DataFrame
+        if feat_used:
+            import pandas as _pd
+
+            X_input = _pd.DataFrame(X_sel, columns=feat_used)
+        else:
+            X_input = X_sel
+
+        probs = model.predict_proba(X_input)
         if probs.ndim == 1:
             probs = np.column_stack([1.0 - probs, probs])
         prob_pos = probs[:, 1]
@@ -82,7 +90,13 @@ def main():
     except Exception as e:
         print("Model predict_proba failed:", e)
         try:
-            preds = model.predict(X_sel)
+            if feat_used:
+                import pandas as _pd
+
+                X_input = _pd.DataFrame(X_sel, columns=feat_used)
+            else:
+                X_input = X_sel
+            preds = model.predict(X_input)
             prob_pos = None
         except Exception as e2:
             print("Model predict failed:", e2)
@@ -117,18 +131,25 @@ def main():
     # small batch size for per-sample measurement
     batch = X_sel[: min(128, len(X_sel))]
     # warmup
+    if feat_used:
+        import pandas as _pd
+
+        batch_input = _pd.DataFrame(batch, columns=feat_used)
+    else:
+        batch_input = batch
+
     for _ in range(n_warm):
         try:
-            _ = model.predict_proba(batch)
+            _ = model.predict_proba(batch_input)
         except Exception:
-            _ = model.predict(batch)
+            _ = model.predict(batch_input)
     # timed
     t0 = time.perf_counter()
     for _ in range(n_runs):
         try:
-            _ = model.predict_proba(batch)
+            _ = model.predict_proba(batch_input)
         except Exception:
-            _ = model.predict(batch)
+            _ = model.predict(batch_input)
     t1 = time.perf_counter()
     total_calls = n_runs
     elapsed = t1 - t0

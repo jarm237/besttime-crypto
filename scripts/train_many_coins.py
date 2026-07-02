@@ -64,6 +64,20 @@ def main():
     print(f"Launching parallel training for {len(coins)} coins with {args.jobs} workers")
     print(f"Months: {months}")
 
+    # If GPU requested, attempt to detect available devices and distribute them round-robin
+    available_gpus = 0
+    if args.gpu:
+        try:
+            import torch
+
+            available_gpus = torch.cuda.device_count()
+        except Exception:
+            available_gpus = 0
+        if available_gpus:
+            print(f"Detected {available_gpus} GPU(s); assigning device ids round-robin to workers")
+        else:
+            print("GPU requested but no CUDA devices found; falling back to CPU for workers")
+
     procs = []
     idx = 0
     total = len(coins)
@@ -78,7 +92,12 @@ def main():
             env["TRAIN_COINS"] = ",".join(coins)
             if args.gpu:
                 env["USE_GPU"] = "1"
-                env["GPU_DEVICE_ID"] = str(args.device_id)
+                # assign device id round-robin if multiple GPUs detected
+                if available_gpus:
+                    device_id = idx % available_gpus
+                else:
+                    device_id = args.device_id
+                env["GPU_DEVICE_ID"] = str(device_id)
             print(f"Starting worker for {coin}: {' '.join(cmd)}")
             proc = subprocess.Popen(cmd, cwd=str(BASE), env=env)
             procs.append((coin, proc))

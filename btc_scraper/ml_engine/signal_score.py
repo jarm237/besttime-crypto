@@ -515,12 +515,13 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             try:
                 from btc_scraper.ml_engine.feature_extractor import features_from_analysis
                 import numpy as np
+                from btc_scraper.ml_engine.meta_model import model_predict_proba
 
                 feat = features_from_analysis({**(data or {}), **(context or {}), "signal_score": {"score": None, "raw_text": sig_text}})
                 feature_names = model_bundle.get("features")
                 model = model_bundle.get("model")
                 row = [float(feat.get(k, 0.0)) for k in feature_names]
-                prob = float(model.predict_proba([row])[0][1])
+                prob = float(model_predict_proba(model, [row], feature_names)[0][1])
                 prob_percent = int(round(prob * 100))
 
                 action_from_text = _primary_signal_action(sig_text)

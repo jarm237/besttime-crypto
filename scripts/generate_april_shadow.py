@@ -12,7 +12,7 @@ from btc_scraper.analysis import analyze_market, analyze_all_market
 from btc_scraper.core.config import COINS
 from backtest_april import load_candles_csv, WARMUP_CANDLES, _is_actionable, BUY_MIN_SCORE, SELL_MAX_SCORE
 
-from btc_scraper.ml_engine.meta_model import load_model
+from btc_scraper.ml_engine.meta_model import load_model, model_predict_proba
 from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
 import btc_scraper.core.sentiment
 
@@ -144,7 +144,7 @@ def generate_shadow_logs():
                 try:
                     feat = build_meta_features(ana)
                     row = [float(feat.get(k, 0.0)) for k in feature_names]
-                    prob = float(clf.predict_proba([row])[0, 1])
+                    prob = float(model_predict_proba(clf, [row], feature_names)[0, 1])
                 except Exception as e:
                     prob = 0.5
                     

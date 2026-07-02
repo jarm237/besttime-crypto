@@ -120,6 +120,7 @@ def _segment_metrics(records: list[dict]) -> tuple[dict, dict]:
     import sys
     sys.path.insert(0, str(BASE))
     from btc_scraper.ml_engine.feature_extractor import records_to_dataset
+    from btc_scraper.ml_engine.meta_model import model_predict_proba
 
     bundle = joblib.load(MODEL_PATH)
     model = bundle.get("model") if isinstance(bundle, dict) else bundle
@@ -141,7 +142,7 @@ def _segment_metrics(records: list[dict]) -> tuple[dict, dict]:
     else:
         X_used = X
 
-    probs = model.predict_proba(X_used)
+    probs = model_predict_proba(model, X_used, selected_features or feature_names)
     if probs.ndim == 1:
         probs = np.column_stack([1.0 - probs, probs])
     prob_pos = probs[:, 1]

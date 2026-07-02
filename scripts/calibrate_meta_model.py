@@ -38,9 +38,8 @@ sys.path.insert(0, str(BASE_DIR))
 
 from btc_scraper.core.config import COINS, FRESH_TRAINING_DATA_DIR
 from btc_scraper.analysis import analyze_market, analyze_all_market
-from btc_scraper.ml_engine.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT, EnsembleMetaModel
+from btc_scraper.ml_engine.meta_model import load_model, MODEL_OUT, METRIC_OUT, FEATURE_IMPORTANCE_OUT, EnsembleMetaModel, model_predict_proba
 from btc_scraper.ml_engine.feature_extractor import build_meta_features, FEATURE_SCHEMA
-
 import btc_scraper.core.sentiment
 def mock_get_market_sentiment():
     return {
@@ -432,7 +431,7 @@ def main():
             feat = r["features"]
             row = [float(feat.get(k, 0.0)) for k in old_features]
             try:
-                prob = float(old_clf.predict_proba([row])[0, 1])
+                prob = float(model_predict_proba(old_clf, [row], old_features)[0, 1])
             except Exception:
                 prob = 0.5
             old_probs.append(prob)
