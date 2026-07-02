@@ -12,7 +12,7 @@
       "time": "2026-07-02 16:45",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 1640.01,
-      "current_price": 1641.76,
+      "current_price": 1646.56,
       "tp_sl": {
         "entry": 1640.01,
         "sl": 1655.2146,
@@ -24,14 +24,14 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 15,
+      "age_minutes": 30,
       "created_at_ts": 1782985562.203509
     },
     {
       "time": "2026-07-02 17:00",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 1641.76,
-      "current_price": 1641.76,
+      "current_price": 1646.56,
       "tp_sl": {
         "entry": 1641.76,
         "sl": 1655.2176,
@@ -43,7 +43,7 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 15,
       "created_at_ts": 1782986462.4995885
     }
   ],
@@ -52,7 +52,7 @@
       "time": "2026-07-02 17:00",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 0.0403,
-      "current_price": 0.0403,
+      "current_price": 0.0405,
       "tp_sl": {
         "entry": 0.0403,
         "sl": 0.0413,
@@ -64,7 +64,7 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 15,
       "created_at_ts": 1782986464.324497
     }
   ],
@@ -88,7 +88,7 @@
       },
       "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 15,
       "created_at_ts": 1782986464.783833
     }
   ],
@@ -99,7 +99,7 @@
       "time": "2026-07-02 17:00",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 61116.34,
-      "current_price": 61116.34,
+      "current_price": 61230.0,
       "tp_sl": {
         "entry": 61116.34,
         "sl": 61547.7073,
@@ -111,7 +111,7 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 15,
       "created_at_ts": 1782986460.82605
     }
   ],
@@ -121,7 +121,7 @@
       "time": "2026-07-02 16:00",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 0.00496,
-      "current_price": 0.00503,
+      "current_price": 0.00504,
       "tp_sl": {
         "entry": 0.005,
         "sl": 0.005,
@@ -133,7 +133,7 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
       "status": "Hit SL (Da can SL)",
-      "age_minutes": 44,
+      "age_minutes": 59,
       "created_at_ts": 1782983766.3090534
     }
   ],
@@ -142,7 +142,7 @@
       "time": "2026-07-02 16:45",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 79.3,
-      "current_price": 79.52,
+      "current_price": 79.66,
       "tp_sl": {
         "entry": 79.3,
         "sl": 79.9957,
@@ -154,7 +154,7 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 15,
+      "age_minutes": 30,
       "created_at_ts": 1782985562.642028
     }
   ],

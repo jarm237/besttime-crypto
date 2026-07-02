@@ -17,6 +17,8 @@
 - Sprint 2 (Triple Barrier Labeling) is implemented in code.
 - Sprint 3 (Meta Labeling) is implemented in code.
 - Sprint 4 (Regime and Causal Features) is implemented in code.
+- Sprint 5 (Alternative Data Features) is implemented in code.
+- Sprint 6 (Cross-Sectional Features) is implemented in code.
 - Runtime execution in current shell is blocked by missing Python dependencies.
 
 ### Completed in Repository
@@ -45,18 +47,30 @@
   - Causal risk normalization and one-hot encoding.
   - Context adjustment and causal diagnostics fields.
   - Counterfactual feature outputs (`cf_delta_pnl`, intervention fields).
+- Implemented `alternative_features.py` with:
+  - Point-in-time-safe z-score, momentum, rank, and change transforms.
+  - Composite alternative features (macro stress, on-chain strength, sentiment spread, liquidity risk).
+  - Missing-data handling and quality report generation.
+- Implemented `cross_sectional_features.py` with:
+  - Coin ranking per timestamp from point-in-time returns.
+  - Relative strength vs BTC and ETH baselines.
+  - Sector/cluster-aware ranking and group excess-return features.
 - Added scripts:
   - `scripts/build_feature_store_v2.py`.
   - `scripts/generate_triple_barrier_labels.py`.
   - `scripts/generate_meta_labels.py`.
   - `scripts/build_regime_features.py`.
   - `scripts/build_causal_features.py`.
+  - `scripts/build_alternative_features.py`.
+  - `scripts/build_cross_sectional_features.py`.
 - Added tests:
   - `tests/test_feature_store.py`.
   - `tests/test_triple_barrier.py`.
   - `tests/test_meta_labeling.py`.
   - `tests/test_regime_features.py`.
   - `tests/test_causal_features.py`.
+  - `tests/test_alternative_features.py`.
+  - `tests/test_cross_sectional_features.py`.
 
 ### Environment Blockers (Current Machine)
 
@@ -86,6 +100,13 @@ python3 scripts/build_regime_features.py \
 python3 scripts/build_causal_features.py \
   --input logs/adaptive_signals_v2.json \
   --output data/feature_store/causal/causal_features.parquet
+python3 scripts/build_alternative_features.py \
+  --input data/alternative_data.json \
+  --output data/feature_store/derived/alternative_features.parquet \
+  --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+python3 scripts/build_cross_sectional_features.py \
+  --input logs/adaptive_signals_v2.json \
+  --output data/feature_store/derived/cross_sectional_features.parquet
 ```
 
 ---
@@ -1103,7 +1124,11 @@ causal_features.parquet
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/alternative_features.py`
+  - `scripts/build_alternative_features.py`
+  - `tests/test_alternative_features.py`
 
 ### Tasks
 
@@ -1131,7 +1156,11 @@ alternative_feature_quality_report.json
 
 ### Progress Snapshot
 
-- Status: **NOT STARTED**
+- Status: **DONE (code completed, runtime pending environment setup)**
+- Completed files:
+  - `btc_scraper/feature_engineering/cross_sectional_features.py`
+  - `scripts/build_cross_sectional_features.py`
+  - `tests/test_cross_sectional_features.py`
 
 ### Tasks
 
