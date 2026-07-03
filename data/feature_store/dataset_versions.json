@@ -54,5 +54,159 @@
       "regime",
       "alternative"
     ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T01:40:03.806177+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T01:49:09.074564+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T01:50:32.092937+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T01:51:29.553451+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "b6894970ef513e8286ab9b6c812b8c1c8e69effd919029386c8df9f99ea56920",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:01:12.464669+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "fe9395dec00c5305087af22396edd0def61315035d0954bbd699ed0f9048bb54",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:02:38.299059+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "fe9395dec00c5305087af22396edd0def61315035d0954bbd699ed0f9048bb54",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:15:18.392052+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "fe9395dec00c5305087af22396edd0def61315035d0954bbd699ed0f9048bb54",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:39:54.478491+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "6391c22b19d4c4aff39d36625540d49de9f2fc6784b9e04549102df129933f58",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:42:38.607905+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "6391c22b19d4c4aff39d36625540d49de9f2fc6784b9e04549102df129933f58",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:45:23.626887+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "6391c22b19d4c4aff39d36625540d49de9f2fc6784b9e04549102df129933f58",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:49:10.600986+00:00",
+    "row_count": 24070,
+    "feature_count": 205,
+    "label_type": "triple_barrier_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "6391c22b19d4c4aff39d36625540d49de9f2fc6784b9e04549102df129933f58",
+    "feature_groups": [
+      "group_1_fracdiff_features",
+      "group_2_alternative_features"
+    ]
   }
 ]

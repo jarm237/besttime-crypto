@@ -5733,5 +5733,41 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 0.0749
+  },
+  {
+    "timestamp": "2026-07-03T06:47:13.302581",
+    "timestamp_str": "2026-07-03 06:47:13",
+    "mode": "TESTNET",
+    "coin": "IOTA",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.3731,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0393
+  },
+  {
+    "timestamp": "2026-07-03T08:46:13.311182",
+    "timestamp_str": "2026-07-03 08:46:13",
+    "mode": "TESTNET",
+    "coin": "AVAX",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.3731,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 6.851
+  },
+  {
+    "timestamp": "2026-07-03T09:31:15.964073",
+    "timestamp_str": "2026-07-03 09:31:15",
+    "mode": "TESTNET",
+    "coin": "SOPH",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.4683,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.005
   }
 ]

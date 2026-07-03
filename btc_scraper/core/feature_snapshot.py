@@ -29,6 +29,7 @@ class FeatureSnapshot:
     
     Includes:
     - World state (macro, liquidity, crypto, sentiment, risk)
+    - Alternative layer (Phase 7 alternative features)
     - Context report (if generated)
     - Events that triggered this snapshot
     - Metadata for replay

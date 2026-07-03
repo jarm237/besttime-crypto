@@ -91,21 +91,35 @@ class DatasetBuilderV3:
             return left
 
         right_part = right[[c for c in [right_time, right_coin, *feature_columns] if c is not None and c in right.columns]].copy()
-        right_part = right_part.sort_values(([right_coin, right_time] if right_coin else [right_time]), kind="mergesort")
-        left_sorted = left.sort_values(([left_coin, left_time] if left_coin else [left_time]), kind="mergesort")
+        if right_coin:
+            right_part = right_part.sort_values([right_coin, right_time], kind="mergesort")
+        else:
+            right_part = right_part.sort_values([right_time], kind="mergesort")
 
         if left_coin and right_coin:
-            joined = pd.merge_asof(
-                left_sorted,
-                right_part,
-                left_on=left_time,
-                right_on=right_time,
-                left_by=left_coin,
-                right_by=right_coin,
-                direction="backward",
-                allow_exact_matches=True,
-            )
+            left_sorted = left.sort_values([left_coin, left_time], kind="mergesort")
+            joined_frames: list[pd.DataFrame] = []
+            for coin_value, left_group in left_sorted.groupby(left_coin, sort=False):
+                right_group = right_part[right_part[right_coin] == coin_value]
+                if right_group.empty:
+                    joined_frames.append(left_group)
+                    continue
+
+                joined_group = pd.merge_asof(
+                    left_group,
+                    right_group,
+                    left_on=left_time,
+                    right_on=right_time,
+                    left_by=left_coin,
+                    right_by=right_coin,
+                    direction="backward",
+                    allow_exact_matches=True,
+                )
+                joined_frames.append(joined_group)
+
+            joined = pd.concat(joined_frames, ignore_index=True, sort=False) if joined_frames else left_sorted
         else:
+            left_sorted = left.sort_values([left_time], kind="mergesort")
             joined = pd.merge_asof(
                 left_sorted,
                 right_part,

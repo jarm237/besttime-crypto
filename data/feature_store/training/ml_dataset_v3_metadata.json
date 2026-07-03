@@ -1,5 +1,5 @@
 {
-  "rows": 300,
+  "rows": 24070,
   "columns": 205,
   "timeframe": "15m",
   "label_type": "triple_barrier_meta",
@@ -9,8 +9,8 @@
     "group_2_alternative_features"
   ],
   "label_columns_present": [
-    "result",
-    "pnl_pct"
+    "triple_barrier_label",
+    "meta_label"
   ],
   "config": {
     "timeframe": "15m",
@@ -30,14 +30,14 @@
     ]
   },
   "dataset_version": {
-    "dataset_version": "v3_2026_07_02",
-    "created_at": "2026-07-02T10:38:59.618254+00:00",
-    "row_count": 300,
+    "dataset_version": "v3_2026_07_03",
+    "created_at": "2026-07-03T02:49:10.600986+00:00",
+    "row_count": 24070,
     "feature_count": 205,
     "label_type": "triple_barrier_meta",
     "lookahead_bars": 48,
     "timeframe": "15m",
-    "source_hash": "7251f5898e3b0447143d032f2a234a2eee3b85a90432ad1323deb1ae99bafcee",
+    "source_hash": "6391c22b19d4c4aff39d36625540d49de9f2fc6784b9e04549102df129933f58",
     "feature_groups": [
       "group_1_fracdiff_features",
       "group_2_alternative_features"

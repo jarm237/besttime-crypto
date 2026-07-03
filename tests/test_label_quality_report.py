@@ -22,7 +22,7 @@ def test_label_quality_reporter_builds_distributions_from_fallback():
     assert report["counts"]["triple_barrier_rows"] == 3
     assert report["distributions"]["triple_barrier_label"]["WIN"] == 2
     assert report["distributions"]["meta_label"]["1"] == 2
-    assert report["quality_metrics"]["meta_execute_rate"] is not None
+    assert report["quality_metrics"]["meta_execute_rate"] == 2 / 3
 
 
 def test_label_quality_reporter_warns_on_low_samples():

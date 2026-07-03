@@ -266,7 +266,7 @@ class AlternativeDataReplayer:
         Returns:
             Number of world states emitted.
         """
-        from btc_scraper.core.world_state import AlternativeDataLayer, WorldState
+        from btc_scraper.core.world_state import AlternativeLayer, WorldState
 
         count = 0
         for payload in self.iter_payloads(start=start, end=end):
@@ -278,7 +278,7 @@ class AlternativeDataReplayer:
 
             state = WorldState(timestamp=ts, source="replay", is_snapshot=True)
             alt = state.alternative
-            for field_name in AlternativeDataLayer.__dataclass_fields__:
+            for field_name in AlternativeLayer.__dataclass_fields__:
                 if field_name == "updated_at":
                     continue
                 val = payload.get(field_name)

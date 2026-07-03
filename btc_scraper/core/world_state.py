@@ -97,17 +97,24 @@ class RiskLayer:
 
 
 @dataclass
-class AlternativeDataLayer:
+class AlternativeLayer:
     """Alternative data features that enrich the market state."""
     exchange_netflow: float = 0.0
     whale_score: float = 0.0
     stablecoin_supply: float = 0.0
+    stablecoin_supply_total: float = 0.0
     etf_flow: float = 0.0
-    options_iv: float = 0.0
+    chain_tvl: float = 0.0
+    defi_liquidity_score: float = 0.0
     orderbook_imbalance: float = 0.0
-    liquidity_pressure: float = 0.0
-    macro_pressure: float = 0.0
     funding_pressure: float = 0.0
+    open_interest_pressure: float = 0.0
+    large_tx_proxy_score: float = 0.0
+    options_iv: float = 0.0
+    options_iv_rank: float = 0.0
+    options_skew: float = 0.0
+    macro_pressure: float = 0.0
+    macro_risk_score: float = 0.0
     stablecoin_momentum: float = 0.0
     etf_momentum: float = 0.0
     risk_on_score: float = 0.0
@@ -131,7 +138,7 @@ class WorldState:
     crypto: CryptoLayer = field(default_factory=CryptoLayer)
     sentiment: SentimentLayer = field(default_factory=SentimentLayer)
     risk: RiskLayer = field(default_factory=RiskLayer)
-    alternative: AlternativeDataLayer = field(default_factory=AlternativeDataLayer)
+    alternative: AlternativeLayer = field(default_factory=AlternativeLayer)
     
     # Metadata
     is_snapshot: bool = False  # Whether loaded from snapshot
@@ -206,7 +213,7 @@ class WorldState:
         if data.get("risk", {}).get("updated_at"):
             risk.updated_at = datetime.fromisoformat(data["risk"]["updated_at"])
 
-        alternative = AlternativeDataLayer(**{
+        alternative = AlternativeLayer(**{
             k: v for k, v in data.get("alternative", {}).items()
             if k != "updated_at"
         })

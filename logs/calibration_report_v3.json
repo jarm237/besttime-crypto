@@ -2,48 +2,54 @@
   "version": "v3",
   "calibration_method": null,
   "test_metrics": {
-    "roc_auc": 0.6,
-    "accuracy": 0.6,
-    "brier": 0.24148965484317092
+    "roc_auc": 0.8382279392642086,
+    "accuracy": 0.7607310994184436,
+    "brier": 0.1689573799343822
   },
   "buckets": {
     "0.0-0.4": {
-      "count": 12,
-      "wins": 5,
-      "losses": 7,
-      "actual_wr": 41.67,
+      "count": 1498,
+      "wins": 102,
+      "losses": 1396,
+      "actual_wr": 6.81,
       "predicted_wr": 20.0,
-      "calibration_error": 21.67,
+      "calibration_error": -13.19,
       "calibrated": false
     },
     "0.4-0.6": {
-      "count": 31,
-      "wins": 13,
-      "losses": 18,
-      "actual_wr": 41.94,
+      "count": 1001,
+      "wins": 438,
+      "losses": 563,
+      "actual_wr": 43.76,
       "predicted_wr": 50.0,
-      "calibration_error": -8.06,
+      "calibration_error": -6.24,
       "calibrated": true
     },
     "0.6-0.7": {
-      "count": 2,
-      "actual_wr": null,
-      "predicted_wr": null,
-      "calibration_error": null,
-      "calibrated": false
+      "count": 739,
+      "wins": 485,
+      "losses": 254,
+      "actual_wr": 65.63,
+      "predicted_wr": 65.0,
+      "calibration_error": 0.63,
+      "calibrated": true
     },
     "0.7-0.8": {
-      "count": 0,
-      "actual_wr": null,
-      "predicted_wr": null,
-      "calibration_error": null,
-      "calibrated": false
+      "count": 355,
+      "wins": 257,
+      "losses": 98,
+      "actual_wr": 72.39,
+      "predicted_wr": 75.0,
+      "calibration_error": -2.61,
+      "calibrated": true
     },
     "0.8-1.0": {
-      "count": 0,
-      "actual_wr": null,
-      "predicted_wr": null,
-      "calibration_error": null,
+      "count": 18,
+      "wins": 13,
+      "losses": 5,
+      "actual_wr": 72.22,
+      "predicted_wr": 90.0,
+      "calibration_error": -17.78,
       "calibrated": false
     }
   }

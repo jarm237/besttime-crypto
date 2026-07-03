@@ -26,7 +26,7 @@ import pandas as pd
 
 
 class Phase8PipelineRunner:
-    def __init__(self, repo_root: Path | None = None, output_dir: Path | None = None):
+    def __init__(self, repo_root: Path | None = None, output_dir: Path | None = None, python_executable: str | None = None):
         self.repo_root = repo_root or Path(__file__).resolve().parents[1]
         self.output_dir = output_dir or self.repo_root / "logs" / "phase8_pipeline"
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -34,6 +34,7 @@ class Phase8PipelineRunner:
         self.log_path = self.output_dir / "phase8_pipeline.log"
         self.start_time = None
         self.steps = []
+        self.python_executable = python_executable or sys.executable
 
     def log(self, msg: str, level: str = "INFO") -> None:
         """Log message to console and file."""
@@ -124,7 +125,7 @@ class Phase8PipelineRunner:
         self.run_step(
             1,
             "Initialize Feature Store v2",
-            ["python", "scripts/build_feature_store_v2.py"],
+            [self.python_executable, "scripts/build_feature_store_v2.py"],
         )
 
         # Step 2: Generate triple barrier labels
@@ -132,7 +133,7 @@ class Phase8PipelineRunner:
             2,
             "Generate Triple Barrier Labels",
             [
-                "python",
+                self.python_executable,
                 "scripts/generate_triple_barrier_labels.py",
                 "--input", "logs/adaptive_signals_v2.json",
                 "--output", "data/feature_store/labels/triple_barrier_labels.parquet",
@@ -146,7 +147,7 @@ class Phase8PipelineRunner:
             3,
             "Generate Meta Labels",
             [
-                "python",
+                self.python_executable,
                 "scripts/generate_meta_labels.py",
                 "--input", "data/feature_store/labels/triple_barrier_labels.parquet",
                 "--output-meta", "data/feature_store/labels/meta_labels.parquet",
@@ -154,36 +155,36 @@ class Phase8PipelineRunner:
             ],
         )
 
-        # Step 4: Build regime features
+        # Step 4: Build Regime Features
         self.run_step(
             4,
             "Build Regime Features",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_regime_features.py",
                 "--input", "logs/adaptive_signals_v2.json",
                 "--output", "data/feature_store/regime/regime_features.parquet",
             ],
         )
 
-        # Step 5: Build causal features
+        # Step 5: Build Causal Features
         self.run_step(
             5,
             "Build Causal Features",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_causal_features.py",
                 "--input", "logs/adaptive_signals_v2.json",
                 "--output", "data/feature_store/causal/causal_features.parquet",
             ],
         )
 
-        # Step 6: Build alternative features
+        # Step 6: Build Alternative Features
         self.run_step(
             6,
             "Build Alternative Features",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_alternative_features.py",
                 "--input", "data/alternative_data.json",
                 "--output", "data/feature_store/derived/alternative_features.parquet",
@@ -191,24 +192,24 @@ class Phase8PipelineRunner:
             ],
         )
 
-        # Step 7: Build cross-sectional features
+        # Step 7: Build Cross-Sectional Features
         self.run_step(
             7,
             "Build Cross-Sectional Features",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_cross_sectional_features.py",
                 "--input", "logs/adaptive_signals_v2.json",
                 "--output", "data/feature_store/derived/cross_sectional_features.parquet",
             ],
         )
 
-        # Step 8: Build fractional differencing features
+        # Step 8: Build Fractional Differencing Features
         self.run_step(
             8,
             "Build Fractional Differencing Features",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_fracdiff_features.py",
                 "--input", "logs/adaptive_signals_v2.json",
                 "--output", "data/feature_store/derived/fracdiff_features.parquet",
@@ -216,12 +217,12 @@ class Phase8PipelineRunner:
             ],
         )
 
-        # Step 9: Build feature validation reports
+        # Step 9: Build Feature Validation Reports
         self.run_step(
             9,
             "Build Feature Validation Reports",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_feature_validation_reports.py",
                 "--input", "data/feature_store/derived/fracdiff_features.parquet",
                 "--quality-output", "data/feature_store/derived/feature_quality_report.json",
@@ -234,7 +235,7 @@ class Phase8PipelineRunner:
             10,
             "Build ML Dataset v3",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_ml_dataset_v3.py",
                 "--base", "data/feature_store/derived/cross_sectional_features.parquet",
                 "--features", (
@@ -251,7 +252,7 @@ class Phase8PipelineRunner:
             11,
             "Build Label Quality Report",
             [
-                "python",
+                self.python_executable,
                 "scripts/build_label_quality_report.py",
                 "--triple", "data/feature_store/labels/triple_barrier_labels.parquet",
                 "--meta", "data/feature_store/labels/meta_labels.parquet",
@@ -266,21 +267,24 @@ class Phase8PipelineRunner:
             12,
             "Check Label Quality Threshold",
             [
-                "python",
+                self.python_executable,
                 "scripts/check_label_quality_threshold.py",
                 "--report", "data/feature_store/labels/label_quality_report.json",
+                "--min-meta-execute-rate", "0.33",
             ],
         )
 
-        # Step 13: Train meta model v3
+        # Step 13: Train Meta Model v3
         self.run_step(
             13,
             "Train Meta Model v3",
             [
-                "python",
+                self.python_executable,
                 "scripts/train_meta_model_v3.py",
                 "--dataset", "data/feature_store/training/ml_dataset_v3.parquet",
                 "--output-dir", "logs",
+                "--label-column", "meta_label",
+                "--positive-label", "1.0",
                 "--walk-forward-splits", "3",
             ],
         )
@@ -290,7 +294,7 @@ class Phase8PipelineRunner:
             14,
             "Verify Pipeline Outputs",
             [
-                "python", "-c",
+                self.python_executable, "-c",
                 """
 import json, os
 from pathlib import Path

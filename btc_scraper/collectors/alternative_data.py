@@ -28,6 +28,7 @@ from btc_scraper.collectors.deribit_collector import DeribitCollector
 from btc_scraper.collectors.etf_collector import ETFCollector
 from btc_scraper.collectors.google_trends_collector import GoogleTrendsCollector
 from btc_scraper.collectors.reddit_collector import RedditCollector
+from btc_scraper.collectors.alternative_me_collector import AlternativeMeCollector
 
 DEFAULT_OUTPUT_PATH = str(build_data_path("alternative_data.json"))
 DEFAULT_RAW_STORE_DIR = str(build_data_path("raw_alternative"))
@@ -53,78 +54,148 @@ class AlternativeDataCollector(CollectorBase):
 
     def collect(self, force: bool = False) -> Dict[str, Any]:
         payload = _default_payload()
+        payload.setdefault("_errors", {})
+        payload.setdefault("_statuses", {})
 
         try:
             binance_payload = BinanceCollector().collect(force=force)
+            payload["_statuses"]["binance"] = {
+                "status": binance_payload.get("status", "success"),
+                "reason": binance_payload.get("reason"),
+            }
             payload.update({"funding_rate": binance_payload.get("funding_rate", 0.0), "open_interest": binance_payload.get("open_interest", 0.0)})
-        except Exception:
+            if isinstance(binance_payload, dict) and binance_payload.get("error"):
+                payload["_errors"]["binance"] = binance_payload.get("error")
+        except Exception as e:
             payload.update({"funding_rate": 0.0, "open_interest": 0.0})
+            payload["_errors"]["binance"] = repr(e)
+            payload["_statuses"]["binance"] = {"status": "error", "reason": str(e)}
 
         try:
             defillama_payload = DefiLlamaCollector().collect(force=force)
+            payload["_statuses"]["defillama"] = {
+                "status": defillama_payload.get("status", "success"),
+                "reason": defillama_payload.get("reason"),
+            }
             payload.update({"stablecoin_supply": defillama_payload.get("stablecoin_supply", 0.0), "tvl": defillama_payload.get("tvl", 0.0)})
-        except Exception:
+            if isinstance(defillama_payload, dict) and defillama_payload.get("error"):
+                payload["_errors"]["defillama"] = defillama_payload.get("error")
+        except Exception as e:
             payload.update({"stablecoin_supply": 0.0, "tvl": 0.0})
+            payload["_errors"]["defillama"] = repr(e)
+            payload["_statuses"]["defillama"] = {"status": "error", "reason": str(e)}
 
         try:
             fred_payload = FredCollector().collect(force=force)
             payload.update({"us10y": fred_payload.get("us10y", 0.0), "gold": fred_payload.get("gold", 0.0)})
-        except Exception:
+            if isinstance(fred_payload, dict) and fred_payload.get("error"):
+                payload["_errors"]["fred"] = fred_payload.get("error")
+        except Exception as e:
             payload.update({"us10y": 0.0, "gold": 0.0})
+            payload["_errors"]["fred"] = repr(e)
 
         try:
             yahoo_payload = YahooCollector().collect(force=force)
             payload.update({"dxy": yahoo_payload.get("dxy", 0.0), "vix": yahoo_payload.get("vix", 0.0), "gold": yahoo_payload.get("gold", 0.0)})
-        except Exception:
+            if isinstance(yahoo_payload, dict) and yahoo_payload.get("error"):
+                payload["_errors"]["yahoo"] = yahoo_payload.get("error")
+        except Exception as e:
             payload.update({"dxy": 0.0, "vix": 0.0, "gold": 0.0})
+            payload["_errors"]["yahoo"] = repr(e)
+
+        try:
+            altme_payload = AlternativeMeCollector().collect(force=force)
+            status = altme_payload.get("status")
+            payload["_statuses"]["alternative_me"] = {"status": status, "reason": altme_payload.get("reason")}
+            if status == "success" and isinstance(altme_payload.get("data"), dict):
+                payload.update({
+                    "fear_greed_raw": altme_payload["data"].get("fear_greed_raw", 50.0),
+                    "fear_greed_score": altme_payload["data"].get("fear_greed_score", 0.5),
+                    "fear_greed_regime": altme_payload["data"].get("fear_greed_regime"),
+                })
+            elif status == "error":
+                payload["_errors"]["alternative_me"] = altme_payload.get("reason")
+        except Exception as e:
+            payload.update({"fear_greed_raw": 50.0, "fear_greed_score": 0.5, "fear_greed_regime": None})
+            payload["_errors"]["alternative_me"] = repr(e)
 
         try:
             glassnode_payload = GlassnodeCollector().collect(force=force)
-            payload.update({"active_addresses": glassnode_payload.get("active_addresses", 0.0)})
-        except Exception:
+            status = glassnode_payload.get("status")
+            payload["_statuses"]["glassnode"] = {"status": status, "reason": glassnode_payload.get("reason")}
+            if status == "success" and isinstance(glassnode_payload.get("data"), dict):
+                payload.update({"active_addresses": glassnode_payload["data"].get("active_addresses", 0.0)})
+            elif status == "error":
+                payload["_errors"]["glassnode"] = glassnode_payload.get("reason")
+        except Exception as e:
             payload.update({"active_addresses": 0.0})
+            payload["_errors"]["glassnode"] = repr(e)
 
         try:
             blockchain_payload = BlockchainCollector().collect(force=force)
             payload.update({"hashrate": blockchain_payload.get("hashrate", 0.0)})
-        except Exception:
+            if isinstance(blockchain_payload, dict) and blockchain_payload.get("error"):
+                payload["_errors"]["blockchain"] = blockchain_payload.get("error")
+        except Exception as e:
             payload.update({"hashrate": 0.0})
+            payload["_errors"]["blockchain"] = repr(e)
 
         try:
             blockchair_payload = BlockchairCollector().collect(force=force)
             payload.update({"exchange_netflow": blockchair_payload.get("exchange_netflow", 0.0)})
-        except Exception:
+            if isinstance(blockchair_payload, dict) and blockchair_payload.get("error"):
+                payload["_errors"]["blockchair"] = blockchair_payload.get("error")
+        except Exception as e:
             payload.update({"exchange_netflow": 0.0})
+            payload["_errors"]["blockchair"] = repr(e)
 
         try:
             whale_payload = WhaleAlertCollector().collect(force=force)
-            payload.update({"whale_score": whale_payload.get("whale_score", 0.0)})
-        except Exception:
+            status = whale_payload.get("status")
+            payload["_statuses"]["whale_alert"] = {"status": status, "reason": whale_payload.get("reason")}
+            if status == "success" and isinstance(whale_payload.get("data"), dict):
+                payload.update({"whale_score": whale_payload["data"].get("whale_score", 0.0)})
+            elif status == "error":
+                payload["_errors"]["whale_alert"] = whale_payload.get("reason")
+        except Exception as e:
             payload.update({"whale_score": 0.0})
+            payload["_errors"]["whale_alert"] = repr(e)
 
         try:
             deribit_payload = DeribitCollector().collect(force=force)
             payload.update({"options_iv": deribit_payload.get("options_iv", 0.0), "iv_skew": deribit_payload.get("iv_skew", 0.0)})
-        except Exception:
+            if isinstance(deribit_payload, dict) and deribit_payload.get("error"):
+                payload["_errors"]["deribit"] = deribit_payload.get("error")
+        except Exception as e:
             payload.update({"options_iv": 0.0, "iv_skew": 0.0})
+            payload["_errors"]["deribit"] = repr(e)
 
         try:
             etf_payload = ETFCollector().collect(force=force)
             payload.update({"etf_flow": etf_payload.get("etf_flow", 0.0)})
-        except Exception:
+            if isinstance(etf_payload, dict) and etf_payload.get("error"):
+                payload["_errors"]["etf"] = etf_payload.get("error")
+        except Exception as e:
             payload.update({"etf_flow": 0.0})
+            payload["_errors"]["etf"] = repr(e)
 
         try:
             google_payload = GoogleTrendsCollector().collect(force=force)
             payload.update({"sentiment_score": google_payload.get("sentiment_score", 0.0)})
-        except Exception:
+            if isinstance(google_payload, dict) and google_payload.get("error"):
+                payload["_errors"]["google_trends"] = google_payload.get("error")
+        except Exception as e:
             payload.update({"sentiment_score": 0.0})
+            payload["_errors"]["google_trends"] = repr(e)
 
         try:
             reddit_payload = RedditCollector().collect(force=force)
             payload.update({"social_sentiment": reddit_payload.get("sentiment_score", 0.0)})
-        except Exception:
+            if isinstance(reddit_payload, dict) and reddit_payload.get("error"):
+                payload["_errors"]["reddit"] = reddit_payload.get("error")
+        except Exception as e:
             payload.update({"social_sentiment": 0.0})
+            payload["_errors"]["reddit"] = repr(e)
 
         previous_payload = load_alternative_data(self.output_path) if self.output_path is not None else None
         normalized_payload = normalize_alternative_payload(
@@ -186,10 +257,23 @@ def _default_payload() -> Dict[str, Any]:
         "vix": 0.0,
         "us10y": 0.0,
         "gold": 0.0,
+        "sentiment_score": 0.0,
+        "social_sentiment": 0.0,
+        "fear_greed_raw": 50.0,
+        "fear_greed_score": 0.5,
+        "fear_greed_regime": None,
+        "active_addresses": 0.0,
+        "hashrate": 0.0,
+        "chain_tvl": 0.0,
+        "defi_liquidity_score": 0.0,
         "orderbook_imbalance": 0.0,
         "liquidity_pressure": 0.0,
         "macro_pressure": 0.0,
+        "macro_risk_score": 0.0,
         "funding_pressure": 0.0,
+        "open_interest_pressure": 0.0,
+        "large_tx_proxy_score": 0.0,
+        "stablecoin_supply_total": 0.0,
         "stablecoin_momentum": 0.0,
         "etf_momentum": 0.0,
         "risk_on_score": 0.0,

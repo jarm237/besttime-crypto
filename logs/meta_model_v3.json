@@ -1,9 +1,9 @@
 {
   "version": "v3",
-  "created_at": "2026-07-02T18:45:34.890752+00:00",
-  "dataset_path": "data\\feature_store\\training\\ml_dataset_v3.parquet",
-  "n_samples": 300,
-  "n_features": 79,
+  "created_at": "2026-07-03T02:50:07.531426+00:00",
+  "dataset_path": "data/feature_store/training/ml_dataset_v3.parquet",
+  "n_samples": 24070,
+  "n_features": 99,
   "features": [
     "signal_score",
     "rsi",
@@ -82,84 +82,104 @@
     "fracdiff_price",
     "fracdiff_return_1",
     "coin_AEVO",
+    "coin_AR",
+    "coin_AVAX",
+    "coin_BNB",
+    "coin_BTC",
+    "coin_DOGE",
+    "coin_ENA",
+    "coin_ETH",
+    "coin_IOTA",
+    "coin_NEAR",
+    "coin_SOL",
+    "coin_SOPH",
+    "coin_TAO",
+    "coin_TRB",
+    "coin_TRUMP",
+    "coin_TRX",
+    "coin_WLD",
+    "coin_XLM",
+    "coin_XPL",
+    "coin_XRP",
+    "coin_ZEC",
     "entry_hour",
     "entry_dayofweek"
   ],
-  "label_column": "result",
+  "label_column": "meta_label",
   "label_distribution": {
-    "WIN": 141,
-    "LOSS": 159
+    "WIN": 8130,
+    "LOSS": 15940
   },
   "calibration_method": null,
   "split": {
-    "train": 210,
-    "calib": 45,
-    "test": 45
+    "train": 16849,
+    "calib": 3610,
+    "test": 3611
   },
   "test_metrics": {
-    "roc_auc": 0.6,
-    "accuracy": 0.6,
-    "brier": 0.24148965484317092
+    "roc_auc": 0.8382279392642086,
+    "accuracy": 0.7607310994184436,
+    "brier": 0.1689573799343822
   },
   "walk_forward": [
     {
       "train_range": [
         0,
-        195
+        15645
       ],
       "test_range": [
-        195,
-        240
+        15645,
+        19255
       ],
-      "n_train": 195,
-      "n_test": 45,
-      "roc_auc": 0.632,
-      "accuracy": 0.6444444444444445,
-      "brier": 0.2366150769036695
+      "n_train": 15645,
+      "n_test": 3610,
+      "roc_auc": 0.8409699831978564,
+      "accuracy": 0.7681440443213297,
+      "brier": 0.16601683765362407
     },
     {
       "train_range": [
-        45,
-        240
+        3610,
+        19255
       ],
       "test_range": [
-        240,
-        285
+        19255,
+        22865
       ],
-      "n_train": 195,
-      "n_test": 45,
-      "roc_auc": 0.5830039525691699,
-      "accuracy": 0.5555555555555556,
-      "brier": 0.24760668624028254
+      "n_train": 15645,
+      "n_test": 3610,
+      "roc_auc": 0.8276924340754127,
+      "accuracy": 0.754016620498615,
+      "brier": 0.17545298925475425
     }
   ],
   "model_comparison": {
     "baseline_old_style": {
-      "roc_auc": 0.6040000000000001,
-      "accuracy": 0.5333333333333333,
-      "brier": 0.29283670698636016
+      "roc_auc": 0.8450563813258114,
+      "accuracy": 0.774023816117419,
+      "brier": 0.15197689970295267
     },
     "new_model_v3": {
-      "roc_auc": 0.6,
-      "accuracy": 0.6,
-      "brier": 0.24148965484317092
+      "roc_auc": 0.8382279392642086,
+      "accuracy": 0.7607310994184436,
+      "brier": 0.1689573799343822
     },
-    "delta_roc_auc": -0.004000000000000115,
-    "delta_accuracy": 0.06666666666666665,
-    "delta_brier": -0.05134705214318924,
-    "legacy_metrics_file": "logs\\meta_model.json",
+    "delta_roc_auc": -0.006828442061602824,
+    "delta_accuracy": -0.01329271669897536,
+    "delta_brier": 0.016980480231429534,
+    "legacy_metrics_file": "logs/meta_model.json",
     "legacy_metrics_loaded": true
   },
   "fallback": {
-    "old_model_path": "logs\\meta_model.joblib",
+    "old_model_path": "logs/meta_model.joblib",
     "old_model_exists": true,
     "strategy": "keep_old_model_as_fallback"
   },
   "config": {
-    "label_column": "result",
+    "label_column": "meta_label",
     "time_column": "entry_time",
     "coin_column": "coin",
-    "positive_label": "WIN",
+    "positive_label": "1.0",
     "calibration": true,
     "random_state": 42,
     "train_ratio": 0.7,

@@ -544,3 +544,1261 @@ UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 
 [2026-07-03 01:45:35] [INFO] 
 ================================================================================
 [2026-07-03 01:45:35] [INFO] Pipeline Report saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 08:52:00] [INFO] Starting Phase 8 Pipeline at 2026-07-03T08:52:00.962592
+[2026-07-03 08:52:00] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_feature_store_v2.py
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 1 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 08:52:00] [INFO] Command: python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 2 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 08:52:00] [INFO] Command: python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 3 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 4: Build Regime Features
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 4 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 5: Build Causal Features
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 5 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 6: Build Alternative Features
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 6 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 7 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 8 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 9 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 10 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 08:52:00] [INFO] Command: python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 11 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 08:52:00] [INFO] Command: python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 12 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 08:52:00] [INFO] Command: python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 13 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 08:52:00] [INFO] Command: python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 08:52:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:52:00] [INFO] ❌ Step 14 error: [Errno 2] No such file or directory: 'python'
+[2026-07-03 08:52:00] [INFO] 
+================================================================================
+[2026-07-03 08:52:00] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 08:58:06] [INFO] Starting Phase 8 Pipeline at 2026-07-03T08:58:06.257918
+[2026-07-03 08:58:06] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/build_feature_store_v2.py
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:06] [INFO] ❌ Step 1 failed with code 1
+[2026-07-03 08:58:06] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_feature_store_v2.py", line 19, in <module>
+    from btc_scraper.feature_engineering.feature_store import FeatureStoreV2
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/feature_engineering/__init__.py", line 3, in <module>
+    from .alternative_features import AlternativeFeatureBuilder, AlternativeFeatureConfig
+  File "/home/tran-huynh/Workspaces/Personal/besttime
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:06] [INFO] ❌ Step 2 failed with code 1
+[2026-07-03 08:58:06] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:06] [INFO] ❌ Step 3 failed with code 1
+[2026-07-03 08:58:06] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_meta_labels.py", line 18, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 4: Build Regime Features
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:06] [INFO] ❌ Step 4 failed with code 1
+[2026-07-03 08:58:06] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_regime_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 5: Build Causal Features
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:06] [INFO] ❌ Step 5 failed with code 1
+[2026-07-03 08:58:06] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_causal_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 6: Build Alternative Features
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:06] [INFO] ❌ Step 6 failed with code 1
+[2026-07-03 08:58:06] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_alternative_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:06] [INFO] 
+================================================================================
+[2026-07-03 08:58:06] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 08:58:06] [INFO] Command: python3 scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 08:58:06] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 7 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_cross_sectional_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 08:58:07] [INFO] Command: python3 scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 8 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_fracdiff_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 08:58:07] [INFO] Command: python3 scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 9 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_feature_validation_reports.py", line 18, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 08:58:07] [INFO] Command: python3 scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 10 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_ml_dataset_v3.py", line 19, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 08:58:07] [INFO] Command: python3 scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 11 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_label_quality_report.py", line 19, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 08:58:07] [INFO] Command: python3 scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 12 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/check_label_quality_threshold.py", line 13, in <module>
+    from btc_scraper.feature_engineering.label_quality import (
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/feature_engineering/__init__.py", line 3, in <module>
+    from .alternative_features import AlternativeFeatureBuilder, AlternativeFeatureConfig
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypt
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 08:58:07] [INFO] Command: python3 scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 08:58:07] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 12, in <module>
+    from btc_scraper.ml_engine.meta_model_v3 import MetaModelV3Config, train_from_dataset_v3
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ml_engine/meta_model_v3.py", line 9, in <module>
+    import joblib
+ModuleNotFoundError: No module named 'joblib'
+
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 08:58:07] [INFO] Command: python3 -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 08:58:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:07] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 08:58:07] [INFO] 
+================================================================================
+[2026-07-03 08:58:07] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 08:58:48] [INFO] Starting Phase 8 Pipeline at 2026-07-03T08:58:48.200781
+[2026-07-03 08:58:48] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 08:58:48] [INFO] 
+================================================================================
+[2026-07-03 08:58:48] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 08:58:48] [INFO] Command: python3 scripts/build_feature_store_v2.py
+[2026-07-03 08:58:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:48] [INFO] ❌ Step 1 failed with code 1
+[2026-07-03 08:58:48] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_feature_store_v2.py", line 19, in <module>
+    from btc_scraper.feature_engineering.feature_store import FeatureStoreV2
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/feature_engineering/__init__.py", line 3, in <module>
+    from .alternative_features import AlternativeFeatureBuilder, AlternativeFeatureConfig
+  File "/home/tran-huynh/Workspaces/Personal/besttime
+[2026-07-03 08:58:48] [INFO] 
+================================================================================
+[2026-07-03 08:58:48] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 08:58:48] [INFO] Command: python3 scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 08:58:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:48] [INFO] ❌ Step 2 failed with code 1
+[2026-07-03 08:58:48] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:48] [INFO] 
+================================================================================
+[2026-07-03 08:58:48] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 08:58:48] [INFO] Command: python3 scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 08:58:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:48] [INFO] ❌ Step 3 failed with code 1
+[2026-07-03 08:58:48] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_meta_labels.py", line 18, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:48] [INFO] 
+================================================================================
+[2026-07-03 08:58:48] [INFO] Step 4: Build Regime Features
+[2026-07-03 08:58:48] [INFO] Command: python3 scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 08:58:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:48] [INFO] ❌ Step 4 failed with code 1
+[2026-07-03 08:58:48] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_regime_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:48] [INFO] 
+================================================================================
+[2026-07-03 08:58:48] [INFO] Step 5: Build Causal Features
+[2026-07-03 08:58:48] [INFO] Command: python3 scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 08:58:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 5 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_causal_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 6: Build Alternative Features
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 6 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_alternative_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 7 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_cross_sectional_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 8 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_fracdiff_features.py", line 13, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 9 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_feature_validation_reports.py", line 18, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 10 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_ml_dataset_v3.py", line 19, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:49] [INFO] ❌ Step 11 failed with code 1
+[2026-07-03 08:58:49] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/build_label_quality_report.py", line 19, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+[2026-07-03 08:58:49] [INFO] 
+================================================================================
+[2026-07-03 08:58:49] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 08:58:49] [INFO] Command: python3 scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 08:58:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:50] [INFO] ❌ Step 12 failed with code 1
+[2026-07-03 08:58:50] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/check_label_quality_threshold.py", line 13, in <module>
+    from btc_scraper.feature_engineering.label_quality import (
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/feature_engineering/__init__.py", line 3, in <module>
+    from .alternative_features import AlternativeFeatureBuilder, AlternativeFeatureConfig
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypt
+[2026-07-03 08:58:50] [INFO] 
+================================================================================
+[2026-07-03 08:58:50] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 08:58:50] [INFO] Command: python3 scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 08:58:50] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:50] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 08:58:50] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 12, in <module>
+    from btc_scraper.ml_engine.meta_model_v3 import MetaModelV3Config, train_from_dataset_v3
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/btc_scraper/ml_engine/meta_model_v3.py", line 9, in <module>
+    import joblib
+ModuleNotFoundError: No module named 'joblib'
+
+[2026-07-03 08:58:50] [INFO] 
+================================================================================
+[2026-07-03 08:58:50] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 08:58:50] [INFO] Command: python3 -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 08:58:50] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 08:58:50] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 08:58:50] [INFO] 
+================================================================================
+[2026-07-03 08:58:50] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:00:52] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:00:52.877039
+[2026-07-03 09:00:52] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:00:52] [INFO] 
+================================================================================
+[2026-07-03 09:00:52] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:00:52] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:00:52] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:00:53] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:00:53] [INFO] 
+================================================================================
+[2026-07-03 09:00:53] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:00:53] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:00:53] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:00:53] [INFO] ❌ Step 2 failed with code 1
+[2026-07-03 09:00:53] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 195, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 125, in main
+    raise FileNotFoundError(f"Data directory does not exist: {data_dir}")
+FileNotFoundError: Data directory does not exist: data/fresh_training_data_2023_2026
+[2026-07-03 09:00:53] [INFO] 
+================================================================================
+[2026-07-03 09:00:53] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:00:53] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:00:53] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:00:56] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:00:56] [INFO] 
+================================================================================
+[2026-07-03 09:00:56] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:00:56] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:00:56] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:00:58] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:00:58] [INFO] 
+================================================================================
+[2026-07-03 09:00:58] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:00:58] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:00:58] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:00:59] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:00:59] [INFO] 
+================================================================================
+[2026-07-03 09:00:59] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:00:59] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:00:59] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:00] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:01:00] [INFO] 
+================================================================================
+[2026-07-03 09:01:00] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:01:00] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:01:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:05] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:01:05] [INFO] 
+================================================================================
+[2026-07-03 09:01:05] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:01:05] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:01:05] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:09] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:01:09] [INFO] 
+================================================================================
+[2026-07-03 09:01:09] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:01:09] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:01:09] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:11] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:01:11] [INFO] 
+================================================================================
+[2026-07-03 09:01:11] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:01:11] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:01:11] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:12] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:01:12] [INFO] 
+================================================================================
+[2026-07-03 09:01:12] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:01:12] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:01:12] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:13] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:01:13] [INFO] 
+================================================================================
+[2026-07-03 09:01:13] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:01:13] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:01:13] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:14] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 09:01:14] [INFO] 
+================================================================================
+[2026-07-03 09:01:14] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:01:14] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 09:01:14] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:19] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 09:01:19] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 69, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 52, in main
+    out = train_from_dataset_v3(dataset_path=dataset_path, output_dir=output_dir, config=cfg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-07-03 09:01:19] [INFO] 
+================================================================================
+[2026-07-03 09:01:19] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:01:19] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:01:19] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:01:19] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:01:19] [INFO] 
+================================================================================
+[2026-07-03 09:01:19] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:02:16] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:02:16.378800
+[2026-07-03 09:02:16] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:02:16] [INFO] 
+================================================================================
+[2026-07-03 09:02:16] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:02:16] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:02:16] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:17] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:02:17] [INFO] 
+================================================================================
+[2026-07-03 09:02:17] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:02:17] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:02:17] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:18] [INFO] ❌ Step 2 failed with code 1
+[2026-07-03 09:02:18] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 195, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 125, in main
+    raise FileNotFoundError(f"Data directory does not exist: {data_dir}")
+FileNotFoundError: Data directory does not exist: data/fresh_training_data_2023_2026
+[2026-07-03 09:02:18] [INFO] 
+================================================================================
+[2026-07-03 09:02:18] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:02:18] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:02:18] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:22] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:02:22] [INFO] 
+================================================================================
+[2026-07-03 09:02:22] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:02:22] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:02:22] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:24] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:02:24] [INFO] 
+================================================================================
+[2026-07-03 09:02:24] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:02:24] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:02:24] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:26] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:02:26] [INFO] 
+================================================================================
+[2026-07-03 09:02:26] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:02:26] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:02:26] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:27] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:02:27] [INFO] 
+================================================================================
+[2026-07-03 09:02:27] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:02:27] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:02:27] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:33] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:02:33] [INFO] 
+================================================================================
+[2026-07-03 09:02:33] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:02:33] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:02:33] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:35] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:02:35] [INFO] 
+================================================================================
+[2026-07-03 09:02:35] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:02:35] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:02:35] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:36] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:02:36] [INFO] 
+================================================================================
+[2026-07-03 09:02:36] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:02:36] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:02:36] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:38] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:02:38] [INFO] 
+================================================================================
+[2026-07-03 09:02:38] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:02:38] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:02:38] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:39] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:02:39] [INFO] 
+================================================================================
+[2026-07-03 09:02:39] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:02:39] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:02:39] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:39] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 09:02:39] [INFO] 
+================================================================================
+[2026-07-03 09:02:39] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:02:39] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 09:02:39] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:43] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 09:02:43] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 69, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 52, in main
+    out = train_from_dataset_v3(dataset_path=dataset_path, output_dir=output_dir, config=cfg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-07-03 09:02:43] [INFO] 
+================================================================================
+[2026-07-03 09:02:43] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:02:43] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:02:43] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:02:43] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:02:43] [INFO] 
+================================================================================
+[2026-07-03 09:02:43] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:14:48] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:14:48.166604
+[2026-07-03 09:14:48] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:14:48] [INFO] 
+================================================================================
+[2026-07-03 09:14:48] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:14:48] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:14:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:14:49] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:14:49] [INFO] 
+================================================================================
+[2026-07-03 09:14:49] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:14:49] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:14:49] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:14:50] [INFO] ❌ Step 2 failed with code 1
+[2026-07-03 09:14:50] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 195, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/generate_triple_barrier_labels.py", line 125, in main
+    raise FileNotFoundError(f"Data directory does not exist: {data_dir}")
+FileNotFoundError: Data directory does not exist: data/fresh_training_data_2023_2026
+[2026-07-03 09:14:50] [INFO] 
+================================================================================
+[2026-07-03 09:14:50] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:14:50] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:14:50] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:14:53] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:14:53] [INFO] 
+================================================================================
+[2026-07-03 09:14:53] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:14:53] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:14:53] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:14:56] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:14:56] [INFO] 
+================================================================================
+[2026-07-03 09:14:56] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:14:56] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:14:56] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:14:58] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:14:58] [INFO] 
+================================================================================
+[2026-07-03 09:14:58] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:14:58] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:14:58] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:00] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:15:00] [INFO] 
+================================================================================
+[2026-07-03 09:15:00] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:15:00] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:15:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:11] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:15:11] [INFO] 
+================================================================================
+[2026-07-03 09:15:11] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:15:11] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:15:11] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:15] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:15:15] [INFO] 
+================================================================================
+[2026-07-03 09:15:15] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:15:15] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:15:15] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:16] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:15:16] [INFO] 
+================================================================================
+[2026-07-03 09:15:16] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:15:16] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:15:16] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:18] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:15:18] [INFO] 
+================================================================================
+[2026-07-03 09:15:18] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:15:18] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:15:18] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:19] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:15:19] [INFO] 
+================================================================================
+[2026-07-03 09:15:19] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:15:19] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:15:19] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:20] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 09:15:20] [INFO] 
+================================================================================
+[2026-07-03 09:15:20] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:15:20] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 09:15:20] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:25] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 09:15:25] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 69, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 52, in main
+    out = train_from_dataset_v3(dataset_path=dataset_path, output_dir=output_dir, config=cfg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-07-03 09:15:25] [INFO] 
+================================================================================
+[2026-07-03 09:15:25] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:15:25] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:15:25] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:15:25] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:15:25] [INFO] 
+================================================================================
+[2026-07-03 09:15:25] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:38:04] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:38:04.674807
+[2026-07-03 09:38:04] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:38:04] [INFO] 
+================================================================================
+[2026-07-03 09:38:04] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:38:04] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:38:04] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:38:05] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:38:05] [INFO] 
+================================================================================
+[2026-07-03 09:38:05] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:38:05] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:38:05] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:32] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 09:39:32] [INFO] 
+================================================================================
+[2026-07-03 09:39:32] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:39:32] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:39:32] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:35] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:39:35] [INFO] 
+================================================================================
+[2026-07-03 09:39:35] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:39:35] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:39:35] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:38] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:39:38] [INFO] 
+================================================================================
+[2026-07-03 09:39:38] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:39:38] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:39:38] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:40] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:39:40] [INFO] 
+================================================================================
+[2026-07-03 09:39:40] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:39:40] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:39:40] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:41] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:39:41] [INFO] 
+================================================================================
+[2026-07-03 09:39:41] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:39:41] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:39:41] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:47] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:39:47] [INFO] 
+================================================================================
+[2026-07-03 09:39:47] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:39:47] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:39:47] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:51] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:39:51] [INFO] 
+================================================================================
+[2026-07-03 09:39:51] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:39:51] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:39:51] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:53] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:39:53] [INFO] 
+================================================================================
+[2026-07-03 09:39:53] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:39:53] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:39:53] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:54] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:39:54] [INFO] 
+================================================================================
+[2026-07-03 09:39:54] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:39:54] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:39:54] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:55] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:39:55] [INFO] 
+================================================================================
+[2026-07-03 09:39:55] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:39:55] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:39:55] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:39:56] [INFO] ❌ Step 12 failed with code 1
+[2026-07-03 09:39:56] [INFO] Error: Threshold check output: logs/label_quality_threshold_check.json
+Result: FAIL
+Failures: ['quality_metrics.meta_execute_rate']
+
+[2026-07-03 09:39:56] [INFO] 
+================================================================================
+[2026-07-03 09:39:56] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:39:56] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --label-column meta_label --walk-forward-splits 3
+[2026-07-03 09:39:56] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:40:04] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 09:40:04] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 69, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 52, in main
+    out = train_from_dataset_v3(dataset_path=dataset_path, output_dir=output_dir, config=cfg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-07-03 09:40:04] [INFO] 
+================================================================================
+[2026-07-03 09:40:04] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:40:04] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:40:04] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:40:04] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:40:04] [INFO] 
+================================================================================
+[2026-07-03 09:40:04] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:40:50] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:40:50.757572
+[2026-07-03 09:40:50] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:40:50] [INFO] 
+================================================================================
+[2026-07-03 09:40:50] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:40:50] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:40:50] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:40:51] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:40:51] [INFO] 
+================================================================================
+[2026-07-03 09:40:51] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:40:51] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:40:51] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:17] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 09:42:17] [INFO] 
+================================================================================
+[2026-07-03 09:42:17] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:42:17] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:42:17] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:20] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:42:20] [INFO] 
+================================================================================
+[2026-07-03 09:42:20] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:42:20] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:42:20] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:23] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:42:23] [INFO] 
+================================================================================
+[2026-07-03 09:42:23] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:42:23] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:42:23] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:25] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:42:25] [INFO] 
+================================================================================
+[2026-07-03 09:42:25] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:42:25] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:42:25] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:26] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:42:26] [INFO] 
+================================================================================
+[2026-07-03 09:42:26] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:42:26] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:42:26] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:32] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:42:32] [INFO] 
+================================================================================
+[2026-07-03 09:42:32] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:42:32] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:42:32] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:35] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:42:35] [INFO] 
+================================================================================
+[2026-07-03 09:42:35] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:42:35] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:42:35] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:36] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:42:36] [INFO] 
+================================================================================
+[2026-07-03 09:42:36] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:42:36] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:42:36] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:39] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:42:39] [INFO] 
+================================================================================
+[2026-07-03 09:42:39] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:42:39] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:42:39] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:40] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:42:40] [INFO] 
+================================================================================
+[2026-07-03 09:42:40] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:42:40] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json --min-meta-execute-rate 0.33
+[2026-07-03 09:42:40] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:41] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 09:42:41] [INFO] 
+================================================================================
+[2026-07-03 09:42:41] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:42:41] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --label-column meta_label --walk-forward-splits 3
+[2026-07-03 09:42:41] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:48] [INFO] ❌ Step 13 failed with code 1
+[2026-07-03 09:42:48] [INFO] Error: Traceback (most recent call last):
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 69, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/train_meta_model_v3.py", line 52, in main
+    out = train_from_dataset_v3(dataset_path=dataset_path, output_dir=output_dir, config=cfg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-07-03 09:42:48] [INFO] 
+================================================================================
+[2026-07-03 09:42:48] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:42:48] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:42:48] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:42:48] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:42:48] [INFO] 
+================================================================================
+[2026-07-03 09:42:48] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:43:34] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:43:34.102860
+[2026-07-03 09:43:34] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:43:34] [INFO] 
+================================================================================
+[2026-07-03 09:43:34] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:43:34] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:43:34] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:43:34] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:43:34] [INFO] 
+================================================================================
+[2026-07-03 09:43:34] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:43:34] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:43:34] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:04] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 09:45:04] [INFO] 
+================================================================================
+[2026-07-03 09:45:04] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:45:04] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:45:04] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:07] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:45:07] [INFO] 
+================================================================================
+[2026-07-03 09:45:07] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:45:07] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:45:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:09] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:45:09] [INFO] 
+================================================================================
+[2026-07-03 09:45:09] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:45:09] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:45:09] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:11] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:45:11] [INFO] 
+================================================================================
+[2026-07-03 09:45:11] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:45:11] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:45:11] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:12] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:45:12] [INFO] 
+================================================================================
+[2026-07-03 09:45:12] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:45:12] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:45:12] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:18] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:45:18] [INFO] 
+================================================================================
+[2026-07-03 09:45:18] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:45:18] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:45:18] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:20] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:45:20] [INFO] 
+================================================================================
+[2026-07-03 09:45:20] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:45:20] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:45:20] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:22] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:45:22] [INFO] 
+================================================================================
+[2026-07-03 09:45:22] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:45:22] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:45:22] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:23] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:45:23] [INFO] 
+================================================================================
+[2026-07-03 09:45:23] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:45:23] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:45:23] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:24] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:45:24] [INFO] 
+================================================================================
+[2026-07-03 09:45:24] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:45:24] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json --min-meta-execute-rate 0.33
+[2026-07-03 09:45:24] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:45:25] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 09:45:25] [INFO] 
+================================================================================
+[2026-07-03 09:45:25] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:45:25] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --label-column meta_label --positive-label 1.0 --walk-forward-splits 3
+[2026-07-03 09:45:25] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:46:38] [INFO] ✅ Step 13 completed successfully
+[2026-07-03 09:46:38] [INFO] 
+================================================================================
+[2026-07-03 09:46:38] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:46:38] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:46:38] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:46:38] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:46:38] [INFO] 
+================================================================================
+[2026-07-03 09:46:38] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:47:40] [INFO] Starting Phase 8 Pipeline at 2026-07-03T09:47:40.479654
+[2026-07-03 09:47:40] [INFO] Report will be saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 09:47:40] [INFO] 
+================================================================================
+[2026-07-03 09:47:40] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 09:47:40] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_store_v2.py
+[2026-07-03 09:47:40] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:47:41] [INFO] ✅ Step 1 completed successfully
+[2026-07-03 09:47:41] [INFO] 
+================================================================================
+[2026-07-03 09:47:41] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 09:47:41] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 09:47:41] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:48:53] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 09:48:53] [INFO] 
+================================================================================
+[2026-07-03 09:48:53] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 09:48:53] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 09:48:53] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:48:55] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 09:48:55] [INFO] 
+================================================================================
+[2026-07-03 09:48:55] [INFO] Step 4: Build Regime Features
+[2026-07-03 09:48:55] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 09:48:55] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:48:57] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 09:48:57] [INFO] 
+================================================================================
+[2026-07-03 09:48:57] [INFO] Step 5: Build Causal Features
+[2026-07-03 09:48:57] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 09:48:57] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:48:59] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 09:48:59] [INFO] 
+================================================================================
+[2026-07-03 09:48:59] [INFO] Step 6: Build Alternative Features
+[2026-07-03 09:48:59] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 09:48:59] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:00] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 09:49:00] [INFO] 
+================================================================================
+[2026-07-03 09:49:00] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 09:49:00] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 09:49:00] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:05] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 09:49:05] [INFO] 
+================================================================================
+[2026-07-03 09:49:05] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 09:49:05] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 09:49:05] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:07] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 09:49:07] [INFO] 
+================================================================================
+[2026-07-03 09:49:07] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 09:49:07] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 09:49:07] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:08] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 09:49:08] [INFO] 
+================================================================================
+[2026-07-03 09:49:08] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 09:49:08] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 09:49:08] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:11] [INFO] ✅ Step 10 completed successfully
+[2026-07-03 09:49:11] [INFO] 
+================================================================================
+[2026-07-03 09:49:11] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 09:49:11] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 09:49:11] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:12] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 09:49:12] [INFO] 
+================================================================================
+[2026-07-03 09:49:12] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 09:49:12] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json --min-meta-execute-rate 0.33
+[2026-07-03 09:49:12] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:49:13] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 09:49:13] [INFO] 
+================================================================================
+[2026-07-03 09:49:13] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 09:49:13] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --label-column meta_label --positive-label 1.0 --walk-forward-splits 3
+[2026-07-03 09:49:13] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:50:08] [INFO] ✅ Step 13 completed successfully
+[2026-07-03 09:50:08] [INFO] 
+================================================================================
+[2026-07-03 09:50:08] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 09:50:08] [INFO] Command: /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 09:50:08] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 09:50:08] [INFO] ✅ Step 14 completed successfully
+[2026-07-03 09:50:08] [INFO] 
+================================================================================
+[2026-07-03 09:50:08] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json

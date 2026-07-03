@@ -39,10 +39,30 @@ class LabelQualityReporter:
         self.config = config or LabelQualityConfig()
 
     @staticmethod
+    def _normalize_distribution_key(value: Any) -> str:
+        if pd.isna(value):
+            return "NA"
+        if isinstance(value, str):
+            try:
+                numeric = float(value)
+            except ValueError:
+                return value
+            if numeric.is_integer():
+                return str(int(numeric))
+            return str(numeric)
+        if isinstance(value, (int, float)):
+            numeric = float(value)
+            if numeric.is_integer():
+                return str(int(numeric))
+            return str(numeric)
+        return str(value)
+
+    @staticmethod
     def _distribution(frame: pd.DataFrame, column: str) -> dict[str, int]:
         if frame.empty or column not in frame.columns:
             return {}
-        vc = frame[column].astype(str).fillna("NA").value_counts(dropna=False)
+        normalized = frame[column].map(LabelQualityReporter._normalize_distribution_key).fillna("NA").astype(str)
+        vc = normalized.value_counts(dropna=False)
         return {str(k): int(v) for k, v in vc.to_dict().items()}
 
     @staticmethod

@@ -63,3 +63,51 @@ def test_dataset_builder_v3_point_in_time_backward_join():
     ds = builder.build(base, {"regime": feat})
 
     assert list(ds["f_regime"]) == [1, 2]
+
+
+def test_dataset_builder_v3_joins_timestamp_only_features_for_all_coins():
+    base = pd.DataFrame(
+        [
+            {"coin": "BTC", "entry_time": "2026-01-01 00:10", "result": "WIN"},
+            {"coin": "ETH", "entry_time": "2026-01-01 00:10", "result": "LOSS"},
+            {"coin": "BTC", "entry_time": "2026-01-01 00:20", "result": "WIN"},
+            {"coin": "ETH", "entry_time": "2026-01-01 00:20", "result": "LOSS"},
+        ]
+    )
+    alt = pd.DataFrame(
+        [
+            {"timestamp": "2026-01-01 00:00", "alt_score": 0.1},
+            {"timestamp": "2026-01-01 00:15", "alt_score": 0.2},
+        ]
+    )
+
+    builder = DatasetBuilderV3()
+    ds = builder.build(base, {"alternative": alt})
+
+    assert len(ds) == 4
+    assert set(ds["alt_score"]) == {0.1, 0.2}
+
+
+def test_dataset_builder_v3_grouped_asof_join_with_multiple_coins():
+    base = pd.DataFrame(
+        [
+            {"coin": "B", "entry_time": "2026-01-01 00:20", "result": "LOSS"},
+            {"coin": "A", "entry_time": "2026-01-01 00:10", "result": "WIN"},
+            {"coin": "B", "entry_time": "2026-01-01 00:10", "result": "WIN"},
+            {"coin": "A", "entry_time": "2026-01-01 00:20", "result": "LOSS"},
+        ]
+    )
+    feat = pd.DataFrame(
+        [
+            {"coin": "A", "entry_time": "2026-01-01 00:00", "f_regime": 10},
+            {"coin": "A", "entry_time": "2026-01-01 00:15", "f_regime": 20},
+            {"coin": "B", "entry_time": "2026-01-01 00:00", "f_regime": 30},
+            {"coin": "B", "entry_time": "2026-01-01 00:15", "f_regime": 40},
+        ]
+    )
+
+    builder = DatasetBuilderV3()
+    ds = builder.build(base, {"regime": feat})
+
+    assert len(ds) == 4
+    assert list(ds.sort_values(["coin", "entry_time"])["f_regime"]) == [10, 20, 30, 40]
