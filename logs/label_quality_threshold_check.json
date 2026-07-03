@@ -1,5 +1,5 @@
 {
-  "ok": true,
+  "ok": false,
   "thresholds": {
     "min_triple_rows": 100,
     "min_meta_rows": 100,
@@ -12,19 +12,19 @@
   "checks": {
     "counts.triple_barrier_rows": {
       "status": "pass",
-      "value": 300,
+      "value": 24070,
       "threshold": 100,
       "mode": "min"
     },
     "counts.meta_label_rows": {
       "status": "pass",
-      "value": 300,
+      "value": 24070,
       "threshold": 100,
       "mode": "min"
     },
     "counts.trade_quality_rows": {
       "status": "pass",
-      "value": 300,
+      "value": 24070,
       "threshold": 100,
       "mode": "min"
     },
@@ -35,14 +35,14 @@
       "mode": "min"
     },
     "quality_metrics.meta_execute_rate": {
-      "status": "pass",
-      "value": 0.47,
+      "status": "fail",
+      "value": 0.0,
       "threshold": 0.4,
       "mode": "min"
     },
     "quality_metrics.meta_class_imbalance_ratio": {
       "status": "pass",
-      "value": 1.127659574468085,
+      "value": null,
       "threshold": 3.0,
       "mode": "max"
     },
@@ -53,6 +53,13 @@
       "mode": "max"
     }
   },
-  "failures": {},
-  "source_generated_at": "2026-07-02T11:10:02.478801+00:00"
+  "failures": {
+    "quality_metrics.meta_execute_rate": {
+      "status": "fail",
+      "value": 0.0,
+      "threshold": 0.4,
+      "mode": "min"
+    }
+  },
+  "source_generated_at": "2026-07-02T18:45:20.689795+00:00"
 }

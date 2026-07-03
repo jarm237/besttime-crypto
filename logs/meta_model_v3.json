@@ -1,7 +1,7 @@
 {
   "version": "v3",
-  "created_at": "2026-07-02T10:45:15.883436+00:00",
-  "dataset_path": "data/feature_store/training/ml_dataset_v3.parquet",
+  "created_at": "2026-07-02T18:45:34.890752+00:00",
+  "dataset_path": "data\\feature_store\\training\\ml_dataset_v3.parquet",
   "n_samples": 300,
   "n_features": 79,
   "features": [
@@ -99,7 +99,7 @@
   "test_metrics": {
     "roc_auc": 0.6,
     "accuracy": 0.6,
-    "brier": 0.24148965484317095
+    "brier": 0.24148965484317092
   },
   "walk_forward": [
     {
@@ -137,21 +137,21 @@
     "baseline_old_style": {
       "roc_auc": 0.6040000000000001,
       "accuracy": 0.5333333333333333,
-      "brier": 0.29283670698636216
+      "brier": 0.29283670698636016
     },
     "new_model_v3": {
       "roc_auc": 0.6,
       "accuracy": 0.6,
-      "brier": 0.24148965484317095
+      "brier": 0.24148965484317092
     },
     "delta_roc_auc": -0.004000000000000115,
     "delta_accuracy": 0.06666666666666665,
-    "delta_brier": -0.05134705214319121,
-    "legacy_metrics_file": "logs/meta_model.json",
+    "delta_brier": -0.05134705214318924,
+    "legacy_metrics_file": "logs\\meta_model.json",
     "legacy_metrics_loaded": true
   },
   "fallback": {
-    "old_model_path": "logs/meta_model.joblib",
+    "old_model_path": "logs\\meta_model.joblib",
     "old_model_exists": true,
     "strategy": "keep_old_model_as_fallback"
   },

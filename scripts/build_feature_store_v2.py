@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Force UTF-8 output
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:

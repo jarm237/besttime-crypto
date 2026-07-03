@@ -1,0 +1,546 @@
+[2026-07-03 01:39:48] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:39:48.310128
+[2026-07-03 01:39:48] [INFO] Report will be saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:39:48] [INFO] 
+================================================================================
+[2026-07-03 01:39:48] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 01:39:48] [INFO] Command: python scripts/build_feature_store_v2.py
+[2026-07-03 01:39:48] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:39:48] [INFO] ❌ Step 1 failed with code 1
+[2026-07-03 01:39:48] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_feature_store_v2.py", line 59, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_feature_store_v2.py", line 53, in main
+    print(f"Feature Store v2 ready at: {store.root}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
+
+[2026-07-03 01:39:48] [INFO] 
+================================================================================
+[2026-07-03 01:39:48] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 01:39:48] [INFO] Command: python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 01:39:48] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:23] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 01:40:23] [INFO] 
+================================================================================
+[2026-07-03 01:40:23] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 01:40:23] [INFO] Command: python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 01:40:23] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:24] [INFO] ❌ Step 3 failed with code 1
+[2026-07-03 01:40:24] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\generate_meta_labels.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:40:24] [INFO] 
+================================================================================
+[2026-07-03 01:40:24] [INFO] Step 4: Build Regime Features
+[2026-07-03 01:40:24] [INFO] Command: python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 01:40:24] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:26] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 01:40:26] [INFO] 
+================================================================================
+[2026-07-03 01:40:26] [INFO] Step 5: Build Causal Features
+[2026-07-03 01:40:26] [INFO] Command: python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 01:40:26] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:27] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 01:40:27] [INFO] 
+================================================================================
+[2026-07-03 01:40:27] [INFO] Step 6: Build Alternative Features
+[2026-07-03 01:40:27] [INFO] Command: python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 01:40:27] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:28] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 01:40:28] [INFO] 
+================================================================================
+[2026-07-03 01:40:28] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 01:40:28] [INFO] Command: python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 01:40:28] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:31] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 01:40:31] [INFO] 
+================================================================================
+[2026-07-03 01:40:31] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 01:40:31] [INFO] Command: python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 01:40:31] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:33] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 01:40:33] [INFO] 
+================================================================================
+[2026-07-03 01:40:33] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 01:40:33] [INFO] Command: python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 01:40:33] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:34] [INFO] ❌ Step 9 failed with code 1
+[2026-07-03 01:40:34] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_feature_validation_reports.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:40:34] [INFO] 
+================================================================================
+[2026-07-03 01:40:34] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 01:40:34] [INFO] Command: python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 01:40:34] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:34] [INFO] ❌ Step 10 failed with code 1
+[2026-07-03 01:40:34] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_ml_dataset_v3.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:40:34] [INFO] 
+================================================================================
+[2026-07-03 01:40:34] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 01:40:34] [INFO] Command: python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:40:34] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:35] [INFO] ❌ Step 11 failed with code 1
+[2026-07-03 01:40:35] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_label_quality_report.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:40:35] [INFO] 
+================================================================================
+[2026-07-03 01:40:35] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 01:40:35] [INFO] Command: python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:40:35] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:36] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 01:40:36] [INFO] 
+================================================================================
+[2026-07-03 01:40:36] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 01:40:36] [INFO] Command: python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 01:40:36] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:54] [INFO] ✅ Step 13 completed successfully
+[2026-07-03 01:40:54] [INFO] 
+================================================================================
+[2026-07-03 01:40:54] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 01:40:54] [INFO] Command: python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 01:40:54] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:40:54] [INFO] ❌ Step 14 failed with code 1
+[2026-07-03 01:40:54] [INFO] Error: Traceback (most recent call last):
+  File "<string>", line 14, in <module>
+    print(f'\u2713 {p}')
+    ~~~~~^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 0: character maps to <undefined>
+
+[2026-07-03 01:40:54] [INFO] 
+================================================================================
+[2026-07-03 01:40:54] [INFO] Pipeline Report saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:40:59] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:40:59.812635
+[2026-07-03 01:41:13] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:41:13.066499
+[2026-07-03 01:41:17] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:41:17.513319
+[2026-07-03 01:41:28] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:41:28.812351
+[2026-07-03 01:41:28] [INFO] Report will be saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:41:28] [INFO] 
+================================================================================
+[2026-07-03 01:41:28] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 01:41:28] [INFO] Command: python scripts/build_feature_store_v2.py
+[2026-07-03 01:41:28] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:41:29] [INFO] ❌ Step 1 failed with code 1
+[2026-07-03 01:41:29] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_feature_store_v2.py", line 59, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_feature_store_v2.py", line 53, in main
+    print(f"Feature Store v2 ready at: {store.root}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
+
+[2026-07-03 01:41:29] [INFO] 
+================================================================================
+[2026-07-03 01:41:29] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 01:41:29] [INFO] Command: python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 01:41:29] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:00] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 01:42:00] [INFO] 
+================================================================================
+[2026-07-03 01:42:00] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 01:42:00] [INFO] Command: python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 01:42:00] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:00] [INFO] ❌ Step 3 failed with code 1
+[2026-07-03 01:42:00] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\generate_meta_labels.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:42:00] [INFO] 
+================================================================================
+[2026-07-03 01:42:00] [INFO] Step 4: Build Regime Features
+[2026-07-03 01:42:00] [INFO] Command: python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 01:42:00] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:02] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 01:42:02] [INFO] 
+================================================================================
+[2026-07-03 01:42:02] [INFO] Step 5: Build Causal Features
+[2026-07-03 01:42:02] [INFO] Command: python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 01:42:02] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:04] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 01:42:04] [INFO] 
+================================================================================
+[2026-07-03 01:42:04] [INFO] Step 6: Build Alternative Features
+[2026-07-03 01:42:04] [INFO] Command: python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 01:42:04] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:04] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 01:42:04] [INFO] 
+================================================================================
+[2026-07-03 01:42:04] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 01:42:04] [INFO] Command: python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 01:42:04] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:07] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 01:42:07] [INFO] 
+================================================================================
+[2026-07-03 01:42:07] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 01:42:07] [INFO] Command: python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 01:42:07] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:09] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 01:42:09] [INFO] 
+================================================================================
+[2026-07-03 01:42:09] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 01:42:09] [INFO] Command: python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 01:42:09] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:10] [INFO] ❌ Step 9 failed with code 1
+[2026-07-03 01:42:10] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_feature_validation_reports.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:42:10] [INFO] 
+================================================================================
+[2026-07-03 01:42:10] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 01:42:10] [INFO] Command: python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 01:42:10] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:10] [INFO] ❌ Step 10 failed with code 1
+[2026-07-03 01:42:10] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_ml_dataset_v3.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:42:10] [INFO] 
+================================================================================
+[2026-07-03 01:42:10] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 01:42:10] [INFO] Command: python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:42:10] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:11] [INFO] ❌ Step 11 failed with code 1
+[2026-07-03 01:42:11] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_label_quality_report.py", line 10, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:42:11] [INFO] 
+================================================================================
+[2026-07-03 01:42:11] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 01:42:11] [INFO] Command: python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:42:11] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:11] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 01:42:11] [INFO] 
+================================================================================
+[2026-07-03 01:42:11] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 01:42:11] [INFO] Command: python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 01:42:11] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:27] [INFO] ✅ Step 13 completed successfully
+[2026-07-03 01:42:27] [INFO] 
+================================================================================
+[2026-07-03 01:42:27] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 01:42:27] [INFO] Command: python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 01:42:27] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:42:27] [INFO] ❌ Step 14 failed with code 1
+[2026-07-03 01:42:27] [INFO] Error: Traceback (most recent call last):
+  File "<string>", line 14, in <module>
+    print(f'\u2713 {p}')
+    ~~~~~^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 0: character maps to <undefined>
+
+[2026-07-03 01:42:27] [INFO] 
+================================================================================
+[2026-07-03 01:42:27] [INFO] Pipeline Report saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:43:23] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:43:23.919558
+[2026-07-03 01:43:23] [INFO] Report will be saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:43:23] [INFO] 
+================================================================================
+[2026-07-03 01:43:23] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 01:43:23] [INFO] Command: python scripts/build_feature_store_v2.py
+[2026-07-03 01:43:23] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:24] [INFO] ❌ Step 1 error: 'NoneType' object is not subscriptable
+[2026-07-03 01:43:24] [INFO] 
+================================================================================
+[2026-07-03 01:43:24] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 01:43:24] [INFO] Command: python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 01:43:24] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:51] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 01:43:51] [INFO] 
+================================================================================
+[2026-07-03 01:43:51] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 01:43:51] [INFO] Command: python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 01:43:51] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:52] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 01:43:52] [INFO] 
+================================================================================
+[2026-07-03 01:43:52] [INFO] Step 4: Build Regime Features
+[2026-07-03 01:43:52] [INFO] Command: python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 01:43:52] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:54] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 01:43:54] [INFO] 
+================================================================================
+[2026-07-03 01:43:54] [INFO] Step 5: Build Causal Features
+[2026-07-03 01:43:54] [INFO] Command: python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 01:43:54] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:55] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 01:43:55] [INFO] 
+================================================================================
+[2026-07-03 01:43:55] [INFO] Step 6: Build Alternative Features
+[2026-07-03 01:43:55] [INFO] Command: python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 01:43:55] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:56] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 01:43:56] [INFO] 
+================================================================================
+[2026-07-03 01:43:56] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 01:43:56] [INFO] Command: python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 01:43:56] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:43:59] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 01:43:59] [INFO] 
+================================================================================
+[2026-07-03 01:43:59] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 01:43:59] [INFO] Command: python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 01:43:59] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:01] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 01:44:01] [INFO] 
+================================================================================
+[2026-07-03 01:44:01] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 01:44:01] [INFO] Command: python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 01:44:01] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:01] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 01:44:01] [INFO] 
+================================================================================
+[2026-07-03 01:44:01] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 01:44:01] [INFO] Command: python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 01:44:01] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:02] [INFO] ❌ Step 10 failed with code 1
+[2026-07-03 01:44:02] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_ml_dataset_v3.py", line 99, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_ml_dataset_v3.py", line 86, in main
+    dataset = builder.build(base_frame, feature_frames, labels_frame=labels_frame)
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\btc_scraper\feature_engineering\dataset_builder_v3.py", line 141, in build
+    base_norm = self._a
+[2026-07-03 01:44:02] [INFO] 
+================================================================================
+[2026-07-03 01:44:02] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 01:44:02] [INFO] Command: python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:44:02] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:02] [INFO] ❌ Step 11 failed with code 1
+[2026-07-03 01:44:02] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_label_quality_report.py", line 15, in <module>
+    from btc_scraper.core.io import smart_read_csv
+ModuleNotFoundError: No module named 'btc_scraper'
+
+[2026-07-03 01:44:02] [INFO] 
+================================================================================
+[2026-07-03 01:44:02] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 01:44:02] [INFO] Command: python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:44:02] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:03] [INFO] ✅ Step 12 completed successfully
+[2026-07-03 01:44:03] [INFO] 
+================================================================================
+[2026-07-03 01:44:03] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 01:44:03] [INFO] Command: python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 01:44:03] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:18] [INFO] ✅ Step 13 completed successfully
+[2026-07-03 01:44:18] [INFO] 
+================================================================================
+[2026-07-03 01:44:18] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 01:44:18] [INFO] Command: python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 01:44:18] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:18] [INFO] ❌ Step 14 failed with code 1
+[2026-07-03 01:44:18] [INFO] Error: Traceback (most recent call last):
+  File "<string>", line 14, in <module>
+    print(f'\u2713 {p}')
+    ~~~~~^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 0: character maps to <undefined>
+
+[2026-07-03 01:44:18] [INFO] 
+================================================================================
+[2026-07-03 01:44:18] [INFO] Pipeline Report saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:44:41] [INFO] Starting Phase 8 Pipeline at 2026-07-03T01:44:41.372017
+[2026-07-03 01:44:41] [INFO] Report will be saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json
+[2026-07-03 01:44:41] [INFO] 
+================================================================================
+[2026-07-03 01:44:41] [INFO] Step 1: Initialize Feature Store v2
+[2026-07-03 01:44:41] [INFO] Command: python scripts/build_feature_store_v2.py
+[2026-07-03 01:44:41] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:44:41] [INFO] ❌ Step 1 error: 'NoneType' object is not subscriptable
+[2026-07-03 01:44:41] [INFO] 
+================================================================================
+[2026-07-03 01:44:41] [INFO] Step 2: Generate Triple Barrier Labels
+[2026-07-03 01:44:41] [INFO] Command: python scripts/generate_triple_barrier_labels.py --input logs/adaptive_signals_v2.json --output data/feature_store/labels/triple_barrier_labels.parquet --data-dir data/fresh_training_data_2023_2026 --timeframe 15m
+[2026-07-03 01:44:41] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:08] [INFO] ✅ Step 2 completed successfully
+[2026-07-03 01:45:08] [INFO] 
+================================================================================
+[2026-07-03 01:45:08] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 01:45:08] [INFO] Command: python scripts/generate_meta_labels.py --input data/feature_store/labels/triple_barrier_labels.parquet --output-meta data/feature_store/labels/meta_labels.parquet --output-trade-quality data/feature_store/labels/trade_quality_labels.parquet
+[2026-07-03 01:45:08] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:10] [INFO] ✅ Step 3 completed successfully
+[2026-07-03 01:45:10] [INFO] 
+================================================================================
+[2026-07-03 01:45:10] [INFO] Step 4: Build Regime Features
+[2026-07-03 01:45:10] [INFO] Command: python scripts/build_regime_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/regime/regime_features.parquet
+[2026-07-03 01:45:10] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:12] [INFO] ✅ Step 4 completed successfully
+[2026-07-03 01:45:12] [INFO] 
+================================================================================
+[2026-07-03 01:45:12] [INFO] Step 5: Build Causal Features
+[2026-07-03 01:45:12] [INFO] Command: python scripts/build_causal_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/causal/causal_features.parquet
+[2026-07-03 01:45:12] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:13] [INFO] ✅ Step 5 completed successfully
+[2026-07-03 01:45:13] [INFO] 
+================================================================================
+[2026-07-03 01:45:13] [INFO] Step 6: Build Alternative Features
+[2026-07-03 01:45:13] [INFO] Command: python scripts/build_alternative_features.py --input data/alternative_data.json --output data/feature_store/derived/alternative_features.parquet --quality-report data/feature_store/derived/alternative_feature_quality_report.json
+[2026-07-03 01:45:13] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:14] [INFO] ✅ Step 6 completed successfully
+[2026-07-03 01:45:14] [INFO] 
+================================================================================
+[2026-07-03 01:45:14] [INFO] Step 7: Build Cross-Sectional Features
+[2026-07-03 01:45:14] [INFO] Command: python scripts/build_cross_sectional_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/cross_sectional_features.parquet
+[2026-07-03 01:45:14] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:17] [INFO] ✅ Step 7 completed successfully
+[2026-07-03 01:45:17] [INFO] 
+================================================================================
+[2026-07-03 01:45:17] [INFO] Step 8: Build Fractional Differencing Features
+[2026-07-03 01:45:17] [INFO] Command: python scripts/build_fracdiff_features.py --input logs/adaptive_signals_v2.json --output data/feature_store/derived/fracdiff_features.parquet --report data/feature_store/derived/fracdiff_report.json
+[2026-07-03 01:45:17] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:18] [INFO] ✅ Step 8 completed successfully
+[2026-07-03 01:45:18] [INFO] 
+================================================================================
+[2026-07-03 01:45:18] [INFO] Step 9: Build Feature Validation Reports
+[2026-07-03 01:45:18] [INFO] Command: python scripts/build_feature_validation_reports.py --input data/feature_store/derived/fracdiff_features.parquet --quality-output data/feature_store/derived/feature_quality_report.json --rejection-output data/feature_store/derived/feature_rejection_report.json
+[2026-07-03 01:45:18] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:19] [INFO] ✅ Step 9 completed successfully
+[2026-07-03 01:45:19] [INFO] 
+================================================================================
+[2026-07-03 01:45:19] [INFO] Step 10: Build ML Dataset v3
+[2026-07-03 01:45:19] [INFO] Command: python scripts/build_ml_dataset_v3.py --base data/feature_store/derived/cross_sectional_features.parquet --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet --labels data/feature_store/labels/meta_labels.parquet --output data/feature_store/training/ml_dataset_v3.parquet
+[2026-07-03 01:45:19] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:20] [INFO] ❌ Step 10 failed with code 1
+[2026-07-03 01:45:20] [INFO] Error: Traceback (most recent call last):
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_ml_dataset_v3.py", line 99, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\scripts\build_ml_dataset_v3.py", line 86, in main
+    dataset = builder.build(base_frame, feature_frames, labels_frame=labels_frame)
+  File "D:\Workspaces\V\u1ecdc v\u1ea1ch\btc_scraper\feature_engineering\dataset_builder_v3.py", line 141, in build
+    base_norm = self._a
+[2026-07-03 01:45:20] [INFO] 
+================================================================================
+[2026-07-03 01:45:20] [INFO] Step 11: Build Label Quality Report
+[2026-07-03 01:45:20] [INFO] Command: python scripts/build_label_quality_report.py --triple data/feature_store/labels/triple_barrier_labels.parquet --meta data/feature_store/labels/meta_labels.parquet --trade-quality data/feature_store/labels/trade_quality_labels.parquet --fallback data/feature_store/training/ml_dataset_v3.parquet --output data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:45:20] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:20] [INFO] ✅ Step 11 completed successfully
+[2026-07-03 01:45:20] [INFO] 
+================================================================================
+[2026-07-03 01:45:20] [INFO] Step 12: Check Label Quality Threshold
+[2026-07-03 01:45:20] [INFO] Command: python scripts/check_label_quality_threshold.py --report data/feature_store/labels/label_quality_report.json
+[2026-07-03 01:45:20] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:21] [INFO] ❌ Step 12 failed with code 1
+[2026-07-03 01:45:21] [INFO] Error: Threshold check output: logs\label_quality_threshold_check.json
+Result: FAIL
+Failures: ['quality_metrics.meta_execute_rate']
+
+[2026-07-03 01:45:21] [INFO] 
+================================================================================
+[2026-07-03 01:45:21] [INFO] Step 13: Train Meta Model v3
+[2026-07-03 01:45:21] [INFO] Command: python scripts/train_meta_model_v3.py --dataset data/feature_store/training/ml_dataset_v3.parquet --output-dir logs --walk-forward-splits 3
+[2026-07-03 01:45:21] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:35] [INFO] ✅ Step 13 completed successfully
+[2026-07-03 01:45:35] [INFO] 
+================================================================================
+[2026-07-03 01:45:35] [INFO] Step 14: Verify Pipeline Outputs
+[2026-07-03 01:45:35] [INFO] Command: python -c 
+import json, os
+from pathlib import Path
+paths = [
+    'data/feature_store/labels/triple_barrier_labels.parquet',
+    'data/feature_store/labels/meta_labels.parquet',
+    'data/feature_store/derived/cross_sectional_features.parquet',
+    'data/feature_store/training/ml_dataset_v3.parquet',
+    'data/feature_store/labels/label_quality_report.json',
+]
+print('Checking outputs...')
+for p in paths:
+    if Path(p).exists():
+        print(f'✓ {p}')
+    else:
+        print(f'✗ {p} MISSING')
+print('Output verification complete')
+
+[2026-07-03 01:45:35] [INFO] CWD: D:\Workspaces\Vọc vạch
+[2026-07-03 01:45:35] [INFO] ❌ Step 14 failed with code 1
+[2026-07-03 01:45:35] [INFO] Error: Traceback (most recent call last):
+  File "<string>", line 14, in <module>
+    print(f'\u2713 {p}')
+    ~~~~~^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 0: character maps to <undefined>
+
+[2026-07-03 01:45:35] [INFO] 
+================================================================================
+[2026-07-03 01:45:35] [INFO] Pipeline Report saved to: D:\Workspaces\Vọc vạch\logs\phase8_pipeline\phase8_pipeline_report.json

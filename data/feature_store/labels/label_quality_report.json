@@ -1,29 +1,31 @@
 {
-  "generated_at": "2026-07-02T11:10:02.478801+00:00",
+  "generated_at": "2026-07-02T18:45:20.689795+00:00",
   "counts": {
-    "triple_barrier_rows": 300,
-    "meta_label_rows": 300,
-    "trade_quality_rows": 300
+    "triple_barrier_rows": 24070,
+    "meta_label_rows": 24070,
+    "trade_quality_rows": 24070
   },
   "distributions": {
     "triple_barrier_label": {
-      "LOSS": 159,
-      "WIN": 141
+      "-1": 18033,
+      "1": 5948,
+      "0": 89
     },
     "meta_label": {
-      "0": 159,
-      "1": 141
+      "1.0": 16461,
+      "0.0": 7609
     },
     "trade_quality_bucket": {
-      "D": 159,
-      "A": 122,
-      "B": 19
+      "C": 11344,
+      "D": 6806,
+      "A": 3002,
+      "B": 2918
     }
   },
   "quality_metrics": {
     "executable_signal_rate": 1.0,
-    "meta_execute_rate": 0.47,
-    "meta_class_imbalance_ratio": 1.127659574468085,
+    "meta_execute_rate": 0.0,
+    "meta_class_imbalance_ratio": null,
     "pnl_summary": {
       "count": 300,
       "mean": 0.08820866666666667,

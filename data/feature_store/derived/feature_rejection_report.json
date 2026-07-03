@@ -1,18 +1,6 @@
 {
-  "rejected_feature_count": 21,
+  "rejected_feature_count": 15,
   "rejections": [
-    {
-      "feature": "atr_pct",
-      "reasons": [
-        "high_psi_drift"
-      ]
-    },
-    {
-      "feature": "ema21_slope",
-      "reasons": [
-        "high_psi_drift"
-      ]
-    },
     {
       "feature": "ema_distance_pct",
       "reasons": [
@@ -34,61 +22,37 @@
     {
       "feature": "fracdiff_d_0_20",
       "reasons": [
-        "high_missing_rate"
+        "high_correlation"
       ]
     },
     {
       "feature": "fracdiff_d_0_40",
       "reasons": [
-        "high_missing_rate"
+        "high_correlation"
       ]
     },
     {
       "feature": "fracdiff_d_0_60",
       "reasons": [
-        "high_missing_rate"
+        "high_correlation"
       ]
     },
     {
       "feature": "fracdiff_d_0_80",
       "reasons": [
-        "high_missing_rate"
+        "high_psi_drift"
       ]
     },
     {
       "feature": "fracdiff_price",
       "reasons": [
-        "high_missing_rate"
-      ]
-    },
-    {
-      "feature": "fracdiff_return_1",
-      "reasons": [
-        "high_missing_rate"
+        "high_psi_drift"
       ]
     },
     {
       "feature": "fracdiff_source_log_price",
       "reasons": [
         "high_correlation"
-      ]
-    },
-    {
-      "feature": "hv20",
-      "reasons": [
-        "high_psi_drift"
-      ]
-    },
-    {
-      "feature": "hv60",
-      "reasons": [
-        "high_psi_drift"
-      ]
-    },
-    {
-      "feature": "obv",
-      "reasons": [
-        "high_psi_drift"
       ]
     },
     {
@@ -116,9 +80,9 @@
       ]
     },
     {
-      "feature": "sentiment_momentum",
+      "feature": "roc_14",
       "reasons": [
-        "high_psi_drift"
+        "high_correlation"
       ]
     },
     {

@@ -2,16 +2,21 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import sys
 from pathlib import Path
 
-import pandas as pd
-from btc_scraper.core.io import smart_read_csv
+# Force UTF-8 output
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 
 from btc_scraper.feature_engineering.feature_validator import FeatureValidationConfig, FeatureValidator
 

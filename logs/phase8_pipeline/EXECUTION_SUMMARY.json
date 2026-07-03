@@ -1,0 +1,125 @@
+{
+  "execution_date": "2026-07-03T01:46:23.784358",
+  "phase": "Phase 8 - Advanced Feature Engineering",
+  "overall_status": "PARTIAL_SUCCESS",
+  "completion_rate": "71.4%",
+  "total_duration_sec": 54.161804,
+  "steps_completed": 10,
+  "steps_failed": 3,
+  "total_steps": 14,
+  "completed_steps": [
+    {
+      "step": 2,
+      "name": "Generate Triple Barrier Labels",
+      "duration_sec": 27.16
+    },
+    {
+      "step": 3,
+      "name": "Generate Meta Labels",
+      "duration_sec": 1.47
+    },
+    {
+      "step": 4,
+      "name": "Build Regime Features",
+      "duration_sec": 1.65
+    },
+    {
+      "step": 5,
+      "name": "Build Causal Features",
+      "duration_sec": 1.34
+    },
+    {
+      "step": 6,
+      "name": "Build Alternative Features",
+      "duration_sec": 0.6
+    },
+    {
+      "step": 7,
+      "name": "Build Cross-Sectional Features",
+      "duration_sec": 3.06
+    },
+    {
+      "step": 8,
+      "name": "Build Fractional Differencing Features",
+      "duration_sec": 1.76
+    },
+    {
+      "step": 9,
+      "name": "Build Feature Validation Reports",
+      "duration_sec": 0.78
+    },
+    {
+      "step": 11,
+      "name": "Build Label Quality Report",
+      "duration_sec": 0.54
+    },
+    {
+      "step": 13,
+      "name": "Train Meta Model v3",
+      "duration_sec": 14.27
+    }
+  ],
+  "failed_steps": [
+    {
+      "step": 1,
+      "name": "Initialize Feature Store v2",
+      "status": "error",
+      "error": "'NoneType' object is not subscriptable"
+    },
+    {
+      "step": 10,
+      "name": "Build ML Dataset v3",
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"D:\\Workspaces\\V\\u1ecdc v\\u1ea1ch\\scripts\\build_ml_dataset_v3.py\", line 99, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"D:\\Wo"
+    },
+    {
+      "step": 12,
+      "name": "Check Label Quality Threshold",
+      "status": "failed",
+      "error": "Threshold check output: logs\\label_quality_threshold_check.json\nResult: FAIL\nFailures: ['quality_metrics.meta_execute_rate']\n"
+    },
+    {
+      "step": 14,
+      "name": "Verify Pipeline Outputs",
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 14, in <module>\n    print(f'\\u2713 {p}')\n    ~~~~~^^^^^^^^^^\n  File \"C:\\Users\\admin\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\encodings\\cp1"
+    }
+  ],
+  "key_outputs": [
+    {
+      "path": "data/feature_store/labels/triple_barrier_labels.parquet",
+      "status": "exists",
+      "size_mb": 7.51
+    },
+    {
+      "path": "data/feature_store/labels/meta_labels.parquet",
+      "status": "exists",
+      "size_mb": 0.17
+    },
+    {
+      "path": "data/feature_store/derived/cross_sectional_features.parquet",
+      "status": "exists",
+      "size_mb": 8.31
+    },
+    {
+      "path": "data/feature_store/derived/fracdiff_features.parquet",
+      "status": "exists",
+      "size_mb": 8.38
+    },
+    {
+      "path": "data/feature_store/derived/alternative_features.parquet",
+      "status": "exists",
+      "size_mb": 0.08
+    },
+    {
+      "path": "data/feature_store/training/ml_dataset_v3.parquet",
+      "status": "exists",
+      "size_mb": 0.2
+    },
+    {
+      "path": "logs/meta_model_v3.joblib",
+      "status": "exists",
+      "size_mb": 2.7
+    }
+  ]
+}

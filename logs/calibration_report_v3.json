@@ -4,7 +4,7 @@
   "test_metrics": {
     "roc_auc": 0.6,
     "accuracy": 0.6,
-    "brier": 0.24148965484317095
+    "brier": 0.24148965484317092
   },
   "buckets": {
     "0.0-0.4": {

@@ -6,12 +6,12 @@ import json
 import sys
 from pathlib import Path
 
-import pandas as pd
-from btc_scraper.core.io import smart_read_csv
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+import pandas as pd
+from btc_scraper.core.io import smart_read_csv
 
 from btc_scraper.feature_engineering.feature_store import FeatureStoreV2
 from btc_scraper.feature_engineering.triple_barrier import TripleBarrierConfig, TripleBarrierLabeler
@@ -65,8 +65,24 @@ def _read_csv_candle(path: Path) -> pd.DataFrame:
 
 
 def load_candles_for_coin(data_dir: Path, coin: str, timeframe: str) -> pd.DataFrame:
-    pattern = f"*_{coin.upper()}_{timeframe}.csv"
-    matches = sorted(data_dir.rglob(pattern))
+    coin = coin.upper()
+    # First try directory-based structure: data_dir/<COIN>/<COIN>_<TF>.csv
+    candidate = data_dir / coin / f"{coin}_{timeframe}.csv"
+    if candidate.exists():
+        return _read_csv_candle(candidate)
+
+    # Fallback to nested search for more flexible file layouts.
+    patterns = [
+        f"*_{coin}_{timeframe}.csv",
+        f"{coin}_{timeframe}.csv",
+        f"*_{timeframe}.csv",
+    ]
+    matches = []
+    for pattern in patterns:
+        matches = sorted(data_dir.rglob(pattern))
+        if matches:
+            break
+
     if not matches:
         return pd.DataFrame()
 

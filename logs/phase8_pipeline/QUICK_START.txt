@@ -1,0 +1,139 @@
+================================================================================
+PHASE 8 PIPELINE - QUICK START GUIDE
+================================================================================
+
+EXECUTION STATUS: ✅ PARTIAL SUCCESS (71.4%)
+Completed: 10/14 steps | Duration: 54.2 seconds
+
+================================================================================
+MAIN ARTIFACTS GENERATED
+================================================================================
+
+Triple Barrier Labels (7.51 MB)
+  → data/feature_store/labels/triple_barrier_labels.parquet
+  → 24,070 labeled records with outcome distribution
+
+Meta Labels (0.17 MB)  
+  → data/feature_store/labels/meta_labels.parquet
+  → Quality labels for model training
+
+Feature Sets (16.77 MB total)
+  → Cross-sectional features: 8.31 MB
+  → Fractional diff features: 8.38 MB  
+  → Alternative features: 0.08 MB
+  → Regime features: available
+  → Causal features: available
+
+Trained Meta Model (2.7 MB)
+  → logs/meta_model_v3.joblib
+  → Ready for backtesting/inference
+
+================================================================================
+NEXT STEPS TO COMPLETE PIPELINE
+================================================================================
+
+1. FIX DATASET BUILDER (HIGH PRIORITY)
+   File: btc_scraper/feature_engineering/dataset_builder_v3.py
+   Issue: merge_asof requires sorted keys
+   Fix: Add proper sorting before merge operations
+   
+   Then run:
+   python scripts/build_ml_dataset_v3.py \
+     --base data/feature_store/derived/cross_sectional_features.parquet \
+     --features data/feature_store/derived/fracdiff_features.parquet,data/feature_store/derived/alternative_features.parquet \
+     --labels data/feature_store/labels/meta_labels.parquet \
+     --output data/feature_store/training/ml_dataset_v3.parquet
+
+2. REVIEW LABEL QUALITY METRICS (MEDIUM PRIORITY)
+   File: data/feature_store/labels/label_quality_report.json
+   Issue: meta_execute_rate below threshold
+   Action: Tune triple barrier parameters or adjust thresholds
+   
+   Current parameters:
+   - TP ATR Mult: 2.0
+   - SL ATR Mult: 1.2
+   - Max Hold Bars: 48
+
+3. VERIFY MODEL TRAINING (HIGH PRIORITY)
+   Run: python -c "import joblib; m = joblib.load('logs/meta_model_v3.joblib'); print(m)"
+   Check: Model metrics, feature importance, calibration quality
+
+================================================================================
+COMMAND CHEAT SHEET
+================================================================================
+
+# Run full pipeline again (with fixes)
+python scripts/run_phase8_pipeline.py
+
+# Run specific failed steps
+python scripts/build_ml_dataset_v3.py ...
+python scripts/check_label_quality_threshold.py ...
+
+# Generate fresh labels with different parameters
+python scripts/generate_triple_barrier_labels.py \
+  --input logs/adaptive_signals_v2.json \
+  --data-dir data/fresh_training_data_2023_2026 \
+  --timeframe 15m \
+  --tp-atr-mult 1.5 \
+  --sl-atr-mult 1.0
+
+# Check what's in feature store
+ls -lh data/feature_store/
+ls -lh data/feature_store/training/
+ls -lh data/feature_store/labels/
+
+================================================================================
+KEY REPORTS
+================================================================================
+
+Full Report: logs/phase8_pipeline/PHASE8_EXECUTION_REPORT.md
+JSON Report: logs/phase8_pipeline/phase8_pipeline_report.json
+Summary: logs/phase8_pipeline/EXECUTION_SUMMARY.json
+Log: logs/phase8_pipeline/phase8_pipeline.log
+
+Label Quality: data/feature_store/labels/label_quality_report.json
+Feature Quality: data/feature_store/derived/feature_quality_report.json
+Threshold Check: logs/label_quality_threshold_check.json
+
+================================================================================
+PERFORMANCE METRICS
+================================================================================
+
+Data Processed: 24,070 records
+Processing Speed: 443 records/second
+Total Runtime: 54.2 seconds
+Feature Engineering: 9 steps completed
+Model Training: Completed with 3-fold walk-forward validation
+
+Total Output Size: 27.35 MB
+Largest File: Cross-sectional features (8.31 MB)
+Smallest File: Alternative features (0.08 MB)
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Q: Step 10 fails with "left keys must be sorted"
+A: Sort cross_sectional_features by (coin, entry_time) before join
+
+Q: Step 12 fails on quality threshold
+A: Review label parameters or lower quality thresholds
+
+Q: Step 14 Unicode error
+A: Use --no-unicode flag or ignore (outputs exist)
+
+Q: How to re-run individual steps?
+A: python scripts/<script_name>.py <args>
+
+================================================================================
+READY FOR:
+================================================================================
+
+✅ Backtesting with generated labels
+✅ Feature importance analysis  
+✅ Model inference with trained meta_model_v3
+✅ Label distribution analysis
+✅ Feature correlation/validation studies
+✅ Hyperparameter optimization
+
+================================================================================

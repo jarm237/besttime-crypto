@@ -1,12 +1,13 @@
 {
-  "rows": 300,
+  "rows": 24070,
   "numeric_feature_count": 77,
-  "accepted_feature_count": 56,
-  "rejected_feature_count": 21,
+  "accepted_feature_count": 62,
+  "rejected_feature_count": 15,
   "accepted_features": [
     "signal_score",
     "rsi",
     "macd_hist",
+    "atr_pct",
     "bb_width_pct",
     "adx",
     "mtf_alignment",
@@ -18,6 +19,7 @@
     "return_4h",
     "return_1d",
     "ema9_slope",
+    "ema21_slope",
     "sma50_slope",
     "sma200_slope",
     "ema_distance_zscore",
@@ -33,16 +35,19 @@
     "higher_high",
     "lower_low",
     "market_structure_break",
+    "obv",
     "cmf",
     "mfi",
     "volume_acceleration",
     "volume_percentile",
-    "roc_14",
     "roc_50",
+    "hv20",
+    "hv60",
     "bos_bull",
     "bos_bear",
     "choch_bull",
     "choch_bear",
+    "sentiment_momentum",
     "sentiment_recovery",
     "sentiment_risk",
     "sentiment_trend_up",
@@ -59,11 +64,10 @@
     "regime_low_liquidity",
     "regime_pump_risk",
     "fracdiff_return_1_raw",
-    "fracdiff_d_selected"
+    "fracdiff_d_selected",
+    "fracdiff_return_1"
   ],
   "rejected_features": [
-    "atr_pct",
-    "ema21_slope",
     "ema_distance_pct",
     "fear_greed",
     "fracdiff_d_0_00",
@@ -72,46 +76,17 @@
     "fracdiff_d_0_60",
     "fracdiff_d_0_80",
     "fracdiff_price",
-    "fracdiff_return_1",
     "fracdiff_source_log_price",
-    "hv20",
-    "hv60",
-    "obv",
     "pnl_pct",
     "realized_vol_20",
     "realized_vol_50",
     "return_15m",
-    "sentiment_momentum",
+    "roc_14",
     "volume_ratio"
   ],
   "missing": {
     "threshold": 0.3,
-    "flagged": [
-      {
-        "feature": "fracdiff_d_0_20",
-        "missing_rate": 0.85
-      },
-      {
-        "feature": "fracdiff_d_0_40",
-        "missing_rate": 0.85
-      },
-      {
-        "feature": "fracdiff_d_0_60",
-        "missing_rate": 0.85
-      },
-      {
-        "feature": "fracdiff_d_0_80",
-        "missing_rate": 0.7566666666666667
-      },
-      {
-        "feature": "fracdiff_price",
-        "missing_rate": 0.7566666666666667
-      },
-      {
-        "feature": "fracdiff_return_1",
-        "missing_rate": 0.76
-      }
-    ]
+    "flagged": []
   },
   "correlation": {
     "threshold": 0.95,
@@ -122,6 +97,9 @@
       ],
       [
         "fracdiff_d_0_00",
+        "fracdiff_d_0_20",
+        "fracdiff_d_0_40",
+        "fracdiff_d_0_60",
         "fracdiff_source_log_price"
       ],
       [
@@ -137,6 +115,10 @@
         "realized_vol_50"
       ],
       [
+        "return_4h",
+        "roc_14"
+      ],
+      [
         "volume_acceleration",
         "volume_ratio"
       ]
@@ -145,17 +127,22 @@
       {
         "feature_a": "volume_ratio",
         "feature_b": "volume_acceleration",
-        "abs_corr": 1.0
+        "abs_corr": 0.9999814740898727
       },
       {
         "feature_a": "ema_distance_pct",
         "feature_b": "ema21_slope",
-        "abs_corr": 0.9551052152222717
+        "abs_corr": 0.9663622292945561
       },
       {
         "feature_a": "return_15m",
         "feature_b": "fracdiff_return_1_raw",
-        "abs_corr": 0.999946503817809
+        "abs_corr": 0.9996329928630101
+      },
+      {
+        "feature_a": "return_4h",
+        "feature_b": "roc_14",
+        "abs_corr": 0.9502429240065702
       },
       {
         "feature_a": "realized_vol_20",
@@ -165,12 +152,42 @@
       {
         "feature_a": "realized_vol_50",
         "feature_b": "hv60",
-        "abs_corr": 0.9810591550823481
+        "abs_corr": 0.9828032408524017
       },
       {
         "feature_a": "fracdiff_source_log_price",
         "feature_b": "fracdiff_d_0_00",
         "abs_corr": 1.0
+      },
+      {
+        "feature_a": "fracdiff_source_log_price",
+        "feature_b": "fracdiff_d_0_20",
+        "abs_corr": 0.9970897243130046
+      },
+      {
+        "feature_a": "fracdiff_source_log_price",
+        "feature_b": "fracdiff_d_0_40",
+        "abs_corr": 0.9783260257064293
+      },
+      {
+        "feature_a": "fracdiff_d_0_00",
+        "feature_b": "fracdiff_d_0_20",
+        "abs_corr": 0.9970897243130046
+      },
+      {
+        "feature_a": "fracdiff_d_0_00",
+        "feature_b": "fracdiff_d_0_40",
+        "abs_corr": 0.9783260257064293
+      },
+      {
+        "feature_a": "fracdiff_d_0_20",
+        "feature_b": "fracdiff_d_0_40",
+        "abs_corr": 0.9909407071549566
+      },
+      {
+        "feature_a": "fracdiff_d_0_40",
+        "feature_b": "fracdiff_d_0_60",
+        "abs_corr": 0.9549177363222386
       }
     ]
   },
@@ -189,60 +206,20 @@
     "reject_threshold": 0.4,
     "findings": [
       {
-        "feature": "atr_pct",
-        "psi": 0.5819302476415837
-      },
-      {
         "feature": "fear_greed",
-        "psi": 9.179657387972906
-      },
-      {
-        "feature": "bb_width_pct",
-        "psi": 0.32577090825165567
-      },
-      {
-        "feature": "adx",
-        "psi": 0.20797277225459326
-      },
-      {
-        "feature": "ema9_slope",
-        "psi": 0.32761925997560415
-      },
-      {
-        "feature": "ema21_slope",
-        "psi": 0.4019391558256885
-      },
-      {
-        "feature": "distance_support_pct",
-        "psi": 0.24120310535311795
-      },
-      {
-        "feature": "obv",
-        "psi": 0.5289283235829465
-      },
-      {
-        "feature": "volume_percentile",
-        "psi": 0.2431656666648198
-      },
-      {
-        "feature": "roc_50",
-        "psi": 0.3029782040389841
-      },
-      {
-        "feature": "hv20",
-        "psi": 0.4113440196660504
-      },
-      {
-        "feature": "hv60",
-        "psi": 1.887648242943949
-      },
-      {
-        "feature": "sentiment_momentum",
-        "psi": 0.4683832207511966
+        "psi": 6.051083934721802
       },
       {
         "feature": "fracdiff_d_0_00",
-        "psi": 11.512810335715578
+        "psi": 5.928492018870537
+      },
+      {
+        "feature": "fracdiff_d_0_80",
+        "psi": 0.4154420119708535
+      },
+      {
+        "feature": "fracdiff_price",
+        "psi": 1.1144432898217569
       }
     ]
   },

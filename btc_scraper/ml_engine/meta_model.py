@@ -209,15 +209,38 @@ def _prepare_feature_matrix(X, feature_names=None):
     return pd.DataFrame(X_arr, columns=feature_names)
 
 
+def _supports_feature_names(model) -> bool:
+    """Return True when the estimator can safely consume pandas DataFrames with feature names."""
+    if model is None:
+        return False
+    if hasattr(model, "feature_names_in_"):
+        return True
+    if hasattr(model, "steps"):
+        return any(_supports_feature_names(step) for _, step in model.steps)
+    if hasattr(model, "estimator"):
+        return _supports_feature_names(model.estimator)
+    if hasattr(model, "base_estimator"):
+        return _supports_feature_names(model.base_estimator)
+    if hasattr(model, "calibrated_classifiers_"):
+        return any(_supports_feature_names(cls) for cls in model.calibrated_classifiers_)
+    return False
+
+
 def model_predict_proba(model, X, feature_names=None, *args, **kwargs):
     """Run predict_proba while preserving feature names when available."""
-    prepared = _prepare_feature_matrix(X, feature_names)
+    if feature_names is None or len(feature_names) == 0 or not _supports_feature_names(model):
+        prepared = np.asarray(X)
+    else:
+        prepared = _prepare_feature_matrix(X, feature_names)
     return model.predict_proba(prepared, *args, **kwargs)
 
 
 def model_predict(model, X, feature_names=None, *args, **kwargs):
     """Run predict while preserving feature names when available."""
-    prepared = _prepare_feature_matrix(X, feature_names)
+    if feature_names is None or len(feature_names) == 0 or not _supports_feature_names(model):
+        prepared = np.asarray(X)
+    else:
+        prepared = _prepare_feature_matrix(X, feature_names)
     return model.predict(prepared, *args, **kwargs)
 
 
@@ -230,7 +253,9 @@ class _InferenceWrapper:
         return getattr(self._estimator, name)
 
     def _prepare(self, X):
-        return _prepare_feature_matrix(X, self._feature_names)
+        if _supports_feature_names(self._estimator):
+            return _prepare_feature_matrix(X, self._feature_names)
+        return np.asarray(X)
 
     def predict_proba(self, X, *args, **kwargs):
         return self._estimator.predict_proba(self._prepare(X), *args, **kwargs)
@@ -1020,10 +1045,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
         feat = build_meta_features_v2(analysis_info)
         row = [float(feat.get(k, 0.0)) for k in feature_names]
 
-        # Build DataFrame to provide valid feature names to avoid warnings from LGBMClassifier
-        import pandas as pd
-        df = pd.DataFrame([row], columns=feature_names)
-        prob = float(clf.predict_proba(df)[0, 1])
+        prob = float(model_predict_proba(clf, [row], feature_names)[0, 1])
 
         ev_metrics = _compute_expected_value_metrics(prob, analysis_info)
 
