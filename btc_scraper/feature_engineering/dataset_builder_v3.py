@@ -105,9 +105,15 @@ class DatasetBuilderV3:
                     joined_frames.append(left_group)
                     continue
 
+                # merge_asof requires both inputs to be sorted by the 'on' key.
+                # Explicitly sort and reset index to avoid "keys must be sorted" errors
+                # when real data arrives with unsorted timestamps per coin.
+                left_group_s = left_group.sort_values(left_time, kind="mergesort")
+                right_group_s = right_group.sort_values(right_time, kind="mergesort").reset_index(drop=True)
+
                 joined_group = pd.merge_asof(
-                    left_group,
-                    right_group,
+                    left_group_s,
+                    right_group_s,
                     left_on=left_time,
                     right_on=right_time,
                     left_by=left_coin,

@@ -86,9 +86,10 @@ class Phase8PipelineRunner:
                 env = _os.environ.copy()
                 env.setdefault("PYTHONUTF8", "1")
                 # Prepend repo_root to PYTHONPATH to help imports in scripts
+                # Use os.pathsep (';' on Windows, ':' on Unix) instead of hardcoded ':'
                 repo_path = str(self.repo_root)
                 old_pp = env.get("PYTHONPATH", "")
-                env["PYTHONPATH"] = repo_path + (":" + old_pp if old_pp else "")
+                env["PYTHONPATH"] = repo_path + (_os.pathsep + old_pp if old_pp else "")
             except Exception:
                 env = None
 
@@ -322,9 +323,9 @@ paths = [
 print('Checking outputs...')
 for p in paths:
     if Path(p).exists():
-        print(f'✓ {p}')
+        print('[OK]   ' + p)
     else:
-        print(f'✗ {p} MISSING')
+        print('[MISS] ' + p)
 print('Output verification complete')
 """,
             ],

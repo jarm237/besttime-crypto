@@ -247,12 +247,14 @@ def evaluate_label_quality_thresholds(
         )
 
     if meta_execute_rate is None:
+        # No meta labels available: skip this metric rather than hard-failing.
+        # The counts.meta_label_rows check already catches the missing-data case.
         record_check(
             "quality_metrics.meta_execute_rate",
-            False,
+            True,
             None,
             cfg.min_meta_execute_rate,
-            "min",
+            "skip",
         )
     else:
         record_check(
