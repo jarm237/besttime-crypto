@@ -5871,5 +5871,29 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 15.06
+  },
+  {
+    "timestamp": "2026-07-03T20:49:49.867459",
+    "timestamp_str": "2026-07-03 20:49:49",
+    "mode": "TESTNET",
+    "coin": "AEVO",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.487,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0191
+  },
+  {
+    "timestamp": "2026-07-03T21:02:09.394818",
+    "timestamp_str": "2026-07-03 21:02:09",
+    "mode": "TESTNET",
+    "coin": "DOGE",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.3731,
+    "signal_score": 32,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0763
   }
 ]

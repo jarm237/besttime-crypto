@@ -10783,5 +10783,50 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "AVAXUSDT_1783086589",
+    "symbol": "AVAXUSDT",
+    "timestamp": 1783086589.8841186,
+    "timestamp_str": "2026-07-03 20:49:49",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.6327,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "AEVOUSDT_1783086589",
+    "symbol": "AEVOUSDT",
+    "timestamp": 1783086589.8941393,
+    "timestamp_str": "2026-07-03 20:49:49",
+    "signal": "SELL (Crossover)",
+    "meta_prob": 0.487,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "DOGEUSDT_1783087329",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783087329.4151444,
+    "timestamp_str": "2026-07-03 21:02:09",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3731,
+    "signal_score": 32,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]

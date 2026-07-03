@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-07-03T12:55:11.205620+00:00",
+  "timestamp": "2026-07-03T14:11:01.712538+00:00",
   "exchange_netflow": 0.0,
   "whale_score": 0.0,
   "stablecoin_supply": 0.0,
-  "tvl": 474089577121.7965,
-  "funding_rate": 5e-05,
+  "tvl": 475994151492.08905,
+  "funding_rate": 1.25e-05,
   "open_interest": 0.0,
   "dxy": 0.0,
   "vix": 0.0,
@@ -17,7 +17,7 @@
   "fear_greed_regime": "Extreme Fear",
   "active_addresses": 0.0,
   "hashrate": 0.0,
-  "chain_tvl": 73396210551.88239,
+  "chain_tvl": 73740405649.73175,
   "defi_liquidity_score": 0.0,
   "orderbook_imbalance": 0.0,
   "liquidity_pressure": 0.0,
@@ -79,7 +79,7 @@
       "reason": "disabled_free_plan_not_supported"
     }
   },
-  "protocol_tvl": 474089577121.7965,
+  "protocol_tvl": 475994151492.08905,
   "options_iv": 0.0,
   "iv_skew": 0.0,
   "effective_stablecoin_momentum": 0.0,
