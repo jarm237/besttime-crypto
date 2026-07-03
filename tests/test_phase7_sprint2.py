@@ -26,18 +26,22 @@ class Phase7Sprint2Tests(unittest.TestCase):
         self.assertEqual(data["open_interest"], 12345.0)
 
     def test_defillama_collector_parses_stablecoin_and_tvl(self):
-        fake_payload = {
+        stable_payload = {
             "data": {
                 "totalStablecoins": {"value": 250000000000},
-                "tvl": {"value": 150000000000},
             }
         }
+        chains_payload = [{"tvlUsd": 60000000000}, {"tvlUsd": 90000000000}]
+        protocols_payload = [{"tvlUsd": 50000000000}]
 
-        with patch("btc_scraper.collectors.defillama_collector._fetch_json", return_value=fake_payload):
+        with patch("btc_scraper.collectors.defillama_collector._fetch_json", side_effect=[stable_payload, chains_payload, protocols_payload]):
             collector = DefiLlamaCollector(output_path=str(Path(tempfile.gettempdir()) / "defillama.json"))
             data = collector.collect(force=True)
 
         self.assertEqual(data["stablecoin_supply"], 250000000000.0)
+        self.assertEqual(data["stablecoin_supply_total"], 250000000000.0)
+        self.assertEqual(data["chain_tvl"], 150000000000.0)
+        self.assertEqual(data["protocol_tvl"], 50000000000.0)
         self.assertEqual(data["tvl"], 150000000000.0)
 
     def test_fred_collector_parses_macro_series(self):
@@ -71,8 +75,18 @@ class Phase7Sprint2Tests(unittest.TestCase):
         self.assertEqual(data["gold"], 2030.0)
 
     def test_collect_alternative_data_merges_sprint2_features(self):
+        def defillama_side_effect(*args, **kwargs):
+            url = args[0] if args else None
+            if url and url.endswith("/stablecoins"):
+                return {"data": {"totalStablecoins": {"value": 123}}}
+            if url and url.endswith("/chains"):
+                return [{"tvlUsd": 300}, {"tvlUsd": 153}]
+            if url and url.endswith("/protocols"):
+                return [{"tvlUsd": 456}]
+            return None
+
         with patch("btc_scraper.collectors.binance_collector._fetch_json", return_value=[{"fundingRate": "0.0002"}, {"openInterest": "999"}]), \
-             patch("btc_scraper.collectors.defillama_collector._fetch_json", return_value={"data": {"totalStablecoins": {"value": 123}, "tvl": {"value": 456}}}), \
+             patch("btc_scraper.collectors.defillama_collector._fetch_json", side_effect=defillama_side_effect), \
              patch("btc_scraper.collectors.fred_collector._fetch_json", return_value={"observations": [{"value": "4.1"}]}), \
              patch("btc_scraper.collectors.yahoo_collector._fetch_history", side_effect=lambda ticker, period: {"DXY": {"Close": [100.1]}, "VIX": {"Close": [20.1]}, "Gold": {"Close": [1900.0]}}[ticker]):
             payload = collect_alternative_data(output_path=str(Path(tempfile.gettempdir()) / "merged.json"), force=True)
@@ -80,6 +94,9 @@ class Phase7Sprint2Tests(unittest.TestCase):
         self.assertEqual(payload["funding_rate"], 0.0002)
         self.assertEqual(payload["open_interest"], 999.0)
         self.assertEqual(payload["stablecoin_supply"], 123.0)
+        self.assertEqual(payload["stablecoin_supply_total"], 123.0)
+        self.assertEqual(payload["chain_tvl"], 453.0)
+        self.assertEqual(payload["protocol_tvl"], 456.0)
         self.assertEqual(payload["tvl"], 456.0)
         self.assertEqual(payload["dxy"], 100.1)
         self.assertEqual(payload["vix"], 20.1)

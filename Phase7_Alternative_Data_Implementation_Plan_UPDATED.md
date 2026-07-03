@@ -1,950 +1,531 @@
-# Phase 7 — Alternative Data Layer Implementation Plan
-
-> Project: `besttime-crypto` — AI Quant Trading Platform  
-> Phase: **7 — Alternative Data Layer**  
-> Strategy: **Free-first pipeline**  
-> Updated: 2026-07-03  
-> Important update: **Glassnode is removed from the default free pipeline** and is now treated as an optional paid adapter.
-
----
+# Phase 7 - Alternative Data Layer Implementation Plan
 
 ## 1. Objective
 
-Build a free-first, production-ready alternative data platform that enriches the existing AI Quant system without depending on paid data providers.
-
-The goal is to expand beyond OHLCV by adding:
-
-- Funding rate.
-- Open interest.
-- Orderbook imbalance.
-- Stablecoin supply.
-- TVL / DeFi liquidity.
-- Fear & Greed.
-- Blockchain network activity.
-- Whale / large transfer proxy where available.
-- Macro context.
-- ETF / options data where free APIs are usable.
+Build a robust, production-ready alternative data platform that enriches the existing AI Quant causal engine with on-chain, macro, and market microstructure features.
 
 ---
 
-## 2. Key Design Rule
-
-Phase 7 must run without any paid API key.
-
-```env
-FREE_FIRST_MODE=true
-```
-
-Default behavior:
+## 2. Architecture & Data Flow
 
 ```text
-System must not fail if paid providers are missing.
-Paid collectors must return "skipped", not raise exceptions.
+Collectors (Alternative Data Layer)
+  ├── Base Interface (collector_base.py)
+  └── Concrete Collectors (Binance, DefiLlama, FRED, Yahoo Finance, Glassnode, Deribit, ETF, Reddit, Google Trends)
+        ↓
+    Raw Store / Persistence Layer (data/raw_alternative/)
+        ↓
+  AlternativeDataCollector (alternative_data.py)
+        ↓
+  Normalizer + Feature Builder
+        ↓
+  WorldState.alternative (12+ New Features)
+        ↓
+  Causal Context Bridge (causal_context_bridge.py)
+        ↓
+  ML Models & Causal Decision Engine
 ```
 
 ---
 
-## 3. Glassnode Policy Update
+## 3. Implementation Status Dashboard
 
-Glassnode should no longer be listed as a required free data source.
+### ✅ Phase 7.1: Foundation & Baseline (COMPLETED)
 
-It is now classified as:
+- [x] **Alternative Data Interface & Base**:
+  - Implemented `collector_base.py` defining unified base interfaces, retry mechanisms, and schema validation.
+  - Implemented `alternative_data.py` to coordinate and process alternative data streams.
+- [x] **WorldState Expansion**:
+  - Expanded `WorldState` in `world_state.py` with a dedicated `alternative` layer containing 12 key metrics:
+    - *Microstructure*: `orderbook_imbalance`, `liquidity_pressure`, `funding_pressure`
+    - *On-chain & Flows*: `exchange_netflow`, `whale_score`, `stablecoin_supply`, `etf_flow`, `stablecoin_momentum`, `etf_momentum`
+    - *Derivatives & Sentiment*: `options_iv`, `risk_on_score`
+    - *Macro*: `macro_pressure`
+- [x] **Causal Pipeline Integration**:
+  - Integrated `WorldState.alternative` payload into `causal_context_bridge.py`.
+  - Allowed context engines to dynamically ingest and query alternative metrics.
+- [x] **Test Verification**:
+  - Added smoke tests in `tests/test_alternative_data.py` verifying state loading, persistence, round-trip integrity, normalization, raw-store persistence, and feature snapshot export.
+  - Test status: **`alternative-data smoke test passed` (100% SUCCESS)**.
+
+---
+
+## 4. Current Status & Remaining Gaps
+
+The Phase 7 foundation is now implemented and validated. The collector framework, world-state integration, and basic persistence/snapshot utilities are in place, so the remaining work is now focused on hardening the pipeline rather than introducing the first version of the feature layer.
+
+### ✅ Completed so far
+- Base collector interface and retry abstraction implemented.
+- Unified alternative-data aggregation layer implemented.
+- Sprint 2–4 collectors implemented for market, macro, on-chain, derivatives, and social sources.
+- WorldState alternative layer integrated into the causal bridge.
+- Initial unit tests added for the new collectors.
+- Basic persistence and snapshot/replay utilities are available in the repository for world-state and feature snapshots.
+
+### ✅ All gaps closed (Sprint 7 complete)
+- **Scheduler & orchestration** → `alternative_scheduler.py`: thread-based `AlternativeDataScheduler` with configurable interval, `on_success`/`on_failure` callbacks, `SchedulerRegistry`, and CLI entry point (`--once` or daemon mode).
+- **Historical backfill & replay** → `alternative_backfill.py`:
+  - `AlternativeDataBackfiller`: generates synthetic payloads across any date range into the raw-store directory (skip or overwrite existing).
+  - `AlternativeDataReplayer`: iterates raw-store chronologically with date-range filtering, payload callback, and `replay_into_world_state` for direct WorldState injection during backtesting.
+- **Data quality dashboard & alerting** → `alternative_quality.py`:
+  - `DataQualityChecker`: validates field presence, freshness (configurable `max_age_seconds`), and per-field value-range bounds.
+  - `DataQualityDashboard`: accumulates quality reports, writes a persistent JSON quality log, and surfaces `summary()` statistics and `print_dashboard()` output.
+  - `CollectorHealthMonitor`: tracks per-collector uptime/failure rates and emits structured `AlertRecord` objects (info / warning / critical) with optional external forwarding callback.
+- **API-key / rate-limit hardening** → Per-collector retry/delay config exposed through `CollectorBase` constructor args (retries, delay_seconds).
+
+---
+
+## 5. Next Phase: Hardening & Feature Engineering (Sprint 5 - 7)
+
+The next sprints should focus on production-readiness and full feature-engineering integration rather than just collector coverage.
+
+### 🟡 Sprint 5: Feature Builder & Normalization (Implemented)
+- [x] Establish a common collector payload schema and safe fallback behavior.
+- [x] Implement normalization for all collector outputs into a common schema.
+- [x] Handle missing values via safe defaults and fallback behavior.
+- [x] Build derived metrics from the raw inputs.
+- [x] Add a feature snapshot export for ML training and backtesting.
+
+### ✅ Sprint 6: WorldState & Replay Integration (Completed)
+- [x] Store normalized alternative features directly in `WorldState.alternative` through the causal bridge integration.
+- [x] Add support for historical replay and snapshot-based backtest using the alternative-data payload (`AlternativeDataReplayer.replay_into_world_state`).
+- [x] Ensure all new features are available to context providers and causal models.
+
+### ✅ Sprint 7: Validation, Monitoring & Dashboard (Completed)
+- [x] Add a lightweight data-quality dashboard (`DataQualityDashboard` with `print_dashboard()` and JSON quality log at `data/alternative_quality.json`).
+- [x] Add alerting for collector failure, missing data, and stale values (`CollectorHealthMonitor` + `AlertRecord` with configurable callback).
+- [x] Add historical replay and anomaly checks (`AlternativeDataReplayer`, `DataQualityChecker` out-of-range detection).
+- [x] Add end-to-end tests for the collection → normalization → world-state pipeline (`tests/test_phase7_sprint7.py` — **29/29 PASSED**).
+- [x] Add production scheduler/orchestration (`AlternativeDataScheduler`, `SchedulerRegistry`).
+
+### ✅ Sprint 8: Production Integration (Completed)
+- [x] Wire `AlternativeDataScheduler` into `main.py` → `async_main()` startup (runs first collection immediately, then background thread).
+- [x] Wire `CollectorHealthMonitor` with Telegram alert callback (`_send_alt_data_telegram_alert`) for critical quality degradation.
+- [x] Add per-cycle alternative-data quality check + console summary in `fetch_and_display()` (shows `risk_on`, `macro_pressure`, `funding_pressure`).
+- [x] Add graceful shutdown: `_alt_data_scheduler.stop()` in the `finally` block.
+- [x] Full regression test: **246/246 tests PASSED** (50 new tests vs 196 baseline).
+
+---
+
+## 6. Sprint 2–4 Implementation Summary
+
+### 🟡 Sprint 2: Market & Macro Collectors
+- [x] **Binance Live Collector**:
+  - Added a lightweight Binance collector for funding rate and open interest values.
+  - Implemented in `btc_scraper/collectors/binance_collector.py`.
+- [x] **Yahoo Finance / FRED Collector**:
+  - Added collectors for DXY, VIX, Gold spot price, and US 10-Year Bond Yield.
+  - Implemented in `btc_scraper/collectors/fred_collector.py` and `btc_scraper/collectors/yahoo_collector.py`.
+- [x] **DefiLlama Collector**:
+  - Added a collector for stablecoin supply and aggregate DeFi TVL.
+  - Implemented in `btc_scraper/collectors/defillama_collector.py`.
+- [x] **Unified Aggregation Layer**:
+  - The alternative data collection flow now merges these Sprint 2 metrics into a single payload in `btc_scraper/collectors/alternative_data.py`.
+
+### 🟢 Sprint 3: On-chain & Derivatives Collectors
+- [x] **Glassnode Free / Blockchain.com / Blockchair**:
+  - Added collectors for active addresses, aggregate exchange netflows, and Bitcoin network hashrate.
+  - Implemented in `btc_scraper/collectors/glassnode_collector.py`, `btc_scraper/collectors/blockchain_collector.py`, and `btc_scraper/collectors/blockchair_collector.py`.
+- [x] **Deribit Options Collector**:
+  - Added an options collector for implied volatility and skew.
+  - Implemented in `btc_scraper/collectors/deribit_collector.py`.
+- [x] **CryptoETF.today / Whale Alert**:
+  - Added collectors for ETF flow and whale-alert-based whale score.
+  - Implemented in `btc_scraper/collectors/etf_collector.py` and `btc_scraper/collectors/whalealert_collector.py`.
+- [x] **Unified Aggregation Layer**:
+  - Sprint 3 metrics are now merged into the alternative data payload in `btc_scraper/collectors/alternative_data.py`.
+
+### 🔵 Sprint 4: Sentiment & Social Collectors
+- [x] **Google Trends Collector**:
+  - Added a lightweight Google Trends collector for search-interest proxy values.
+  - Implemented in `btc_scraper/collectors/google_trends_collector.py`.
+- [x] **Reddit Sentiment Collector**:
+  - Added a Reddit sentiment collector for social sentiment proxy values.
+  - Implemented in `btc_scraper/collectors/reddit_collector.py`.
+- [x] **Unified Aggregation Layer**:
+  - Sprint 4 sentiment metrics are now merged into the alternative data payload in `btc_scraper/collectors/alternative_data.py`.
+
+---
+
+## 7. Free Data Sources Index
+
+| Source | Target Metrics | API Protocol | Cost |
+| :--- | :--- | :--- | :--- |
+| **Binance API** | Funding Rate, Open Interest, Orderbook | REST / WebSocket | Free |
+| **DefiLlama** | TVL, Stablecoin Dominance | REST | Free |
+| **FRED** | Yield Curve, CPI, Interest Rates | REST (with free API Key) | Free |
+| **Yahoo Finance** | DXY, VIX, Gold Spot | python-yfinance | Free |
+| **Deribit** | Options IV, Put/Call Ratio | Public REST | Free |
+| **Google Trends** | Search Interest Momentum | pytrends / Scraping | Free |
+
+---
+
+## 8. Success & Evaluation Criteria
+
+- **Collector Resilience**: Uptime > 98% with graceful fallback to last known values (LKVs) or defaults during API rate-limiting.
+- **Micro-pipeline Latency**: Data collection to `WorldState` propagation time < 10 seconds.
+- **Missing Value Handling**: Forward-fill or default substitution implemented to prevent causal reasoning failure during API outages.
+- **Ensemble ML Support**: Historical CSV export supporting feature alignment for model retraining.
+
+---
+
+## 9. Research Integration Update — ETF Flow & Collector Source Hardening
+
+> **Updated direction after ETF-flow free API research and runtime error review.**
+>
+> Current runtime logs show that several collectors are structurally implemented, but some upstream data sources are not production-grade yet:
+>
+> - `https://api.llama.fi/stablecoins` returns `404 Not Found`.
+> - `https://api.example.com/etf/flow` and `https://api.example.com/reddit/sentiment` are placeholder URLs, not real production APIs.
+> - `pytrends` returns `429 Too Many Requests`, which is expected for an unofficial Google Trends scraper.
+> - Reddit collector currently fails because it calls a placeholder endpoint instead of Reddit OAuth API or a real maintained provider.
+
+### 9.1 Revised Source Classification
+
+Phase 7 should now classify each alternative-data source into one of four reliability tiers:
+
+| Tier | Meaning | Usage in Trading Engine |
+| :--- | :--- | :--- |
+| **A — Official / stable public API** | Public API, documented, reasonably stable, legal access path | Can feed live causal features directly |
+| **B — Official but derived** | Official source, but feature must be computed from raw fields | Can feed features after validation/reconciliation |
+| **C — Unofficial wrapper / scraper** | Useful but can break or rate-limit | Use with LKV fallback, lower feature confidence |
+| **D — Placeholder / broken / paid-only** | Not usable without replacement or API key | Disable in production until replaced |
+
+### 9.2 ETF Flow Research Result
+
+There is no broad, truly free, official, normalized ETF-flow API suitable for production across the full ETF universe. The realistic free options are:
+
+| Option | Tier | Coverage | Cost | Integration Decision |
+| :--- | :---: | :--- | :--- | :--- |
+| **Parse.bot Farside wrapper** | C | US spot BTC / ETH / SOL ETF daily flows | Free tier: limited credits/rate | Use for crypto ETF flow prototype only |
+| **Farside public pages** | C | US spot crypto ETF flows | Free webpage | Fallback scraper only, cache aggressively |
+| **SEC EDGAR** | B | US filings / fund documents | Free | Use as official long-term validation layer, not direct daily flow |
+| **Issuer pages: iShares / SPDR / VanEck / Grayscale** | B/C | NAV, shares outstanding, AUM, holdings | Free webpage/download | Use to derive estimated flows when needed |
+| **Massive ETF Global Fund Flows** | A/D | Direct ETF fund-flow field | Paid dataset | Keep as paid upgrade path |
+| **DefiLlama Pro ETF endpoints** | A/D | ETF snapshots/flows | Paid Pro API | Keep as paid upgrade path |
+
+Recommended immediate implementation:
 
 ```text
-Optional paid adapter
+Primary crypto ETF flow:
+  Parse.bot Farside wrapper
+    ↓
+Fallback:
+  Farside public page scraper
+    ↓
+Optional validation:
+  issuer pages + SEC filings
+    ↓
+Normalized feature:
+  etf_flow, etf_momentum, etf_flow_confidence
 ```
 
-Recommended config:
+### 9.3 ETF Flow Collector Redesign
 
-```env
-ENABLE_GLASSNODE=false
-GLASSNODE_API_KEY=
+Replace the current placeholder ETF endpoint:
+
+```text
+OLD:
+https://api.example.com/etf/flow
+```
+
+with a provider-chain collector:
+
+```python
+class ETFCollector(CollectorBase):
+    providers = [
+        ParseBotFarsideProvider(),     # primary, JSON, limited free quota
+        FarsideHtmlProvider(),         # fallback, scraped table
+        IssuerDerivedFlowProvider(),   # optional derived flow from shares outstanding * NAV
+    ]
+```
+
+Normalized output:
+
+```json
+{
+  "etf_flow": -77.4,
+  "etf_momentum": -0.32,
+  "etf_flow_confidence": 0.65,
+  "etf_flow_source": "parsebot_farside",
+  "etf_flow_scope": "us_spot_btc_etf",
+  "etf_flow_updated_at": "2026-07-03T00:00:00Z"
+}
+```
+
+Feature-confidence rule:
+
+| Source | `etf_flow_confidence` |
+| :--- | :---: |
+| Parse.bot Farside JSON | 0.65 |
+| Farside HTML scraper | 0.50 |
+| Issuer-derived estimate | 0.40 |
+| Last-known value | 0.25 |
+| Missing/default | 0.00 |
+
+Because Parse.bot/Farside is not an official issuer API, ETF flow must **not** be treated as a hard trading trigger. It should act as a soft causal/context feature that adjusts conviction only when supported by price action, regime, funding, and liquidity signals.
+
+### 9.4 DefiLlama Stablecoin Endpoint Fix
+
+The current collector should not call:
+
+```text
+https://api.llama.fi/stablecoins
+```
+
+Use a fallback endpoint chain:
+
+```text
+https://stablecoins.llama.fi/stablecoins
+https://stablecoins.llama.fi/stablecoincharts/all
+https://api.llama.fi/protocols
 ```
 
 Collector behavior:
 
-```python
-import os
+1. Try `stablecoins.llama.fi/stablecoins`.
+2. If 404/5xx, fallback to cached last-known stablecoin supply.
+3. If missing for more than the freshness SLA, set:
+   - `stablecoin_supply = 0`
+   - `stablecoin_momentum = 0`
+   - `stablecoin_confidence = 0`
+4. Mark quality alert as `warning`, not `critical`, unless multiple alternative-data sources fail together.
 
-class GlassnodeCollector:
-    def __init__(self):
-        self.enabled = os.getenv("ENABLE_GLASSNODE", "false").lower() == "true"
-        self.api_key = os.getenv("GLASSNODE_API_KEY")
+### 9.5 Reddit Collector Redesign
 
-    def fetch(self):
-        if not self.enabled:
-            return {
-                "source": "glassnode",
-                "status": "skipped",
-                "reason": "disabled_free_plan_not_supported",
-                "data": None,
-            }
-
-        if not self.api_key:
-            return {
-                "source": "glassnode",
-                "status": "skipped",
-                "reason": "missing_api_key",
-                "data": None,
-            }
-
-        # Fetch paid data here
-```
-
-### Rule
+Remove placeholder:
 
 ```text
-Do not block Phase 7 if Glassnode is unavailable.
-Do not include Glassnode features in mandatory ML dataset schema.
-Do not require GLASSNODE_API_KEY in .env.
+OLD:
+https://api.example.com/reddit/sentiment
 ```
 
----
+Recommended implementation path:
 
-## 4. Free-first Provider Classification
+| Option | Tier | Decision |
+| :--- | :---: | :--- |
+| Reddit official OAuth API + local sentiment scoring | A/B | Recommended |
+| Apify / third-party Reddit sentiment scraper | C | Optional fallback |
+| Placeholder `api.example.com` endpoint | D | Remove |
 
-### Core Free Providers
-
-```python
-FREE_FIRST_PROVIDERS = [
-    "binance",
-    "defillama",
-    "alternative_me",
-    "blockchain_com",
-    "blockchair",
-    "yahoo_finance",
-    "stooq",
-    "fred",
-    "deribit",
-]
-```
-
-### Optional Paid Providers
-
-```python
-PAID_OPTIONAL_PROVIDERS = [
-    "glassnode",
-    "whale_alert",
-    "cryptoquant",
-    "coinmetrics_paid",
-]
-```
-
----
-
-## 5. Updated Data Source Map
-
-| Data Need | Default Free Source | Optional Paid Source | Status |
-|---|---|---|---|
-| OHLCV | Binance Spot/Futures | — | Required |
-| Trades | Binance WebSocket | — | Required |
-| Orderbook | Binance Depth Stream | — | Required |
-| Funding Rate | Binance Futures, Bybit | — | Required |
-| Open Interest | Binance Futures, Bybit | — | Required |
-| Stablecoin Supply | DefiLlama Stablecoins | CoinMetrics paid | Required |
-| TVL / DeFi Liquidity | DefiLlama | — | Required |
-| Fear & Greed | Alternative.me | — | Required |
-| Active Addresses | Blockchain.com, Blockchair proxy | Glassnode | Optional |
-| Transaction Count | Blockchain.com, Blockchair | Glassnode | Optional |
-| Hashrate | Blockchain.com | Glassnode | Optional |
-| Difficulty | Blockchain.com | Glassnode | Optional |
-| Exchange Flow | Not reliable free | Glassnode, CryptoQuant | Optional |
-| Whale Flow | Blockchair proxy, optional Whale Alert key | Whale Alert paid | Optional |
-| MVRV / NUPL / SOPR | Proxy only or skipped | Glassnode | Optional |
-| Macro DXY/VIX | Yahoo Finance, Stooq | — | Required |
-| US Yield / Fed Data | FRED | — | Required |
-| Options IV | Deribit | — | Optional but free |
-| ETF Flow | Free ETF sources if stable, otherwise manual/CSV | Paid ETF APIs | Optional |
-
----
-
-## 6. Updated Architecture
+New Reddit collector design:
 
 ```text
-Collectors
-  ├── BinanceCollector
-  │     ├── OHLCV
-  │     ├── Trades
-  │     ├── Orderbook
-  │     ├── Funding
-  │     └── Open Interest
-  │
-  ├── DefiLlamaCollector
-  │     ├── Stablecoin Supply
-  │     ├── Chain TVL
-  │     ├── Protocol TVL
-  │     └── Bridge / DeFi Flow
-  │
-  ├── AlternativeMeCollector
-  │     └── Fear & Greed
-  │
-  ├── BlockchainCollector
-  │     ├── Hashrate
-  │     ├── Difficulty
-  │     ├── Transaction Count
-  │     └── Active Address Proxy
-  │
-  ├── BlockchairCollector
-  │     ├── Address / Transaction Data
-  │     └── Large Transfer Proxy
-  │
-  ├── MacroCollector
-  │     ├── Yahoo Finance / Stooq
-  │     └── FRED
-  │
-  ├── DeribitCollector
-  │     ├── Options IV
-  │     ├── Options OI
-  │     └── Skew
-  │
-  └── OptionalPaidCollectors
-        ├── GlassnodeCollector disabled by default
-        ├── WhaleAlertCollector disabled by default
-        └── CryptoQuantCollector disabled by default
-
-        ↓
-Raw Store
-        ↓
-Normalizer
-        ↓
-Feature Builder
-        ↓
-WorldState.alternative
-        ↓
-Feature Store
-        ↓
-ML + Causal Engine
+Reddit OAuth API
+  ↓
+Fetch posts/comments from selected subreddits:
+  r/Bitcoin, r/CryptoCurrency, r/ethfinance, r/solana
+  ↓
+Local sentiment scoring:
+  VADER / TextBlob / lightweight transformer
+  ↓
+Normalize:
+  reddit_sentiment, reddit_volume_zscore, reddit_confidence
 ```
 
----
+Minimum `.env`:
 
-## 7. Collector Interface
+```bash
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USER_AGENT=besttime-crypto/1.0 by <your_username>
+```
 
-All collectors must follow the same return contract.
+### 9.6 Google Trends Collector Hardening
 
-```python
+`pytrends` is unofficial and prone to `429`. It should remain optional and low-confidence.
+
+New behavior:
+
+```text
+Google Trends Collector
+  ├── Min interval: 6h to 24h, not every 15m
+  ├── Cache payload by keyword + geo + timeframe
+  ├── On 429:
+  │     ├── do not retry aggressively
+  │     ├── use LKV
+  │     └── lower trends_confidence
+  └── Optional replacement:
+        SerpAPI / browser-based scraper / manual CSV export
+```
+
+Recommended feature mapping:
+
+```json
 {
-    "source": "defillama",
-    "status": "success | skipped | error",
-    "reason": None,
-    "timestamp": "2026-07-03T00:00:00Z",
-    "data": {},
-    "metadata": {
-        "is_free_source": True,
-        "requires_api_key": False,
-        "freshness_seconds": 300
-    }
+  "search_interest": 42,
+  "search_interest_momentum": 0.12,
+  "search_interest_confidence": 0.35,
+  "source": "pytrends_lkv"
 }
 ```
 
-Paid disabled collector example:
+### 9.7 Collector Status Reclassification
 
-```python
+The previous dashboard marked Sprint 2–4 collectors as implemented. That remains true from a **code-structure** perspective, but production status should be reclassified:
+
+| Collector | Code Status | Production Data Status | Action |
+| :--- | :---: | :---: | :--- |
+| Binance | Implemented | ✅ usable | Keep |
+| Yahoo Finance | Implemented | ✅ usable with fallback | Keep |
+| FRED | Implemented | 🟡 needs real API key/config | Configure key or replace with Yahoo/FRED CSV fallback |
+| DefiLlama | Implemented | 🟡 endpoint correction needed | Patch stablecoin endpoint chain |
+| Deribit | Implemented | ✅ usable | Keep |
+| ETF | Implemented | 🔴 placeholder/policy gap | Replace with Farside/Parse provider-chain |
+| Reddit | Implemented | 🔴 placeholder endpoint | Replace with Reddit OAuth + local scoring |
+| Google Trends | Implemented | 🟡 rate-limited unofficial source | Reduce cadence + cache + LKV |
+| Glassnode | Implemented | 🔴 free account limitation | Disable or replace with free on-chain sources |
+| WhaleAlert | Implemented | 🔴 requires API key / not free enough | Disable by default |
+| Blockchain.com / Blockchair | Implemented | 🟡 parser hardening needed | Add schema guards and fallback |
+
+### 9.8 Sprint 9 — Source Hardening & ETF Flow Integration
+
+Sprint 9 should become the next direction before adding more ML complexity.
+
+#### Sprint 9.1 — Remove Broken Placeholders
+
+- [ ] Remove all `api.example.com` calls from production collectors.
+- [ ] Add `enabled=false` default for any collector without a valid configured provider.
+- [ ] Add startup validation that prints disabled collectors and reasons.
+- [ ] Fail soft: collector failure must not crash market scanning.
+
+#### Sprint 9.2 — ETF Flow Provider Chain
+
+- [ ] Implement `ParseBotFarsideProvider`.
+- [ ] Implement `FarsideHtmlProvider` fallback.
+- [ ] Add optional `IssuerDerivedFlowProvider`.
+- [ ] Normalize ETF flow into:
+  - `etf_flow`
+  - `etf_momentum`
+  - `etf_flow_confidence`
+  - `etf_flow_source`
+  - `etf_flow_scope`
+- [ ] Add unit tests using fixture JSON/HTML.
+- [ ] Add snapshot tests for missing/partial ETF table fields.
+
+#### Sprint 9.3 — DefiLlama Stablecoin Patch
+
+- [ ] Replace broken `api.llama.fi/stablecoins` path.
+- [ ] Add endpoint chain and schema detection.
+- [ ] Add fallback to LKV.
+- [ ] Add data-quality rule for stale stablecoin supply.
+
+#### Sprint 9.4 — Reddit OAuth Collector
+
+- [ ] Implement OAuth client.
+- [ ] Fetch selected crypto subreddits.
+- [ ] Add local sentiment scoring.
+- [ ] Add volume and sentiment momentum.
+- [ ] Add rate-limit handling using response headers.
+- [ ] Add `REDDIT_*` config validation.
+
+#### Sprint 9.5 — Google Trends Cadence Fix
+
+- [ ] Change collection interval from 15m to 6h/24h.
+- [ ] Persist keyword cache.
+- [ ] Treat 429 as expected degradation.
+- [ ] Lower `risk_on_score` confidence when trends data is stale.
+
+#### Sprint 9.6 — Collector Confidence Layer
+
+Add confidence-aware alternative features:
+
+```json
 {
-    "source": "glassnode",
-    "status": "skipped",
-    "reason": "disabled_free_plan_not_supported",
-    "data": None
+  "feature": "etf_flow",
+  "value": -77.4,
+  "confidence": 0.65,
+  "source": "parsebot_farside",
+  "status": "fresh"
 }
 ```
 
-This prevents collector failures from breaking the entire pipeline.
-
----
-
-## 8. Required Collectors
-
-### 8.1. Binance Collector
-
-Data:
+Then update the causal engine:
 
 ```text
-OHLCV
-Trades
-Orderbook
-Funding Rate
-Open Interest
-Liquidations if available
+effective_feature_value = value * confidence
 ```
 
-Features:
-
-```python
-funding_rate
-funding_zscore
-open_interest
-open_interest_delta
-orderbook_imbalance
-bid_ask_spread
-micro_price
-liquidity_wall_score
-market_buy_sell_pressure
-```
-
-Priority: **Critical**
-
----
-
-### 8.2. DefiLlama Collector
-
-Data:
+or:
 
 ```text
-Stablecoin supply
-Chain stablecoin supply
-TVL
-Protocol TVL
-Bridge volume
-Fees / revenue where available
+causal_weight = base_weight * source_confidence * freshness_score
 ```
 
-Features:
+This prevents weak unofficial data from overpowering stronger market/microstructure signals.
 
-```python
-stablecoin_supply_total
-stablecoin_supply_change_1d
-stablecoin_supply_change_7d
-stablecoin_momentum
-chain_tvl
-chain_tvl_change_1d
-defi_liquidity_score
-bridge_flow_score
-```
+### 9.9 Updated Production Readiness Criteria
 
-Priority: **Critical**
+Phase 7 should only be marked production-ready when:
 
----
+- [ ] No production collector points to `api.example.com`.
+- [ ] Every collector has `enabled`, `source`, `confidence`, `last_success_at`, and `last_error`.
+- [ ] ETF flow works through at least one real source.
+- [ ] DefiLlama stablecoin collector no longer returns 404 in normal runs.
+- [ ] Google Trends 429 does not spam logs or block the scheduler.
+- [ ] Reddit collector either uses OAuth or is disabled by default.
+- [ ] Alternative-data dashboard separates:
+  - collector code health
+  - data freshness
+  - source reliability
+  - feature confidence
+- [ ] Backtest export includes feature confidence columns.
 
-### 8.3. Alternative.me Collector
-
-Data:
+### 9.10 Recommended Updated Roadmap
 
 ```text
-Fear & Greed Index
+Current next step:
+  Sprint 9 — Source hardening and ETF-flow integration
+
+After Sprint 9:
+  Sprint 10 — Feature confidence backtest
+    - test whether ETF flow improves signal quality
+    - compare with/without alternative features
+    - compute feature importance by regime
+
+Then:
+  Sprint 11 — Causal feature weighting
+    - source confidence
+    - freshness decay
+    - regime-specific alternative-data weights
+
+Then:
+  Sprint 12 — Production dashboard
+    - collector health
+    - data source SLA
+    - feature confidence
+    - alert history
 ```
 
-Features:
+### 9.11 Implementation Priority
 
-```python
-fear_greed_raw
-fear_greed_score
-fear_greed_zscore
-fear_greed_regime
-```
+Use this priority order:
 
-Priority: **Critical**
+1. **Patch DefiLlama stablecoin endpoint** because it is a direct 404 and affects stablecoin liquidity context.
+2. **Remove all `api.example.com` placeholders** because they are guaranteed production failures.
+3. **Implement ETF flow via Farside/Parse provider chain** because ETF flow is useful but should remain confidence-weighted.
+4. **Replace Reddit placeholder with OAuth collector** or disable it until credentials are configured.
+5. **Throttle Google Trends** because 429 is expected if queried too frequently.
+6. **Add feature confidence into WorldState** so unofficial or stale signals cannot dominate trading decisions.
 
 ---
 
-### 8.4. Blockchain.com Collector
+## 10. Updated Free Data Sources Index
+
+| Source | Target Metrics | Protocol | Cost | Production Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Binance API** | Funding, OI, orderbook | REST / WebSocket | Free | ✅ Keep |
+| **Deribit Public API** | Options IV, skew | REST | Free | ✅ Keep |
+| **Yahoo Finance / yfinance** | DXY, VIX, Gold, indexes | Python wrapper | Free | ✅ Keep with fallback |
+| **FRED** | US yields, macro | REST | Free API key | 🟡 Configure key |
+| **DefiLlama Stablecoins** | Stablecoin supply/dominance | REST | Free | 🟡 Patch endpoint |
+| **SEC EDGAR** | ETF/fund official filings | REST JSON | Free | 🟡 Validation layer |
+| **Farside / Parse.bot** | BTC/ETH/SOL ETF daily flows | REST wrapper | Free tier | 🟡 Use with confidence |
+| **Reddit API** | Social sentiment | OAuth REST | Free limits | 🟡 Implement OAuth |
+| **Google Trends / pytrends** | Search interest | Unofficial scraping | Free | 🟡 Low cadence only |
+| **Glassnode** | On-chain metrics | REST | Paid/limited | 🔴 Disable free mode |
+| **Whale Alert** | Whale transfers | REST | API key / limited | 🔴 Disable by default |
+| **Massive ETF Global** | ETF fund flows | REST | Paid | 🔵 Paid upgrade |
+| **DefiLlama Pro ETF** | ETF flows/snapshot | REST | Paid | 🔵 Paid upgrade |
 
-Data:
 
-```text
-Hashrate
-Difficulty
-Transaction count
-Mempool metrics if available
-```
-
-Features:
-
-```python
-btc_hashrate
-btc_hashrate_change_7d
-btc_difficulty
-btc_tx_count
-btc_network_activity_score
-```
-
-Priority: **High**
-
----
-
-### 8.5. Blockchair Collector
-
-Data:
-
-```text
-Transaction count
-Large transaction proxy
-Address / chain statistics
-```
-
-Features:
-
-```python
-large_tx_count
-large_tx_volume_proxy
-network_activity_proxy
-whale_activity_proxy
-```
-
-Priority: **Medium**
-
-Important:
-
-```text
-Blockchair parser must be hardened.
-Never assume response shape.
-Handle missing indexes and empty responses safely.
-```
-
----
-
-### 8.6. Macro Collector
-
-Sources:
-
-```text
-Yahoo Finance
-Stooq
-FRED
-```
-
-Data:
-
-```text
-DXY
-VIX
-Gold
-Oil
-US10Y
-Fed Funds Rate
-CPI
-Unemployment
-```
-
-Features:
-
-```python
-dxy
-dxy_change_1d
-vix
-vix_change_1d
-gold_change_1d
-us10y
-macro_risk_score
-risk_on_score
-```
-
-Priority: **Critical**
-
----
-
-### 8.7. Deribit Collector
-
-Data:
-
-```text
-BTC Options IV
-ETH Options IV
-Open Interest
-Skew
-Term Structure
-```
-
-Features:
-
-```python
-btc_iv
-eth_iv
-iv_rank
-iv_change_1d
-options_skew
-options_risk_score
-```
-
-Priority: **Medium / High**
-
----
-
-## 9. Disabled-by-default Optional Paid Collectors
-
-### 9.1. Glassnode Collector
-
-```env
-ENABLE_GLASSNODE=false
-GLASSNODE_API_KEY=
-```
-
-Use only when paid access exists.
-
-Potential data:
-
-```text
-MVRV
-NUPL
-SOPR
-Exchange Balance
-Exchange Net Position Change
-Realized Price
-Dormancy
-```
-
-Feature names should be optional:
-
-```python
-glassnode_mvrv
-glassnode_sopr
-glassnode_nupl
-glassnode_exchange_netflow
-```
-
-Do not include these in mandatory model training.
-
----
-
-### 9.2. Whale Alert Collector
-
-```env
-ENABLE_WHALE_ALERT=false
-WHALE_ALERT_API_KEY=
-```
-
-If no key:
-
-```python
-{
-    "source": "whale_alert",
-    "status": "skipped",
-    "reason": "missing_or_disabled_api_key"
-}
-```
-
----
-
-### 9.3. CryptoQuant Collector
-
-```env
-ENABLE_CRYPTOQUANT=false
-CRYPTOQUANT_API_KEY=
-```
-
-Optional only.
-
----
-
-## 10. Free Replacement for Glassnode Metrics
-
-| Original Glassnode-like Metric | Free Replacement | Implementation |
-|---|---|---|
-| Active addresses | Blockchain.com / Blockchair proxy | Use network stats |
-| Transaction count | Blockchain.com / Blockchair | Direct metric |
-| Hashrate | Blockchain.com | Direct metric |
-| Difficulty | Blockchain.com | Direct metric |
-| Exchange netflow | Skip or proxy | Use exchange wallet list only if reliable |
-| Whale flow | Blockchair proxy | Large transaction threshold |
-| MVRV | Skip in free phase | Optional proxy only |
-| NUPL | Skip in free phase | Optional paid |
-| SOPR | Skip in free phase | Optional paid |
-| Stablecoin supply | DefiLlama | Direct metric |
-| TVL | DefiLlama | Direct metric |
-
-Rule:
-
-```text
-If a free proxy is unreliable, skip the feature rather than polluting the ML dataset.
-```
-
----
-
-## 11. Derived Feature Layer
-
-The raw source is less important than the derived feature.
-
-Recommended derived features:
-
-```python
-liquidity_pressure
-funding_pressure
-open_interest_pressure
-stablecoin_momentum
-defi_liquidity_score
-macro_risk_score
-risk_on_score
-orderbook_imbalance_score
-large_tx_proxy_score
-options_risk_score
-```
-
-Example:
-
-```python
-risk_on_score = (
-    0.25 * stablecoin_momentum
-    + 0.20 * defi_liquidity_score
-    + 0.20 * inverse_dxy_pressure
-    + 0.15 * inverse_vix_pressure
-    + 0.10 * funding_health_score
-    + 0.10 * orderbook_support_score
-)
-```
-
----
-
-## 12. Updated WorldState Layer
-
-Add:
-
-```python
-from dataclasses import dataclass
-
-@dataclass
-class AlternativeLayer:
-    stablecoin_supply_total: float | None = None
-    stablecoin_momentum: float | None = None
-    chain_tvl: float | None = None
-    defi_liquidity_score: float | None = None
-    orderbook_imbalance: float | None = None
-    funding_pressure: float | None = None
-    open_interest_pressure: float | None = None
-    large_tx_proxy_score: float | None = None
-    options_iv_rank: float | None = None
-    options_skew: float | None = None
-    macro_risk_score: float | None = None
-    risk_on_score: float | None = None
-```
-
-WorldState:
-
-```python
-@dataclass
-class WorldState:
-    macro: MacroLayer
-    liquidity: LiquidityLayer
-    crypto: CryptoLayer
-    sentiment: SentimentLayer
-    risk: RiskLayer
-    alternative: AlternativeLayer
-```
-
----
-
-## 13. Scheduler
-
-Recommended frequency:
-
-| Collector | Frequency |
-|---|---:|
-| Binance orderbook | 1s–5s |
-| Binance OHLCV | 1m / 15m |
-| Funding rate | 5m–15m |
-| Open interest | 5m–15m |
-| Alternative.me | 1h |
-| DefiLlama stablecoins | 1h |
-| DefiLlama TVL | 1h–4h |
-| Blockchain.com | 15m–1h |
-| Blockchair | 15m–1h |
-| Macro Yahoo/Stooq | 15m–1h |
-| FRED | 1d |
-| Deribit options | 5m–30m |
-| Glassnode optional | disabled by default |
-
----
-
-## 14. Sprint Plan
-
-## Sprint 1 — Free-first Foundation
-
-### Tasks
-
-- Add provider classification.
-- Add `ENABLE_*` flags.
-- Implement collector return contract.
-- Create `BaseCollector`.
-- Create `CollectorResult`.
-- Add skip-safe behavior.
-
-### Deliverables
-
-```text
-collectors/base.py
-collectors/provider_config.py
-collectors/result.py
-.env.example updated
-```
-
-### Acceptance Criteria
-
-- System runs with no paid API key.
-- Disabled paid collectors return `status="skipped"`.
-- No collector crash blocks the pipeline.
-
----
-
-## Sprint 2 — Binance + Market Microstructure
-
-### Tasks
-
-- Implement Binance spot/futures collector.
-- Add orderbook stream.
-- Add funding and OI collector.
-- Compute orderbook imbalance.
-- Compute funding pressure.
-
-### Deliverables
-
-```text
-binance_collector.py
-orderbook_features.py
-funding_features.py
-```
-
-### Acceptance Criteria
-
-- Funding and OI are collected.
-- Orderbook imbalance is generated.
-- Features are stored with timestamp.
-
----
-
-## Sprint 3 — DefiLlama + Stablecoin Liquidity
-
-### Tasks
-
-- Implement DefiLlama collector.
-- Fetch stablecoin supply.
-- Fetch TVL.
-- Build stablecoin momentum features.
-- Build DeFi liquidity score.
-
-### Deliverables
-
-```text
-defillama_collector.py
-stablecoin_features.py
-defi_liquidity_features.py
-```
-
-### Acceptance Criteria
-
-- Stablecoin supply data is available.
-- TVL data is available.
-- Derived features are point-in-time safe.
-
----
-
-## Sprint 4 — Macro Collector
-
-### Tasks
-
-- Implement Yahoo Finance / Stooq adapter.
-- Implement FRED adapter.
-- Fetch DXY, VIX, Gold, US10Y.
-- Build macro risk score.
-
-### Deliverables
-
-```text
-macro_collector.py
-macro_features.py
-```
-
-### Acceptance Criteria
-
-- Macro data can be fetched without paid key.
-- Fallback source works if Yahoo fails.
-- Macro risk score is generated.
-
----
-
-## Sprint 5 — Blockchain.com + Blockchair
-
-### Tasks
-
-- Implement Blockchain.com collector.
-- Implement Blockchair collector.
-- Harden parser against missing fields.
-- Build network activity score.
-- Build large transaction proxy.
-
-### Deliverables
-
-```text
-blockchain_collector.py
-blockchair_collector.py
-network_activity_features.py
-```
-
-### Acceptance Criteria
-
-- Parser never raises KeyError on malformed response.
-- Missing data is marked as unavailable.
-- Features are optional, not mandatory.
-
----
-
-## Sprint 6 — Deribit Options
-
-### Tasks
-
-- Implement Deribit collector.
-- Fetch BTC/ETH options data.
-- Compute IV rank and skew.
-- Build options risk score.
-
-### Deliverables
-
-```text
-deribit_collector.py
-options_features.py
-```
-
-### Acceptance Criteria
-
-- BTC/ETH IV available.
-- Options features are timestamped.
-- Missing options data does not block signal generation.
-
----
-
-## Sprint 7 — Optional Paid Adapters
-
-### Tasks
-
-- Implement disabled-by-default Glassnode adapter.
-- Implement disabled-by-default Whale Alert adapter.
-- Implement disabled-by-default CryptoQuant adapter.
-- Add env flags and skip behavior.
-
-### Deliverables
-
-```text
-glassnode_collector.py
-whale_alert_collector.py
-cryptoquant_collector.py
-```
-
-### Acceptance Criteria
-
-- All paid collectors are disabled by default.
-- No API key required.
-- Paid collectors do not appear in required health checks.
-
----
-
-## Sprint 8 — Feature Builder + WorldState Integration
-
-### Tasks
-
-- Normalize all Phase 7 features.
-- Add AlternativeLayer.
-- Update WorldState builder.
-- Update FeatureSnapshot.
-- Update ML dataset builder.
-- Update dashboard.
-
-### Deliverables
-
-```text
-alternative_layer.py
-alternative_feature_builder.py
-world_state.py updated
-feature_snapshot.py updated
-dashboard Alternative Data tab
-```
-
-### Acceptance Criteria
-
-- Alternative features appear in WorldState.
-- FeatureSnapshot includes alternative layer.
-- ML dataset can include free-first alternative features.
-
----
-
-## 15. Updated `.env.example`
-
-```env
-# Free-first mode
-FREE_FIRST_MODE=true
-
-# Core free providers
-ENABLE_BINANCE=true
-ENABLE_DEFILLAMA=true
-ENABLE_ALTERNATIVE_ME=true
-ENABLE_BLOCKCHAIN_COM=true
-ENABLE_BLOCKCHAIR=true
-ENABLE_YAHOO_FINANCE=true
-ENABLE_STOOQ=true
-ENABLE_FRED=true
-ENABLE_DERIBIT=true
-
-# Optional paid providers — disabled by default
-ENABLE_GLASSNODE=false
-GLASSNODE_API_KEY=
-
-ENABLE_WHALE_ALERT=false
-WHALE_ALERT_API_KEY=
-
-ENABLE_CRYPTOQUANT=false
-CRYPTOQUANT_API_KEY=
-```
-
----
-
-## 16. Success Criteria
-
-| Metric | Target |
-|---|---:|
-| Pipeline runs without paid API keys | 100% |
-| Required collector uptime | > 95% |
-| Paid collector required for startup | 0 |
-| Missing data crash | 0 |
-| Blockchair parser KeyError | 0 |
-| Feature freshness for market data | < 5 min |
-| Feature freshness for macro/stablecoin | < 1–4h |
-| Alternative features in WorldState | Yes |
-| Alternative features in ML dataset | Yes |
-| Glassnode default status | skipped |
-
----
-
-## 17. Updated Definition of Done
-
-Phase 7 is complete when:
-
-- Glassnode is not required.
-- System works in free-first mode.
-- Binance, DefiLlama, Alternative.me, Blockchain.com, Blockchair, Yahoo/Stooq/FRED and Deribit are implemented or safely skippable.
-- Paid collectors are disabled by default.
-- Collector failures do not break the pipeline.
-- AlternativeLayer is added to WorldState.
-- Derived features are available for ML and Causal Context.
-- Dashboard shows provider health and skipped/failed/success status.
-- Feature Store contains timestamped alternative data.
-
----
-
-## 18. Recommended First Code Change
-
-Start with provider gating:
-
-```python
-FREE_FIRST_PROVIDERS = [
-    "binance",
-    "defillama",
-    "alternative_me",
-    "blockchain_com",
-    "blockchair",
-    "yahoo_finance",
-    "stooq",
-    "fred",
-    "deribit",
-]
-
-PAID_OPTIONAL_PROVIDERS = [
-    "glassnode",
-    "whale_alert",
-    "cryptoquant",
-]
-```
-
-Then update `.env.example`:
-
-```env
-ENABLE_GLASSNODE=false
-GLASSNODE_API_KEY=
-```
-
-This avoids repeating the current problem where a free-first pipeline fails because a paid API key is missing.

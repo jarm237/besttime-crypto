@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
@@ -20,9 +22,16 @@ except Exception:  # pragma: no cover
 def _fetch_json(url: str) -> Any:
     if requests is None:
         raise RuntimeError("requests is not installed")
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 404:
+            _logger.warning("%s returned 404 Not Found", url)
+            return None
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        _logger.warning("Failed to fetch %s: %s", url, e)
+        return None
 
 
 class FredCollector(CollectorBase):
@@ -53,7 +62,9 @@ class FredCollector(CollectorBase):
             return payload
 
         try:
-            data = _fetch_json("https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key=demo&file_type=json")
+            api_key = os.getenv("FRED_API_KEY", "demo")
+            url = f"https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key={api_key}&file_type=json"
+            data = _fetch_json(url)
             observations = data.get("observations", []) if isinstance(data, dict) else []
             if observations:
                 last_value = observations[-1].get("value", "0")

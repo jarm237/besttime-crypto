@@ -77,11 +77,17 @@ class AlternativeDataCollector(CollectorBase):
                 "status": defillama_payload.get("status", "success"),
                 "reason": defillama_payload.get("reason"),
             }
-            payload.update({"stablecoin_supply": defillama_payload.get("stablecoin_supply", 0.0), "tvl": defillama_payload.get("tvl", 0.0)})
+            payload.update({
+                "stablecoin_supply": defillama_payload.get("stablecoin_supply", 0.0),
+                "stablecoin_supply_total": defillama_payload.get("stablecoin_supply_total", 0.0),
+                "tvl": defillama_payload.get("tvl", 0.0),
+                "chain_tvl": defillama_payload.get("chain_tvl", 0.0),
+                "protocol_tvl": defillama_payload.get("protocol_tvl", 0.0),
+            })
             if isinstance(defillama_payload, dict) and defillama_payload.get("error"):
                 payload["_errors"]["defillama"] = defillama_payload.get("error")
         except Exception as e:
-            payload.update({"stablecoin_supply": 0.0, "tvl": 0.0})
+            payload.update({"stablecoin_supply": 0.0, "stablecoin_supply_total": 0.0, "tvl": 0.0, "chain_tvl": 0.0})
             payload["_errors"]["defillama"] = repr(e)
             payload["_statuses"]["defillama"] = {"status": "error", "reason": str(e)}
 
@@ -216,8 +222,11 @@ def collect_alternative_data(
     force: bool = False,
     raw_store_dir: Optional[str] = DEFAULT_RAW_STORE_DIR,
     feature_snapshot_path: Optional[str] = DEFAULT_FEATURE_SNAPSHOT_PATH,
+    validate_startup: bool = True,
 ) -> Dict[str, Any]:
     """Collect and persist alternative-data payload."""
+    if validate_startup:
+        validate_collectors_on_startup()
     collector = AlternativeDataCollector(
         output_path=output_path,
         raw_store_dir=raw_store_dir,
@@ -247,6 +256,7 @@ def load_alternative_data(path: Optional[str] = DEFAULT_OUTPUT_PATH) -> Dict[str
 def _default_payload() -> Dict[str, Any]:
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        # === Raw Alternative Data ===
         "exchange_netflow": 0.0,
         "whale_score": 0.0,
         "stablecoin_supply": 0.0,
@@ -274,9 +284,33 @@ def _default_payload() -> Dict[str, Any]:
         "open_interest_pressure": 0.0,
         "large_tx_proxy_score": 0.0,
         "stablecoin_supply_total": 0.0,
+        # === Derived Metrics ===
         "stablecoin_momentum": 0.0,
         "etf_momentum": 0.0,
+        "etf_flow": 0.0,
+        "etf_flow_confidence": 0.0,
+        "etf_flow_source": "none",
+        "etf_flow_scope": "us_spot_btc_etf",
         "risk_on_score": 0.0,
+        # === Confidence Scores (Sprint 9.6) ===
+        "confidence_metadata": {
+            "dxy": 0.95,  # Official source, high confidence
+            "vix": 0.95,
+            "us10y": 0.90,
+            "gold": 0.90,
+            "funding_rate": 0.90,
+            "open_interest": 0.90,
+            "exchange_netflow": 0.75,
+            "stablecoin_supply": 0.70,  # DefiLlama, may have endpoint issues
+            "tvl": 0.65,
+            "hashrate": 0.85,
+            "active_addresses": 0.70,  # Glassnode, limited free tier
+            "etf_flow": 0.0,  # Depends on provider (see etf_flow_confidence)
+            "fear_greed_raw": 0.60,  # Alternative.me, reasonable reliability
+            "sentiment_score": 0.35,  # Google Trends, unofficial, rate-limited
+            "social_sentiment": 0.40,  # Reddit OAuth, depends on volume
+            "whale_score": 0.50,  # WhaleAlert, API key dependent
+        },
     }
 
 
@@ -343,6 +377,87 @@ def normalize_alternative_payload(
         risk_on_score += 0.35
     if normalized.get("funding_pressure", 0.0) > 0:
         risk_on_score += 0.3
-    normalized["risk_on_score"] = risk_on_score
+    
+    # === Sprint 9.6: Apply confidence weighting ===
+    confidence_meta = normalized.get("confidence_metadata", {})
+    
+    # Weight stablecoin_momentum by confidence
+    stablecoin_confidence = confidence_meta.get("stablecoin_supply", 0.70)
+    weighted_stablecoin_momentum = normalized.get("stablecoin_momentum", 0.0) * stablecoin_confidence
+    
+    # Weight etf_momentum by etf_flow_confidence (which varies by provider)
+    etf_flow_conf = normalized.get("etf_flow_confidence", 0.0)
+    weighted_etf_momentum = normalized.get("etf_momentum", 0.0) * max(etf_flow_conf, confidence_meta.get("etf_flow", 0.0))
+    
+    # Update risk_on_score with confidence-weighted components
+    risk_on_score = 0.0
+    if weighted_stablecoin_momentum > 0:
+        risk_on_score += 0.35 * (stablecoin_confidence)
+    if weighted_etf_momentum > 0:
+        risk_on_score += 0.35 * max(etf_flow_conf, confidence_meta.get("etf_flow", 0.0))
+    
+    funding_pressure_conf = confidence_meta.get("funding_rate", 0.90)
+    if normalized.get("funding_pressure", 0.0) > 0:
+        risk_on_score += 0.3 * funding_pressure_conf
+    
+    normalized["risk_on_score"] = max(0.0, min(1.0, risk_on_score))
+    
+    # Store effective weighted scores for causal engine
+    normalized["effective_stablecoin_momentum"] = weighted_stablecoin_momentum
+    normalized["effective_etf_momentum"] = weighted_etf_momentum
+    normalized["effective_risk_on_score"] = normalized["risk_on_score"]
 
     return normalized
+
+
+def validate_collectors_on_startup() -> None:
+    """
+    Print startup validation for disabled collectors and their requirements.
+    
+    This function helps identify which collectors are disabled and why,
+    enabling operators to make informed decisions about data quality and
+    coverage.
+    """
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    disabled_collectors = []
+    
+    # Check ETF collector
+    etf_enabled = os.getenv("ENABLE_ETF", "false").strip().lower() == "true"
+    if not etf_enabled:
+        disabled_collectors.append({
+            "name": "ETFCollector",
+            "reason": "Placeholder endpoint (https://api.example.com/etf/flow) requires implementation",
+            "requires": "Farside API / Parse.bot implementation + ENABLE_ETF=true",
+            "impact": "ETF flow features unavailable (etf_flow, etf_momentum)",
+        })
+    
+    # Check Reddit collector
+    reddit_enabled = os.getenv("ENABLE_REDDIT", "false").strip().lower() == "true"
+    if not reddit_enabled:
+        disabled_collectors.append({
+            "name": "RedditCollector",
+            "reason": "Placeholder endpoint (https://api.example.com/reddit/sentiment) requires implementation",
+            "requires": "Reddit OAuth implementation + REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT + ENABLE_REDDIT=true",
+            "impact": "Social sentiment features unavailable (social_sentiment)",
+        })
+    
+    if disabled_collectors:
+        logger.warning(
+            "\n" + "=" * 80 + "\n"
+            "[Sprint 9.1] DISABLED COLLECTORS ON STARTUP\n"
+            + "=" * 80
+        )
+        for collector in disabled_collectors:
+            logger.warning(
+                f"\n  ❌ {collector['name']}"
+                f"\n     Reason: {collector['reason']}"
+                f"\n     To enable: {collector['requires']}"
+                f"\n     Impact: {collector['impact']}"
+            )
+        logger.warning(
+            "\n" + "=" * 80
+            + "\nFor more details, see Phase7_Alternative_Data_Implementation_Plan_UPDATED.md (Sprint 9.2-9.4)"
+            + "\n" + "=" * 80 + "\n"
+        )

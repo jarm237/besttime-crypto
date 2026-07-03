@@ -1802,3 +1802,9 @@ print('Output verification complete')
 [2026-07-03 09:50:08] [INFO] 
 ================================================================================
 [2026-07-03 09:50:08] [INFO] Pipeline Report saved to: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/phase8_pipeline/phase8_pipeline_report.json
+[2026-07-03 14:48:12] [INFO] 
+================================================================================
+[2026-07-03 14:48:12] [INFO] Step 3: Generate Meta Labels
+[2026-07-03 14:48:12] [INFO] Command: .venv/bin/python scripts/generate_meta_labels.py
+[2026-07-03 14:48:12] [INFO] CWD: /home/tran-huynh/Workspaces/Personal/besttime-crypto
+[2026-07-03 14:48:18] [INFO] ✅ Step 3 completed successfully

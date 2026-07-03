@@ -22,9 +22,19 @@ except Exception:  # pragma: no cover
 def _fetch_json(url: str) -> Any:
     if requests is None:
         raise RuntimeError("requests is not installed")
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(url, timeout=10)
+        # Some Binance endpoints may be removed/renamed and return 404.
+        # Treat 404 as a non-fatal condition and return None so callers
+        # can attempt fallbacks instead of raising an exception.
+        if response.status_code == 404:
+            _logger.warning("%s returned 404 Not Found", url)
+            return None
+        response.raise_for_status()
+        return response.json()
+    except Exception:
+        # Bubble up for non-HTTP errors; caller will handle logging.
+        raise
 
 
 class BinanceCollector(CollectorBase):
@@ -55,8 +65,25 @@ class BinanceCollector(CollectorBase):
             return payload
 
         try:
-            funding_data = _fetch_json("https://fapi.binance.com/futures/data/globalFundingRate?limit=1")
-            oi_data = _fetch_json("https://fapi.binance.com/futures/data/openInterestHist?pair=BTCUSDT&period=5m&limit=1")
+            # Prefer the stable REST endpoints for funding rate and open interest
+            # Funding endpoint moved to /fapi/v1/fundingRate (use symbol if needed)
+            try:
+                funding_data = _fetch_json("https://fapi.binance.com/fapi/v1/fundingRate?limit=1")
+            except Exception:
+                # fallback to symbol-specific query if the generic one fails
+                funding_data = _fetch_json("https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1")
+
+            # Open interest history endpoint — prefer `symbol=` parameter.
+            # Some Binance deployments expect `symbol` while older examples
+            # used `pair`. Try `symbol` first and fall back to `pair`.
+            oi_data = None
+            try:
+                oi_data = _fetch_json("https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=5m&limit=1")
+            except Exception:
+                try:
+                    oi_data = _fetch_json("https://fapi.binance.com/futures/data/openInterestHist?pair=BTCUSDT&period=5m&limit=1")
+                except Exception:
+                    oi_data = None
             if isinstance(funding_data, list) and funding_data:
                 funding_rate = None
                 for item in funding_data:

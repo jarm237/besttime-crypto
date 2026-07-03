@@ -79,12 +79,26 @@ class Phase8PipelineRunner:
             step_info["start_time"] = datetime.now().isoformat()
             start = time.time()
 
+            # Ensure subprocess uses UTF-8 mode on Windows and has repo on PYTHONPATH
+            env = None
+            try:
+                import os as _os
+                env = _os.environ.copy()
+                env.setdefault("PYTHONUTF8", "1")
+                # Prepend repo_root to PYTHONPATH to help imports in scripts
+                repo_path = str(self.repo_root)
+                old_pp = env.get("PYTHONPATH", "")
+                env["PYTHONPATH"] = repo_path + (":" + old_pp if old_pp else "")
+            except Exception:
+                env = None
+
             result = subprocess.run(
                 cmd,
                 cwd=str(cwd),
                 capture_output=True,
                 text=True,
                 timeout=600,
+                env=env,
             )
 
             step_info["return_code"] = result.returncode
