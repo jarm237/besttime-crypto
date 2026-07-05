@@ -1,6 +1,6 @@
 {
   "last_run": {
-    "timestamp": "2026-07-03T19:00:03.532479",
+    "timestamp": "2026-07-04T19:00:07.849114",
     "n_total": 24070,
     "split": {
       "train": 16849,
@@ -238,8 +238,8 @@
           }
         }
       },
-      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260703T190007Z.joblib"
+      "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260704T190403Z.joblib"
     },
-    "elapsed_s": 8.064875602722168
+    "elapsed_s": 346.7629611492157
   }
 }
