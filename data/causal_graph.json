@@ -1,12 +1,35 @@
 {
+  "version": "2.1.0",
+  "updated_at": "2026-07-05",
+  "metadata": {
+    "description": "Causal knowledge graph: macro factors → crypto market",
+    "node_types": ["macro", "crypto", "sentiment", "onchain"],
+    "last_discovery_run": null
+  },
   "nodes": [
-    {"id": "DXY"},
-    {"id": "VIX"},
-    {"id": "RealYield"},
-    {"id": "Funding"},
-    {"id": "Sentiment"},
-    {"id": "BTC"},
-    {"id": "ETH"}
+    {"id": "DXY",       "type": "macro",     "label": "US Dollar Index"},
+    {"id": "VIX",       "type": "macro",     "label": "CBOE Volatility Index"},
+    {"id": "RealYield", "type": "macro",     "label": "US Real Yield (10Y TIPS)"},
+    {"id": "FedRate",   "type": "macro",     "label": "Fed Funds Rate"},
+    {"id": "BondYield", "type": "macro",     "label": "10Y Treasury Yield"},
+    {"id": "Funding",   "type": "onchain",   "label": "Perpetual Funding Rate"},
+    {"id": "OI",        "type": "onchain",   "label": "Open Interest"},
+    {"id": "Sentiment", "type": "sentiment", "label": "Fear & Greed Index"},
+    {"id": "BTC",       "type": "crypto",    "label": "Bitcoin",      "cluster": "Layer1"},
+    {"id": "ETH",       "type": "crypto",    "label": "Ethereum",     "cluster": "Layer1"},
+    {"id": "SOL",       "type": "crypto",    "label": "Solana",       "cluster": "Layer1"},
+    {"id": "BNB",       "type": "crypto",    "label": "BNB",          "cluster": "Exchange"},
+    {"id": "XRP",       "type": "crypto",    "label": "Ripple",       "cluster": "Other"},
+    {"id": "AVAX",      "type": "crypto",    "label": "Avalanche",    "cluster": "Layer1"},
+    {"id": "DOGE",      "type": "crypto",    "label": "Dogecoin",     "cluster": "Meme"},
+    {"id": "LINK",      "type": "crypto",    "label": "Chainlink",    "cluster": "DeFi"},
+    {"id": "MATIC",     "type": "crypto",    "label": "Polygon",      "cluster": "Layer2"},
+    {"id": "OP",        "type": "crypto",    "label": "Optimism",     "cluster": "Layer2"},
+    {"id": "ARB",       "type": "crypto",    "label": "Arbitrum",     "cluster": "Layer2"},
+    {"id": "PEPE",      "type": "crypto",    "label": "Pepe",         "cluster": "Meme"},
+    {"id": "TON",       "type": "crypto",    "label": "Toncoin",      "cluster": "Layer1"},
+    {"id": "ADA",       "type": "crypto",    "label": "Cardano",      "cluster": "Layer1"},
+    {"id": "DOT",       "type": "crypto",    "label": "Polkadot",     "cluster": "Other"}
   ],
   "edges": [
     {
@@ -21,7 +44,7 @@
       "is_active": true,
       "source": "manual",
       "propagate_confidence": true,
-      "description": "Manual edge: strong USD strength pressure on BTC price"
+      "description": "Strong USD pressure on BTC price"
     },
     {
       "id": "edge_2",
@@ -35,7 +58,7 @@
       "is_active": true,
       "source": "manual",
       "propagate_confidence": true,
-      "description": "Manual edge: volatility spike pressure on BTC price"
+      "description": "Volatility spike pressure on BTC"
     },
     {
       "id": "edge_3",
@@ -49,7 +72,7 @@
       "is_active": true,
       "source": "manual",
       "propagate_confidence": true,
-      "description": "Manual edge: rising real yields pressure on BTC price"
+      "description": "Rising real yields pressure on BTC"
     },
     {
       "id": "edge_4",
@@ -63,7 +86,7 @@
       "is_active": true,
       "source": "manual",
       "propagate_confidence": true,
-      "description": "Manual edge: elevated funding pressure on BTC price"
+      "description": "Elevated funding pressure on BTC"
     },
     {
       "id": "edge_5",
@@ -77,7 +100,147 @@
       "is_active": true,
       "source": "manual",
       "propagate_confidence": true,
-      "description": "Manual edge: bullish sentiment support for BTC price"
+      "description": "Bullish sentiment support for BTC"
+    },
+    {
+      "id": "edge_6",
+      "from": "FedRate",
+      "to": "RealYield",
+      "effect": "positive",
+      "weight": 0.90,
+      "lag": "1d",
+      "confidence": 0.90,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Fed rate hikes increase real yields"
+    },
+    {
+      "id": "edge_7",
+      "from": "FedRate",
+      "to": "DXY",
+      "effect": "positive",
+      "weight": 0.80,
+      "lag": "1d",
+      "confidence": 0.80,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Higher Fed rate strengthens USD"
+    },
+    {
+      "id": "edge_8",
+      "from": "BTC",
+      "to": "ETH",
+      "effect": "positive",
+      "weight": 0.88,
+      "lag": "1c",
+      "confidence": 0.88,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "BTC price movements lead ETH"
+    },
+    {
+      "id": "edge_9",
+      "from": "BTC",
+      "to": "SOL",
+      "effect": "positive",
+      "weight": 0.75,
+      "lag": "2c",
+      "confidence": 0.75,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "BTC leads SOL with 2-candle lag"
+    },
+    {
+      "id": "edge_10",
+      "from": "ETH",
+      "to": "LINK",
+      "effect": "positive",
+      "weight": 0.70,
+      "lag": "1c",
+      "confidence": 0.70,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "ETH ecosystem drives LINK (DeFi)"
+    },
+    {
+      "id": "edge_11",
+      "from": "ETH",
+      "to": "MATIC",
+      "effect": "positive",
+      "weight": 0.72,
+      "lag": "1c",
+      "confidence": 0.72,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "ETH leads Layer2 tokens (MATIC)"
+    },
+    {
+      "id": "edge_12",
+      "from": "ETH",
+      "to": "OP",
+      "effect": "positive",
+      "weight": 0.70,
+      "lag": "1c",
+      "confidence": 0.70,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "ETH leads Layer2 tokens (OP)"
+    },
+    {
+      "id": "edge_13",
+      "from": "ETH",
+      "to": "ARB",
+      "effect": "positive",
+      "weight": 0.70,
+      "lag": "1c",
+      "confidence": 0.70,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "ETH leads Layer2 tokens (ARB)"
+    },
+    {
+      "id": "edge_14",
+      "from": "BTC",
+      "to": "DOGE",
+      "effect": "positive",
+      "weight": 0.55,
+      "lag": "3c",
+      "confidence": 0.55,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "BTC weakly leads meme coins"
+    },
+    {
+      "id": "edge_15",
+      "from": "OI",
+      "to": "BTC",
+      "effect": "positive",
+      "weight": 0.60,
+      "lag": "4h",
+      "confidence": 0.60,
+      "condition": "always",
+      "is_active": true,
+      "source": "manual",
+      "propagate_confidence": true,
+      "description": "Rising OI suggests bullish momentum"
     }
   ]
 }

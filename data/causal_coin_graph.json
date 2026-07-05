@@ -1,0 +1,125 @@
+{
+  "version": "1.0.0",
+  "type": "coin_causal_graph",
+  "created_at": "2026-07-05T15:01:30.318263+00:00",
+  "n_samples": 600,
+  "coins": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "BNB",
+    "LINK",
+    "DOGE",
+    "MATIC",
+    "XRP"
+  ],
+  "nodes": [
+    {
+      "id": "BTC",
+      "cluster": "Layer1",
+      "type": "crypto"
+    },
+    {
+      "id": "ETH",
+      "cluster": "Layer1",
+      "type": "crypto"
+    },
+    {
+      "id": "SOL",
+      "cluster": "Layer1",
+      "type": "crypto"
+    },
+    {
+      "id": "BNB",
+      "cluster": "Layer1",
+      "type": "crypto"
+    },
+    {
+      "id": "LINK",
+      "cluster": "DeFi",
+      "type": "crypto"
+    },
+    {
+      "id": "DOGE",
+      "cluster": "Meme",
+      "type": "crypto"
+    },
+    {
+      "id": "MATIC",
+      "cluster": "Layer2",
+      "type": "crypto"
+    },
+    {
+      "id": "XRP",
+      "cluster": "Other",
+      "type": "crypto"
+    }
+  ],
+  "edges": [
+    {
+      "id": "coin_edge_1",
+      "from": "BTC",
+      "to": "ETH",
+      "effect": "positive",
+      "weight": 0.838,
+      "lag": "1c",
+      "confidence": 0.768,
+      "condition": "always",
+      "is_active": true,
+      "source": "learned",
+      "propagate_confidence": true,
+      "description": "Coin causal: BTC→ETH (corr=+0.698, lag=1, p=0.000)",
+      "leader_cluster": "Layer1",
+      "follower_cluster": "Layer1",
+      "is_intra_cluster": true,
+      "learned_at": "2026-07-05T15:01:30.319420+00:00"
+    },
+    {
+      "id": "coin_edge_2",
+      "from": "BTC",
+      "to": "BNB",
+      "effect": "positive",
+      "weight": 0.58,
+      "lag": "1c",
+      "confidence": 0.602,
+      "condition": "always",
+      "is_active": true,
+      "source": "learned",
+      "propagate_confidence": true,
+      "description": "Coin causal: BTC→BNB (corr=+0.483, lag=1, p=0.000)",
+      "leader_cluster": "Layer1",
+      "follower_cluster": "Layer1",
+      "is_intra_cluster": true,
+      "learned_at": "2026-07-05T15:01:30.319436+00:00"
+    },
+    {
+      "id": "coin_edge_3",
+      "from": "ETH",
+      "to": "LINK",
+      "effect": "positive",
+      "weight": 0.518,
+      "lag": "1c",
+      "confidence": 0.563,
+      "condition": "always",
+      "is_active": true,
+      "source": "learned",
+      "propagate_confidence": true,
+      "description": "Coin causal: ETH→LINK (corr=+0.431, lag=1, p=0.000)",
+      "leader_cluster": "Layer1",
+      "follower_cluster": "DeFi",
+      "is_intra_cluster": false,
+      "learned_at": "2026-07-05T15:01:30.319443+00:00"
+    }
+  ],
+  "metadata": {
+    "source": "CoinCausalRelationFinder",
+    "num_pairs_found": 3,
+    "clusters_represented": [
+      "Layer2",
+      "DeFi",
+      "Other",
+      "Layer1",
+      "Meme"
+    ]
+  }
+}

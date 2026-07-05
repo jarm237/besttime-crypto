@@ -127,7 +127,15 @@ class GoogleTrendsCollector(CollectorBase):
             # Prefer pytrends library
             if TrendReq is not None:
                 try:
-                    pytrends = TrendReq(hl="en-US", tz=0, requests_args={'timeout': (10, 15)})
+                    try:
+                        # Prefer specifying requests_args but guard against pytrends internals
+                        # that may pass timeout twice to requests.get causing TypeError.
+                        pytrends = TrendReq(hl="en-US", tz=0, requests_args={'timeout': (10, 15)})
+                    except TypeError as te:
+                        # Workaround: retry without requests_args (safer fallback).
+                        _logger.debug("TrendReq init TypeError, retrying without requests_args: %s", te)
+                        pytrends = TrendReq(hl="en-US", tz=0)
+
                     pytrends.build_payload([self.keyword], timeframe="now 7-d")
                     
                     # Add random delay to avoid being detected as bot

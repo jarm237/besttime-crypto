@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-07-05T15:01:30.359608+00:00",
+  "graph_summary": "CoinCausalGraph | 8 coins | 3 causal pairs (2 intra-cluster, 1 inter-cluster) | n_samples=600",
+  "config": {
+    "anomaly_z_threshold": 2.0,
+    "strong_z_threshold": 3.0,
+    "rolling_window": 48,
+    "min_warmup_periods": 24,
+    "min_pair_confidence": 0.5,
+    "use_weighted_leaders": true
+  },
+  "coins_analyzed": [
+    "ETH",
+    "BNB",
+    "LINK"
+  ],
+  "per_coin": {
+    "ETH": {
+      "coin": "ETH",
+      "n_anomalies": 27,
+      "n_bullish": 9,
+      "n_bearish": 18,
+      "n_strong": 2,
+      "avg_anomaly_score": 0.7547,
+      "max_anomaly_score": 3.1755,
+      "anomaly_rate": 0.045
+    },
+    "BNB": {
+      "coin": "BNB",
+      "n_anomalies": 28,
+      "n_bullish": 15,
+      "n_bearish": 13,
+      "n_strong": 0,
+      "avg_anomaly_score": 0.7517,
+      "max_anomaly_score": 2.8154,
+      "anomaly_rate": 0.0467
+    },
+    "LINK": {
+      "coin": "LINK",
+      "n_anomalies": 26,
+      "n_bullish": 14,
+      "n_bearish": 12,
+      "n_strong": 0,
+      "avg_anomaly_score": 0.7622,
+      "max_anomaly_score": 2.7388,
+      "anomaly_rate": 0.0433
+    }
+  }
+}
