@@ -437486,5 +437486,39 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "XRP",
+    "id": "e4dfbdc3-b910-4a31-a773-6d51272b8ebf",
+    "entry_price": 1.1347,
+    "sell_price": 1.1452,
+    "pnl_pct": -0.9254,
+    "result": "LOSS",
+    "hold_hours": 0.4,
+    "exit_time": "2026-07-06 23:09",
+    "signal_raw": "NEUTRAL (BULLISH-CAUTION)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH-CAUTION)",
+      "gated": false,
+      "meta_confidence": 0.48704663212435234,
+      "meta_confidence_pct": 49,
+      "meta_expected_return": null,
+      "meta_expected_drawdown": null,
+      "meta_expected_hold_time": null,
+      "meta_decision": {},
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

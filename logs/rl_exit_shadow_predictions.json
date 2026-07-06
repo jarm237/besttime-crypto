@@ -2715,5 +2715,49 @@
     "meta_prob": 0.4574,
     "position_id": "195c721f-4c6e-496c-9dc5-5f8f6e30360d",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XRPUSDT_RL_1783353063",
+    "symbol": "XRPUSDT",
+    "timestamp": 1783353063.2317111,
+    "timestamp_str": "2026-07-06 22:51:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "e4dfbdc3-b910-4a31-a773-6d51272b8ebf",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XRPUSDT_RL_1783353363",
+    "symbol": "XRPUSDT",
+    "timestamp": 1783353363.4344103,
+    "timestamp_str": "2026-07-06 22:56:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "e4dfbdc3-b910-4a31-a773-6d51272b8ebf",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XRPUSDT_RL_1783353676",
+    "symbol": "XRPUSDT",
+    "timestamp": 1783353676.8846788,
+    "timestamp_str": "2026-07-06 23:01:16",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "e4dfbdc3-b910-4a31-a773-6d51272b8ebf",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XRPUSDT_RL_1783353963",
+    "symbol": "XRPUSDT",
+    "timestamp": 1783353963.3990395,
+    "timestamp_str": "2026-07-06 23:06:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "e4dfbdc3-b910-4a31-a773-6d51272b8ebf",
+    "note": "RL Exit shadow recommendation"
   }
 ]
