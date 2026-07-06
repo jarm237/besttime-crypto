@@ -1,4 +1,9 @@
 {
+  "2026-07-06T00:00:00Z": {
+    "score": -0.52,
+    "raw_value": 24,
+    "label": "Extreme Fear"
+  },
   "2026-07-05T00:00:00Z": {
     "score": -0.54,
     "raw_value": 23,
@@ -3593,10 +3598,5 @@
     "score": 0.3,
     "raw_value": 65,
     "label": "Greed"
-  },
-  "2024-07-15T00:00:00Z": {
-    "score": 0.04,
-    "raw_value": 52,
-    "label": "Neutral"
   }
 }
