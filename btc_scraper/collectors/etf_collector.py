@@ -46,40 +46,72 @@ class ETFCollector(CollectorBase):
             return payload
 
         try:
-            # Use provider chain for ETF flow collection
-            provider_chain = ETFProviderChain()
-            result = provider_chain.fetch()
+            # Check if PARSEBOT_ENABLED is true
+            parsebot_enabled = os.getenv("PARSEBOT_ENABLED", "false").strip().lower() == "true"
+            allow_fake = os.getenv("ETF_FLOW_ALLOW_DEFAULT_FAKE_DATA", "false").strip().lower() == "true"
 
-            if result is not None:
-                payload["etf_flow"] = result.etf_flow
-                payload["etf_flow_confidence"] = result.etf_flow_confidence
-                payload["etf_flow_source"] = result.etf_flow_source
-                payload["etf_flow_scope"] = result.etf_flow_scope
-                payload["data"]["etf_flow"] = result.etf_flow
-                payload["status"] = "success"
-                _logger.info(
-                    "ETF flow collected: flow=%.2f, confidence=%.2f, source=%s",
-                    result.etf_flow,
-                    result.etf_flow_confidence,
-                    result.etf_flow_source,
-                )
+            if parsebot_enabled:
+                from btc_scraper.collectors.parsebot_farside_collector import get_etf_feature_for_scoring
+                feature = get_etf_feature_for_scoring("BTC", mode="recent")
+                status = feature["etf_flow_status"]
+                
+                if status == "ok":
+                    payload["etf_flow"] = feature["total_flow_usd_m"]
+                    payload["etf_flow_confidence"] = 0.65
+                    payload["etf_flow_source"] = "parsebot_farside"
+                    payload["data"]["etf_flow"] = feature["total_flow_usd_m"]
+                    payload["status"] = "success"
+                    _logger.info(
+                        "ETF flow collected from Parse.bot cache: flow=%.2f, source=%s",
+                        payload["etf_flow"],
+                        payload["etf_flow_source"],
+                    )
+                else:
+                    payload["status"] = "failed" if status == "failed" else status
+                    payload["reason"] = f"parsebot_cache_{status}"
+                    payload["etf_flow"] = 0.0 if allow_fake else None
+                    payload["etf_flow_confidence"] = 0.0
+                    payload["etf_flow_source"] = "parsebot_farside"
+                    if "etf_flow" in payload["data"]:
+                        payload["data"]["etf_flow"] = 0.0 if allow_fake else None
+                    _logger.warning("Parse.bot ETF cache not usable: status=%s, allow_fake=%s", status, allow_fake)
             else:
-                # All providers failed; use last-known value or default
-                payload["status"] = "fallback"
-                payload["reason"] = "all_providers_failed"
-                payload["etf_flow"] = 0.0
-                payload["etf_flow_confidence"] = 0.0
-                _logger.warning("All ETF providers failed; using default")
+                # Use provider chain for ETF flow collection
+                provider_chain = ETFProviderChain()
+                result = provider_chain.fetch()
+
+                if result is not None:
+                    payload["etf_flow"] = result.etf_flow
+                    payload["etf_flow_confidence"] = result.etf_flow_confidence
+                    payload["etf_flow_source"] = result.etf_flow_source
+                    payload["etf_flow_scope"] = result.etf_flow_scope
+                    payload["data"]["etf_flow"] = result.etf_flow
+                    payload["status"] = "success"
+                    _logger.info(
+                        "ETF flow collected from provider chain: flow=%.2f, confidence=%.2f, source=%s",
+                        result.etf_flow,
+                        result.etf_flow_confidence,
+                        result.etf_flow_source,
+                    )
+                else:
+                    payload["status"] = "fallback" if allow_fake else "failed"
+                    payload["reason"] = "all_providers_failed"
+                    payload["etf_flow"] = 0.0 if allow_fake else None
+                    payload["etf_flow_confidence"] = 0.0
+                    if "etf_flow" in payload["data"]:
+                        payload["data"]["etf_flow"] = 0.0 if allow_fake else None
+                    _logger.warning("All ETF providers failed; allow_fake=%s", allow_fake)
 
         except Exception as e:
             _logger.exception("ETFCollector failed")
+            allow_fake = os.getenv("ETF_FLOW_ALLOW_DEFAULT_FAKE_DATA", "false").strip().lower() == "true"
             payload = {
                 "source": self.name,
                 "status": "error",
                 "reason": repr(e),
                 "timestamp": timestamp,
-                "data": None,
-                "etf_flow": 0.0,
+                "data": {"etf_flow": 0.0 if allow_fake else None},
+                "etf_flow": 0.0 if allow_fake else None,
                 "etf_flow_confidence": 0.0,
                 "etf_flow_source": "none",
                 "etf_flow_scope": "us_spot_btc_etf",

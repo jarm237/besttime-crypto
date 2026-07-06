@@ -111,18 +111,27 @@ def build_world_state_from_ana(ana: Dict):
 
         # Alternative data features with safe defaults
         alt_state = load_alternative_data()
-        state.alternative.exchange_netflow = float(alt_state.get("exchange_netflow", 0.0))
-        state.alternative.whale_score = float(alt_state.get("whale_score", 0.0))
-        state.alternative.stablecoin_supply = float(alt_state.get("stablecoin_supply", 0.0))
-        state.alternative.etf_flow = float(alt_state.get("etf_flow", 0.0))
-        state.alternative.options_iv = float(alt_state.get("options_iv", 0.0))
-        state.alternative.orderbook_imbalance = float(alt_state.get("orderbook_imbalance", 0.0))
-        state.alternative.liquidity_pressure = float(alt_state.get("liquidity_pressure", 0.0))
-        state.alternative.macro_pressure = float(alt_state.get("macro_pressure", 0.0))
-        state.alternative.funding_pressure = float(alt_state.get("funding_pressure", 0.0))
-        state.alternative.stablecoin_momentum = float(alt_state.get("stablecoin_momentum", 0.0))
-        state.alternative.etf_momentum = float(alt_state.get("etf_momentum", 0.0))
-        state.alternative.risk_on_score = float(alt_state.get("risk_on_score", 0.0))
+        def _get_float(key: str, default: float = 0.0) -> float:
+            val = alt_state.get(key)
+            if val is None:
+                return default
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                return default
+
+        state.alternative.exchange_netflow = _get_float("exchange_netflow", 0.0)
+        state.alternative.whale_score = _get_float("whale_score", 0.0)
+        state.alternative.stablecoin_supply = _get_float("stablecoin_supply", 0.0)
+        state.alternative.etf_flow = _get_float("etf_flow", 0.0)
+        state.alternative.options_iv = _get_float("options_iv", 0.0)
+        state.alternative.orderbook_imbalance = _get_float("orderbook_imbalance", 0.0)
+        state.alternative.liquidity_pressure = _get_float("liquidity_pressure", 0.0)
+        state.alternative.macro_pressure = _get_float("macro_pressure", 0.0)
+        state.alternative.funding_pressure = _get_float("funding_pressure", 0.0)
+        state.alternative.stablecoin_momentum = _get_float("stablecoin_momentum", 0.0)
+        state.alternative.etf_momentum = _get_float("etf_momentum", 0.0)
+        state.alternative.risk_on_score = _get_float("risk_on_score", 0.0)
 
         return state
     except Exception as exc:
