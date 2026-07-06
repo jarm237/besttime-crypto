@@ -82,3 +82,27 @@ Chúng tôi đã viết một scratch script để thu thập và hợp nhất t
     Thay vì nạp trực tiếp `alternative_data.json` đơn lẻ, hệ thống nên có một cơ chế quét toàn bộ tệp thô trong `data/raw_alternative/*.json`, gộp chúng lại theo thời gian rồi mới truyền vào `AlternativeFeatureBuilder`.
 3.  **Tối ưu hóa DataFrame Fragmentation**:
     Trong quá trình build, gán trực tiếp nhiều cột mới vào DataFrame gây ra warning cảnh báo phân mảnh của Pandas. Nên chuyển sang tích lũy các cột mới vào một Dictionary sau đó `pd.concat` một lần duy nhất.
+
+---
+
+## 6. Cập Nhật Trạng Thái — Phase 7 Hoàn Thành (07/07/2026)
+
+Các lỗi và gap đã được xử lý trong Phase 7 Alternative Data (Sprint 9):
+
+| Hạng mục | Trạng thái | Ghi chú |
+|:---|:---:|:---|
+| Xóa `api.example.com` placeholders | ✅ | Sprint 9.1 — `validate_collectors_on_startup()` added |
+| ETF collector thay bằng Parse.bot Farside | ✅ | `parsebot_farside_collector.py` |
+| DefiLlama endpoint 404 → patched | ✅ | `stablecoins.llama.fi/stablecoins` |
+| Reddit OAuth thay placeholder | ✅ | `reddit_collector.py` |
+| Google Trends 429 spam → 6h cache | ✅ | LKV fallback + cadence fix |
+| ETF flow lưu MongoDB | ✅ | `alternative_data_etf_flows` collection + upsert per `flow_date` |
+| Scheduler tự động chạy ETF jobs | ✅ | `AlternativeDataScheduler._collect()` timezone-aware |
+| Monitoring/Alert ETF stale/fail | ✅ | `check_etf_alert_conditions()` → Telegram |
+| Dashboard hiển thị ETF status | ✅ | `print_dashboard()` ETF Flow Status block |
+| Confidence weighting vào WorldState | ✅ | `effective_*` features trong `causal_context_bridge.py` |
+| FRED 400 Bad Request | ✅ | Yahoo Finance REST fallback |
+| yfinance thiếu | ✅ | REST fallback trong `yahoo_collector.py` và `macro_collector.py` |
+| Causal Bridge `None` TypeError | ✅ | `_get_float()` safe helper |
+
+**Test kết quả**: `pytest tests/test_phase7_sprint7.py` → **29/29 PASSED**

@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from btc_scraper.core.config import COINS
 
 # Warmup candles cần thiết để SMA200 có giá trị (tránh all-zeros)

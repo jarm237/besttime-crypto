@@ -1,7 +1,7 @@
 """
-Fetch May 2026 Data — Tất cả khung thời gian mà chiến lược sử dụng
+Fetch February 2026 Data — Tất cả khung thời gian mà chiến lược sử dụng
 =====================================================================
-Cào dữ liệu tháng 5/2026 cho tất cả COINS, trên 4 khung nến:
+Cào dữ liệu tháng 2/2026 cho tất cả COINS, trên 4 khung nến:
   - 15m : tín hiệu chính (analyze_market)
   - 1h  : MTF confirmation
   - 4h  : MTF confirmation
@@ -14,24 +14,28 @@ Mỗi khung cào thêm "warmup" đủ để tính SMA200 chính xác:
   - 1d  : +220 ngày warmup (SMA200 cần 200 nến 1d)
 
 Output:
-  data/may_<COIN>_15m.csv
-  data/may_<COIN>_1h.csv
-  data/may_<COIN>_4h.csv
-  data/may_<COIN>_1d.csv
+  data/february_<COIN>_15m.csv
+  data/february_<COIN>_1h.csv
+  data/february_<COIN>_4h.csv
+  data/february_<COIN>_1d.csv
 
 Cách chạy:
-  python fetch_may_data.py
+  python fetch_february_data.py
 """
 
 import sys, os, time, csv, requests
 from datetime import datetime, timedelta, timezone
 
-sys.path.insert(0, os.path.dirname(__file__))
+# Force stdout to UTF-8 to support Vietnamese characters in console
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from btc_scraper.core.config import COINS
 
 # ─── Config ──────────────────────────────────────────────────────────────────
-TARGET_MONTH_START = datetime(2026, 5, 1,  0, 0, 0, tzinfo=timezone.utc)
-TARGET_MONTH_END   = datetime(2026, 5, 31, 23, 59, 59, tzinfo=timezone.utc)
+TARGET_MONTH_START = datetime(2026, 2, 1,  0, 0, 0, tzinfo=timezone.utc)
+TARGET_MONTH_END   = datetime(2026, 2, 28, 23, 59, 59, tzinfo=timezone.utc)
 
 # Warmup candles cần thiết để SMA200 có giá trị (tránh all-zeros)
 WARMUP_CANDLES = 220
@@ -110,16 +114,16 @@ def fetch_candles(coin: str, interval: str, start_dt: datetime, end_dt: datetime
             unique.append(c)
     unique.sort(key=lambda x: x["time"])
 
-    # Đánh dấu warmup candles (những nến trước ngày 1/5)
-    may_start_str = TARGET_MONTH_START.strftime("%Y-%m-%d %H:%M")
+    # Đánh dấu warmup candles (những nến trước ngày 1/2)
+    feb_start_str = TARGET_MONTH_START.strftime("%Y-%m-%d %H:%M")
     for c in unique:
-        c["is_warmup"] = 1 if c["time"] < may_start_str else 0
+        c["is_warmup"] = 1 if c["time"] < feb_start_str else 0
 
     return unique
 
 
 def save_csv(coin: str, interval: str, candles: list[dict]) -> str:
-    path = os.path.join(DATA_DIR, f"may_{coin}_{interval}.csv")
+    path = os.path.join(DATA_DIR, f"february_{coin}_{interval}.csv")
     if not candles:
         return path
     fieldnames = list(candles[0].keys())
@@ -137,7 +141,7 @@ def print_summary(coin: str, interval: str, candles: list[dict]):
         first = candles[0]["time"]
         last  = candles[-1]["time"]
         print(f"    {interval:>3}: {len(candles):>5} nến "
-              f"(warmup={warmup}, may={actual}) "
+              f"(warmup={warmup}, february={actual}) "
               f"| {first} → {last}")
     else:
         print(f"    {interval:>3}: [Không có dữ liệu]")
@@ -145,7 +149,7 @@ def print_summary(coin: str, interval: str, candles: list[dict]):
 
 def main():
     print("=" * 62)
-    print("  FETCH MAY 2026 DATA — Tất cả khung thời gian chiến lược")
+    print("  FETCH FEBRUARY 2026 DATA — Tất cả khung thời gian chiến lược")
     print(f"  Coins: {', '.join(COINS)}")
     print(f"  Tháng mục tiêu: {TARGET_MONTH_START.strftime('%Y-%m-%d')} → "
           f"{TARGET_MONTH_END.strftime('%Y-%m-%d')}")
@@ -164,7 +168,7 @@ def main():
             start_dt     = TARGET_MONTH_START - timedelta(days=warmup_days)
 
             # Kiểm tra cache
-            csv_path = os.path.join(DATA_DIR, f"may_{coin}_{interval}.csv")
+            csv_path = os.path.join(DATA_DIR, f"february_{coin}_{interval}.csv")
             if os.path.exists(csv_path):
                 age_h = (time.time() - os.path.getmtime(csv_path)) / 3600
                 if age_h < 24:

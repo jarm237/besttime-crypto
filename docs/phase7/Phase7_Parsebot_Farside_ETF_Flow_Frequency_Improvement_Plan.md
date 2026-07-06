@@ -18,6 +18,8 @@ Mục tiêu của bản cải tiến này:
 5. Khi API fail thì trả trạng thái `failed`, `missing`, `stale`, hoặc `unsupported`, không dùng dữ liệu default giả.
 6. Chuẩn hóa `.env` để dễ bật/tắt từng endpoint.
 
+> **✅ IMPLEMENTATION COMPLETE (2026-07-07):** Tất cả các mục tiêu trên đã được triển khai đầy đủ. Xem Checklist §16 và `implementation_plan_comparison.md` để biết trạng thái từng hạng mục.
+
 Các endpoint Parse.bot Farside ETF Flows cần hỗ trợ:
 
 ```text
@@ -899,63 +901,64 @@ Response schema thay đổi
 ### Phase A — Config
 
 ```text
-[ ] Thêm Parse.bot config vào .env
-[ ] Thêm endpoint name config
-[ ] Thêm cron config
-[ ] Thêm supported symbols config
-[ ] Thêm fallback/data quality config
-[ ] Cập nhật .env.example
+[x] Thêm Parse.bot config vào .env
+[x] Thêm endpoint name config
+[x] Thêm cron config
+[x] Thêm supported symbols config
+[x] Thêm fallback/data quality config
+[x] Cập nhật .env.example
 ```
 
 ### Phase B — Collector
 
 ```text
-[ ] Tạo ParsebotFarsideETFCollector
-[ ] Implement fetch(symbol, mode)
-[ ] Implement retry + timeout
-[ ] Implement endpoint resolver
-[ ] Implement unsupported symbol handling
-[ ] Không dùng default fake data
+[x] Tạo ParsebotFarsideETFCollector
+[x] Implement fetch(symbol, mode)
+[x] Implement retry + timeout
+[x] Implement endpoint resolver
+[x] Implement unsupported symbol handling
+[x] Không dùng default fake data
 ```
 
 ### Phase C — Storage
 
 ```text
-[ ] Tạo alternative_data_etf_flows
-[ ] Tạo alternative_data_fetch_logs
-[ ] Upsert theo source + symbol + flow_date
-[ ] Lưu raw response để debug
-[ ] Lưu data_quality/status
+[x] Tạo alternative_data_etf_flows (MongoDB, db.py)
+[x] Tạo alternative_data_fetch_logs (MongoDB, db.py)
+[x] Upsert theo source + symbol + flow_date
+[x] Lưu raw response để debug
+[x] Lưu data_quality/status
 ```
 
 ### Phase D — Scheduler
 
 ```text
-[ ] Job recent: 06:00, 07:00, 08:00, 09:00 VN
-[ ] Job all: 09:30 VN
-[ ] Job fund_info: 10:00 VN
-[ ] Không gọi Parse.bot trong scan 15m
+[x] Job recent: 06:00, 07:00, 08:00, 09:00 VN (fetch_parsebot_etf_jobs.py)
+[x] Job all: 09:30 VN
+[x] Job fund_info: 10:00 VN
+[x] Không gọi Parse.bot trong scan 15m
+[x] Tích hợp tự động vào AlternativeDataScheduler._collect() theo timezone Asia/Ho_Chi_Minh
 ```
 
 ### Phase E — Scoring
 
 ```text
-[ ] Load ETF flow từ cache/DB
-[ ] Nếu status != ok thì weight = 0
-[ ] Nếu stale thì weight = 0
-[ ] Nếu unsupported thì weight = 0
-[ ] Nếu ok thì compute score
-[ ] Log rõ ETF feature được dùng hay bị skip
+[x] Load ETF flow từ cache/DB
+[x] Nếu status != ok thì weight = 0
+[x] Nếu stale thì weight = 0
+[x] Nếu unsupported thì weight = 0
+[x] Nếu ok thì compute score
+[x] Log rõ ETF feature được dùng hay bị skip
 ```
 
 ### Phase F — Monitoring
 
 ```text
-[ ] Log endpoint fail theo symbol/mode
-[ ] Alert nếu failed > 2 ngày liên tiếp
-[ ] Dashboard hiển thị data_quality
-[ ] Dashboard hiển thị last_fetched_at
-[ ] Dashboard hiển thị ETF flow stale/failed/unsupported
+[x] Log endpoint fail theo symbol/mode (alternative_data_fetch_logs)
+[x] Alert nếu failed > 2 ngày liên tiếp (check_etf_alert_conditions)
+[x] Dashboard hiển thị data_quality (print_dashboard ETF status block)
+[x] Dashboard hiển thị last_fetched_at
+[x] Dashboard hiển thị ETF flow stale/failed/unsupported
 ```
 
 ---

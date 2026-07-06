@@ -3,7 +3,7 @@
 Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kết hợp **7 lớp lọc kỹ thuật**, **ML Ensemble**, **Reinforcement Learning Exit Manager** và **Causal World Model** — gửi cảnh báo thời gian thực qua Telegram và trực quan hoá qua Web Dashboard.
 
 > **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI  
-> **Test Suite**: ✅ **196/196 PASSED** (02/07/2026)  
+> **Test Suite**: ✅ **246/246 PASSED** (07/07/2026) — bao gồm 29 tests Phase 7 Alternative Data  
 > **Trạng thái**: Production-ready với paper trading và live trading có giám sát
 
 ---
@@ -34,6 +34,12 @@ Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kế
   - `Gemini AI Insights` — báo cáo từ `data/latest_ai_analysis.json`.
 - **Backend API**: FastAPI `api/server.py` (port 8000) phục vụ Dashboard.
 - **Telegram Alerts**: Bảng tín hiệu + AI report + Causal risk level sau mỗi chu kỳ.
+- **Alternative Data Layer (Phase 7)**:
+  - 12+ features on-chain/macro/sentiment: `etf_flow`, `exchange_netflow`, `whale_score`, `stablecoin_supply`, `funding_pressure`, `macro_pressure`, `risk_on_score`, v.v.
+  - `ParsebotFarsideETFCollector` thu thập ETF flow BTC/ETH/SOL, lưu MongoDB (`alternative_data_etf_flows`).
+  - `AlternativeDataScheduler` tự động kích hoạt Parse.bot jobs theo múi giờ VN (`Asia/Ho_Chi_Minh`).
+  - `CollectorHealthMonitor.check_etf_alert_conditions()` cảnh báo Telegram khi data stale >36h hoặc fail >2 ngày.
+  - Confidence-weighted features: `effective_etf_momentum`, `effective_stablecoin_momentum`, `effective_risk_on_score` trong `causal_context_bridge.py`.
 
 ---
 
@@ -154,7 +160,7 @@ python -c "from btc_scraper.ml_engine.causal_discovery import CausalDiscoveryEng
 ## Chạy Unit Test
 
 ```bash
-# Toàn bộ test suite (196 tests)
+# Toàn bộ test suite (246 tests)
 pytest
 
 # Riêng từng nhóm
@@ -164,6 +170,7 @@ pytest tests/test_phase30_learning.py         # Phase 3.0 (33 tests)
 pytest tests/test_decision_engine.py          # MetaDecisionEngine
 pytest tests/test_auto_trader.py              # AutoTrader
 pytest tests/test_portfolio_manager.py        # Portfolio MVO
+pytest tests/test_phase7_sprint7.py           # Phase 7 Alternative Data (29 tests)
 ```
 
 ---
@@ -257,7 +264,18 @@ besttime-crypto/
 │   │   ├── exposure_manager.py      # Exposure & drawdown limits
 │   │   └── risk_manager.py          # Circuit breaker + loss streak
 │   ├── collectors/
-│   │   └── macro_collector.py       # DXY, VIX, RealYield, BondYield fetcher
+│   │   ├── macro_collector.py          # DXY, VIX, RealYield, BondYield fetcher (REST fallback)
+│   │   ├── alternative_data.py         # Phase 7: Unified alternative data aggregator
+│   │   ├── alternative_scheduler.py    # Phase 7: Thread-based scheduler + Parse.bot cron
+│   │   ├── alternative_quality.py      # Phase 7: DataQualityDashboard + ETF alert monitor
+│   │   ├── parsebot_farside_collector.py # Phase 7: ETF flow (MongoDB upsert)
+│   │   ├── etf_collector.py            # Phase 7: ETF provider chain
+│   │   ├── fred_collector.py           # Macro: FRED + Yahoo REST fallback
+│   │   ├── yahoo_collector.py          # Macro: yfinance + REST fallback
+│   │   ├── binance_collector.py        # Funding rate, OI
+│   │   ├── defillama_collector.py      # Stablecoin supply, TVL
+│   │   ├── reddit_collector.py         # Reddit OAuth sentiment
+│   │   └── google_trends_collector.py  # Search interest (6h cache)
 │   ├── telegram_bot/
 │   │   └── alerts.py                # Telegram alert builders
 │   ├── ai_analyst/
@@ -278,19 +296,27 @@ besttime-crypto/
 │   ├── auto_trade_circuit.json      # Circuit Breaker state
 │   └── rl_models/                   # Trained PPO model checkpoints
 ├── scripts/
-│   ├── continuous_learning.py       # Weekly auto-retrain
-│   ├── weekly_job.py                # Weekly report generator
-│   ├── build_coins_parallel.py      # Parallel per-coin build
-│   └── ...
-├── tests/                           # 196 tests (100% PASS)
-├── train_rl_exit_manager.py         # RL Exit Manager training
-├── evaluate_rl_phase4.py            # RL evaluation vs rule-based
-├── backtest.py / backtest_eval.py   # Backtesting scripts
-├── ARCHITECTURE_v2.md               # Architecture v2.0 technical doc
-├── SYSTEM_DESIGN.md                 # System Design Document (TDD)
-├── causal_implementation_plan.md    # Causal AI roadmap & status
-├── system_evaluation_report.md      # Deep system evaluation report
-└── trading_strategies_summary.md    # Indicators & trading strategies
+│   ├── fetch_parsebot_etf_jobs.py       # Phase 7: Parse.bot ETF job CLI (--dry-run)
+│   ├── continuous_learning.py           # Weekly auto-retrain
+│   ├── weekly_job.py                    # Weekly report generator
+│   ├── build_coins_parallel.py          # Parallel per-coin build
+│   ├── backtest.py / backtest_eval.py   # Backtesting scripts
+│   ├── train_rl_exit_manager.py         # RL Exit Manager training
+│   ├── evaluate_rl_phase4.py            # RL evaluation vs rule-based
+│   └── ... (97 scripts total)
+├── models/
+│   ├── adversarial.pt               # TimeGAN adversarial checkpoint
+│   ├── autoencoder.pt               # TimeGAN autoencoder checkpoint
+│   └── supervisor.pt                # TimeGAN supervisor checkpoint
+├── docs/
+│   ├── ARCHITECTURE_v2.md           # Architecture v2.1 technical doc
+│   ├── SYSTEM_DESIGN.md             # System Design Document (TDD)
+│   ├── causal_implementation_plan.md# Causal AI roadmap & status
+│   ├── trading_strategies_summary.md# Indicators & trading strategies
+│   ├── system_evaluation_report.md  # Deep system evaluation report
+│   ├── phase7/                      # Phase 7 Alternative Data docs
+│   └── phase8/                      # Phase 8 Feature Engineering docs
+└── tests/                               # 246 tests (100% PASS)
 ```
 
 ---
@@ -299,9 +325,12 @@ besttime-crypto/
 
 | Tài liệu | Mô tả |
 |----------|-------|
-| [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md) | Technical Design Document — kiến trúc, data pipeline, XAI, RL |
-| [ARCHITECTURE_v2.md](ARCHITECTURE_v2.md) | Causal World Model v2.1 — Event-Driven Architecture |
-| [causal_implementation_plan.md](causal_implementation_plan.md) | Roadmap & status chi tiết Phase 2.1 → Phase D |
-| [trading_strategies_summary.md](trading_strategies_summary.md) | Công thức kỹ thuật, signal layers, TP/SL, RL |
-| [system_evaluation_report.md](system_evaluation_report.md) | Đánh giá sâu hệ thống (02/07/2026) |
-| [ML_DATA_GUIDE.md](ML_DATA_GUIDE.md) | Hướng dẫn chuẩn bị data ML |
+| [SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) | Technical Design Document — kiến trúc, data pipeline, XAI, RL |
+| [ARCHITECTURE_v2.md](docs/ARCHITECTURE_v2.md) | Causal World Model v2.1 — Event-Driven Architecture |
+| [causal_implementation_plan.md](docs/causal_implementation_plan.md) | Roadmap & status chi tiết Phase 2.1 → Phase D |
+| [trading_strategies_summary.md](docs/trading_strategies_summary.md) | Công thức kỹ thuật, signal layers, TP/SL, RL |
+| [system_evaluation_report.md](docs/system_evaluation_report.md) | Đánh giá sâu hệ thống (02/07/2026) |
+| [ML_DATA_GUIDE.md](docs/ML_DATA_GUIDE.md) | Hướng dẫn chuẩn bị data ML |
+| [Phase7_Alternative_Data_Implementation_Plan_UPDATED.md](docs/phase7/Phase7_Alternative_Data_Implementation_Plan_UPDATED.md) | Phase 7 Alternative Data — Sprint 9 COMPLETE |
+| [Phase7_Parsebot_Farside_ETF_Flow_Frequency_Improvement_Plan.md](docs/phase7/Phase7_Parsebot_Farside_ETF_Flow_Frequency_Improvement_Plan.md) | ETF Flow cron schedule & MongoDB storage |
+| [scripts/SCHEDULE.md](scripts/SCHEDULE.md) | Hướng dẫn cron scheduling + Parse.bot ETF jobs |

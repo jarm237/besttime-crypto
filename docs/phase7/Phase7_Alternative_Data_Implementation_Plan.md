@@ -69,9 +69,32 @@ The Phase 7 foundation is now implemented and validated. The collector framework
   - `AlternativeDataReplayer`: iterates raw-store chronologically with date-range filtering, payload callback, and `replay_into_world_state` for direct WorldState injection during backtesting.
 - **Data quality dashboard & alerting** → `alternative_quality.py`:
   - `DataQualityChecker`: validates field presence, freshness (configurable `max_age_seconds`), and per-field value-range bounds.
-  - `DataQualityDashboard`: accumulates quality reports, writes a persistent JSON quality log, and surfaces `summary()` statistics and `print_dashboard()` output.
-  - `CollectorHealthMonitor`: tracks per-collector uptime/failure rates and emits structured `AlertRecord` objects (info / warning / critical) with optional external forwarding callback.
+  - `DataQualityDashboard`: accumulates quality reports, writes a persistent JSON quality log, and surfaces `summary()` statistics and `print_dashboard()` output — **now includes ETF Flow Status block (BTC/ETH/SOL)**.
+  - `CollectorHealthMonitor`: tracks per-collector uptime/failure rates and emits structured `AlertRecord` objects (info / warning / critical) with optional external forwarding callback — **now includes `check_etf_alert_conditions()` monitoring stale data >36h, consecutive failures >2 days, and 401/403 auth errors from MongoDB logs**.
 - **API-key / rate-limit hardening** → Per-collector retry/delay config exposed through `CollectorBase` constructor args (retries, delay_seconds).
+
+### ✅ Sprint 9: Source Hardening & ETF Flow Integration (COMPLETED)
+- [x] **Sprint 9.1** — All `api.example.com` placeholders removed. Startup validation added via `validate_collectors_on_startup()`. Collectors fail soft.
+- [x] **Sprint 9.2** — `ParsebotFarsideETFCollector` in `btc_scraper/collectors/parsebot_farside_collector.py`. Provider chain: Parse.bot → JSON cache. Normalizes `etf_flow`, `etf_momentum`, `etf_flow_confidence`, `etf_flow_source`.
+- [x] **Sprint 9.3** — DefiLlama stablecoin endpoint patched to use `stablecoins.llama.fi/stablecoins`.
+- [x] **Sprint 9.4** — Reddit OAuth implemented in `btc_scraper/collectors/reddit_collector.py`.
+- [x] **Sprint 9.5** — Google Trends cadence fixed to 6h minimum with LKV cache.
+- [x] **Sprint 9.6** — Confidence layer: `effective_stablecoin_momentum`, `effective_etf_momentum`, `effective_risk_on_score` computed in normalization layer and fed into `causal_context_bridge.py` WorldState instead of raw values.
+
+### ✅ Phase C: ETF Storage MongoDB (COMPLETED)
+- `btc_scraper/core/db.py`: Defines `alternative_data_etf_flows` collection (unique index on `source+symbol+flow_date`) and `alternative_data_fetch_logs` collection.
+- `btc_scraper/collectors/parsebot_farside_collector.py`: `_parse_and_save_records_to_db()` upserts daily ETF flow records to MongoDB. `_save_fetch_log_to_db()` records every API call result.
+
+### ✅ Phase D: Scheduler Auto-trigger (COMPLETED)
+- `btc_scraper/collectors/alternative_scheduler.py`: `_collect()` now checks timezone-aware time (`Asia/Ho_Chi_Minh`) and automatically triggers `fetch_parsebot_etf_recent_job()`, `fetch_parsebot_etf_all_job()`, `fetch_parsebot_fund_info_job()` on the correct cron schedule without OS cron dependency.
+
+### ✅ Phase F: ETF Monitoring & Alerts (COMPLETED)
+- `CollectorHealthMonitor.check_etf_alert_conditions()` in `alternative_quality.py` queries MongoDB logs to detect: 401/403 auth errors, consecutive failures >48h, and stale data >36h — emitting Telegram-forwarded `AlertRecord`.
+
+### ✅ Fallback Fixes (Bonus)
+- **FRED 400 Bad Request**: `fred_collector.py` auto-falls back to Yahoo Finance REST (`query2.finance.yahoo.com/v8/finance/chart`) when key is `"demo"` or API returns error.
+- **yfinance fallback**: `yahoo_collector.py` and `macro_collector.py` work without `yfinance` installed, using public REST endpoints.
+- **Causal Bridge safety**: `_get_float()` helper prevents `TypeError` when alternative features return `None`.
 
 ---
 
@@ -166,3 +189,19 @@ The next sprints should focus on production-readiness and full feature-engineeri
 - **Micro-pipeline Latency**: Data collection to `WorldState` propagation time < 10 seconds.
 - **Missing Value Handling**: Forward-fill or default substitution implemented to prevent causal reasoning failure during API outages.
 - **Ensemble ML Support**: Historical CSV export supporting feature alignment for model retraining.
+
+---
+
+## 9. Final Status (as of 2026-07-07)
+
+**All Phase 7 objectives and Sprint 9 hardening tasks are COMPLETE.**
+
+Test results: `pytest tests/test_phase7_sprint7.py` → **29/29 PASSED**.
+
+Key production files:
+- `btc_scraper/collectors/parsebot_farside_collector.py` — ETF collector + MongoDB upsert
+- `btc_scraper/collectors/alternative_scheduler.py` — Timezone-aware Parse.bot cron scheduling
+- `btc_scraper/collectors/alternative_quality.py` — ETF alert monitoring + dashboard
+- `btc_scraper/ml_engine/causal_context_bridge.py` — Confidence-weighted features in WorldState
+- `btc_scraper/core/db.py` — MongoDB collections with production indexes
+- `scripts/fetch_parsebot_etf_jobs.py` — CLI job runner (dry-run verified)

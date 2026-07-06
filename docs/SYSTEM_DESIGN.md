@@ -1,6 +1,6 @@
 # AI Quant Trading System Design Document (TDD)
 
-> **Cập nhật lần cuối**: 02/07/2026 — Architecture v2.1 (Causal World Model production-integrated)
+> **Cập nhật lần cuối**: 07/07/2026 — Architecture v2.1 + Phase 7 Alternative Data Layer (production-integrated)
 
 Tài liệu này đóng vai trò là **Technical Design Document (TDD)** tổng thể, mô tả kiến trúc, luồng dữ liệu, feature engineering, Causal AI stack và định hướng phát triển của nền tảng **AI Quant Trading Platform**.
 
@@ -106,8 +106,14 @@ build_world_state_from_ana()
       │  ├─ sentiment.FearGreed
       │  ├─ liquidity.BTC_Funding, OI_Delta
       │  ├─ crypto.BTC_Price
-      │  └─ macro.DXY/VIX/RealYield (from macro_collector)
-      ▼
+      │  ├─ macro.DXY/VIX/RealYield (from macro_collector + REST fallback)
+      │  └─ alternative.* (from AlternativeDataCollector → load_alternative_data())
+      │       ├─ etf_flow, etf_momentum       ← ParsebotFarsideETFCollector (MongoDB)
+      │       ├─ exchange_netflow, whale_score ← on-chain collectors
+      │       ├─ stablecoin_supply, funding_pressure, macro_pressure
+      │       ├─ effective_etf_momentum       ← confidence-weighted (etf_flow_confidence)
+      │       └─ effective_risk_on_score      ← confidence-weighted composite
+      ↓
 WorldState
       │
       ▼

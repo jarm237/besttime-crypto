@@ -1,4 +1,9 @@
 import pickle
+import sys
+from pathlib import Path
+
+# train_rl_exit_manager.py lives in scripts/ after root restructuring
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 import numpy as np
 

@@ -72,3 +72,43 @@ Notes & prerequisites
 - By default the runner keeps `7` rotated logs: `periodic_recalibration_cron.log`, `.1`, `.2`, ... You can change this with `KEEP_LOGS`.
 - Rotation only happens when the active log reaches `10 MB` by default. Change that threshold with `MAX_LOG_SIZE_MB`.
 - `AUTO_COMMIT=1` environment variable may be required for automatic push inside `periodic_recalibration.py`.
+
+---
+
+## Parse.bot ETF Flow Scheduled Jobs
+
+ETF flow data is daily data and must **not** be fetched inside every 15-minute scan. Jobs are triggered automatically by `AlternativeDataScheduler` based on Vietnam timezone (`Asia/Ho_Chi_Minh`).
+
+### Cron Schedule
+
+| Job | Cron | Time (VN) | Symbols |
+|:---|:---|:---|:---|
+| `fetch_parsebot_etf_recent` | `0 6,7,8,9 * * 2-6` | 06:00–09:00 Tue–Sat | BTC, ETH, SOL |
+| `fetch_parsebot_etf_all` | `30 9 * * 2-6` | 09:30 Tue–Sat | BTC, ETH |
+| `fetch_parsebot_fund_info` | `0 10 * * *` | 10:00 daily | FUND |
+
+### Manual CLI trigger (dry-run)
+
+```powershell
+# Run all jobs in dry-run mode
+.venv\Scripts\python scripts\fetch_parsebot_etf_jobs.py --job run-all --dry-run
+
+# Run specific job
+.venv\Scripts\python scripts\fetch_parsebot_etf_jobs.py --job recent
+.venv\Scripts\python scripts\fetch_parsebot_etf_jobs.py --job all
+.venv\Scripts\python scripts\fetch_parsebot_etf_jobs.py --job fund
+```
+
+### Environment
+
+```env
+PARSEBOT_ENABLED=true
+PARSEBOT_API_KEY=<your_key>
+PARSEBOT_BASE_URL=<your_endpoint_from_dashboard>
+ETF_FLOW_TIMEZONE=Asia/Ho_Chi_Minh
+ETF_FLOW_ALLOW_DEFAULT_FAKE_DATA=false
+```
+
+### Auto-scheduling
+
+When `PARSEBOT_ENABLED=true`, `AlternativeDataScheduler._collect()` automatically calls the appropriate job function at the correct local time on each collection cycle — no OS cron or Windows Task Scheduler required.

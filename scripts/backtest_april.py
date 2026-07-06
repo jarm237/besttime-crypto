@@ -20,7 +20,7 @@ import sys, os, time, csv, requests
 from datetime import datetime, timedelta, timezone
 
 # Đảm bảo import được btc_scraper từ thư mục gốc project
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from btc_scraper.analysis import analyze_market
 from btc_scraper.core.config import COINS
@@ -33,9 +33,9 @@ CANDLES_PER_REQ    = 1000         # Max nến mỗi request Binance
 WARMUP_CANDLES     = 220          # Nến dùng để "warm up" indicator (SMA200 cần ≥200)
 FEE_RATE           = 0.001        # 0.1% phí mỗi chiều (spot)
 # Ngưỡng lọc tín hiệu theo từng chiều giao dịch:
-BUY_MIN_SCORE  = 65    # BUY: chỉ vào lệnh khi score >= 65 (MEDIUM+, action=BUY)
-SELL_MAX_SCORE = 35    # SELL: chỉ vào lệnh khi score <= 35 (action=SELL)
-# WEAK signals bị loại bỏ hoàn toàn (score 36-64 = NEUTRAL zone)
+BUY_MIN_SCORE  = 51    # BUY: chỉ vào lệnh khi score >= 51 (MEDIUM+, action=BUY)
+SELL_MAX_SCORE = 49    # SELL: chỉ vào lệnh khi score <= 49 (action=SELL)
+# WEAK signals bị loại bỏ hoàn toàn (score 50 = NEUTRAL zone)
 DATA_DIR           = os.path.join(os.path.dirname(__file__), "data")
 BINANCE_BASE       = "https://api.binance.com"
 # ──────────────────────────────────────────────────────────────────────────────
@@ -116,7 +116,7 @@ def save_candles_csv(coin: str, candles: list[dict]) -> str:
 
 
 def load_candles_csv(coin: str) -> list[dict]:
-    path = os.path.join(DATA_DIR, f"backtest_candles_{coin}.csv")
+    path = os.path.join(DATA_DIR, f"april_{coin}_15m.csv")
     if not os.path.exists(path):
         return []
     candles = []
@@ -302,7 +302,7 @@ def backtest_coin(coin: str, candles: list[dict], initial_capital: float) -> lis
 def save_trades_csv(coin: str, trades: list[dict]) -> str:
     if not trades:
         return ""
-    path = os.path.join(DATA_DIR, f"backtest_trades_{coin}.csv")
+    path = os.path.join(DATA_DIR, f"april_backtest_trades_{coin}.csv")
     fieldnames = list(trades[0].keys())
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -338,7 +338,7 @@ def print_coin_summary(coin: str, trades: list[dict], initial_capital: float):
 
 
 def save_summary_csv(all_trades: list[dict]):
-    path = os.path.join(DATA_DIR, "backtest_summary.csv")
+    path = os.path.join(DATA_DIR, "april_backtest_summary.csv")
     if not all_trades:
         print("Không có lệnh nào để tổng hợp.")
         return path
@@ -378,7 +378,7 @@ def print_overall_summary(all_trades: list[dict], initial_capital: float):
             consec = 0
 
     print("\n" + "=" * 55)
-    print("  ĐÁNH GIÁ MÔ HÌNH — BACKTEST 1 THÁNG (15m)")
+    print("  ĐÁNH GIÁ MÔ HÌNH — BACKTEST THÁNG 4/2026 (15m)")
     print("=" * 55)
     print(f"  Tổng lệnh          : {total}")
     print(f"  Số WIN             : {len(wins)}  ({win_rate:.1f}%)")
@@ -429,7 +429,7 @@ def print_overall_summary(all_trades: list[dict], initial_capital: float):
 
 def main():
     print("=" * 55)
-    print("  BACKTEST 1 THÁNG — CHIẾN LƯỢC 15m")
+    print("  BACKTEST THÁNG 4/2026 — CHIẾN LƯỢC 15m")
     print(f"  Coins: {', '.join(COINS)}")
     print(f"  Vốn ban đầu mỗi coin: ${INITIAL_CAPITAL:.2f} USDT")
     print(f"  Lookback: {LOOKBACK_DAYS} ngày | Warmup: {WARMUP_CANDLES} nến")
@@ -438,26 +438,14 @@ def main():
     all_trades = []
 
     for coin in COINS:
-        csv_path = os.path.join(DATA_DIR, f"backtest_candles_{coin}.csv")
-
-        # Kiểm tra cache: nếu file CSV đã có và < 1 giờ tuổi thì dùng lại
-        use_cache = False
-        if os.path.exists(csv_path):
-            age_hours = (time.time() - os.path.getmtime(csv_path)) / 3600
-            if age_hours < 1:
-                use_cache = True
-                print(f"\n[{coin}] Dùng cache CSV ({age_hours:.1f}h trước)...")
-
-        if use_cache:
-            candles = load_candles_csv(coin)
-        else:
-            print(f"\n[{coin}] Đang cào {LOOKBACK_DAYS} ngày nến {CANDLE_INTERVAL}...")
-            candles = fetch_candles_range(coin, LOOKBACK_DAYS, CANDLE_INTERVAL)
-            if not candles:
-                print(f"  [Skip] {coin}: không lấy được dữ liệu.")
-                continue
-            save_candles_csv(coin, candles)
-            print(f"  → {len(candles)} nến | Lưu: {csv_path}")
+        csv_path = os.path.join(DATA_DIR, f"april_{coin}_15m.csv")
+        
+        if not os.path.exists(csv_path):
+            print(f"\n  [Skip] {coin}: không có dữ liệu tháng 4 ({csv_path}).")
+            continue
+            
+        print(f"\n[{coin}] Đang load dữ liệu từ {csv_path}...")
+        candles = load_candles_csv(coin)
 
         if not candles:
             continue

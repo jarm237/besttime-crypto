@@ -6,7 +6,7 @@ Backtest v2 - Danh gia chien luoc ky thuat chinh xac hon
 - 1000 ner per coin de co du sample
 """
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.stdout.reconfigure(encoding='utf-8')
 
 from btc_scraper.exchanges.binance import fetch_ohlcv_tf
