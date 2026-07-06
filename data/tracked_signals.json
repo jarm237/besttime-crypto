@@ -1,32 +1,72 @@
 {
   "TRUMP": [],
-  "TAO": [
-    {
-      "time": "2026-07-06 19:00",
-      "signal": "SELL (Crossover)",
-      "entry": 208.8,
-      "current_price": 208.8,
-      "tp_sl": {
-        "entry": 208.8,
-        "sl": 221.3839,
-        "tp1": 196.2161,
-        "tp2": 196.0914,
-        "rr1": 1.0,
-        "rr2": 1.01,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 46,
-      "created_at_ts": 1783346401.734828
-    }
-  ],
+  "TAO": [],
   "AVAX": [],
   "XLM": [],
-  "AEVO": [],
+  "AEVO": [
+    {
+      "time": "2026-07-07 01:00",
+      "signal": "BUY (Crossover)",
+      "entry": 0.01908,
+      "current_price": 0.01909,
+      "tp_sl": {
+        "entry": 0.0191,
+        "sl": 0.0184,
+        "tp1": 0.0202,
+        "tp2": 0.0213,
+        "rr1": 1.67,
+        "rr2": 3.33,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200) | Sentiment: 24/100 (Cực kỳ Sợ hãi)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 14,
+      "created_at_ts": 1783360864.750522
+    }
+  ],
   "NEAR": [],
-  "AR": [],
-  "TRB": [],
+  "AR": [
+    {
+      "time": "2026-07-06 23:00",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 2.038,
+      "current_price": 2.045,
+      "tp_sl": {
+        "entry": 2.038,
+        "sl": 1.8914,
+        "tp1": 2.3313,
+        "tp2": 2.6246,
+        "rr1": 2.0,
+        "rr2": 4.0,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 29,
+      "created_at_ts": 1783359966.403587
+    }
+  ],
+  "TRB": [
+    {
+      "time": "2026-07-06 23:00",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 17.99,
+      "current_price": 18.22,
+      "tp_sl": {
+        "entry": 17.99,
+        "sl": 19.3679,
+        "tp1": 16.649,
+        "tp2": 14.6213,
+        "rr1": 0.97,
+        "rr2": 2.44,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 14,
+      "created_at_ts": 1783360864.5798488
+    }
+  ],
   "ETH": [],
   "IOTA": [],
   "BNB": [],
@@ -35,10 +75,50 @@
   "TRX": [],
   "ZEC": [],
   "XAUT": [],
-  "BTC": [],
+  "BTC": [
+    {
+      "time": "2026-07-07 00:00",
+      "signal": "BUY (Crossover)",
+      "entry": 63772.0,
+      "current_price": 63729.93,
+      "tp_sl": {
+        "entry": 63772.0,
+        "sl": 62396.2881,
+        "tp1": 65147.7119,
+        "tp2": 66523.4238,
+        "rr1": 1.0,
+        "rr2": 2.0,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200) | Sentiment: 24/100 (Cực kỳ Sợ hãi)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 74,
+      "created_at_ts": 1783357266.281223
+    }
+  ],
   "XRP": [],
   "SOPH": [],
-  "SOL": [],
+  "SOL": [
+    {
+      "time": "2026-07-06 23:45",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 81.99,
+      "current_price": 81.47,
+      "tp_sl": {
+        "entry": 81.99,
+        "sl": 82.6525,
+        "tp1": 80.637,
+        "tp2": 79.3885,
+        "rr1": 2.04,
+        "rr2": 3.93,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 89,
+      "created_at_ts": 1783356367.2799206
+    }
+  ],
   "WLD": [],
   "DOGE": []
 }
