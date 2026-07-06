@@ -129,9 +129,9 @@ def build_world_state_from_ana(ana: Dict):
         state.alternative.liquidity_pressure = _get_float("liquidity_pressure", 0.0)
         state.alternative.macro_pressure = _get_float("macro_pressure", 0.0)
         state.alternative.funding_pressure = _get_float("funding_pressure", 0.0)
-        state.alternative.stablecoin_momentum = _get_float("stablecoin_momentum", 0.0)
-        state.alternative.etf_momentum = _get_float("etf_momentum", 0.0)
-        state.alternative.risk_on_score = _get_float("risk_on_score", 0.0)
+        state.alternative.stablecoin_momentum = _get_float("effective_stablecoin_momentum", _get_float("stablecoin_momentum", 0.0))
+        state.alternative.etf_momentum = _get_float("effective_etf_momentum", _get_float("etf_momentum", 0.0))
+        state.alternative.risk_on_score = _get_float("effective_risk_on_score", _get_float("risk_on_score", 0.0))
 
         return state
     except Exception as exc:

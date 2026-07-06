@@ -82,6 +82,11 @@ class AlternativeDataScheduler:
         self.last_payload: Optional[Dict[str, Any]] = None
         self.last_error: Optional[Exception] = None
 
+        # Parse.bot schedule tracking
+        self._last_recent_run_hour: Optional[int] = None
+        self._last_all_run_day: Optional[str] = None
+        self._last_fund_run_day: Optional[str] = None
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -148,6 +153,48 @@ class AlternativeDataScheduler:
     def _collect(self, force: bool = False) -> Dict[str, Any]:
         self.run_count += 1
         self.last_run_at = datetime.now(timezone.utc)
+
+        # Trigger scheduled Parse.bot fetch jobs if enabled (Phase D Gap)
+        import os
+        parsebot_enabled = os.getenv("PARSEBOT_ENABLED", "false").strip().lower() == "true"
+        if parsebot_enabled:
+            try:
+                from zoneinfo import ZoneInfo
+                tz = ZoneInfo(os.getenv("ETF_FLOW_TIMEZONE", "Asia/Ho_Chi_Minh"))
+                now_tz = datetime.now(tz)
+                day_str = now_tz.strftime("%Y-%m-%d")
+                weekday = now_tz.weekday()  # 0=Mon, 1=Tue, ..., 5=Sat, 6=Sun
+
+                from scripts.fetch_parsebot_etf_jobs import (
+                    fetch_parsebot_etf_recent_job,
+                    fetch_parsebot_etf_all_job,
+                    fetch_parsebot_fund_info_job,
+                )
+
+                # 1. Recent job: 0 6,7,8,9 * * 2-6 (Tue-Sat VN time)
+                if weekday in (1, 2, 3, 4, 5) and now_tz.hour in (6, 7, 8, 9):
+                    if self._last_recent_run_hour != now_tz.hour:
+                        logger.info("Scheduler triggering recent Parse.bot ETF job for hour %d", now_tz.hour)
+                        fetch_parsebot_etf_recent_job()
+                        self._last_recent_run_hour = now_tz.hour
+
+                # 2. All job: 30 9 * * 2-6 (Tue-Sat VN time)
+                if weekday in (1, 2, 3, 4, 5) and now_tz.hour == 9 and now_tz.minute >= 30:
+                    if self._last_all_run_day != day_str:
+                        logger.info("Scheduler triggering all historical Parse.bot ETF job for day %s", day_str)
+                        fetch_parsebot_etf_all_job()
+                        self._last_all_run_day = day_str
+
+                # 3. Fund info job: 0 10 * * * (daily)
+                if now_tz.hour >= 10:
+                    if self._last_fund_run_day != day_str:
+                        logger.info("Scheduler triggering Parse.bot fund info job for day %s", day_str)
+                        fetch_parsebot_fund_info_job()
+                        self._last_fund_run_day = day_str
+
+            except Exception as e:
+                logger.warning("Error executing scheduled Parse.bot jobs in scheduler loop: %s", e)
+
         try:
             collector = AlternativeDataCollector(
                 output_path=self.output_path,

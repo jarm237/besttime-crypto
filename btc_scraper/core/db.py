@@ -19,6 +19,8 @@ db = client['besttime_crypto']
 positions_col = db['positions']
 closed_positions_col = db['closed_positions']
 closed_trades_col = db['closed_trades']
+alternative_data_etf_flows_col = db['alternative_data_etf_flows']
+alternative_data_fetch_logs_col = db['alternative_data_fetch_logs']
 
 # Tạo Index để tối ưu (đề phòng trùng lặp ID, tăng tốc độ query)
 try:
@@ -29,5 +31,10 @@ try:
     closed_positions_col.create_index("coin")
     
     closed_trades_col.create_index("id")
+    
+    # Alternative data indexes
+    alternative_data_etf_flows_col.create_index([("source", 1), ("symbol", 1), ("flow_date", -1)], unique=True)
+    alternative_data_etf_flows_col.create_index([("symbol", 1), ("status", 1), ("fetched_at", -1)])
+    alternative_data_fetch_logs_col.create_index([("source", 1), ("endpoint", 1), ("fetched_at", -1)])
 except Exception as e:
     print(f"Warning: Không thể tạo index MongoDB. Error: {e}")

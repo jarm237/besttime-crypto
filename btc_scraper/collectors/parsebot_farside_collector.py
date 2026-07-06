@@ -41,7 +41,7 @@ _logger = logging.getLogger(__name__)
 # Paths
 # ---------------------------------------------------------------------------
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _CACHE_DIR = _REPO_ROOT / "logs" / "etf_flow_cache"
 
 # ---------------------------------------------------------------------------
@@ -144,8 +144,112 @@ def _cache_path(symbol: str, mode: str) -> Path:
     return _CACHE_DIR / f"{symbol.upper()}_{mode.lower()}.json"
 
 
+def _save_fetch_log_to_db(result: Dict[str, Any]) -> None:
+    """Lưu lịch sử gọi API vào MongoDB collection alternative_data_fetch_logs."""
+    try:
+        from btc_scraper.core.db import db
+        logs_col = db["alternative_data_fetch_logs"]
+        doc = {
+            "source": "parsebot_farside",
+            "endpoint": result.get("endpoint"),
+            "symbol": result.get("symbol"),
+            "mode": result.get("mode"),
+            "status": result.get("status"),
+            "error": result.get("error"),
+            "fetched_at": result.get("fetched_at"),
+        }
+        logs_col.insert_one(doc)
+    except Exception as e:
+        _logger.warning("Failed to save fetch log to MongoDB: %s", e)
+
+
+def _parse_and_save_records_to_db(result: Dict[str, Any]) -> None:
+    """Phân tách raw response của Parse.bot và lưu/upsert từng ngày vào MongoDB alternative_data_etf_flows."""
+    if result.get("status") != "ok":
+        _save_fetch_log_to_db(result)
+        return
+
+    _save_fetch_log_to_db(result)
+
+    value = result.get("value")
+    symbol = result.get("symbol", "").upper()
+    mode = result.get("mode", "")
+    endpoint = result.get("endpoint", "")
+    fetched_at = result.get("fetched_at")
+
+    try:
+        from btc_scraper.core.db import db
+        flows_col = db["alternative_data_etf_flows"]
+    except Exception as e:
+        _logger.warning("MongoDB not available for saving ETF flows: %s", e)
+        return
+
+    # Extract list of records
+    records = []
+    if isinstance(value, list):
+        records = value
+    elif isinstance(value, dict):
+        if isinstance(value.get("data"), list):
+            records = value["data"]
+        else:
+            records = [value]
+
+    saved_count = 0
+    for rec in records:
+        if not isinstance(rec, dict):
+            continue
+        
+        # Extract date
+        flow_date = rec.get("date") or rec.get("flow_date")
+        if not flow_date:
+            continue
+            
+        # Extract flow value (USDM)
+        flow_val = None
+        for key in ("total_flow", "total_flow_usd_m", "net_flow", "flow", "total", "net"):
+            v = rec.get(key)
+            if v is not None:
+                try:
+                    flow_val = float(v)
+                    break
+                except (TypeError, ValueError):
+                    continue
+        
+        if flow_val is None:
+            continue
+
+        doc = {
+            "source": "parsebot_farside",
+            "symbol": symbol,
+            "mode": mode,
+            "endpoint": endpoint,
+            "status": "ok",
+            "flow_date": str(flow_date),
+            "total_flow_usd_m": flow_val,
+            "raw": rec,
+            "data_quality": 1.0,
+            "fetched_at": fetched_at,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        try:
+            flows_col.update_one(
+                {"source": "parsebot_farside", "symbol": symbol, "flow_date": str(flow_date)},
+                {
+                    "$setOnInsert": {"created_at": datetime.now(timezone.utc).isoformat()},
+                    "$set": doc,
+                },
+                upsert=True,
+            )
+            saved_count += 1
+        except Exception as e:
+            _logger.warning("Failed to upsert ETF flow to DB for date %s: %s", flow_date, e)
+
+    _logger.info("Saved %d ETF flow records to MongoDB for %s/%s", saved_count, symbol, mode)
+
+
 def _save_cache(result: Dict[str, Any]) -> None:
-    """Lưu kết quả fetch vào cache JSON."""
+    """Lưu kết quả fetch vào cache JSON và MongoDB."""
     symbol = result.get("symbol", "UNKNOWN")
     mode = result.get("mode", "unknown")
     path = _cache_path(symbol, mode)
@@ -154,6 +258,9 @@ def _save_cache(result: Dict[str, Any]) -> None:
         _logger.debug("ETF cache saved: %s", path)
     except Exception as e:
         _logger.warning("Failed to save ETF cache %s: %s", path, e)
+
+    # Also save/upsert to MongoDB (Phase C Gap)
+    _parse_and_save_records_to_db(result)
 
 
 def _load_cache(symbol: str, mode: str) -> Optional[Dict[str, Any]]:

@@ -275,7 +275,23 @@ class DataQualityDashboard:
         print(f"  Healthy        : {s['healthy_checks']}")
         print(f"  Unhealthy      : {s['unhealthy_checks']}")
         print(f"  Health rate    : {s['health_rate']:.1%}")
+        
+        # Print ETF Flow Status block (Kế hoạch §14)
+        print("-" * 55)
+        print("  ETF Flow Status (Cache / DB):")
+        try:
+            from btc_scraper.collectors.parsebot_farside_collector import get_etf_feature_for_scoring
+            for sym in ["BTC", "ETH", "SOL"]:
+                feat = get_etf_feature_for_scoring(sym, mode="recent")
+                status = feat["etf_flow_status"]
+                val_m = feat["total_flow_usd_m"]
+                val_str = f"{val_m:+.1f}M" if val_m is not None else "N/A"
+                print(f"    {sym:5s}: {status:12s} | Net Flow: {val_str:10s} | Quality: {1.0 if status == 'ok' else 0.0:.1f}")
+        except Exception as e:
+            print(f"    Error printing ETF flow status: {e}")
+            
         if s["top_issues"]:
+            print("-" * 55)
             print("  Top issues:")
             for item in s["top_issues"]:
                 print(f"    {item['key']:40s}  x{item['count']}")
@@ -414,7 +430,87 @@ class CollectorHealthMonitor:
                 )
                 self._emit_alert(alert)
 
+        # Perform ETF specific alert checks (Phase F Gap)
+        if collector_name == "alternative_data":
+            try:
+                etf_alert = self.check_etf_alert_conditions()
+                if etf_alert:
+                    self._emit_alert(etf_alert)
+            except Exception as e:
+                logger.warning("Failed to run ETF alert checks: %s", e)
+
         return report
+
+    def check_etf_alert_conditions(self) -> Optional[AlertRecord]:
+        """Check MongoDB fetch logs and cache status for ETF specific alert conditions.
+        Emits alert if:
+        - ETF flow has failed for more than 2 consecutive days (last 48 hours).
+        - ETF flow data is stale (>36 hours).
+        - Parse.bot returns 401/403 (Authentication error).
+        """
+        try:
+            from btc_scraper.core.db import db
+            logs_col = db["alternative_data_fetch_logs"]
+            flows_col = db["alternative_data_etf_flows"]
+        except Exception:
+            return None
+
+        # 1. Check for 401/403 authentication error in last 24 hours
+        try:
+            auth_errors = list(logs_col.find({
+                "source": "parsebot_farside",
+                "status": "failed",
+                "error": {"$regex": "401|403|Unauthorized|Forbidden", "$options": "i"}
+            }).sort("fetched_at", -1).limit(5))
+            if auth_errors:
+                return AlertRecord(
+                    "critical",
+                    "parsebot_farside",
+                    f"Authentication error detected (401/403) in Parse.bot requests: {auth_errors[0].get('error')}"
+                )
+        except Exception:
+            pass
+
+        # 2. Check for failed > 2 days (48 hours) consecutive
+        try:
+            last_attempts = list(logs_col.find({"source": "parsebot_farside"}).sort("fetched_at", -1).limit(20))
+            if last_attempts:
+                limit_dt = datetime.now(timezone.utc) - timedelta(days=2)
+                recent_attempts = []
+                for attempt in last_attempts:
+                    fetched_at_str = attempt.get("fetched_at")
+                    if fetched_at_str:
+                        attempt_dt = datetime.fromisoformat(fetched_at_str.replace("Z", "+00:00"))
+                        if attempt_dt > limit_dt:
+                            recent_attempts.append(attempt)
+                
+                if recent_attempts and all(att.get("status") == "failed" for att in recent_attempts):
+                    return AlertRecord(
+                        "critical",
+                        "parsebot_farside",
+                        f"ETF flow has failed consecutively for more than 2 days (total {len(recent_attempts)} failed attempts)."
+                    )
+        except Exception:
+            pass
+
+        # 3. Check for stale data > 36 hours
+        try:
+            latest_flow = flows_col.find_one({"source": "parsebot_farside", "status": "ok"}, sort=[("fetched_at", -1)])
+            if latest_flow:
+                fetched_at_str = latest_flow.get("fetched_at")
+                if fetched_at_str:
+                    fetched_dt = datetime.fromisoformat(fetched_at_str.replace("Z", "+00:00"))
+                    age_hours = (datetime.now(timezone.utc) - fetched_dt).total_seconds() / 3600.0
+                    if age_hours > 36:
+                        return AlertRecord(
+                            "warning",
+                            "parsebot_farside",
+                            f"ETF flow data is stale: last successful fetch was {age_hours:.1f} hours ago (exceeds 36-hour threshold)."
+                        )
+        except Exception:
+            pass
+
+        return None
 
     def uptime_stats(self) -> Dict[str, Any]:
         """Return uptime statistics per collector."""
