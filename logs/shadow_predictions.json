@@ -13333,5 +13333,35 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "ZECUSDT_1783362673",
+    "symbol": "ZECUSDT",
+    "timestamp": 1783362673.0763783,
+    "timestamp_str": "2026-07-07 01:31:13",
+    "signal": "SELL (Crossover)",
+    "meta_prob": 0.6327,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "ZECUSDT_1783362722",
+    "symbol": "ZECUSDT",
+    "timestamp": 1783362722.735974,
+    "timestamp_str": "2026-07-07 01:32:02",
+    "signal": "SELL (Crossover)",
+    "meta_prob": 0.6327,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]
