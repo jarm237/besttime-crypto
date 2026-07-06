@@ -19,6 +19,31 @@ except Exception:  # pragma: no cover
     requests = None
 
 
+def _fetch_us10y_from_yahoo() -> Optional[float]:
+    if requests is None:
+        return None
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    url = "https://query2.finance.yahoo.com/v8/finance/chart/^TNX?interval=1d&range=2d"
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        res_json = response.json()
+        result_list = res_json.get("chart", {}).get("result", [])
+        if result_list:
+            meta = result_list[0].get("meta", {})
+            price = meta.get("regularMarketPrice")
+            if price is not None:
+                return float(price)
+            quotes = result_list[0].get("indicators", {}).get("quote", [])
+            if quotes and quotes[0].get("close"):
+                closes = [c for c in quotes[0]["close"] if c is not None]
+                if closes:
+                    return float(closes[-1])
+    except Exception as e:
+        _logger.warning("FredCollector failed to fetch us10y from Yahoo fallback: %s", e)
+    return None
+
+
 def _fetch_json(url: str) -> Any:
     if requests is None:
         raise RuntimeError("requests is not installed")
@@ -63,13 +88,39 @@ class FredCollector(CollectorBase):
 
         try:
             api_key = os.getenv("FRED_API_KEY", "demo")
-            url = f"https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key={api_key}&file_type=json"
-            data = _fetch_json(url)
-            observations = data.get("observations", []) if isinstance(data, dict) else []
-            if observations:
-                last_value = observations[-1].get("value", "0")
-                payload["us10y"] = float(last_value) if last_value not in {"", "None", None} else 0.0
-                payload["data"]["us10y"] = payload["us10y"]
+            if api_key == "demo":
+                _logger.info("FRED API key is default ('demo'). Using Yahoo Finance REST API fallback for us10y.")
+                val = _fetch_us10y_from_yahoo()
+                if val is not None:
+                    payload["us10y"] = val
+                    payload["data"]["us10y"] = val
+                else:
+                    raise RuntimeError("Yahoo fallback failed for us10y")
+            else:
+                url = f"https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key={api_key}&file_type=json"
+                data = _fetch_json(url)
+                if data is None:
+                    _logger.warning("FRED API fetch failed. Trying Yahoo Finance REST API fallback.")
+                    val = _fetch_us10y_from_yahoo()
+                    if val is not None:
+                        payload["us10y"] = val
+                        payload["data"]["us10y"] = val
+                    else:
+                        raise RuntimeError("FRED API returned no data and Yahoo fallback failed")
+                else:
+                    observations = data.get("observations", []) if isinstance(data, dict) else []
+                    if observations:
+                        last_value = observations[-1].get("value", "0")
+                        payload["us10y"] = float(last_value) if last_value not in {"", "None", None} else 0.0
+                        payload["data"]["us10y"] = payload["us10y"]
+                    else:
+                        _logger.warning("FRED API returned empty observations. Trying Yahoo Finance fallback.")
+                        val = _fetch_us10y_from_yahoo()
+                        if val is not None:
+                            payload["us10y"] = val
+                            payload["data"]["us10y"] = val
+                        else:
+                            raise RuntimeError("FRED API observations empty and Yahoo fallback failed")
         except Exception as e:
             _logger.exception("FredCollector failed")
             payload = {

@@ -17,13 +17,48 @@ except Exception:  # pragma: no cover
     yf = None
 
 
+def _fetch_history_rest(ticker: str) -> Optional[Dict[str, Any]]:
+    try:
+        import requests
+    except ImportError:
+        return None
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    url = f"https://query2.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=2d"
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        res_json = response.json()
+        result_list = res_json.get("chart", {}).get("result", [])
+        if result_list:
+            meta = result_list[0].get("meta", {})
+            price = meta.get("regularMarketPrice")
+            if price is None:
+                quotes = result_list[0].get("indicators", {}).get("quote", [])
+                if quotes and quotes[0].get("close"):
+                    closes = [c for c in quotes[0]["close"] if c is not None]
+                    if closes:
+                        price = closes[-1]
+            if price is not None:
+                return {"Close": [float(price)]}
+    except Exception as e:
+        _logger.warning("YahooCollector REST fallback failed for %s: %s", ticker, e)
+    return None
+
+
 def _fetch_history(ticker: str, period: str = "2d") -> Any:
-    if yf is None:
-        raise RuntimeError("yfinance is not installed")
-    hist = yf.Ticker(ticker).history(period=period)
-    if hist is None or hist.empty:
-        raise RuntimeError("No history returned")
-    return hist
+    if yf is not None:
+        try:
+            hist = yf.Ticker(ticker).history(period=period)
+            if hist is not None and not hist.empty:
+                return hist
+        except Exception as e:
+            _logger.warning("yfinance fetch failed for %s, trying REST fallback: %s", ticker, e)
+
+    rest_res = _fetch_history_rest(ticker)
+    if rest_res is not None:
+        return rest_res
+
+    raise RuntimeError(f"Failed to fetch history for {ticker} (yfinance missing or failed, and REST fallback failed)")
 
 
 class YahooCollector(CollectorBase):

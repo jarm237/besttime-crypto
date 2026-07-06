@@ -25,21 +25,52 @@ MACRO_TICKERS = {
 }
 
 
-def fetch_and_save_macro() -> Dict[str, float | str]:
-    """Fetch macro market data from yfinance and persist it to disk."""
-    result: Dict[str, float | str] = {}
+def _fetch_ticker_rest(ticker: str) -> Optional[float]:
+    try:
+        import requests
+    except ImportError:
+        return None
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    url = f"https://query2.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=2d"
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        res_json = response.json()
+        result_list = res_json.get("chart", {}).get("result", [])
+        if result_list:
+            meta = result_list[0].get("meta", {})
+            price = meta.get("regularMarketPrice")
+            if price is None:
+                quotes = result_list[0].get("indicators", {}).get("quote", [])
+                if quotes and quotes[0].get("close"):
+                    closes = [c for c in quotes[0]["close"] if c is not None]
+                    if closes:
+                        price = closes[-1]
+            if price is not None:
+                return float(price)
+    except Exception:
+        pass
+    return None
 
-    if yf is None:
-        result.update({"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5})
-        result["timestamp"] = dt.datetime.now(dt.timezone.utc).isoformat()
-        _write_macro_state(result)
-        return result
+
+def fetch_and_save_macro() -> Dict[str, float | str]:
+    """Fetch macro market data from yfinance (or REST fallback) and persist it to disk."""
+    result: Dict[str, float | str] = {}
 
     for name, ticker in MACRO_TICKERS.items():
         try:
-            hist = yf.Ticker(ticker).history(period="2d")
-            if hist is not None and not hist.empty:
-                result[name] = float(hist["Close"].iloc[-1])
+            if yf is not None:
+                hist = yf.Ticker(ticker).history(period="2d")
+                if hist is not None and not hist.empty:
+                    result[name] = float(hist["Close"].iloc[-1])
+                    continue
+            
+            # Try REST fallback if yf is None or fails
+            val = _fetch_ticker_rest(ticker)
+            if val is not None:
+                result[name] = val
+            else:
+                result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
         except Exception:
             result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
 
