@@ -33,8 +33,30 @@ DEFAULT_QUALITY_LOG_PATH = str(build_data_path("alternative_quality.json"))
 
 # (min_value, max_value) for each field. None means no bound check.
 FIELD_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float]]] = {
-    "funding_rate": (-0.1, 0.1),
+    # directional scores: bearish → bullish
+    "funding_pressure": (-1.0, 1.0),
+    "open_interest_pressure": (-1.0, 1.0),
+    "liquidity_pressure": (-1.0, 1.0),
+    "macro_pressure": (-1.0, 1.0),
+    "risk_on_score": (-1.0, 1.0),
+    "orderbook_imbalance": (-1.0, 1.0),
+    "stablecoin_momentum": (-1.0, 1.0),
+    "etf_momentum": (-1.0, 1.0),
+
+    # risk magnitude scores
+    "macro_risk_score": (0.0, 1.0),
+    "defi_liquidity_score": (-1.0, 1.0),
+
+    # raw positive values
+    "stablecoin_supply_total": (0.0, None),
+    "tvl": (0.0, None),
+    "chain_tvl": (0.0, None),
+    "hashrate": (0.0, None),
+    "active_addresses": (0.0, None),
     "open_interest": (0.0, None),
+    
+    # original raw values bounds for compatibility
+    "funding_rate": (-0.1, 0.1),
     "stablecoin_supply": (0.0, None),
     "etf_flow": (None, None),
     "options_iv": (0.0, 5.0),
@@ -44,13 +66,6 @@ FIELD_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float]]] = {
     "vix": (5.0, 200.0),
     "us10y": (0.0, 20.0),
     "gold": (500.0, 5000.0),
-    "orderbook_imbalance": (-1.0, 1.0),
-    "liquidity_pressure": (0.0, 1.0),
-    "macro_pressure": (0.0, 1.0),
-    "funding_pressure": (0.0, None),
-    "stablecoin_momentum": (-1.0, 1.0),
-    "etf_momentum": (-1.0, 1.0),
-    "risk_on_score": (0.0, 1.0),
 }
 
 # Fields that must be present in every payload

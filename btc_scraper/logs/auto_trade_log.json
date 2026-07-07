@@ -7586,5 +7586,77 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 0.0377
+  },
+  {
+    "timestamp": "2026-07-07T13:46:12.862958",
+    "timestamp_str": "2026-07-07 13:46:12",
+    "mode": "TESTNET",
+    "coin": "TAO",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.4683,
+    "signal_score": 48,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 214.0
+  },
+  {
+    "timestamp": "2026-07-07T14:01:15.145485",
+    "timestamp_str": "2026-07-07 14:01:15",
+    "mode": "TESTNET",
+    "coin": "TAO",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.4798,
+    "signal_score": 48,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 213.3
+  },
+  {
+    "timestamp": "2026-07-07T14:16:20.365278",
+    "timestamp_str": "2026-07-07 14:16:20",
+    "mode": "TESTNET",
+    "coin": "SOL",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.487,
+    "signal_score": 48,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 81.7
+  },
+  {
+    "timestamp": "2026-07-07T14:47:18.372740",
+    "timestamp_str": "2026-07-07 14:47:18",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.3731,
+    "signal_score": 28,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 2.037
+  },
+  {
+    "timestamp": "2026-07-07T14:50:55.975987",
+    "timestamp_str": "2026-07-07 14:50:55",
+    "mode": "TESTNET",
+    "coin": "NEAR",
+    "signal": "BUY (Crossover)",
+    "meta_confidence": 0.3731,
+    "signal_score": 28,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 2.037
+  },
+  {
+    "timestamp": "2026-07-07T15:01:14.563636",
+    "timestamp_str": "2026-07-07 15:01:14",
+    "mode": "TESTNET",
+    "coin": "AEVO",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.6327,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Size lenh sau co gian 0.00 USDT < min 10.00 USDT",
+    "entry_price": 0.0188
   }
 ]

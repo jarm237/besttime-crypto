@@ -1,6 +1,7 @@
-"""Blockchair collector for exchange netflow."""
+"""Blockchair collector for network statistics."""
 from __future__ import annotations
 import os
+import requests
 from typing import Any, Dict, Optional
 from btc_scraper.collectors.collector_base import CollectorBase
 import logging
@@ -8,19 +9,31 @@ from datetime import datetime, timezone
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import requests
-except Exception:  # pragma: no cover
-    requests = None
+def safe_float(value):
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except Exception:
+        return None
 
+def latest_record(records):
+    if records is None:
+        return None
 
-def _fetch_json(url: str) -> Any:
-    if requests is None:
-        raise RuntimeError("requests is not installed")
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    return response.json()
+    if isinstance(records, list):
+        return records[-1] if records else None
 
+    if isinstance(records, dict):
+        if not records:
+            return None
+        try:
+            last_key = sorted(records.keys())[-1]
+            return records[last_key]
+        except Exception:
+            return None
+
+    return None
 
 class BlockchairCollector(CollectorBase):
     name = "blockchair"
@@ -30,41 +43,72 @@ class BlockchairCollector(CollectorBase):
         self.enabled = os.getenv("ENABLE_BLOCKCHAIR", "true").strip().lower() == "true"
 
     def collect(self, force: bool = False) -> Dict[str, Any]:
-        timestamp = datetime.now(timezone.utc).isoformat()
-        payload = {
-            "source": self.name,
-            "status": "success",
-            "reason": None,
-            "timestamp": timestamp,
-            "data": {"exchange_netflow": 0.0},
-            "exchange_netflow": 0.0,
-        }
+        now = datetime.now(timezone.utc).isoformat()
 
         if not self.enabled:
-            payload["status"] = "skipped"
-            payload["reason"] = "disabled_by_env"
-            payload["data"] = None
+            payload = {
+                "source": self.name,
+                "status": "skipped",
+                "reason": "disabled_by_env",
+                "timestamp": now,
+                "data": None,
+            }
             if self.output_path is not None:
                 self._write_json(payload, self.output_path)
             return payload
 
+        url = "https://api.blockchair.com/bitcoin/stats"
+
         try:
-            data = _fetch_json("https://api.blockchair.com/bitcoin/stats")
-            if isinstance(data, dict):
-                records = data.get("data", [])
-                if records:
-                    payload["exchange_netflow"] = float(records[-1].get("value", 0.0))
-                    payload["data"]["exchange_netflow"] = payload["exchange_netflow"]
+            response = requests.get(
+                url,
+                timeout=20,
+                headers={"User-Agent": "besttime-crypto/1.0"},
+            )
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
-            _logger.exception("BlockchairCollector failed")
-            payload = {
-                "source": self.name,
+            ret = {
+                "source": "blockchair",
                 "status": "error",
-                "reason": repr(e),
-                "timestamp": timestamp,
+                "reason": str(e),
+                "timestamp": now,
                 "data": None,
-                "exchange_netflow": 0.0,
             }
+            if self.output_path is not None:
+                self._write_json(ret, self.output_path)
+            return ret
+
+        data = payload.get("data", {})
+        if not isinstance(data, dict):
+            ret = {
+                "source": "blockchair",
+                "status": "skipped",
+                "reason": "unexpected_payload_shape",
+                "timestamp": now,
+                "data": None,
+            }
+            if self.output_path is not None:
+                self._write_json(ret, self.output_path)
+            return ret
+
+        ret = {
+            "source": "blockchair",
+            "status": "success",
+            "reason": None,
+            "timestamp": now,
+            "data": {
+                "tx_count_24h": safe_float(data.get("transactions_24h")),
+                "market_price_usd": safe_float(data.get("market_price_usd")),
+                "hashrate_24h": safe_float(data.get("hashrate_24h")),
+                "difficulty": safe_float(data.get("difficulty")),
+                "large_tx_proxy_score": None,
+                "exchange_netflow": None,
+                "exchange_netflow_status": "unsupported_free_source",
+            },
+            "exchange_netflow": None,
+        }
+        
         if self.output_path is not None:
-            self._write_json(payload, self.output_path)
-        return payload
+            self._write_json(ret, self.output_path)
+        return ret

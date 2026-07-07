@@ -14,13 +14,52 @@ except Exception:  # pragma: no cover
     requests = None
 
 
-def _fetch_json(url: str) -> Any:
-    if requests is None:
-        raise RuntimeError("requests is not installed")
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    return response.json()
+def _fetch_json(url: str, timeout: int = 20):
+    try:
+        response = requests.get(
+            url,
+            timeout=timeout,
+            headers={"User-Agent": "besttime-crypto/1.0"},
+        )
 
+        if response.status_code == 404:
+            return {
+                "status": "skipped",
+                "reason": "endpoint_not_found",
+                "url": url,
+                "data": None,
+            }
+
+        response.raise_for_status()
+
+        return {
+            "status": "success",
+            "reason": None,
+            "url": response.url,
+            "data": response.json(),
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "reason": str(e),
+            "url": url,
+            "data": None,
+        }
+
+def extract_latest_chart_value(payload):
+    if not isinstance(payload, dict):
+        return None
+
+    values = payload.get("values")
+    if not isinstance(values, list) or not values:
+        return None
+
+    latest = values[-1]
+    if not isinstance(latest, dict):
+        return None
+
+    return latest.get("y")
 
 class BlockchainCollector(CollectorBase):
     name = "blockchain"
@@ -30,45 +69,51 @@ class BlockchainCollector(CollectorBase):
         self.enabled = os.getenv("ENABLE_BLOCKCHAIN_COM", "true").strip().lower() == "true"
 
     def collect(self, force: bool = False) -> Dict[str, Any]:
-        timestamp = datetime.now(timezone.utc).isoformat()
-        payload = {
-            "source": self.name,
-            "status": "success",
-            "reason": None,
-            "timestamp": timestamp,
-            "data": {"hashrate": 0.0},
-            "hashrate": 0.0,
-        }
+        now = datetime.now(timezone.utc).isoformat()
 
         if not self.enabled:
-            payload["status"] = "skipped"
-            payload["reason"] = "disabled_by_env"
-            payload["data"] = None
+            payload = {
+                "source": self.name,
+                "status": "skipped",
+                "reason": "disabled_by_env",
+                "timestamp": now,
+                "data": None,
+            }
             if self.output_path is not None:
                 self._write_json(payload, self.output_path)
             return payload
 
-        try:
-            data = _fetch_json("https://api.blockchain.info/charts/hash-rate?timespan=86400&rollingAverage=8hours&format=json")
-            if isinstance(data, dict):
-                values = data.get("values", [])
-                if values:
-                    last_value = values[-1].get("y", values[-1].get("value", 0.0))
-                    payload["hashrate"] = float(last_value)
-                    payload["data"]["hashrate"] = float(last_value)
-                elif data.get("hash_rate") is not None:
-                    payload["hashrate"] = float(data.get("hash_rate", 0.0))
-                    payload["data"]["hashrate"] = float(data.get("hash_rate", 0.0))
-        except Exception as e:
-            _logger.exception("BlockchainCollector failed")
-            payload = {
-                "source": self.name,
-                "status": "error",
-                "reason": repr(e),
-                "timestamp": timestamp,
-                "data": None,
-                "hashrate": 0.0,
-            }
+        urls = {
+            "hashrate": "https://api.blockchain.info/charts/hash-rate?timespan=30days&rollingAverage=8hours&format=json",
+            "difficulty": "https://api.blockchain.info/charts/difficulty?timespan=30days&format=json",
+            "tx_count": "https://api.blockchain.info/charts/n-transactions?timespan=30days&format=json",
+        }
+
+        data = {}
+        errors = {}
+
+        for key, url in urls.items():
+            result = _fetch_json(url)
+
+            if result["status"] != "success":
+                errors[key] = result
+                data[key] = None
+                continue
+
+            data[key] = extract_latest_chart_value(result["data"])
+
+        payload = {
+            "source": self.name,
+            "status": "success" if any(v is not None for v in data.values()) else "skipped",
+            "reason": None if any(v is not None for v in data.values()) else "no_chart_data",
+            "timestamp": now,
+            "data": data,
+            "errors": errors,
+        }
+        
+        # Backward compatibility with existing pipeline
+        payload["hashrate"] = data.get("hashrate")
+
         if self.output_path is not None:
             self._write_json(payload, self.output_path)
         return payload

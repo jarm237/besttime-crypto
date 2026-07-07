@@ -740,7 +740,17 @@ async def async_main():
 
         # Shadow Mode status
         if os.path.exists(shadow_log_path):
-            _age_days = (_time.time() - os.path.getctime(shadow_log_path)) / 86400
+            try:
+                with open(shadow_log_path, "r", encoding="utf-8") as _f:
+                    _shadow_data = _json.load(_f)
+                if isinstance(_shadow_data, list) and len(_shadow_data) > 0:
+                    _first_ts = _shadow_data[0].get("timestamp", os.path.getctime(shadow_log_path))
+                else:
+                    _first_ts = os.path.getctime(shadow_log_path)
+            except Exception:
+                _first_ts = os.path.getctime(shadow_log_path)
+
+            _age_days = (_time.time() - _first_ts) / 86400
             if _age_days < 7:
                 _days_left = 7 - _age_days
                 console.print(
@@ -809,11 +819,33 @@ async def async_main():
                 return  # chưa có dữ liệu shadow mode, bỏ qua
 
             # Kiểm tra thời gian tạo file (lần đầu tiên ghi shadow log)
-            file_age_days = (_time.time() - os.path.getctime(shadow_log_path)) / 86400
+            # Lấy timestamp của record đầu tiên trong file thay vì getctime vì file json có thể bị ghi đè liên tục
+            try:
+                import json as _json
+                with open(shadow_log_path, "r", encoding="utf-8") as _f:
+                    _shadow_data = _json.load(_f)
+                if isinstance(_shadow_data, list) and len(_shadow_data) > 0:
+                    first_record_ts = _shadow_data[0].get("timestamp", os.path.getctime(shadow_log_path))
+                else:
+                    first_record_ts = os.path.getctime(shadow_log_path)
+            except Exception:
+                first_record_ts = os.path.getctime(shadow_log_path)
+
+            file_age_days = (_time.time() - first_record_ts) / 86400
 
             if file_age_days < 7:
                 days_left = max(0, 7 - file_age_days)
-                console.print(f"[dim][Shadow] {file_age_days:.1f} ngày / 7 ngày. Còn {days_left:.1f} ngày nữa.[/dim]")
+                msg = f"[dim][Shadow] {file_age_days:.1f} ngày / 7 ngày. Còn {days_left:.1f} ngày nữa.[/dim]"
+                console.print(msg)
+                try:
+                    from btc_scraper.telegram_bot import send_telegram_message
+                    send_telegram_message(
+                        f"🔔 [SHADOW MODE PROGRESS]\n"
+                        f"Sprint 2 đang chạy: {file_age_days:.1f}/7 ngày | Còn {days_left:.1f} ngày nữa.", 
+                        parse_mode=None
+                    )
+                except Exception as e:
+                    console.print(f"[red][Shadow] Lỗi gửi Telegram progress: {e}[/red]")
                 return
 
             # Đã đủ 7 ngày → generate calibration report và gửi Telegram

@@ -12850,9 +12850,9 @@
     "regime": "STRONG_TREND",
     "htf_trend": "BULLISH",
     "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -2.4468,
+    "closed_at": "2026-07-07 14:55:13"
   },
   {
     "prediction_id": "WLDUSDT_1783293367",
@@ -13000,9 +13000,9 @@
     "regime": "RANGING",
     "htf_trend": "BULLISH-MIXED",
     "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -1.6701,
+    "closed_at": "2026-07-07 14:55:13"
   },
   {
     "prediction_id": "AEVOUSDT_1783303271",
@@ -13315,9 +13315,9 @@
     "regime": "RANGING",
     "htf_trend": "BULLISH-MIXED",
     "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8915,
+    "closed_at": "2026-07-07 14:55:13"
   },
   {
     "prediction_id": "SOLUSDT_1783356377",
@@ -13345,9 +13345,9 @@
     "regime": "RANGING",
     "htf_trend": "BULLISH-MIXED",
     "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
+    "actual_result": "WIN",
+    "actual_pnl_pct": 5.7392,
+    "closed_at": "2026-07-07 14:55:13"
   },
   {
     "prediction_id": "ZECUSDT_1783362722",
@@ -13360,9 +13360,9 @@
     "regime": "RANGING",
     "htf_trend": "BULLISH-MIXED",
     "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -3.9407,
+    "closed_at": "2026-07-07 14:55:13"
   },
   {
     "prediction_id": "NEARUSDT_1783380665",
@@ -13555,9 +13555,9 @@
     "regime": "RANGING",
     "htf_trend": "BULLISH-MIXED",
     "position_id": null,
-    "actual_result": null,
-    "actual_pnl_pct": null,
-    "closed_at": null
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.4715,
+    "closed_at": "2026-07-07 14:55:13"
   },
   {
     "prediction_id": "SOLUSDT_1783387865",
@@ -13584,6 +13584,111 @@
     "signal_score": 52,
     "regime": "RANGING",
     "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -1.8717,
+    "closed_at": "2026-07-07 14:55:13"
+  },
+  {
+    "prediction_id": "TRXUSDT_1783405899",
+    "symbol": "TRXUSDT",
+    "timestamp": 1783405899.6706212,
+    "timestamp_str": "2026-07-07 13:31:39",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.6283,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "TAOUSDT_1783406772",
+    "symbol": "TAOUSDT",
+    "timestamp": 1783406772.8819935,
+    "timestamp_str": "2026-07-07 13:46:12",
+    "signal": "BUY (Crossover)",
+    "meta_prob": 0.4683,
+    "signal_score": 48,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "TAOUSDT_1783407675",
+    "symbol": "TAOUSDT",
+    "timestamp": 1783407675.1645842,
+    "timestamp_str": "2026-07-07 14:01:15",
+    "signal": "BUY (Crossover)",
+    "meta_prob": 0.4798,
+    "signal_score": 48,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "SOLUSDT_1783408580",
+    "symbol": "SOLUSDT",
+    "timestamp": 1783408580.378161,
+    "timestamp_str": "2026-07-07 14:16:20",
+    "signal": "BUY (Crossover)",
+    "meta_prob": 0.487,
+    "signal_score": 48,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1783410438",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783410438.3938506,
+    "timestamp_str": "2026-07-07 14:47:18",
+    "signal": "BUY (Crossover)",
+    "meta_prob": 0.3731,
+    "signal_score": 28,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "NEARUSDT_1783410655",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783410655.9992423,
+    "timestamp_str": "2026-07-07 14:50:55",
+    "signal": "BUY (Crossover)",
+    "meta_prob": 0.3731,
+    "signal_score": 28,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.9512,
+    "closed_at": "2026-07-07 14:55:13"
+  },
+  {
+    "prediction_id": "AEVOUSDT_1783411274",
+    "symbol": "AEVOUSDT",
+    "timestamp": 1783411274.5811753,
+    "timestamp_str": "2026-07-07 15:01:14",
+    "signal": "SELL (Crossover)",
+    "meta_prob": 0.6327,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH",
     "position_id": null,
     "actual_result": null,
     "actual_pnl_pct": null,

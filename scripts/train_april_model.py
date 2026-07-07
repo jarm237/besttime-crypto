@@ -38,7 +38,7 @@ os.environ['DISABLE_KELLY'] = '1'
 import btc_scraper.ml_engine.signal_score
 def mock_load_adaptive_model():
     return None
-btc_scraper.signal_score._load_adaptive_model = mock_load_adaptive_model
+btc_scraper.ml_engine.signal_score._load_adaptive_model = mock_load_adaptive_model
 
 import btc_scraper.core.sentiment
 import btc_scraper.analysis as _btc_analysis
@@ -46,7 +46,7 @@ import btc_scraper.analysis as _btc_analysis
 HISTORICAL_SENTIMENT_MAP = {}
 
 def mock_get_market_sentiment():
-    date_str = getattr(btc_scraper.sentiment, "CURRENT_TRAINING_DATE", None)
+    date_str = getattr(btc_scraper.core.sentiment, "CURRENT_TRAINING_DATE", None)
     if date_str and date_str in HISTORICAL_SENTIMENT_MAP:
         return HISTORICAL_SENTIMENT_MAP[date_str]
     return {
@@ -56,7 +56,7 @@ def mock_get_market_sentiment():
         "timestamp": 1718000000,
         "update_time_human": "2026-06-12 00:00:00"
     }
-btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
+btc_scraper.core.sentiment.get_market_sentiment = mock_get_market_sentiment
 _btc_analysis.get_market_sentiment = mock_get_market_sentiment
 
 from btc_scraper.analysis import analyze_market, analyze_all_market
@@ -185,7 +185,7 @@ def generate_labeled_trades(coin: str, candles_15m: list[dict], mtf_candles: dic
 
     for i in range(WARMUP_CANDLES, n):
         candle = candles_15m[i]
-        btc_scraper.sentiment.CURRENT_TRAINING_DATE = candle["time"][:10]
+        btc_scraper.core.sentiment.CURRENT_TRAINING_DATE = candle["time"][:10]
 
         # skip warmup candles for entry signals
         if candle.get("is_warmup", 0):

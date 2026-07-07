@@ -44,7 +44,9 @@ LOGS_DIR     = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
 MODEL_PATH   = os.path.join(LOGS_DIR, "adaptive_model.joblib")
 BINANCE_BASE = "https://api.binance.com"
 
-TRAIN_HOLDOUT_RATIO = 0.8   # 80% train, 20% holdout
+TRAIN_RATIO = 0.70
+CALIB_RATIO = 0.20
+# Holdout is implicitly 0.10
 DRIFT_THRESHOLD     = 0.53  # Holdout ROC-AUC must exceed this to swap model
 
 # Import the fixed labeled-trade generator (time-aligned MTF, FEATURE_SCHEMA)
@@ -101,6 +103,33 @@ def fetch_candles(coin: str, interval: str, start_dt: datetime, end_dt: datetime
     return all_candles
 
 
+def should_promote_model(
+    cv_auc: float,
+    holdout_auc: float,
+    calibration_error: float,
+    n_samples: int,
+) -> tuple[bool, list[str]]:
+    reasons = []
+
+    if n_samples < 1000:
+        reasons.append("not_enough_samples")
+
+    if cv_auc < 0.58:
+        reasons.append("cv_auc_below_0_58")
+
+    if holdout_auc < 0.56:
+        reasons.append("holdout_auc_below_0_56")
+
+    if calibration_error > 0.10:
+        reasons.append("calibration_error_above_10pct")
+
+    if abs(cv_auc - holdout_auc) > 0.05:
+        reasons.append("cv_holdout_gap_too_large")
+
+    return len(reasons) == 0, reasons
+
+
+
 def run_continuous_learning():
     print("=" * 65)
     print("  BẮT ĐẦU CONTINUOUS LEARNING PIPELINE (FIXED)")
@@ -118,7 +147,7 @@ def run_continuous_learning():
     print(f"  ✅ Đã tải {len(sentiment_map)} ngày Fear & Greed Index lịch sử.")
 
     def mock_get_market_sentiment():
-        date_str = getattr(btc_scraper.sentiment, "CURRENT_TRAINING_DATE", None)
+        date_str = getattr(btc_scraper.core.sentiment, "CURRENT_TRAINING_DATE", None)
         if date_str and date_str in sentiment_map:
             return sentiment_map[date_str]
         return {
@@ -128,7 +157,7 @@ def run_continuous_learning():
             "timestamp": int(time.time()),
             "update_time_human": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
-    btc_scraper.sentiment.get_market_sentiment = mock_get_market_sentiment
+    btc_scraper.core.sentiment.get_market_sentiment = mock_get_market_sentiment
     _btc_analysis.get_market_sentiment = mock_get_market_sentiment
 
     all_records = []
@@ -192,10 +221,13 @@ def run_continuous_learning():
     n_win = int(y.sum())
     win_rate = n_win / len(y) * 100
 
-    # Temporal 80/20 split
-    split_idx = int(len(X) * TRAIN_HOLDOUT_RATIO)
-    X_train, X_holdout = X[:split_idx], X[split_idx:]
-    y_train, y_holdout = y[:split_idx], y[split_idx:]
+    # Temporal 70/20/10 split
+    train_end = int(len(X) * TRAIN_RATIO)
+    calib_end = int(len(X) * (TRAIN_RATIO + CALIB_RATIO))
+    
+    X_train, y_train = X[:train_end], y[:train_end]
+    X_calib, y_calib = X[train_end:calib_end], y[train_end:calib_end]
+    X_holdout, y_holdout = X[calib_end:], y[calib_end:]
 
     # 1. Feature Correlation Check
     import pandas as pd
@@ -209,6 +241,7 @@ def run_continuous_learning():
     
     sel_indices = [feature_names.index(f) for f in selected_features]
     X_train_sel = X_train[:, sel_indices]
+    X_calib_sel = X_calib[:, sel_indices]
     X_holdout_sel = X_holdout[:, sel_indices]
     X_sel = X[:, sel_indices]
 
@@ -255,12 +288,65 @@ def run_continuous_learning():
     # Train on train split
     clf.fit(X_train_sel, y_train)
 
+    # 3. Probability Calibration (70/20 split)
+    print("  [Calibration] Bắt đầu hiệu chỉnh xác suất trên tập Calibration (20%)...")
+    from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.model_selection import PredefinedSplit
+    from btc_scraper.ml_engine.meta_model_v3 import compute_calibration_buckets
+    
+    best_err = float("inf")
+    best_model = clf
+    best_method = "uncalibrated"
+    
+    if len(np.unique(y_calib)) > 1:
+        # PredefinedSplit: -1 means training set, 0 means validation set
+        test_fold = np.concatenate([
+            np.full(len(y_train), -1, dtype=int),
+            np.zeros(len(y_calib), dtype=int)
+        ])
+        cv_split = PredefinedSplit(test_fold)
+        X_train_cal = np.vstack([X_train_sel, X_calib_sel])
+        y_train_cal = np.concatenate([y_train, y_calib])
+        
+        for method in ("sigmoid", "isotonic"):
+            try:
+                calibrator = CalibratedClassifierCV(
+                    estimator=clf,
+                    method=method,
+                    cv=cv_split,
+                    n_jobs=-1
+                )
+                calibrator.fit(X_train_cal, y_train_cal)
+                
+                if len(y_holdout) >= 10:
+                    probs = calibrator.predict_proba(X_holdout_sel)[:, 1]
+                    buckets = compute_calibration_buckets(probs, y_holdout)
+                    errs = [abs(v["calibration_error"]) for v in buckets.values() if v.get("calibration_error") is not None]
+                    if errs:
+                        mean_err = float(np.mean(errs))
+                        if mean_err < best_err:
+                            best_err = mean_err
+                            best_model = calibrator
+                            best_method = method
+            except Exception as e:
+                print(f"  [Warning] Calibration failed for {method}: {e}")
+                
+    print(f"  [Calibration] Chọn phương pháp: {best_method} (Error: {best_err:.2f}%)")
+
     # Holdout ROC-AUC (primary drift indicator)
     holdout_auc = None
+    calib_error_display = "N/A"
+    
     if len(y_holdout) >= 10:
         try:
-            y_prob = clf.predict_proba(X_holdout_sel)[:, 1]
-            holdout_auc = float(roc_auc_score(y_holdout, y_prob))
+            y_prob = best_model.predict_proba(X_holdout_sel)[:, 1]
+            if len(np.unique(y_holdout)) > 1:
+                holdout_auc = float(roc_auc_score(y_holdout, y_prob))
+            # Calculate final calibration error on holdout
+            buckets = compute_calibration_buckets(y_prob, y_holdout)
+            errs = [abs(v["calibration_error"]) for v in buckets.values() if v.get("calibration_error") is not None]
+            if errs:
+                calib_error_display = f"{float(np.mean(errs)):.2f}%"
         except Exception as e:
             print(f"  [Warning] Holdout evaluation failed: {e}")
 
@@ -268,8 +354,9 @@ def run_continuous_learning():
         "🔄 <b>[CONTINUOUS LEARNING - RETRAIN MODEL]</b>",
         f"Dữ liệu: 30 ngày qua ({START_DT.strftime('%d/%m')} - {END_DT.strftime('%d/%m')})",
         f"Tổng số lệnh: {len(y)} (Win Rate Base: {win_rate:.1f}%)",
-        f"Split: TRAIN={len(y_train)} | HOLDOUT={len(y_holdout)}",
+        f"Split: TRAIN={len(y_train)} | CALIB={len(y_calib)} | HOLDOUT={len(y_holdout)}",
         f"Time-Series CV ROC-AUC: <b>{cv_auc:.4f}</b>",
+        f"Calibration Method: <b>{best_method}</b> (Holdout Error: {calib_error_display})",
     ]
 
     if holdout_auc is not None:
@@ -279,18 +366,33 @@ def run_continuous_learning():
         msg_lines.append("Holdout: N/A (too few samples)")
         check_auc = cv_auc  # fallback to CV if holdout too small
 
-    # Concept drift check on holdout (more reliable than CV)
-    if check_auc < DRIFT_THRESHOLD:
-        msg_lines.append(f"\n🚨 <b>CẢNH BÁO: CONCEPT DRIFT DETECTED!</b>")
-        msg_lines.append(f"ROC-AUC = {check_auc:.4f} < threshold {DRIFT_THRESHOLD}.")
-        msg_lines.append("Mô hình hiện tại không học được quy luật hiệu quả từ thị trường gần đây.")
-        msg_lines.append("❌ <b>HỦY</b> thao tác lưu đè mô hình. Hệ thống vẫn sử dụng mô hình cũ.")
-    else:
-        # Retrain on full dataset before saving
-        clf.fit(X_sel, y)
-        joblib.dump({"model": clf, "features": selected_features}, MODEL_PATH)
-        msg_lines.append(f"\n✅ Đã lưu đè mô hình thành công. Sẵn sàng cho giao dịch tuần mới!")
+    # Promote Gate Evaluation
+    calib_err_val = best_err / 100.0 if best_err != float("inf") else 1.0
+    promote, reasons = should_promote_model(
+        cv_auc=cv_auc,
+        holdout_auc=holdout_auc if holdout_auc is not None else 0.0,
+        calibration_error=calib_err_val,
+        n_samples=len(y)
+    )
+
+    if promote:
+        # Save to production
+        joblib.dump({"model": best_model, "features": selected_features}, MODEL_PATH)
+        msg_lines.append(f"\n✅ Đã lưu đè mô hình PRODUCTION thành công.")
         msg_lines.append(f"Schema: Đã chọn {len(selected_features)}/{len(feature_names)} features")
+    else:
+        # Save to challenger
+        challenger_dir = os.path.join(LOGS_DIR, "challenger")
+        os.makedirs(challenger_dir, exist_ok=True)
+        challenger_path = os.path.join(challenger_dir, f"adaptive_model_{datetime.now().strftime('%Y%m%d')}.joblib")
+        joblib.dump({"model": best_model, "features": selected_features}, challenger_path)
+        
+        msg_lines.append(f"\n⚠️ <b>Challenger model trained but NOT promoted.</b>")
+        msg_lines.append("Reason:")
+        for r in reasons:
+            msg_lines.append(f"- {r}")
+        msg_lines.append("\nProduction model remains unchanged.")
+        msg_lines.append("Challenger saved for shadow evaluation.")
 
     send_telegram_message("\n".join(msg_lines), parse_mode="HTML")
     print("\n  Hoàn thành Continuous Learning.")

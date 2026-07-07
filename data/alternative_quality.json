@@ -6585,5 +6585,315 @@
     "is_healthy": true,
     "issue_count": 0,
     "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T06:31:24.246487+00:00",
+    "payload_timestamp": "2026-07-07T06:31:15.420310+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.536015 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T06:31:34.470300+00:00",
+    "payload_timestamp": "2026-07-07T06:31:25.107252+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5360616666666665 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T06:31:40.906973+00:00",
+    "payload_timestamp": "2026-07-07T06:31:25.107252+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5360616666666665 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T06:46:14.515143+00:00",
+    "payload_timestamp": "2026-07-07T06:31:25.107252+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5360616666666665 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T06:46:45.075277+00:00",
+    "payload_timestamp": "2026-07-07T06:46:36.125186+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5359683333333334 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:01:16.024592+00:00",
+    "payload_timestamp": "2026-07-07T06:46:36.125186+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5359683333333334 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:01:56.220293+00:00",
+    "payload_timestamp": "2026-07-07T07:01:47.159925+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.535875 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:16:21.300858+00:00",
+    "payload_timestamp": "2026-07-07T07:01:47.159925+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.535875 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:17:09.625197+00:00",
+    "payload_timestamp": "2026-07-07T07:16:58.953289+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5363183333333335 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:31:20.570343+00:00",
+    "payload_timestamp": "2026-07-07T07:16:58.953289+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5363183333333335 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:32:20.581965+00:00",
+    "payload_timestamp": "2026-07-07T07:32:11.846422+00:00",
+    "is_healthy": false,
+    "issue_count": 2,
+    "issues": [
+      {
+        "field": "funding_pressure",
+        "issue_type": "out_of_range",
+        "detail": "-1.0 < lower bound 0.0."
+      },
+      {
+        "field": "risk_on_score",
+        "issue_type": "out_of_range",
+        "detail": "-0.5372516666666667 < lower bound 0.0."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-07T07:43:11.024649+00:00",
+    "payload_timestamp": "2026-07-07T07:42:59.428323+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:43:21.970073+00:00",
+    "payload_timestamp": "2026-07-07T07:43:11.980861+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:43:31.258439+00:00",
+    "payload_timestamp": "2026-07-07T07:43:11.980861+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:46:16.836386+00:00",
+    "payload_timestamp": "2026-07-07T07:43:11.980861+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:46:56.090122+00:00",
+    "payload_timestamp": "2026-07-07T07:46:44.696148+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:47:08.385186+00:00",
+    "payload_timestamp": "2026-07-07T07:46:56.963124+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:47:20.621754+00:00",
+    "payload_timestamp": "2026-07-07T07:46:56.963124+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:50:35.815739+00:00",
+    "payload_timestamp": "2026-07-07T07:50:25.109955+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:50:47.839460+00:00",
+    "payload_timestamp": "2026-07-07T07:50:36.724045+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T07:50:58.101235+00:00",
+    "payload_timestamp": "2026-07-07T07:50:36.724045+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T08:01:16.123524+00:00",
+    "payload_timestamp": "2026-07-07T07:50:36.724045+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T08:06:01.580130+00:00",
+    "payload_timestamp": "2026-07-07T08:05:48.904336+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T08:16:15.649773+00:00",
+    "payload_timestamp": "2026-07-07T08:05:48.904336+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T08:21:14.995716+00:00",
+    "payload_timestamp": "2026-07-07T08:21:02.738007+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T08:31:10.402296+00:00",
+    "payload_timestamp": "2026-07-07T08:21:02.738007+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-07T08:36:32.240616+00:00",
+    "payload_timestamp": "2026-07-07T08:36:16.027751+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
   }
 ]

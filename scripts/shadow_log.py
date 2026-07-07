@@ -151,7 +151,13 @@ def update_outcome(
     updated = False
     
     for rec in reversed(records):  # tìm từ mới nhất
-        if rec.get("position_id") == position_id and rec.get("actual_result") is None:
+        match = False
+        if rec.get("position_id") == position_id:
+            match = True
+        elif rec.get("symbol") == f"{position_id}USDT" or rec.get("symbol") == position_id:
+            match = True
+
+        if match and rec.get("actual_result") is None:
             rec["actual_result"] = actual_result
             rec["actual_pnl_pct"] = round(float(actual_pnl_pct), 4)
             rec["closed_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
