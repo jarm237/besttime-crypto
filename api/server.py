@@ -565,6 +565,103 @@ def get_metrics():
     """Expose Prometheus metrics for Grafana / Prometheus scraping."""
     return _metrics_response()
 
+
+# ── Phase 10: Execution Intelligence Endpoints ────────────────────────────────
+
+from pathlib import Path as _Path
+
+# Lazy singleton execution engine (initialised on first request)
+_exec_engine = None
+
+def _get_exec_engine():
+    global _exec_engine
+    if _exec_engine is None:
+        try:
+            from btc_scraper.execution import ExecutionEngine, ExecutionConfig
+            cfg_path = _Path(__file__).resolve().parents[1] / "execution_config.json"
+            cfg = ExecutionConfig.from_json(str(cfg_path))
+            _exec_engine = ExecutionEngine(config=cfg)
+        except Exception:
+            from btc_scraper.execution import ExecutionEngine
+            _exec_engine = ExecutionEngine()
+    return _exec_engine
+
+
+@app.get("/api/execution/config")
+def get_execution_config():
+    """Return the current execution intelligence configuration."""
+    try:
+        engine = _get_exec_engine()
+        return engine.config.to_dict()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class PaperOrderRequest(BaseModel):
+    coin: str = "BTC"
+    signal_raw: str = "BUY (Crossover)"
+    close_price: float = 50000.0
+    high_price: float = 51000.0
+    low_price: float = 49000.0
+    volume: float = 100.0
+    urgency: str = "NORMAL"
+
+
+@app.post("/api/execution/submit")
+def submit_paper_order(req: PaperOrderRequest):
+    """Submit a paper/simulated order through the execution engine."""
+    try:
+        engine = _get_exec_engine()
+        signal = {
+            "coin": req.coin,
+            "signal_raw": req.signal_raw,
+        }
+        candle = {
+            "close": req.close_price,
+            "high": req.high_price,
+            "low": req.low_price,
+            "volume": req.volume,
+        }
+        record = engine.submit_paper(signal, candle, urgency=req.urgency)
+        return record.to_dict()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/execution/fills")
+def get_execution_fills(limit: int = 50):
+    """Return recent filled executions with quality metrics."""
+    try:
+        engine = _get_exec_engine()
+        fills = engine.get_recent_fills(limit=limit)
+        return {"fills": fills, "count": len(fills)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/execution/stats")
+def get_execution_stats():
+    """Aggregate execution stats: avg slippage, reject rate, liquidity scores, by-coin breakdown."""
+    try:
+        engine = _get_exec_engine()
+        return engine.get_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/execution/quality-report")
+def get_execution_quality_report():
+    """Generate and return the latest post-trade execution quality report."""
+    try:
+        engine = _get_exec_engine()
+        report = engine.analyze_quality(limit=500)
+        if not report:
+            return {"message": "No filled executions to analyze yet."}
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api.server:app", host="0.0.0.0", port=8000, reload=True)

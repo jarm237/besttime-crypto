@@ -7658,5 +7658,39 @@
     "status": "skipped",
     "reason_skip": "Size lenh sau co gian 0.00 USDT < min 10.00 USDT",
     "entry_price": 0.0188
+  },
+  {
+    "timestamp": "2026-07-08T01:08:00.551811",
+    "timestamp_str": "2026-07-08 01:08:00",
+    "mode": "DRY_RUN",
+    "coin": "NEAR",
+    "signal": "BUY",
+    "meta_confidence": 0.8,
+    "signal_score": 80,
+    "status": "skipped",
+    "reason_skip": "Tuong quan cao voi vi the dang mo SOL (0.80 > 0.75)",
+    "entry_price": 5.0
+  },
+  {
+    "timestamp": "2026-07-08T01:08:00.565838",
+    "timestamp_str": "2026-07-08 01:08:00",
+    "mode": "DRY_RUN",
+    "coin": "ETH",
+    "symbol": "ETH/USDT",
+    "direction": "LONG",
+    "signal": "BUY",
+    "meta_confidence": 0.8,
+    "meta_confidence_pct": 80,
+    "signal_score": 80,
+    "order_type": "market",
+    "entry_price": 100.0,
+    "sl_price": 80.0,
+    "tp1_price": 0.0,
+    "usdt_amount": 100.0,
+    "account_balance_est": 1000.0,
+    "order_id": "mock-buy-id",
+    "status": "placed",
+    "error": null,
+    "filled_price": 100.0
   }
 ]

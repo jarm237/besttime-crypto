@@ -1,0 +1,31 @@
+{
+  "execution": {
+    "enabled": true,
+    "dry_run": true,
+    "max_spread_bps": 20,
+    "max_slippage_bps": 30,
+    "min_liquidity_score": 0.4,
+    "max_latency_ms": 1500,
+    "max_participation_rate": 0.02,
+    "default_order_type": "LIMIT",
+    "emergency_order_type": "MARKET",
+    "limit_order_max_wait_seconds": 30,
+    "futures_taker_bps": 5.0,
+    "futures_maker_bps": 2.0,
+    "spread_bps_default": 2.0,
+    "twap": {
+      "enabled": true,
+      "slices": 5,
+      "interval_seconds": 30,
+      "max_duration_seconds": 180,
+      "cancel_on_signal_reversal": true
+    },
+    "paper_approval": {
+      "min_paper_trades": 50,
+      "realized_slippage_within_expected_p75": true,
+      "execution_reject_rate_below": 0.20,
+      "no_critical_execution_incidents": true,
+      "paper_net_pnl_not_worse_than_backtest_by": 0.30
+    }
+  }
+}

@@ -108,6 +108,58 @@ function App() {
     }
   };
 
+  const [executionConfig, setExecutionConfig] = useState(null);
+  const [executionFills, setExecutionFills] = useState([]);
+  const [executionStats, setExecutionStats] = useState(null);
+  const [executionReport, setExecutionReport] = useState(null);
+
+  const [simulatorParams, setSimulatorParams] = useState({
+    coin: 'BTC',
+    signal_raw: 'BUY (Crossover)',
+    close_price: '50000',
+    high_price: '50500',
+    low_price: '49500',
+    volume: '150',
+    urgency: 'NORMAL'
+  });
+  const [simulatorResult, setSimulatorResult] = useState(null);
+
+  const handleSimulateOrder = async () => {
+    try {
+      setSimulatorResult(null);
+      const res = await axios.post(`${API_BASE}/execution/submit`, {
+        coin: simulatorParams.coin,
+        signal_raw: simulatorParams.signal_raw,
+        close_price: parseFloat(simulatorParams.close_price),
+        high_price: parseFloat(simulatorParams.high_price),
+        low_price: parseFloat(simulatorParams.low_price),
+        volume: parseFloat(simulatorParams.volume),
+        urgency: simulatorParams.urgency
+      });
+      setSimulatorResult(res.data);
+      fetchExecutionData();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Error submitting simulated order');
+    }
+  };
+
+  const fetchExecutionData = async () => {
+    try {
+      const [configRes, fillsRes, statsRes, reportRes] = await Promise.all([
+        axios.get(`${API_BASE}/execution/config`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/execution/fills`).catch(() => ({ data: { fills: [] } })),
+        axios.get(`${API_BASE}/execution/stats`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/execution/quality-report`).catch(() => ({ data: null }))
+      ]);
+      setExecutionConfig(configRes.data);
+      setExecutionFills(fillsRes.data?.fills || []);
+      setExecutionStats(statsRes.data);
+      setExecutionReport(reportRes.data);
+    } catch (err) {
+      console.error('Error fetching execution data', err);
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -140,6 +192,7 @@ function App() {
       
       // Fetch backtest data alongside main sync
       fetchBacktestData();
+      fetchExecutionData();
     } catch (err) {
       console.error('Error fetching data', err);
     }
@@ -1390,6 +1443,292 @@ function App() {
     );
   };
 
+  const renderExecution = () => {
+    return (
+      <div className="flex flex-col gap-6">
+        {/* Row 1: Key Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Khớp lệnh / Bị từ chối</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, marginTop: '0.25rem', color: '#f8fafc' }}>
+              {executionStats?.n_fills ?? 0} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>/ {executionStats?.n_rejected ?? 0}</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--red)', marginTop: '0.25rem' }}>
+              Tỷ lệ từ chối: {(executionStats?.reject_rate * 100 || 0).toFixed(1)}%
+            </div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Slippage Kỳ Vọng TB</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, marginTop: '0.25rem', color: 'var(--accent)' }}>
+              {executionStats?.avg_expected_slippage_bps?.toFixed(2) ?? '0.00'} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>bps</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              Trung bình trên toàn bộ coin
+            </div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Điểm Thanh Khoản TB</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, marginTop: '0.25rem', color: 'var(--green)' }}>
+              {executionStats?.avg_liquidity_score?.toFixed(2) ?? '0.00'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              Ngưỡng tối thiểu: {executionConfig?.min_liquidity_score ?? '0.4'}
+            </div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Trạng Thế Engine</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, marginTop: '0.25rem', color: '#a78bfa' }}>
+              {executionConfig?.dry_run ? 'Dry Run 🧪' : 'Live Mode ⚡'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              Khớp lệnh mô phỏng giấy
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Configurations & Simulator */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Column 1: Active Guards Config */}
+          <div className="glass-panel lg:col-span-1" style={{ padding: '1.25rem', marginBottom: 0 }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>Cổng Kiểm Soát Rủi Ro (Pre-trade Guards)</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Max Spread cho phép:</span>
+                <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{executionConfig?.max_spread_bps} bps</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Max Slippage dự kiến:</span>
+                <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{executionConfig?.max_slippage_bps} bps</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Min Liquidity Score:</span>
+                <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{executionConfig?.min_liquidity_score}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Max Latency cho phép:</span>
+                <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{executionConfig?.max_latency_ms} ms</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Tỷ lệ tham gia tối đa (ADV):</span>
+                <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{((executionConfig?.max_participation_rate || 0.02) * 100).toFixed(1)}%</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Phương pháp mặc định:</span>
+                <span style={{ fontWeight: 'bold', color: '#3b82f6' }}>{executionConfig?.default_order_type}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.25rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>TWAP Slices:</span>
+                <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{executionConfig?.twap?.slices} slices ({executionConfig?.twap?.interval_seconds}s)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: Order Simulator */}
+          <div className="glass-panel lg:col-span-2" style={{ padding: '1.25rem', marginBottom: 0 }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>Trình Giả Lập Lệnh Giấy (Execution Simulator)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Coin</label>
+                  <select
+                    className="form-control"
+                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.4rem', width: '100%' }}
+                    value={simulatorParams.coin}
+                    onChange={(e) => setSimulatorParams({...simulatorParams, coin: e.target.value})}
+                  >
+                    {availableCoins.map(coin => <option key={coin} value={coin}>{coin}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Tín hiệu / Hướng đi</label>
+                  <select
+                    className="form-control"
+                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.4rem', width: '100%' }}
+                    value={simulatorParams.signal_raw}
+                    onChange={(e) => setSimulatorParams({...simulatorParams, signal_raw: e.target.value})}
+                  >
+                    <option value="BUY (Crossover)">BUY (Crossover)</option>
+                    <option value="STRONG BUY (Confirmed Reversal)">STRONG BUY (Reversal)</option>
+                    <option value="SELL (Crossover)">SELL (Crossover)</option>
+                    <option value="STRONG SELL (Confirmed Reversal)">STRONG SELL (Reversal)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Giá đóng cửa (USDT)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.4rem', width: '100%' }}
+                    value={simulatorParams.close_price}
+                    onChange={(e) => setSimulatorParams({...simulatorParams, close_price: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Volume nến</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.4rem', width: '100%' }}
+                    value={simulatorParams.volume}
+                    onChange={(e) => setSimulatorParams({...simulatorParams, volume: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Mức độ khẩn cấp (Urgency)</label>
+                  <select
+                    className="form-control"
+                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.4rem', width: '100%' }}
+                    value={simulatorParams.urgency}
+                    onChange={(e) => setSimulatorParams({...simulatorParams, urgency: e.target.value})}
+                  >
+                    <option value="NORMAL">NORMAL (Thường)</option>
+                    <option value="HIGH">HIGH (Nhanh)</option>
+                    <option value="EMERGENCY">EMERGENCY (Cắt lỗ khẩn cấp)</option>
+                  </select>
+                </div>
+                <button
+                  className="btn btn-primary w-full"
+                  style={{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', fontWeight: 'bold', marginTop: '1.2rem', padding: '0.5rem' }}
+                  onClick={handleSimulateOrder}
+                >
+                  ⚡ Gửi Lệnh Giả Lập
+                </button>
+              </div>
+            </div>
+            {simulatorResult && (
+              <div style={{ marginTop: '1rem', padding: '0.75rem', background: simulatorResult.status === 'REJECTED' ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)', border: `1px solid ${simulatorResult.status === 'REJECTED' ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)'}`, borderRadius: '0.375rem', fontSize: '0.8rem' }}>
+                <div style={{ fontWeight: 'bold', color: simulatorResult.status === 'REJECTED' ? 'var(--red)' : 'var(--green)' }}>
+                  {simulatorResult.status === 'REJECTED' ? '❌ LỆNH BỊ TỪ CHỐI (REJECTED)' : '✅ KHỚP LỆNH THÀNH CÔNG (FILLED)'}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem', fontFamily: 'monospace' }}>
+                  <div>ID: #{simulatorResult.execution_id}</div>
+                  <div>Loại: {simulatorResult.order_type}</div>
+                  <div>Giá đặt: ${simulatorResult.submitted_price?.toFixed(2)}</div>
+                  <div>Giá khớp TB: ${simulatorResult.avg_fill_price?.toFixed(2) || 'N/A'}</div>
+                  <div>Điểm thanh khoản: {simulatorResult.liquidity_score?.toFixed(2)}</div>
+                  <div>Chi phí Slippage: {simulatorResult.expected_slippage_bps?.toFixed(1)} bps</div>
+                  {simulatorResult.reason && <div style={{ gridColumn: 'span 2', color: 'var(--text-secondary)' }}>Lý do: {simulatorResult.reason}</div>}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 3: Quality report per Coin */}
+        {executionReport?.by_coin && Object.keys(executionReport.by_coin).length > 0 && (
+          <div className="glass-panel" style={{ padding: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem' }}>Hiệu Suất Khớp Lệnh Theo Coin (Post-trade Shortfall)</h3>
+            <div className="table-container">
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Coin</th>
+                    <th style={{ textAlign: 'center' }}>Số Lượng Fills</th>
+                    <th style={{ textAlign: 'right' }}>Shortfall TB (IS)</th>
+                    <th style={{ textAlign: 'right' }}>Shortfall P95</th>
+                    <th style={{ textAlign: 'right' }}>Lệch Sai Số Slippage</th>
+                    <th>Phân Bổ Chất Lượng Khớp Lệnh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(executionReport.by_coin).map(([coin, stats]) => (
+                    <tr key={coin}>
+                      <td style={{ fontWeight: 'bold' }}>{coin}</td>
+                      <td style={{ textAlign: 'center', fontFamily: 'monospace' }}>{stats.n_fills}</td>
+                      <td style={{ textAlign: 'right', fontFamily: 'monospace', color: stats.avg_is_bps > 15 ? 'var(--warning)' : 'var(--green)' }}>
+                        {stats.avg_is_bps?.toFixed(2)} bps
+                      </td>
+                      <td style={{ textAlign: 'right', fontFamily: 'monospace', color: stats.p95_is_bps > 30 ? 'var(--red)' : 'var(--warning)' }}>
+                        {stats.p95_is_bps?.toFixed(2)} bps
+                      </td>
+                      <td style={{ textAlign: 'right', fontFamily: 'monospace', color: stats.avg_slippage_prediction_error_bps >= 0 ? 'var(--red)' : 'var(--green)' }}>
+                        {stats.avg_slippage_prediction_error_bps >= 0 ? '+' : ''}{stats.avg_slippage_prediction_error_bps?.toFixed(2)} bps
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', height: '14px', borderRadius: '4px', overflow: 'hidden', minWidth: '150px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          {stats.pct_excellent > 0 && <div style={{ width: `${stats.pct_excellent}%`, background: 'var(--green)' }} title={`Excellent: ${stats.pct_excellent}%`} />}
+                          {stats.pct_good > 0 && <div style={{ width: `${stats.pct_good}%`, background: '#3b82f6' }} title={`Good: ${stats.pct_good}%`} />}
+                          {stats.pct_poor > 0 && <div style={{ width: `${stats.pct_poor}%`, background: 'var(--red)' }} title={`Poor: ${stats.pct_poor}%`} />}
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '0.2rem', display: 'flex', gap: '0.4rem' }}>
+                          <span style={{ color: 'var(--green)' }}>Ex: {stats.pct_excellent}%</span>
+                          <span style={{ color: '#3b82f6' }}>Gd: {stats.pct_good}%</span>
+                          <span style={{ color: 'var(--red)' }}>Pr: {stats.pct_poor}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Row 4: Recent Fills List */}
+        <div className="glass-panel" style={{ padding: '1.25rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem' }}>Nhật Ký Các Vị Thế Khớp Lệnh Gần Đây</h3>
+          {executionFills.length === 0 ? (
+            <div className="text-secondary text-center py-6">Chưa có dữ liệu khớp lệnh.</div>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Execution ID</th>
+                    <th>Thời Gian</th>
+                    <th>Coin</th>
+                    <th>Hướng</th>
+                    <th>Số lượng</th>
+                    <th>Giá đặt nến</th>
+                    <th>Giá khớp TB</th>
+                    <th>Shortfall</th>
+                    <th>Slippage Bps</th>
+                    <th>Chất lượng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {executionFills.map((fill) => {
+                    const isB = fill.side && fill.side.toUpperCase() === 'BUY';
+                    const is_bps = (fill.avg_fill_price - fill.decision_price) / fill.decision_price * 10000;
+                    const shortfall = fill.side === 'BUY' ? is_bps : -is_bps;
+                    
+                    let ratingColor = 'var(--red)';
+                    if (fill.quality_label === 'EXCELLENT') ratingColor = 'var(--green)';
+                    if (fill.quality_label === 'GOOD') ratingColor = '#3b82f6';
+                    
+                    return (
+                      <tr key={fill.execution_id}>
+                        <td className="font-mono text-sm font-bold text-primary">#{fill.execution_id}</td>
+                        <td>{new Date(fill.timestamp).toLocaleString()}</td>
+                        <td style={{ fontWeight: 'bold' }}>{fill.coin}</td>
+                        <td style={{ color: isB ? 'var(--green)' : 'var(--red)', fontWeight: 'bold' }}>{fill.side}</td>
+                        <td className="font-mono">{fill.filled_qty?.toFixed(4)}</td>
+                        <td className="font-mono">${fill.decision_price?.toFixed(2)}</td>
+                        <td className="font-mono">${fill.avg_fill_price?.toFixed(2)}</td>
+                        <td className="font-mono" style={{ color: shortfall > 15 ? 'var(--red)' : shortfall > 5 ? 'var(--warning)' : 'var(--green)', fontWeight: 'bold' }}>
+                          {shortfall >= 0 ? '+' : ''}{shortfall?.toFixed(1)} bps
+                        </td>
+                        <td className="font-mono">{fill.expected_slippage_bps?.toFixed(1)} bps</td>
+                        <td>
+                          <span className="badge" style={{ background: ratingColor, color: '#fff', fontSize: '0.7rem' }}>
+                            {fill.quality_label || 'GOOD'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container">
       <div className="header">
@@ -1407,7 +1746,7 @@ function App() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-8 gap-4 mb-6">
         <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'market' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Activity size={16} /> Tín Hiệu Thị Trường</div>
@@ -1452,6 +1791,12 @@ function App() {
             <div className="stat-value text-green-400">Kiểm thử</div>
           </div>
         </div>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'execution' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('execution')}>
+          <div className="stat-card">
+            <div className="stat-title flex items-center gap-2"><Shield size={16} /> Execution</div>
+            <div className="stat-value text-indigo-400">Khớp lệnh</div>
+          </div>
+        </div>
       </div>
 
       <div className="glass-panel">
@@ -1463,6 +1808,7 @@ function App() {
           {activeTab === 'auto' && <><Shield size={20} className="text-accent" /> CCXT Auto Trading Monitor</>}
           {activeTab === 'meta' && <><Bot size={20} className="text-indigo-400" /> Meta Model Analytics & Calibration</>}
           {activeTab === 'backtest' && <><Activity size={20} className="text-accent" /> Institutional Backtesting & Validation</>}
+          {activeTab === 'execution' && <><Shield size={20} className="text-accent" /> Execution Intelligence & Quality Monitor</>}
         </h2>
 
         {activeTab === 'market' && renderMarketSignals()}
@@ -1470,6 +1816,7 @@ function App() {
         {activeTab === 'auto' && renderAutoTrade()}
         {activeTab === 'meta' && renderMetaModel()}
         {activeTab === 'backtest' && renderBacktesting()}
+        {activeTab === 'execution' && renderExecution()}
         {activeTab === 'ai' && (
           <div className="p-6 bg-black/20 rounded-xl border border-blue-500/30">
             <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-4">

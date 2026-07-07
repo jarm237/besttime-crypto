@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-07-07T18:08:47.182535+00:00",
+  "n_total_fills": 1,
+  "avg_implementation_shortfall_bps": 0.5,
+  "p95_implementation_shortfall_bps": 0.5,
+  "by_coin": {
+    "BTC": {
+      "n_fills": 1,
+      "avg_is_bps": 0.5,
+      "max_is_bps": 0.5,
+      "p95_is_bps": 0.5,
+      "avg_slippage_prediction_error_bps": 0.0,
+      "pct_excellent": 100.0,
+      "pct_good": 0.0,
+      "pct_poor": 0.0
+    }
+  }
+}
