@@ -59,6 +59,55 @@ function App() {
   const [partialPercentage, setPartialPercentage] = useState(50);
   const [partialPrice, setPartialPrice] = useState('');
 
+  const [backtestParams, setBacktestParams] = useState({
+    initial_capital: 10000,
+    timeframe: '15m',
+    coins: ['BTC', 'ETH', 'SOL'],
+    latency_ms: 250,
+    fee_bps: 5.0,
+    slippage_bps: 1.0
+  });
+  const [activeBacktestTask, setActiveBacktestTask] = useState(null);
+  const [backtestHistory, setBacktestHistory] = useState([]);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const fetchBacktestData = async () => {
+    try {
+      const [taskRes, historyRes] = await Promise.all([
+        axios.get(`${API_BASE}/backtests/active-task`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/backtests/history`).catch(() => ({ data: [] }))
+      ]);
+      setActiveBacktestTask(taskRes.data);
+      setBacktestHistory(historyRes.data || []);
+      
+      if (taskRes.data?.run_id && taskRes.data?.status === 'completed' && (!selectedReport || selectedReport.run_id !== taskRes.data.run_id)) {
+        const rptRes = await axios.get(`${API_BASE}/backtests/report/${taskRes.data.run_id}`);
+        setSelectedReport(rptRes.data);
+      }
+    } catch (err) {
+      console.error('Error fetching backtest data', err);
+    }
+  };
+
+  const handleRunBacktest = async () => {
+    try {
+      setSelectedReport(null);
+      await axios.post(`${API_BASE}/backtests/run`, backtestParams);
+      fetchBacktestData();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Error running backtest');
+    }
+  };
+
+  const handleSelectReport = async (runId) => {
+    try {
+      const res = await axios.get(`${API_BASE}/backtests/report/${runId}`);
+      setSelectedReport(res.data);
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Error loading report');
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -88,6 +137,9 @@ function App() {
           coin: confRes.data.coins.includes(prev.coin) ? prev.coin : confRes.data.coins[0]
         }));
       }
+      
+      // Fetch backtest data alongside main sync
+      fetchBacktestData();
     } catch (err) {
       console.error('Error fetching data', err);
     }
@@ -975,6 +1027,368 @@ function App() {
     );
   };
 
+  const renderBacktesting = () => {
+    return (
+      <div className="flex flex-col gap-6">
+        {/* Row 1: Configurations & Launch */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="glass-panel lg:col-span-1" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>Cấu hình Backtest</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Số vốn ban đầu (USDT)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.5rem', width: '100%', marginTop: '0.25rem' }}
+                  value={backtestParams.initial_capital}
+                  onChange={(e) => setBacktestParams({...backtestParams, initial_capital: parseFloat(e.target.value)})}
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Khung thời gian</label>
+                <select
+                  className="form-control"
+                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', color: '#fff', padding: '0.5rem', width: '100%', marginTop: '0.25rem' }}
+                  value={backtestParams.timeframe}
+                  onChange={(e) => setBacktestParams({...backtestParams, timeframe: e.target.value})}
+                >
+                  <option value="15m">15m</option>
+                  <option value="1h">1h</option>
+                  <option value="4h">4h</option>
+                  <option value="1d">1d</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Độ trễ Latency (ms)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="3000"
+                    step="50"
+                    style={{ flex: 1 }}
+                    value={backtestParams.latency_ms}
+                    onChange={(e) => setBacktestParams({...backtestParams, latency_ms: parseInt(e.target.value)})}
+                  />
+                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold', width: '50px' }}>{backtestParams.latency_ms}ms</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Phí giao dịch Futures Taker (bps)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    step="0.5"
+                    style={{ flex: 1 }}
+                    value={backtestParams.fee_bps}
+                    onChange={(e) => setBacktestParams({...backtestParams, fee_bps: parseFloat(e.target.value)})}
+                  />
+                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold', width: '50px' }}>{backtestParams.fee_bps} bps</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Slippage cơ bản (bps)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    style={{ flex: 1 }}
+                    value={backtestParams.slippage_bps}
+                    onChange={(e) => setBacktestParams({...backtestParams, slippage_bps: parseFloat(e.target.value)})}
+                  />
+                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold', width: '50px' }}>{backtestParams.slippage_bps} bps</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>Coin Whitelist</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', maxHeight: '120px', overflowY: 'auto', background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '0.25rem' }}>
+                  {availableCoins.map(coin => {
+                    const isChecked = backtestParams.coins.includes(coin);
+                    return (
+                      <label key={coin} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', fontSize: '0.8rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            const newCoins = isChecked
+                              ? backtestParams.coins.filter(c => c !== coin)
+                              : [...backtestParams.coins, coin];
+                            setBacktestParams({...backtestParams, coins: newCoins});
+                          }}
+                        />
+                        {coin}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary w-full mt-4"
+                style={{ background: 'linear-gradient(to right, #6366f1, #3b82f6)', fontWeight: 'bold' }}
+                disabled={activeBacktestTask?.status === 'running'}
+                onClick={handleRunBacktest}
+              >
+                {activeBacktestTask?.status === 'running' ? 'Đang chạy backtest...' : '🚀 Khởi Chạy Backtest'}
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-panel lg:col-span-2" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            {activeBacktestTask?.status === 'running' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '4rem 0' }}>
+                <RefreshCw className="animate-spin text-accent mb-4" size={48} />
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Đang thực thi tác vụ backtesting chuyên nghiệp...</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Hệ thống đang mô phỏng khớp lệnh, phí, slippage và tính Monte Carlo 10,000 paths.</p>
+                <div style={{ width: '80%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: 'linear-gradient(to right, var(--accent), var(--green))', width: `${activeBacktestTask.progress}%`, transition: 'width 0.4s' }} />
+                </div>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontFamily: 'monospace' }}>Tiến độ: {activeBacktestTask.progress}%</span>
+              </div>
+            ) : selectedReport ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.75rem' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: 0 }}>Kết Quả Backtest: Run #{selectedReport.run_id}</h3>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Mô phỏng ngày: {new Date(selectedReport.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className={`badge ${selectedReport.approval_status?.passed ? 'badge-green' : 'badge-red'}`} style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
+                      {selectedReport.approval_status?.passed ? 'APPROVED ✅' : 'REJECTED ❌'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Grid stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Tổng PnL Net</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: selectedReport.metrics?.net_pnl >= 0 ? 'var(--green)' : 'var(--red)', marginTop: '0.25rem' }}>
+                      {selectedReport.metrics?.total_return >= 0 ? '+' : ''}{(selectedReport.metrics?.total_return * 100).toFixed(2)}%
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sharpe Ratio</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--accent)', marginTop: '0.25rem' }}>
+                      {selectedReport.metrics?.sharpe?.toFixed(2)}
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Max Drawdown</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--red)', marginTop: '0.25rem' }}>
+                      -{(selectedReport.metrics?.max_drawdown * 100).toFixed(2)}%
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Cost Drag PnL</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--warning)', marginTop: '0.25rem' }}>
+                      {(selectedReport.metrics?.cost_drag * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gate checks details */}
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 'bold', marginBottom: '0.75rem' }}>Strategy Approval Gate Checklist</h4>
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <table style={{ width: '100%', fontSize: '0.8rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-secondary)' }}>
+                          <th style={{ textAlign: 'left', padding: '0.25rem' }}>Quy tắc</th>
+                          <th style={{ textAlign: 'center', padding: '0.25rem' }}>Giá trị đạt</th>
+                          <th style={{ textAlign: 'center', padding: '0.25rem' }}>Ngưỡng yêu cầu</th>
+                          <th style={{ textAlign: 'right', padding: '0.25rem' }}>Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedReport.approval_status?.rules && Object.entries(selectedReport.approval_status.rules).map(([ruleKey, ruleInfo]) => {
+                          const isPct = ['max_drawdown', 'cost_drag', 'mc_prob_loss', 'mc_prob_dd_10pct'].includes(ruleKey);
+                          const valStr = isPct ? `${(ruleInfo.val * 100).toFixed(1)}%` : ruleInfo.val?.toFixed(2);
+                          return (
+                            <tr key={ruleKey} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                              <td style={{ padding: '0.4rem 0.25rem', textTransform: 'capitalize' }}>{ruleKey.replace(/_/g, ' ')}</td>
+                              <td style={{ textAlign: 'center', fontFamily: 'monospace' }}>{valStr}</td>
+                              <td style={{ textAlign: 'center', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{ruleInfo.target}</td>
+                              <td style={{ textAlign: 'right', fontWeight: 'bold', color: ruleInfo.ok ? 'var(--green)' : 'var(--red)' }}>
+                                {ruleInfo.ok ? '✅ PASS' : '❌ FAIL'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Sub-tabs / Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Monte Carlo */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.75rem', color: '#a78bfa' }}>Monte Carlo Robustness (10k paths)</h4>
+                    <table style={{ width: '100%', fontSize: '0.8rem' }}>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '0.25rem 0', color: 'var(--text-secondary)' }}>Path 5th Percentile Return</td>
+                          <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(selectedReport.monte_carlo_metrics?.p05_return * 100).toFixed(1)}%</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '0.25rem 0', color: 'var(--text-secondary)' }}>Path 50th Percentile Return</td>
+                          <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(selectedReport.monte_carlo_metrics?.p50_return * 100).toFixed(1)}%</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '0.25rem 0', color: 'var(--text-secondary)' }}>Path 95th Percentile Return</td>
+                          <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(selectedReport.monte_carlo_metrics?.p95_return * 100).toFixed(1)}%</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '0.25rem 0', color: 'var(--text-secondary)' }}>Xác suất thua lỗ (Path Loss)</td>
+                          <td style={{ textAlign: 'right', fontFamily: 'monospace', color: selectedReport.monte_carlo_metrics?.probability_of_loss > 0.25 ? 'var(--red)' : 'var(--green)' }}>
+                            {(selectedReport.monte_carlo_metrics?.probability_of_loss * 100).toFixed(1)}%
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '0.25rem 0', color: 'var(--text-secondary)' }}>Khả năng cháy tài khoản (Risk of Ruin)</td>
+                          <td style={{ textAlign: 'right', fontFamily: 'monospace', color: selectedReport.monte_carlo_metrics?.risk_of_ruin > 0.1 ? 'var(--red)' : 'var(--green)' }}>
+                            {(selectedReport.monte_carlo_metrics?.risk_of_ruin * 100).toFixed(1)}%
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Stress tests */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.75rem', color: '#3b82f6' }}>Stress Tests & Crashes</h4>
+                    <table style={{ width: '100%', fontSize: '0.75rem' }}>
+                      <thead>
+                        <tr style={{ color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                          <th>Sự kiện</th>
+                          <th style={{ textAlign: 'center' }}>N.Trades</th>
+                          <th style={{ textAlign: 'right' }}>PnL</th>
+                          <th style={{ textAlign: 'right' }}>Max DD</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedReport.stress_metrics?.historical && Object.entries(selectedReport.stress_metrics.historical).map(([evtName, evtStats]) => (
+                          <tr key={evtName} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            <td style={{ padding: '0.3rem 0' }}>{evtName.replace(/_/g, ' ')}</td>
+                            <td style={{ textAlign: 'center', fontFamily: 'monospace' }}>{evtStats.n_trades ?? 0}</td>
+                            <td style={{ textAlign: 'right', fontFamily: 'monospace', color: evtStats.total_return >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                              {evtStats.total_return != null ? `${(evtStats.total_return * 100).toFixed(1)}%` : 'N/A'}
+                            </td>
+                            <td style={{ textAlign: 'right', fontFamily: 'monospace', color: 'var(--red)' }}>
+                              {evtStats.max_drawdown != null ? `-${(evtStats.max_drawdown * 100).toFixed(1)}%` : 'N/A'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                {/* Regime split performance */}
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Hiệu suất theo Market Regimes</h4>
+                  <div className="table-container">
+                    <table style={{ width: '100%', fontSize: '0.8rem' }}>
+                      <thead>
+                        <tr style={{ color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                          <th style={{ textAlign: 'left' }}>Regime</th>
+                          <th style={{ textAlign: 'center' }}>Số Trade</th>
+                          <th style={{ textAlign: 'center' }}>Win Rate</th>
+                          <th style={{ textAlign: 'right' }}>Tổng Return (USDT)</th>
+                          <th style={{ textAlign: 'right' }}>Profit Factor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedReport.regime_metrics && Object.entries(selectedReport.regime_metrics).map(([regName, regStats]) => (
+                          <tr key={regName} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            <td style={{ padding: '0.4rem 0', fontWeight: 'bold' }}>{regName}</td>
+                            <td style={{ textAlign: 'center', fontFamily: 'monospace' }}>{regStats.n_trades}</td>
+                            <td style={{ textAlign: 'center', fontFamily: 'monospace' }}>{(regStats.win_rate * 100).toFixed(1)}%</td>
+                            <td style={{ textAlign: 'right', fontFamily: 'monospace', color: regStats.total_return >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                              ${regStats.total_return.toFixed(2)}
+                            </td>
+                            <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>{regStats.profit_factor === Infinity ? '∞' : regStats.profit_factor.toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)', padding: '8rem 0' }}>
+                Chọn một báo cáo backtest trong lịch sử hoặc chạy backtest mới để xem kết quả chi tiết.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 2: History Runs */}
+        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem' }}>Lịch sử các lần chạy Backtest</h3>
+          {backtestHistory.length === 0 ? (
+            <div className="text-secondary text-center py-6">Chưa chạy lần backtest nào.</div>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Run ID</th>
+                    <th>Thời Gian</th>
+                    <th>Coins whitelist</th>
+                    <th>Trades</th>
+                    <th>Tổng Net PnL</th>
+                    <th>Max Drawdown</th>
+                    <th>Sharpe</th>
+                    <th>Cổng Phê Duyệt</th>
+                    <th>Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {backtestHistory.map((run) => (
+                    <tr key={run.run_id} style={{ cursor: 'pointer' }} onClick={() => handleSelectReport(run.run_id)}>
+                      <td className="font-mono text-sm font-bold text-primary">#{run.run_id}</td>
+                      <td>{new Date(run.timestamp).toLocaleString()}</td>
+                      <td className="text-sm">{run.coins.join(', ')}</td>
+                      <td className="font-mono">{run.n_trades}</td>
+                      <td className={`font-mono font-bold ${run.total_return >= 0 ? 'text-green' : 'text-red'}`}>
+                        {run.total_return >= 0 ? '+' : ''}{(run.total_return * 100).toFixed(2)}%
+                      </td>
+                      <td className="font-mono text-red">-{(run.max_drawdown * 100).toFixed(2)}%</td>
+                      <td className="font-mono">{run.sharpe.toFixed(2)}</td>
+                      <td>
+                        <span className={`badge ${run.passed ? 'badge-green' : 'badge-red'}`}>
+                          {run.passed ? 'PASSED' : 'REJECTED'}
+                        </span>
+                      </td>
+                      <td>
+                        <button className="btn" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: 'rgba(255,255,255,0.06)' }} onClick={(e) => { e.stopPropagation(); handleSelectReport(run.run_id); }}>
+                          Xem chi tiết
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="container">
@@ -993,7 +1407,7 @@ function App() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
         <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'market' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('market')}>
           <div className="stat-card">
             <div className="stat-title flex items-center gap-2"><Activity size={16} /> Tín Hiệu Thị Trường</div>
@@ -1032,6 +1446,12 @@ function App() {
             <div className="stat-value text-indigo-400">Huấn Luyện</div>
           </div>
         </div>
+        <div className="glass-panel" style={{ cursor: 'pointer', padding: '1.25rem', marginBottom: 0, borderColor: activeTab === 'backtest' ? 'var(--accent)' : '' }} onClick={() => setActiveTab('backtest')}>
+          <div className="stat-card">
+            <div className="stat-title flex items-center gap-2"><Activity size={16} /> Backtesting</div>
+            <div className="stat-value text-green-400">Kiểm thử</div>
+          </div>
+        </div>
       </div>
 
       <div className="glass-panel">
@@ -1042,12 +1462,14 @@ function App() {
           {activeTab === 'ai' && <><Bot size={20} className="text-accent" /> Gemini AI Insights</>}
           {activeTab === 'auto' && <><Shield size={20} className="text-accent" /> CCXT Auto Trading Monitor</>}
           {activeTab === 'meta' && <><Bot size={20} className="text-indigo-400" /> Meta Model Analytics & Calibration</>}
+          {activeTab === 'backtest' && <><Activity size={20} className="text-accent" /> Institutional Backtesting & Validation</>}
         </h2>
 
         {activeTab === 'market' && renderMarketSignals()}
         {activeTab === 'positions' && renderPositions()}
         {activeTab === 'auto' && renderAutoTrade()}
         {activeTab === 'meta' && renderMetaModel()}
+        {activeTab === 'backtest' && renderBacktesting()}
         {activeTab === 'ai' && (
           <div className="p-6 bg-black/20 rounded-xl border border-blue-500/30">
             <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-4">

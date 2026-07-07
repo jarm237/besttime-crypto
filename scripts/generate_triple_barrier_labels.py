@@ -66,22 +66,26 @@ def _read_csv_candle(path: Path) -> pd.DataFrame:
 
 def load_candles_for_coin(data_dir: Path, coin: str, timeframe: str) -> pd.DataFrame:
     coin = coin.upper()
-    # First try directory-based structure: data_dir/<COIN>/<COIN>_<TF>.csv
-    candidate = data_dir / coin / f"{coin}_{timeframe}.csv"
-    if candidate.exists():
-        return _read_csv_candle(candidate)
-
-    # Fallback to nested search for more flexible file layouts.
-    patterns = [
-        f"*_{coin}_{timeframe}.csv",
-        f"{coin}_{timeframe}.csv",
-        f"*_{timeframe}.csv",
-    ]
+    
+    # Try direct matches under coin directory first
+    coin_dir = data_dir / coin
     matches = []
-    for pattern in patterns:
-        matches = sorted(data_dir.rglob(pattern))
-        if matches:
-            break
+    if coin_dir.exists():
+        matches = sorted(coin_dir.rglob(f"{coin}_{timeframe}_*.csv")) + \
+                  sorted(coin_dir.rglob(f"{coin}_{timeframe}.csv"))
+                  
+    # If no matches under coin_dir, check general dir
+    if not matches:
+        matches = sorted(data_dir.rglob(f"{coin}_{timeframe}_*.csv")) + \
+                  sorted(data_dir.rglob(f"{coin}_{timeframe}.csv"))
+                  
+    # Specific fallback to nested search for more flexible file layouts.
+    # We must ensure the coin name is part of the filename prefix to avoid mixing
+    if not matches:
+        for p in data_dir.rglob(f"*{timeframe}*.csv"):
+            name_upper = p.name.upper()
+            if name_upper.startswith(f"{coin}_") or f"_{coin}_" in name_upper:
+                matches.append(p)
 
     if not matches:
         return pd.DataFrame()

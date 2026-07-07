@@ -420,6 +420,141 @@ def get_market_signals():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Không thể đọc tín hiệu: {str(e)}")
 
+import threading
+from typing import List, Dict, Any
+
+# Global status tracking for backtests
+active_backtest_task = {
+    "status": "idle",
+    "progress": 0,
+    "run_id": None,
+    "error": None
+}
+
+class BacktestRunRequest(BaseModel):
+    initial_capital: float = 10000.0
+    timeframe: str = "15m"
+    coins: List[str] = ["BTC", "ETH", "SOL"]
+    latency_ms: int = 250
+    fee_bps: float = 5.0
+    slippage_bps: float = 1.0
+
+def _run_backtest_in_background(payload: Dict[str, Any]):
+    global active_backtest_task
+    active_backtest_task["status"] = "running"
+    active_backtest_task["progress"] = 10
+    active_backtest_task["error"] = None
+    
+    try:
+        from scripts.run_backtest_v2 import run_backtest_pipeline
+        active_backtest_task["progress"] = 30
+        
+        # Build override config
+        override_config = {
+            "initial_capital": payload["initial_capital"],
+            "timeframe": payload["timeframe"],
+            "coins": payload["coins"],
+            "fee_model": {
+                "spot_taker_bps": payload["fee_bps"] * 2.0,
+                "spot_maker_bps": payload["fee_bps"] * 2.0,
+                "futures_taker_bps": payload["fee_bps"],
+                "futures_maker_bps": max(2.0, payload["fee_bps"] / 2.5),
+                "is_futures": True
+            },
+            "slippage_model": {
+                "enabled": True,
+                "mode": "rule_v1",
+                "base_slippage_bps": payload["slippage_bps"]
+            },
+            "latency_model": {
+                "enabled": True,
+                "latency_ms": payload["latency_ms"]
+            }
+        }
+        
+        active_backtest_task["progress"] = 50
+        result = run_backtest_pipeline(config_data=override_config)
+        active_backtest_task["progress"] = 90
+        
+        # Generate markdown report
+        from subprocess import run as sub_run
+        sub_run([sys.executable, "scripts/generate_backtest_report.py"])
+        
+        active_backtest_task["progress"] = 100
+        active_backtest_task["status"] = "completed"
+        active_backtest_task["run_id"] = result.get("run_id")
+    except Exception as e:
+        active_backtest_task["status"] = "error"
+        active_backtest_task["error"] = str(e)
+        active_backtest_task["progress"] = 0
+
+@app.post("/api/backtests/run")
+def run_backtest(req: BacktestRunRequest):
+    global active_backtest_task
+    if active_backtest_task["status"] == "running":
+        raise HTTPException(status_code=400, detail="Một tác vụ backtest khác đang được thực thi.")
+        
+    payload = {
+        "initial_capital": req.initial_capital,
+        "timeframe": req.timeframe,
+        "coins": req.coins,
+        "latency_ms": req.latency_ms,
+        "fee_bps": req.fee_bps,
+        "slippage_bps": req.slippage_bps
+    }
+    
+    thread = threading.Thread(target=_run_backtest_in_background, args=(payload,))
+    thread.daemon = True
+    thread.start()
+    
+    return {"status": "started"}
+
+@app.get("/api/backtests/active-task")
+def get_active_backtest_task():
+    global active_backtest_task
+    return active_backtest_task
+
+@app.get("/api/backtests/history")
+def get_backtest_history():
+    runs_dir = os.path.join(DATA_DIR, "backtests", "runs")
+    if not os.path.exists(runs_dir):
+        return []
+        
+    history = []
+    for filename in os.listdir(runs_dir):
+        if filename.startswith("run_") and filename.endswith(".json"):
+            filepath = os.path.join(runs_dir, filename)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                history.append({
+                    "run_id": data.get("run_id"),
+                    "timestamp": data.get("timestamp"),
+                    "coins": data.get("config", {}).get("coins", []),
+                    "total_return": data.get("metrics", {}).get("total_return", 0.0),
+                    "sharpe": data.get("metrics", {}).get("sharpe", 0.0),
+                    "max_drawdown": data.get("metrics", {}).get("max_drawdown", 0.0),
+                    "n_trades": data.get("metrics", {}).get("n_trades", 0),
+                    "passed": data.get("approval_status", {}).get("passed", False)
+                })
+            except Exception:
+                continue
+                
+    # Sort chronological
+    history.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return history
+
+@app.get("/api/backtests/report/{run_id}")
+def get_backtest_report(run_id: str):
+    filepath = os.path.join(DATA_DIR, "backtests", "runs", f"run_{run_id}.json")
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail="Không tìm thấy báo cáo backtest.")
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi đọc file: {e}")
+
 @app.get("/api/config")
 def get_config():
     """Lấy danh sách cấu hình, bao gồm danh sách COINS."""

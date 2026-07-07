@@ -1,0 +1,341 @@
+{
+  "run_id": "e4899220",
+  "timestamp": "2026-07-08T00:31:42.417693",
+  "config": {
+    "initial_capital": 10000.0,
+    "timeframe": "15m",
+    "coins": [
+      "BTC",
+      "ETH",
+      "SOL"
+    ],
+    "fee_model": {
+      "spot_maker_bps": 10.0,
+      "spot_taker_bps": 10.0,
+      "futures_maker_bps": 2.0,
+      "futures_taker_bps": 5.0,
+      "is_futures": true
+    },
+    "slippage_model": {
+      "enabled": true,
+      "mode": "rule_v1",
+      "base_slippage_bps": 1.0
+    },
+    "latency_model": {
+      "enabled": true,
+      "latency_ms": 250
+    },
+    "walk_forward": {
+      "train_months": 6,
+      "test_months": 1,
+      "step_months": 1,
+      "min_train_samples": 1000,
+      "retrain_model": true,
+      "reoptimize_threshold": true
+    },
+    "monte_carlo": {
+      "n_simulations": 1000,
+      "shuffle_trades": true,
+      "bootstrap_trades": true,
+      "randomize_slippage": true,
+      "randomize_latency": true,
+      "randomize_spread": true
+    }
+  },
+  "metrics": {
+    "total_return": -7.312687021364588,
+    "annualized_return": -7.312687021364588,
+    "volatility": 3.906502857017139,
+    "sharpe": -0.5342089502263646,
+    "sortino": 0.0,
+    "calmar": -1.7421948026181555,
+    "max_drawdown": 4.197399171651266,
+    "profit_factor": 0.08145851957518227,
+    "expectancy": -18280.0508867448,
+    "win_rate": 0.75,
+    "avg_win": 2161.493214662516,
+    "avg_loss": 79604.68319096675,
+    "payoff_ratio": 0.02715283985839409,
+    "exposure_time": 0.0004557477110885046,
+    "n_trades": 4,
+    "trades_per_day": 0.003127443315089914,
+    "avg_hold_time": 14.0,
+    "median_hold_time": 3.0,
+    "tp1_hit_rate": 0.5,
+    "tp2_hit_rate": 0.5,
+    "sl_hit_rate": 0.25,
+    "timeout_rate": 0.25,
+    "avg_fee_bps": 35.517618988726554,
+    "avg_spread_bps": 2.0,
+    "avg_slippage_bps": 5.61834219226196,
+    "avg_latency_ms": 250.0,
+    "gross_pnl": -73021.86848812009,
+    "net_pnl": -73120.2035469792,
+    "total_costs": 98.33505885911751,
+    "cost_drag": 0.0
+  },
+  "trades": [
+    {
+      "coin": "BTC",
+      "type": "SHORT",
+      "entry_time": "2023-01-01 07:30:00",
+      "exit_time": "2023-01-01 08:15:00",
+      "entry_price": 243.88797023131187,
+      "exit_price": 6.172834701715642,
+      "pnl": 3248.92407070879,
+      "result": "TP2",
+      "hold_bars": 3,
+      "fee_paid": 1.7088502062091673,
+      "slippage_paid": 1.2271910782514879,
+      "spread_paid": 0.34191921121956076,
+      "fee_bps": 5.126550618627501,
+      "spread_bps": 2.0,
+      "slippage_bps": 3.589467087185145,
+      "latency_ms": 250,
+      "regime": "Ranging",
+      "causal_risk_level": "MEDIUM",
+      "meta_confidence_bucket": "MEDIUM"
+    },
+    {
+      "coin": "ETH",
+      "type": "SHORT",
+      "entry_time": "2023-01-01 14:15:00",
+      "exit_time": "2023-01-01 14:45:00",
+      "entry_price": 9.875514657647924,
+      "exit_price": 0.33795346241475516,
+      "pnl": 3219.2051247057084,
+      "result": "SL",
+      "hold_bars": 2,
+      "fee_paid": 1.7237022531872188,
+      "slippage_paid": 1.220844870892966,
+      "spread_paid": 0.3448866696250482,
+      "fee_bps": 2.585553379780828,
+      "spread_bps": 2.0,
+      "slippage_bps": 3.540174211831261,
+      "latency_ms": 250,
+      "regime": "Ranging",
+      "causal_risk_level": "MEDIUM",
+      "meta_confidence_bucket": "MEDIUM"
+    },
+    {
+      "coin": "BTC",
+      "type": "SHORT",
+      "entry_time": "2023-01-01 16:15:00",
+      "exit_time": "2023-01-01 17:00:00",
+      "entry_price": 9.855813986144387,
+      "exit_price": 245.10394699948154,
+      "pnl": -79604.68319096675,
+      "result": "TP2",
+      "hold_bars": 3,
+      "fee_paid": 43.114950786756665,
+      "slippage_paid": 27.93136360668321,
+      "spread_paid": 8.619617833637722,
+      "fee_bps": 129.34485236026998,
+      "spread_bps": 2.0,
+      "slippage_bps": 3.2401421232503114,
+      "latency_ms": 250,
+      "regime": "Ranging",
+      "causal_risk_level": "MEDIUM",
+      "meta_confidence_bucket": "MEDIUM"
+    },
+    {
+      "coin": "SOL",
+      "type": "LONG",
+      "entry_time": "2023-01-01 11:15:00",
+      "exit_time": "2023-01-01 23:15:00",
+      "entry_price": 9.95303729260308,
+      "exit_price": 10.006861710777974,
+      "pnl": 16.350448573049917,
+      "result": "TIMEOUT",
+      "hold_bars": 48,
+      "fee_paid": 3.342346397485268,
+      "slippage_paid": 8.090913236718249,
+      "spread_paid": 0.6684727084509465,
+      "fee_bps": 5.013519596227902,
+      "spread_bps": 2.0,
+      "slippage_bps": 12.103585346781124,
+      "latency_ms": 250,
+      "regime": "Ranging",
+      "causal_risk_level": "MEDIUM",
+      "meta_confidence_bucket": "HIGH"
+    }
+  ],
+  "regime_metrics": {
+    "Ranging": {
+      "n_trades": 4,
+      "win_rate": 0.75,
+      "avg_return": -18280.0508867448,
+      "total_return": -73120.2035469792,
+      "profit_factor": 0.08145851957518227,
+      "sharpe": -7.093086355345876,
+      "avg_hold_time": 14.0
+    }
+  },
+  "stress_metrics": {
+    "historical": {
+      "LUNA_Collapse": {
+        "status": "skipped",
+        "reason": "Insufficient historical data in this period"
+      },
+      "FTX_Collapse": {
+        "status": "skipped",
+        "reason": "Insufficient historical data in this period"
+      },
+      "COVID_Crash": {
+        "status": "skipped",
+        "reason": "Insufficient historical data in this period"
+      },
+      "ETF_Approval": {
+        "status": "skipped",
+        "reason": "Insufficient historical data in this period"
+      }
+    },
+    "synthetic": {
+      "double_fees": {
+        "status": "error",
+        "error": "name 'RegimeSplitAnalyzer' is not defined"
+      },
+      "double_slippage": {
+        "status": "error",
+        "error": "name 'RegimeSplitAnalyzer' is not defined"
+      },
+      "latency_1s": {
+        "status": "error",
+        "error": "name 'RegimeSplitAnalyzer' is not defined"
+      },
+      "latency_3s": {
+        "status": "error",
+        "error": "name 'RegimeSplitAnalyzer' is not defined"
+      }
+    }
+  },
+  "monte_carlo_metrics": {
+    "p05_return": -16.299867646454707,
+    "p50_return": -7.311886998320386,
+    "p95_return": 1.2933484934800303,
+    "probability_of_loss": 0.681,
+    "probability_max_dd_gt_10pct": 0.681,
+    "expected_max_drawdown": 6.756127855905745,
+    "risk_of_ruin": 0.681
+  },
+  "attribution": {
+    "coin": {
+      "BTC": {
+        "n_trades": 2,
+        "win_rate": 0.5,
+        "total_pnl": -76355.75912025796,
+        "avg_pnl": -38177.87956012898,
+        "profit_factor": 0.04081322782121776
+      },
+      "ETH": {
+        "n_trades": 1,
+        "win_rate": 1.0,
+        "total_pnl": 3219.2051247057084,
+        "avg_pnl": 3219.2051247057084,
+        "profit_factor": Infinity
+      },
+      "SOL": {
+        "n_trades": 1,
+        "win_rate": 1.0,
+        "total_pnl": 16.350448573049917,
+        "avg_pnl": 16.350448573049917,
+        "profit_factor": Infinity
+      }
+    },
+    "type": {
+      "LONG": {
+        "n_trades": 1,
+        "win_rate": 1.0,
+        "total_pnl": 16.350448573049917,
+        "avg_pnl": 16.350448573049917,
+        "profit_factor": Infinity
+      },
+      "SHORT": {
+        "n_trades": 3,
+        "win_rate": 0.6666666666666666,
+        "total_pnl": -73136.55399555225,
+        "avg_pnl": -24378.85133185075,
+        "profit_factor": 0.08125312401404643
+      }
+    },
+    "regime": {
+      "Ranging": {
+        "n_trades": 4,
+        "win_rate": 0.75,
+        "total_pnl": -73120.2035469792,
+        "avg_pnl": -18280.0508867448,
+        "profit_factor": 0.08145851957518227
+      }
+    },
+    "causal_risk_level": {
+      "MEDIUM": {
+        "n_trades": 4,
+        "win_rate": 0.75,
+        "total_pnl": -73120.2035469792,
+        "avg_pnl": -18280.0508867448,
+        "profit_factor": 0.08145851957518227
+      }
+    },
+    "meta_confidence_bucket": {
+      "HIGH": {
+        "n_trades": 1,
+        "win_rate": 1.0,
+        "total_pnl": 16.350448573049917,
+        "avg_pnl": 16.350448573049917,
+        "profit_factor": Infinity
+      },
+      "MEDIUM": {
+        "n_trades": 3,
+        "win_rate": 0.6666666666666666,
+        "total_pnl": -73136.55399555225,
+        "avg_pnl": -24378.85133185075,
+        "profit_factor": 0.08125312401404643
+      }
+    }
+  },
+  "approval_status": {
+    "passed": false,
+    "rules": {
+      "sharpe": {
+        "val": -0.5342089502263646,
+        "target": ">=1.0",
+        "ok": false
+      },
+      "profit_factor": {
+        "val": 0.08145851957518227,
+        "target": ">=1.3",
+        "ok": false
+      },
+      "max_drawdown": {
+        "val": 4.197399171651266,
+        "target": "<=0.1",
+        "ok": false
+      },
+      "min_trades": {
+        "val": 4,
+        "target": ">=100",
+        "ok": false
+      },
+      "cost_drag": {
+        "val": 0.0,
+        "target": "<=0.35",
+        "ok": true
+      },
+      "mc_prob_loss": {
+        "val": 0.681,
+        "target": "<=0.25",
+        "ok": false
+      },
+      "mc_prob_dd_10pct": {
+        "val": 0.681,
+        "target": "<=0.2",
+        "ok": false
+      },
+      "regimes_positive": {
+        "val": 0,
+        "target": ">=3",
+        "ok": false
+      }
+    }
+  }
+}

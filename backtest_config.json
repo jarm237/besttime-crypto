@@ -1,0 +1,31 @@
+{
+  "backtest": {
+    "initial_capital": 10000.0,
+    "timeframe": "15m",
+    "coins": ["BTC", "ETH", "SOL"],
+    "fee_model": {
+      "spot_taker_bps": 10.0,
+      "spot_maker_bps": 10.0,
+      "futures_taker_bps": 5.0,
+      "futures_maker_bps": 2.0,
+      "is_futures": true
+    },
+    "slippage_model": {
+      "enabled": true,
+      "mode": "rule_v1",
+      "base_slippage_bps": 1.0
+    },
+    "latency_model": {
+      "enabled": true,
+      "latency_ms": 250
+    },
+    "walk_forward": {
+      "train_months": 6,
+      "test_months": 1,
+      "step_months": 1
+    },
+    "monte_carlo": {
+      "n_simulations": 1000
+    }
+  }
+}
