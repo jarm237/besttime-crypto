@@ -54,7 +54,19 @@ FIELD_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float]]] = {
 }
 
 # Fields that must be present in every payload
-REQUIRED_FIELDS: List[str] = list(_default_payload().keys())
+REQUIRED_FIELDS: List[str] = [
+    "timestamp",
+    "funding_rate",
+    "open_interest",
+    "stablecoin_supply",
+    "tvl",
+    "dxy",
+    "vix",
+    "us10y",
+    "gold",
+    "fear_greed_raw",
+    "fear_greed_score",
+]
 
 # Maximum age (seconds) before a payload is considered stale
 DEFAULT_MAX_AGE_SECONDS: int = 900  # 15 minutes

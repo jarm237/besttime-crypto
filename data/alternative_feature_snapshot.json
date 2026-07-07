@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-07-07T06:12:59.962871+00:00",
+  "timestamp": "2026-07-07T06:28:07.951691+00:00",
   "exchange_netflow": 0.0,
   "whale_score": 0.0,
   "stablecoin_supply": 0.0,
   "tvl": 479032833652.5397,
   "funding_rate": -0.001373,
   "open_interest": 0.0,
-  "dxy": 100.931,
+  "dxy": 100.95,
   "vix": 15.57,
   "us10y": 4.479,
-  "gold": 4140.1,
+  "gold": 4136.9,
   "sentiment_score": 0.0,
   "social_sentiment": 0.0,
   "fear_greed_raw": 27.0,
@@ -21,9 +21,9 @@
   "defi_liquidity_score": 0.0,
   "orderbook_imbalance": 0.0,
   "liquidity_pressure": 0.0,
-  "macro_pressure": 0.6844348484848485,
+  "macro_pressure": 0.6844924242424243,
   "macro_risk_score": 0.0,
-  "funding_pressure": 0.0004327300000000001,
+  "funding_pressure": 0.0,
   "open_interest_pressure": 0.0,
   "large_tx_proxy_score": 0.0,
   "stablecoin_supply_total": 0.0,
@@ -33,7 +33,7 @@
   "etf_flow_confidence": 0.0,
   "etf_flow_source": "none",
   "etf_flow_scope": "us_spot_btc_etf",
-  "risk_on_score": 0.27,
+  "risk_on_score": 0.0,
   "confidence_metadata": {
     "dxy": 0.95,
     "vix": 0.95,
@@ -84,5 +84,5 @@
   "iv_skew": 0.0,
   "effective_stablecoin_momentum": 0.0,
   "effective_etf_momentum": 0.0,
-  "effective_risk_on_score": 0.27
+  "effective_risk_on_score": 0.0
 }

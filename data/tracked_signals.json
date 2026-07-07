@@ -5,7 +5,7 @@
       "time": "2026-07-07 11:00",
       "signal": "SELL (Crossover)",
       "entry": 210.2,
-      "current_price": 210.2,
+      "current_price": 211.4,
       "tp_sl": {
         "entry": 210.2,
         "sl": 221.6895,
@@ -17,7 +17,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 13,
       "created_at_ts": 1783404166.3120675
     }
   ],
@@ -26,7 +26,7 @@
       "time": "2026-07-07 11:00",
       "signal": "SELL (Crossover)",
       "entry": 6.765,
-      "current_price": 6.742,
+      "current_price": 6.748,
       "tp_sl": {
         "entry": 6.765,
         "sl": 7.1412,
@@ -38,7 +38,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 77,
+      "age_minutes": 90,
       "created_at_ts": 1783399562.8504467
     }
   ],
@@ -49,7 +49,7 @@
       "time": "2026-07-07 12:00",
       "signal": "SELL (Crossover)",
       "entry": 1.986,
-      "current_price": 2.0,
+      "current_price": 2.006,
       "tp_sl": {
         "entry": 1.986,
         "sl": 2.0787,
@@ -61,18 +61,38 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 47,
+      "age_minutes": 60,
       "created_at_ts": 1783401362.4497554
     }
   ],
   "AR": [],
-  "TRB": [],
+  "TRB": [
+    {
+      "time": "2026-07-07 07:00",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 17.12,
+      "current_price": 17.12,
+      "tp_sl": {
+        "entry": 17.12,
+        "sl": 19.4922,
+        "tp1": 14.446,
+        "tp2": 12.3046,
+        "rr1": 1.13,
+        "rr2": 2.03,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 0,
+      "created_at_ts": 1783404964.6734524
+    }
+  ],
   "ETH": [
     {
       "time": "2026-07-07 12:00",
       "signal": "SELL (Crossover)",
       "entry": 1767.23,
-      "current_price": 1766.78,
+      "current_price": 1769.04,
       "tp_sl": {
         "entry": 1767.23,
         "sl": 1810.8913,
@@ -84,7 +104,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 62,
+      "age_minutes": 75,
       "created_at_ts": 1783400461.9543977
     }
   ],
@@ -99,7 +119,7 @@
       "time": "2026-07-07 11:00",
       "signal": "SELL (Crossover)",
       "entry": 4117.9,
-      "current_price": 4117.9,
+      "current_price": 4119.18,
       "tp_sl": {
         "entry": 4117.9,
         "sl": 4180.0392,
@@ -111,7 +131,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 13,
       "created_at_ts": 1783404167.083977
     }
   ],
@@ -123,7 +143,7 @@
       "time": "2026-07-07 12:00",
       "signal": "SELL (Crossover)",
       "entry": 80.92,
-      "current_price": 80.85,
+      "current_price": 81.02,
       "tp_sl": {
         "entry": 80.92,
         "sl": 82.9592,
@@ -135,7 +155,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 62,
+      "age_minutes": 75,
       "created_at_ts": 1783400462.2209337
     }
   ],

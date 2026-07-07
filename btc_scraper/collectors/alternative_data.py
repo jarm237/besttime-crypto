@@ -67,7 +67,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(binance_payload, dict) and binance_payload.get("error"):
                 payload["_errors"]["binance"] = binance_payload.get("error")
         except Exception as e:
-            payload.update({"funding_rate": 0.0, "open_interest": 0.0})
+            payload.update({"funding_rate": None, "open_interest": None})
             payload["_errors"]["binance"] = repr(e)
             payload["_statuses"]["binance"] = {"status": "error", "reason": str(e)}
 
@@ -87,7 +87,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(defillama_payload, dict) and defillama_payload.get("error"):
                 payload["_errors"]["defillama"] = defillama_payload.get("error")
         except Exception as e:
-            payload.update({"stablecoin_supply": 0.0, "stablecoin_supply_total": 0.0, "tvl": 0.0, "chain_tvl": 0.0})
+            payload.update({"stablecoin_supply": None, "stablecoin_supply_total": None, "tvl": None, "chain_tvl": None, "protocol_tvl": None})
             payload["_errors"]["defillama"] = repr(e)
             payload["_statuses"]["defillama"] = {"status": "error", "reason": str(e)}
 
@@ -97,7 +97,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(fred_payload, dict) and fred_payload.get("error"):
                 payload["_errors"]["fred"] = fred_payload.get("error")
         except Exception as e:
-            payload.update({"us10y": 0.0, "gold": 0.0})
+            payload.update({"us10y": None, "gold": None})
             payload["_errors"]["fred"] = repr(e)
 
         try:
@@ -106,7 +106,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(yahoo_payload, dict) and yahoo_payload.get("error"):
                 payload["_errors"]["yahoo"] = yahoo_payload.get("error")
         except Exception as e:
-            payload.update({"dxy": 0.0, "vix": 0.0, "gold": 0.0})
+            payload.update({"dxy": None, "vix": None, "gold": None})
             payload["_errors"]["yahoo"] = repr(e)
 
         try:
@@ -122,7 +122,7 @@ class AlternativeDataCollector(CollectorBase):
             elif status == "error":
                 payload["_errors"]["alternative_me"] = altme_payload.get("reason")
         except Exception as e:
-            payload.update({"fear_greed_raw": 50.0, "fear_greed_score": 0.5, "fear_greed_regime": None})
+            payload.update({"fear_greed_raw": None, "fear_greed_score": None, "fear_greed_regime": None})
             payload["_errors"]["alternative_me"] = repr(e)
 
         try:
@@ -134,7 +134,7 @@ class AlternativeDataCollector(CollectorBase):
             elif status == "error":
                 payload["_errors"]["glassnode"] = glassnode_payload.get("reason")
         except Exception as e:
-            payload.update({"active_addresses": 0.0})
+            payload.update({"active_addresses": None})
             payload["_errors"]["glassnode"] = repr(e)
 
         try:
@@ -143,7 +143,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(blockchain_payload, dict) and blockchain_payload.get("error"):
                 payload["_errors"]["blockchain"] = blockchain_payload.get("error")
         except Exception as e:
-            payload.update({"hashrate": 0.0})
+            payload.update({"hashrate": None})
             payload["_errors"]["blockchain"] = repr(e)
 
         try:
@@ -152,7 +152,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(blockchair_payload, dict) and blockchair_payload.get("error"):
                 payload["_errors"]["blockchair"] = blockchair_payload.get("error")
         except Exception as e:
-            payload.update({"exchange_netflow": 0.0})
+            payload.update({"exchange_netflow": None})
             payload["_errors"]["blockchair"] = repr(e)
 
         try:
@@ -164,7 +164,7 @@ class AlternativeDataCollector(CollectorBase):
             elif status == "error":
                 payload["_errors"]["whale_alert"] = whale_payload.get("reason")
         except Exception as e:
-            payload.update({"whale_score": 0.0})
+            payload.update({"whale_score": None})
             payload["_errors"]["whale_alert"] = repr(e)
 
         try:
@@ -173,7 +173,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(deribit_payload, dict) and deribit_payload.get("error"):
                 payload["_errors"]["deribit"] = deribit_payload.get("error")
         except Exception as e:
-            payload.update({"options_iv": 0.0, "iv_skew": 0.0})
+            payload.update({"options_iv": None, "iv_skew": None})
             payload["_errors"]["deribit"] = repr(e)
 
         try:
@@ -182,7 +182,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(etf_payload, dict) and etf_payload.get("error"):
                 payload["_errors"]["etf"] = etf_payload.get("error")
         except Exception as e:
-            payload.update({"etf_flow": 0.0})
+            payload.update({"etf_flow": None})
             payload["_errors"]["etf"] = repr(e)
 
         try:
@@ -191,7 +191,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(google_payload, dict) and google_payload.get("error"):
                 payload["_errors"]["google_trends"] = google_payload.get("error")
         except Exception as e:
-            payload.update({"sentiment_score": 0.0})
+            payload.update({"sentiment_score": None})
             payload["_errors"]["google_trends"] = repr(e)
 
         try:
@@ -200,7 +200,7 @@ class AlternativeDataCollector(CollectorBase):
             if isinstance(reddit_payload, dict) and reddit_payload.get("error"):
                 payload["_errors"]["reddit"] = reddit_payload.get("error")
         except Exception as e:
-            payload.update({"social_sentiment": 0.0})
+            payload.update({"social_sentiment": None})
             payload["_errors"]["reddit"] = repr(e)
 
         previous_payload = load_alternative_data(self.output_path) if self.output_path is not None else None
@@ -257,37 +257,37 @@ def _default_payload() -> Dict[str, Any]:
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         # === Raw Alternative Data ===
-        "exchange_netflow": 0.0,
-        "whale_score": 0.0,
-        "stablecoin_supply": 0.0,
-        "tvl": 0.0,
-        "funding_rate": 0.0,
-        "open_interest": 0.0,
-        "dxy": 0.0,
-        "vix": 0.0,
-        "us10y": 0.0,
-        "gold": 0.0,
-        "sentiment_score": 0.0,
-        "social_sentiment": 0.0,
-        "fear_greed_raw": 50.0,
-        "fear_greed_score": 0.5,
+        "exchange_netflow": None,
+        "whale_score": None,
+        "stablecoin_supply": None,
+        "tvl": None,
+        "funding_rate": None,
+        "open_interest": None,
+        "dxy": None,
+        "vix": None,
+        "us10y": None,
+        "gold": None,
+        "sentiment_score": None,
+        "social_sentiment": None,
+        "fear_greed_raw": None,
+        "fear_greed_score": None,
         "fear_greed_regime": None,
-        "active_addresses": 0.0,
-        "hashrate": 0.0,
-        "chain_tvl": 0.0,
-        "defi_liquidity_score": 0.0,
-        "orderbook_imbalance": 0.0,
-        "liquidity_pressure": 0.0,
-        "macro_pressure": 0.0,
-        "macro_risk_score": 0.0,
-        "funding_pressure": 0.0,
-        "open_interest_pressure": 0.0,
-        "large_tx_proxy_score": 0.0,
-        "stablecoin_supply_total": 0.0,
+        "active_addresses": None,
+        "hashrate": None,
+        "chain_tvl": None,
+        "defi_liquidity_score": None,
+        "orderbook_imbalance": None,
+        "liquidity_pressure": None,
+        "macro_pressure": None,
+        "macro_risk_score": None,
+        "funding_pressure": None,
+        "open_interest_pressure": None,
+        "large_tx_proxy_score": None,
+        "stablecoin_supply_total": None,
         # === Derived Metrics ===
-        "stablecoin_momentum": 0.0,
-        "etf_momentum": 0.0,
-        "etf_flow": 0.0,
+        "stablecoin_momentum": None,
+        "etf_momentum": None,
+        "etf_flow": None,
         "etf_flow_confidence": 0.0,
         "etf_flow_source": "none",
         "etf_flow_scope": "us_spot_btc_etf",
@@ -320,6 +320,24 @@ def _merge_default_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     return merged
 
 
+def safe_float(value):
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except Exception:
+        return None
+
+def clamp(x, lo=-1.0, hi=1.0):
+    if x is None:
+        return None
+    return max(lo, min(hi, x))
+
+def normalize_pct(x, scale):
+    if x is None:
+        return None
+    return clamp(x / scale)
+
 def normalize_alternative_payload(
     payload: Dict[str, Any],
     previous_payload: Optional[Dict[str, Any]] = None,
@@ -338,74 +356,100 @@ def normalize_alternative_payload(
 
     prev = previous_payload or {}
     prev = dict(prev)
-    stablecoin_supply = float(normalized.get("stablecoin_supply", 0.0) or 0.0)
-    previous_stablecoin_supply = float(prev.get("stablecoin_supply", stablecoin_supply) or 0.0)
-    etf_flow = float(normalized.get("etf_flow", 0.0) or 0.0)
-    previous_etf_flow = float(prev.get("etf_flow", etf_flow) or 0.0)
-    funding_rate = float(normalized.get("funding_rate", 0.0) or 0.0)
-    previous_funding_rate = float(prev.get("funding_rate", funding_rate) or 0.0)
-    open_interest = float(normalized.get("open_interest", 0.0) or 0.0)
-    previous_open_interest = float(prev.get("open_interest", open_interest) or 0.0)
-    exchange_netflow = float(normalized.get("exchange_netflow", 0.0) or 0.0)
-    previous_exchange_netflow = float(prev.get("exchange_netflow", exchange_netflow) or 0.0)
-
-    normalized["stablecoin_momentum"] = max(
-        -1.0,
-        min(1.0, (stablecoin_supply - previous_stablecoin_supply) / max(abs(previous_stablecoin_supply), 1.0)),
-    )
-    normalized["etf_momentum"] = max(
-        -1.0,
-        min(1.0, (etf_flow - previous_etf_flow) / max(abs(previous_etf_flow), 1.0)),
-    )
-    normalized["funding_pressure"] = abs(funding_rate - previous_funding_rate)
-    normalized["orderbook_imbalance"] = max(-1.0, min(1.0, (open_interest - previous_open_interest) / max(abs(previous_open_interest), 1.0)))
-    normalized["liquidity_pressure"] = max(0.0, min(1.0, abs(exchange_netflow - previous_exchange_netflow) / 1_000_000.0))
-
-    macro_pressure = 0.0
-    if normalized.get("dxy", 0.0):
-        macro_pressure += min(1.0, float(normalized.get("dxy", 0.0)) / 110.0)
-    if normalized.get("vix", 0.0):
-        macro_pressure += min(1.0, float(normalized.get("vix", 0.0)) / 40.0)
-    if normalized.get("us10y", 0.0):
-        macro_pressure += min(1.0, float(normalized.get("us10y", 0.0)) / 6.0)
-    normalized["macro_pressure"] = macro_pressure / 3.0
-
-    risk_on_score = 0.0
-    if normalized.get("stablecoin_momentum", 0.0) > 0:
-        risk_on_score += 0.35
-    if normalized.get("etf_momentum", 0.0) > 0:
-        risk_on_score += 0.35
-    if normalized.get("funding_pressure", 0.0) > 0:
-        risk_on_score += 0.3
     
-    # === Sprint 9.6: Apply confidence weighting ===
+    # Safely extract floats
+    stablecoin_supply = safe_float(normalized.get("stablecoin_supply"))
+    previous_stablecoin_supply = safe_float(prev.get("stablecoin_supply"))
+    etf_flow = safe_float(normalized.get("etf_flow"))
+    previous_etf_flow = safe_float(prev.get("etf_flow"))
+    funding_rate = safe_float(normalized.get("funding_rate"))
+    previous_funding_rate = safe_float(prev.get("funding_rate"))
+    open_interest = safe_float(normalized.get("open_interest"))
+    previous_open_interest = safe_float(prev.get("open_interest"))
+    exchange_netflow = safe_float(normalized.get("exchange_netflow"))
+    previous_exchange_netflow = safe_float(prev.get("exchange_netflow"))
+
+    dxy = safe_float(normalized.get("dxy"))
+    vix = safe_float(normalized.get("vix"))
+    us10y = safe_float(normalized.get("us10y"))
+    fear_greed_raw = safe_float(normalized.get("fear_greed_raw"))
+
+    normalized["stablecoin_momentum"] = None
+    if stablecoin_supply is not None and previous_stablecoin_supply is not None:
+        normalized["stablecoin_momentum"] = clamp((stablecoin_supply - previous_stablecoin_supply) / max(abs(previous_stablecoin_supply), 1.0))
+
+    normalized["etf_momentum"] = None
+    if etf_flow is not None and previous_etf_flow is not None:
+        normalized["etf_momentum"] = clamp((etf_flow - previous_etf_flow) / max(abs(previous_etf_flow), 1.0))
+
+    funding_pressure = clamp(funding_rate / 0.001) if funding_rate is not None else None
+    normalized["funding_pressure"] = funding_pressure
+
+    normalized["orderbook_imbalance"] = None
+    if open_interest is not None and previous_open_interest is not None:
+        normalized["orderbook_imbalance"] = clamp((open_interest - previous_open_interest) / max(abs(previous_open_interest), 1.0))
+
+    normalized["liquidity_pressure"] = None
+    if exchange_netflow is not None and previous_exchange_netflow is not None:
+        normalized["liquidity_pressure"] = max(0.0, min(1.0, abs(exchange_netflow - previous_exchange_netflow) / 1_000_000.0))
+
+    macro_risk_score = None
+    if dxy is not None and vix is not None and us10y is not None:
+        dxy_pressure = clamp((dxy - 100) / 5, 0.0, 1.0)
+        vix_pressure = clamp((vix - 15) / 20, 0.0, 1.0)
+        yield_pressure = clamp((us10y - 4.0) / 2, 0.0, 1.0)
+        macro_risk_score = 0.35 * dxy_pressure + 0.35 * vix_pressure + 0.30 * yield_pressure
+
+    normalized["macro_risk_score"] = macro_risk_score
+    normalized["macro_pressure"] = macro_risk_score
+
+    fear_greed_score = clamp((fear_greed_raw - 50) / 50) if fear_greed_raw is not None else None
+    normalized["fear_greed_score"] = fear_greed_score
+
+    defi_liquidity_score = None # Need change 1d/7d
+    normalized["defi_liquidity_score"] = defi_liquidity_score
+
+    # calc risk_on_score
+    components = []
+    if macro_risk_score is not None:
+        components.append(-macro_risk_score)
+    if funding_pressure is not None:
+        components.append(funding_pressure)
+    if fear_greed_score is not None:
+        components.append(fear_greed_score)
+    if defi_liquidity_score is not None:
+        components.append(defi_liquidity_score)
+        
+    risk_on_score = sum(components) / len(components) if components else None
+    normalized["risk_on_score"] = risk_on_score
+
+    # === Confidence Rule Update ===
     confidence_meta = normalized.get("confidence_metadata", {})
+    def get_conf(field: str, val: Any) -> float:
+        if val is None:
+            return 0.0
+        # If val == 0.0 and source is not OK could be added here,
+        # but val is None already captures missing fields since we changed default
+        return confidence_meta.get(field, 0.0)
+
+    # Reassign confidence meta with new rules
+    for k in list(confidence_meta.keys()):
+        if k in normalized:
+            confidence_meta[k] = get_conf(k, normalized[k])
+    normalized["confidence_metadata"] = confidence_meta
     
     # Weight stablecoin_momentum by confidence
-    stablecoin_confidence = confidence_meta.get("stablecoin_supply", 0.70)
-    weighted_stablecoin_momentum = normalized.get("stablecoin_momentum", 0.0) * stablecoin_confidence
+    stablecoin_confidence = confidence_meta.get("stablecoin_supply", 0.0)
+    weighted_stablecoin_momentum = (normalized.get("stablecoin_momentum") or 0.0) * stablecoin_confidence
     
     # Weight etf_momentum by etf_flow_confidence (which varies by provider)
     etf_flow_conf = normalized.get("etf_flow_confidence", 0.0)
-    weighted_etf_momentum = normalized.get("etf_momentum", 0.0) * max(etf_flow_conf, confidence_meta.get("etf_flow", 0.0))
-    
-    # Update risk_on_score with confidence-weighted components
-    risk_on_score = 0.0
-    if weighted_stablecoin_momentum > 0:
-        risk_on_score += 0.35 * (stablecoin_confidence)
-    if weighted_etf_momentum > 0:
-        risk_on_score += 0.35 * max(etf_flow_conf, confidence_meta.get("etf_flow", 0.0))
-    
-    funding_pressure_conf = confidence_meta.get("funding_rate", 0.90)
-    if normalized.get("funding_pressure", 0.0) > 0:
-        risk_on_score += 0.3 * funding_pressure_conf
-    
-    normalized["risk_on_score"] = max(0.0, min(1.0, risk_on_score))
+    weighted_etf_momentum = (normalized.get("etf_momentum") or 0.0) * max(etf_flow_conf, confidence_meta.get("etf_flow", 0.0))
     
     # Store effective weighted scores for causal engine
     normalized["effective_stablecoin_momentum"] = weighted_stablecoin_momentum
     normalized["effective_etf_momentum"] = weighted_etf_momentum
-    normalized["effective_risk_on_score"] = normalized["risk_on_score"]
+    normalized["effective_risk_on_score"] = normalized["risk_on_score"] if normalized["risk_on_score"] is not None else 0.0
 
     return normalized
 

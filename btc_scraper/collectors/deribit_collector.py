@@ -4,6 +4,7 @@ import os
 from typing import Any, Dict, Optional
 from btc_scraper.collectors.collector_base import CollectorBase
 import logging
+from datetime import datetime, timezone
 
 _logger = logging.getLogger(__name__)
 
