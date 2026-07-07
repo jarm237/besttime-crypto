@@ -85,12 +85,50 @@ def _escape_label_value(value: str) -> str:
     return str(value).replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
 
 
+def _get_open_positions_count() -> int:
+    try:
+        return len(position_tracker.get_open_positions())
+    except Exception:
+        return 0
+
+def _get_total_realized_pnl() -> float:
+    try:
+        perf = position_tracker.get_performance_summary("ALL")
+        if isinstance(perf, dict):
+            return float(perf.get("total_net_profit", 0.0))
+        return 0.0
+    except Exception:
+        return 0.0
+
+def _get_causal_risk_level() -> int:
+    try:
+        if not os.path.exists(LATEST_SIGNALS_FILE):
+            return 0
+        with open(LATEST_SIGNALS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            signals = data.get("analysis", data)
+            max_level = 0
+            risk_map = {"CRITICAL": 3, "HIGH": 2, "MEDIUM": 1, "LOW": 0}
+            for _, ana in signals.items():
+                if isinstance(ana, dict):
+                    level = risk_map.get(str(ana.get("causal_context_risk", "")).upper(), 0)
+                    if level > max_level:
+                        max_level = level
+            return max_level
+    except Exception:
+        return 0
+
 def _metrics_response() -> Response:
     queue_size = _get_queue_size()
     ws_health = _get_ws_health()
     db_conn_ok = _get_db_conn_ok()
     causal_alpha = _get_causal_alpha()
     rl_model_version = _get_rl_model_version()
+    
+    open_positions = _get_open_positions_count()
+    total_pnl = _get_total_realized_pnl()
+    causal_risk = _get_causal_risk_level()
+    pipeline_status = 1 if ws_health and db_conn_ok else 0
 
     lines = [
         "# HELP besttime_queue_size Size of AI analysis queue",
@@ -108,6 +146,18 @@ def _metrics_response() -> Response:
         "# HELP besttime_rl_model_info Latest RL model version info label",
         "# TYPE besttime_rl_model_info gauge",
         f"besttime_rl_model_info{{version=\"{_escape_label_value(rl_model_version)}\"}} 1",
+        "# HELP besttime_open_positions_count Number of open positions",
+        "# TYPE besttime_open_positions_count gauge",
+        f"besttime_open_positions_count {open_positions}",
+        "# HELP besttime_total_realized_pnl Total realized PnL",
+        "# TYPE besttime_total_realized_pnl gauge",
+        f"besttime_total_realized_pnl {total_pnl}",
+        "# HELP besttime_causal_risk_level Max causal risk level across signals (0=LOW, 1=MEDIUM, 2=HIGH, 3=CRITICAL)",
+        "# TYPE besttime_causal_risk_level gauge",
+        f"besttime_causal_risk_level {causal_risk}",
+        "# HELP besttime_pipeline_status Overall pipeline status",
+        "# TYPE besttime_pipeline_status gauge",
+        f"besttime_pipeline_status {pipeline_status}",
     ]
     return Response("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
 

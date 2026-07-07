@@ -32,9 +32,8 @@ def _load() -> List[Dict]:
 
 
 def _save(data: List[Dict]) -> None:
-    SHADOW_LOG.parent.mkdir(exist_ok=True)
-    with open(SHADOW_LOG, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    from btc_scraper.core.utils import write_atomic
+    write_atomic(str(SHADOW_LOG), data)
 
 RL_SHADOW_LOG = BASE / "logs" / "rl_exit_shadow_predictions.json"
 
@@ -50,9 +49,8 @@ def _load_rl_shadow() -> List[Dict]:
 
 
 def _save_rl_shadow(data: List[Dict]) -> None:
-    RL_SHADOW_LOG.parent.mkdir(exist_ok=True)
-    with open(RL_SHADOW_LOG, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    from btc_scraper.core.utils import write_atomic
+    write_atomic(str(RL_SHADOW_LOG), data)
 
 
 def log_rl_shadow_prediction(

@@ -42,32 +42,6 @@ from btc_scraper.collectors.alternative_quality import CollectorHealthMonitor, D
 from btc_scraper.collectors.alternative_data import load_alternative_data
 
 
-def _classify_mtf_signal(signal: str) -> str:
-    sig = str(signal or "").upper()
-    if "STRONG BUY" in sig or "BUY" in sig or "BULL" in sig:
-        return "BULL"
-    if "STRONG SELL" in sig or "SELL" in sig or "BEAR" in sig:
-        return "BEAR"
-    return "NEUTRAL"
-
-
-def _summarize_htf_trend(mtf_data: dict[str, dict]) -> str:
-    # Delegate to helper in btc_scraper.analysis.htf_utils to avoid circular imports
-    try:
-        from btc_scraper.analysis.htf_utils import summarize_htf_trend
-        return summarize_htf_trend(mtf_data)
-    except Exception:
-        # Fallback conservative value
-        return "NEUTRAL"
-
-
-def _format_htf_details(mtf_data: dict[str, dict]) -> str:
-    try:
-        from btc_scraper.analysis.htf_utils import format_htf_details
-        return format_htf_details(mtf_data)
-    except Exception:
-        return ""
-
 console = Console()
 
 # ─── Auto-restart config ─────────────────────────────────────────────────────
@@ -81,6 +55,7 @@ SCHEDULER_RESTART_WAIT = 15  # Thời gian chờ (giây) trước khi restart sc
 # ─── Queue & Background AI Worker ─────────────────────────────────────────────
 ai_queue: queue.Queue = queue.Queue()
 shutdown_event = threading.Event()
+shutdown_event_async = None  # Will be initialized in async_main
 managed_processes: list[subprocess.Popen] = []
 
 
@@ -142,10 +117,10 @@ def ai_worker():
                 
             # Lưu AI report cho web dashboard
             import json, os, time
+            from btc_scraper.core.utils import write_atomic
             data_dir = build_data_path()
             os.makedirs(data_dir, exist_ok=True)
-            with open(data_dir / "latest_ai_analysis.json", "w", encoding="utf-8") as f:
-                json.dump({"timestamp": time.time(), "report": ai_report}, f, ensure_ascii=False)
+            write_atomic(str(data_dir / "latest_ai_analysis.json"), {"timestamp": time.time(), "report": ai_report})
                 
         except Exception as e:
             console.print(f"\n[bold red][AI Worker Error] Loi phan tich hoac gui Telegram: {e}[/bold red]")
@@ -496,10 +471,10 @@ async def fetch_and_display():
     # Lưu lại signals mới nhất để Web Dashboard đọc
     try:
         import os, json
+        from btc_scraper.core.utils import write_atomic
         data_dir = os.path.join(os.path.dirname(__file__), "data")
         os.makedirs(data_dir, exist_ok=True)
-        with open(os.path.join(data_dir, "latest_signals.json"), "w", encoding="utf-8") as f:
-            json.dump({"analysis": analysis, "mtf_analysis": mtf_analysis}, f, ensure_ascii=False, indent=2)
+        write_atomic(os.path.join(data_dir, "latest_signals.json"), {"analysis": analysis, "mtf_analysis": mtf_analysis})
     except Exception as e:
         console.print(f"[dim red]Không thể lưu latest_signals.json: {e}[/dim red]")
 
@@ -608,7 +583,7 @@ async def run_scheduler():
     Chỉ dừng khi nhận KeyboardInterrupt (Ctrl+C) hoặc CancelledError.
     """
     from btc_scraper.telegram_bot import telegram_command_queue
-    while True:
+    while not shutdown_event_async.is_set():
         try:
             # Xử lý các lệnh từ Telegram gửi xuống
             try:
@@ -638,6 +613,19 @@ async def run_scheduler():
 
 
 async def async_main():
+    global shutdown_event_async
+    shutdown_event_async = asyncio.Event()
+
+    import signal
+    loop = asyncio.get_running_loop()
+    def _signal_handler():
+        console.print("\n[bold red]Nhận tín hiệu dừng (SIGINT/SIGTERM). Bắt đầu Graceful Shutdown...[/bold red]")
+        shutdown_event_async.set()
+        shutdown_event.set()
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, _signal_handler)
+
     parser = argparse.ArgumentParser(
         description="Multi-coin OHLCV Scraper & Analyzer"
     )
