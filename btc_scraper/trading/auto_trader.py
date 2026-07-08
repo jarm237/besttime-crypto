@@ -450,6 +450,10 @@ class AutoTrader:
         except Exception:
             # Don't fail the whole cycle if MTF trading errors
             pass
+        finally:
+            if self._client is not None:
+                await self._client.close()
+                self._client = None
 
         return placed
 

@@ -57,13 +57,11 @@ class ETFProvider(ABC):
             ETFFlowResult if successful, None if provider fails.
         """
         pass
-
-
 class ParseBotFarsideProvider(ETFProvider):
     """
     Parse.bot Farside wrapper for US spot BTC/ETH ETF flows.
 
-    API: https://api.parsebot.com/v1/etf/flows?symbol=BTC
+    API: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_bitcoin_etf_flows_recent
     Confidence: 0.65 (official API, but third-party aggregation)
     Scope: US spot BTC/ETH/SOL ETF daily flows
     """
@@ -71,9 +69,11 @@ class ParseBotFarsideProvider(ETFProvider):
     name = "parsebot_farside"
 
     def __init__(self, api_key: Optional[str] = None, timeout: float = 10.0) -> None:
-        self.api_key = api_key
+        import os
+        self.api_key = api_key or os.getenv("PARSEBOT_API_KEY")
         self.timeout = timeout
-        self.base_url = "https://api.parsebot.com/v1/etf/flows"
+        base = os.getenv("PARSEBOT_BASE_URL", "https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e")
+        self.base_url = base.strip().rstrip("/")
 
     def fetch(self) -> Optional[ETFFlowResult]:
         """Fetch BTC ETF flow from Parse.bot Farside API."""
@@ -81,30 +81,54 @@ class ParseBotFarsideProvider(ETFProvider):
             _logger.warning("%s: requests library not available", self.name)
             return None
 
-        try:
-            params = {"symbol": "BTC"}
-            if self.api_key:
-                params["api_key"] = self.api_key
+        if not self.api_key:
+            _logger.warning("%s: API key not configured", self.name)
+            return None
 
-            response = requests.get(self.base_url, params=params, timeout=self.timeout)
+        import os
+        endpoint = os.getenv("PARSEBOT_ENDPOINT_BTC_RECENT", "get_bitcoin_etf_flows_recent")
+        url = f"{self.base_url}/{endpoint}"
+        headers = {
+            "X-API-Key": self.api_key,
+            "Accept": "application/json",
+        }
+
+        try:
+            response = requests.get(url, headers=headers, timeout=self.timeout)
             response.raise_for_status()
             data = response.json()
 
-            # Expected format: {"data": [{"flow": -77.4, "date": "2026-07-03"}]}
-            if isinstance(data, dict) and "data" in data:
-                records = data.get("data", [])
-                if records and isinstance(records[-1], dict):
-                    latest = records[-1]
-                    flow = float(latest.get("flow", 0.0))
+            records = []
+            if isinstance(data, list):
+                records = data
+            elif isinstance(data, dict):
+                if isinstance(data.get("data"), list):
+                    records = data["data"]
+                else:
+                    records = [data]
 
-                    return ETFFlowResult(
-                        provider_name=self.name,
-                        etf_flow=flow,
-                        etf_flow_confidence=0.65,
-                        etf_flow_source="parsebot_farside",
-                        etf_flow_scope="us_spot_btc_etf",
-                        success=True,
-                    )
+            if records:
+                latest = records[-1]
+                if isinstance(latest, dict):
+                    flow_val = None
+                    for key in ("total_flow", "total_flow_usd_m", "net_flow", "flow", "total", "net"):
+                        v = latest.get(key)
+                        if v is not None:
+                            try:
+                                flow_val = float(v)
+                                break
+                            except (TypeError, ValueError):
+                                continue
+
+                    if flow_val is not None:
+                        return ETFFlowResult(
+                            provider_name=self.name,
+                            etf_flow=flow_val,
+                            etf_flow_confidence=0.65,
+                            etf_flow_source="parsebot_farside",
+                            etf_flow_scope="us_spot_btc_etf",
+                            success=True,
+                        )
 
             _logger.debug("%s: No valid ETF flow data in response", self.name)
             return None

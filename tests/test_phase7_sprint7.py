@@ -279,12 +279,12 @@ class TestDataQualityChecker:
         from btc_scraper.collectors.alternative_quality import DataQualityChecker
 
         payload = self._fresh_payload()
-        del payload["whale_score"]
+        del payload["funding_rate"]
 
         checker = DataQualityChecker()
         report = checker.check(payload)
         assert not report.is_healthy
-        assert "whale_score" in report.missing_fields
+        assert "funding_rate" in report.missing_fields
 
     def test_out_of_range_detected(self):
         from btc_scraper.collectors.alternative_quality import DataQualityChecker

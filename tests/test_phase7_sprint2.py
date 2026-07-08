@@ -52,9 +52,10 @@ class Phase7Sprint2Tests(unittest.TestCase):
             ]
         }
 
-        with patch("btc_scraper.collectors.fred_collector._fetch_json", return_value=fake_payload):
-            collector = FredCollector(output_path=str(Path(tempfile.gettempdir()) / "fred.json"))
-            data = collector.collect(force=True)
+        with patch.dict("os.environ", {"FRED_API_KEY": "test_key"}):
+            with patch("btc_scraper.collectors.fred_collector._fetch_json", return_value=fake_payload):
+                collector = FredCollector(output_path=str(Path(tempfile.gettempdir()) / "fred.json"))
+                data = collector.collect(force=True)
 
         self.assertEqual(data["us10y"], 4.3)
         self.assertEqual(data["gold"], 0.0)
@@ -88,6 +89,7 @@ class Phase7Sprint2Tests(unittest.TestCase):
         with patch("btc_scraper.collectors.binance_collector._fetch_json", return_value=[{"fundingRate": "0.0002"}, {"openInterest": "999"}]), \
              patch("btc_scraper.collectors.defillama_collector._fetch_json", side_effect=defillama_side_effect), \
              patch("btc_scraper.collectors.fred_collector._fetch_json", return_value={"observations": [{"value": "4.1"}]}), \
+             patch("btc_scraper.collectors.fred_collector._fetch_us10y_from_yahoo", return_value=4.1), \
              patch("btc_scraper.collectors.yahoo_collector._fetch_history", side_effect=lambda ticker, period: {"DXY": {"Close": [100.1]}, "VIX": {"Close": [20.1]}, "Gold": {"Close": [1900.0]}}[ticker]):
             payload = collect_alternative_data(output_path=str(Path(tempfile.gettempdir()) / "merged.json"), force=True)
 

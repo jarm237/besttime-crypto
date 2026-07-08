@@ -484,17 +484,26 @@ class CollectorHealthMonitor:
 
         # 1. Check for 401/403 authentication error in last 24 hours
         try:
+            limit_dt = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
             auth_errors = list(logs_col.find({
                 "source": "parsebot_farside",
                 "status": "failed",
+                "fetched_at": {"$gte": limit_dt},
                 "error": {"$regex": "401|403|Unauthorized|Forbidden", "$options": "i"}
             }).sort("fetched_at", -1).limit(5))
             if auth_errors:
-                return AlertRecord(
-                    "critical",
-                    "parsebot_farside",
-                    f"Authentication error detected (401/403) in Parse.bot requests: {auth_errors[0].get('error')}"
-                )
+                latest_auth_err_time = auth_errors[0].get("fetched_at")
+                recent_success = logs_col.find_one({
+                    "source": "parsebot_farside",
+                    "status": "ok",
+                    "fetched_at": {"$gt": latest_auth_err_time}
+                })
+                if not recent_success:
+                    return AlertRecord(
+                        "critical",
+                        "parsebot_farside",
+                        f"Authentication error detected (401/403) in Parse.bot requests: {auth_errors[0].get('error')}"
+                    )
         except Exception:
             pass
 

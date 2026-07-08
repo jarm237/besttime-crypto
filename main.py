@@ -4,6 +4,8 @@ Cào dữ liệu nến 15m đa coin từ Binance, Bybit, OKX
 Tính toán chỉ số kỹ thuật và in bảng tổng hợp tín hiệu Mua/Bán.
 """
 
+from dotenv import load_dotenv
+load_dotenv()
 import sys
 import argparse
 import time

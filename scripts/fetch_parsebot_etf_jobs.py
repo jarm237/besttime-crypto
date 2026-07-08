@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 import os
 import sys
 import argparse
@@ -81,12 +86,7 @@ def main():
     
     args = parser.parse_args()
     
-    # Load environment variables if .env file exists
-    try:
-        from dotenv import load_dotenv
-        load_dotenv()
-    except ImportError:
-        pass
+    pass
         
     if args.job == "recent":
         fetch_parsebot_etf_recent_job(dry_run=args.dry_run)

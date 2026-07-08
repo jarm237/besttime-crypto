@@ -30,18 +30,28 @@ class Phase7Sprint3Tests(unittest.TestCase):
         self.assertEqual(data["active_addresses"], 1200000.0)
 
     def test_blockchain_collector_parses_hashrate(self):
-        fake_payload = {"hash_rate": "5000000000000"}
+        fake_payload = {
+            "status": "success",
+            "reason": None,
+            "data": {
+                "values": [{"y": 5000000000000.0}]
+            }
+        }
         with patch("btc_scraper.collectors.blockchain_collector._fetch_json", return_value=fake_payload):
             collector = BlockchainCollector(output_path=str(Path(tempfile.gettempdir()) / "blockchain.json"))
             data = collector.collect(force=True)
         self.assertEqual(data["hashrate"], 5000000000000.0)
 
     def test_blockchair_collector_parses_netflow(self):
-        fake_payload = {"data": [{"value": -100000}]}
-        with patch("btc_scraper.collectors.blockchair_collector._fetch_json", return_value=fake_payload):
+        fake_payload = {"data": {"transactions_24h": 100, "market_price_usd": 60000}}
+        with patch("btc_scraper.collectors.blockchair_collector.requests.get") as mock_get:
+            mock_response = mock_get.return_value
+            mock_response.json.return_value = fake_payload
+            mock_response.status_code = 200
+            
             collector = BlockchairCollector(output_path=str(Path(tempfile.gettempdir()) / "blockchair.json"))
             data = collector.collect(force=True)
-        self.assertEqual(data["exchange_netflow"], -100000.0)
+        self.assertIsNone(data["exchange_netflow"])
 
     def test_whalealert_collector_parses_whale_score(self):
         fake_payload = {"data": [{"amount_usd": 50000000}]}
@@ -76,10 +86,19 @@ class Phase7Sprint3Tests(unittest.TestCase):
         self.assertEqual(data["iv_skew"], 0.1)
 
     def test_etf_collector_parses_flow(self):
-        fake_payload = {"data": [{"net_flow": 1200000}]}
-        with patch("btc_scraper.collectors.etf_collector._fetch_json", return_value=fake_payload):
-            collector = ETFCollector(output_path=str(Path(tempfile.gettempdir()) / "etf.json"))
-            data = collector.collect(force=True)
+        from btc_scraper.collectors.etf_providers import ETFFlowResult
+        fake_result = ETFFlowResult(
+            provider_name="test",
+            etf_flow=1200000.0,
+            etf_flow_confidence=1.0,
+            etf_flow_source="test_source",
+            etf_flow_scope="us_spot_btc_etf",
+            success=True
+        )
+        with patch.dict("os.environ", {"ENABLE_ETF": "true", "PARSEBOT_ENABLED": "false"}):
+            with patch("btc_scraper.collectors.etf_collector.ETFProviderChain.fetch", return_value=fake_result):
+                collector = ETFCollector(output_path=str(Path(tempfile.gettempdir()) / "etf.json"))
+                data = collector.collect(force=True)
         self.assertEqual(data["etf_flow"], 1200000.0)
 
 

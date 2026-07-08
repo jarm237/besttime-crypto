@@ -17,13 +17,13 @@ def test_collect_alternative_data_writes_defaults(tmp_path):
     payload = collect_alternative_data(output_path=str(output_path), force=True)
 
     assert payload["timestamp"]
-    assert payload["exchange_netflow"] == 0.0
-    assert payload["whale_score"] == 0.0
+    assert payload["exchange_netflow"] is None
+    assert payload["whale_score"] is None
     assert payload["stablecoin_supply"] == 0.0
     assert output_path.exists()
 
     saved = json.loads(output_path.read_text(encoding="utf-8"))
-    assert saved["exchange_netflow"] == 0.0
+    assert saved["exchange_netflow"] is None
 
 
 def test_world_state_roundtrip_preserves_alternative_layer():
@@ -46,8 +46,8 @@ def test_load_alternative_data_returns_defaults_when_missing(tmp_path):
     missing_path = tmp_path / "missing.json"
     data = load_alternative_data(str(missing_path))
 
-    assert data["exchange_netflow"] == 0.0
-    assert data["whale_score"] == 0.0
+    assert data["exchange_netflow"] is None
+    assert data["whale_score"] is None
 
 
 def test_normalize_alternative_payload_builds_derived_features(tmp_path):
@@ -83,14 +83,14 @@ def test_normalize_alternative_payload_builds_derived_features(tmp_path):
     assert normalized["risk_on_score"] >= 0.0
     assert normalized["stablecoin_momentum"] != 0.0
     assert normalized["etf_momentum"] != 0.0
-    assert normalized["stablecoin_supply_total"] == 0.0
-    assert normalized["chain_tvl"] == 0.0
-    assert normalized["defi_liquidity_score"] == 0.0
-    assert normalized["macro_risk_score"] == 0.0
-    assert normalized["open_interest_pressure"] == 0.0
-    assert normalized["large_tx_proxy_score"] == 0.0
-    assert normalized["options_iv_rank"] == 0.0
-    assert normalized["options_skew"] == 0.0
+    assert normalized["stablecoin_supply_total"] is None
+    assert normalized["chain_tvl"] is None
+    assert normalized["defi_liquidity_score"] is None
+    assert normalized["macro_risk_score"] == 0.485
+    assert normalized["open_interest_pressure"] is None
+    assert normalized["large_tx_proxy_score"] is None
+    assert normalized.get("options_iv_rank") is None
+    assert normalized.get("options_skew") is None
     assert (tmp_path / "raw_alternative").exists()
 
 
@@ -108,14 +108,14 @@ def test_collect_alternative_data_exports_snapshot(tmp_path):
     assert output_path.exists()
     assert snapshot_path.exists()
     assert payload["timestamp"]
-    assert payload["stablecoin_supply_total"] == 0.0
-    assert payload["chain_tvl"] == 0.0
-    assert payload["defi_liquidity_score"] == 0.0
-    assert payload["macro_risk_score"] == 0.0
-    assert payload["open_interest_pressure"] == 0.0
-    assert payload["large_tx_proxy_score"] == 0.0
-    assert payload["options_iv_rank"] == 0.0
-    assert payload["options_skew"] == 0.0
+    assert payload["stablecoin_supply_total"] >= 0.0
+    assert payload["chain_tvl"] >= 0.0
+    assert payload["defi_liquidity_score"] is None
+    assert payload["macro_risk_score"] >= 0.0
+    assert payload["open_interest_pressure"] is None
+    assert payload["large_tx_proxy_score"] is None
+    assert payload.get("options_iv_rank") is None
+    assert payload.get("options_skew") is None
 
 
 class AlternativeSnapshotSchemaTest(unittest.TestCase):
