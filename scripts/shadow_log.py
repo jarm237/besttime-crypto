@@ -1,5 +1,5 @@
 """
-Shadow Mode Logger cho Meta Model.
+Shadow Mode Logger cho Meta Model và RL Exit.
 
 Ghi lại prediction của Meta Model TRƯỚC KHI quyết định giao dịch.
 Sau khi position đóng, cập nhật actual_result để calibrate model.
@@ -8,8 +8,11 @@ Shadow Mode giúp kiểm tra xem model có calibrated không:
     80% predicted ≈ 78% actual → ✅ Tốt
     80% predicted ≈ 55% actual → ❌ Cần retrain
 
-Usage:
+Usage (Meta Model shadow):
     from scripts.shadow_log import log_signal_prediction, update_outcome, calibration_report
+
+Usage (RL Exit shadow):
+    from scripts.shadow_log import log_rl_shadow_prediction, update_rl_outcome
 """
 import json
 import os
@@ -85,6 +88,41 @@ def log_rl_shadow_prediction(
     records.append(record)
     _save_rl_shadow(records)
     return prediction_id
+
+
+def update_rl_outcome(
+    position_id: str,
+    actual_result: str,
+    actual_pnl_pct: float,
+) -> bool:
+    """
+    Cập nhật actual_result cho tất cả RL Exit shadow records của một position.
+
+    Gọi hàm này khi position đóng (close_position) để hoàn thiện vòng lặp
+    feedback của RL Exit shadow mode.
+
+    Args:
+        position_id: UUID của position (khớp với field 'position_id' trong rl_exit_shadow_predictions.json)
+        actual_result: 'WIN' hoặc 'LOSS'
+        actual_pnl_pct: PnL thực tế (%)
+
+    Returns:
+        True nếu tìm thấy ít nhất 1 record và cập nhật, False nếu không tìm thấy
+    """
+    records = _load_rl_shadow()
+    updated_count = 0
+    closed_at = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    for rec in records:
+        if rec.get("position_id") == position_id and rec.get("actual_result") is None:
+            rec["actual_result"] = actual_result
+            rec["actual_pnl_pct"] = round(float(actual_pnl_pct), 4)
+            rec["closed_at"] = closed_at
+            updated_count += 1
+
+    if updated_count > 0:
+        _save_rl_shadow(records)
+    return updated_count > 0
 
 
 def log_signal_prediction(

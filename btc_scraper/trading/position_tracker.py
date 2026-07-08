@@ -114,6 +114,9 @@ def _log_rl_shadow_prediction(
 ) -> None:
     if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() != "true":
         return
+    # Fix #3: Lọc test position IDs khỏi production log
+    if position_id and (position_id.startswith("test") or position_id.startswith("TEST")):
+        return
     try:
         from scripts.shadow_log import log_rl_shadow_prediction
 
@@ -402,6 +405,24 @@ def close_position(coin: str, sell_price: float) -> dict:
         if _pos_id:
             _shadow_update(
                 position_id=_pos_id,
+                actual_result=closed_data.get("result", "LOSS"),
+                actual_pnl_pct=float(closed_data.get("pnl_pct", 0.0)),
+            )
+    except Exception:
+        pass
+
+    # Fix #2: Cập nhật outcome cho RL Exit shadow records của position này
+    try:
+        import sys as _sys
+        import os as _os
+        _proj_root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+        if _proj_root not in _sys.path:
+            _sys.path.insert(0, _proj_root)
+        from scripts.shadow_log import update_rl_outcome as _rl_shadow_update
+        _pos_uuid = closed_data.get("id")
+        if _pos_uuid:
+            _rl_shadow_update(
+                position_id=_pos_uuid,
                 actual_result=closed_data.get("result", "LOSS"),
                 actual_pnl_pct=float(closed_data.get("pnl_pct", 0.0)),
             )
