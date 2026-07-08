@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "prediction_id": "TRUMPUSDT_1783512966",
+    "symbol": "TRUMPUSDT",
+    "timestamp": 1783512966.267092,
+    "timestamp_str": "2026-07-08 19:16:06",
+    "signal": "WEAK BUY (Crossover-Blocked)",
+    "meta_prob": 0.5283,
+    "signal_score": 48,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "TRBUSDT_1783513875",
+    "symbol": "TRBUSDT",
+    "timestamp": 1783513875.6816905,
+    "timestamp_str": "2026-07-08 19:31:15",
+    "signal": "WEAK BUY (Crossover-Blocked)",
+    "meta_prob": 0.6327,
+    "signal_score": 48,
+    "regime": "STRONG_TREND_BEAR",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  }
+]

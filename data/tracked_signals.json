@@ -1,84 +1,104 @@
 {
-  "TRUMP": [],
+  "TRUMP": [
+    {
+      "time": "2026-07-08 19:15",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 1.601,
+      "current_price": 1.603,
+      "tp_sl": {
+        "entry": 1.601,
+        "sl": 1.5675,
+        "tp1": 1.6345,
+        "tp2": 1.6527,
+        "rr1": 1.0,
+        "rr2": 1.55,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 75,
+      "created_at_ts": 1783512964.0389984
+    }
+  ],
   "TAO": [],
   "AVAX": [],
   "XLM": [],
   "AEVO": [],
   "NEAR": [],
   "AR": [],
-  "TRB": [],
-  "ETH": [],
-  "IOTA": [],
+  "TRB": [
+    {
+      "time": "2026-07-08 19:30",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 16.02,
+      "current_price": 15.86,
+      "tp_sl": {
+        "entry": 16.02,
+        "sl": 15.6598,
+        "tp1": 16.7427,
+        "tp2": 17.4653,
+        "rr1": 2.01,
+        "rr2": 4.01,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 60,
+      "created_at_ts": 1783513866.4520252
+    }
+  ],
+  "ETH": [
+    {
+      "time": "2026-07-08 19:00",
+      "signal": "SELL (Crossover)",
+      "entry": 1738.3,
+      "current_price": 1740.23,
+      "tp_sl": {
+        "entry": 1738.3,
+        "sl": 1825.3314,
+        "tp1": 1564.2373,
+        "tp2": 1553.3004,
+        "rr1": 2.0,
+        "rr2": 2.13,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 30,
+      "created_at_ts": 1783515662.2295284
+    }
+  ],
+  "IOTA": [
+    {
+      "time": "2026-07-08 20:00",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 0.0371,
+      "current_price": 0.0369,
+      "tp_sl": {
+        "entry": 0.0371,
+        "sl": 0.0354,
+        "tp1": 0.0388,
+        "tp2": 0.0404,
+        "rr1": 1.0,
+        "rr2": 2.0,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 14,
+      "created_at_ts": 1783516569.1272886
+    }
+  ],
   "BNB": [],
   "ENA": [],
   "XPL": [],
-  "TRX": [
-    {
-      "time": "2026-07-08 07:00",
-      "signal": "STRONG SELL (Confirmed Reversal)",
-      "entry": 0.331,
-      "current_price": 0.331,
-      "tp_sl": {
-        "entry": 0.331,
-        "sl": 0.3338,
-        "tp1": 0.3287,
-        "tp2": 0.325,
-        "rr1": 0.81,
-        "rr2": 2.15,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 90,
-      "created_at_ts": 1783475166.245367
-    }
-  ],
+  "TRX": [],
   "ZEC": [],
   "XAUT": [],
-  "BTC": [
-    {
-      "time": "2026-07-08 08:00",
-      "signal": "SELL (Crossover)",
-      "entry": 63184.47,
-      "current_price": 63044.72,
-      "tp_sl": {
-        "entry": 63184.47,
-        "sl": 64596.3253,
-        "tp1": 60360.7594,
-        "tp2": 57537.0487,
-        "rr1": 2.0,
-        "rr2": 4.0,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 90,
-      "created_at_ts": 1783475162.045745
-    }
-  ],
+  "BTC": [],
   "XRP": [],
   "SOPH": [],
-  "SOL": [
-    {
-      "time": "2026-07-08 07:00",
-      "signal": "SELL (Crossover)",
-      "entry": 79.13,
-      "current_price": 79.28,
-      "tp_sl": {
-        "entry": 79.13,
-        "sl": 83.5929,
-        "tp1": 70.2042,
-        "tp2": 61.2785,
-        "rr1": 2.0,
-        "rr2": 4.0,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 74,
-      "created_at_ts": 1783476065.0122645
-    }
-  ],
+  "SOL": [],
   "WLD": [],
   "DOGE": []
 }
