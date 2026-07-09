@@ -101,6 +101,22 @@ class Phase7Sprint3Tests(unittest.TestCase):
                 data = collector.collect(force=True)
         self.assertEqual(data["etf_flow"], 1200000.0)
 
+    def test_parsebot_extract_total_flow(self):
+        from btc_scraper.collectors.parsebot_farside_collector import _extract_total_flow
+        nested_payload = {
+            "status": "success",
+            "data": {
+                "data": [
+                    {
+                        "Date": "08 Jul 2026",
+                        "Total": -25.8
+                    }
+                ]
+            }
+        }
+        flow = _extract_total_flow(nested_payload, "BTC")
+        self.assertEqual(flow, -25.8)
+
 
 if __name__ == "__main__":
     unittest.main()

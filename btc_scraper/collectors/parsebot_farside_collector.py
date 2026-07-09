@@ -510,9 +510,11 @@ def _extract_total_flow(value: Any, symbol: str) -> Optional[float]:
     if not isinstance(value, (dict, list)):
         return None
 
+    keys_to_check = ("Total", "total", "flow", "net_flow", "total_flow", "net", "Net")
+
     # Format 1: {"total_flow": 123.4}
     if isinstance(value, dict):
-        for key in ("total_flow", "total_flow_usd_m", "net_flow", "flow"):
+        for key in keys_to_check:
             v = value.get(key)
             if v is not None:
                 try:
@@ -520,12 +522,18 @@ def _extract_total_flow(value: Any, symbol: str) -> Optional[float]:
                 except (TypeError, ValueError):
                     continue
 
-        # Format 2: {"data": [{"flow": 123.4, "date": "..."}, ...]}
+        # Format 2: {"data": [...] or {"data": {"data": [...]}}}
         data = value.get("data")
+        if isinstance(data, dict):
+            # If data is a dictionary, see if it has a nested "data" list
+            nested_data = data.get("data")
+            if isinstance(nested_data, list):
+                data = nested_data
+
         if isinstance(data, list) and data:
             latest_record = data[-1]
             if isinstance(latest_record, dict):
-                for key in ("flow", "net_flow", "total_flow"):
+                for key in keys_to_check:
                     v = latest_record.get(key)
                     if v is not None:
                         try:
@@ -537,7 +545,7 @@ def _extract_total_flow(value: Any, symbol: str) -> Optional[float]:
     if isinstance(value, list) and value:
         latest_record = value[-1]
         if isinstance(latest_record, dict):
-            for key in ("flow", "net_flow", "total_flow"):
+            for key in keys_to_check:
                 v = latest_record.get(key)
                 if v is not None:
                     try:

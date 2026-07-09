@@ -2,54 +2,34 @@
   "TRUMP": [],
   "TAO": [],
   "AVAX": [],
-  "XLM": [
-    {
-      "time": "2026-07-09 07:15",
-      "signal": "SELL (Break-SMA50)",
-      "entry": 0.1814,
-      "current_price": 0.1819,
-      "tp_sl": {
-        "entry": 0.1814,
-        "sl": 0.183,
-        "tp1": 0.1812,
-        "tp2": 0.1809,
-        "rr1": 0.12,
-        "rr2": 0.31,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Gia XUYEN THU'NG SMA50 (0.18) trong Bear Market (duoi SMA200) — trailing stop kich hoat! | Market regime SIDEWAY: tien hanh can than",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 60,
-      "created_at_ts": 1783556163.1043255
-    }
-  ],
+  "XLM": [],
   "AEVO": [],
   "NEAR": [],
   "AR": [],
-  "TRB": [],
-  "ETH": [],
-  "IOTA": [],
-  "BNB": [
+  "TRB": [
     {
-      "time": "2026-07-09 08:15",
-      "signal": "STRONG SELL (Confirmed Reversal)",
-      "entry": 570.82,
-      "current_price": 570.82,
+      "time": "2026-07-09 09:00",
+      "signal": "SELL (Crossover)",
+      "entry": 15.91,
+      "current_price": 15.83,
       "tp_sl": {
-        "entry": 570.82,
-        "sl": 573.4816,
-        "tp1": 567.618,
-        "tp2": 565.8789,
-        "rr1": 1.2,
-        "rr2": 1.86,
+        "entry": 15.91,
+        "sl": 16.1867,
+        "tp1": 15.6333,
+        "tp2": 15.6212,
+        "rr1": 1.0,
+        "rr2": 1.04,
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
-      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
+      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
-      "created_at_ts": 1783559763.0943837
+      "age_minutes": 67,
+      "created_at_ts": 1783562464.3994052
     }
   ],
+  "ETH": [],
+  "IOTA": [],
+  "BNB": [],
   "ENA": [],
   "XPL": [],
   "TRX": [],
@@ -58,27 +38,7 @@
   "BTC": [],
   "XRP": [],
   "SOPH": [],
-  "SOL": [
-    {
-      "time": "2026-07-09 08:15",
-      "signal": "STRONG SELL (Confirmed Reversal)",
-      "entry": 78.34,
-      "current_price": 78.34,
-      "tp_sl": {
-        "entry": 78.34,
-        "sl": 78.9318,
-        "tp1": 77.505,
-        "tp2": 76.9432,
-        "rr1": 1.41,
-        "rr2": 2.36,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
-      "created_at_ts": 1783559763.3115137
-    }
-  ],
+  "SOL": [],
   "WLD": [],
   "DOGE": []
 }
