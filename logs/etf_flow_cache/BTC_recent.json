@@ -186,7 +186,7 @@
         },
         {
           "Date": "08 Jul 2026",
-          "IBIT": 0.0,
+          "IBIT": -59.1,
           "FBTC": -14.9,
           "BITB": 0.0,
           "ARKB": 0.0,
@@ -198,7 +198,23 @@
           "MSBT": 0.0,
           "GBTC": -63.7,
           "BTC": 52.8,
-          "Total": -25.8
+          "Total": -84.9
+        },
+        {
+          "Date": "09 Jul 2026",
+          "IBIT": 0.0,
+          "FBTC": -63.3,
+          "BITB": 0.3,
+          "ARKB": -39.9,
+          "BTCO": 0.0,
+          "EZBC": 0.0,
+          "BRRR": 0.0,
+          "HODL": 5.4,
+          "BTCW": 0.0,
+          "MSBT": 2.2,
+          "GBTC": 0.0,
+          "BTC": 0.0,
+          "Total": -95.3
         }
       ],
       "summary": {
@@ -218,34 +234,34 @@
           "Total": 0.0
         },
         "Total": {
-          "IBIT": 60258.0,
-          "FBTC": 10223.0,
+          "IBIT": 60199.0,
+          "FBTC": 10160.0,
           "BITB": 1977.0,
-          "ARKB": 1291.0,
+          "ARKB": 1251.0,
           "BTCO": 166.0,
           "EZBC": 328.0,
           "BRRR": 329.0,
-          "HODL": 1127.0,
+          "HODL": 1132.0,
           "BTCW": 96.0,
-          "MSBT": 406.0,
+          "MSBT": 408.0,
           "GBTC": -27279.0,
           "BTC": 2471.0,
-          "Total": 51393.0
+          "Total": 51239.0
         },
         "Average": {
-          "IBIT": 96.9,
-          "FBTC": 16.4,
+          "IBIT": 96.6,
+          "FBTC": 16.3,
           "BITB": 3.2,
-          "ARKB": 2.1,
+          "ARKB": 2.0,
           "BTCO": 0.3,
           "EZBC": 0.5,
           "BRRR": 0.5,
           "HODL": 1.8,
           "BTCW": 0.2,
           "MSBT": 6.4,
-          "GBTC": -43.8,
+          "GBTC": -43.7,
           "BTC": 5.1,
-          "Total": 82.6
+          "Total": 82.2
         },
         "Maximum": {
           "IBIT": 1119.9,
@@ -281,6 +297,6 @@
     }
   },
   "data_quality": 1.0,
-  "fetched_at": "2026-07-09T02:03:29.188861+00:00",
+  "fetched_at": "2026-07-10T01:17:44.127083+00:00",
   "error": null
 }

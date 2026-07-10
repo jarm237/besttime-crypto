@@ -189,6 +189,20 @@
           "ETHE": 0.0,
           "ETH": 0.0,
           "Total": 70.5
+        },
+        {
+          "Date": "09 Jul 2026",
+          "ETHA": 0.0,
+          "ETHB": 0.0,
+          "FETH": -34.0,
+          "ETHW": -2.8,
+          "TETH": 0.0,
+          "ETHV": 0.0,
+          "QETH": 0.0,
+          "EZET": 0.0,
+          "ETHE": 0.0,
+          "ETH": 0.0,
+          "Total": -36.8
         }
       ],
       "summary": {
@@ -221,20 +235,20 @@
         "Total": {
           "ETHA": 11174.0,
           "ETHB": 519.0,
-          "FETH": 2195.0,
-          "ETHW": 385.0,
+          "FETH": 2161.0,
+          "ETHW": 383.0,
           "TETH": 28.0,
           "ETHV": 162.0,
           "QETH": 25.0,
           "EZET": 66.0,
           "ETHE": -5332.0,
           "ETH": 1813.0,
-          "Total": 11035.0
+          "Total": 10999.0
         },
         "Average": {
           "ETHA": 22.8,
-          "ETHB": 6.4,
-          "FETH": 4.5,
+          "ETHB": 6.3,
+          "FETH": 4.4,
           "ETHW": 0.8,
           "TETH": 0.1,
           "ETHV": 0.3,
@@ -242,7 +256,7 @@
           "EZET": 0.1,
           "ETHE": -10.9,
           "ETH": 3.7,
-          "Total": 22.5
+          "Total": 22.4
         },
         "Maximum": {
           "ETHA": 639.8,
@@ -274,6 +288,6 @@
     }
   },
   "data_quality": 1.0,
-  "fetched_at": "2026-07-09T02:03:32.634573+00:00",
+  "fetched_at": "2026-07-10T01:17:47.847895+00:00",
   "error": null
 }

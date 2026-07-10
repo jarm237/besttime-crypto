@@ -137,6 +137,16 @@
           "SOEZ": 0.0,
           "GSOL": -2.0,
           "Total": -8.6
+        },
+        {
+          "Date": "09 Jul 2026",
+          "BSOL": 0.0,
+          "VSOL": 0.3,
+          "FSOL": 0.0,
+          "TSOL": 0.1,
+          "SOEZ": 0.0,
+          "GSOL": 0.0,
+          "Total": 0.4
         }
       ],
       "summary": {
@@ -160,18 +170,18 @@
         },
         "Total": {
           "BSOL": 900.6,
-          "VSOL": 19.2,
+          "VSOL": 19.5,
           "FSOL": 194.5,
-          "TSOL": -102.3,
+          "TSOL": -102.2,
           "SOEZ": 9.7,
           "GSOL": 108.4,
-          "Total": 1130.0
+          "Total": 1131.0
         },
         "Average": {
           "BSOL": 5.2,
           "VSOL": 0.1,
           "FSOL": 1.2,
-          "TSOL": -0.7,
+          "TSOL": -0.6,
           "SOEZ": 0.1,
           "GSOL": 0.6,
           "Total": 6.5
@@ -198,6 +208,6 @@
     }
   },
   "data_quality": 1.0,
-  "fetched_at": "2026-07-09T02:03:36.118442+00:00",
+  "fetched_at": "2026-07-10T01:17:51.602934+00:00",
   "error": null
 }
