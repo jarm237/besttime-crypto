@@ -437894,5 +437894,39 @@
       "std_dev_pct": 0.0
     },
     "regime": null
+  },
+  {
+    "coin": "BTC",
+    "id": "c40a0f38-e7d9-4509-b91b-927088546bc0",
+    "entry_price": 63776.4,
+    "sell_price": 64101.0,
+    "pnl_pct": -0.509,
+    "result": "LOSS",
+    "hold_hours": 2.1,
+    "exit_time": "2026-07-10 11:42",
+    "signal_raw": "NEUTRAL (BULLISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "gated": false,
+      "meta_confidence": 0.2634730538922156,
+      "meta_confidence_pct": 26,
+      "meta_expected_return": null,
+      "meta_expected_drawdown": null,
+      "meta_expected_hold_time": null,
+      "meta_decision": {},
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "regime": null
   }
 ]

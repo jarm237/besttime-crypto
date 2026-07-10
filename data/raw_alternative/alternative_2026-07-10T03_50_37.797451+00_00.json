@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-07-10T03:50:37.797451+00:00",
+  "exchange_netflow": null,
+  "whale_score": null,
+  "stablecoin_supply": 0.0,
+  "tvl": 479157553708.8794,
+  "funding_rate": -0.00041836,
+  "open_interest": 0.0,
+  "dxy": 100.647,
+  "vix": 15.84,
+  "us10y": 4.539,
+  "gold": 4132.6,
+  "sentiment_score": 0.0,
+  "social_sentiment": 0.0,
+  "fear_greed_raw": 23.0,
+  "fear_greed_score": 0.23,
+  "fear_greed_regime": "Extreme Fear",
+  "active_addresses": null,
+  "hashrate": 831838314.3459485,
+  "chain_tvl": 73315601731.02866,
+  "defi_liquidity_score": null,
+  "orderbook_imbalance": null,
+  "liquidity_pressure": null,
+  "macro_pressure": null,
+  "macro_risk_score": null,
+  "funding_pressure": null,
+  "open_interest_pressure": null,
+  "large_tx_proxy_score": null,
+  "stablecoin_supply_total": 0.0,
+  "stablecoin_momentum": null,
+  "etf_momentum": null,
+  "etf_flow": -95.3,
+  "etf_flow_confidence": 0.0,
+  "etf_flow_source": "none",
+  "etf_flow_scope": "us_spot_btc_etf",
+  "risk_on_score": 0.0,
+  "confidence_metadata": {
+    "dxy": 0.95,
+    "vix": 0.95,
+    "us10y": 0.9,
+    "gold": 0.9,
+    "funding_rate": 0.9,
+    "open_interest": 0.9,
+    "exchange_netflow": 0.75,
+    "stablecoin_supply": 0.7,
+    "tvl": 0.65,
+    "hashrate": 0.85,
+    "active_addresses": 0.7,
+    "etf_flow": 0.0,
+    "fear_greed_raw": 0.6,
+    "sentiment_score": 0.35,
+    "social_sentiment": 0.4,
+    "whale_score": 0.5
+  },
+  "_errors": {},
+  "_statuses": {
+    "binance": {
+      "status": "success",
+      "reason": null
+    },
+    "defillama": {
+      "status": "success",
+      "reason": null
+    },
+    "alternative_me": {
+      "status": "success",
+      "reason": null
+    },
+    "glassnode": {
+      "status": "skipped",
+      "reason": "disabled_free_plan_not_supported"
+    },
+    "whale_alert": {
+      "status": "skipped",
+      "reason": "disabled_free_plan_not_supported"
+    }
+  },
+  "protocol_tvl": 479157553708.8794,
+  "options_iv": 0.0,
+  "iv_skew": 0.0
+}
