@@ -228,7 +228,6 @@ def test_autotrader_correlation_and_sizing_filters(mock_cov_corr, monkeypatch):
                     return {"id": "mock-sell-id", "status": "placed", "price": 100.0}
             
             trader = AutoTrader()
-            monkeypatch.setattr(trader, "_get_client", lambda: MockCCXTClient())
             monkeypatch.setattr(trader, "_has_open_position", lambda c, d: False)
             
             # Test signal for NEAR (should fail correlation filter due to SOL)

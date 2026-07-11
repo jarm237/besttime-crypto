@@ -69,8 +69,9 @@ def _load_optimized_params():
             with open(cfg_path, "r", encoding="utf-8") as f:
                 _OPTIMIZED_PARAMS_CACHE = json.load(f)
                 return _OPTIMIZED_PARAMS_CACHE
-        except Exception:
-            pass
+        except Exception as _params_err:
+            import logging as _log
+            _log.getLogger(__name__).warning("[analysis] load optimized params failed: %s", _params_err)
     _OPTIMIZED_PARAMS_CACHE = {}
     return _OPTIMIZED_PARAMS_CACHE
 

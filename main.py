@@ -179,25 +179,24 @@ async def check_and_execute_auto_closes(recs: list[dict]):
                     from btc_scraper.telegram_bot import send_telegram_message
                     send_telegram_message(msg, parse_mode=None)
 
-                    # Thực hiện lệnh đặt đóng trên exchange nếu không phải dry_run
+                    # Thực hiện lệnh đặt đóng trên exchange qua ExecutionEngine (Phase 1: không gọi CCXTClient trực tiếp)
                     note = auto_pos[0].get("note", "")
                     mode = "TESTNET" if "TESTNET" in note else ("LIVE" if "LIVE" in note else "DRY_RUN")
                     if mode in ("TESTNET", "LIVE"):
                         try:
-                            from btc_scraper.core.ccxt_client import CCXTClient
-                            client = CCXTClient.from_env()
-                            client.dry_run = False
-                            symbol = f"{coin}/USDT"
                             direction = auto_pos[0].get("direction")
                             invested_usdt = auto_pos[0].get("invested_usdt", 0.0)
-                            entry_price = auto_pos[0].get("entry_price", 0.0)
-                            if entry_price > 0:
-                                current_val = invested_usdt * (current_price / entry_price)
-                                if direction == "LONG":
-                                    await client.create_market_sell(symbol, current_val)
-                                else:
-                                    await client.create_market_buy(symbol, current_val)
-                                await client.close()
+                            entry_price_pos = auto_pos[0].get("entry_price", 0.0)
+                            if entry_price_pos > 0:
+                                close_result = await auto_trader.close_position_on_exchange(
+                                    coin=coin,
+                                    direction=direction,
+                                    invested_usdt=invested_usdt,
+                                    entry_price=entry_price_pos,
+                                    current_price=current_price,
+                                )
+                                if close_result.get("status") == "error":
+                                    console.print(f"[bold red][AutoTrade] Loi dong lenh tren san: {close_result.get('error')}[/bold red]")
                         except Exception as ex_err:
                             console.print(f"[bold red][AutoTrade] Loi dong lenh tren san: {ex_err}[/bold red]")
 

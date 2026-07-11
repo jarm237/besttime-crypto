@@ -1,8 +1,12 @@
 import datetime
+import logging
+
 from btc_scraper.core.config import GEMINI_API_KEYS
 from .api import call_gemini, _key_manager
 from .utils import _apply_dynamic_risk_and_sentiment, _format_price
 from .builders import _build_coin_block, _build_mtf_block, _build_rag_block, _load_closed_trades
+
+_logger = logging.getLogger(__name__)
 
 def analyze_with_gemini(
     analysis_results: dict[str, dict],
@@ -116,6 +120,7 @@ def generate_weekly_report() -> str:
     week_ago = now - datetime.timedelta(days=7)
     
     recent_trades = []
+    _skipped_count = 0
     for t in closed_trades:
         try:
             exit_time_str = t.get("exit_time", "")
@@ -125,8 +130,12 @@ def generate_weekly_report() -> str:
                 dt = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
             if dt >= week_ago:
                 recent_trades.append(t)
-        except:
-            pass
+        except Exception as exc:
+            _skipped_count += 1
+            _logger.debug("Skipping invalid AI analyst record (exit_time=%r): %s", t.get("exit_time"), exc)
+            continue
+    if _skipped_count:
+        _logger.debug("[ai_analyst] Skipped %d records with unparseable exit_time", _skipped_count)
             
     if not recent_trades:
         return "Không có lệnh nào đóng trong 7 ngày qua."

@@ -177,10 +177,19 @@ def train_adaptive_model(save: bool = True) -> Dict[str, Any]:
         # Fit on full data
         clf.fit(X, y)
 
-        # Save model and metadata
-        model_path = ADAPTIVE_MODEL_JOBLIB
-        _ensure_dir(model_path)
-        joblib.dump({"model": clf, "features": feature_names}, model_path)
+        # Performance gate: only save if CV AUC is acceptable
+        _MIN_ADAPTIVE_AUC = 0.55
+        if cv_mean is not None and cv_mean < _MIN_ADAPTIVE_AUC:
+            import logging as _alog
+            _alog.getLogger(__name__).warning(
+                "[adaptive_scoring] Model NOT saved: CV AUC %.4f < gate %.2f",
+                cv_mean, _MIN_ADAPTIVE_AUC,
+            )
+        else:
+            # Save model and metadata
+            model_path = ADAPTIVE_MODEL_JOBLIB
+            _ensure_dir(model_path)
+            joblib.dump({"model": clf, "features": feature_names}, model_path)
 
         # Return metrics
         preds = clf.predict(X)

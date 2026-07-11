@@ -71,7 +71,9 @@ def fetch_and_save_macro() -> Dict[str, float | str]:
                 result[name] = val
             else:
                 result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
-        except Exception:
+        except Exception as _macro_err:
+            import logging as _log
+            _log.getLogger(__name__).warning("[macro_collector] fetch failed for %s: %s — using default", name, _macro_err)
             result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
 
     result.setdefault("DXY", 100.0)
@@ -89,8 +91,9 @@ def load_macro_state() -> Dict[str, float | str]:
             data = json.load(handle)
             if isinstance(data, dict):
                 return data
-    except Exception:
-        pass
+    except Exception as _load_err:
+        import logging as _log
+        _log.getLogger(__name__).warning("[macro_collector] load_macro_state failed: %s — using defaults", _load_err)
 
     return {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}
 

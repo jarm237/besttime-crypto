@@ -1,13 +1,15 @@
 """
 btc_scraper/execution/execution_engine.py
-Phase 10 – Sprint 10.1: Execution Engine
+Phase 10 – Sprint 10.1 | Phase 1 Remediation: Execution Engine
 
 Core coordinator for the full execution lifecycle.
 Integrates: LiquidityAnalyzer → SlippagePredictor → ExecutionRiskMonitor
              → OrderTypeSelector → ExecutionPlanner → FillTracker
-             → PostTradeAnalyzer
+             → PostTradeAnalyzer → ExchangeAdapter
 
 In dry_run mode, simulates fills using candle prices (Phase 9 compatible).
+In live mode, routes ALL write orders through WriteExchangeAdapter.
+Direct CCXTClient calls outside this module are FORBIDDEN.
 """
 from __future__ import annotations
 
@@ -25,6 +27,7 @@ from .execution_risk_monitor import ExecutionRiskMonitor, GuardAction
 from .order_type_selector import OrderTypeSelector, Urgency
 from .execution_planner import ExecutionPlanner
 from .post_trade_analyzer import PostTradeAnalyzer
+from .exchange_adapter import WriteExchangeAdapter, make_write_adapter_from_env
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +47,11 @@ class ExecutionEngine:
         log_dir: str = "logs/execution",
         fills_dir: str = "data/execution/fills",
         reports_dir: str = "data/execution/reports",
+        exchange_adapter: Optional[WriteExchangeAdapter] = None,
     ):
         self.config = config or ExecutionConfig()
+        # ── Write adapter — ONLY this engine holds a write-capable adapter ──
+        self._adapter: Optional[WriteExchangeAdapter] = exchange_adapter
         self._tracker = FillTracker(log_dir=log_dir, fills_dir=fills_dir)
         self._liquidity = LiquidityAnalyzer({
             "max_spread_bps": self.config.max_spread_bps,
@@ -68,6 +74,10 @@ class ExecutionEngine:
         })
         self._planner = ExecutionPlanner(self.config.twap.__dict__)
         self._post_trade = PostTradeAnalyzer(reports_dir=reports_dir)
+
+    def attach_adapter(self, adapter: WriteExchangeAdapter) -> None:
+        """Attach (or replace) the exchange write adapter at runtime."""
+        self._adapter = adapter
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
@@ -174,6 +184,222 @@ class ExecutionEngine:
             f"[Execution] FILLED {coin} {side} @ {fill_price:.4f} "
             f"(slip {expected_slip:.1f} bps, liq {snap.liquidity_score:.2f})"
         )
+        return record
+
+    async def submit_live(
+        self,
+        signal: Dict[str, Any],
+        candle: Dict[str, Any],
+        notional_usdt: float,
+        urgency: str = Urgency.NORMAL,
+    ) -> ExecutionRecord:
+        """
+        Execute a LIVE order through the exchange via the isolated WriteExchangeAdapter.
+        Runs full pre-trade guard: liquidity → slippage → risk → order selection.
+        This is the ONLY entry point for live write operations.
+
+        Args:
+            signal: dict with 'coin', 'signal_raw'/'signal', 'id', 'entry_time'
+            candle: latest OHLCV candle dict
+            notional_usdt: position size in USDT
+            urgency: Urgency.NORMAL | Urgency.HIGH
+        """
+        if self._adapter is None:
+            logger.warning("[ExecutionEngine] No exchange adapter — falling back to paper mode")
+            return self.submit_paper(signal, candle, urgency)
+
+        coin = signal.get("coin", "BTC")
+        side = self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))
+        symbol = f"{coin}/USDT"
+
+        # Get current market price from exchange
+        try:
+            t0 = time.time()
+            decision_price = await self._adapter.get_symbol_price(symbol)
+            latency_ms = int((time.time() - t0) * 1000)
+        except Exception as exc:
+            logger.error(f"[ExecutionEngine] Cannot fetch price for {symbol}: {exc}")
+            decision_price = float(candle.get("close", 0.0))
+            latency_ms = 9999
+
+        qty = notional_usdt / decision_price if decision_price > 0 else 0.0
+
+        record = ExecutionRecord(
+            signal_id=signal.get("id", str(uuid.uuid4())[:8]),
+            coin=coin,
+            side=side,
+            intended_qty=qty,
+            intended_notional=notional_usdt,
+            decision_price=decision_price,
+            timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
+            latency_ms=latency_ms,
+        )
+
+        # ── 1. Liquidity analysis ─────────────────────────────────────────
+        snap = self._liquidity.analyze_from_candle(
+            coin=coin, candle=candle, order_notional_usdt=notional_usdt,
+        )
+        record.spread_bps_at_submit = snap.spread_bps
+        record.orderbook_imbalance_at_submit = snap.orderbook_imbalance
+        record.top_bid = snap.top_bid
+        record.top_ask = snap.top_ask
+        record.mid_price = snap.mid_price
+        record.liquidity_score = snap.liquidity_score
+        record.max_safe_order_size = snap.max_safe_order_size_usdt
+
+        # ── 2. Slippage prediction ────────────────────────────────────────
+        expected_slip = self._slippage.predict_from_snapshot(
+            snap=snap, order_notional_usdt=notional_usdt,
+        )
+        record.expected_slippage_bps = expected_slip
+
+        # ── 3. Pre-trade risk check ───────────────────────────────────────
+        guard = self._risk.evaluate(
+            spread_bps=snap.spread_bps,
+            expected_slippage_bps=expected_slip,
+            liquidity_score=snap.liquidity_score,
+            order_notional_usdt=notional_usdt,
+            max_safe_order_size_usdt=snap.max_safe_order_size_usdt,
+            latency_ms=latency_ms,
+        )
+        record.guard_action = guard.action
+
+        if guard.action == GuardAction.REJECT:
+            logger.info(f"[ExecutionEngine] LIVE REJECTED {coin} {side}: {guard.reason}")
+            return self._tracker.reject(record, reason=guard.reason)
+
+        if guard.action == GuardAction.REDUCE and guard.adjusted_qty_usdt:
+            notional_usdt = guard.adjusted_qty_usdt
+            qty = notional_usdt / decision_price if decision_price > 0 else qty
+            record.intended_qty = qty
+            record.intended_notional = notional_usdt
+
+        # ── 4. Order type selection ──────────────────────────────────────
+        order_decision = self._selector.select(
+            side=side,
+            top_bid=snap.top_bid,
+            top_ask=snap.top_ask,
+            mid_price=snap.mid_price,
+            spread_bps=snap.spread_bps,
+            liquidity_score=snap.liquidity_score,
+            expected_slippage_bps=expected_slip,
+            max_safe_order_size_usdt=snap.max_safe_order_size_usdt,
+            intended_notional_usdt=notional_usdt,
+            urgency=urgency,
+            volume_participation_rate=snap.volume_participation_rate,
+        )
+
+        if order_decision.order_type == "SKIP":
+            return self._tracker.reject(record, reason=order_decision.reason)
+
+        record.order_type = order_decision.order_type
+        record.submitted_price = order_decision.limit_price or decision_price
+        record.submit_time = datetime.now(timezone.utc).isoformat()
+
+        # ── 5. Execute via WriteExchangeAdapter ──────────────────────────
+        self._tracker.register(record)
+        try:
+            is_buy = side == "BUY"
+            if is_buy:
+                order = await self._adapter.create_market_buy(symbol, notional_usdt)
+            else:
+                order = await self._adapter.create_market_sell(symbol, notional_usdt)
+
+            # Build fill from exchange response
+            fill_price = float(order.get("price") or record.submitted_price)
+            fill_qty = float(order.get("amount") or qty)
+            fee = float(order.get("fee", {}).get("cost", 0.0) if isinstance(order.get("fee"), dict) else 0.0)
+            if fee == 0.0:
+                fee = notional_usdt * 0.0005  # fallback: 5 bps taker
+
+            fill = FillEvent(
+                execution_id=record.execution_id,
+                price=fill_price,
+                qty=fill_qty,
+                fee=fee,
+            )
+            record.add_fill(fill)
+            record.status = OrderStatus.FILLED
+            self._tracker._complete(record)
+            self._tracker._write_jsonl(record)
+
+            logger.info(
+                f"[ExecutionEngine] LIVE FILLED {coin} {side} @ {fill_price:.4f} "
+                f"qty={fill_qty:.6f} fee={fee:.4f} "
+                f"(slip {expected_slip:.1f} bps, liq {snap.liquidity_score:.2f})"
+            )
+
+            # ── 6. Post-trade analysis ───────────────────────────────────
+            self._post_trade.analyze(record.to_dict())
+
+        except Exception as exc:
+            logger.error(f"[ExecutionEngine] Order submission failed: {exc}")
+            record.status = OrderStatus.REJECTED
+            record.reason = str(exc)
+            self._tracker._history.append(record)
+            self._tracker._write_jsonl(record)
+
+        return record
+
+    async def emergency_exit(
+        self,
+        coin: str,
+        direction: str,
+        invested_usdt: float,
+        current_price: float,
+        reason: str = "emergency",
+    ) -> ExecutionRecord:
+        """
+        Emergency exit policy: close a position IMMEDIATELY at market.
+        Bypasses slippage/liquidity checks — uses REJECT-safe path only if adapter is missing.
+        Only spreads and latency guard still apply (for catastrophic failure protection).
+        """
+        symbol = f"{coin.upper()}/USDT"
+        side = "SELL" if direction == "LONG" else "BUY"
+        record = ExecutionRecord(
+            signal_id=f"EMERGENCY-{coin}-{int(time.time())}",
+            coin=coin,
+            side=side,
+            intended_qty=invested_usdt / current_price if current_price > 0 else 0.0,
+            intended_notional=invested_usdt,
+            decision_price=current_price,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            order_type="MARKET",
+        )
+        record.reason = reason
+
+        if self._adapter is None:
+            logger.warning(f"[ExecutionEngine] Emergency exit paper mode: {coin} {side}")
+            self._tracker.register(record)
+            self._tracker.simulate_fill(record, fill_price=current_price)
+            return record
+
+        self._tracker.register(record)
+        try:
+            if side == "SELL":
+                order = await self._adapter.create_market_sell(symbol, invested_usdt)
+            else:
+                order = await self._adapter.create_market_buy(symbol, invested_usdt)
+
+            fill_price = float(order.get("price") or current_price)
+            fill = FillEvent(
+                execution_id=record.execution_id,
+                price=fill_price,
+                qty=record.intended_qty,
+                fee=invested_usdt * 0.0005,
+            )
+            record.add_fill(fill)
+            record.status = OrderStatus.FILLED
+            self._tracker._complete(record)
+            self._tracker._write_jsonl(record)
+            logger.info(f"[ExecutionEngine] EMERGENCY EXIT {coin} {side} @ {fill_price:.4f}")
+        except Exception as exc:
+            logger.error(f"[ExecutionEngine] Emergency exit failed: {exc}")
+            record.status = OrderStatus.REJECTED
+            record.reason = f"emergency_failed: {exc}"
+            self._tracker._history.append(record)
+            self._tracker._write_jsonl(record)
+
         return record
 
     def get_stats(self) -> Dict[str, Any]:

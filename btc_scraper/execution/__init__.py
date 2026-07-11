@@ -1,6 +1,6 @@
 """
 btc_scraper/execution/__init__.py
-Phase 10 – Execution Intelligence Package
+Phase 10 – Execution Intelligence Package | Phase 1 Remediation
 """
 from .execution_config import ExecutionConfig, TWAPConfig
 from .fill_tracker import FillTracker, ExecutionRecord, FillEvent, OrderStatus
@@ -12,6 +12,10 @@ from .twap import TWAPExecutor, TWAPPlan, ChildOrderSlice
 from .execution_planner import ExecutionPlanner, ExecutionPlan
 from .execution_risk_monitor import ExecutionRiskMonitor, GuardDecision, GuardAction
 from .post_trade_analyzer import PostTradeAnalyzer, ExecutionCostBreakdown
+from .exchange_adapter import (
+    WriteExchangeAdapter, ReadOnlyExchangeAdapter,
+    make_write_adapter_from_env, make_readonly_adapter_from_env,
+)
 from .execution_engine import ExecutionEngine
 
 __all__ = [
@@ -25,5 +29,7 @@ __all__ = [
     "ExecutionPlanner", "ExecutionPlan",
     "ExecutionRiskMonitor", "GuardDecision", "GuardAction",
     "PostTradeAnalyzer", "ExecutionCostBreakdown",
+    "WriteExchangeAdapter", "ReadOnlyExchangeAdapter",
+    "make_write_adapter_from_env", "make_readonly_adapter_from_env",
     "ExecutionEngine",
 ]

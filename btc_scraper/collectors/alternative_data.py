@@ -8,6 +8,7 @@ integration.
 from __future__ import annotations
 
 import json
+import math
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,6 +30,7 @@ from btc_scraper.collectors.etf_collector import ETFCollector
 from btc_scraper.collectors.google_trends_collector import GoogleTrendsCollector
 from btc_scraper.collectors.reddit_collector import RedditCollector
 from btc_scraper.collectors.alternative_me_collector import AlternativeMeCollector
+from btc_scraper.collectors.feature_source_registry import FEATURE_SOURCE_REGISTRY, feature_source_registry
 
 DEFAULT_OUTPUT_PATH = str(build_data_path("alternative_data.json"))
 DEFAULT_RAW_STORE_DIR = str(build_data_path("raw_alternative"))
@@ -62,8 +64,9 @@ class AlternativeDataCollector(CollectorBase):
             payload["_statuses"]["binance"] = {
                 "status": binance_payload.get("status", "success"),
                 "reason": binance_payload.get("reason"),
+                "observed_at": binance_payload.get("timestamp"),
             }
-            payload.update({"funding_rate": binance_payload.get("funding_rate", 0.0), "open_interest": binance_payload.get("open_interest", 0.0)})
+            payload.update({"funding_rate": binance_payload.get("funding_rate"), "open_interest": binance_payload.get("open_interest")})
             if isinstance(binance_payload, dict) and binance_payload.get("error"):
                 payload["_errors"]["binance"] = binance_payload.get("error")
         except Exception as e:
@@ -76,13 +79,14 @@ class AlternativeDataCollector(CollectorBase):
             payload["_statuses"]["defillama"] = {
                 "status": defillama_payload.get("status", "success"),
                 "reason": defillama_payload.get("reason"),
+                "observed_at": defillama_payload.get("timestamp"),
             }
             payload.update({
-                "stablecoin_supply": defillama_payload.get("stablecoin_supply", 0.0),
-                "stablecoin_supply_total": defillama_payload.get("stablecoin_supply_total", 0.0),
-                "tvl": defillama_payload.get("tvl", 0.0),
-                "chain_tvl": defillama_payload.get("chain_tvl", 0.0),
-                "protocol_tvl": defillama_payload.get("protocol_tvl", 0.0),
+                "stablecoin_supply": defillama_payload.get("stablecoin_supply"),
+                "stablecoin_supply_total": defillama_payload.get("stablecoin_supply_total"),
+                "tvl": defillama_payload.get("tvl"),
+                "chain_tvl": defillama_payload.get("chain_tvl"),
+                "protocol_tvl": defillama_payload.get("protocol_tvl"),
             })
             if isinstance(defillama_payload, dict) and defillama_payload.get("error"):
                 payload["_errors"]["defillama"] = defillama_payload.get("error")
@@ -93,7 +97,8 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             fred_payload = FredCollector().collect(force=force)
-            payload.update({"us10y": fred_payload.get("us10y", 0.0), "gold": fred_payload.get("gold", 0.0)})
+            payload["_statuses"]["fred"] = {"status": fred_payload.get("status", "success"), "reason": fred_payload.get("reason"), "observed_at": fred_payload.get("timestamp")}
+            payload.update({"us10y": fred_payload.get("us10y"), "gold": fred_payload.get("gold")})
             if isinstance(fred_payload, dict) and fred_payload.get("error"):
                 payload["_errors"]["fred"] = fred_payload.get("error")
         except Exception as e:
@@ -102,7 +107,8 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             yahoo_payload = YahooCollector().collect(force=force)
-            payload.update({"dxy": yahoo_payload.get("dxy", 0.0), "vix": yahoo_payload.get("vix", 0.0), "gold": yahoo_payload.get("gold", 0.0)})
+            payload["_statuses"]["yahoo"] = {"status": yahoo_payload.get("status", "success"), "reason": yahoo_payload.get("reason"), "observed_at": yahoo_payload.get("timestamp")}
+            payload.update({"dxy": yahoo_payload.get("dxy"), "vix": yahoo_payload.get("vix"), "gold": yahoo_payload.get("gold")})
             if isinstance(yahoo_payload, dict) and yahoo_payload.get("error"):
                 payload["_errors"]["yahoo"] = yahoo_payload.get("error")
         except Exception as e:
@@ -112,11 +118,11 @@ class AlternativeDataCollector(CollectorBase):
         try:
             altme_payload = AlternativeMeCollector().collect(force=force)
             status = altme_payload.get("status")
-            payload["_statuses"]["alternative_me"] = {"status": status, "reason": altme_payload.get("reason")}
+            payload["_statuses"]["alternative_me"] = {"status": status, "reason": altme_payload.get("reason"), "observed_at": altme_payload.get("timestamp")}
             if status == "success" and isinstance(altme_payload.get("data"), dict):
                 payload.update({
-                    "fear_greed_raw": altme_payload["data"].get("fear_greed_raw", 50.0),
-                    "fear_greed_score": altme_payload["data"].get("fear_greed_score", 0.5),
+                    "fear_greed_raw": altme_payload["data"].get("fear_greed_raw"),
+                    "fear_greed_score": altme_payload["data"].get("fear_greed_score"),
                     "fear_greed_regime": altme_payload["data"].get("fear_greed_regime"),
                 })
             elif status == "error":
@@ -130,7 +136,7 @@ class AlternativeDataCollector(CollectorBase):
             status = glassnode_payload.get("status")
             payload["_statuses"]["glassnode"] = {"status": status, "reason": glassnode_payload.get("reason")}
             if status == "success" and isinstance(glassnode_payload.get("data"), dict):
-                payload.update({"active_addresses": glassnode_payload["data"].get("active_addresses", 0.0)})
+                payload.update({"active_addresses": glassnode_payload["data"].get("active_addresses")})
             elif status == "error":
                 payload["_errors"]["glassnode"] = glassnode_payload.get("reason")
         except Exception as e:
@@ -139,7 +145,7 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             blockchain_payload = BlockchainCollector().collect(force=force)
-            payload.update({"hashrate": blockchain_payload.get("hashrate", 0.0)})
+            payload.update({"hashrate": blockchain_payload.get("hashrate")})
             if isinstance(blockchain_payload, dict) and blockchain_payload.get("error"):
                 payload["_errors"]["blockchain"] = blockchain_payload.get("error")
         except Exception as e:
@@ -148,7 +154,7 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             blockchair_payload = BlockchairCollector().collect(force=force)
-            payload.update({"exchange_netflow": blockchair_payload.get("exchange_netflow", 0.0)})
+            payload.update({"exchange_netflow": blockchair_payload.get("exchange_netflow")})
             if isinstance(blockchair_payload, dict) and blockchair_payload.get("error"):
                 payload["_errors"]["blockchair"] = blockchair_payload.get("error")
         except Exception as e:
@@ -160,7 +166,7 @@ class AlternativeDataCollector(CollectorBase):
             status = whale_payload.get("status")
             payload["_statuses"]["whale_alert"] = {"status": status, "reason": whale_payload.get("reason")}
             if status == "success" and isinstance(whale_payload.get("data"), dict):
-                payload.update({"whale_score": whale_payload["data"].get("whale_score", 0.0)})
+                payload.update({"whale_score": whale_payload["data"].get("whale_score")})
             elif status == "error":
                 payload["_errors"]["whale_alert"] = whale_payload.get("reason")
         except Exception as e:
@@ -169,7 +175,7 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             deribit_payload = DeribitCollector().collect(force=force)
-            payload.update({"options_iv": deribit_payload.get("options_iv", 0.0), "iv_skew": deribit_payload.get("iv_skew", 0.0)})
+            payload.update({"options_iv": deribit_payload.get("options_iv"), "iv_skew": deribit_payload.get("iv_skew")})
             if isinstance(deribit_payload, dict) and deribit_payload.get("error"):
                 payload["_errors"]["deribit"] = deribit_payload.get("error")
         except Exception as e:
@@ -178,7 +184,7 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             etf_payload = ETFCollector().collect(force=force)
-            payload.update({"etf_flow": etf_payload.get("etf_flow", 0.0)})
+            payload.update({"etf_flow": etf_payload.get("etf_flow")})
             if isinstance(etf_payload, dict) and etf_payload.get("error"):
                 payload["_errors"]["etf"] = etf_payload.get("error")
         except Exception as e:
@@ -187,7 +193,7 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             google_payload = GoogleTrendsCollector().collect(force=force)
-            payload.update({"sentiment_score": google_payload.get("sentiment_score", 0.0)})
+            payload.update({"sentiment_score": google_payload.get("sentiment_score")})
             if isinstance(google_payload, dict) and google_payload.get("error"):
                 payload["_errors"]["google_trends"] = google_payload.get("error")
         except Exception as e:
@@ -196,7 +202,7 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             reddit_payload = RedditCollector().collect(force=force)
-            payload.update({"social_sentiment": reddit_payload.get("sentiment_score", 0.0)})
+            payload.update({"social_sentiment": reddit_payload.get("sentiment_score")})
             if isinstance(reddit_payload, dict) and reddit_payload.get("error"):
                 payload["_errors"]["reddit"] = reddit_payload.get("error")
         except Exception as e:
@@ -291,7 +297,7 @@ def _default_payload() -> Dict[str, Any]:
         "etf_flow_confidence": 0.0,
         "etf_flow_source": "none",
         "etf_flow_scope": "us_spot_btc_etf",
-        "risk_on_score": 0.0,
+        "risk_on_score": None,
         # === Confidence Scores (Sprint 9.6) ===
         "confidence_metadata": {
             "dxy": 0.95,  # Official source, high confidence
@@ -324,7 +330,8 @@ def safe_float(value):
     try:
         if value is None:
             return None
-        return float(value)
+        result = float(value)
+        return result if math.isfinite(result) else None
     except Exception:
         return None
 
@@ -343,16 +350,12 @@ def normalize_alternative_payload(
     previous_payload: Optional[Dict[str, Any]] = None,
     raw_store_dir: Optional[str | os.PathLike[str]] = DEFAULT_RAW_STORE_DIR,
 ) -> Dict[str, Any]:
-    """Normalize and derive alternative-data features with safe defaults."""
-    normalized = _merge_default_payload(payload)
+    """Normalize a payload while preserving missing values as ``None``.
 
-    if raw_store_dir is not None:
-        target_dir = Path(raw_store_dir)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = normalized.get("timestamp", datetime.now(timezone.utc).isoformat())
-        raw_store_path = target_dir / f"alternative_{timestamp.replace(':', '_')}.json"
-        with open(raw_store_path, "w", encoding="utf-8") as handle:
-            json.dump(normalized, handle, indent=2, ensure_ascii=False)
+    This boundary is the missing-data contract: NaN is never persisted and a
+    real zero survives unchanged. Model-only imputation belongs downstream.
+    """
+    normalized = _merge_default_payload(payload)
 
     prev = previous_payload or {}
     prev = dict(prev)
@@ -451,7 +454,62 @@ def normalize_alternative_payload(
     normalized["effective_etf_momentum"] = weighted_etf_momentum
     normalized["effective_risk_on_score"] = normalized["risk_on_score"] if normalized["risk_on_score"] is not None else 0.0
 
+    _sanitize_registered_values(normalized)
+    normalized["feature_metadata"] = _build_feature_metadata(normalized)
+    normalized["feature_source_registry"] = feature_source_registry()
+    if raw_store_dir is not None:
+        target_dir = Path(raw_store_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = normalized.get("timestamp", datetime.now(timezone.utc).isoformat())
+        raw_store_path = target_dir / f"alternative_{timestamp.replace(':', '_')}.json"
+        with open(raw_store_path, "w", encoding="utf-8") as handle:
+            json.dump(normalized, handle, indent=2, ensure_ascii=False, allow_nan=False)
     return normalized
+
+
+def _sanitize_registered_values(payload: Dict[str, Any]) -> None:
+    """Convert non-finite values to missing before JSON persistence."""
+    for field in FEATURE_SOURCE_REGISTRY:
+        value = payload.get(field)
+        if isinstance(value, float) and not math.isfinite(value):
+            payload[field] = None
+
+
+def _build_feature_metadata(payload: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """Attach per-feature availability, provenance and freshness metadata."""
+    statuses = payload.get("_statuses", {})
+    metadata: Dict[str, Dict[str, Any]] = {}
+    for field, spec in FEATURE_SOURCE_REGISTRY.items():
+        value = payload.get(field)
+        source_state = statuses.get(spec.source, {})
+        source_status = source_state.get("status")
+        # Collector timestamps are the source-observation time.  Aggregate
+        # payload time is only a fallback for legacy collectors.
+        observed_at = source_state.get("observed_at") or payload.get("timestamp")
+        age_seconds = None
+        if observed_at:
+            try:
+                observed = datetime.fromisoformat(str(observed_at).replace("Z", "+00:00"))
+                if observed.tzinfo is None:
+                    observed = observed.replace(tzinfo=timezone.utc)
+                age_seconds = max(0.0, (datetime.now(timezone.utc) - observed).total_seconds())
+            except (TypeError, ValueError):
+                observed_at = None
+        available = value is not None and source_status not in {"error", "skipped"}
+        status = "available" if available else ("source_error" if source_status == "error" else "missing")
+        stale = bool(source_state.get("is_stale")) or source_status == "stale" or (
+            age_seconds is not None and age_seconds > spec.max_age_seconds
+        )
+        metadata[field] = {
+            "available": available,
+            "status": "stale" if available and stale else status,
+            "source": spec.source,
+            "confidence": spec.confidence if available and not stale else (spec.confidence * 0.5 if available else 0.0),
+            "observed_at": observed_at if available else None,
+            "age_seconds": age_seconds,
+            "is_stale": bool(stale),
+        }
+    return metadata
 
 
 def validate_collectors_on_startup() -> None:

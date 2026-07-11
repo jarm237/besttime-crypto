@@ -5,7 +5,7 @@ import pandas as pd
 from btc_scraper.feature_engineering.alternative_features import AlternativeFeatureBuilder
 
 
-def test_alternative_features_generate_minimum_count_and_fill_missing():
+def test_alternative_features_preserve_missing_values_and_add_flags():
     df = pd.DataFrame(
         [
             {
@@ -52,7 +52,9 @@ def test_alternative_features_generate_minimum_count_and_fill_missing():
 
     generated = [col for col in out.columns if col.startswith("alt_")]
     assert len(generated) >= 20
-    assert out[generated].isna().sum().sum() == 0
+    assert out.loc[out["coin"] == "ETH", "exchange_netflow"].isna().all()
+    assert out.loc[out["coin"] == "ETH", "exchange_netflow__missing"].eq(1).all()
+    assert out[generated].isna().sum().sum() > 0
 
 
 def test_alternative_features_quality_report_contains_missing_metrics():

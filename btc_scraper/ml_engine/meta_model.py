@@ -33,11 +33,39 @@ BASE = Path(__file__).parent.parent.parent
 LOGS = BASE / "logs"
 INPUT = LOGS / "adaptive_signals_v2.json"
 MODEL_OUT = LOGS / "meta_model.joblib"
+MODEL_CANDIDATE_OUT = LOGS / "meta_model_candidate.joblib"
 METRIC_OUT = LOGS / "meta_model.json"
 FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
 
 # Schema version — tăng lên khi đổi FEATURE_SCHEMA
 MODEL_VERSION = "v3.1"
+
+# AUC gates:
+# Candidate: phải pass ngưỡng tối thiểu, được lưu vào candidate file.
+# Production: chỉ ghi đè production nếu vượt ngưỡng này VÀ không tệ hơn model cũ.
+_MIN_CANDIDATE_AUC = 0.50
+_MIN_PRODUCTION_AUC = 0.56
+
+
+def should_replace_model(
+    candidate_auc: float,
+    production_auc: "float | None",
+    min_auc: float = _MIN_PRODUCTION_AUC,
+    max_regression: float = 0.01,
+) -> "tuple[bool, list[str]]":
+    """Kiểm tra candidate có đủ điều kiện ghi đè production model không.
+
+    Returns:
+        (should_replace, list_of_failure_reasons)
+    """
+    reasons: list[str] = []
+    if candidate_auc < min_auc:
+        reasons.append(f"candidate_auc_{candidate_auc:.4f}_below_min_{min_auc:.2f}")
+    if production_auc is not None and candidate_auc < production_auc - max_regression:
+        reasons.append(
+            f"candidate_{candidate_auc:.4f}_worse_than_production_{production_auc:.4f}_by_more_than_{max_regression}"
+        )
+    return not reasons, reasons
 
 
 
@@ -580,8 +608,9 @@ def walk_forward_eval(X: np.ndarray, y: np.ndarray, clf=None, train_window_pct: 
                 y_pred = model.predict(X_test)
                 auc = float(roc_auc_score(y_test, y_prob))
                 acc = float(accuracy_score(y_test, y_pred))
-        except Exception:
-            pass
+        except Exception as _eval_err:
+            import logging as _log
+            _log.getLogger(__name__).warning("[meta_model] walk-forward evaluation failed at step: %s", _eval_err)
 
         results.append({
             "train_range": [start, train_end],
@@ -713,8 +742,9 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
                     model.fit(X_train, y_train)
                     preds = model.predict_proba(X_val)[:, 1]
                     fold_aucs.append(float(roc_auc_score(y_val, preds)))
-                except Exception:
-                    pass
+                except Exception as _fold_err:
+                    import logging as _log
+                    _log.getLogger(__name__).warning("[meta_model] fold training failed: %s", _fold_err)
 
             if not fold_aucs:
                 return 0.0
@@ -878,22 +908,67 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
         "optuna_weights": best_weights,
         "optuna_base_params": best_base_params,
     }
+
+    # Performance gate — dùng local variable (cv_auc_mean / ensemble_cv_auc)
+    # chứ không phải model_bundle.get() vì các key đó không được lưu vào bundle.
+    _gate_auc = ensemble_cv_auc if ensemble_cv_auc is not None else cv_auc_mean
+
+    # Load production AUC để so sánh
+    _prod_auc: float | None = None
     try:
-        joblib.dump(model_bundle, MODEL_OUT)
-    except Exception as e:
-        # Fallback: save to system temp directory (avoids potential FS encoding issues)
+        _prod_metrics = json.load(open(METRIC_OUT, encoding="utf-8")) if METRIC_OUT.exists() else {}
+        _prod_auc = _prod_metrics.get("ensemble_cv_auc_mean") or _prod_metrics.get("cv_auc_mean")
+        if _prod_auc is not None:
+            _prod_auc = float(_prod_auc)
+    except Exception:
+        _prod_auc = None
+
+    import logging as _mlog
+    _gate_logger = _mlog.getLogger(__name__)
+
+    if _gate_auc is None:
+        # Không có AUC → lưu thành candidate, không ghi đè production
+        _gate_logger.warning("[meta_model] AUC unavailable — saving candidate only, NOT promoting to production")
         try:
-            import tempfile, shutil
-            tmp_path = Path(tempfile.gettempdir()) / "meta_model.joblib"
-            joblib.dump(model_bundle, tmp_path)
-            # Try moving into LOGS (may fail if LOGS path has encoding issues)
+            joblib.dump(model_bundle, MODEL_CANDIDATE_OUT)
+        except Exception as _ce:
+            _gate_logger.error("[meta_model] Failed to save candidate: %s", _ce)
+    elif _gate_auc < _MIN_CANDIDATE_AUC:
+        _gate_logger.warning(
+            "[meta_model] Model NOT saved: AUC %.4f < candidate gate %.2f",
+            _gate_auc, _MIN_CANDIDATE_AUC,
+        )
+    else:
+        # Luôn lưu candidate
+        try:
+            joblib.dump(model_bundle, MODEL_CANDIDATE_OUT)
+        except Exception as _ce:
+            _gate_logger.warning("[meta_model] Failed to save candidate: %s", _ce)
+
+        # Chỉ promote lên production nếu qua production gate
+        _ok, _reasons = should_replace_model(_gate_auc, _prod_auc)
+        if _ok:
             try:
-                shutil.move(str(tmp_path), str(MODEL_OUT))
-            except Exception:
-                pass
-            print(f"  [Warning] Could not save model to {MODEL_OUT}. Saved to {tmp_path} instead: {e}")
-        except Exception as e2:
-            print(f"  [ERROR] Failed to save model bundle to both MODEL_OUT and temp: {e} / {e2}")
+                joblib.dump(model_bundle, MODEL_OUT)
+                _gate_logger.info("[meta_model] Promoted to production: AUC %.4f", _gate_auc)
+            except Exception as e:
+                # Fallback: save to system temp directory (avoids potential FS encoding issues)
+                try:
+                    import tempfile, shutil
+                    tmp_path = Path(tempfile.gettempdir()) / "meta_model.joblib"
+                    joblib.dump(model_bundle, tmp_path)
+                    try:
+                        shutil.move(str(tmp_path), str(MODEL_OUT))
+                    except Exception:
+                        pass
+                    print(f"  [Warning] Could not save model to {MODEL_OUT}. Saved to {tmp_path} instead: {e}")
+                except Exception as e2:
+                    print(f"  [ERROR] Failed to save model bundle to both MODEL_OUT and temp: {e} / {e2}")
+        else:
+            _gate_logger.warning(
+                "[meta_model] Candidate AUC %.4f saved but NOT promoted to production. Reasons: %s",
+                _gate_auc, _reasons,
+            )
 
     # Update feature_names for downstream metric reporting
     feature_names = selected_features

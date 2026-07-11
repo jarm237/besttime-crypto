@@ -253,6 +253,9 @@ class TestDataQualityChecker:
         p = _default_payload()
         # Override timestamp to "now" so freshness check passes
         p["timestamp"] = datetime.now(timezone.utc).isoformat()
+        p.update({"funding_rate": 0.0, "open_interest": 1.0, "stablecoin_supply": 1.0,
+                  "tvl": 1.0, "dxy": 100.0, "vix": 20.0, "us10y": 4.0,
+                  "gold": 2000.0, "fear_greed_raw": 50.0, "fear_greed_score": 0.0})
         return p
 
     def test_healthy_payload_has_no_issues(self):
@@ -325,6 +328,9 @@ class TestDataQualityDashboard:
 
         p = _default_payload()
         p["timestamp"] = datetime.now(timezone.utc).isoformat()
+        p.update({"funding_rate": 0.0, "open_interest": 1.0, "stablecoin_supply": 1.0,
+                  "tvl": 1.0, "dxy": 100.0, "vix": 20.0, "us10y": 4.0,
+                  "gold": 2000.0, "fear_greed_raw": 50.0, "fear_greed_score": 0.0})
         return p
 
     def test_ingest_healthy_payload(self, tmp_path):
@@ -371,6 +377,9 @@ class TestCollectorHealthMonitor:
 
         p = _default_payload()
         p["timestamp"] = datetime.now(timezone.utc).isoformat()
+        p.update({"funding_rate": 0.0, "open_interest": 1.0, "stablecoin_supply": 1.0,
+                  "tvl": 1.0, "dxy": 100.0, "vix": 20.0, "us10y": 4.0,
+                  "gold": 2000.0, "fear_greed_raw": 50.0, "fear_greed_score": 0.0})
         return p
 
     def test_record_collection_success(self, tmp_path):

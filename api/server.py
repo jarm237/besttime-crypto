@@ -349,22 +349,17 @@ def close_position(coin: str, data: PositionClose):
                 
             if mode in ("TESTNET", "LIVE"):
                 try:
-                    from btc_scraper.core.ccxt_client import CCXTClient
-                    client = CCXTClient.from_env()
-                    client.dry_run = False
-                    
-                    symbol = f"{coin.upper()}/USDT"
-                    direction = open_pos.get("direction")
-                    invested_usdt = open_pos.get("invested_usdt", 0.0)
-                    entry_price = open_pos.get("entry_price", 0.0)
-                    current_price = data.sell_price
-                    
-                    if entry_price > 0:
-                        current_val = invested_usdt * (current_price / entry_price)
-                        if direction == "LONG":
-                            client.create_market_sell(symbol, current_val)
-                        else:
-                            client.create_market_buy(symbol, current_val)
+                    import asyncio
+                    from btc_scraper.trading.auto_trader import auto_trader as _at
+                    asyncio.get_event_loop().run_until_complete(
+                        _at.close_position_on_exchange(
+                            coin=coin,
+                            direction=open_pos.get("direction", ""),
+                            invested_usdt=open_pos.get("invested_usdt", 0.0),
+                            entry_price=open_pos.get("entry_price", 0.0),
+                            current_price=data.sell_price,
+                        )
+                    )
                 except Exception as exchange_err:
                     print(f"Lỗi đóng lệnh trên exchange: {exchange_err}")
                     
@@ -393,24 +388,19 @@ def close_partial_position(coin: str, data: PositionClosePartial):
                 
             if mode in ("TESTNET", "LIVE"):
                 try:
-                    from btc_scraper.core.ccxt_client import CCXTClient
-                    client = CCXTClient.from_env()
-                    client.dry_run = False
-                    
-                    symbol = f"{coin.upper()}/USDT"
-                    direction = open_pos.get("direction")
+                    import asyncio
+                    from btc_scraper.trading.auto_trader import auto_trader as _at
                     invested_usdt = open_pos.get("invested_usdt", 0.0)
-                    entry_price = open_pos.get("entry_price", 0.0)
-                    current_price = data.sell_price
-                    
-                    if entry_price > 0:
-                        # Partial close amount based on original invested USDT and percentage
-                        closed_usdt = invested_usdt * (data.percentage / 100)
-                        current_val = closed_usdt * (current_price / entry_price)
-                        if direction == "LONG":
-                            client.create_market_sell(symbol, current_val)
-                        else:
-                            client.create_market_buy(symbol, current_val)
+                    partial_invested = invested_usdt * (data.percentage / 100)
+                    asyncio.get_event_loop().run_until_complete(
+                        _at.close_position_on_exchange(
+                            coin=coin,
+                            direction=open_pos.get("direction", ""),
+                            invested_usdt=partial_invested,
+                            entry_price=open_pos.get("entry_price", 0.0),
+                            current_price=data.sell_price,
+                        )
+                    )
                 except Exception as exchange_err:
                     print(f"Lỗi đóng lệnh một phần trên exchange: {exchange_err}")
                     

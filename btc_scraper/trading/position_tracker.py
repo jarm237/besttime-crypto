@@ -114,9 +114,6 @@ def _log_rl_shadow_prediction(
 ) -> None:
     if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() != "true":
         return
-    # Fix #3: Lọc test position IDs khỏi production log
-    if position_id and (position_id.startswith("test") or position_id.startswith("TEST")):
-        return
     try:
         from scripts.shadow_log import log_rl_shadow_prediction
 

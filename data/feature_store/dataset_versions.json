@@ -306,5 +306,215 @@
       "regime",
       "alternative"
     ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:10:30.117026+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:13:47.686592+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:37:02.569231+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:38:35.751008+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:40:10.658184+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:41:45.105062+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:43:20.699894+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:45:33.962818+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:47:12.627382+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T17:51:13.700816+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_10",
+    "created_at": "2026-07-10T18:04:56.598714+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T06:02:58.907581+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T06:34:18.826145+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T07:11:16.917371+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T07:29:43.167836+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
   }
 ]

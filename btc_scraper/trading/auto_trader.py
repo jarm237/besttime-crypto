@@ -1,7 +1,7 @@
 """
 Auto Trader — Decision engine tự động đặt lệnh Market trên Binance Testnet.
 
-Luồng:
+Luồng (sau Phase 1 remediation):
     analysis dict (từ analyze_market)
         ↓
     AutoTrader.evaluate_and_trade(analysis)
@@ -10,8 +10,8 @@ Luồng:
         ↓ YES
     compute_position_size() — 2% risk dựa trên SL distance
         ↓
-    place_order() — CCXTClient.create_market_buy/sell
-        ↓
+    ExecutionEngine.submit_live()  ←── DUY NHẤT entry point viết lệnh
+        ↓ (tích hợp: Liquidity → Slippage → Risk Guard → OrderType → Fill)
     log_order() — ghi vào logs/auto_trade_log.json
         ↓
     notify_telegram() — gửi alert
@@ -21,6 +21,9 @@ Luồng:
 Circuit Breaker:
     - 5 lệnh thua liên tiếp → pause 24h
     - Reset tự động sau 24h hoặc khi user restart bot
+
+Phase 1 Rule: Tất cả lệnh write lên sàn được route qua ExecutionEngine.
+              Cấm gọi CCXTClient.create_market_buy/sell trực tiếp.
 
 Config (từ .env):
     AUTO_TRADE_DRY_RUN=true               # Bắt buộc false để live
@@ -121,10 +124,13 @@ class AutoTrader:
     """
     Singleton-like auto-trading engine.
     Sử dụng: auto_trader.evaluate_and_trade(analysis_dict)
+
+    Phase 1: Tất cả write lệnh được route qua ExecutionEngine.submit_live().
+    Không có call trực tiếp tới CCXTClient nữa.
     """
 
     def __init__(self):
-        self._client = None  # Lazy init CCXTClient
+        self._execution_engine = None  # Lazy init ExecutionEngine with WriteAdapter
 
     @property
     def dry_run(self) -> bool:
@@ -177,12 +183,17 @@ class AutoTrader:
     def kelly_fraction(self) -> float:
         return _env_float("AUTO_TRADE_KELLY_FRACTION", 0.5)
 
-    def _get_client(self):
-        """Lazy-init CCXTClient."""
-        if self._client is None:
-            from btc_scraper.core.ccxt_client import CCXTClient
-            self._client = CCXTClient.from_env()
-        return self._client
+    def _get_execution_engine(self):
+        """Lazy-init ExecutionEngine with WriteExchangeAdapter.
+        
+        ExecutionEngine is the ONLY component allowed to write to the exchange.
+        """
+        if self._execution_engine is None:
+            from btc_scraper.execution.execution_engine import ExecutionEngine
+            from btc_scraper.execution.exchange_adapter import make_write_adapter_from_env
+            adapter = make_write_adapter_from_env() if not self.dry_run else None
+            self._execution_engine = ExecutionEngine(exchange_adapter=adapter)
+        return self._execution_engine
 
     # ─── Circuit Breaker ────────────────────────────────────────────────────────
 
@@ -572,7 +583,7 @@ class AutoTrader:
             _append_log(log_entry)
             return log_entry
 
-        # Đặt lệnh
+        # Dặt lệnh qua ExecutionEngine (Phase 1: tất cả write đi qua đây)
         symbol = f"{coin}/USDT"
         order_side = "buy" if direction == "LONG" else "sell"
 
@@ -599,21 +610,56 @@ class AutoTrader:
         }
 
         try:
-            if order_side == "buy":
-                order = await self._get_client().create_market_buy(symbol, usdt_amount)
-            else:
-                order = await self._get_client().create_market_sell(symbol, usdt_amount)
+            # Lấy candle mới nhất cho coin này (dùng trong execute_live)
+            # ana có thể chứa 'candle' hoặc các field giá truc tiếp
+            latest_candle = {
+                "close": float(entry_price or ana.get("close", 0.0)),
+                "open": float(ana.get("open", entry_price or 0.0)),
+                "high": float(ana.get("high", entry_price or 0.0)),
+                "low": float(ana.get("low", entry_price or 0.0)),
+                "volume": float(ana.get("volume", 1.0)),
+                "time": datetime.now().isoformat(),
+            }
+            signal_payload = {
+                "coin": coin,
+                "signal_raw": signal,
+                "signal": signal,
+                "id": str(int(time.time())),
+                "entry_time": datetime.now().isoformat(),
+            }
 
-            log_entry["order_id"] = order.get("id")
-            log_entry["status"] = order.get("status", "placed")
-            log_entry["filled_price"] = order.get("price") or entry_price
+            engine = self._get_execution_engine()
+
+            if self.dry_run:
+                # Paper mode: simulate fill
+                rec = engine.submit_paper(signal_payload, latest_candle)
+            else:
+                # Live mode: route through ExchangeAdapter (guarded)
+                import asyncio
+                rec = asyncio.get_event_loop().run_until_complete(
+                    engine.submit_live(signal_payload, latest_candle, usdt_amount)
+                )
+
+            log_entry["order_id"] = rec.execution_id
+            log_entry["status"] = rec.status
+            log_entry["filled_price"] = rec.avg_fill_price or entry_price
+            log_entry["execution_id"] = rec.execution_id
+            log_entry["guard_action"] = rec.guard_action
+            log_entry["expected_slippage_bps"] = rec.expected_slippage_bps
+            log_entry["liquidity_score"] = rec.liquidity_score
+
+            if rec.status == "REJECTED":
+                log_entry["status"] = "rejected_by_guard"
+                log_entry["reason_skip"] = rec.reason
+                _append_log(log_entry)
+                return log_entry
 
             # Sync với position tracker
             try:
                 from btc_scraper.trading.position_tracker import add_position
                 add_position(
                     coin=coin,
-                    entry_price=float(order.get("price") or entry_price),
+                    entry_price=float(rec.avg_fill_price or entry_price),
                     direction=direction,
                     note=f"[AUTO-{log_entry['mode']}] {signal} | Meta={log_entry['meta_confidence_pct']}%",
                     invested_usdt=usdt_amount,
@@ -699,6 +745,39 @@ class AutoTrader:
         except Exception:
             pass
 
+    async def close_position_on_exchange(
+        self,
+        coin: str,
+        direction: str,
+        invested_usdt: float,
+        entry_price: float,
+        current_price: float,
+    ) -> Optional[Dict]:
+        """Close a position via ExecutionEngine.emergency_exit().
+
+        Phase 1 Rule: This is the ONLY external method for exchange writes on close.
+        Routes through ExecutionEngine (and thus ExchangeAdapter) — never directly.
+        All write calls go through the guard pipeline.
+        """
+        if self.dry_run:
+            return {"status": "dry_run", "coin": coin}
+        if entry_price <= 0 or invested_usdt <= 0:
+            return {"status": "skipped", "reason": "invalid_entry_price_or_invested_usdt"}
+
+        current_val = invested_usdt * (current_price / entry_price)
+        try:
+            engine = self._get_execution_engine()
+            rec = await engine.emergency_exit(
+                coin=coin,
+                direction=direction,
+                invested_usdt=current_val,
+                current_price=current_price,
+                reason="auto_trade_close",
+            )
+            return {"status": rec.status, "execution_id": rec.execution_id, "fill_price": rec.avg_fill_price}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
     def status(self) -> Dict:
         """Trả về trạng thái hiện tại của AutoTrader."""
         state = _load_circuit()
@@ -717,6 +796,14 @@ class AutoTrader:
         today_logs = [l for l in logs if l.get("timestamp", "").startswith(today)]
         placed_today = [l for l in today_logs if l.get("status") not in ("skipped", "error")]
 
+        # Execution engine stats (sử dụng nếu đã khởi tạo)
+        execution_stats = {}
+        try:
+            if self._execution_engine is not None:
+                execution_stats = self._execution_engine.get_stats()
+        except Exception:
+            pass
+
         return {
             "mode": "DRY_RUN" if self.dry_run else "TESTNET",
             "meta_threshold": self.meta_threshold,
@@ -731,6 +818,7 @@ class AutoTrader:
             "max_daily_trades": self.max_daily_trades,
             "allowed_coins": self.allowed_coins,
             "total_auto_trades": len([l for l in logs if l.get("status") not in ("skipped", "error")]),
+            "execution_engine_stats": execution_stats,
         }
 
 

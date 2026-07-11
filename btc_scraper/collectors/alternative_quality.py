@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from btc_scraper.collectors.alternative_data import _default_payload
+from btc_scraper.collectors.feature_source_registry import FEATURE_SOURCE_REGISTRY
 from btc_scraper.core.paths import build_data_path
 
 logger = logging.getLogger(__name__)
@@ -69,19 +70,7 @@ FIELD_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float]]] = {
 }
 
 # Fields that must be present in every payload
-REQUIRED_FIELDS: List[str] = [
-    "timestamp",
-    "funding_rate",
-    "open_interest",
-    "stablecoin_supply",
-    "tvl",
-    "dxy",
-    "vix",
-    "us10y",
-    "gold",
-    "fear_greed_raw",
-    "fear_greed_score",
-]
+REQUIRED_FIELDS: List[str] = ["timestamp", *[name for name, spec in FEATURE_SOURCE_REGISTRY.items() if spec.required]]
 
 # Maximum age (seconds) before a payload is considered stale
 DEFAULT_MAX_AGE_SECONDS: int = 900  # 15 minutes
@@ -188,8 +177,8 @@ class DataQualityChecker:
         for field in self.required_fields:
             if field == "timestamp":
                 continue
-            if field not in payload:
-                issues.append(QualityIssue(field, "missing", f"Field '{field}' is absent."))
+            if field not in payload or payload.get(field) is None:
+                issues.append(QualityIssue(field, "missing", f"Field '{field}' is unavailable."))
 
         # --- Value-range check ---
         for field, (lo, hi) in self.field_bounds.items():
@@ -201,9 +190,6 @@ class DataQualityChecker:
             except (TypeError, ValueError):
                 issues.append(QualityIssue(field, "type_error", f"Cannot cast '{raw_val!r}' to float."))
                 continue
-            # Skip range check for sentinel 0.0 (means "no data collected yet")
-            if val == 0.0:
-                continue
             if lo is not None and val < lo:
                 issues.append(
                     QualityIssue(field, "out_of_range", f"{val} < lower bound {lo}.")
@@ -213,6 +199,13 @@ class DataQualityChecker:
                     QualityIssue(field, "out_of_range", f"{val} > upper bound {hi}.")
                 )
 
+        # Feature-level freshness is preferred where available: it permits
+        # optional sources to age independently of a fresh aggregate payload.
+        for field, meta in payload.get("feature_metadata", {}).items():
+            if not isinstance(meta, dict) or not meta.get("is_stale"):
+                continue
+            if field not in {issue.field for issue in issues}:
+                issues.append(QualityIssue(field, "stale", "Feature freshness limit exceeded."))
         return QualityReport(timestamp=now, issues=issues, payload_timestamp=payload_ts)
 
 
@@ -397,6 +390,7 @@ class CollectorHealthMonitor:
         self._run_counts: Dict[str, int] = defaultdict(int)
         self._failure_counts: Dict[str, int] = defaultdict(int)
         self._alerts: List[AlertRecord] = []
+        self._snapshots: List[datetime] = []
 
     # ------------------------------------------------------------------
 
@@ -417,6 +411,9 @@ class CollectorHealthMonitor:
             The quality report for this payload.
         """
         self._run_counts[collector_name] += 1
+        self._snapshots.append(datetime.now(timezone.utc))
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+        self._snapshots = [item for item in self._snapshots if item >= cutoff]
         if not success:
             self._failure_counts[collector_name] += 1
             alert = AlertRecord(
@@ -559,6 +556,28 @@ class CollectorHealthMonitor:
                 "uptime": round(1.0 - failures / max(runs, 1), 4),
             }
         return stats
+
+    def health_snapshot(self, window_hours: float = 24.0) -> Dict[str, Any]:
+        """Required/optional health and coverage for the quality dashboard."""
+        summary = self.dashboard.summary(window_hours)
+        report = self.dashboard._history[-1] if self.dashboard._history else None
+        missing = set(report.missing_fields if report else [])
+        stale = set(report.stale_fields if report else [])
+        required = [name for name, spec in FEATURE_SOURCE_REGISTRY.items() if spec.required]
+        optional = [name for name, spec in FEATURE_SOURCE_REGISTRY.items() if not spec.required]
+        available_required = sum(name not in missing and name not in stale for name in required)
+        available_optional = sum(name not in missing and name not in stale for name in optional)
+        return {
+            "snapshot_count_24h": len(self._snapshots),
+            "freshness": {"stale_features": sorted(stale), "is_fresh": not stale},
+            "completeness": {
+                "required": round(available_required / max(len(required), 1), 4),
+                "optional": round(available_optional / max(len(optional), 1), 4),
+            },
+            "required_health": {"healthy": not any(name in missing or name in stale for name in required), "missing": sorted(missing.intersection(required))},
+            "optional_health": {"healthy": not any(name in missing or name in stale for name in optional), "missing": sorted(missing.intersection(optional))},
+            "quality": summary,
+        }
 
     def recent_alerts(self, n: int = 20) -> List[Dict[str, str]]:
         """Return the last *n* alert records as dicts."""

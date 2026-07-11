@@ -75,14 +75,14 @@ class AlternativeFeatureBuilder:
         if "timestamp" in frame.columns and frame["timestamp"].notna().any():
             counts = frame.groupby("timestamp")[source_col].transform("count")
             if counts.max(skipna=True) and float(counts.max(skipna=True)) > 1:
-                return frame.groupby("timestamp")[source_col].rank(method="average", pct=True).fillna(0.5)
-        return pd.Series(0.5, index=frame.index, dtype="float64")
+                return frame.groupby("timestamp")[source_col].rank(method="average", pct=True)
+        return pd.Series(np.nan, index=frame.index, dtype="float64")
 
     def _rolling_zscore(self, series: pd.Series) -> pd.Series:
         rolling_mean = series.rolling(self.config.zscore_window, min_periods=2).mean()
         rolling_std = series.rolling(self.config.zscore_window, min_periods=2).std(ddof=0).replace(0.0, np.nan)
         zscore = (series - rolling_mean) / rolling_std
-        return zscore.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        return zscore.replace([np.inf, -np.inf], np.nan)
 
     def _build_quality_report(
         self,
@@ -134,11 +134,11 @@ class AlternativeFeatureBuilder:
                 out[col] = np.nan
             out[col] = self._to_numeric(out[col])
 
-        if "coin" in out.columns:
-            out[self.BASE_COLUMNS] = out.groupby(out["coin"].astype(str), sort=False)[self.BASE_COLUMNS].ffill()
-        else:
-            out[self.BASE_COLUMNS] = out[self.BASE_COLUMNS].ffill()
-        out[self.BASE_COLUMNS] = out[self.BASE_COLUMNS].fillna(0.0)
+        # Preserve source missingness.  An imputer is fitted only in the ML
+        # pipeline; filling here would turn an unavailable source into a fake
+        # neutral signal.  The flags are model-ready indicators for that step.
+        for col in self.BASE_COLUMNS:
+            out[f"{col}__missing"] = out[col].isna().astype("int8")
 
         generated_columns: list[str] = []
         for col in self.BASE_COLUMNS:
@@ -161,7 +161,7 @@ class AlternativeFeatureBuilder:
 
             generated_columns.extend([z_col, m_col, d_col, r_col])
 
-        out[generated_columns] = out[generated_columns].replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        out[generated_columns] = out[generated_columns].replace([np.inf, -np.inf], np.nan)
 
         out["alt_macro_stress_composite"] = (
             out["alt_z_dxy"].abs() + out["alt_z_vix"].abs() + out["alt_z_us10y"].abs()
