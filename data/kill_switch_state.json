@@ -3,7 +3,7 @@
   "trigger": "manual_emergency",
   "trigger_value": null,
   "threshold": null,
-  "triggered_at": "2026-07-11T13:05:24.623774+00:00",
+  "triggered_at": "2026-07-11T14:30:42.042659+00:00",
   "action_taken": "CLOSE_ALL",
   "requires_manual_reset": true,
   "reset_token_hash": null,
@@ -17,7 +17,7 @@
       "action": "CLOSE_ALL",
       "value": null,
       "threshold": null,
-      "at": "2026-07-11T13:05:24.623774+00:00"
+      "at": "2026-07-11T14:30:42.042659+00:00"
     }
   ]
 }
