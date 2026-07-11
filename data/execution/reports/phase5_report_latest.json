@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-07-11T10:33:16.934873+00:00",
+  "generated_at": "2026-07-11T13:05:24.423220+00:00",
   "fills_breakdown": {
     "real_paper": 0,
     "synthetic": 100,
-    "debug": 34,
-    "total": 134
+    "debug": 70,
+    "total": 170
   },
   "reject_rate_pct": 4.76,
   "fill_rate_pct": 95.24,
@@ -29,9 +29,9 @@
   },
   "model_monitoring": {
     "prediction_distribution": {
-      "count": 70246,
-      "mean": 0.5209,
-      "std": 0.0904,
+      "count": 71014,
+      "mean": 0.5204,
+      "std": 0.0902,
       "min": 0.1667,
       "p25": 0.4683,
       "p50": 0.4929,
@@ -44,10 +44,10 @@
     "missing_rate": {
       "completeness_pct": "NOT_MEASURED",
       "missing_rate_pct": "NOT_MEASURED",
-      "mean_completeness": 0.999,
+      "mean_completeness": 1.0,
       "p05_completeness": 1.0,
-      "longest_missing_streak": 1,
-      "stale_rate_pct": 9.0,
+      "longest_missing_streak": 0,
+      "stale_rate_pct": 10.0,
       "n_features": 10,
       "skipped_providers": {
         "glassnode": "NOT_MEASURED",
@@ -55,21 +55,21 @@
       }
     },
     "calibration": {
-      "mean_calibration_error": 0.221,
+      "mean_calibration_error": 0.2212,
       "buckets": {
         "0.0-0.4": {
-          "count": 8795,
+          "count": 8939,
           "wins": 0,
           "actual_win_rate": 0.0,
           "expected_win_rate": 0.2,
           "error": 0.2
         },
         "0.4-0.6": {
-          "count": 41604,
-          "wins": 12273,
-          "actual_win_rate": 0.295,
+          "count": 42228,
+          "wins": 12417,
+          "actual_win_rate": 0.294,
           "expected_win_rate": 0.5,
-          "error": 0.205
+          "error": 0.206
         },
         "0.6-0.7": {
           "count": 19394,
@@ -102,9 +102,9 @@
   "causal_shadow": {
     "summary": {
       "total_signals_emitted": 92,
-      "actual_trades_logged": 583,
+      "actual_trades_logged": 599,
       "matched_aligned_decisions": 92,
-      "rl_exit_shadow_recommendations": 35
+      "rl_exit_shadow_recommendations": 47
     },
     "blocked_reasons": {
       "slippage_guard": 0,

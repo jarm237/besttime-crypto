@@ -558,5 +558,173 @@
       "regime",
       "alternative"
     ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:12:20.519822+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:15:42.515316+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:18:54.761837+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:21:48.781043+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:24:44.639027+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:27:54.450553+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T11:30:42.609698+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T12:45:22.181702+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T12:48:28.282786+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T12:50:32.448688+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T12:51:47.611513+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
+  },
+  {
+    "dataset_version": "v3_2026_07_11",
+    "created_at": "2026-07-11T13:04:52.970959+00:00",
+    "row_count": 3,
+    "feature_count": 6,
+    "label_type": "tb_meta",
+    "lookahead_bars": 48,
+    "timeframe": "15m",
+    "source_hash": "bec470c64791b9ff1371f207074f9b8d6173b1082d100010b2a633790cad3862",
+    "feature_groups": [
+      "regime",
+      "alternative"
+    ]
   }
 ]

@@ -13,12 +13,16 @@ from pathlib import Path
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+
 
 # ---------------------------------------------------------------------------
 # Scheduler tests
 # ---------------------------------------------------------------------------
 
 class TestAlternativeDataScheduler:
+    @pytest.mark.network
     def test_run_once_returns_payload(self, tmp_path):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 
@@ -32,6 +36,7 @@ class TestAlternativeDataScheduler:
         assert isinstance(result, dict)
         assert "timestamp" in result
 
+    @pytest.mark.network
     def test_status_reports_counts(self, tmp_path):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 
@@ -48,6 +53,7 @@ class TestAlternativeDataScheduler:
         assert st["failure_count"] == 0
         assert st["running"] is False
 
+    @pytest.mark.network
     def test_on_success_callback_invoked(self, tmp_path):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 
@@ -63,6 +69,7 @@ class TestAlternativeDataScheduler:
         assert len(received) == 1
         assert "timestamp" in received[0]
 
+    @pytest.mark.network
     def test_scheduler_starts_and_stops(self, tmp_path):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 

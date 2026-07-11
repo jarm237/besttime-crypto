@@ -1,0 +1,12 @@
+{
+  "stage": 1,
+  "day": {
+    "calendar_date": "2026-07-11",
+    "order_count": 0,
+    "realized_pnl": 0.0,
+    "fees": 0.0,
+    "funding": 0.0
+  },
+  "rolling": [],
+  "saved_at": "2026-07-11T13:05:24.654348+00:00"
+}
