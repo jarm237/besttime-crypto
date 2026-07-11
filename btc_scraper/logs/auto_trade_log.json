@@ -9276,5 +9276,26 @@
     "expected_slippage_bps": 1992.38,
     "liquidity_score": 0.446,
     "reason_skip": "slippage_too_high: 1992.4 bps > max 30.0 bps"
+  },
+  {
+    "timestamp": "2026-07-11T20:01:09.693395",
+    "timestamp_str": "2026-07-11 20:01:09",
+    "mode": "TESTNET",
+    "coin": "WLD",
+    "symbol": "WLD/USDT",
+    "direction": "SHORT",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_confidence": 0.3731,
+    "meta_confidence_pct": 37,
+    "signal_score": 32,
+    "order_type": "market",
+    "entry_price": 0.4076,
+    "sl_price": 0.4118,
+    "tp1_price": 0.3993,
+    "usdt_amount": 75.0,
+    "account_balance_est": 500.0,
+    "order_id": null,
+    "status": "error",
+    "error": "This event loop is already running"
   }
 ]

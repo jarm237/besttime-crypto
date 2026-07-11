@@ -1,15 +1,14 @@
 {
-  "timestamp": "2026-07-11T10:19:15.180188+00:00",
-  "exchange_netflow": null,
+  "timestamp": "2026-07-11T13:21:17.140699+00:00",  "exchange_netflow": null,
   "whale_score": null,
-  "stablecoin_supply": 123.0,
-  "tvl": 456.0,
-  "funding_rate": 0.0002,
-  "open_interest": 999.0,
-  "dxy": 100.1,
-  "vix": 20.1,
-  "us10y": 4.1,
-  "gold": 1900.0,
+  "stablecoin_supply": 0.0,
+  "tvl": 482120836747.1143,
+  "funding_rate": -0.00624607,
+  "open_interest": 0.0,
+  "dxy": 100.965,
+  "vix": 15.03,
+  "us10y": 4.569,
+  "gold": 4113.7,
   "sentiment_score": 0.0,
   "social_sentiment": 0.0,
   "fear_greed_raw": 26.0,
@@ -17,23 +16,23 @@
   "fear_greed_regime": "Fear",
   "active_addresses": null,
   "hashrate": 865111846.9197867,
-  "chain_tvl": 453.0,
+  "chain_tvl": 74575328422.93103,
   "defi_liquidity_score": null,
   "orderbook_imbalance": 0.0,
   "liquidity_pressure": null,
-  "macro_pressure": 0.11124999999999956,
-  "macro_risk_score": 0.11124999999999956,
-  "funding_pressure": 0.2,
+  "macro_pressure": 0.1534250000000002,
+  "macro_risk_score": 0.1534250000000002,
+  "funding_pressure": -1.0,
   "open_interest_pressure": null,
   "large_tx_proxy_score": null,
-  "stablecoin_supply_total": 123.0,
+  "stablecoin_supply_total": 0.0,
   "stablecoin_momentum": 0.0,
   "etf_momentum": 0.0,
-  "etf_flow": 0.0,
+  "etf_flow": 3.6,
   "etf_flow_confidence": 0.0,
   "etf_flow_source": "none",
   "etf_flow_scope": "us_spot_btc_etf",
-  "risk_on_score": -0.13041666666666651,
+  "risk_on_score": -0.544475,
   "confidence_metadata": {
     "dxy": 0.95,
     "vix": 0.95,
@@ -57,28 +56,23 @@
     "binance": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T10:19:15.180214+00:00"
-    },
+      "observed_at": "2026-07-11T13:21:17.140739+00:00"    },
     "defillama": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T10:19:15.180275+00:00"
-    },
+      "observed_at": "2026-07-11T13:21:17.631394+00:00"    },
     "fred": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T10:19:15.180367+00:00"
-    },
+      "observed_at": "2026-07-11T13:21:21.093347+00:00"    },
     "yahoo": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T10:19:15.180399+00:00"
-    },
+      "observed_at": "2026-07-11T13:21:21.300044+00:00"    },
     "alternative_me": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T10:19:15.180488+00:00"
-    },
+      "observed_at": "2026-07-11T13:21:22.432821+00:00"    },
     "glassnode": {
       "status": "skipped",
       "reason": "disabled_free_plan_not_supported"
@@ -88,120 +82,108 @@
       "reason": "disabled_free_plan_not_supported"
     }
   },
-  "protocol_tvl": 456.0,
+  "protocol_tvl": 482120836747.1143,
   "options_iv": 0.0,
   "iv_skew": 0.0,
   "effective_stablecoin_momentum": 0.0,
   "effective_etf_momentum": 0.0,
-  "effective_risk_on_score": -0.13041666666666651,
+  "effective_risk_on_score": -0.544475,
   "feature_metadata": {
     "funding_rate": {
       "available": true,
       "status": "available",
       "source": "binance",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T10:19:15.180214+00:00",
-      "age_seconds": 4.096939,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140739+00:00",
+      "age_seconds": 10.618595,      "is_stale": false
     },
     "open_interest": {
       "available": true,
       "status": "available",
       "source": "binance",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T10:19:15.180214+00:00",
-      "age_seconds": 4.096945,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140739+00:00",
+      "age_seconds": 10.618601,      "is_stale": false
     },
     "stablecoin_supply": {
       "available": true,
       "status": "available",
       "source": "defillama",
       "confidence": 0.7,
-      "observed_at": "2026-07-11T10:19:15.180275+00:00",
-      "age_seconds": 4.096886,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.631394+00:00",
+      "age_seconds": 10.127948,      "is_stale": false
     },
     "stablecoin_supply_total": {
       "available": true,
       "status": "available",
       "source": "defillama",
       "confidence": 0.7,
-      "observed_at": "2026-07-11T10:19:15.180275+00:00",
-      "age_seconds": 4.096888,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.631394+00:00",
+      "age_seconds": 10.12795,      "is_stale": false
     },
     "tvl": {
       "available": true,
       "status": "available",
       "source": "defillama",
       "confidence": 0.65,
-      "observed_at": "2026-07-11T10:19:15.180275+00:00",
-      "age_seconds": 4.096889,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.631394+00:00",
+      "age_seconds": 10.127951,      "is_stale": false
     },
     "chain_tvl": {
       "available": true,
       "status": "available",
       "source": "defillama",
       "confidence": 0.65,
-      "observed_at": "2026-07-11T10:19:15.180275+00:00",
-      "age_seconds": 4.096891,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.631394+00:00",
+      "age_seconds": 10.127953,      "is_stale": false
     },
     "dxy": {
       "available": true,
       "status": "available",
       "source": "yahoo",
       "confidence": 0.95,
-      "observed_at": "2026-07-11T10:19:15.180399+00:00",
-      "age_seconds": 4.096768,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:21.300044+00:00",
+      "age_seconds": 6.459305,      "is_stale": false
     },
     "vix": {
       "available": true,
       "status": "available",
       "source": "yahoo",
       "confidence": 0.95,
-      "observed_at": "2026-07-11T10:19:15.180399+00:00",
-      "age_seconds": 4.09677,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:21.300044+00:00",
+      "age_seconds": 6.459306,      "is_stale": false
     },
     "us10y": {
       "available": true,
       "status": "available",
       "source": "fred",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T10:19:15.180367+00:00",
-      "age_seconds": 4.096803,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:21.093347+00:00",
+      "age_seconds": 6.666004,      "is_stale": false
     },
     "gold": {
       "available": true,
       "status": "available",
       "source": "yahoo",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T10:19:15.180399+00:00",
-      "age_seconds": 4.096773,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:21.300044+00:00",
+      "age_seconds": 6.459309,      "is_stale": false
     },
     "fear_greed_raw": {
       "available": true,
       "status": "available",
       "source": "alternative_me",
       "confidence": 0.6,
-      "observed_at": "2026-07-11T10:19:15.180488+00:00",
-      "age_seconds": 4.096685,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:22.432821+00:00",
+      "age_seconds": 5.326534,      "is_stale": false
     },
     "fear_greed_score": {
       "available": true,
       "status": "available",
       "source": "alternative_me",
       "confidence": 0.6,
-      "observed_at": "2026-07-11T10:19:15.180488+00:00",
-      "age_seconds": 4.096686,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:22.432821+00:00",
+      "age_seconds": 5.326535,      "is_stale": false
     },
     "exchange_netflow": {
       "available": false,
@@ -209,8 +191,7 @@
       "source": "blockchair",
       "confidence": 0.0,
       "observed_at": null,
-      "age_seconds": 4.096988,
-      "is_stale": false
+      "age_seconds": 10.618659,      "is_stale": false
     },
     "whale_score": {
       "available": false,
@@ -218,8 +199,7 @@
       "source": "whale_alert",
       "confidence": 0.0,
       "observed_at": null,
-      "age_seconds": 4.09699,
-      "is_stale": false
+      "age_seconds": 10.618661,      "is_stale": false
     },
     "active_addresses": {
       "available": false,
@@ -227,62 +207,55 @@
       "source": "glassnode",
       "confidence": 0.0,
       "observed_at": null,
-      "age_seconds": 4.096992,
-      "is_stale": false
+      "age_seconds": 10.618662,      "is_stale": false
     },
     "hashrate": {
       "available": true,
       "status": "available",
       "source": "blockchain",
       "confidence": 0.85,
-      "observed_at": "2026-07-11T10:19:15.180188+00:00",
-      "age_seconds": 4.096993,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140699+00:00",
+      "age_seconds": 10.618664,      "is_stale": false
     },
     "options_iv": {
       "available": true,
       "status": "available",
       "source": "deribit",
       "confidence": 0.8,
-      "observed_at": "2026-07-11T10:19:15.180188+00:00",
-      "age_seconds": 4.096995,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140699+00:00",
+      "age_seconds": 10.618665,      "is_stale": false
     },
     "iv_skew": {
       "available": true,
       "status": "available",
       "source": "deribit",
       "confidence": 0.8,
-      "observed_at": "2026-07-11T10:19:15.180188+00:00",
-      "age_seconds": 4.096997,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140699+00:00",
+      "age_seconds": 10.618667,      "is_stale": false
     },
     "etf_flow": {
       "available": true,
       "status": "available",
       "source": "etf",
       "confidence": 0.5,
-      "observed_at": "2026-07-11T10:19:15.180188+00:00",
-      "age_seconds": 4.096998,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140699+00:00",
+      "age_seconds": 10.618668,      "is_stale": false
     },
     "sentiment_score": {
       "available": true,
       "status": "available",
       "source": "google_trends",
       "confidence": 0.35,
-      "observed_at": "2026-07-11T10:19:15.180188+00:00",
-      "age_seconds": 4.097,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140699+00:00",
+      "age_seconds": 10.618669,      "is_stale": false
     },
     "social_sentiment": {
       "available": true,
       "status": "available",
       "source": "reddit",
       "confidence": 0.4,
-      "observed_at": "2026-07-11T10:19:15.180188+00:00",
-      "age_seconds": 4.097001,
-      "is_stale": false
+      "observed_at": "2026-07-11T13:21:17.140699+00:00",
+      "age_seconds": 10.618671,      "is_stale": false
     }
   },
   "feature_source_registry": {

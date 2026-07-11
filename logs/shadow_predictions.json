@@ -1378,5 +1378,50 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "AEVOUSDT_1783773071",
+    "symbol": "AEVOUSDT",
+    "timestamp": 1783773071.3888505,
+    "timestamp_str": "2026-07-11 19:31:11",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.487,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "WLDUSDT_1783774869",
+    "symbol": "WLDUSDT",
+    "timestamp": 1783774869.7517767,
+    "timestamp_str": "2026-07-11 20:01:09",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3731,
+    "signal_score": 32,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "XAUTUSDT_1783775774",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1783775774.414823,
+    "timestamp_str": "2026-07-11 20:16:14",
+    "signal": "WEAK SELL (Crossover)",
+    "meta_prob": 0.4798,
+    "signal_score": 52,
+    "regime": "RANGING",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]
