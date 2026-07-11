@@ -162,6 +162,86 @@ def _metrics_response() -> Response:
     return Response("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
 
 
+def _read_prediction_logs(logs_dir: str, days: int = 7) -> list:
+    """Đọc nhiều file predictions_YYYY-MM-DD.log trong khoảng `days` ngày gần nhất.
+    
+    - days=0: đọc tất cả các file có pattern predictions_YYYY-MM-DD.log
+    - days>0: chỉ đọc các file trong `days` ngày gần nhất (UTC)
+    - Backward-compatible: nếu có file predictions.log cũ cũng đọc kèm.
+    """
+    import glob
+    from datetime import datetime, timezone, timedelta
+
+    preds = []
+
+    # Tính ngưỡng ngày tối thiểu (UTC)
+    if days > 0:
+        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).date()
+    else:
+        cutoff_date = None
+
+    # Đọc các file theo ngày: predictions_YYYY-MM-DD.log
+    pattern = os.path.join(logs_dir, "predictions_????-??-??.log")
+    daily_files = sorted(glob.glob(pattern))
+    for fpath in daily_files:
+        # Lọc theo ngày từ tên file
+        fname = os.path.basename(fpath)  # predictions_YYYY-MM-DD.log
+        try:
+            file_date_str = fname[len("predictions_"):-len(".log")]  # YYYY-MM-DD
+            from datetime import date
+            file_date = date.fromisoformat(file_date_str)
+        except Exception:
+            file_date = None
+
+        if cutoff_date and file_date and file_date < cutoff_date:
+            continue  # bỏ qua các file quá cũ
+
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        preds.append(json.loads(line))
+                    except Exception:
+                        continue
+        except Exception:
+            continue
+
+    # Backward-compatible: đọc file predictions.log cũ nếu còn tồn tại
+    legacy_path = os.path.join(logs_dir, "predictions.log")
+    if os.path.exists(legacy_path):
+        try:
+            with open(legacy_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                        # Lọc theo ngày nếu cần
+                        if cutoff_date:
+                            ts = obj.get("timestamp", "")
+                            day_str = ts[:10]
+                            try:
+                                from datetime import date
+                                obj_date = date.fromisoformat(day_str)
+                                if obj_date < cutoff_date:
+                                    continue
+                            except Exception:
+                                pass
+                        preds.append(obj)
+                    except Exception:
+                        continue
+        except Exception:
+            pass
+
+    # Sắp xếp theo timestamp tăng dần
+    preds.sort(key=lambda x: x.get("timestamp", ""))
+    return preds
+
+
 def _normalize_signal_item(item: dict) -> dict:
     """Ensure signal item has a stable signal_score shape for the frontend."""
     if not isinstance(item, dict):
@@ -389,30 +469,19 @@ def get_meta_model_info():
 
 
 @app.get("/api/meta-model/metrics")
-def get_meta_model_metrics():
-    """Trả về metrics của meta-model và sample dự đoán gần nhất từ logs/predictions.log"""
+def get_meta_model_metrics(days: int = 7):
+    """Trả về metrics của meta-model và sample dự đoán gần nhất từ logs/predictions_YYYY-MM-DD.log.
+    
+    - days: số ngày gần nhất cần lấy (mặc định 7). Truyền 0 để lấy tất cả.
+    """
     try:
         from btc_scraper.ml_engine.meta_model import get_model_metrics
         model_metrics = get_model_metrics()
     except Exception:
         model_metrics = {}
 
-    preds_path = os.path.join(os.path.dirname(__file__), "..", "logs", "predictions.log")
-    preds = []
-    if os.path.exists(preds_path):
-        try:
-            with open(preds_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        preds.append(json.loads(line))
-                    except Exception:
-                        # skip malformed lines
-                        continue
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Không thể đọc predictions.log: {e}")
+    logs_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
+    preds = _read_prediction_logs(logs_dir, days=days)
 
     summary = {"total_predictions": len(preds)}
     if preds:

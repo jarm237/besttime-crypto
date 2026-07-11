@@ -1049,15 +1049,16 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
         ev_metrics = _compute_expected_value_metrics(prob, analysis_info)
 
-        # Prediction-level logging (append newline-delimited JSON)
+        # Prediction-level logging (append newline-delimited JSON, mỗi ngày 1 file)
         try:
             import hashlib
             from datetime import datetime, timezone
 
+            now_utc = datetime.now(timezone.utc)
             features_json = json.dumps(row, separators=(",", ":"), ensure_ascii=False)
             features_hash = hashlib.md5(features_json.encode("utf-8")).hexdigest()
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": now_utc.isoformat(),
                 "probability": prob,
                 "features_hash": features_hash,
                 "coin": analysis_info.get("coin"),
@@ -1067,7 +1068,9 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 **ev_metrics,
             }
             LOGS.mkdir(parents=True, exist_ok=True)
-            pred_log = LOGS / "predictions.log"
+            # Ghi vào file theo ngày: predictions_YYYY-MM-DD.log
+            day_str = now_utc.strftime("%Y-%m-%d")
+            pred_log = LOGS / f"predictions_{day_str}.log"
             with open(pred_log, "a", encoding="utf-8") as lf:
                 lf.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
         except Exception:

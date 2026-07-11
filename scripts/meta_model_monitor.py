@@ -1,5 +1,5 @@
 """
-Compute rolling 7/30/90d metrics from logs/predictions.log and data/closed_trades.json.
+Compute rolling 7/30/90d metrics from logs/predictions_YYYY-MM-DD.log and data/closed_trades.json.
 Writes a JSON report to logs/meta_model_monitor_{now}.json and prints a short summary.
 
 Usage:
@@ -17,15 +17,22 @@ import argparse
 
 BASE = os.path.dirname(os.path.dirname(__file__))
 LOGS = os.path.join(BASE, "logs")
-PRED_LOG = os.path.join(LOGS, "predictions.log")
+PRED_LOG_DIR = LOGS  # thư mục chứa các file predictions_YYYY-MM-DD.log
 TRADES_PATH = os.path.join(BASE, "data", "closed_trades.json")
 
 
 def parse_iso(ts: str) -> Optional[datetime]:
+    """Parse ISO timestamp, luôn trả về offset-naive UTC datetime."""
     if not ts:
         return None
     try:
-        return datetime.fromisoformat(ts)
+        dt = datetime.fromisoformat(ts)
+        # Nếu có timezone info, chuyển về UTC rồi loại bỏ tzinfo
+        if dt.tzinfo is not None:
+            import calendar
+            epoch = calendar.timegm(dt.utctimetuple())
+            dt = datetime.utcfromtimestamp(epoch).replace(microsecond=dt.microsecond)
+        return dt
     except Exception:
         try:
             return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
@@ -36,23 +43,52 @@ def parse_iso(ts: str) -> Optional[datetime]:
                 return None
 
 
-def load_predictions(path: str) -> List[Dict[str, Any]]:
+def load_predictions(logs_dir: str) -> List[Dict[str, Any]]:
+    """Load tất cả predictions từ các file predictions_YYYY-MM-DD.log.
+    
+    Backward-compatible: nếu file predictions.log cũ tồn tại thì cũng đọc kèm.
+    """
+    import glob
+
     preds = []
-    if not os.path.exists(path):
-        return preds
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                obj = json.loads(line)
-            except Exception:
-                continue
-            ts = obj.get("timestamp")
-            dt = parse_iso(ts)
-            obj["_ts"] = dt
-            preds.append(obj)
+
+    # Đọc các file theo ngày
+    pattern = os.path.join(logs_dir, "predictions_????-??-??.log")
+    daily_files = sorted(glob.glob(pattern))
+    for fpath in daily_files:
+        with open(fpath, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception:
+                    continue
+                ts = obj.get("timestamp")
+                dt = parse_iso(ts)
+                obj["_ts"] = dt
+                preds.append(obj)
+
+    # Backward-compatible: đọc file predictions.log cũ nếu còn tồn tại
+    legacy_path = os.path.join(logs_dir, "predictions.log")
+    if os.path.exists(legacy_path):
+        with open(legacy_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception:
+                    continue
+                ts = obj.get("timestamp")
+                dt = parse_iso(ts)
+                obj["_ts"] = dt
+                preds.append(obj)
+
+    # Sắp xếp theo timestamp
+    preds.sort(key=lambda x: x.get("timestamp", ""))
     return preds
 
 
@@ -120,7 +156,7 @@ def metrics_for_window(preds: List[Dict[str, Any]], trades: List[Dict[str, Any]]
 
 
 def make_report(days_list: List[int], asof: Optional[datetime] = None) -> Dict[str, Any]:
-    preds = load_predictions(PRED_LOG)
+    preds = load_predictions(PRED_LOG_DIR)
     trades = load_trades(TRADES_PATH)
 
     report = {"generated_at": (asof or datetime.utcnow()).isoformat(), "windows": {}}

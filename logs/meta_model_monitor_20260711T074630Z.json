@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-07-11T07:46:26.657211",
+  "windows": {
+    "7": {
+      "window_days": 7,
+      "start": "2026-07-04T07:46:26.657299",
+      "end": "2026-07-11T07:46:26.657299",
+      "predictions": {
+        "count": 187544,
+        "avg_probability": 0.5168004434269232,
+        "pct_prob_ge_0_75": 0.001514311308279657,
+        "by_coin": {
+          "UNKNOWN": 187544
+        }
+      },
+      "trades": {
+        "count": 0,
+        "wins": 0,
+        "win_rate": null,
+        "avg_pnl": null
+      },
+      "delta_prob_vs_winrate": null
+    },
+    "30": {
+      "window_days": 30,
+      "start": "2026-06-11T07:46:27.668270",
+      "end": "2026-07-11T07:46:27.668270",
+      "predictions": {
+        "count": 733554,
+        "avg_probability": 0.5358216024149248,
+        "pct_prob_ge_0_75": 0.0013223293717981226,
+        "by_coin": {
+          "UNKNOWN": 733552,
+          "BTC": 2
+        }
+      },
+      "trades": {
+        "count": 0,
+        "wins": 0,
+        "win_rate": null,
+        "avg_pnl": null
+      },
+      "delta_prob_vs_winrate": null
+    }
+  },
+  "predictions_loaded": 733554,
+  "trades_loaded": 0
+}
