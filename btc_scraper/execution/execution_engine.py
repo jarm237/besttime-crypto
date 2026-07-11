@@ -48,8 +48,14 @@ class ExecutionEngine:
         fills_dir: str = "data/execution/fills",
         reports_dir: str = "data/execution/reports",
         exchange_adapter: Optional[WriteExchangeAdapter] = None,
+        live_guard: Optional[Any] = None,
     ):
         self.config = config or ExecutionConfig()
+        if live_guard is not None:
+            self._live_guard = live_guard
+        else:
+            from .live_execution_guard import LiveExecutionGuard
+            self._live_guard = LiveExecutionGuard()
         # ── Write adapter — ONLY this engine holds a write-capable adapter ──
         self._adapter: Optional[WriteExchangeAdapter] = exchange_adapter
         self._tracker = FillTracker(log_dir=log_dir, fills_dir=fills_dir)
@@ -74,6 +80,8 @@ class ExecutionEngine:
         })
         self._planner = ExecutionPlanner(self.config.twap.__dict__)
         self._post_trade = PostTradeAnalyzer(reports_dir=reports_dir)
+        import asyncio
+        self._execution_lock = asyncio.Lock()
 
     def attach_adapter(self, adapter: WriteExchangeAdapter) -> None:
         """Attach (or replace) the exchange write adapter at runtime."""
@@ -253,91 +261,147 @@ class ExecutionEngine:
         )
         record.expected_slippage_bps = expected_slip
 
-        # ── 3. Pre-trade risk check ───────────────────────────────────────
-        guard = self._risk.evaluate(
-            spread_bps=snap.spread_bps,
-            expected_slippage_bps=expected_slip,
-            liquidity_score=snap.liquidity_score,
-            order_notional_usdt=notional_usdt,
-            max_safe_order_size_usdt=snap.max_safe_order_size_usdt,
-            latency_ms=latency_ms,
-        )
-        record.guard_action = guard.action
+        # ── Central LiveExecutionGuard validation with atomic snapshot and concurrency lock ──
+        from .live_execution_guard import OrderContext, LiveStateSnapshot
+        from .hard_risk_limits import OrderIntent
+        from pathlib import Path
+        import json
 
-        if guard.action == GuardAction.REJECT:
-            logger.info(f"[ExecutionEngine] LIVE REJECTED {coin} {side}: {guard.reason}")
-            return self._tracker.reject(record, reason=guard.reason)
+        async with self._execution_lock:
+            open_positions_count = 0
+            try:
+                from btc_scraper.trading.exposure_manager import exposure_manager
+                open_positions = exposure_manager.get_open_positions()
+                open_positions_count = len(open_positions)
+            except Exception:
+                pass
 
-        if guard.action == GuardAction.REDUCE and guard.adjusted_qty_usdt:
-            notional_usdt = guard.adjusted_qty_usdt
-            qty = notional_usdt / decision_price if decision_price > 0 else qty
-            record.intended_qty = qty
-            record.intended_notional = notional_usdt
+            portfolio_equity_usdt = 0.0
+            try:
+                portfolio_equity_usdt = await self._adapter.get_usdt_balance()
+            except Exception:
+                pass
 
-        # ── 4. Order type selection ──────────────────────────────────────
-        order_decision = self._selector.select(
-            side=side,
-            top_bid=snap.top_bid,
-            top_ask=snap.top_ask,
-            mid_price=snap.mid_price,
-            spread_bps=snap.spread_bps,
-            liquidity_score=snap.liquidity_score,
-            expected_slippage_bps=expected_slip,
-            max_safe_order_size_usdt=snap.max_safe_order_size_usdt,
-            intended_notional_usdt=notional_usdt,
-            urgency=urgency,
-            volume_participation_rate=snap.volume_participation_rate,
-        )
+            current_stage = 1
+            try:
+                rollout_path = Path("data/execution/rollout_state.json")
+                if rollout_path.exists():
+                    rollout_data = json.loads(rollout_path.read_text(encoding="utf-8"))
+                    current_stage = int(rollout_data.get("current_stage", 1))
+            except Exception:
+                pass
 
-        if order_decision.order_type == "SKIP":
-            return self._tracker.reject(record, reason=order_decision.reason)
+            intent = signal.get("intent", OrderIntent.ENTRY)
 
-        record.order_type = order_decision.order_type
-        record.submitted_price = order_decision.limit_price or decision_price
-        record.submit_time = datetime.now(timezone.utc).isoformat()
-
-        # ── 5. Execute via WriteExchangeAdapter ──────────────────────────
-        self._tracker.register(record)
-        try:
-            is_buy = side == "BUY"
-            if is_buy:
-                order = await self._adapter.create_market_buy(symbol, notional_usdt)
-            else:
-                order = await self._adapter.create_market_sell(symbol, notional_usdt)
-
-            # Build fill from exchange response
-            fill_price = float(order.get("price") or record.submitted_price)
-            fill_qty = float(order.get("amount") or qty)
-            fee = float(order.get("fee", {}).get("cost", 0.0) if isinstance(order.get("fee"), dict) else 0.0)
-            if fee == 0.0:
-                fee = notional_usdt * 0.0005  # fallback: 5 bps taker
-
-            fill = FillEvent(
-                execution_id=record.execution_id,
-                price=fill_price,
-                qty=fill_qty,
-                fee=fee,
-            )
-            record.add_fill(fill)
-            record.status = OrderStatus.FILLED
-            self._tracker._complete(record)
-            self._tracker._write_jsonl(record)
-
-            logger.info(
-                f"[ExecutionEngine] LIVE FILLED {coin} {side} @ {fill_price:.4f} "
-                f"qty={fill_qty:.6f} fee={fee:.4f} "
-                f"(slip {expected_slip:.1f} bps, liq {snap.liquidity_score:.2f})"
+            state_snap = LiveStateSnapshot(
+                observed_at=datetime.now(timezone.utc),
+                portfolio_equity_usdt=portfolio_equity_usdt,
+                open_positions_count=open_positions_count,
+                rollout_stage=current_stage,
             )
 
-            # ── 6. Post-trade analysis ───────────────────────────────────
-            self._post_trade.analyze(record.to_dict())
+            ctx = OrderContext(
+                symbol=symbol,
+                intent=intent,
+                notional_usdt=notional_usdt,
+                spread_bps=snap.spread_bps,
+                expected_slippage_bps=expected_slip,
+                liquidity_score=snap.liquidity_score,
+                latency_ms=latency_ms,
+                state=state_snap,
+            )
 
-        except Exception as exc:
-            logger.error(f"[ExecutionEngine] Order submission failed: {exc}")
-            record.status = OrderStatus.REJECTED
-            record.reason = str(exc)
-            self._tracker._history.append(record)
-            self._tracker._write_jsonl(record)
+            guard_result = self._live_guard.validate(ctx)
+            if not guard_result.allowed:
+                logger.warning(f"[ExecutionEngine] LiveExecutionGuard BLOCKED: {guard_result.reason}")
+                record.guard_action = "REJECT"
+                return self._tracker.reject(record, reason=guard_result.reason)
+
+            # ── 3. Pre-trade risk check (legacy execution risk monitor) ───────────────────────
+            guard = self._risk.evaluate(
+                spread_bps=snap.spread_bps,
+                expected_slippage_bps=expected_slip,
+                liquidity_score=snap.liquidity_score,
+                order_notional_usdt=notional_usdt,
+                max_safe_order_size_usdt=snap.max_safe_order_size_usdt,
+                latency_ms=latency_ms,
+            )
+            record.guard_action = guard.action
+
+            if guard.action == GuardAction.REJECT:
+                logger.info(f"[ExecutionEngine] LIVE REJECTED {coin} {side}: {guard.reason}")
+                return self._tracker.reject(record, reason=guard.reason)
+
+            if guard.action == GuardAction.REDUCE and guard.adjusted_qty_usdt:
+                notional_usdt = guard.adjusted_qty_usdt
+                qty = notional_usdt / decision_price if decision_price > 0 else qty
+                record.intended_qty = qty
+                record.intended_notional = notional_usdt
+
+            # ── 4. Order type selection ──────────────────────────────────────
+            order_decision = self._selector.select(
+                side=side,
+                top_bid=snap.top_bid,
+                top_ask=snap.top_ask,
+                mid_price=snap.mid_price,
+                spread_bps=snap.spread_bps,
+                liquidity_score=snap.liquidity_score,
+                expected_slippage_bps=expected_slip,
+                max_safe_order_size_usdt=snap.max_safe_order_size_usdt,
+                intended_notional_usdt=notional_usdt,
+                urgency=urgency,
+                volume_participation_rate=snap.volume_participation_rate,
+            )
+
+            if order_decision.order_type == "SKIP":
+                return self._tracker.reject(record, reason=order_decision.reason)
+
+            record.order_type = order_decision.order_type
+            record.submitted_price = order_decision.limit_price or decision_price
+            record.submit_time = datetime.now(timezone.utc).isoformat()
+
+            # ── 5. Execute via WriteExchangeAdapter ──────────────────────────
+            self._tracker.register(record)
+            try:
+                is_buy = side == "BUY"
+                if is_buy:
+                    order = await self._adapter.create_market_buy(symbol, notional_usdt)
+                else:
+                    order = await self._adapter.create_market_sell(symbol, notional_usdt)
+
+                # Build fill from exchange response
+                fill_price = float(order.get("price") or record.submitted_price)
+                fill_qty = float(order.get("amount") or qty)
+                fee = float(order.get("fee", {}).get("cost", 0.0) if isinstance(order.get("fee"), dict) else 0.0)
+                if fee == 0.0:
+                    fee = notional_usdt * 0.0005  # fallback: 5 bps taker
+
+                fill = FillEvent(
+                    execution_id=record.execution_id,
+                    price=fill_price,
+                    qty=fill_qty,
+                    fee=fee,
+                )
+                record.add_fill(fill)
+                record.status = OrderStatus.FILLED
+                self._tracker._complete(record)
+                self._tracker._write_jsonl(record)
+
+                logger.info(
+                    f"[ExecutionEngine] LIVE FILLED {coin} {side} @ {fill_price:.4f} "
+                    f"qty={fill_qty:.6f} fee={fee:.4f} "
+                    f"(slip {expected_slip:.1f} bps, liq {snap.liquidity_score:.2f})"
+                )
+
+                # ── 6. Post-trade analysis ───────────────────────────────────
+                self._post_trade.analyze(record.to_dict())
+
+            except Exception as exc:
+                logger.error(f"[ExecutionEngine] Order submission failed: {exc}")
+                record.status = OrderStatus.REJECTED
+                record.reason = str(exc)
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
 
         return record
 

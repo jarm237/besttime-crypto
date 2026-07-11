@@ -64,6 +64,15 @@ class GuardResult:
         }
 
 
+@dataclass(frozen=True)
+class LiveStateSnapshot:
+    """Immutable state snapshot for thread-safe/race-free execution guard validation."""
+    observed_at: datetime
+    portfolio_equity_usdt: float
+    open_positions_count: int
+    rollout_stage: int
+
+
 @dataclass
 class OrderContext:
     """Context object describing an order to be evaluated."""
@@ -79,6 +88,13 @@ class OrderContext:
     latency_ms: int = 0
     # Rollout stage snapshot (for logging)
     current_stage: int = 1
+    state: Optional[LiveStateSnapshot] = None
+
+    def __post_init__(self):
+        if self.state is not None:
+            self.open_positions_count = self.state.open_positions_count
+            self.portfolio_equity_usdt = self.state.portfolio_equity_usdt
+            self.current_stage = self.state.rollout_stage
 
 
 class LiveExecutionGuard:

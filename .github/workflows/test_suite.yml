@@ -23,13 +23,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run full test suite
+      - name: Run offline tests (non-network)
         run: |
-          python -m pytest tests/ --tb=short -q --junitxml=reports/junit.xml
+          python -m pytest tests/ -m "not network" --tb=short -q --timeout=60 --junitxml=reports/junit-offline.xml
 
-      - name: Upload test report
+      - name: Run network tests
+        if: always()
+        continue-on-error: true
+        run: |
+          python -m pytest tests/ -m "network" --tb=short -q --timeout=120 --junitxml=reports/junit-network.xml
+
+      - name: Upload offline test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-report
-          path: reports/junit.xml
+          name: test-report-offline
+          path: reports/junit-offline.xml
+
+      - name: Upload network test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-network
+          path: reports/junit-network.xml

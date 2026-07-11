@@ -32,12 +32,12 @@ REPORTS_DIR = BASE_DIR / "data" / "execution" / "reports"
 DOCS_DIR = BASE_DIR / "docs" / "remediation"
 
 
-def generate_all_reports() -> Dict[str, Any]:
+def generate_all_reports(environment: str = "production", default_fill_source: str = "real_paper") -> Dict[str, Any]:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
     # 1. Load consolidated fill dataset
-    validator = PaperTradingValidator()
+    validator = PaperTradingValidator(environment=environment, default_fill_source=default_fill_source)
     dataset = validator.build_dataset(target_fills=100)
 
     # 2. Run analysis pipelines
@@ -76,6 +76,62 @@ def generate_all_reports() -> Dict[str, Any]:
     order_types = {f.get("order_type", "UNK") for f in real_paper_fills_list}
     has_limit_and_market = any("LIMIT" in t for t in order_types) and any("MARKET" in t or "AGGRESSIVE" in t for t in order_types)
 
+    # Calculate duration_days, active_days, and max_gap_hours from real_paper fills
+    duration_days = 0.0
+    active_days = 0
+    max_gap_hours = 0.0
+    first_fill_time = None
+    last_fill_time = None
+
+    if real_paper_fills_list:
+        try:
+            times = []
+            unique_days = set()
+            for f in real_paper_fills_list:
+                ts_str = f.get("timestamp") or f.get("submit_time")
+                if ts_str:
+                    dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                    times.append(dt)
+                    unique_days.add(dt.date().isoformat())
+            
+            active_days = len(unique_days)
+            if times:
+                first_fill_time = min(times)
+                last_fill_time = max(times)
+                duration_days = (last_fill_time - first_fill_time).total_seconds() / 86400.0
+                
+                if len(times) >= 2:
+                    times.sort()
+                    gaps = [(times[i+1] - times[i]).total_seconds() for i in range(len(times) - 1)]
+                    max_gap_hours = max(gaps) / 3600.0
+        except Exception:
+            pass
+
+    # Count critical incidents from live audit log scoped to paper validation window
+    critical_incidents = 0
+    try:
+        audit_file = BASE_DIR / "data" / "execution" / "audit" / "live_audit.jsonl"
+        if audit_file.exists():
+            with audit_file.open(encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        event = json.loads(line)
+                        if event.get("event_type") in ("INCIDENT", "KILL_SWITCH_TRIGGERED"):
+                            payload = event.get("payload") or {}
+                            is_test = event.get("is_test", False) or payload.get("is_test", False) or event.get("environment") == "test"
+                            if is_test:
+                                continue
+                            
+                            # Temporal window filter
+                            event_ts_str = event.get("timestamp")
+                            if event_ts_str and first_fill_time and last_fill_time:
+                                event_ts = datetime.fromisoformat(event_ts_str.replace("Z", "+00:00"))
+                                if first_fill_time <= event_ts <= last_fill_time:
+                                    critical_incidents += 1
+    except Exception:
+        pass
+
     # Enforce dual-gate rules
     pipeline_passed = (
         total_fills >= 100 and
@@ -87,6 +143,13 @@ def generate_all_reports() -> Dict[str, Any]:
     # Live readiness gate requires actual real_paper fills and measured active completeness
     live_passed = (
         real_fills >= 100 and
+        duration_days >= 14.0 and
+        active_days >= 10 and
+        (real_fills < 2 or max_gap_hours <= 72.0) and
+        critical_incidents == 0 and
+        reject_rate <= 20.0 and
+        fill_rate >= 80.0 and
+        slippage_mae <= 10.0 and
         len(unique_symbols) >= 3 and
         len(unique_regimes) >= 2 and
         max_symbol_pct <= 60.0 and
@@ -113,9 +176,11 @@ def generate_all_reports() -> Dict[str, Any]:
         "live_readiness_gate": {
             "passed": live_passed,
             "real_paper_fills": real_fills,
-            "critical_incidents": 0,
+            "critical_incidents": critical_incidents,
             "incident_tracking_enabled": True,
-            "duration_days": 0,  # real duration days
+            "duration_days": round(duration_days, 2),  # real duration days
+            "active_days": active_days,
+            "max_gap_hours": round(max_gap_hours, 2),
             "symbols_count": len(unique_symbols),
             "regimes_count": len(unique_regimes),
             "max_symbol_concentration_pct": round(max_symbol_pct, 2),
@@ -137,10 +202,38 @@ def generate_markdown_report(data: Dict[str, Any]) -> None:
     path = DOCS_DIR / "Phase5_Completion_Report.md"
     
     pipeline_status = "✅ PASSED" if data["pipeline_gate"]["passed"] else "❌ FAILED"
-    live_status = "⏳ PENDING (until ≥100 real paper fills over ≥14 days)" if not data["live_readiness_gate"]["passed"] else "🟢 GO"
+    live_status = "⏳ PENDING (until validation gates are met)" if not data["live_readiness_gate"]["passed"] else "🟢 GO"
 
     comp_val = data["data_completeness_pct"]
     comp_str = f"{comp_val}%" if comp_val != "NOT_MEASURED" else "NOT_MEASURED"
+
+    # Dynamic status calculation for markdown rendering
+    fills_val = data["live_readiness_gate"]["real_paper_fills"]
+    dur_val = data["live_readiness_gate"]["duration_days"]
+    act_val = data["live_readiness_gate"]["active_days"]
+    gap_val = data["live_readiness_gate"]["max_gap_hours"]
+    inc_val = data["live_readiness_gate"]["critical_incidents"]
+    rej_val = data["reject_rate_pct"]
+    fil_val = data["fill_rate_pct"]
+    slp_val = data["slippage_mae_bps"]
+
+    fills_status = "🟢 PASS" if fills_val >= 100 else "⏳ PENDING"
+    dur_status = "🟢 PASS" if dur_val >= 14.0 else "⏳ PENDING"
+    act_status = "🟢 PASS" if act_val >= 10 else "⏳ PENDING"
+    gap_status = "🟢 PASS" if (fills_val >= 2 and gap_val <= 72.0) else "⏳ PENDING"
+    inc_status = "🟢 PASS" if inc_val == 0 else "❌ FAIL"
+    rej_status = "🟢 PASS" if rej_val <= 20.0 else "⏳ PENDING"
+    fil_status = "🟢 PASS" if fil_val >= 80.0 else "⏳ PENDING"
+    slp_status = "🟢 PASS" if slp_val <= 10.0 else "⏳ PENDING"
+
+    comp_status = "⏳ PENDING"
+    if comp_val != "NOT_MEASURED":
+        comp_status = "🟢 PASS" if float(comp_val) >= 90.0 else "❌ FAIL"
+
+    sym_status = "🟢 PASS" if data["live_readiness_gate"]["symbols_count"] >= 3 else "⏳ PENDING"
+    reg_status = "🟢 PASS" if data["live_readiness_gate"]["regimes_count"] >= 2 else "⏳ PENDING"
+    conc_status = "🟢 PASS" if (fills_val > 0 and data["live_readiness_gate"]["max_symbol_concentration_pct"] <= 60.0) else "⏳ PENDING"
+    div_status = "🟢 PASS" if data["live_readiness_gate"]["order_type_diversity"] else "⏳ PENDING"
 
     md_content = f"""# Phase 5 Completion Report — Paper Trading Validation
 
@@ -183,18 +276,20 @@ This gate strictly evaluates live execution characteristics and real market beha
 
 | Metric / Check | Requirement | Actual Value | Status |
 | :--- | :---: | :---: | :---: |
-| **Real Paper Fills** | $\\ge 100$ | **{data["live_readiness_gate"]["real_paper_fills"]}** | ⏳ PENDING |
-| **Validation Duration** | $\\ge 14\\text{{ days}}$ | **{data["live_readiness_gate"]["duration_days"]} days** | ⏳ PENDING |
-| **Critical Incidents** | $= 0$ | **{data["live_readiness_gate"]["critical_incidents"]}** | 🟢 PASS |
+| **Real Paper Fills** | $\\ge 100$ | **{fills_val}** | {fills_status} |
+| **Validation Duration** | $\\ge 14\\text{{ days}}$ | **{dur_val} days** | {dur_status} |
+| **Active Trading Days** | $\\ge 10\\text{{ days}}$ | **{act_val} days** | {act_status} |
+| **Max Trading Gap** | $\\le 72\\text{{ hours}}$ | **{gap_val} hours** | {gap_status} |
+| **Critical Incidents** | $= 0$ | **{inc_val}** | {inc_status} |
 | **Incident Registry Active** | True | **{data["live_readiness_gate"]["incident_tracking_enabled"]}** | 🟢 PASS |
-| **Execution Reject Rate** | $\\le 20\\%$ | **{data["reject_rate_pct"]}%** (synthetic) | ⏳ PENDING |
-| **Execution Fill Rate** | $\\ge 80\\%$ | **{data["fill_rate_pct"]}%** (synthetic) | ⏳ PENDING |
-| **Slippage MAE** | $\\le 10\\text{{ bps}}$ | **{data["slippage_mae_bps"]} bps** (synthetic) | ⏳ PENDING |
-| **Alternative Data Completeness** | $\\ge 90\\%$ | **{comp_str}** | ⏳ PENDING |
-| **Symbols Distribution** | $\\ge 3\\text{{ symbols}}$ | **{data["live_readiness_gate"]["symbols_count"]}** | ⏳ PENDING |
-| **Regimes Distribution** | $\\ge 2\\text{{ regimes}}$ | **{data["live_readiness_gate"]["regimes_count"]}** | ⏳ PENDING |
-| **Max Symbol Concentration** | $\\le 60\\%$ | **{data["live_readiness_gate"]["max_symbol_concentration_pct"]}%** | ⏳ PENDING |
-| **Order Type Diversity** | LIMIT & MARKET | **{"Yes" if data["live_readiness_gate"]["order_type_diversity"] else "No"}** | ⏳ PENDING |
+| **Execution Reject Rate** | $\\le 20\\%$ | **{rej_val}%** | {rej_status} |
+| **Execution Fill Rate** | $\\ge 80\\%$ | **{fil_val}%** | {fil_status} |
+| **Slippage MAE** | $\\le 10\\text{{ bps}}$ | **{slp_val} bps** | {rej_status} |
+| **Alternative Data Completeness** | $\\ge 90\\%$ | **{comp_str}** | {comp_status} |
+| **Symbols Distribution** | $\\ge 3\\text{{ symbols}}$ | **{data["live_readiness_gate"]["symbols_count"]}** | {sym_status} |
+| **Regimes Distribution** | $\\ge 2\\text{{ regimes}}$ | **{data["live_readiness_gate"]["regimes_count"]}** | {reg_status} |
+| **Max Symbol Concentration** | $\\le 60\\%$ | **{data["live_readiness_gate"]["max_symbol_concentration_pct"]}%** | {conc_status} |
+| **Order Type Diversity** | LIMIT & MARKET | **{"Yes" if data["live_readiness_gate"]["order_type_diversity"] else "No"}** | {div_status} |
 
 ---
 

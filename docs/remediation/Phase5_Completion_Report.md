@@ -5,7 +5,7 @@
 > **Repository Regression Gate**: ✅ PASSED  
 > **Operational Paper Validation**: ⏳ IN PROGRESS  
 > **Live Production Approval**: ❌ NOT GRANTED  
-> **Report Timestamp**: 2026-07-11T13:05:24.423220+00:00  
+> **Report Timestamp**: 2026-07-11T19:47:41.145323+00:00  
 
 ---
 
@@ -30,7 +30,7 @@ This gate verifies that the metric tracking, logs aggregation, and post-trade an
 
 | Check | Target | Actual | Status |
 | :--- | :---: | :---: | :---: |
-| **Total Fills (Real + Synth)** | $\ge 100$ | **170** | 🟢 PASS |
+| **Total Fills (Real + Synth)** | $\ge 100$ | **208** | 🟢 PASS |
 | **Report Pipeline Generation** | Success | **Success** | 🟢 PASS |
 | **All Metrics Computable** | True | **True** | 🟢 PASS |
 
@@ -40,12 +40,14 @@ This gate strictly evaluates live execution characteristics and real market beha
 | Metric / Check | Requirement | Actual Value | Status |
 | :--- | :---: | :---: | :---: |
 | **Real Paper Fills** | $\ge 100$ | **0** | ⏳ PENDING |
-| **Validation Duration** | $\ge 14\text{ days}$ | **0 days** | ⏳ PENDING |
+| **Validation Duration** | $\ge 14\text{ days}$ | **0.0 days** | ⏳ PENDING |
+| **Active Trading Days** | $\ge 10\text{ days}$ | **0 days** | ⏳ PENDING |
+| **Max Trading Gap** | $\le 72\text{ hours}$ | **0.0 hours** | ⏳ PENDING |
 | **Critical Incidents** | $= 0$ | **0** | 🟢 PASS |
 | **Incident Registry Active** | True | **True** | 🟢 PASS |
-| **Execution Reject Rate** | $\le 20\%$ | **4.76%** (synthetic) | ⏳ PENDING |
-| **Execution Fill Rate** | $\ge 80\%$ | **95.24%** (synthetic) | ⏳ PENDING |
-| **Slippage MAE** | $\le 10\text{ bps}$ | **0.8399 bps** (synthetic) | ⏳ PENDING |
+| **Execution Reject Rate** | $\le 20\%$ | **4.76%** | 🟢 PASS |
+| **Execution Fill Rate** | $\ge 80\%$ | **95.24%** | 🟢 PASS |
+| **Slippage MAE** | $\le 10\text{ bps}$ | **0.8399 bps** | 🟢 PASS |
 | **Alternative Data Completeness** | $\ge 90\%$ | **NOT_MEASURED** | ⏳ PENDING |
 | **Symbols Distribution** | $\ge 3\text{ symbols}$ | **0** | ⏳ PENDING |
 | **Regimes Distribution** | $\ge 2\text{ regimes}$ | **0** | ⏳ PENDING |
@@ -58,10 +60,10 @@ This gate strictly evaluates live execution characteristics and real market beha
 
 To avoid false positive evaluations, completeness is measured strictly from the actual loaded data. If the paid subscription APIs (Glassnode, Whale Alert) are not active, they are reported as `NOT_MEASURED`.
 
-- **Mean Completeness (Required Features)**: `1.0000`
+- **Mean Completeness (Required Features)**: `0.9990`
 - **5th Percentile Completeness (Required)**: `1.0000`
-- **Longest Stale/Missing Streak**: `0 snapshots`
-- **Stale Snapshots Rate**: `10.0%`
+- **Longest Stale/Missing Streak**: `1 snapshots`
+- **Stale Snapshots Rate**: `18.0%`
 - **Skipped Paid Providers**:
   - Glassnode: `NOT_MEASURED` (disabled_free_plan_not_supported)
   - Whale Alert: `NOT_MEASURED` (disabled_free_plan_not_supported)
@@ -89,9 +91,9 @@ Using the augmented dataset, the transaction cost drag calculators were verified
 
 Decisions and predictions are aligned song song at the exact same timestamps to evaluate counterfactual metrics:
 
-- **Total Emitted Signals**: 92
-- **Actual Orders Executed**: 599
-- **Matched Aligned Decisions**: 92
+- **Total Emitted Signals**: 115
+- **Actual Orders Executed**: 614
+- **Matched Aligned Decisions**: 115
 
 ### Risk Filter Interventions
 - **Slippage Guard Blocked**: 0

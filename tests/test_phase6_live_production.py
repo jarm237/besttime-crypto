@@ -702,3 +702,180 @@ class TestControlledRollout:
         state = cr.get_state()
         assert "limits" in state
         assert "max_position_usdt" in state["limits"]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ExecutionEngine & LiveExecutionGuard Integration
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestExecutionEngineLiveGuardIntegration:
+    def test_submit_live_blocks_when_guard_rejects(self):
+        import asyncio
+        from btc_scraper.execution.execution_engine import ExecutionEngine
+        from btc_scraper.execution.live_execution_guard import LiveExecutionGuard, GuardResult
+        from btc_scraper.execution.exchange_adapter import WriteExchangeAdapter
+        from unittest.mock import AsyncMock, MagicMock
+
+        # Create a mock guard that rejects
+        mock_guard = MagicMock(spec=LiveExecutionGuard)
+        mock_guard.validate.return_value = GuardResult(allowed=False, reason="mock_gate_closed", blocked_by="phase5_gate")
+
+        mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
+        mock_adapter.get_symbol_price = AsyncMock(return_value=50000.0)
+        mock_adapter.create_market_buy = AsyncMock()
+
+        from btc_scraper.execution.execution_config import ExecutionConfig
+        cfg = ExecutionConfig()
+        cfg.max_spread_bps = 50000.0
+        cfg.max_slippage_bps = 100000.0
+        cfg.min_liquidity_score = 0.0001
+        cfg.max_latency_ms = 999999
+
+        engine = ExecutionEngine(config=cfg, exchange_adapter=mock_adapter, live_guard=mock_guard)
+
+        signal = {"coin": "BTC", "signal": "BUY", "id": "test-001"}
+        candle = {
+            "open": 49500.0,
+            "high": 50500.0,
+            "low": 49000.0,
+            "close": 50000.0,
+            "volume": 1000.0,
+        }
+
+        loop = asyncio.new_event_loop()
+        try:
+            record = loop.run_until_complete(
+                engine.submit_live(signal, candle, notional_usdt=100.0)
+            )
+        finally:
+            loop.close()
+
+        assert record.status == "REJECTED"
+        assert "mock_gate_closed" in record.reason
+        mock_guard.validate.assert_called_once()
+        mock_adapter.create_market_buy.assert_not_called()
+
+    def test_submit_live_passes_when_guard_allows(self):
+        import asyncio
+        from btc_scraper.execution.execution_engine import ExecutionEngine
+        from btc_scraper.execution.live_execution_guard import LiveExecutionGuard, GuardResult
+        from btc_scraper.execution.exchange_adapter import WriteExchangeAdapter
+        from unittest.mock import AsyncMock, MagicMock
+
+        # Create a mock guard that allows
+        mock_guard = MagicMock(spec=LiveExecutionGuard)
+        mock_guard.validate.return_value = GuardResult(allowed=True, reason="all_guards_passed")
+
+        mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
+        mock_adapter.get_symbol_price = AsyncMock(return_value=50000.0)
+        mock_adapter.create_market_buy = AsyncMock(return_value={"id": "123", "price": 50000.0, "amount": 0.002})
+
+        from btc_scraper.execution.execution_config import ExecutionConfig
+        cfg = ExecutionConfig()
+        cfg.max_spread_bps = 50000.0
+        cfg.max_slippage_bps = 100000.0
+        cfg.min_liquidity_score = 0.0001
+        cfg.max_latency_ms = 999999
+
+        engine = ExecutionEngine(config=cfg, exchange_adapter=mock_adapter, live_guard=mock_guard)
+
+        signal = {"coin": "BTC", "signal": "BUY", "id": "test-002"}
+        candle = {
+            "open": 49500.0,
+            "high": 50500.0,
+            "low": 49000.0,
+            "close": 50000.0,
+            "volume": 1000.0,
+        }
+
+        loop = asyncio.new_event_loop()
+        try:
+            record = loop.run_until_complete(
+                engine.submit_live(signal, candle, notional_usdt=100.0)
+            )
+        finally:
+            loop.close()
+
+        assert record.status == "FILLED", f"Rejected reason: {record.reason}"
+        mock_guard.validate.assert_called_once()
+        mock_adapter.create_market_buy.assert_called_once()
+
+    def test_order_context_state_snapshot_sync(self):
+        from btc_scraper.execution.live_execution_guard import OrderContext, LiveStateSnapshot
+        from datetime import datetime, timezone
+        
+        snap = LiveStateSnapshot(
+            observed_at=datetime.now(timezone.utc),
+            portfolio_equity_usdt=12345.67,
+            open_positions_count=4,
+            rollout_stage=2
+        )
+        
+        ctx = OrderContext(
+            symbol="BTC/USDT",
+            intent="ENTRY",
+            notional_usdt=100.0,
+            state=snap
+        )
+        
+        assert ctx.portfolio_equity_usdt == 12345.67
+        assert ctx.open_positions_count == 4
+        assert ctx.current_stage == 2
+
+    def test_submit_live_concurrency_lock(self):
+        import asyncio
+        from btc_scraper.execution.execution_engine import ExecutionEngine
+        from btc_scraper.execution.live_execution_guard import LiveExecutionGuard, GuardResult
+        from btc_scraper.execution.exchange_adapter import WriteExchangeAdapter
+        from unittest.mock import AsyncMock, MagicMock
+        
+        mock_guard = MagicMock(spec=LiveExecutionGuard)
+        mock_guard.validate.return_value = GuardResult(allowed=True, reason="all_guards_passed")
+        
+        mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
+        mock_adapter.get_symbol_price = AsyncMock(return_value=50000.0)
+        mock_adapter.create_market_buy = AsyncMock(return_value={"id": "123", "price": 50000.0, "amount": 0.002})
+        
+        from btc_scraper.execution.execution_config import ExecutionConfig
+        cfg = ExecutionConfig()
+        cfg.max_spread_bps = 50000.0
+        cfg.max_slippage_bps = 100000.0
+        cfg.min_liquidity_score = 0.0001
+        cfg.max_latency_ms = 999999
+        
+        engine = ExecutionEngine(config=cfg, exchange_adapter=mock_adapter, live_guard=mock_guard)
+        
+        # Verify execution lock exists and can be locked
+        assert isinstance(engine._execution_lock, asyncio.Lock)
+        assert not engine._execution_lock.locked()
+        
+        signal = {"coin": "BTC", "signal": "BUY", "id": "test-003"}
+        candle = {
+            "open": 49500.0,
+            "high": 50500.0,
+            "low": 49000.0,
+            "close": 50000.0,
+            "volume": 1000.0,
+        }
+        
+        loop = asyncio.new_event_loop()
+        try:
+            # We mock the lock acquire method to assert it gets called
+            orig_acquire = engine._execution_lock.acquire
+            acquire_called = []
+            
+            async def mock_acquire():
+                acquire_called.append(True)
+                return await orig_acquire()
+                
+            engine._execution_lock.acquire = mock_acquire
+            
+            record = loop.run_until_complete(
+                engine.submit_live(signal, candle, notional_usdt=100.0)
+            )
+        finally:
+            loop.close()
+            
+        assert record.status == "FILLED"
+        assert len(acquire_called) > 0, "Execution lock acquire was not called during submit_live"
+

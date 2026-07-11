@@ -1,6 +1,7 @@
 # Phase 1 — Execution Pipeline Completion: Báo Cáo Hoàn Thành
 
-**Ngày hoàn thành:** 2026-07-11  
+**Trạng thái:** ⚠️ functionally passed / operational evidence pending (chờ bằng chứng vận hành paper 72h)  
+**Ngày đánh giá:** 2026-07-11  
 **Project:** `besttime-crypto` — AI Quant Trading Platform  
 **Phạm vi:** Hoàn thiện Execution Pipeline theo roadmap Phase 1 Remediation
 
@@ -8,7 +9,7 @@
 
 ## Tóm Tắt
 
-Tất cả 6 tasks P0 trong Phase 1 đã được thực hiện. **76 unit/integration tests pass (0 failures).**
+Tất cả 6 tasks P0 trong Phase 1 đã được thực hiện xong về mặt chức năng. **76 unit/integration tests pass (0 failures).** Tuy nhiên, trạng thái đóng hoàn toàn (closed) vẫn chờ bằng chứng chạy paper trading thực tế liên tục trong 72 giờ không có lỗi.
 
 ---
 

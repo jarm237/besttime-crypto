@@ -190,9 +190,16 @@ class PaperTradingValidator:
         self,
         fills_dir: Path = FILLS_DIR,
         exec_log_dir: Path = EXEC_LOG_DIR,
+        environment: str = "production",
+        default_fill_source: str = "real_paper",
     ):
         self.fills_dir = fills_dir
         self.exec_log_dir = exec_log_dir
+        self.environment = environment
+        
+        import os
+        # Environmental variable override
+        self.default_fill_source = os.getenv("PAPER_FILL_SOURCE", default_fill_source)
 
     def build_dataset(
         self,
@@ -205,16 +212,34 @@ class PaperTradingValidator:
         classified_fills: List[Dict[str, Any]] = []
         classified_exec: List[Dict[str, Any]] = []
 
-        # Classify raw fills (all pre-existing files on disk are debug/dev integration runs)
+        is_test_env = self.environment == "test"
+
+        # Classify raw fills
         for f in raw_fills:
             f = f.copy()
-            f["fill_source"] = "debug"
+            if is_test_env:
+                f["fill_source"] = "debug"
+            else:
+                sig_id = str(f.get("signal_id", ""))
+                exec_id = str(f.get("execution_id", ""))
+                if sig_id.startswith("test") or sig_id.startswith("EMERGENCY") or exec_id.startswith("test") or exec_id.startswith("EMERGENCY"):
+                    f["fill_source"] = "debug"
+                else:
+                    f["fill_source"] = f.get("fill_source") or self.default_fill_source
             classified_fills.append(f)
 
         # Classify raw executions
         for e in raw_exec:
             e = e.copy()
-            e["fill_source"] = "debug"
+            if is_test_env:
+                e["fill_source"] = "debug"
+            else:
+                sig_id = str(e.get("signal_id", ""))
+                exec_id = str(e.get("execution_id", ""))
+                if sig_id.startswith("test") or sig_id.startswith("EMERGENCY") or exec_id.startswith("test") or exec_id.startswith("EMERGENCY"):
+                    e["fill_source"] = "debug"
+                else:
+                    e["fill_source"] = e.get("fill_source") or self.default_fill_source
             classified_exec.append(e)
 
 

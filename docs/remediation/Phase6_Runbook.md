@@ -28,9 +28,11 @@ Before enabling live mode, **all** items below must be verified:
 
 ## 1. Startup Procedure
 
+### Linux/macOS
 ```bash
-# 1. Run full checklist
-python -c "from btc_scraper.execution.live_checklist import LiveChecklist; print(LiveChecklist().run_and_save().to_dict())"
+# 1. Run full checklist (must specify acknowledged manual items if any)
+export LIVE_ACKNOWLEDGED_MANUAL_ITEMS="api_key_permissions,ip_whitelist"
+python -c "from btc_scraper.execution.live_checklist import LiveChecklist; import os; acks=[x.strip() for x in os.getenv('LIVE_ACKNOWLEDGED_MANUAL_ITEMS','').split(',') if x.strip()]; print(LiveChecklist(acknowledged_manual_items=acks).run().to_dict())"
 
 # 2. Verify kill-switch is ARMED
 cat data/kill_switch_state.json
@@ -41,7 +43,32 @@ echo '{"enabled": true, "enabled_at": "UTC_TIMESTAMP", "enabled_by": "OPERATOR"}
 # 4. Start live monitor
 python -c "from btc_scraper.execution.live_monitor import LiveMonitor; m=LiveMonitor(); m.start()"
 
-# 5. Start main trading loop
+# 5. Export environment variables for the live fail-closed check and start main trading loop
+export LIVE_TRADING_ENABLED="true"
+export AUTO_TRADE_DRY_RUN="false"
+export LIVE_AUTHORIZATION_TOKEN="YOUR_SECRET_PRODUCTION_TOKEN"
+python main_live.py
+```
+
+### Windows (PowerShell)
+```powershell
+# 1. Run full checklist (must specify acknowledged manual items if any)
+$env:LIVE_ACKNOWLEDGED_MANUAL_ITEMS="api_key_permissions,ip_whitelist"
+python -c "from btc_scraper.execution.live_checklist import LiveChecklist; import os; acks=[x.strip() for x in os.getenv('LIVE_ACKNOWLEDGED_MANUAL_ITEMS','').split(',') if x.strip()]; print(LiveChecklist(acknowledged_manual_items=acks).run().to_dict())"
+
+# 2. Verify kill-switch is ARMED
+Get-Content data/kill_switch_state.json
+
+# 3. Enable live mode (manual step)
+'{"enabled": true, "enabled_at": "UTC_TIMESTAMP", "enabled_by": "OPERATOR"}' | Out-File -Encoding utf8 data/live_mode_enabled.json
+
+# 4. Start live monitor
+python -c "from btc_scraper.execution.live_monitor import LiveMonitor; m=LiveMonitor(); m.start()"
+
+# 5. Export environment variables for the live fail-closed check and start main trading loop
+$env:LIVE_TRADING_ENABLED="true"
+$env:AUTO_TRADE_DRY_RUN="false"
+$env:LIVE_AUTHORIZATION_TOKEN="YOUR_SECRET_PRODUCTION_TOKEN"
 python main_live.py
 ```
 
@@ -49,6 +76,7 @@ python main_live.py
 
 ## 2. Shutdown Procedure (Graceful)
 
+### Linux/macOS
 ```bash
 # 1. Disable live mode (blocks new entries, allows exits to complete)
 echo '{"enabled": false, "disabled_at": "UTC_TIMESTAMP", "disabled_by": "OPERATOR"}' > data/live_mode_enabled.json
@@ -60,15 +88,34 @@ cat data/execution/live_monitor_snapshot.json | python -c "import sys,json; d=js
 kill $(pgrep -f main_live.py)
 ```
 
+### Windows (PowerShell)
+```powershell
+# 1. Disable live mode (blocks new entries, allows exits to complete)
+'{"enabled": false, "disabled_at": "UTC_TIMESTAMP", "disabled_by": "OPERATOR"}' | Out-File -Encoding utf8 data/live_mode_enabled.json
+
+# 2. Wait for open orders to complete (check live_monitor_snapshot.json)
+Get-Content data/execution/live_monitor_snapshot.json | python -c "import sys,json; d=json.load(sys.stdin); print('Open positions:', d['open_positions'])"
+
+# 3. Stop services after all positions are closed
+Stop-Process -Name "python" -Force  # Or close the terminal running main_live.py
+```
+
 ---
 
 ## 3. Emergency Stop (Kill-Switch Trigger)
 
 ### Manual trigger via signal file
 
+#### Linux/macOS
 ```bash
 # Fastest method — creates signal file picked up within 1 loop iteration
 touch data/.kill_signal
+```
+
+#### Windows (PowerShell)
+```powershell
+# Fastest method — creates signal file picked up within 1 loop iteration
+New-Item -ItemType File -Path data/.kill_signal -Force
 ```
 
 ### Via API endpoint
@@ -96,8 +143,14 @@ After trigger:
 
 ### Step 1: Read current state
 
+#### Linux/macOS
 ```bash
 cat data/kill_switch_state.json
+```
+
+#### Windows (PowerShell)
+```powershell
+Get-Content data/kill_switch_state.json
 ```
 
 Verify:
@@ -139,9 +192,16 @@ ks.reset(
 
 ### Step 5: Verify
 
+#### Linux/macOS
 ```bash
 cat data/kill_switch_state.json  # should show state: ARMED
 cat data/execution/live_monitor_snapshot.json  # confirm system health
+```
+
+#### Windows (PowerShell)
+```powershell
+Get-Content data/kill_switch_state.json  # should show state: ARMED
+Get-Content data/execution/live_monitor_snapshot.json  # confirm system health
 ```
 
 ---
@@ -157,6 +217,7 @@ cat data/execution/live_monitor_snapshot.json  # confirm system health
 
 ### Steps
 
+#### Linux/macOS
 ```bash
 # 1. Trigger emergency stop immediately
 touch data/.kill_signal
@@ -172,6 +233,33 @@ cat data/kill_switch_state.json
 # 5. Restore previous model snapshot
 cp data/rollback/model_config_YYYYMMDD.json data/feature_store/
 cp data/rollback/execution_config_YYYYMMDD.json config/
+
+# 6. Document incident in audit log
+python -c "
+from btc_scraper.execution.live_audit_log import LiveAuditLog
+log = LiveAuditLog()
+log.record('ROLLBACK', {'reason': 'DESCRIBE', 'from_config': 'X', 'to_config': 'Y'}, operator='NAME')
+"
+
+# 7. Follow Kill-Switch Reset Protocol before re-enabling
+```
+
+#### Windows (PowerShell)
+```powershell
+# 1. Trigger emergency stop immediately
+New-Item -ItemType File -Path data/.kill_signal -Force
+
+# 2. Wait 5 seconds for halt to propagate
+Start-Sleep -Seconds 5
+
+# 3. Verify HALTED
+Get-Content data/kill_switch_state.json
+
+# 4. Manually close any remaining positions on exchange dashboard
+
+# 5. Restore previous model snapshot
+Copy-Item data/rollback/model_config_YYYYMMDD.json data/feature_store/
+Copy-Item data/rollback/execution_config_YYYYMMDD.json config/
 
 # 6. Document incident in audit log
 python -c "
@@ -214,12 +302,26 @@ When MongoDB/local DB is unavailable:
 
 ## 8. Position Mismatch Resolution
 
+#### Linux/macOS
 ```bash
 # 1. Get current exchange positions
 python -c "from btc_scraper.execution.exchange_adapter import ReadOnlyExchangeAdapter; ..."
 
 # 2. Get internal position state
 cat data/execution/live_monitor_snapshot.json
+
+# 3. Compare — identify discrepancies
+# 4. For minor mismatch (rounding, timing): update internal state, reset kill-switch
+# 5. For severe mismatch (missing position): full manual reconciliation before reset
+```
+
+#### Windows (PowerShell)
+```powershell
+# 1. Get current exchange positions
+python -c "from btc_scraper.execution.exchange_adapter import ReadOnlyExchangeAdapter; ..."
+
+# 2. Get internal position state
+Get-Content data/execution/live_monitor_snapshot.json
 
 # 3. Compare — identify discrepancies
 # 4. For minor mismatch (rounding, timing): update internal state, reset kill-switch
@@ -280,10 +382,18 @@ ks.trigger("manual_emergency")
 
 For direct manual close without kill-switch:
 
+#### Linux/macOS
 ```bash
 # Via exchange dashboard: close all positions manually
 # Then update internal state:
 echo '{"enabled": false}' > data/live_mode_enabled.json
+```
+
+#### Windows (PowerShell)
+```powershell
+# Via exchange dashboard: close all positions manually
+# Then update internal state:
+'{"enabled": false}' | Out-File -Encoding utf8 data/live_mode_enabled.json
 ```
 
 ---

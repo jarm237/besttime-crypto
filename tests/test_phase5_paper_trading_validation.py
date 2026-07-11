@@ -24,7 +24,7 @@ REPORT_MD = BASE_DIR / "docs" / "remediation" / "Phase5_Completion_Report.md"
 @pytest.fixture(scope="module")
 def run_validation_report():
     """Trigger the report generation once for the test suite."""
-    report = generate_all_reports()
+    report = generate_all_reports(environment="test", default_fill_source="debug")
     return report
 
 
