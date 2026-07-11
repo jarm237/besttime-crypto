@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-11T07:30:17.176733+00:00",
+  "timestamp": "2026-07-11T10:19:15.180188+00:00",
   "exchange_netflow": null,
   "whale_score": null,
   "stablecoin_supply": 123.0,
@@ -57,27 +57,27 @@
     "binance": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T07:30:17.176752+00:00"
+      "observed_at": "2026-07-11T10:19:15.180214+00:00"
     },
     "defillama": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T07:30:17.176793+00:00"
+      "observed_at": "2026-07-11T10:19:15.180275+00:00"
     },
     "fred": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T07:30:17.176836+00:00"
+      "observed_at": "2026-07-11T10:19:15.180367+00:00"
     },
     "yahoo": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T07:30:17.176861+00:00"
+      "observed_at": "2026-07-11T10:19:15.180399+00:00"
     },
     "alternative_me": {
       "status": "success",
       "reason": null,
-      "observed_at": "2026-07-11T07:30:17.176954+00:00"
+      "observed_at": "2026-07-11T10:19:15.180488+00:00"
     },
     "glassnode": {
       "status": "skipped",
@@ -100,8 +100,8 @@
       "status": "available",
       "source": "binance",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T07:30:17.176752+00:00",
-      "age_seconds": 2.902386,
+      "observed_at": "2026-07-11T10:19:15.180214+00:00",
+      "age_seconds": 4.096939,
       "is_stale": false
     },
     "open_interest": {
@@ -109,8 +109,8 @@
       "status": "available",
       "source": "binance",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T07:30:17.176752+00:00",
-      "age_seconds": 2.902395,
+      "observed_at": "2026-07-11T10:19:15.180214+00:00",
+      "age_seconds": 4.096945,
       "is_stale": false
     },
     "stablecoin_supply": {
@@ -118,8 +118,8 @@
       "status": "available",
       "source": "defillama",
       "confidence": 0.7,
-      "observed_at": "2026-07-11T07:30:17.176793+00:00",
-      "age_seconds": 2.902357,
+      "observed_at": "2026-07-11T10:19:15.180275+00:00",
+      "age_seconds": 4.096886,
       "is_stale": false
     },
     "stablecoin_supply_total": {
@@ -127,8 +127,8 @@
       "status": "available",
       "source": "defillama",
       "confidence": 0.7,
-      "observed_at": "2026-07-11T07:30:17.176793+00:00",
-      "age_seconds": 2.902359,
+      "observed_at": "2026-07-11T10:19:15.180275+00:00",
+      "age_seconds": 4.096888,
       "is_stale": false
     },
     "tvl": {
@@ -136,8 +136,8 @@
       "status": "available",
       "source": "defillama",
       "confidence": 0.65,
-      "observed_at": "2026-07-11T07:30:17.176793+00:00",
-      "age_seconds": 2.902362,
+      "observed_at": "2026-07-11T10:19:15.180275+00:00",
+      "age_seconds": 4.096889,
       "is_stale": false
     },
     "chain_tvl": {
@@ -145,8 +145,8 @@
       "status": "available",
       "source": "defillama",
       "confidence": 0.65,
-      "observed_at": "2026-07-11T07:30:17.176793+00:00",
-      "age_seconds": 2.902364,
+      "observed_at": "2026-07-11T10:19:15.180275+00:00",
+      "age_seconds": 4.096891,
       "is_stale": false
     },
     "dxy": {
@@ -154,8 +154,8 @@
       "status": "available",
       "source": "yahoo",
       "confidence": 0.95,
-      "observed_at": "2026-07-11T07:30:17.176861+00:00",
-      "age_seconds": 2.902299,
+      "observed_at": "2026-07-11T10:19:15.180399+00:00",
+      "age_seconds": 4.096768,
       "is_stale": false
     },
     "vix": {
@@ -163,8 +163,8 @@
       "status": "available",
       "source": "yahoo",
       "confidence": 0.95,
-      "observed_at": "2026-07-11T07:30:17.176861+00:00",
-      "age_seconds": 2.902301,
+      "observed_at": "2026-07-11T10:19:15.180399+00:00",
+      "age_seconds": 4.09677,
       "is_stale": false
     },
     "us10y": {
@@ -172,8 +172,8 @@
       "status": "available",
       "source": "fred",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T07:30:17.176836+00:00",
-      "age_seconds": 2.902329,
+      "observed_at": "2026-07-11T10:19:15.180367+00:00",
+      "age_seconds": 4.096803,
       "is_stale": false
     },
     "gold": {
@@ -181,8 +181,8 @@
       "status": "available",
       "source": "yahoo",
       "confidence": 0.9,
-      "observed_at": "2026-07-11T07:30:17.176861+00:00",
-      "age_seconds": 2.902306,
+      "observed_at": "2026-07-11T10:19:15.180399+00:00",
+      "age_seconds": 4.096773,
       "is_stale": false
     },
     "fear_greed_raw": {
@@ -190,8 +190,8 @@
       "status": "available",
       "source": "alternative_me",
       "confidence": 0.6,
-      "observed_at": "2026-07-11T07:30:17.176954+00:00",
-      "age_seconds": 2.902215,
+      "observed_at": "2026-07-11T10:19:15.180488+00:00",
+      "age_seconds": 4.096685,
       "is_stale": false
     },
     "fear_greed_score": {
@@ -199,8 +199,8 @@
       "status": "available",
       "source": "alternative_me",
       "confidence": 0.6,
-      "observed_at": "2026-07-11T07:30:17.176954+00:00",
-      "age_seconds": 2.902217,
+      "observed_at": "2026-07-11T10:19:15.180488+00:00",
+      "age_seconds": 4.096686,
       "is_stale": false
     },
     "exchange_netflow": {
@@ -209,7 +209,7 @@
       "source": "blockchair",
       "confidence": 0.0,
       "observed_at": null,
-      "age_seconds": 2.902441,
+      "age_seconds": 4.096988,
       "is_stale": false
     },
     "whale_score": {
@@ -218,7 +218,7 @@
       "source": "whale_alert",
       "confidence": 0.0,
       "observed_at": null,
-      "age_seconds": 2.902444,
+      "age_seconds": 4.09699,
       "is_stale": false
     },
     "active_addresses": {
@@ -227,7 +227,7 @@
       "source": "glassnode",
       "confidence": 0.0,
       "observed_at": null,
-      "age_seconds": 2.902447,
+      "age_seconds": 4.096992,
       "is_stale": false
     },
     "hashrate": {
@@ -235,8 +235,8 @@
       "status": "available",
       "source": "blockchain",
       "confidence": 0.85,
-      "observed_at": "2026-07-11T07:30:17.176733+00:00",
-      "age_seconds": 2.902449,
+      "observed_at": "2026-07-11T10:19:15.180188+00:00",
+      "age_seconds": 4.096993,
       "is_stale": false
     },
     "options_iv": {
@@ -244,8 +244,8 @@
       "status": "available",
       "source": "deribit",
       "confidence": 0.8,
-      "observed_at": "2026-07-11T07:30:17.176733+00:00",
-      "age_seconds": 2.902452,
+      "observed_at": "2026-07-11T10:19:15.180188+00:00",
+      "age_seconds": 4.096995,
       "is_stale": false
     },
     "iv_skew": {
@@ -253,8 +253,8 @@
       "status": "available",
       "source": "deribit",
       "confidence": 0.8,
-      "observed_at": "2026-07-11T07:30:17.176733+00:00",
-      "age_seconds": 2.902454,
+      "observed_at": "2026-07-11T10:19:15.180188+00:00",
+      "age_seconds": 4.096997,
       "is_stale": false
     },
     "etf_flow": {
@@ -262,8 +262,8 @@
       "status": "available",
       "source": "etf",
       "confidence": 0.5,
-      "observed_at": "2026-07-11T07:30:17.176733+00:00",
-      "age_seconds": 2.902456,
+      "observed_at": "2026-07-11T10:19:15.180188+00:00",
+      "age_seconds": 4.096998,
       "is_stale": false
     },
     "sentiment_score": {
@@ -271,8 +271,8 @@
       "status": "available",
       "source": "google_trends",
       "confidence": 0.35,
-      "observed_at": "2026-07-11T07:30:17.176733+00:00",
-      "age_seconds": 2.902459,
+      "observed_at": "2026-07-11T10:19:15.180188+00:00",
+      "age_seconds": 4.097,
       "is_stale": false
     },
     "social_sentiment": {
@@ -280,8 +280,8 @@
       "status": "available",
       "source": "reddit",
       "confidence": 0.4,
-      "observed_at": "2026-07-11T07:30:17.176733+00:00",
-      "age_seconds": 2.902461,
+      "observed_at": "2026-07-11T10:19:15.180188+00:00",
+      "age_seconds": 4.097001,
       "is_stale": false
     }
   },

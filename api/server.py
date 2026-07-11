@@ -12,6 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.config import COINS
+from btc_scraper.core.operational_resilience import service_health
 
 app = FastAPI(title="BestTime Crypto API")
 
@@ -57,6 +58,20 @@ def _get_db_conn_ok() -> int:
         return 1
     except Exception:
         return 0
+
+
+def _get_model_ok() -> bool:
+    try:
+        from btc_scraper.ml_engine.meta_model import MODEL_OUT
+        return bool(MODEL_OUT.exists())
+    except Exception:
+        return False
+
+
+def _health_payload() -> dict:
+    # WS is the exchange market-data dependency. It is explicitly included in
+    # readiness rather than allowing a process to report ready while blind.
+    return service_health(db_ok=bool(_get_db_conn_ok()), exchange_ok=bool(_get_ws_health()), model_ok=_get_model_ok(), data_path=DATA_DIR)
 
 
 def _get_causal_alpha() -> float:
@@ -160,6 +175,25 @@ def _metrics_response() -> Response:
         f"besttime_pipeline_status {pipeline_status}",
     ]
     return Response("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
+
+
+@app.get("/live")
+def live():
+    """Liveness only: the process can answer requests."""
+    return {"live": True}
+
+
+@app.get("/dependencies")
+def dependencies():
+    return _health_payload()["dependencies"]
+
+
+@app.get("/ready")
+def ready(response: Response):
+    payload = _health_payload()
+    if not payload["ready"]:
+        response.status_code = 503
+    return payload
 
 
 def _read_prediction_logs(logs_dir: str, days: int = 7) -> list:

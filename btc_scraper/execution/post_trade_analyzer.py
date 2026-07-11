@@ -178,6 +178,86 @@ class PostTradeAnalyzer:
 
         return report
 
+    def generate_phase5_report(
+        self,
+        exec_records: List[Dict[str, Any]],
+        fills: List[Dict[str, Any]],
+        report_name: str = None,
+    ) -> Dict[str, Any]:
+        """
+        Generates Phase 5 compliance/acceptance report with execution metrics.
+        - Reject rate
+        - Fill rate
+        - Partial fill rate
+        - Latency percentiles
+        - Implementation shortfall percentiles
+        """
+        total_orders = len(exec_records)
+        rejected = sum(1 for r in exec_records if r.get("status") == "REJECTED")
+        filled = sum(1 for r in exec_records if r.get("status") == "FILLED")
+        partial = sum(1 for r in exec_records if r.get("status") == "PARTIAL_FILL")
+
+        reject_rate = rejected / total_orders if total_orders > 0 else 0.0
+        fill_rate = filled / total_orders if total_orders > 0 else 0.0
+        partial_fill_rate = partial / total_orders if total_orders > 0 else 0.0
+
+        latencies = [r.get("latency_ms", 0) for r in exec_records if r.get("latency_ms") is not None]
+        latencies.sort()
+        n_lat = len(latencies)
+        mean_latency = sum(latencies) / n_lat if n_lat > 0 else 0.0
+        p50_latency = latencies[int(n_lat * 0.5)] if n_lat > 0 else 0.0
+        p90_latency = latencies[int(n_lat * 0.9)] if n_lat > 0 else 0.0
+        p95_latency = latencies[int(n_lat * 0.95)] if n_lat > 0 else 0.0
+        max_latency = max(latencies) if n_lat > 0 else 0.0
+
+        breakdowns = self.analyze_batch(fills)
+        is_vals = [abs(b.implementation_shortfall_bps) for b in breakdowns]
+        is_vals.sort()
+        n_is = len(is_vals)
+        mean_is = sum(is_vals) / n_is if n_is > 0 else 0.0
+        p50_is = is_vals[int(n_is * 0.5)] if n_is > 0 else 0.0
+        p90_is = is_vals[int(n_is * 0.9)] if n_is > 0 else 0.0
+        p95_is = is_vals[int(n_is * 0.95)] if n_is > 0 else 0.0
+        max_is = max(is_vals) if n_is > 0 else 0.0
+
+        report = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "n_total_attempts": total_orders,
+            "n_filled": filled,
+            "n_rejected": rejected,
+            "n_partial_fill": partial,
+            "reject_rate_pct": round(reject_rate * 100, 2),
+            "fill_rate_pct": round(fill_rate * 100, 2),
+            "partial_fill_rate_pct": round(partial_fill_rate * 100, 2),
+            "latency": {
+                "mean_ms": round(mean_latency, 2),
+                "p50_ms": p50_latency,
+                "p90_ms": p90_latency,
+                "p95_ms": p95_latency,
+                "max_ms": max_latency,
+            },
+            "implementation_shortfall_bps": {
+                "mean_bps": round(mean_is, 3),
+                "p50_bps": round(p50_is, 3),
+                "p90_bps": round(p90_is, 3),
+                "p95_bps": round(p95_is, 3),
+                "max_bps": round(max_is, 3),
+            },
+            "acceptance": {
+                "reject_rate_le_20": reject_rate <= 0.20,
+                "fill_rate_ge_80": fill_rate >= 0.80,
+                "shortfall_mae_le_10": mean_is <= 10.0,
+            }
+        }
+
+        # Save report to reports_dir
+        date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+        fname = report_name or f"execution_quality_phase5_{date_str}.json"
+        out_path = self.reports_dir / fname
+        out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        return report
+
     def format_summary(self, breakdown: ExecutionCostBreakdown) -> str:
         """Human-readable cost breakdown like the plan example."""
         lines = [

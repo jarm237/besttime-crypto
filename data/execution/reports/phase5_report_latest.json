@@ -1,0 +1,300 @@
+{
+  "generated_at": "2026-07-11T10:33:16.934873+00:00",
+  "fills_breakdown": {
+    "real_paper": 0,
+    "synthetic": 100,
+    "debug": 34,
+    "total": 134
+  },
+  "reject_rate_pct": 4.76,
+  "fill_rate_pct": 95.24,
+  "slippage_mae_bps": 0.8399,
+  "data_completeness_pct": "NOT_MEASURED",
+  "gross_vs_net_pnl": {
+    "n_fills": 100,
+    "total_gross_pnl_usdt": 2.2057,
+    "total_net_pnl_usdt": -3.4941,
+    "total_cost_usdt": 5.6998,
+    "avg_gross_pnl_usdt": 0.0221,
+    "avg_net_pnl_usdt": -0.0349,
+    "avg_cost_drag_pct": 0.1071,
+    "cost_breakdown_bps": {
+      "avg_fee_bps": 4.9977,
+      "avg_spread_bps": 1.4555,
+      "avg_slippage_bps": 4.183,
+      "avg_latency_bps": 0.0709,
+      "avg_total_cost_bps": 10.7071
+    },
+    "pnl_win_rate_pct": 0.0
+  },
+  "model_monitoring": {
+    "prediction_distribution": {
+      "count": 70246,
+      "mean": 0.5209,
+      "std": 0.0904,
+      "min": 0.1667,
+      "p25": 0.4683,
+      "p50": 0.4929,
+      "p75": 0.6283,
+      "p90": 0.6327,
+      "max": 1.0,
+      "pct_ge_0_75": 0.12,
+      "pct_ge_0_85": 0.01
+    },
+    "missing_rate": {
+      "completeness_pct": "NOT_MEASURED",
+      "missing_rate_pct": "NOT_MEASURED",
+      "mean_completeness": 0.999,
+      "p05_completeness": 1.0,
+      "longest_missing_streak": 1,
+      "stale_rate_pct": 9.0,
+      "n_features": 10,
+      "skipped_providers": {
+        "glassnode": "NOT_MEASURED",
+        "whale_alert": "NOT_MEASURED"
+      }
+    },
+    "calibration": {
+      "mean_calibration_error": 0.221,
+      "buckets": {
+        "0.0-0.4": {
+          "count": 8795,
+          "wins": 0,
+          "actual_win_rate": 0.0,
+          "expected_win_rate": 0.2,
+          "error": 0.2
+        },
+        "0.4-0.6": {
+          "count": 41604,
+          "wins": 12273,
+          "actual_win_rate": 0.295,
+          "expected_win_rate": 0.5,
+          "error": 0.205
+        },
+        "0.6-0.7": {
+          "count": 19394,
+          "wins": 19394,
+          "actual_win_rate": 1.0,
+          "expected_win_rate": 0.6499999999999999,
+          "error": 0.35
+        },
+        "0.7-0.8": {
+          "count": 378,
+          "wins": 378,
+          "actual_win_rate": 1.0,
+          "expected_win_rate": 0.75,
+          "error": 0.25
+        },
+        "0.8-1.0": {
+          "count": 75,
+          "wins": 75,
+          "actual_win_rate": 1.0,
+          "expected_win_rate": 0.9,
+          "error": 0.1
+        }
+      }
+    },
+    "acceptance": {
+      "data_completeness_ge_90": "NOT_MEASURED",
+      "completeness_pct": "NOT_MEASURED"
+    }
+  },
+  "causal_shadow": {
+    "summary": {
+      "total_signals_emitted": 92,
+      "actual_trades_logged": 583,
+      "matched_aligned_decisions": 92,
+      "rl_exit_shadow_recommendations": 35
+    },
+    "blocked_reasons": {
+      "slippage_guard": 0,
+      "kelly_fraction_limit": 0,
+      "correlation_filter": 0,
+      "other": 0
+    },
+    "performance_impact": {
+      "actual_pnl_usdt": 0.0,
+      "counterfactual_baseline_pnl_usdt": 0.0,
+      "net_benefit_usdt": 0.0,
+      "benefit_description": "Positive value indicates that risk adjustments/guards successfully prevented losses from bad trade entries."
+    },
+    "aligned_decisions": [
+      {
+        "signal_id": "TRUMPUSDT_1783512966",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "TRBUSDT_1783513875",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "XPLUSDT_1783518370",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "BNBUSDT_1783520175",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "BNBUSDT_1783521973",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "BNBUSDT_1783522877",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "WLDUSDT_1783524671",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "AVAXUSDT_1783528273",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "IOTAUSDT_1783535467",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "WLDUSDT_1783539069",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "WLDUSDT_1783539969",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "XLMUSDT_1783556168",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "BNBUSDT_1783559774",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "SOLUSDT_1783559774",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "TRBUSDT_1783562471",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "TRXUSDT_1783575977",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "TRXUSDT_1783579574",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "BTCUSDT_1783581372",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "TRXUSDT_1783584070",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      },
+      {
+        "signal_id": "XLMUSDT_1783586770",
+        "baseline_action": "HOLD",
+        "adjusted_action": "SKIP",
+        "baseline_simulated_pnl": 0.0,
+        "adjusted_realized_pnl": 0.0,
+        "adjustment_value": 0.0
+      }
+    ]
+  },
+  "pipeline_gate": {
+    "passed": true,
+    "target_fills_achieved": true,
+    "metrics_computable": true
+  },
+  "live_readiness_gate": {
+    "passed": false,
+    "real_paper_fills": 0,
+    "critical_incidents": 0,
+    "incident_tracking_enabled": true,
+    "duration_days": 0,
+    "symbols_count": 0,
+    "regimes_count": 0,
+    "max_symbol_concentration_pct": 0.0,
+    "order_type_diversity": false
+  }
+}

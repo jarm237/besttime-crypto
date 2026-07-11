@@ -93,9 +93,11 @@ class ExecutionRecord:
     # Status
     status: str = OrderStatus.PENDING
     reason: str = ""
+    fill_source: str = "real_paper"  # real_paper | synthetic | replay | debug
 
     # Fill events
     fills: List[FillEvent] = field(default_factory=list)
+
 
     # Derived metrics (populated by PostTradeAnalyzer)
     arrival_price: float = 0.0
