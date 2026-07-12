@@ -5,7 +5,7 @@
 > **Repository Regression Gate**: ✅ PASSED  
 > **Operational Paper Validation**: ⏳ IN PROGRESS  
 > **Live Production Approval**: ❌ NOT GRANTED  
-> **Report Timestamp**: 2026-07-12T07:52:58.100275+00:00  
+> **Report Timestamp**: 2026-07-12T12:29:29.020840+00:00  
 
 ---
 
@@ -30,7 +30,7 @@ This gate verifies that the metric tracking, logs aggregation, and post-trade an
 
 | Check | Target | Actual | Status |
 | :--- | :---: | :---: | :---: |
-| **Total Fills (Real + Synth)** | $\ge 100$ | **218** | 🟢 PASS |
+| **Total Fills (Real + Synth)** | $\ge 100$ | **100** | 🟢 PASS |
 | **Report Pipeline Generation** | Success | **Success** | 🟢 PASS |
 | **All Metrics Computable** | True | **True** | 🟢 PASS |
 
@@ -63,7 +63,7 @@ To avoid false positive evaluations, completeness is measured strictly from the 
 - **Mean Completeness (Required Features)**: `0.9990`
 - **5th Percentile Completeness (Required)**: `1.0000`
 - **Longest Stale/Missing Streak**: `1 snapshots`
-- **Stale Snapshots Rate**: `18.5%`
+- **Stale Snapshots Rate**: `29.5%`
 - **Skipped Paid Providers**:
   - Glassnode: `NOT_MEASURED` (disabled_free_plan_not_supported)
   - Whale Alert: `NOT_MEASURED` (disabled_free_plan_not_supported)
@@ -91,9 +91,9 @@ Using the augmented dataset, the transaction cost drag calculators were verified
 
 Decisions and predictions are aligned song song at the exact same timestamps to evaluate counterfactual metrics:
 
-- **Total Emitted Signals**: 115
-- **Actual Orders Executed**: 614
-- **Matched Aligned Decisions**: 115
+- **Total Emitted Signals**: 128
+- **Actual Orders Executed**: 623
+- **Matched Aligned Decisions**: 128
 
 ### Risk Filter Interventions
 - **Slippage Guard Blocked**: 0

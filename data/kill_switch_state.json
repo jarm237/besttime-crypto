@@ -1,15 +1,15 @@
 {
-  "state": "HALTED",
-  "trigger": "manual_emergency",
+  "state": "ARMED",
+  "trigger": null,
   "trigger_value": null,
   "threshold": null,
-  "triggered_at": "2026-07-12T07:52:58.330819+00:00",
-  "action_taken": "CLOSE_ALL",
-  "requires_manual_reset": true,
+  "triggered_at": null,
+  "action_taken": null,
+  "requires_manual_reset": false,
   "reset_token_hash": null,
-  "reset_reason": null,
-  "reset_by": null,
-  "reset_at": null,
+  "reset_reason": "Vận hành bình thường, manual_emergency đã được review, không có vị thế mở",
+  "reset_by": "tran.huynh",
+  "reset_at": "2026-07-12T12:22:11.557909+00:00",
   "history": [
     {
       "event": "TRIGGERED",
@@ -18,6 +18,16 @@
       "value": null,
       "threshold": null,
       "at": "2026-07-12T07:52:58.330819+00:00"
+    },
+    {
+      "event": "RECOVERY_NOTIFIED",
+      "at": "2026-07-12T12:22:11.556389+00:00"
+    },
+    {
+      "event": "RESET",
+      "operator": "tran.huynh",
+      "reason": "Vận hành bình thường, manual_emergency đã được review, không có vị thế mở",
+      "at": "2026-07-12T12:22:11.557909+00:00"
     }
   ]
 }

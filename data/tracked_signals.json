@@ -7,10 +7,50 @@
   "NEAR": [],
   "AR": [],
   "TRB": [],
-  "ETH": [],
+  "ETH": [
+    {
+      "time": "2026-07-12 22:00",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 1818.23,
+      "current_price": 1820.91,
+      "tp_sl": {
+        "entry": 1818.23,
+        "sl": 1823.9729,
+        "tp1": 1806.1525,
+        "tp2": 1799.2089,
+        "rr1": 2.1,
+        "rr2": 3.31,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 15,
+      "created_at_ts": 1783868461.8256457
+    }
+  ],
   "IOTA": [],
   "BNB": [],
-  "ENA": [],
+  "ENA": [
+    {
+      "time": "2026-07-12 22:00",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 0.0817,
+      "current_price": 0.0816,
+      "tp_sl": {
+        "entry": 0.0817,
+        "sl": 0.0789,
+        "tp1": 0.0845,
+        "tp2": 0.0873,
+        "rr1": 1.0,
+        "rr2": 2.0,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 15,
+      "created_at_ts": 1783868467.0675035
+    }
+  ],
   "XPL": [],
   "TRX": [],
   "ZEC": [],

@@ -1918,5 +1918,35 @@
     "actual_result": null,
     "actual_pnl_pct": null,
     "closed_at": null
+  },
+  {
+    "prediction_id": "WLDUSDT_1783860371",
+    "symbol": "WLDUSDT",
+    "timestamp": 1783860371.3295817,
+    "timestamp_str": "2026-07-12 19:46:11",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.6327,
+    "signal_score": 52,
+    "regime": "STRONG_TREND_BULL",
+    "htf_trend": "BEARISH-MIXED",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
+  },
+  {
+    "prediction_id": "ETHUSDT_1783868479",
+    "symbol": "ETHUSDT",
+    "timestamp": 1783868479.4034045,
+    "timestamp_str": "2026-07-12 22:01:19",
+    "signal": "STRONG SELL (Confirmed Reversal)",
+    "meta_prob": 0.3731,
+    "signal_score": 32,
+    "regime": "COMPRESSION",
+    "htf_trend": "BULLISH",
+    "position_id": null,
+    "actual_result": null,
+    "actual_pnl_pct": null,
+    "closed_at": null
   }
 ]
