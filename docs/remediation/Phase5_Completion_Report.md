@@ -5,7 +5,7 @@
 > **Repository Regression Gate**: ✅ PASSED  
 > **Operational Paper Validation**: ⏳ IN PROGRESS  
 > **Live Production Approval**: ❌ NOT GRANTED  
-> **Report Timestamp**: 2026-07-11T19:47:41.145323+00:00  
+> **Report Timestamp**: 2026-07-12T07:52:58.100275+00:00  
 
 ---
 
@@ -30,7 +30,7 @@ This gate verifies that the metric tracking, logs aggregation, and post-trade an
 
 | Check | Target | Actual | Status |
 | :--- | :---: | :---: | :---: |
-| **Total Fills (Real + Synth)** | $\ge 100$ | **208** | 🟢 PASS |
+| **Total Fills (Real + Synth)** | $\ge 100$ | **218** | 🟢 PASS |
 | **Report Pipeline Generation** | Success | **Success** | 🟢 PASS |
 | **All Metrics Computable** | True | **True** | 🟢 PASS |
 
@@ -63,7 +63,7 @@ To avoid false positive evaluations, completeness is measured strictly from the 
 - **Mean Completeness (Required Features)**: `0.9990`
 - **5th Percentile Completeness (Required)**: `1.0000`
 - **Longest Stale/Missing Streak**: `1 snapshots`
-- **Stale Snapshots Rate**: `18.0%`
+- **Stale Snapshots Rate**: `18.5%`
 - **Skipped Paid Providers**:
   - Glassnode: `NOT_MEASURED` (disabled_free_plan_not_supported)
   - Whale Alert: `NOT_MEASURED` (disabled_free_plan_not_supported)
