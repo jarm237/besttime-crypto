@@ -16,6 +16,7 @@ from __future__ import annotations
 import uuid
 import time
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 
@@ -116,6 +117,9 @@ class ExecutionEngine:
             intended_notional=notional_usdt,
             decision_price=decision_price,
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
+            fill_source="real_paper",
+            execution_mode="paper",
+            paper_run_id=os.getenv("PAPER_RUN_ID", "").strip(),
         )
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────
@@ -241,6 +245,8 @@ class ExecutionEngine:
             decision_price=decision_price,
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
             latency_ms=latency_ms,
+            fill_source="live",
+            execution_mode="live",
         )
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────
@@ -429,6 +435,8 @@ class ExecutionEngine:
             decision_price=current_price,
             timestamp=datetime.now(timezone.utc).isoformat(),
             order_type="MARKET",
+            fill_source="live",
+            execution_mode="live",
         )
         record.reason = reason
 

@@ -94,6 +94,10 @@ class ExecutionRecord:
     status: str = OrderStatus.PENDING
     reason: str = ""
     fill_source: str = "real_paper"  # real_paper | synthetic | replay | debug
+    # Provenance: records created by submit_paper are stored separately from
+    # live/legacy execution records and can be used as Phase 5 evidence.
+    execution_mode: str = "live"  # paper | live | replay | test
+    paper_run_id: str = ""
 
     # Fill events
     fills: List[FillEvent] = field(default_factory=list)
@@ -240,13 +244,27 @@ class FillTracker:
     def _write_jsonl(self, record: ExecutionRecord) -> None:
         """Append to daily execution JSONL log."""
         date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        path = self.log_dir / f"execution_{date_str}.jsonl"
+        path = self._path_for_record(self.log_dir, "execution", date_str, record)
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record.to_dict(), ensure_ascii=False) + "\n")
 
     def _write_fills_jsonl(self, record: ExecutionRecord) -> None:
         """Write completed fill record to fills dataset for ML training."""
         date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        path = self.fills_dir / f"fills_{date_str}.jsonl"
+        path = self._path_for_record(self.fills_dir, "fills", date_str, record)
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record.to_dict(), ensure_ascii=False) + "\n")
+
+    @staticmethod
+    def _path_for_record(base_dir: Path, prefix: str, date_str: str, record: ExecutionRecord) -> Path:
+        """Return a provenance-specific JSONL path without trusting arbitrary modes."""
+        if record.execution_mode == "paper":
+            target_dir = base_dir / "paper"
+        elif record.execution_mode == "replay":
+            target_dir = base_dir / "replay"
+        elif record.execution_mode == "test":
+            target_dir = base_dir / "test"
+        else:
+            target_dir = base_dir
+        target_dir.mkdir(parents=True, exist_ok=True)
+        return target_dir / f"{prefix}_{date_str}.jsonl"

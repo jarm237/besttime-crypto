@@ -143,6 +143,8 @@ class TestExecutionEnginePaperMode(unittest.TestCase):
         self.assertIsNotNone(record)
         self.assertIn(record.status, [OrderStatus.FILLED, OrderStatus.REJECTED])
         self.assertGreater(len(record.execution_id), 0)
+        self.assertEqual(record.execution_mode, "paper")
+        self.assertEqual(record.fill_source, "real_paper")
 
     def test_paper_buy_signal_sets_side_buy(self):
         signal = _make_signal(side="BUY (Crossover)")
