@@ -23,6 +23,8 @@ BASE_DIR = Path(__file__).parent.parent.parent
 
 FILLS_DIR = BASE_DIR / "data" / "execution" / "fills"
 EXEC_LOG_DIR = BASE_DIR / "logs" / "execution"
+PAPER_FILLS_DIR = FILLS_DIR / "paper"
+PAPER_EXEC_LOG_DIR = EXEC_LOG_DIR / "paper"
 AUTO_TRADE_LOG = BASE_DIR / "btc_scraper" / "logs" / "auto_trade_log.json"
 
 _PRICE_TABLE: Dict[str, float] = {
@@ -188,8 +190,8 @@ class PaperTradingValidator:
 
     def __init__(
         self,
-        fills_dir: Path = FILLS_DIR,
-        exec_log_dir: Path = EXEC_LOG_DIR,
+        fills_dir: Path = PAPER_FILLS_DIR,
+        exec_log_dir: Path = PAPER_EXEC_LOG_DIR,
         environment: str = "production",
         default_fill_source: str = "real_paper",
     ):
@@ -214,6 +216,8 @@ class PaperTradingValidator:
 
         is_test_env = self.environment == "test"
 
+        # Only paper-mode directories are loaded by default. Legacy mixed logs
+        # are intentionally excluded from Phase 5 operational evidence.
         # Classify raw fills
         for f in raw_fills:
             f = f.copy()
