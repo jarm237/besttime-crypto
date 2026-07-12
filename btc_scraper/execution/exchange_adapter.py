@@ -140,6 +140,30 @@ class WriteExchangeAdapter(BaseExchangeAdapter):
         logger.info(f"[ExchangeAdapter] MARKET SELL {symbol} ${usdt_amount:.2f}")
         return await self._client.create_market_sell(symbol, usdt_amount, params)
 
+    async def get_open_position_qty(self, symbol: str) -> float:
+        """Return the signed live futures quantity for ``symbol``."""
+        if self._client is None:
+            return 0.0
+        return await self._client.get_open_position_qty(symbol)
+
+    async def close_position_market(
+        self,
+        symbol: str,
+        side: str,
+        quantity: float,
+    ) -> Dict[str, Any]:
+        """Close an exact futures quantity with the exchange reduce-only flag."""
+        if self._client is None:
+            return {
+                **self._dry_run_fill(symbol, side.lower(), 0.0),
+                "amount": quantity,
+                "status": "dry_run_simulated",
+            }
+        logger.info(
+            f"[ExchangeAdapter] REDUCE-ONLY MARKET {side.upper()} {symbol} qty={quantity:.8f}"
+        )
+        return await self._client.close_position_market(symbol, side, quantity)
+
     async def fetch_order_status(self, order_id: str, symbol: str) -> str:
         if self._client is None:
             return "dry_run_simulated"

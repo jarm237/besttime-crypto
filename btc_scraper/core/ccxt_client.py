@@ -212,6 +212,65 @@ class CCXTClient:
                 raise RuntimeError(f"Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: {e}")
             raise RuntimeError(f"Lỗi đặt lệnh: {e}")
 
+    async def get_open_position_qty(self, symbol: str) -> float:
+        """Return the signed base-asset quantity open for a futures symbol."""
+        if self.dry_run:
+            return 0.0
+        try:
+            ex = self._get_exchange()
+            positions = await ex.fetch_positions([symbol])
+            for position in positions:
+                if position.get("symbol") != symbol:
+                    continue
+                info = position.get("info") or {}
+                # Binance futures' positionAmt is the authoritative signed qty.
+                raw_qty = info.get("positionAmt", position.get("contracts", 0.0))
+                qty = float(raw_qty or 0.0)
+                if qty:
+                    return qty
+            return 0.0
+        except Exception as e:
+            raise RuntimeError(f"Could not fetch position for {symbol}: {e}")
+
+    async def close_position_market(
+        self,
+        symbol: str,
+        side: str,
+        quantity: float,
+    ) -> Dict[str, Any]:
+        """Close an exact quantity at market with Binance reduceOnly enabled."""
+        if quantity <= 0:
+            raise ValueError("quantity must be greater than zero")
+        normalized_side = side.lower()
+        if normalized_side not in {"buy", "sell"}:
+            raise ValueError(f"invalid close side: {side}")
+        if self.dry_run:
+            price = await self.get_symbol_price(symbol)
+            return {
+                "id": f"DRY-CLOSE-{symbol.replace('/', '')}-{int(time.time())}",
+                "symbol": symbol,
+                "side": normalized_side,
+                "type": "market",
+                "amount": quantity,
+                "cost": quantity * price,
+                "price": price,
+                "status": "dry_run_simulated",
+                "timestamp": int(time.time() * 1000),
+            }
+
+        ex = self._get_exchange()
+        await ex.load_markets()
+        precise_qty = float(ex.amount_to_precision(symbol, quantity))
+        if precise_qty <= 0:
+            raise ValueError(f"invalid quantity after precision for {symbol}")
+        try:
+            return await ex.create_order(
+                symbol, "market", normalized_side, precise_qty,
+                params={"reduceOnly": True},
+            )
+        except Exception as e:
+            raise RuntimeError(f"Could not close position: {e}")
+
     async def fetch_order_status(self, order_id: str, symbol: str) -> str:
         """Lấy trạng thái lệnh."""
         if self.dry_run or str(order_id).startswith("DRY-"):

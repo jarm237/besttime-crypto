@@ -447,8 +447,8 @@ class TestEmergencyExit(unittest.TestCase):
             "status": "closed",
         }
         mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
-        mock_adapter.create_market_sell = AsyncMock(return_value=mock_order)
-        mock_adapter.create_market_buy = AsyncMock(return_value=mock_order)
+        mock_adapter.get_open_position_qty = AsyncMock(return_value=0.01)
+        mock_adapter.close_position_market = AsyncMock(return_value=mock_order)
 
         engine = ExecutionEngine(config=_make_loose_config(), exchange_adapter=mock_adapter)
         loop = asyncio.new_event_loop()
@@ -464,9 +464,29 @@ class TestEmergencyExit(unittest.TestCase):
         finally:
             loop.close()
 
-        mock_adapter.create_market_sell.assert_called_once()
+        mock_adapter.close_position_market.assert_called_once_with("BTC/USDT", "SELL", 0.01)
         self.assertEqual(record.status, OrderStatus.FILLED)
         self.assertAlmostEqual(record.avg_fill_price, 50_100.0)
+
+    def test_emergency_exit_uses_exchange_quantity_and_reduce_only_close(self):
+        """Close quantity is sourced from exchange, not a USDT/price estimate."""
+        mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
+        mock_adapter.get_open_position_qty = AsyncMock(return_value=-2.5)
+        mock_adapter.close_position_market = AsyncMock(return_value={
+            "id": "CLOSE-001", "price": 200.0, "amount": 2.5, "status": "closed",
+        })
+        engine = ExecutionEngine(config=_make_loose_config(), exchange_adapter=mock_adapter)
+        loop = asyncio.new_event_loop()
+        try:
+            record = loop.run_until_complete(
+                engine.emergency_exit("XRP", "LONG", 999.0, 200.0)
+            )
+        finally:
+            loop.close()
+
+        mock_adapter.close_position_market.assert_called_once_with("XRP/USDT", "BUY", 2.5)
+        self.assertEqual(record.side, "BUY")
+        self.assertEqual(record.intended_qty, 2.5)
 
 
 # ── submit_live integration ────────────────────────────────────────────────────

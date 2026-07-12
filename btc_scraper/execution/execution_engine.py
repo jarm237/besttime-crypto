@@ -446,19 +446,28 @@ class ExecutionEngine:
             self._tracker.simulate_fill(record, fill_price=current_price)
             return record
 
-        self._tracker.register(record)
         try:
-            if side == "SELL":
-                order = await self._adapter.create_market_sell(symbol, invested_usdt)
-            else:
-                order = await self._adapter.create_market_buy(symbol, invested_usdt)
+            # Close the exchange-reported base quantity.  A notional/price
+            # estimate can leave a residual (or reverse the position) when
+            # the price moves between entry and exit.
+            signed_qty = await self._adapter.get_open_position_qty(symbol)
+            if signed_qty == 0:
+                raise RuntimeError(f"No open exchange position for {symbol}")
+
+            side = "SELL" if signed_qty > 0 else "BUY"
+            quantity = abs(signed_qty)
+            record.side = side
+            record.intended_qty = quantity
+            record.intended_notional = quantity * current_price
+            self._tracker.register(record)
+            order = await self._adapter.close_position_market(symbol, side, quantity)
 
             fill_price = float(order.get("price") or current_price)
             fill = FillEvent(
                 execution_id=record.execution_id,
                 price=fill_price,
-                qty=record.intended_qty,
-                fee=invested_usdt * 0.0005,
+                qty=float(order.get("filled") or order.get("amount") or quantity),
+                fee=record.intended_notional * 0.0005,
             )
             record.add_fill(fill)
             record.status = OrderStatus.FILLED
