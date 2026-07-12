@@ -3,13 +3,13 @@
   "previous_stage": null,
   "last_transition": "HALTED",
   "last_transition_reason": "test_halt",
-  "last_transition_at": "2026-07-11T19:47:44.663214+00:00",
-  "stage_started_at": 1783799264.663125,
+  "last_transition_at": "2026-07-12T07:52:58.584944+00:00",
+  "stage_started_at": 1783842778.5848525,
   "history": [
     {
       "event": "HALTED",
       "from": 1,
-      "at": "2026-07-11T19:47:44.663214+00:00",
+      "at": "2026-07-12T07:52:58.584944+00:00",
       "reason": "test_halt"
     }
   ]
