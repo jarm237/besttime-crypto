@@ -7,27 +7,7 @@
   "NEAR": [],
   "AR": [],
   "TRB": [],
-  "ETH": [
-    {
-      "time": "2026-07-12 16:15",
-      "signal": "SELL (Crossover)",
-      "entry": 1798.64,
-      "current_price": 1799.9,
-      "tp_sl": {
-        "entry": 1798.64,
-        "sl": 1811.9171,
-        "tp1": 1785.3629,
-        "tp2": 1783.0189,
-        "rr1": 1.0,
-        "rr2": 1.18,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 90,
-      "created_at_ts": 1783848360.8836231
-    }
-  ],
+  "ETH": [],
   "IOTA": [],
   "BNB": [],
   "ENA": [],

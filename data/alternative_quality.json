@@ -13501,5 +13501,39 @@
     "is_healthy": true,
     "issue_count": 0,
     "issues": []
+  },
+  {
+    "checked_at": "2026-07-12T11:01:15.165714+00:00",
+    "payload_timestamp": "2026-07-12T10:46:03.195904+00:00",
+    "is_healthy": false,
+    "issue_count": 1,
+    "issues": [
+      {
+        "field": "timestamp",
+        "issue_type": "stale",
+        "detail": "Payload is 912s old (max 900s)."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-12T11:01:29.937248+00:00",
+    "payload_timestamp": "2026-07-12T11:01:16.585126+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-12T11:16:11.986197+00:00",
+    "payload_timestamp": "2026-07-12T11:01:16.585126+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-12T11:16:42.306785+00:00",
+    "payload_timestamp": "2026-07-12T11:16:31.971512+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
   }
 ]
