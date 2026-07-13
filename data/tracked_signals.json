@@ -1,320 +1,64 @@
 {
   "TRUMP": [
     {
-      "time": "2026-07-13 07:15",
-      "signal": "SELL (Break-SMA50)",
-      "entry": 1.574,
-      "current_price": 1.554,
-      "tp_sl": {
-        "entry": 1.574,
-        "sl": 1.5959,
-        "tp1": 1.566,
-        "tp2": 1.5498,
-        "rr1": 0.37,
-        "rr2": 1.1,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Gia XUYEN THU'NG SMA50 (1.57) trong Bear Market (duoi SMA200) — trailing stop kich hoat!",
-      "status": "Hit TP1 (Da dat TP1)",
-      "age_minutes": 33,
-      "created_at_ts": 1783905162.076784
-    }
-  ],
-  "TAO": [],
-  "AVAX": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "SELL (SFP-Liquidity-Sweep)",
-      "entry": 6.521,
-      "current_price": 6.453,
-      "tp_sl": {
-        "entry": 6.521,
-        "sl": 6.5564,
-        "tp1": 6.4397,
-        "tp2": 6.3857,
-        "rr1": 2.29,
-        "rr2": 3.82,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Quet thanh khoan dinh: wick vuot 6.53 roi dong cua duoi resistance | RSI=71.1 | Bear Market (SMA200 xac nhan)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 33,
-      "created_at_ts": 1783905161.2209625
-    }
-  ],
-  "XLM": [],
-  "AEVO": [],
-  "NEAR": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "BUY (Crossover)",
-      "entry": 1.929,
-      "current_price": 1.902,
-      "tp_sl": {
-        "entry": 1.929,
-        "sl": 1.893,
-        "tp1": 1.965,
-        "tp2": 2.001,
-        "rr1": 1.0,
-        "rr2": 2.0,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 90,
-      "created_at_ts": 1783901763.3394496
-    }
-  ],
-  "AR": [],
-  "TRB": [],
-  "ETH": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "STRONG SELL (Confirmed Reversal)",
-      "entry": 1833.39,
-      "current_price": 1816.82,
-      "tp_sl": {
-        "entry": 1833.39,
-        "sl": 1849.8829,
-        "tp1": 1814.6025,
-        "tp2": 1801.2253,
-        "rr1": 1.14,
-        "rr2": 1.95,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) + Volume Spike (xa hang manh) | Ben tren SMA200 - co the chi la dieu chinh",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 33,
-      "created_at_ts": 1783905160.470125
-    },
-    {
-      "time": "2026-07-13 07:00",
-      "signal": "SELL (SFP-Liquidity-Sweep)",
-      "entry": 1822.26,
-      "current_price": 1816.82,
-      "tp_sl": {
-        "entry": 1822.26,
-        "sl": 1851.4751,
-        "tp1": 1799.288,
-        "tp2": 1765.4144,
-        "rr1": 0.79,
-        "rr2": 1.95,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Quet thanh khoan dinh: wick vuot 1833.40 roi dong cua duoi resistance | RSI=59.1 | Bull Market - co the chi la fakeout | Market regime SIDEWAY: tien hanh can than",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 32,
-      "created_at_ts": 1783905226.1360157
-    }
-  ],
-  "IOTA": [],
-  "BNB": [],
-  "ENA": [],
-  "XPL": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "SELL (Break-SMA50)",
-      "entry": 0.09068,
-      "current_price": 0.08831,
-      "tp_sl": {
-        "entry": 0.0907,
-        "sl": 0.0928,
-        "tp1": 0.0902,
-        "tp2": 0.0883,
-        "rr1": 0.25,
-        "rr2": 1.14,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Gia XUYEN THU'NG SMA50 (0.09) trong Bear Market (duoi SMA200) — trailing stop kich hoat!",
-      "status": "Hit TP1 (Da dat TP1)",
-      "age_minutes": 33,
-      "created_at_ts": 1783905161.7595646
-    }
-  ],
-  "TRX": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "SELL (SFP-Liquidity-Sweep)",
-      "entry": 0.332,
-      "current_price": 0.3318,
-      "tp_sl": {
-        "entry": 0.332,
-        "sl": 0.3324,
-        "tp1": 0.3316,
-        "tp2": 0.3313,
-        "rr1": 1.02,
-        "rr2": 1.84,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Quet thanh khoan dinh: wick vuot 0.33 roi dong cua duoi resistance | RSI=63.7 | Bull Market - co the chi la fakeout",
-      "status": "Hit TP1 (Da dat TP1)",
-      "age_minutes": 33,
-      "created_at_ts": 1783905161.9994955
-    }
-  ],
-  "ZEC": [
-    {
-      "time": "2026-07-13 08:30",
-      "signal": "BUY (Pullback-Zone)",
-      "entry": 532.34,
-      "current_price": 532.41,
-      "tp_sl": {
-        "entry": 532.34,
-        "sl": 520.835,
-        "tp1": 535.657,
-        "tp2": 540.2342,
-        "rr1": 0.29,
-        "rr2": 0.69,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "Gia dieu chinh vao vung EMA21(535.23)-SMA50(536.85), nen xanh xac nhan | SMA50 doc len | SMA200 phia duoi | Chandelier=BULL | Market regime SIDEWAY: tien hanh can than",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 8,
-      "created_at_ts": 1783906634.211095
-    }
-  ],
-  "XAUT": [],
-  "BTC": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "BUY (Crossover)",
-      "entry": 64318.84,
-      "current_price": 63677.99,
-      "tp_sl": {
-        "entry": 64318.84,
-        "sl": 63902.3101,
-        "tp1": 64735.3699,
-        "tp2": 65151.8998,
-        "rr1": 1.0,
-        "rr2": 2.0,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
-      "status": "Hit SL (Da can SL)",
-      "age_minutes": 90,
-      "created_at_ts": 1783901760.8767884
-    }
-  ],
-  "XRP": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "SELL (Break-SMA50)",
-      "entry": 1.096,
-      "current_price": 1.0864,
-      "tp_sl": {
-        "entry": 1.096,
-        "sl": 1.1064,
-        "tp1": 1.0934,
-        "tp2": 1.0833,
-        "rr1": 0.25,
-        "rr2": 1.22,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Gia XUYEN THU'NG SMA50 (1.10) trong Bear Market (duoi SMA200) — trailing stop kich hoat!",
-      "status": "Hit TP1 (Da dat TP1)",
-      "age_minutes": 33,
-      "created_at_ts": 1783905160.821271
-    }
-  ],
-  "SOPH": [],
-  "SOL": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "BUY (Crossover)",
-      "entry": 78.06,
-      "current_price": 76.96,
-      "tp_sl": {
-        "entry": 78.06,
-        "sl": 77.1522,
-        "tp1": 78.9678,
-        "tp2": 79.8755,
-        "rr1": 1.0,
-        "rr2": 2.0,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
-      "status": "Hit SL (Da can SL)",
-      "age_minutes": 90,
-      "created_at_ts": 1783901762.7601051
-    },
-    {
-      "time": "2026-07-13 07:00",
-      "signal": "BUY (Crossover)",
-      "entry": 78.06,
-      "current_price": 76.96,
-      "tp_sl": {
-        "entry": 78.06,
-        "sl": 76.4723,
-        "tp1": 79.6477,
-        "tp2": 81.2353,
-        "rr1": 1.0,
-        "rr2": 2.0,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200) | Sentiment: 26/100 (Sợ hãi)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 90,
-      "created_at_ts": 1783901762.7894478
-    },
-    {
-      "time": "2026-07-13 08:30",
+      "time": "2026-07-13 14:45",
       "signal": "SELL (Crossover)",
-      "entry": 77.01,
-      "current_price": 76.96,
+      "entry": 1.544,
+      "current_price": 1.549,
       "tp_sl": {
-        "entry": 77.01,
-        "sl": 78.0507,
-        "tp1": 75.9693,
-        "tp2": 74.9285,
-        "rr1": 1.0,
-        "rr2": 2.0,
+        "entry": 1.544,
+        "sl": 1.5652,
+        "tp1": 1.5422,
+        "tp2": 1.5338,
+        "rr1": 0.08,
+        "rr2": 0.48,
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
       "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 15,
-      "created_at_ts": 1783906263.1517317
-    },
+      "age_minutes": 30,
+      "created_at_ts": 1783928766.5604253
+    }
+  ],
+  "TAO": [],
+  "AVAX": [],
+  "XLM": [],
+  "AEVO": [],
+  "NEAR": [],
+  "AR": [],
+  "TRB": [],
+  "ETH": [],
+  "IOTA": [],
+  "BNB": [],
+  "ENA": [],
+  "XPL": [],
+  "TRX": [],
+  "ZEC": [],
+  "XAUT": [],
+  "BTC": [],
+  "XRP": [],
+  "SOPH": [],
+  "SOL": [],
+  "WLD": [
     {
-      "time": "2026-07-13 08:00",
+      "time": "2026-07-13 15:00",
       "signal": "SELL (Crossover)",
-      "entry": 77.01,
-      "current_price": 76.96,
+      "entry": 0.4149,
+      "current_price": 0.4141,
       "tp_sl": {
-        "entry": 77.01,
-        "sl": 78.6557,
-        "tp1": 75.3643,
-        "tp2": 73.7186,
-        "rr1": 1.0,
-        "rr2": 2.0,
+        "entry": 0.4149,
+        "sl": 0.4377,
+        "tp1": 0.3692,
+        "tp2": 0.3236,
+        "rr1": 2.0,
+        "rr2": 4.0,
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
       "age_minutes": 15,
-      "created_at_ts": 1783906263.207617
+      "created_at_ts": 1783929665.6302364
     }
   ],
-  "WLD": [],
-  "DOGE": [
-    {
-      "time": "2026-07-13 07:15",
-      "signal": "BUY (Crossover)",
-      "entry": 0.07393,
-      "current_price": 0.07308,
-      "tp_sl": {
-        "entry": 0.0739,
-        "sl": 0.073,
-        "tp1": 0.0754,
-        "tp2": 0.0769,
-        "rr1": 1.67,
-        "rr2": 3.33,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
-      "status": "Hit SL (Da can SL)",
-      "age_minutes": 90,
-      "created_at_ts": 1783901763.0544305
-    }
-  ]
+  "DOGE": []
 }

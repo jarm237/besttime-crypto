@@ -25,6 +25,52 @@ def test_metadata_distinguishes_real_zero_from_missing(tmp_path):
     assert payload["feature_metadata"]["funding_rate"]["source"] == "binance"
 
 
+def test_impossible_and_unevidenced_zeros_are_missing():
+    payload = normalize_alternative_payload(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **_required_values(),
+            "open_interest": 0.0,
+            "stablecoin_supply": 0.0,
+            "stablecoin_supply_total": 0.0,
+            "options_iv": 0.0,
+            "iv_skew": 0.0,
+            "sentiment_score": 0.0,
+            "social_sentiment": 0.0,
+        },
+        raw_store_dir=None,
+    )
+    for field in (
+        "open_interest",
+        "stablecoin_supply",
+        "stablecoin_supply_total",
+        "options_iv",
+        "iv_skew",
+        "sentiment_score",
+        "social_sentiment",
+    ):
+        assert payload[field] is None
+        assert payload["feature_metadata"][field]["available"] is False
+
+
+def test_observed_neutral_value_remains_available():
+    payload = normalize_alternative_payload(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **_required_values(),
+            "sentiment_score": 0.0,
+            "sentiment_score_sample_count": 25,
+            "raw_sentiment_score": 0.0,
+            "_statuses": {"google_trends": {"status": "success"}},
+        },
+        raw_store_dir=None,
+    )
+    metadata = payload["feature_metadata"]["sentiment_score"]
+    assert payload["sentiment_score"] == 0.0
+    assert metadata["available"] is True
+    assert metadata["sample_count"] == 25
+
+
 def test_metadata_uses_collector_observation_time_not_snapshot_time():
     observed_at = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
     payload = normalize_alternative_payload(

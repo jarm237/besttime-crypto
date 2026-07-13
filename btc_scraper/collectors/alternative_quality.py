@@ -49,18 +49,18 @@ FIELD_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float]]] = {
     "defi_liquidity_score": (-1.0, 1.0),
 
     # raw positive values
-    "stablecoin_supply_total": (0.0, None),
+    "stablecoin_supply_total": (1e-12, None),
     "tvl": (0.0, None),
     "chain_tvl": (0.0, None),
     "hashrate": (0.0, None),
     "active_addresses": (0.0, None),
-    "open_interest": (0.0, None),
+    "open_interest": (1e-12, None),
     
     # original raw values bounds for compatibility
     "funding_rate": (-0.1, 0.1),
-    "stablecoin_supply": (0.0, None),
+    "stablecoin_supply": (1e-12, None),
     "etf_flow": (None, None),
-    "options_iv": (0.0, 5.0),
+    "options_iv": (1e-12, 5.0),
     "whale_score": (0.0, 1.0),
     "exchange_netflow": (None, None),
     "dxy": (60.0, 160.0),

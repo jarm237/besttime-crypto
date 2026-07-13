@@ -97,15 +97,21 @@ class GoogleTrendsCollector(CollectorBase):
             "status": "success",
             "reason": None,
             "timestamp": timestamp,
-            "data": {"sentiment_score": 0.0},
-            "sentiment_score": 0.0,
+            "data": {"sentiment_score": None},
+            "sentiment_score": None,
             "search_interest_confidence": 0.0,
+            "sample_count": 0,
+            "raw_sentiment_score": None,
+            "field_statuses": {},
         }
 
         if not self.enabled:
             payload["status"] = "skipped"
-            payload["reason"] = "disabled_by_env"
+            payload["reason"] = "collector_disabled_or_no_samples"
             payload["data"] = None
+            payload["field_statuses"]["sentiment_score"] = {
+                "status": "missing", "reason": "collector_disabled_or_no_samples"
+            }
             if self.output_path is not None:
                 self._write_json(payload, self.output_path)
             return payload
@@ -114,8 +120,10 @@ class GoogleTrendsCollector(CollectorBase):
         if not force:
             cached = _read_cache(self.keyword)
             if cached is not None:
-                payload["sentiment_score"] = cached.get("sentiment_score", 0.0)
+                payload["sentiment_score"] = cached.get("sentiment_score")
                 payload["search_interest_confidence"] = cached.get("confidence", 0.35)
+                payload["sample_count"] = cached.get("sample_count", 1)
+                payload["raw_sentiment_score"] = cached.get("raw_value")
                 payload["data"]["sentiment_score"] = payload["sentiment_score"]
                 payload["status"] = "cached"
                 payload["reason"] = "served_from_cache"
@@ -145,6 +153,8 @@ class GoogleTrendsCollector(CollectorBase):
                     if df is not None and not df.empty and self.keyword in df.columns:
                         last_val = float(df[self.keyword].iloc[-1])
                         payload["sentiment_score"] = last_val / 100.0  # Normalize to 0-1
+                        payload["raw_sentiment_score"] = last_val
+                        payload["sample_count"] = len(df)
                         payload["search_interest_confidence"] = 0.35  # Low confidence due to unofficial source
                         payload["data"]["sentiment_score"] = payload["sentiment_score"]
                         payload["status"] = "success"
@@ -155,6 +165,8 @@ class GoogleTrendsCollector(CollectorBase):
                             {
                                 "sentiment_score": payload["sentiment_score"],
                                 "confidence": 0.35,
+                                "raw_value": last_val,
+                                "sample_count": len(df),
                                 "cached_at": datetime.now(timezone.utc).isoformat(),
                             },
                         )
@@ -162,7 +174,10 @@ class GoogleTrendsCollector(CollectorBase):
                     else:
                         _logger.debug("pytrends returned empty dataframe or missing column")
                         payload["status"] = "fallback"
-                        payload["reason"] = "empty_response"
+                        payload["reason"] = "collector_disabled_or_no_samples"
+                        payload["field_statuses"]["sentiment_score"] = {
+                            "status": "missing", "reason": "collector_disabled_or_no_samples"
+                        }
 
                 except Exception as py_err:
                     # Handle 429 gracefully
@@ -171,15 +186,24 @@ class GoogleTrendsCollector(CollectorBase):
                         payload["status"] = "rate_limited"
                         payload["reason"] = "429_too_many_requests"
                         payload["search_interest_confidence"] = 0.0  # No confidence when rate-limited
+                        payload["field_statuses"]["sentiment_score"] = {
+                            "status": "missing", "reason": "429_too_many_requests"
+                        }
                     else:
                         _logger.warning("pytrends failed: %s", py_err)
                         payload["status"] = "error"
                         payload["reason"] = str(py_err)
+                        payload["field_statuses"]["sentiment_score"] = {
+                            "status": "error", "reason": str(py_err)
+                        }
                         
             else:
                 _logger.warning("pytrends not installed")
                 payload["status"] = "error"
                 payload["reason"] = "pytrends_not_installed"
+                payload["field_statuses"]["sentiment_score"] = {
+                    "status": "error", "reason": "pytrends_not_installed"
+                }
 
         except Exception as e:
             _logger.warning("GoogleTrendsCollector failed: %s", e)
@@ -189,8 +213,13 @@ class GoogleTrendsCollector(CollectorBase):
                 "reason": repr(e),
                 "timestamp": timestamp,
                 "data": None,
-                "sentiment_score": 0.0,
+                "sentiment_score": None,
                 "search_interest_confidence": 0.0,
+                "sample_count": 0,
+                "raw_sentiment_score": None,
+                "field_statuses": {
+                    "sentiment_score": {"status": "error", "reason": repr(e)}
+                },
             }
 
         if self.output_path is not None:

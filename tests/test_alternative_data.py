@@ -19,7 +19,7 @@ def test_collect_alternative_data_writes_defaults(tmp_path):
     assert payload["timestamp"]
     assert payload["exchange_netflow"] is None
     assert payload["whale_score"] is None
-    assert payload["stablecoin_supply"] == 0.0
+    assert payload["stablecoin_supply"] is None or payload["stablecoin_supply"] > 0.0
     assert output_path.exists()
 
     saved = json.loads(output_path.read_text(encoding="utf-8"))
@@ -87,7 +87,7 @@ def test_normalize_alternative_payload_builds_derived_features(tmp_path):
     assert normalized["chain_tvl"] is None
     assert normalized["defi_liquidity_score"] is None
     assert normalized["macro_risk_score"] == 0.485
-    assert normalized["open_interest_pressure"] is None
+    assert normalized["open_interest_pressure"] == (1000000.0 - 900000.0) / 900000.0
     assert normalized["large_tx_proxy_score"] is None
     assert normalized.get("options_iv_rank") is None
     assert normalized.get("options_skew") is None
@@ -108,8 +108,8 @@ def test_collect_alternative_data_exports_snapshot(tmp_path):
     assert output_path.exists()
     assert snapshot_path.exists()
     assert payload["timestamp"]
-    assert payload["stablecoin_supply_total"] >= 0.0
-    assert payload["chain_tvl"] >= 0.0
+    assert payload["stablecoin_supply_total"] is None or payload["stablecoin_supply_total"] > 0.0
+    assert payload["chain_tvl"] is None or payload["chain_tvl"] > 0.0
     assert payload["defi_liquidity_score"] is None
     assert payload["macro_risk_score"] >= 0.0
     assert payload["open_interest_pressure"] is None

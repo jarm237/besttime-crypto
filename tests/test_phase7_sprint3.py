@@ -78,12 +78,23 @@ class Phase7Sprint3Tests(unittest.TestCase):
         self.assertEqual(data["reason"], "disabled_by_env")
 
     def test_deribit_collector_parses_iv(self):
-        fake_payload = {"result": [{"mark_iv": 0.6, "best_ask_iv": 0.65, "best_bid_iv": 0.55}]}
-        with patch("btc_scraper.collectors.deribit_collector._fetch_json", return_value=fake_payload):
+        dvol_payload = {"result": {"data": [[1, 54.0, 58.0, 53.0, 55.7]]}}
+        summary_payload = {
+            "result": [
+                {"instrument_name": "BTC-31JUL26-90000-P", "mark_iv": 60.0, "delta": -0.25},
+                {"instrument_name": "BTC-31JUL26-120000-C", "mark_iv": 55.0, "delta": 0.25},
+            ]
+        }
+        with patch(
+            "btc_scraper.collectors.deribit_collector._fetch_json",
+            side_effect=[dvol_payload, summary_payload],
+        ):
             collector = DeribitCollector(output_path=str(Path(tempfile.gettempdir()) / "deribit.json"))
             data = collector.collect(force=True)
-        self.assertEqual(data["options_iv"], 0.6)
-        self.assertEqual(data["iv_skew"], 0.1)
+        self.assertEqual(data["raw_options_iv"], 55.7)
+        self.assertEqual(data["options_iv"], 0.557)
+        self.assertAlmostEqual(data["iv_skew"], 0.05)
+        self.assertEqual(data["options_iv_unit"], "decimal")
 
     def test_etf_collector_parses_flow(self):
         from btc_scraper.collectors.etf_providers import ETFFlowResult

@@ -58,6 +58,7 @@ class AlternativeDataCollector(CollectorBase):
         payload = _default_payload()
         payload.setdefault("_errors", {})
         payload.setdefault("_statuses", {})
+        payload.setdefault("_field_statuses", {})
 
         try:
             binance_payload = BinanceCollector().collect(force=force)
@@ -66,7 +67,14 @@ class AlternativeDataCollector(CollectorBase):
                 "reason": binance_payload.get("reason"),
                 "observed_at": binance_payload.get("timestamp"),
             }
-            payload.update({"funding_rate": binance_payload.get("funding_rate"), "open_interest": binance_payload.get("open_interest")})
+            payload.update({
+                "funding_rate": binance_payload.get("funding_rate"),
+                "open_interest": binance_payload.get("open_interest"),
+                "orderbook_imbalance": binance_payload.get("orderbook_imbalance"),
+                "raw_open_interest": binance_payload.get("raw_open_interest"),
+                "orderbook_imbalance_sample_count": binance_payload.get("orderbook_sample_count"),
+            })
+            payload["_field_statuses"].update(binance_payload.get("field_statuses", {}))
             if isinstance(binance_payload, dict) and binance_payload.get("error"):
                 payload["_errors"]["binance"] = binance_payload.get("error")
         except Exception as e:
@@ -87,7 +95,11 @@ class AlternativeDataCollector(CollectorBase):
                 "tvl": defillama_payload.get("tvl"),
                 "chain_tvl": defillama_payload.get("chain_tvl"),
                 "protocol_tvl": defillama_payload.get("protocol_tvl"),
+                "raw_stablecoin_supply": defillama_payload.get("raw_stablecoin_supply"),
+                "stablecoin_supply_sample_count": defillama_payload.get("stablecoin_sample_count"),
+                "stablecoin_supply_total_sample_count": defillama_payload.get("stablecoin_sample_count"),
             })
+            payload["_field_statuses"].update(defillama_payload.get("field_statuses", {}))
             if isinstance(defillama_payload, dict) and defillama_payload.get("error"):
                 payload["_errors"]["defillama"] = defillama_payload.get("error")
         except Exception as e:
@@ -175,7 +187,20 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             deribit_payload = DeribitCollector().collect(force=force)
-            payload.update({"options_iv": deribit_payload.get("options_iv"), "iv_skew": deribit_payload.get("iv_skew")})
+            payload["_statuses"]["deribit"] = {
+                "status": deribit_payload.get("status", "success"),
+                "reason": deribit_payload.get("reason"),
+                "observed_at": deribit_payload.get("timestamp"),
+            }
+            payload.update({
+                "options_iv": deribit_payload.get("options_iv"),
+                "iv_skew": deribit_payload.get("iv_skew"),
+                "raw_options_iv": deribit_payload.get("raw_options_iv"),
+                "options_iv_unit": deribit_payload.get("options_iv_unit"),
+                "options_iv_sample_count": deribit_payload.get("options_iv_sample_count"),
+                "iv_skew_sample_count": deribit_payload.get("iv_skew_sample_count"),
+            })
+            payload["_field_statuses"].update(deribit_payload.get("field_statuses", {}))
             if isinstance(deribit_payload, dict) and deribit_payload.get("error"):
                 payload["_errors"]["deribit"] = deribit_payload.get("error")
         except Exception as e:
@@ -193,7 +218,17 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             google_payload = GoogleTrendsCollector().collect(force=force)
-            payload.update({"sentiment_score": google_payload.get("sentiment_score")})
+            payload["_statuses"]["google_trends"] = {
+                "status": google_payload.get("status", "success"),
+                "reason": google_payload.get("reason"),
+                "observed_at": google_payload.get("timestamp"),
+            }
+            payload.update({
+                "sentiment_score": google_payload.get("sentiment_score"),
+                "sentiment_score_sample_count": google_payload.get("sample_count"),
+                "raw_sentiment_score": google_payload.get("raw_sentiment_score"),
+            })
+            payload["_field_statuses"].update(google_payload.get("field_statuses", {}))
             if isinstance(google_payload, dict) and google_payload.get("error"):
                 payload["_errors"]["google_trends"] = google_payload.get("error")
         except Exception as e:
@@ -202,7 +237,17 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             reddit_payload = RedditCollector().collect(force=force)
-            payload.update({"social_sentiment": reddit_payload.get("sentiment_score")})
+            payload["_statuses"]["reddit"] = {
+                "status": reddit_payload.get("status", "success"),
+                "reason": reddit_payload.get("reason"),
+                "observed_at": reddit_payload.get("timestamp"),
+            }
+            payload.update({
+                "social_sentiment": reddit_payload.get("sentiment_score"),
+                "social_sentiment_sample_count": reddit_payload.get("sentiment_volume"),
+                "raw_social_sentiment": reddit_payload.get("sentiment_score"),
+            })
+            payload["_field_statuses"].update(reddit_payload.get("field_statuses", {}))
             if isinstance(reddit_payload, dict) and reddit_payload.get("error"):
                 payload["_errors"]["reddit"] = reddit_payload.get("error")
         except Exception as e:
@@ -353,9 +398,11 @@ def normalize_alternative_payload(
     """Normalize a payload while preserving missing values as ``None``.
 
     This boundary is the missing-data contract: NaN is never persisted and a
-    real zero survives unchanged. Model-only imputation belongs downstream.
+    zero survives only when the feature permits zero and collector evidence is
+    present. Model-only imputation belongs downstream.
     """
     normalized = _merge_default_payload(payload)
+    _apply_missing_data_contract(normalized)
 
     prev = previous_payload or {}
     prev = dict(prev)
@@ -388,9 +435,12 @@ def normalize_alternative_payload(
     funding_pressure = clamp(funding_rate / 0.001) if funding_rate is not None else None
     normalized["funding_pressure"] = funding_pressure
 
-    normalized["orderbook_imbalance"] = None
+    normalized["open_interest_pressure"] = None
     if open_interest is not None and previous_open_interest is not None:
-        normalized["orderbook_imbalance"] = clamp((open_interest - previous_open_interest) / max(abs(previous_open_interest), 1.0))
+        if previous_open_interest > 0:
+            normalized["open_interest_pressure"] = clamp(
+                (open_interest - previous_open_interest) / previous_open_interest
+            )
 
     normalized["liquidity_pressure"] = None
     if exchange_netflow is not None and previous_exchange_netflow is not None:
@@ -475,14 +525,52 @@ def _sanitize_registered_values(payload: Dict[str, Any]) -> None:
             payload[field] = None
 
 
+def _apply_missing_data_contract(payload: Dict[str, Any]) -> None:
+    """Reject impossible zeros and unevidenced neutral values at the boundary."""
+    field_statuses = payload.setdefault("_field_statuses", {})
+    strictly_positive = {
+        "open_interest": "zero_or_missing_open_interest",
+        "stablecoin_supply": "zero_or_missing_stablecoin_supply",
+        "stablecoin_supply_total": "zero_or_missing_stablecoin_supply_total",
+        "options_iv": "zero_or_missing_dvol",
+    }
+    for field, reason in strictly_positive.items():
+        value = safe_float(payload.get(field))
+        if value is not None and value <= 0:
+            payload[field] = None
+            field_statuses[field] = {"status": "invalid", "reason": reason}
+
+    # Exact zero is possible for these features, but it is only an observation
+    # when the collector provides evidence that samples were actually parsed.
+    evidence_required_for_zero = {
+        "iv_skew",
+        "sentiment_score",
+        "social_sentiment",
+        "orderbook_imbalance",
+    }
+    for field in evidence_required_for_zero:
+        if safe_float(payload.get(field)) != 0.0:
+            continue
+        sample_count = safe_float(payload.get(field + "_sample_count"))
+        if sample_count is None or sample_count <= 0:
+            payload[field] = None
+            field_statuses[field] = {
+                "status": "missing",
+                "reason": "collector_disabled_or_no_samples",
+            }
+
+
 def _build_feature_metadata(payload: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     """Attach per-feature availability, provenance and freshness metadata."""
     statuses = payload.get("_statuses", {})
+    field_statuses = payload.get("_field_statuses", {})
     metadata: Dict[str, Dict[str, Any]] = {}
     for field, spec in FEATURE_SOURCE_REGISTRY.items():
         value = payload.get(field)
         source_state = statuses.get(spec.source, {})
         source_status = source_state.get("status")
+        field_state = field_statuses.get(field, {})
+        field_status = field_state.get("status")
         # Collector timestamps are the source-observation time.  Aggregate
         # payload time is only a fallback for legacy collectors.
         observed_at = source_state.get("observed_at") or payload.get("timestamp")
@@ -495,8 +583,20 @@ def _build_feature_metadata(payload: Dict[str, Any]) -> Dict[str, Dict[str, Any]
                 age_seconds = max(0.0, (datetime.now(timezone.utc) - observed).total_seconds())
             except (TypeError, ValueError):
                 observed_at = None
-        available = value is not None and source_status not in {"error", "skipped"}
-        status = "available" if available else ("source_error" if source_status == "error" else "missing")
+        unavailable_statuses = {"error", "skipped", "missing", "invalid", "fallback", "rate_limited"}
+        available = (
+            value is not None
+            and source_status not in unavailable_statuses
+            and field_status not in unavailable_statuses
+        )
+        if available:
+            status = "available"
+        elif field_status:
+            status = field_status
+        elif source_status == "error":
+            status = "source_error"
+        else:
+            status = "missing"
         stale = bool(source_state.get("is_stale")) or source_status == "stale" or (
             age_seconds is not None and age_seconds > spec.max_age_seconds
         )
@@ -508,6 +608,9 @@ def _build_feature_metadata(payload: Dict[str, Any]) -> Dict[str, Dict[str, Any]
             "observed_at": observed_at if available else None,
             "age_seconds": age_seconds,
             "is_stale": bool(stale),
+            "reason": field_state.get("reason") or (source_state.get("reason") if not available else None),
+            "raw_value": payload.get("raw_" + field),
+            "sample_count": payload.get(field + "_sample_count"),
         }
     return metadata
 

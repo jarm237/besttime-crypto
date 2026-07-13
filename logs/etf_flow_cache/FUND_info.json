@@ -7,7 +7,7 @@
   "value": {
     "status": "success",
     "data": {
-      "NAV (12th July 2026)": "£179.07",
+      "NAV (13th July 2026)": "£179.24",
       "Launch price": "£100.00",
       "Launch date": "29 March 2022",
       "Investment advisor": "FS Investors Ltd",
@@ -19,6 +19,6 @@
     }
   },
   "data_quality": 1.0,
-  "fetched_at": "2026-07-12T15:33:30.327257+00:00",
+  "fetched_at": "2026-07-13T06:46:15.606021+00:00",
   "error": null
 }

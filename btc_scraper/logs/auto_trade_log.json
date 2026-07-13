@@ -10613,5 +10613,43 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 532.34
+  },
+  {
+    "timestamp": "2026-07-13T09:01:11.197824",
+    "timestamp_str": "2026-07-13 09:01:11",
+    "mode": "DRY_RUN",
+    "coin": "ETH",
+    "symbol": "ETH/USDT",
+    "direction": "SHORT",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.5636,
+    "meta_confidence_pct": 56,
+    "signal_score": 52,
+    "order_type": "market",
+    "entry_price": 1806.95,
+    "sl_price": 1836.0481,
+    "tp1_price": 1777.8519,
+    "usdt_amount": 75.0,
+    "account_balance_est": 500.0,
+    "order_id": "2f03a4b0-6f3",
+    "status": "FILLED",
+    "error": null,
+    "filled_price": 1806.8596525000003,
+    "execution_id": "2f03a4b0-6f3",
+    "guard_action": "PASS",
+    "expected_slippage_bps": 0.0,
+    "liquidity_score": 0.5996
+  },
+  {
+    "timestamp": "2026-07-13T14:46:10.407904",
+    "timestamp_str": "2026-07-13 14:46:10",
+    "mode": "DRY_RUN",
+    "coin": "TRUMP",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.6327,
+    "signal_score": 52,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 1.544
   }
 ]

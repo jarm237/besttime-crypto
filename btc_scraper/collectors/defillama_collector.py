@@ -29,25 +29,86 @@ DEFILLAMA_ENDPOINTS = {
 }
 
 
-def _safe_float(value: Any) -> float:
+def _safe_float(value: Any) -> Optional[float]:
     try:
-        return float(value)
-    except Exception:
-        return 0.0
+        parsed = float(value)
+        return parsed if parsed >= 0 else None
+    except (TypeError, ValueError):
+        return None
 
 
-def _sum_numeric_items(items: Any, keys: tuple[str, ...]) -> float:
+def _sum_numeric_items(items: Any, keys: tuple[str, ...]) -> Optional[float]:
     if not isinstance(items, list):
-        return 0.0
+        return None
     total = 0.0
+    samples = 0
     for item in items:
         if not isinstance(item, dict):
             continue
         for key in keys:
             if key in item:
-                total += _safe_float(item.get(key))
-                break
-    return total
+                value = _safe_float(item.get(key))
+                if value is not None:
+                    total += value
+                    samples += 1
+                    break
+    return total if samples else None
+
+
+def _pegged_usd(value: Any) -> Optional[float]:
+    """Extract a DefiLlama pegged-asset amount without treating absence as zero."""
+    if isinstance(value, (int, float, str)):
+        return _safe_float(value)
+    if not isinstance(value, dict):
+        return None
+    for key in ("peggedUSD", "usd", "value"):
+        parsed = _safe_float(value.get(key))
+        if parsed is not None:
+            return parsed
+    return None
+
+
+def _parse_stablecoin_supply(data: Any) -> tuple[Optional[float], int]:
+    """Parse both /stablecoins and /stablecoincharts/all response schemas."""
+    if isinstance(data, dict):
+        direct = _safe_float(data.get("total"))
+        if direct is not None and direct > 0:
+            return direct, 1
+
+        legacy = _pegged_usd(data.get("data", {}).get("totalStablecoins"))
+        if legacy is not None and legacy > 0:
+            return legacy, 1
+
+        assets = data.get("peggedAssets")
+        if not isinstance(assets, list):
+            assets = data.get("data", {}).get("coins")
+        if isinstance(assets, list):
+            values = [
+                _pegged_usd(asset.get("circulating") or asset.get("circulatingPrevDay"))
+                for asset in assets if isinstance(asset, dict)
+            ]
+            values = [value for value in values if value is not None]
+            return (sum(values), len(values)) if values else (None, 0)
+
+    if isinstance(data, list) and data:
+        # Chart rows are historical totals; summing them would multiply supply
+        # by the number of days. Use the latest parseable observation.
+        for row in reversed(data):
+            if not isinstance(row, dict):
+                continue
+            value = _pegged_usd(
+                row.get("totalCirculating")
+                or row.get("totalCirculatingUSD")
+                or row.get("circulating")
+            )
+            if value is not None and value > 0:
+                return value, 1
+        total = _sum_numeric_items(
+            data,
+            ("marketCap", "market_cap", "marketCapUsd", "market_cap_usd", "totalSupply", "total_supply"),
+        )
+        return (total, len(data)) if total is not None and total > 0 else (None, 0)
+    return None, 0
 
 
 def _fetch_json(url: str) -> Any:
@@ -94,17 +155,18 @@ class DefiLlamaCollector(CollectorBase):
             "reason": None,
             "timestamp": timestamp,
             "data": {
-                "stablecoin_supply": 0.0,
-                "stablecoin_supply_total": 0.0,
-                "tvl": 0.0,
-                "chain_tvl": 0.0,
-                "protocol_tvl": 0.0,
+                "stablecoin_supply": None,
+                "stablecoin_supply_total": None,
+                "tvl": None,
+                "chain_tvl": None,
+                "protocol_tvl": None,
             },
-            "stablecoin_supply": 0.0,
-            "stablecoin_supply_total": 0.0,
-            "tvl": 0.0,
-            "chain_tvl": 0.0,
-            "protocol_tvl": 0.0,
+            "stablecoin_supply": None,
+            "stablecoin_supply_total": None,
+            "tvl": None,
+            "chain_tvl": None,
+            "protocol_tvl": None,
+            "field_statuses": {},
         }
 
         if not self.enabled:
@@ -122,51 +184,37 @@ class DefiLlamaCollector(CollectorBase):
                 DEFILLAMA_ENDPOINTS.get("stablecoins"),
                 DEFILLAMA_ENDPOINTS.get("stablecoin_charts"),
             ])
-            stablecoins = 0.0
-            if isinstance(stable_data, dict):
-                if stable_data.get("total") is not None:
-                    stablecoins = _safe_float(stable_data.get("total"))
-                else:
-                    stablecoins = _safe_float(
-                        stable_data.get("data", {}).get("totalStablecoins", {}).get("value")
-                    )
-                    if stablecoins == 0.0 and isinstance(stable_data.get("data", {}).get("coins"), list):
-                        stablecoins = _sum_numeric_items(
-                            stable_data.get("data", {}).get("coins", []),
-                            ("marketCap", "market_cap", "marketCapUsd", "market_cap_usd", "totalSupply", "total_supply"),
-                        )
-            elif isinstance(stable_data, list):
-                stablecoins = _sum_numeric_items(
-                    stable_data,
-                    ("marketCap", "market_cap", "marketCapUsd", "market_cap_usd", "totalSupply", "total_supply"),
-                )
+            stablecoins, stablecoin_samples = _parse_stablecoin_supply(stable_data)
 
-            chain_tvl = 0.0
+            chain_tvl = None
             chain_data = _fetch_json(DEFILLAMA_ENDPOINTS.get("chains"))
             if isinstance(chain_data, list) and chain_data:
                 chain_tvl = _sum_numeric_items(chain_data, ("tvl", "tvlUsd", "tvl_usd"))
 
-            protocol_tvl = 0.0
+            protocol_tvl = None
             protocol_data = _fetch_json(DEFILLAMA_ENDPOINTS.get("protocols"))
             if isinstance(protocol_data, list) and protocol_data:
                 protocol_tvl = _sum_numeric_items(protocol_data, ("tvl", "tvlUsd", "tvl_usd"))
 
-            tvl = max(chain_tvl, protocol_tvl)
-            if tvl == 0.0 and isinstance(chain_data, list) and chain_data:
-                tvl = chain_tvl
-            elif tvl == 0.0 and isinstance(protocol_data, list) and protocol_data:
-                tvl = protocol_tvl
+            tvl_values = [value for value in (chain_tvl, protocol_tvl) if value is not None and value > 0]
+            tvl = max(tvl_values) if tvl_values else None
 
-            payload["stablecoin_supply"] = float(stablecoins or 0.0)
-            payload["stablecoin_supply_total"] = float(stablecoins or 0.0)
-            payload["tvl"] = float(tvl or 0.0)
-            payload["chain_tvl"] = float(chain_tvl or 0.0)
-            payload["protocol_tvl"] = float(protocol_tvl or 0.0)
-            payload["data"]["stablecoin_supply"] = float(stablecoins or 0.0)
-            payload["data"]["stablecoin_supply_total"] = float(stablecoins or 0.0)
-            payload["data"]["tvl"] = float(tvl or 0.0)
-            payload["data"]["chain_tvl"] = float(chain_tvl or 0.0)
-            payload["data"]["protocol_tvl"] = float(protocol_tvl or 0.0)
+            for field, value in {
+                "stablecoin_supply": stablecoins,
+                "stablecoin_supply_total": stablecoins,
+                "tvl": tvl,
+                "chain_tvl": chain_tvl,
+                "protocol_tvl": protocol_tvl,
+            }.items():
+                payload[field] = value
+                payload["data"][field] = value
+                if value is None or value <= 0:
+                    payload["field_statuses"][field] = {
+                        "status": "invalid",
+                        "reason": "zero_or_missing_" + field,
+                    }
+            payload["stablecoin_sample_count"] = stablecoin_samples
+            payload["raw_stablecoin_supply"] = stablecoins
         except Exception as e:
             _logger.exception("DefiLlamaCollector failed")
             payload = {
@@ -175,8 +223,15 @@ class DefiLlamaCollector(CollectorBase):
                 "reason": repr(e),
                 "timestamp": timestamp,
                 "data": None,
-                "stablecoin_supply": 0.0,
-                "tvl": 0.0,
+                "stablecoin_supply": None,
+                "stablecoin_supply_total": None,
+                "tvl": None,
+                "chain_tvl": None,
+                "protocol_tvl": None,
+                "field_statuses": {
+                    field: {"status": "error", "reason": repr(e)}
+                    for field in ("stablecoin_supply", "stablecoin_supply_total", "tvl", "chain_tvl", "protocol_tvl")
+                },
             }
 
         if self.output_path is not None:

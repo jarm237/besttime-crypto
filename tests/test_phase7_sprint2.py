@@ -13,17 +13,33 @@ from btc_scraper.collectors.yahoo_collector import YahooCollector
 
 class Phase7Sprint2Tests(unittest.TestCase):
     def test_binance_collector_parses_funding_and_oi(self):
-        fake_payload = [
-            {"fundingRate": "0.0001"},
-            {"openInterest": "12345"},
-        ]
+        def fake_fetch(url):
+            if "fundingRate" in url:
+                return [{"fundingRate": "0.0001"}]
+            if "openInterest" in url:
+                return {"openInterest": "12345"}
+            return {"bids": [["100", "3"]], "asks": [["101", "1"]]}
 
-        with patch("btc_scraper.collectors.binance_collector._fetch_json", return_value=fake_payload):
+        with patch("btc_scraper.collectors.binance_collector._fetch_json", side_effect=fake_fetch):
             collector = BinanceCollector(output_path=str(Path(tempfile.gettempdir()) / "binance.json"))
             data = collector.collect(force=True)
 
         self.assertEqual(data["funding_rate"], 0.0001)
         self.assertEqual(data["open_interest"], 12345.0)
+        self.assertEqual(data["orderbook_imbalance"], 0.5)
+
+    def test_binance_rejects_zero_open_interest(self):
+        def fake_fetch(url):
+            if "fundingRate" in url:
+                return [{"fundingRate": "0.0001"}]
+            if "openInterest" in url:
+                return {"openInterest": "0"}
+            return {"bids": [], "asks": []}
+
+        with patch("btc_scraper.collectors.binance_collector._fetch_json", side_effect=fake_fetch):
+            data = BinanceCollector().collect(force=True)
+        self.assertIsNone(data["open_interest"])
+        self.assertEqual(data["field_statuses"]["open_interest"]["status"], "invalid")
 
     def test_defillama_collector_parses_stablecoin_and_tvl(self):
         stable_payload = {
@@ -43,6 +59,21 @@ class Phase7Sprint2Tests(unittest.TestCase):
         self.assertEqual(data["chain_tvl"], 150000000000.0)
         self.assertEqual(data["protocol_tvl"], 50000000000.0)
         self.assertEqual(data["tvl"], 150000000000.0)
+
+    def test_defillama_parses_current_circulating_supply(self):
+        stable_payload = {
+            "peggedAssets": [
+                {"symbol": "USDT", "circulating": {"peggedUSD": 100.0}},
+                {"symbol": "USDC", "circulating": {"peggedUSD": 50.0}},
+            ]
+        }
+        with patch(
+            "btc_scraper.collectors.defillama_collector._fetch_json",
+            side_effect=[stable_payload, [], []],
+        ):
+            data = DefiLlamaCollector().collect(force=True)
+        self.assertEqual(data["stablecoin_supply"], 150.0)
+        self.assertEqual(data["stablecoin_sample_count"], 2)
 
     def test_fred_collector_parses_macro_series(self):
         fake_payload = {

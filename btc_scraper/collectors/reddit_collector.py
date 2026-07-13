@@ -30,16 +30,20 @@ class RedditCollector(CollectorBase):
             "status": "success",
             "reason": None,
             "timestamp": timestamp,
-            "data": {"sentiment_score": 0.0},
-            "sentiment_score": 0.0,
+            "data": {"sentiment_score": None},
+            "sentiment_score": None,
             "sentiment_volume": 0,
-            "sentiment_zscore": 0.0,
+            "sentiment_zscore": None,
+            "field_statuses": {},
         }
 
         if not self.enabled:
             payload["status"] = "skipped"
-            payload["reason"] = "disabled_by_env"
+            payload["reason"] = "collector_disabled_or_no_samples"
             payload["data"] = None
+            payload["field_statuses"]["social_sentiment"] = {
+                "status": "missing", "reason": "collector_disabled_or_no_samples"
+            }
             if self.output_path is not None:
                 self._write_json(payload, self.output_path)
             return payload
@@ -49,7 +53,8 @@ class RedditCollector(CollectorBase):
             collector = RedditOAuthCollector()
             result = collector.collect()
 
-            if result is not None:
+            minimum_samples = max(1, int(os.getenv("REDDIT_MIN_SENTIMENT_SAMPLES", "10")))
+            if result is not None and result.posts_analyzed >= minimum_samples:
                 payload["sentiment_score"] = result.sentiment_score
                 payload["sentiment_volume"] = result.sentiment_volume
                 payload["sentiment_zscore"] = result.sentiment_zscore
@@ -64,8 +69,11 @@ class RedditCollector(CollectorBase):
                 )
             else:
                 payload["status"] = "fallback"
-                payload["reason"] = "oauth_collection_failed"
-                _logger.warning("Reddit OAuth collection failed; using default")
+                payload["reason"] = "collector_disabled_or_no_samples"
+                payload["field_statuses"]["social_sentiment"] = {
+                    "status": "missing", "reason": "collector_disabled_or_no_samples"
+                }
+                _logger.warning("Reddit OAuth collection failed or returned too few samples")
 
         except Exception as e:
             _logger.exception("RedditCollector failed")
@@ -75,9 +83,12 @@ class RedditCollector(CollectorBase):
                 "reason": repr(e),
                 "timestamp": timestamp,
                 "data": None,
-                "sentiment_score": 0.0,
+                "sentiment_score": None,
                 "sentiment_volume": 0,
-                "sentiment_zscore": 0.0,
+                "sentiment_zscore": None,
+                "field_statuses": {
+                    "social_sentiment": {"status": "error", "reason": repr(e)}
+                },
             }
         if self.output_path is not None:
             self._write_json(payload, self.output_path)

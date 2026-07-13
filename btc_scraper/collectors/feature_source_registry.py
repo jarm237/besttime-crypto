@@ -26,9 +26,10 @@ def _spec(source: str, **kwargs: Any) -> FeatureSourceSpec:
 
 FEATURE_SOURCE_REGISTRY: dict[str, FeatureSourceSpec] = {
     "funding_rate": _spec("binance", required=True, confidence=.90, minimum=-.1, maximum=.1),
-    "open_interest": _spec("binance", required=True, confidence=.90, minimum=0),
-    "stablecoin_supply": _spec("defillama", required=True, confidence=.70, minimum=0, max_age_seconds=3600),
-    "stablecoin_supply_total": _spec("defillama", confidence=.70, minimum=0, max_age_seconds=3600),
+    "open_interest": _spec("binance", required=True, confidence=.90, minimum=1e-12),
+    "orderbook_imbalance": _spec("binance", confidence=.80, minimum=-1, maximum=1),
+    "stablecoin_supply": _spec("defillama", required=True, confidence=.70, minimum=1e-12, max_age_seconds=3600),
+    "stablecoin_supply_total": _spec("defillama", confidence=.70, minimum=1e-12, max_age_seconds=3600),
     "tvl": _spec("defillama", required=True, confidence=.65, minimum=0, max_age_seconds=3600),
     "chain_tvl": _spec("defillama", confidence=.65, minimum=0, max_age_seconds=3600),
     "dxy": _spec("yahoo", required=True, confidence=.95, minimum=60, maximum=160, max_age_seconds=3600),
