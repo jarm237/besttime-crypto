@@ -51,3 +51,18 @@ def test_anomaly_detector_flags_large_discrepancy_and_emits_event(base_state):
     assert result["is_anomaly"] is True
     assert result["deviation_score"] > 0.0
     assert detector.event_bus.get_stats()["total_events"] >= 1
+
+
+def test_anomaly_detector_does_not_flag_small_discrepancy(base_state):
+    predictor = WorldModelPredictor(graph_path="data/causal_graph.json")
+    detector = CausalAnomalyDetector(event_bus=EventBus(), threshold=0.05)
+
+    prediction = predictor.predict_next_state(base_state)
+    observed = base_state
+    # Set observed price to be extremely close to the expected price (e.g. 0.1% discrepancy)
+    observed.crypto.BTC_Price = prediction.predicted_state.crypto.BTC_Price * 1.001
+
+    result = detector.detect(observed, prediction)
+
+    assert result["is_anomaly"] is False
+    assert detector.event_bus.get_stats()["total_events"] == 0

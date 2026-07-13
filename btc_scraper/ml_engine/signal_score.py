@@ -514,7 +514,6 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         if model_bundle is not None:
             try:
                 from btc_scraper.ml_engine.feature_extractor import features_from_analysis
-                import numpy as np
                 from btc_scraper.ml_engine.meta_model import model_predict_proba
 
                 feat = features_from_analysis({**(data or {}), **(context or {}), "signal_score": {"score": None, "raw_text": sig_text}})
@@ -522,26 +521,25 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
                 model = model_bundle.get("model")
                 row = [float(feat.get(k, 0.0)) for k in feature_names]
                 prob = float(model_predict_proba(model, [row], feature_names)[0][1])
-                prob_percent = int(round(prob * 100))
-
                 action_from_text = _primary_signal_action(sig_text)
                 is_buy = action_from_text == "BUY"
                 is_sell = action_from_text == "SELL"
 
                 if is_buy:
-                    # 50% win rate -> 50, 100% win rate -> 100
-                    score = prob_percent
+                    base = _base_score_from_text(sig_text)
+                    score = _apply_context_adjustments(base, data or {}, context or {})
+                    score = score + int(round((prob - 0.5) * 40))
                 elif is_sell:
-                    # 50% win rate -> 50, 100% win rate -> 0
-                    score = 100 - prob_percent
+                    base = _base_score_from_text(sig_text)
+                    score = _apply_context_adjustments(base, data or {}, context or {})
+                    score = score - int(round((prob - 0.5) * 40))
                 else:
                     score = 50
+                score = max(0, min(100, int(score)))
 
-                # Use model probability to determine a base position size (continuous)
+                # Use the blended score to keep sizing aligned with displayed signal strength.
                 try:
-                    min_size = 0.25
-                    max_size = 1.0
-                    base_pos = round(min_size + prob * (max_size - min_size), 2)
+                    base_pos = position_size_from_score(int(score))
                 except Exception:
                     base_pos = position_size_from_score(int(score))
             except Exception:

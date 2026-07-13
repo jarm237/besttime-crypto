@@ -438712,5 +438712,39 @@
       "std_dev_pct": 0.9394
     },
     "regime": null
+  },
+  {
+    "coin": "XAUT",
+    "id": "06c2412b-e8c1-4a38-bdf0-8e6d391bf28f",
+    "entry_price": 4059.8769960000004,
+    "sell_price": 4049.74,
+    "pnl_pct": 0.2497,
+    "result": "WIN",
+    "hold_hours": 0.8,
+    "exit_time": "2026-07-13 20:46",
+    "signal_raw": "NEUTRAL (BEARISH)",
+    "signal_score": {
+      "action": "NEUTRAL",
+      "score": 50,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BEARISH)",
+      "gated": false,
+      "meta_confidence": 0.48704663212435234,
+      "meta_confidence_pct": 49,
+      "meta_expected_return": null,
+      "meta_expected_drawdown": null,
+      "meta_expected_hold_time": null,
+      "meta_decision": {},
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.5,
+      "std_dev_pct": 0.1621
+    },
+    "regime": null
   }
 ]

@@ -33,8 +33,6 @@ class CausalAnomalyDetector:
         expected_btc = predicted_state.predicted_state.crypto.BTC_Price
         actual_btc = observed_state.crypto.BTC_Price
         deviation_score = abs(actual_btc - expected_btc) / max(abs(expected_btc), 1.0)
-        if deviation_score < self.threshold:
-            deviation_score = max(deviation_score, 0.08)
 
         is_anomaly = deviation_score >= self.threshold
         message = (

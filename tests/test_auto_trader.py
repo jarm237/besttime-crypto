@@ -104,6 +104,30 @@ def test_signal_score_parses_primary_action():
     assert res["action"] == "SELL"
     assert res["display_label"].startswith("SELL")
 
+def test_adaptive_model_blends_with_rule_score(monkeypatch):
+    from btc_scraper.ml_engine import signal_score as score_mod
+
+    monkeypatch.setattr(score_mod, "_load_adaptive_model", lambda: {"model": object(), "features": ["is_buy", "is_sell"]})
+    monkeypatch.setattr(score_mod, "_use_kelly", lambda: False)
+    monkeypatch.setattr(score_mod, "_append_meta_prob_entry", lambda entry: None)
+    monkeypatch.setattr(
+        score_mod,
+        "_get_cached_risk_metrics",
+        lambda: {"risk_multiplier": 1.0, "blocked": False},
+    )
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.meta_model.model_predict_proba",
+        lambda model, rows, feature_names: [[0.48, 0.52]],
+    )
+
+    buy = score_mod.score_signal("BUY", {"close": 100.0}, {})
+    sell = score_mod.score_signal("SELL", {"close": 100.0}, {})
+
+    assert buy["score"] > 60
+    assert buy["score"] != 52
+    assert sell["score"] < 40
+    assert sell["score"] != 48
+
 
 def test_circuit_breaker(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_CIRCUIT_BREAKER_N", "5")
