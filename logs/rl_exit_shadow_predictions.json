@@ -10785,7 +10785,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783860963",
@@ -10810,7 +10813,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783861273",
@@ -10835,7 +10841,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783861563",
@@ -10860,7 +10869,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783861864",
@@ -10885,7 +10897,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783862177",
@@ -10910,7 +10925,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783862463",
@@ -10935,7 +10953,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5283,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783862762",
@@ -10960,7 +10981,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5283,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783863074",
@@ -10985,7 +11009,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783863363",
@@ -11010,7 +11037,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5455,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783863663",
@@ -11035,7 +11065,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783863976",
@@ -11060,7 +11093,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783864262",
@@ -11085,7 +11121,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783864563",
@@ -11110,7 +11149,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783864874",
@@ -11135,7 +11177,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783865163",
@@ -11160,7 +11205,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783865463",
@@ -11185,7 +11233,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783865776",
@@ -11210,7 +11261,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783866063",
@@ -11235,7 +11289,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783866363",
@@ -11260,7 +11317,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783866675",
@@ -11285,7 +11345,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783866963",
@@ -11310,7 +11373,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "WLDUSDT_RL_1783867263",
@@ -11335,7 +11401,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "BTCUSDT_RL_1783867576",
@@ -11346,7 +11415,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "BTCUSDT_RL_1783867863",
@@ -11357,7 +11429,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "BTCUSDT_RL_1783868163",
@@ -11368,7 +11443,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "BTCUSDT_RL_1783868481",
@@ -11379,7 +11457,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "BTCUSDT_RL_1783869063",
@@ -11390,7 +11471,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
   },
   {
     "prediction_id": "BTCUSDT_RL_1783869376",
@@ -11401,6 +11485,884 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783869663",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783869663.307251,
+    "timestamp_str": "2026-07-12 22:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783869963",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783869963.037194,
+    "timestamp_str": "2026-07-12 22:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783870273",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783870273.2134104,
+    "timestamp_str": "2026-07-12 22:31:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783870439",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783870439.7139297,
+    "timestamp_str": "2026-07-12 22:33:59",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783870563",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783870563.4276536,
+    "timestamp_str": "2026-07-12 22:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783870863",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783870863.7592957,
+    "timestamp_str": "2026-07-12 22:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783871173",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783871173.2167974,
+    "timestamp_str": "2026-07-12 22:46:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783871463",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783871463.7302134,
+    "timestamp_str": "2026-07-12 22:51:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783871763",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783871763.8607457,
+    "timestamp_str": "2026-07-12 22:56:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783872073",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783872073.2090552,
+    "timestamp_str": "2026-07-12 23:01:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783872363",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783872363.608352,
+    "timestamp_str": "2026-07-12 23:06:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783872664",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783872664.454564,
+    "timestamp_str": "2026-07-12 23:11:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783872974",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783872974.4699724,
+    "timestamp_str": "2026-07-12 23:16:14",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783873265",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783873265.1510758,
+    "timestamp_str": "2026-07-12 23:21:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783873563",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783873563.726723,
+    "timestamp_str": "2026-07-12 23:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783873877",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783873877.5821118,
+    "timestamp_str": "2026-07-12 23:31:17",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783874165",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783874165.638019,
+    "timestamp_str": "2026-07-12 23:36:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783874465",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783874465.2676344,
+    "timestamp_str": "2026-07-12 23:41:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783874775",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783874775.3257356,
+    "timestamp_str": "2026-07-12 23:46:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783875063",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783875063.8889172,
+    "timestamp_str": "2026-07-12 23:51:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783875363",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783875363.5124726,
+    "timestamp_str": "2026-07-12 23:56:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783875672",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783875672.1481733,
+    "timestamp_str": "2026-07-13 00:01:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783875963",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783875963.475225,
+    "timestamp_str": "2026-07-13 00:06:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783876263",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783876263.3817332,
+    "timestamp_str": "2026-07-13 00:11:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5455,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783876572",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783876572.0963154,
+    "timestamp_str": "2026-07-13 00:16:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783876863",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783876863.113135,
+    "timestamp_str": "2026-07-13 00:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "c32a2cbb-d04f-41b3-a97b-7e604ab997b8",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.1239,
+    "closed_at": "2026-07-13 00:22:44"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783901775",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783901775.3577495,
+    "timestamp_str": "2026-07-13 07:16:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783901776",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783901776.3495817,
+    "timestamp_str": "2026-07-13 07:16:16",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5455,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783902063",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783902063.5391765,
+    "timestamp_str": "2026-07-13 07:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783902064",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783902064.6374536,
+    "timestamp_str": "2026-07-13 07:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783902363",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783902363.7463493,
+    "timestamp_str": "2026-07-13 07:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783902364",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783902364.669487,
+    "timestamp_str": "2026-07-13 07:26:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905139",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905139.1672366,
+    "timestamp_str": "2026-07-13 08:12:19",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905140",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905140.0897157,
+    "timestamp_str": "2026-07-13 08:12:20",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905142",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905142.8532646,
+    "timestamp_str": "2026-07-13 08:12:22",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905143",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905143.7790024,
+    "timestamp_str": "2026-07-13 08:12:23",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905146",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905146.4947093,
+    "timestamp_str": "2026-07-13 08:12:26",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905147",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905147.4111655,
+    "timestamp_str": "2026-07-13 08:12:27",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905150",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905150.127039,
+    "timestamp_str": "2026-07-13 08:12:30",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905151",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905151.0527618,
+    "timestamp_str": "2026-07-13 08:12:31",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905153",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905153.7127836,
+    "timestamp_str": "2026-07-13 08:12:33",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905154",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905154.6386566,
+    "timestamp_str": "2026-07-13 08:12:34",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905157",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905157.5030005,
+    "timestamp_str": "2026-07-13 08:12:37",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905158",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905158.530941,
+    "timestamp_str": "2026-07-13 08:12:38",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905174",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905174.7081072,
+    "timestamp_str": "2026-07-13 08:12:54",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905175",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905175.6230726,
+    "timestamp_str": "2026-07-13 08:12:55",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783905176",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783905176.5498087,
+    "timestamp_str": "2026-07-13 08:12:56",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "018e4131-a82e-46b0-9e2f-f36405178b93",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.6887,
+    "closed_at": "2026-07-13 08:21:07"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905194",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905194.5690606,
+    "timestamp_str": "2026-07-13 08:13:14",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905195",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905195.4895191,
+    "timestamp_str": "2026-07-13 08:13:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783905196",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783905196.6186025,
+    "timestamp_str": "2026-07-13 08:13:16",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "018e4131-a82e-46b0-9e2f-f36405178b93",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.6887,
+    "closed_at": "2026-07-13 08:21:07"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905217",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905217.60365,
+    "timestamp_str": "2026-07-13 08:13:37",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905218",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905218.638978,
+    "timestamp_str": "2026-07-13 08:13:38",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783905219",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783905219.7626753,
+    "timestamp_str": "2026-07-13 08:13:39",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "018e4131-a82e-46b0-9e2f-f36405178b93",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.6887,
+    "closed_at": "2026-07-13 08:21:07"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905241",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905241.4658165,
+    "timestamp_str": "2026-07-13 08:14:01",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905242",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905242.389257,
+    "timestamp_str": "2026-07-13 08:14:02",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783905243",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783905243.2172003,
+    "timestamp_str": "2026-07-13 08:14:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "018e4131-a82e-46b0-9e2f-f36405178b93",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.6887,
+    "closed_at": "2026-07-13 08:21:07"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905370",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905370.8014562,
+    "timestamp_str": "2026-07-13 08:16:10",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "NEARUSDT_RL_1783905371",
+    "symbol": "NEARUSDT",
+    "timestamp": 1783905371.8448327,
+    "timestamp_str": "2026-07-13 08:16:11",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.5636,
+    "position_id": "66e950a1-246a-4b9a-a7fc-c7636fb39b38",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8344,
+    "closed_at": "2026-07-13 08:16:16"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783905372",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783905372.7454772,
+    "timestamp_str": "2026-07-13 08:16:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "018e4131-a82e-46b0-9e2f-f36405178b93",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.6887,
+    "closed_at": "2026-07-13 08:21:07"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905663",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905663.155326,
+    "timestamp_str": "2026-07-13 08:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1783905664",
+    "symbol": "BTCUSDT",
+    "timestamp": 1783905664.0730565,
+    "timestamp_str": "2026-07-13 08:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "018e4131-a82e-46b0-9e2f-f36405178b93",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 0.6887,
+    "closed_at": "2026-07-13 08:21:07"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783905963",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783905963.686699,
+    "timestamp_str": "2026-07-13 08:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783906273",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783906273.1521401,
+    "timestamp_str": "2026-07-13 08:31:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783906564",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783906564.8956597,
+    "timestamp_str": "2026-07-13 08:36:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783906644",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783906644.2690222,
+    "timestamp_str": "2026-07-13 08:37:24",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783906863",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783906863.2539334,
+    "timestamp_str": "2026-07-13 08:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "DOGEUSDT_RL_1783907173",
+    "symbol": "DOGEUSDT",
+    "timestamp": 1783907173.854686,
+    "timestamp_str": "2026-07-13 08:46:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "eba7e7b5-07fc-4b8e-9864-6d628709cf42",
     "note": "RL Exit shadow recommendation"
   }
 ]

@@ -112,12 +112,27 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
         coin, exchange = key.split(":")
         sig_fields = extract_signal_fields(ana)
         sig = ana.get("signal", sig_fields.get("raw", ""))
-        
-        # Color signal and show score/confidence if available
-        sig_styled = f"[white]{sig}[/]"
+
         sig_score = ana.get("signal_score", {}) or {}
         display_label = sig_score.get("display_label")
+        display_score = sig_score.get("display_score")
         confidence = sig_score.get("confidence")
+        meta_pct = sig_score.get("meta_confidence_pct")
+
+        # --- Đồng bộ với Telegram: áp dụng low_conviction (STRONG → WEAK) ---
+        sig_for_display = str(sig)
+        try:
+            score_num = float(display_score) if display_score is not None else None
+        except Exception:
+            score_num = None
+        low_conviction = (confidence == "LOW") or (score_num is not None and score_num < 60)
+        if low_conviction:
+            up = sig_for_display.upper()
+            if "STRONG BUY" in up:
+                sig_for_display = sig_for_display.replace("STRONG BUY", "WEAK BUY").replace("Strong Buy", "Weak Buy").replace("strong buy", "weak buy")
+            elif "STRONG SELL" in up:
+                sig_for_display = sig_for_display.replace("STRONG SELL", "WEAK SELL").replace("Strong Sell", "Weak Sell").replace("strong sell", "weak sell")
+
         # Fallback for old data without display_label
         if display_label is None:
             score_val = sig_score.get("score")
@@ -135,12 +150,30 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
             score_suffix = " [→ NEUTRAL]"
         else:
             score_suffix = ""
-        if "STRONG BUY" in sig or "BUY" in sig:
-            sig_styled = f"[bold bright_green]{sig}{score_suffix}[/]"
-        elif "STRONG SELL" in sig or "SELL" in sig:
-            sig_styled = f"[bold bright_red]{sig}{score_suffix}[/]"
-        elif "NEUTRAL" in sig:
-            sig_styled = f"[bold yellow]{sig}{score_suffix}[/]"
+
+        # --- Đồng bộ với Telegram: badge Meta confidence ---
+        if meta_pct is not None:
+            if meta_pct >= 70:
+                meta_badge = f" [bright_green]Meta:{meta_pct}%[/bright_green]"
+            elif meta_pct >= 50:
+                meta_badge = f" [yellow]Meta:{meta_pct}%[/yellow]"
+            else:
+                meta_badge = f" [red]Meta:{meta_pct}%[/red]"
+        else:
+            meta_badge = ""
+
+        # Color signal (dùng sig_for_display đã điều chỉnh low_conviction)
+        sig_styled = f"[white]{sig_for_display}[/]"
+        if "STRONG BUY" in sig_for_display.upper() or ("BUY" in sig_for_display.upper() and "WEAK" not in sig_for_display.upper()):
+            sig_styled = f"[bold bright_green]{sig_for_display}{score_suffix}[/]{meta_badge}"
+        elif "WEAK BUY" in sig_for_display.upper() or "BUY" in sig_for_display.upper():
+            sig_styled = f"[bright_green]{sig_for_display}{score_suffix}[/]{meta_badge}"
+        elif "STRONG SELL" in sig_for_display.upper() or ("SELL" in sig_for_display.upper() and "WEAK" not in sig_for_display.upper()):
+            sig_styled = f"[bold bright_red]{sig_for_display}{score_suffix}[/]{meta_badge}"
+        elif "WEAK SELL" in sig_for_display.upper() or "SELL" in sig_for_display.upper():
+            sig_styled = f"[bright_red]{sig_for_display}{score_suffix}[/]{meta_badge}"
+        elif "NEUTRAL" in sig_for_display.upper():
+            sig_styled = f"[bold yellow]{sig_for_display}{score_suffix}[/]{meta_badge}"
             
         close_val = ana.get('close', 0.0)
         val_format = ",.4f" if close_val < 10 else ",.2f"
