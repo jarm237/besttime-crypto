@@ -10856,5 +10856,17 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 0.0788
+  },
+  {
+    "timestamp": "2026-07-14T01:01:06.660970",
+    "timestamp_str": "2026-07-14 01:01:06",
+    "mode": "DRY_RUN",
+    "coin": "TRB",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4798,
+    "signal_score": 31,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 15.01
   }
 ]

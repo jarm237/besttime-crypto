@@ -19,36 +19,6 @@
           "Total": 0.0
         },
         {
-          "Date": "22 Jun 2026",
-          "BSOL": 0.0,
-          "VSOL": 0.0,
-          "FSOL": 0.0,
-          "TSOL": 0.0,
-          "SOEZ": 0.0,
-          "GSOL": 0.0,
-          "Total": 0.0
-        },
-        {
-          "Date": "23 Jun 2026",
-          "BSOL": 0.0,
-          "VSOL": 0.0,
-          "FSOL": 0.0,
-          "TSOL": 0.0,
-          "SOEZ": 0.0,
-          "GSOL": 0.0,
-          "Total": 0.0
-        },
-        {
-          "Date": "24 Jun 2026",
-          "BSOL": 0.0,
-          "VSOL": 0.0,
-          "FSOL": 0.0,
-          "TSOL": 0.0,
-          "SOEZ": 0.0,
-          "GSOL": 0.0,
-          "Total": 0.0
-        },
-        {
           "Date": "25 Jun 2026",
           "BSOL": -3.9,
           "VSOL": 0.0,
@@ -157,6 +127,16 @@
           "SOEZ": 0.0,
           "GSOL": 0.0,
           "Total": 0.2
+        },
+        {
+          "Date": "13 Jul 2026",
+          "BSOL": 0.0,
+          "VSOL": 0.0,
+          "FSOL": 0.0,
+          "TSOL": 0.0,
+          "SOEZ": 0.0,
+          "GSOL": 0.0,
+          "Total": 0.0
         }
       ],
       "summary": {
@@ -194,7 +174,7 @@
           "TSOL": -0.6,
           "SOEZ": 0.1,
           "GSOL": 0.6,
-          "Total": 6.5
+          "Total": 6.4
         },
         "Maximum": {
           "BSOL": 69.5,
@@ -218,6 +198,6 @@
     }
   },
   "data_quality": 1.0,
-  "fetched_at": "2026-07-11T02:11:27.623210+00:00",
+  "fetched_at": "2026-07-14T01:15:15.994191+00:00",
   "error": null
 }
