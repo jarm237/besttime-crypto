@@ -37,6 +37,46 @@ def test_should_trade(monkeypatch):
     assert ok
     assert reason == "OK"
 
+def test_evaluate_and_trade_empty_analysis_does_not_require_client():
+    import asyncio
+
+    trader = AutoTrader()
+    result = asyncio.run(trader.evaluate_and_trade({}))
+
+    assert result == []
+    assert not hasattr(trader, "_client")
+
+
+def test_notify_trade_includes_kelly_fraction(monkeypatch):
+    sent = []
+
+    def fake_send(message, parse_mode=None):
+        sent.append(message)
+        return 123
+
+    monkeypatch.setattr("btc_scraper.telegram_bot.send_telegram_message", fake_send)
+    trader = AutoTrader()
+
+    trader._notify_trade({
+        "mode": "DRY_RUN",
+        "coin": "BTC",
+        "direction": "LONG",
+        "signal": "BUY (Crossover)",
+        "meta_confidence_pct": 68,
+        "signal_score": 72,
+        "kelly_fraction": 0.1234,
+        "usdt_amount": 25.0,
+        "entry_price": 100.0,
+        "sl_price": 98.0,
+        "tp1_price": 104.0,
+        "order_id": "paper-1",
+        "status": "FILLED",
+    })
+
+    assert sent
+    assert "Kelly: 12.3%" in sent[0]
+
+
 def test_compute_position_size():
     trader = AutoTrader()
     

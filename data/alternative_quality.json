@@ -15811,5 +15811,151 @@
     "is_healthy": true,
     "issue_count": 0,
     "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T01:46:00.481372+00:00",
+    "payload_timestamp": "2026-07-14T01:45:43.682664+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T01:46:16.426251+00:00",
+    "payload_timestamp": "2026-07-14T01:45:43.682664+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:01:22.481385+00:00",
+    "payload_timestamp": "2026-07-14T01:45:43.682664+00:00",
+    "is_healthy": false,
+    "issue_count": 1,
+    "issues": [
+      {
+        "field": "timestamp",
+        "issue_type": "stale",
+        "detail": "Payload is 939s old (max 900s)."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-14T02:01:35.810699+00:00",
+    "payload_timestamp": "2026-07-14T02:01:22.675671+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:16:12.075888+00:00",
+    "payload_timestamp": "2026-07-14T02:01:22.675671+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:16:52.317786+00:00",
+    "payload_timestamp": "2026-07-14T02:16:37.995007+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:31:13.178486+00:00",
+    "payload_timestamp": "2026-07-14T02:16:37.995007+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:32:19.648547+00:00",
+    "payload_timestamp": "2026-07-14T02:32:04.253419+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:46:12.144302+00:00",
+    "payload_timestamp": "2026-07-14T02:32:04.253419+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T02:47:33.678455+00:00",
+    "payload_timestamp": "2026-07-14T02:47:20.702032+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:01:11.107010+00:00",
+    "payload_timestamp": "2026-07-14T02:47:20.702032+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:02:50.150212+00:00",
+    "payload_timestamp": "2026-07-14T03:02:39.058552+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:16:18.865813+00:00",
+    "payload_timestamp": "2026-07-14T03:02:39.058552+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:18:03.642828+00:00",
+    "payload_timestamp": "2026-07-14T03:17:51.275384+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:31:13.535525+00:00",
+    "payload_timestamp": "2026-07-14T03:17:51.275384+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:33:16.529970+00:00",
+    "payload_timestamp": "2026-07-14T03:33:04.798311+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:46:10.614230+00:00",
+    "payload_timestamp": "2026-07-14T03:33:04.798311+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T03:48:30.292898+00:00",
+    "payload_timestamp": "2026-07-14T03:48:17.681545+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T04:01:10.291359+00:00",
+    "payload_timestamp": "2026-07-14T03:48:17.681545+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-14T04:03:48.041137+00:00",
+    "payload_timestamp": "2026-07-14T04:03:31.342572+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
   }
 ]

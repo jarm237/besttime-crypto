@@ -103,7 +103,15 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         else:
             meta_part = ""
 
-        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b>{score_part}{meta_part} giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
+        kelly_part = ""
+        kelly_fraction = sig_score.get("kelly_fraction")
+        if kelly_fraction is not None:
+            try:
+                kelly_part = f" | <b>Kelly: {float(kelly_fraction) * 100:.1f}%</b>"
+            except Exception:
+                kelly_part = ""
+
+        line = f"{emoji} <b>{coin}</b>: <b>{escaped_sig}</b>{score_part}{meta_part}{kelly_part} giá <code>{price_str}</code> (RSI: {ana['rsi']:.1f})\n<i>{escaped_reason}</i>"
         
         tp_sl = ana.get("tp_sl", {})
         if ("BUY" in sig or "SELL" in sig) and tp_sl:

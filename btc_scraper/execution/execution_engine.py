@@ -94,6 +94,7 @@ class ExecutionEngine:
         self,
         signal: Dict[str, Any],
         candle: Dict[str, Any],
+        notional_usdt: Optional[float] = None,
         urgency: str = Urgency.NORMAL,
     ) -> ExecutionRecord:
         """
@@ -104,9 +105,11 @@ class ExecutionEngine:
         side = self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))
         decision_price = float(candle.get("close", 0.0))
 
-        # Notional sizing: use 1% of default capital (configurable)
-        capital = 10_000.0
-        notional_usdt = capital * 0.01
+        # Notional sizing: use caller-provided size when available, otherwise
+        # keep the legacy default of 1% of 10k capital for direct paper tests.
+        if notional_usdt is None:
+            capital = 10_000.0
+            notional_usdt = capital * 0.01
         qty = notional_usdt / decision_price if decision_price > 0 else 0.0
 
         record = ExecutionRecord(
@@ -218,7 +221,7 @@ class ExecutionEngine:
         """
         if self._adapter is None:
             logger.warning("[ExecutionEngine] No exchange adapter — falling back to paper mode")
-            return self.submit_paper(signal, candle, urgency)
+            return self.submit_paper(signal, candle, notional_usdt=notional_usdt, urgency=urgency)
 
         coin = signal.get("coin", "BTC")
         side = self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))

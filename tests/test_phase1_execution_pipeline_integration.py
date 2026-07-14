@@ -158,6 +158,14 @@ class TestExecutionEnginePaperMode(unittest.TestCase):
         record = self.engine.submit_paper(signal, candle)
         self.assertEqual(record.side, "SELL")
 
+    def test_paper_submit_uses_explicit_notional(self):
+        signal = _make_signal()
+        candle = _make_candle(close=100.0)
+        record = self.engine.submit_paper(signal, candle, notional_usdt=25.0)
+
+        self.assertEqual(record.intended_notional, 25.0)
+        self.assertAlmostEqual(record.intended_qty, 0.25)
+
     def test_filled_record_has_fill_price(self):
         engine = ExecutionEngine(config=_make_loose_config())
         signal = _make_signal()

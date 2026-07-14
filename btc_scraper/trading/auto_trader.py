@@ -462,8 +462,9 @@ class AutoTrader:
             # Don't fail the whole cycle if MTF trading errors
             pass
         finally:
-            if self._client is not None:
-                await self._client.close()
+            client = getattr(self, "_client", None)
+            if client is not None:
+                await client.close()
                 self._client = None
 
         return placed
@@ -527,15 +528,17 @@ class AutoTrader:
         tp1_price = tp_sl.get("tp1") or 0.0
 
         # Tính position size
-        try:
-            # Thử lấy balance thực từ exchange
-            client = self._get_client()
-            if not self.dry_run:
-                real_balance = await client.get_usdt_balance()
-            else:
+        real_balance = self.account_usdt
+        if not self.dry_run:
+            try:
+                engine = self._get_execution_engine()
+                adapter = getattr(engine, "_adapter", None)
+                if adapter is not None:
+                    balance = await adapter.get_usdt_balance()
+                    if balance and balance > 0:
+                        real_balance = float(balance)
+            except Exception:
                 real_balance = self.account_usdt
-        except Exception:
-            real_balance = self.account_usdt
 
         rr_ratio = float(tp_sl.get("rr1", 0.0))
 
@@ -598,6 +601,8 @@ class AutoTrader:
             "meta_confidence": round(float(meta_prob), 4),
             "meta_confidence_pct": int(round(float(meta_prob) * 100)),
             "signal_score": int(score),
+            "kelly_fraction": sig_score.get("kelly_fraction"),
+            "b_estimate": sig_score.get("b_estimate"),
             "order_type": "market",
             "entry_price": float(entry_price),
             "sl_price": float(sl_price),
@@ -631,8 +636,8 @@ class AutoTrader:
             engine = self._get_execution_engine()
 
             if self.dry_run:
-                # Paper mode: simulate fill
-                rec = engine.submit_paper(signal_payload, latest_candle)
+                # Paper mode: simulate fill using the AutoTrader-computed size.
+                rec = engine.submit_paper(signal_payload, latest_candle, notional_usdt=usdt_amount)
             else:
                 # Live mode: route through ExchangeAdapter (guarded)
                 import asyncio
@@ -713,6 +718,11 @@ class AutoTrader:
             signal = entry.get("signal", "?")
             meta_pct = entry.get("meta_confidence_pct", 0)
             score = entry.get("signal_score", 0)
+            kelly = entry.get("kelly_fraction")
+            try:
+                kelly_line = f"Kelly: {float(kelly) * 100:.1f}%\n" if kelly is not None else ""
+            except Exception:
+                kelly_line = ""
             usdt = entry.get("usdt_amount", 0)
             entry_price = entry.get("entry_price", 0)
             sl = entry.get("sl_price", 0)
@@ -734,6 +744,7 @@ class AutoTrader:
                     f"Coin: {coin} | {direction}\n"
                     f"Signal: {signal}\n"
                     f"Meta: {meta_pct}% | Score: {score}\n"
+                    f"{kelly_line}"
                     f"So tien: ${usdt:.2f} USDT\n"
                     f"Entry: ${entry_price:,.4f}\n"
                     f"SL: ${sl:,.4f}\n"
