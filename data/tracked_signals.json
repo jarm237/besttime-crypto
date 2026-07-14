@@ -3,29 +3,10 @@
   "TAO": [],
   "AVAX": [
     {
-      "time": "2026-07-14 15:00",
-      "signal": "BUY (Crossover)",
-      "entry": 6.527,
-      "current_price": 6.493,
-      "tp_sl": {
-        "entry": 6.527,
-        "sl": 6.3469,
-        "tp1": 6.7071,
-        "tp2": 6.8873,
-        "rr1": 1.0,
-        "rr2": 2.0,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200) | Sentiment: 22/100 (Cực kỳ Sợ hãi)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 44,
-      "created_at_ts": 1784018766.5729601
-    },
-    {
       "time": "2026-07-14 16:00",
       "signal": "WEAK BUY (Crossover-Blocked)",
       "entry": 6.505,
-      "current_price": 6.493,
+      "current_price": 6.467,
       "tp_sl": {
         "entry": 6.505,
         "sl": 6.3367,
@@ -37,12 +18,32 @@
       },
       "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 30,
+      "age_minutes": 90,
       "created_at_ts": 1784019664.0601354
     }
   ],
   "XLM": [],
-  "AEVO": [],
+  "AEVO": [
+    {
+      "time": "2026-07-14 17:00",
+      "signal": "SELL (Crossover)",
+      "entry": 0.01874,
+      "current_price": 0.01874,
+      "tp_sl": {
+        "entry": 0.0187,
+        "sl": 0.0189,
+        "tp1": 0.0186,
+        "tp2": 0.0184,
+        "rr1": 1.0,
+        "rr2": 2.0,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 30,
+      "created_at_ts": 1784023264.590788
+    }
+  ],
   "NEAR": [],
   "AR": [],
   "TRB": [],
@@ -51,48 +52,10 @@
   "BNB": [],
   "ENA": [
     {
-      "time": "2026-07-14 15:15",
-      "signal": "STRONG SELL (Confirmed Reversal)",
-      "entry": 0.0838,
-      "current_price": 0.0824,
-      "tp_sl": {
-        "entry": 0.0838,
-        "sl": 0.0848,
-        "tp1": 0.0817,
-        "tp2": 0.0792,
-        "rr1": 2.16,
-        "rr2": 4.79,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 75,
-      "created_at_ts": 1784016965.7601306
-    },
-    {
-      "time": "2026-07-14 15:00",
-      "signal": "SELL (SFP-Liquidity-Sweep)",
-      "entry": 0.0833,
-      "current_price": 0.0824,
-      "tp_sl": {
-        "entry": 0.0833,
-        "sl": 0.0847,
-        "tp1": 0.0797,
-        "tp2": 0.0772,
-        "rr1": 2.57,
-        "rr2": 4.45,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Quet thanh khoan dinh: wick vuot 0.08 roi dong cua duoi resistance | RSI=71.7 | Bull Market - co the chi la fakeout | Market regime SIDEWAY: tien hanh can than",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 44,
-      "created_at_ts": 1784018768.25721
-    },
-    {
       "time": "2026-07-14 16:00",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 0.0824,
-      "current_price": 0.0824,
+      "current_price": 0.0831,
       "tp_sl": {
         "entry": 0.0824,
         "sl": 0.085,
@@ -104,7 +67,7 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 59,
       "created_at_ts": 1784021465.7831273
     }
   ],
@@ -116,26 +79,6 @@
   "XRP": [],
   "SOPH": [],
   "SOL": [],
-  "WLD": [
-    {
-      "time": "2026-07-14 15:00",
-      "signal": "WEAK BUY (Crossover-Blocked)",
-      "entry": 0.4079,
-      "current_price": 0.4051,
-      "tp_sl": {
-        "entry": 0.4079,
-        "sl": 0.3632,
-        "tp1": 0.409,
-        "tp2": 0.4346,
-        "rr1": 0.02,
-        "rr2": 0.6,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
-      "status": "Hit TP1 (Da dat TP1)",
-      "age_minutes": 74,
-      "created_at_ts": 1784016964.3669767
-    }
-  ],
+  "WLD": [],
   "DOGE": []
 }

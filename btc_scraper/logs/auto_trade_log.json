@@ -10931,5 +10931,18 @@
     "status": "skipped",
     "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
     "entry_price": 199.8
+  },
+  {
+    "timestamp": "2026-07-14T17:01:09.324033",
+    "timestamp_str": "2026-07-14 17:01:09",
+    "mode": "DRY_RUN",
+    "coin": "AEVO",
+    "signal": "SELL (Crossover)",
+    "meta_confidence": 0.4798,
+    "signal_score": 31,
+    "signal_strength": 69,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 0.0187
   }
 ]
