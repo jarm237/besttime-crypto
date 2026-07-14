@@ -1,0 +1,227 @@
+{
+  "records": [
+    {
+      "model_name": "adaptive_rf",
+      "version": "2026.07.07.1",
+      "status": "production",
+      "artifact_path": "logs\\adaptive_model.joblib",
+      "sha256": "5395280db76329ad16d79694ee2cc718fd47e22ce8c87ce18be8ac6449c5fbae",
+      "schema_version": "adaptive-rf-v2",
+      "metrics": {
+        "model_name": "adaptive_rf",
+        "model_version": "2026.07.07.1",
+        "artifact_sha256": "5395280db76329ad16d79694ee2cc718fd47e22ce8c87ce18be8ac6449c5fbae",
+        "trained_at": "2026-07-07T22:15:50+07:00",
+        "training_dataset_id": "adaptive_signals_v2",
+        "feature_schema_version": "adaptive-rf-v2",
+        "status": "production"
+      },
+      "registered_at": "2026-07-14T15:14:19.858349+00:00"
+    },
+    {
+      "model_name": "meta_model",
+      "version": "v3.1",
+      "status": "production",
+      "artifact_path": "logs\\meta_model.joblib",
+      "sha256": "4f7bc98a6c18d04d7853a180c4f68763298580128a206bf159f4d16c956cf1e1",
+      "schema_version": "meta-v3.1-43f",
+      "metrics": {
+        "model_name": "meta_model",
+        "model_version": "v3.1",
+        "artifact_sha256": "4f7bc98a6c18d04d7853a180c4f68763298580128a206bf159f4d16c956cf1e1",
+        "feature_schema_version": "meta-v3.1-43f",
+        "status": "production",
+        "version": "v3.1",
+        "n_samples": 24070,
+        "n_features": 43,
+        "features": [
+          "rsi_score",
+          "macd_score",
+          "structure_score",
+          "rsi",
+          "macd_hist",
+          "atr_pct",
+          "fear_greed",
+          "adx",
+          "mtf_alignment",
+          "return_15m",
+          "return_1h",
+          "return_4h",
+          "return_1d",
+          "ema9_slope",
+          "ema21_slope",
+          "sma50_slope",
+          "ema_distance_zscore",
+          "realized_vol_20",
+          "realized_vol_50",
+          "atr_percentile",
+          "volatility_regime_compression",
+          "volatility_regime_mean_reversion",
+          "volatility_regime_panic_sell",
+          "volatility_regime_pump_risk",
+          "distance_support_pct",
+          "distance_resistance_pct",
+          "higher_high",
+          "lower_low",
+          "market_structure_break",
+          "obv",
+          "cmf",
+          "mfi",
+          "volume_acceleration",
+          "volume_percentile",
+          "roc_14",
+          "roc_50",
+          "hv20",
+          "hv60",
+          "choch_bull",
+          "sentiment_momentum",
+          "sentiment_recovery",
+          "sentiment_trend_up",
+          "sentiment_trend_down"
+        ],
+        "cv_auc_mean": 0.6159834221084237,
+        "cv_auc_std": 0.019211093286873506,
+        "cv_acc_mean": 0.5802543006731489,
+        "ensemble_cv_auc_mean": 0.6253148162506621,
+        "ensemble_cv_acc_mean": 0.5880329094988781,
+        "ensemble_weights": {
+          "lgbm": 0.01555482884233053,
+          "catboost": 0.43599875378142644,
+          "xgboost": 0.548446417376243
+        },
+        "available_models": [
+          "lgbm",
+          "catboost",
+          "xgboost"
+        ],
+        "calibration_method": "isotonic",
+        "calibrated": true,
+        "calibration_info": {
+          "split": {
+            "train": 16849,
+            "calib": 3610,
+            "test": 3611
+          },
+          "selected_method": "isotonic",
+          "selected_error": 7.359999999999999
+        },
+        "label_dist": {
+          "WIN": 11413,
+          "LOSS": 12657
+        },
+        "calibration_buckets": {
+          "0.0-0.4": {
+            "count": 1373,
+            "wins": 475,
+            "losses": 898,
+            "actual_wr": 34.6,
+            "predicted_wr": 20.0,
+            "calibration_error": 14.6,
+            "calibrated": false
+          },
+          "0.4-0.6": {
+            "count": 1569,
+            "wins": 792,
+            "losses": 777,
+            "actual_wr": 50.5,
+            "predicted_wr": 50.0,
+            "calibration_error": 0.5,
+            "calibrated": true
+          },
+          "0.6-0.7": {
+            "count": 580,
+            "wins": 385,
+            "losses": 195,
+            "actual_wr": 66.4,
+            "predicted_wr": 65.0,
+            "calibration_error": 1.4,
+            "calibrated": true
+          },
+          "0.7-0.8": {
+            "count": 54,
+            "wins": 43,
+            "losses": 11,
+            "actual_wr": 79.6,
+            "predicted_wr": 75.0,
+            "calibration_error": 4.6,
+            "calibrated": true
+          },
+          "0.8-1.0": {
+            "count": 35,
+            "wins": 26,
+            "losses": 9,
+            "actual_wr": 74.3,
+            "predicted_wr": 90.0,
+            "calibration_error": -15.7,
+            "calibrated": false
+          }
+        },
+        "walk_forward": [
+          {
+            "train_range": [
+              0,
+              15645
+            ],
+            "test_range": [
+              15645,
+              19255
+            ],
+            "n_train": 15645,
+            "n_test": 3610,
+            "roc_auc": 0.6178639430849763,
+            "accuracy": 0.5806094182825485
+          },
+          {
+            "train_range": [
+              3610,
+              19255
+            ],
+            "test_range": [
+              19255,
+              22865
+            ],
+            "n_train": 15645,
+            "n_test": 3610,
+            "roc_auc": 0.6382492873365084,
+            "accuracy": 0.599168975069252
+          }
+        ]
+      },
+      "registered_at": "2026-07-14T15:14:19.865276+00:00"
+    },
+    {
+      "model_name": "rl_exit",
+      "version": "2026.06.28.215012",
+      "status": "shadow",
+      "artifact_path": "logs\\rl_models\\production\\rl_exit_ppo.zip",
+      "sha256": "ae894e5835b0e145d3bffc164e5d29500bea245d225b70aeef437de06cb3a489",
+      "schema_version": "rl-exit-obs-v2",
+      "metrics": {
+        "model_name": "rl_exit",
+        "model_version": "2026.06.28.215012",
+        "artifact_sha256": "ae894e5835b0e145d3bffc164e5d29500bea245d225b70aeef437de06cb3a489",
+        "trained_at": "2026-06-28T21:50:12+07:00",
+        "observation_schema_version": "rl-exit-obs-v2",
+        "observation_feature_count": 20,
+        "status": "shadow",
+        "promotion_blocked": true,
+        "reason": "underperforms_rule_baseline_and_observation_drift"
+      },
+      "registered_at": "2026-07-14T15:14:19.880262+00:00"
+    },
+    {
+      "model_name": "meta_model_v3",
+      "version": "v3-candidate",
+      "status": "candidate",
+      "reason": "candidate_blocked_pending_leakage_audit",
+      "registered_at": "2026-07-14T15:14:19.881624+00:00"
+    },
+    {
+      "model_name": "slippage_model_v2",
+      "version": "unavailable",
+      "status": "disabled",
+      "reason": "disabled_missing_artifact",
+      "registered_at": "2026-07-14T15:14:19.882699+00:00"
+    }
+  ]
+}

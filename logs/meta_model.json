@@ -1,4 +1,9 @@
 {
+  "model_name": "meta_model",
+  "model_version": "v3.1",
+  "artifact_sha256": "4f7bc98a6c18d04d7853a180c4f68763298580128a206bf159f4d16c956cf1e1",
+  "feature_schema_version": "meta-v3.1-43f",
+  "status": "production",
   "version": "v3.1",
   "n_samples": 24070,
   "n_features": 43,

@@ -127,8 +127,11 @@ def _load_adaptive_model():
         return _ADAPTIVE_MODEL
     try:
         import joblib
-        model_path = os.path.join(os.path.dirname(__file__), "..", "logs", "adaptive_model.joblib")
-        if os.path.exists(model_path):
+        from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
+        from btc_scraper.ml_engine.model_registry import ModelRegistry
+        result = get_artifact_resolver().resolve("adaptive_rf")
+        if result.healthy and result.path is not None and ModelRegistry().permits_artifact("adaptive_rf", result.path, result.sha256, ("production",)):
+            model_path = str(result.path)
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore",
@@ -150,8 +153,8 @@ def _load_adaptive_model():
             set_n_jobs(model)
             _ADAPTIVE_MODEL = data
             return _ADAPTIVE_MODEL
-    except Exception:
-        pass
+    except Exception as exc:
+        warnings.warn(f"Adaptive RF disabled: {exc}", RuntimeWarning)
     _ADAPTIVE_MODEL = None
     return None
 

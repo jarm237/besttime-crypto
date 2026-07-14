@@ -1121,6 +1121,9 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
         row = [float(feat.get(k, 0.0)) for k in feature_names]
 
         prob = float(model_predict_proba(clf, [row], feature_names)[0, 1])
+        # Calibration tails currently have insufficient evidence for position sizing.
+        # Retain the raw probability in the audit trail, but expose a bounded value.
+        sizing_probability = min(0.80, max(0.40, prob))
 
         ev_metrics = _compute_expected_value_metrics(prob, analysis_info)
 
@@ -1128,6 +1131,8 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
         try:
             import hashlib
             from datetime import datetime, timezone
+            from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
+            from btc_scraper.ml_engine.prediction_logger import append_prediction
 
             now_utc = datetime.now(timezone.utc)
             features_json = json.dumps(row, separators=(",", ":"), ensure_ascii=False)
@@ -1148,11 +1153,24 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             pred_log = LOGS / f"predictions_{day_str}.log"
             with open(pred_log, "a", encoding="utf-8") as lf:
                 lf.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+            artifact = get_artifact_resolver().resolve("meta_model")
+            append_prediction(
+                model_name="meta_model", model_version=MODEL_VERSION,
+                artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
+                raw_prediction=prob, calibrated_prediction=prob, features=row,
+                decision_context="entry", symbol=analysis_info.get("coin"),
+                calibration_method=(artifact.metadata or {}).get("calibration_method", "isotonic"),
+                fallback_used=False,
+                signal_id=analysis_info.get("signal_id") or analysis_info.get("id"),
+                position_id=analysis_info.get("position_id"), order_id=analysis_info.get("order_id"),
+                fill_id=analysis_info.get("fill_id"),
+                extra={"signal": analysis_info.get("signal"), "sizing_probability": sizing_probability},
+            )
         except Exception:
             # Don't fail prediction if logging fails
             pass
 
-        return {"probability": prob, **ev_metrics}
+        return {"probability": prob, "sizing_probability": sizing_probability, **ev_metrics}
     except Exception as e:
         return {"error": str(e), "probability": None}
 

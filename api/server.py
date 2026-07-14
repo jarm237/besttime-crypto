@@ -492,6 +492,20 @@ def get_meta_model_info():
     return out
 
 
+@app.get("/api/models/health")
+def get_model_health():
+    """Canonical artifact/registry health; unhealthy models must not be silently used."""
+    from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
+    from btc_scraper.ml_engine.model_registry import ModelRegistry
+    resolver = get_artifact_resolver()
+    registry = ModelRegistry()
+    health = resolver.health()
+    for name, item in health.items():
+        active = registry.active(name, ("production", "shadow", "candidate", "disabled"))
+        item["registry_record"] = active
+    return health
+
+
 @app.get("/api/meta-model/metrics")
 def get_meta_model_metrics(days: int = 7):
     """Trả về metrics của meta-model và sample dự đoán gần nhất từ logs/predictions_YYYY-MM-DD.log.

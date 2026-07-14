@@ -1,0 +1,12 @@
+meta_model:
+  min_rolling_auc: 0.55
+  max_ece: 0.10
+  max_auc_drop: 0.05
+rl_exit:
+  min_shadow_days: 30
+  min_shadow_decisions: 500
+  max_drawdown_worsening_pct: 5
+  require_baseline_outperformance: true
+slippage_model_v2:
+  require_real_or_reliable_paper_fills: true
+  require_holdout_outperformance: true

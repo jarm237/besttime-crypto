@@ -1,0 +1,22 @@
+# Canonical model-artifact locations. Paths are relative to the repository root.
+adaptive_rf:
+  production_path: logs/adaptive_model.joblib
+  metadata_path: logs/adaptive_model.metadata.json
+  schema_version: adaptive-rf-v2
+  status: production
+meta_model:
+  production_path: logs/meta_model.joblib
+  metadata_path: logs/meta_model.json
+  schema_version: meta-v3.1-43f
+  status: production
+rl_exit:
+  production_path: logs/rl_models/production/rl_exit_ppo.zip
+  metadata_path: logs/rl_models/production/metadata.json
+  observation_schema_version: rl-exit-obs-v2
+  status: shadow
+slippage_model_v2:
+  production_path: logs/slippage_model_v2.joblib
+  metadata_path: logs/slippage_model_v2.json
+  schema_version: slippage-v2-12f
+  status: disabled
+  fallback: rule_based_v1

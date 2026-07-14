@@ -1,0 +1,497 @@
+{
+  "signal_score": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "rsi": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "macd_hist": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "atr_pct": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volume_ratio": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fear_greed": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "ema_distance_pct": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "bb_width_pct": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "adx": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "mtf_alignment": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_trending_bull": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_trending_bear": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_ranging": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_high_volatility": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "return_15m": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "return_1h": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "return_4h": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "return_1d": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "ema9_slope": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "ema21_slope": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sma50_slope": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sma200_slope": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "ema_distance_zscore": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "realized_vol_20": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "realized_vol_50": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "atr_percentile": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volatility_regime_compression": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volatility_regime_breakout": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volatility_regime_mean_reversion": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volatility_regime_panic_sell": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volatility_regime_low_liquidity": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volatility_regime_pump_risk": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "distance_support_pct": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "distance_resistance_pct": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "higher_high": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "lower_low": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "market_structure_break": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "obv": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "cmf": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "mfi": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volume_acceleration": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "volume_percentile": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "roc_14": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "roc_50": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "hv20": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "hv60": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "bos_bull": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "bos_bear": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "choch_bull": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "choch_bear": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sentiment_momentum": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sentiment_recovery": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sentiment_risk": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sentiment_trend_up": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "sentiment_trend_down": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "tf_1h_bull": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "tf_4h_bull": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "tf_1d_bull": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_strong_trend": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_weak_trend": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_compression": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_breakout": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_mean_reversion": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_panic_sell": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_low_liquidity": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "regime_pump_risk": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_source_log_price": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_return_1_raw": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_d_0_00": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_d_0_20": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_d_0_40": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_d_0_60": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_d_0_80": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_d_selected": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_price": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "fracdiff_return_1": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_AEVO": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_AR": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_AVAX": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_BNB": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_BTC": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_DOGE": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_ENA": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_ETH": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_IOTA": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_NEAR": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_SOL": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_SOPH": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_TAO": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_TRB": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_TRUMP": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_TRX": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_WLD": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_XLM": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_XPL": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_XRP": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "coin_ZEC": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "entry_hour": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  },
+  "entry_dayofweek": {
+    "source": "ml_dataset_v3.parquet",
+    "required_at_or_before": "entry_time",
+    "status": "requires upstream point-in-time provenance"
+  }
+}

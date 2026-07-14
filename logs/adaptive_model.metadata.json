@@ -1,0 +1,9 @@
+{
+  "model_name": "adaptive_rf",
+  "model_version": "2026.07.07.1",
+  "artifact_sha256": "5395280db76329ad16d79694ee2cc718fd47e22ce8c87ce18be8ac6449c5fbae",
+  "trained_at": "2026-07-07T22:15:50+07:00",
+  "training_dataset_id": "adaptive_signals_v2",
+  "feature_schema_version": "adaptive-rf-v2",
+  "status": "production"
+}

@@ -70,7 +70,7 @@ def _get_default_device() -> str:
         return "cpu"
 
 
-def load_latest_ppo_model() -> str | None:
+def _legacy_latest_ppo_model() -> str | None:
     """Tìm file zip model PPO mới nhất."""
     rl_dir = Path("logs/rl_models")
     if not rl_dir.exists():
@@ -82,6 +82,18 @@ def load_latest_ppo_model() -> str | None:
     if matches_simple:
         return str(matches_simple[-1])
     return None
+
+def load_latest_ppo_model() -> str | None:
+    """Resolve only the configured canonical PPO artifact; never glob by name."""
+    try:
+        from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
+        from btc_scraper.ml_engine.model_registry import ModelRegistry
+        result = get_artifact_resolver().resolve("rl_exit", require_metadata=True)
+        permitted = result.path is not None and ModelRegistry().permits_artifact("rl_exit", result.path, result.sha256, ("production", "shadow"))
+        return str(result.path) if result.healthy and permitted and result.status in {"production", "shadow"} else None
+    except Exception:
+        return None
+
 
 def get_ppo_model(device: str = "auto"):
     """Tải model PPO động và cache."""
@@ -222,7 +234,10 @@ def _build_rl_observation(
     # Feature 19: Average market correlation
     obs[19] = average_correlation
     
-    return obs
+    from btc_scraper.ml_engine.schema_validator import RLExitObservationV2
+    contract = RLExitObservationV2(tuple(float(v) for v in obs))
+    contract.validate()
+    return np.asarray(contract.as_list(), dtype=np.float32)
 
 
 
@@ -697,8 +712,10 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
 
         # Fetch PPO model and predict
         rl_action = None
+        raw_rl_action = None
         model = get_ppo_model()
-        if model is not None:
+        from btc_scraper.ml_engine.inference_circuit_breaker import RL_INFERENCE_BREAKER
+        if model is not None and RL_INFERENCE_BREAKER.allowed():
             try:
                 obs = _build_rl_observation(ana, avg_confidence, avg_step, weighted_entry, pnl_pct, direction, avg_min_pnl, avg_correlation)
                 
@@ -710,24 +727,18 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                 else:
                     lstm_states, episode_start = _LSTM_STATE_CACHE[lstm_cache_key]
 
-                rl_action_pred, next_lstm_states = model.predict(
-                    obs,
-                    state=lstm_states,
-                    episode_start=episode_start,
-                    deterministic=True
-                )
-                rl_action = int(rl_action_pred)
+                from btc_scraper.ml_engine.rl_inference import guarded_rl_predict
+                raw_rl_action, next_lstm_states = guarded_rl_predict(model, obs, state=lstm_states, episode_start=episode_start)
+                from btc_scraper.trading.rl_action_guard import guard_rl_action
+                guarded = guard_rl_action(raw_rl_action, meta_probability=pos_meta_prob)
+                rl_action = guarded.action
                 
                 # Confidence Gate: only execute PARTIAL_CLOSE (1), TAKE_PROFIT (3), or EXIT (4) if pos_meta_prob is None or < 0.45.
                 # Otherwise, override to HOLD (0).
-                if rl_action in [1, 3, 4] and pos_meta_prob is not None and pos_meta_prob >= 0.45:
-                    print(f"[Confidence Gate] Override RL Action {rl_action} to 0 (HOLD) for {coin} because meta confidence {pos_meta_prob:.4f} >= 0.45")
-                    rl_action = 0
-
                 # Cache the updated LSTM hidden state
                 _LSTM_STATE_CACHE[lstm_cache_key] = (next_lstm_states, np.zeros((1,), dtype=bool))
                 save_lstm_cache()
-                print(f"[RL Exit Agent] Coin {coin}: Predicted Action {rl_action}")
+                print(f"[RL Exit Agent] Coin {coin}: raw={raw_rl_action}, effective={rl_action}, guard={guarded.decision}")
             except Exception as ex:
                 print(f"[RL Exit Agent] Warning: Error predicting action for {coin}: {ex}")
 
@@ -794,12 +805,13 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         expected_received_usdt = gross_received - fee_usd if invested_usdt > 0 else 0.0
 
         # Read shadow mode from env variable
-        shadow_mode = os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true"
+        from btc_scraper.trading.rl_action_guard import rl_exit_mode
+        shadow_mode = rl_exit_mode() == "shadow"
 
-        if shadow_mode and rl_action is not None:
+        if shadow_mode and raw_rl_action is not None:
             _log_rl_shadow_prediction(
                 coin,
-                rl_action,
+                raw_rl_action,
                 pos_meta_prob,
                 position_id=pos_list[0].get("id"),
             )
