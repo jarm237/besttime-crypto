@@ -10919,5 +10919,17 @@
     "expected_slippage_bps": 106.4761,
     "liquidity_score": 0.4462,
     "reason_skip": "slippage_too_high: 106.5 bps > max 30.0 bps"
+  },
+  {
+    "timestamp": "2026-07-14T12:46:17.714045",
+    "timestamp_str": "2026-07-14 12:46:17",
+    "mode": "DRY_RUN",
+    "coin": "TAO",
+    "signal": "SELL (Break-SMA50)",
+    "meta_confidence": 0.7223,
+    "signal_score": 31,
+    "status": "skipped",
+    "reason_skip": "Kelly Fraction <= 0 (Ky vong am)",
+    "entry_price": 199.8
   }
 ]

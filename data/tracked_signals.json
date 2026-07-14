@@ -3,120 +3,139 @@
   "TAO": [],
   "AVAX": [
     {
-      "time": "2026-07-14 10:15",
-      "signal": "SELL (Crossover)",
-      "entry": 6.431,
-      "current_price": 6.457,
+      "time": "2026-07-14 15:00",
+      "signal": "BUY (Crossover)",
+      "entry": 6.527,
+      "current_price": 6.493,
       "tp_sl": {
-        "entry": 6.431,
-        "sl": 6.5063,
-        "tp1": 6.3557,
-        "tp2": 6.3507,
+        "entry": 6.527,
+        "sl": 6.3469,
+        "tp1": 6.7071,
+        "tp2": 6.8873,
         "rr1": 1.0,
-        "rr2": 1.07,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+        "rr2": 2.0,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
       },
-      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "reason": "EMA9 cat len EMA21 (Xu huong tang — chua du du lieu SMA200) | Sentiment: 22/100 (Cực kỳ Sợ hãi)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 49,
-      "created_at_ts": 1783998967.9083061
+      "age_minutes": 44,
+      "created_at_ts": 1784018766.5729601
     },
     {
-      "time": "2026-07-14 10:30",
-      "signal": "SELL (Crossover)",
-      "entry": 6.445,
-      "current_price": 6.457,
+      "time": "2026-07-14 16:00",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 6.505,
+      "current_price": 6.493,
       "tp_sl": {
-        "entry": 6.445,
-        "sl": 6.5197,
-        "tp1": 6.3703,
-        "tp2": 6.3507,
+        "entry": 6.505,
+        "sl": 6.3367,
+        "tp1": 6.6733,
+        "tp2": 6.8417,
         "rr1": 1.0,
-        "rr2": 1.26,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+        "rr2": 2.0,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
       },
-      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 34,
-      "created_at_ts": 1783999865.151485
-    },
-    {
-      "time": "2026-07-14 07:00",
-      "signal": "SELL (Crossover)",
-      "entry": 6.445,
-      "current_price": 6.457,
-      "tp_sl": {
-        "entry": 6.445,
-        "sl": 7.2826,
-        "tp1": 5.4392,
-        "tp2": 4.4335,
-        "rr1": 1.2,
-        "rr2": 2.4,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 34,
-      "created_at_ts": 1783999865.4173963
+      "age_minutes": 30,
+      "created_at_ts": 1784019664.0601354
     }
   ],
   "XLM": [],
-  "AEVO": [
-    {
-      "time": "2026-07-14 07:00",
-      "signal": "SELL (Crossover)",
-      "entry": 0.01856,
-      "current_price": 0.01869,
-      "tp_sl": {
-        "entry": 0.0186,
-        "sl": 0.0222,
-        "tp1": 0.0185,
-        "tp2": 0.0172,
-        "rr1": 0.01,
-        "rr2": 0.39,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 29,
-      "created_at_ts": 1783999866.1900284
-    }
-  ],
+  "AEVO": [],
   "NEAR": [],
   "AR": [],
   "TRB": [],
   "ETH": [],
   "IOTA": [],
   "BNB": [],
-  "ENA": [],
-  "XPL": [],
-  "TRX": [],
-  "ZEC": [
+  "ENA": [
     {
-      "time": "2026-07-14 10:15",
-      "signal": "SELL (Crossover)",
-      "entry": 498.51,
-      "current_price": 505.88,
+      "time": "2026-07-14 15:15",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 0.0838,
+      "current_price": 0.0824,
       "tp_sl": {
-        "entry": 498.51,
-        "sl": 507.6663,
-        "tp1": 497.092,
-        "tp2": 491.3808,
-        "rr1": 0.15,
-        "rr2": 0.78,
+        "entry": 0.0838,
+        "sl": 0.0848,
+        "tp1": 0.0817,
+        "tp2": 0.0792,
+        "rr1": 2.16,
+        "rr2": 4.79,
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
-      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh) | Ben tren SMA200 - co the chi la dieu chinh",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 49,
-      "created_at_ts": 1783998964.619636
+      "age_minutes": 75,
+      "created_at_ts": 1784016965.7601306
+    },
+    {
+      "time": "2026-07-14 15:00",
+      "signal": "SELL (SFP-Liquidity-Sweep)",
+      "entry": 0.0833,
+      "current_price": 0.0824,
+      "tp_sl": {
+        "entry": 0.0833,
+        "sl": 0.0847,
+        "tp1": 0.0797,
+        "tp2": 0.0772,
+        "rr1": 2.57,
+        "rr2": 4.45,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "Quet thanh khoan dinh: wick vuot 0.08 roi dong cua duoi resistance | RSI=71.7 | Bull Market - co the chi la fakeout | Market regime SIDEWAY: tien hanh can than",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 44,
+      "created_at_ts": 1784018768.25721
+    },
+    {
+      "time": "2026-07-14 16:00",
+      "signal": "STRONG SELL (Confirmed Reversal)",
+      "entry": 0.0824,
+      "current_price": 0.0824,
+      "tp_sl": {
+        "entry": 0.0824,
+        "sl": 0.085,
+        "tp1": 0.0799,
+        "tp2": 0.0772,
+        "rr1": 0.98,
+        "rr2": 2.05,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 0,
+      "created_at_ts": 1784021465.7831273
     }
   ],
+  "XPL": [],
+  "TRX": [],
+  "ZEC": [],
   "XAUT": [],
   "BTC": [],
   "XRP": [],
   "SOPH": [],
   "SOL": [],
-  "WLD": [],
+  "WLD": [
+    {
+      "time": "2026-07-14 15:00",
+      "signal": "WEAK BUY (Crossover-Blocked)",
+      "entry": 0.4079,
+      "current_price": 0.4051,
+      "tp_sl": {
+        "entry": 0.4079,
+        "sl": 0.3632,
+        "tp1": 0.409,
+        "tp2": 0.4346,
+        "rr1": 0.02,
+        "rr2": 0.6,
+        "method": "ATR+DynamicSL+Support+BB (Long)"
+      },
+      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
+      "status": "Hit TP1 (Da dat TP1)",
+      "age_minutes": 74,
+      "created_at_ts": 1784016964.3669767
+    }
+  ],
   "DOGE": []
 }

@@ -291,6 +291,34 @@ def map_score_to_display(score: int, action: str) -> tuple[int, str]:
     return display_score, display_label
 
 
+def signal_strength_from_score(action: str, score: int | float) -> int:
+    """
+    Convert directional score into side-agnostic signal strength.
+
+    Internal score uses a directional axis:
+      0   = strongest SELL
+      50  = NEUTRAL
+      100 = strongest BUY
+
+    Strength is used for trade eligibility:
+      0   = weak/no signal
+      100 = strong signal, regardless of BUY or SELL side
+    """
+    action = str(action or "NEUTRAL").upper()
+    try:
+        score_val = float(score)
+    except Exception:
+        score_val = 50.0
+
+    if action == "BUY":
+        strength = score_val
+    elif action == "SELL":
+        strength = 100.0 - score_val
+    else:
+        strength = 0.0
+    return int(round(max(0.0, min(100.0, strength))))
+
+
 def position_size_from_score(score: int, min_size: float = 0.25, max_size: float = 1.0) -> float:
     frac = abs(score - 50) / 50.0
     size = min_size + frac * (max_size - min_size)
@@ -808,6 +836,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
 
     # ── Display fields (human-readable) ─────────────────────────────────────────
     display_score, display_label = map_score_to_display(int(score), action)
+    strength = signal_strength_from_score(action, score)
 
     # Entry-time meta_prob logging for diagnostics
     try:
@@ -836,6 +865,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     return {
         "action": action,
         "score": int(score),               # internal 0-100 (0=strong sell, 100=strong buy)
+        "strength": strength,              # side-agnostic 0-100 strength for trade gates
         "display_score": display_score,    # 0-100 strength in direction of action
         "display_label": display_label,    # e.g. "BUY 80%" / "SELL 75%" / "NEUTRAL"
         "confidence": conf,

@@ -27,15 +27,48 @@ def test_should_trade(monkeypatch):
     assert not ok
     assert "Meta confidence" in reason
 
-    # Test score threshold
+    # Test strength threshold
     ok, reason = trader.should_trade("BTC", "BUY", 0.9, 60)
     assert not ok
-    assert "Score" in reason
+    assert "Strength" in reason
 
-    # Test OK signal
+    # Test OK BUY signal
     ok, reason = trader.should_trade("BTC", "BUY", 0.86, 76)
     assert ok
     assert reason == "OK"
+
+    # Strong SELL has a low raw directional score but high side-agnostic strength.
+    ok, reason = trader.should_trade(
+        "BTC",
+        "STRONG SELL (Confirmed Reversal)",
+        0.86,
+        10,
+        sig_score_obj={"action": "SELL", "score": 10, "strength": 90},
+    )
+    assert ok
+    assert reason == "OK"
+
+    # Weak SELL normalizes to strength 55 and must fail the same threshold.
+    ok, reason = trader.should_trade(
+        "BTC",
+        "WEAK SELL (Crossover)",
+        0.86,
+        45,
+        sig_score_obj={"action": "SELL", "score": 45, "strength": 55},
+    )
+    assert not ok
+    assert "WEAK" in reason
+
+    # Upstream gates can neutralize action even if the raw signal text still says BUY.
+    ok, reason = trader.should_trade(
+        "BTC",
+        "STRONG BUY (Confirmed Reversal)",
+        0.95,
+        90,
+        sig_score_obj={"action": "NEUTRAL", "score": 90, "strength": 0, "causal_overridden": True},
+    )
+    assert not ok
+    assert "Action" in reason
 
 def test_evaluate_and_trade_empty_analysis_does_not_require_client():
     import asyncio
@@ -143,6 +176,7 @@ def test_signal_score_parses_primary_action():
     res = score_signal(raw_signal, {"close": 1574.19}, {})
     assert res["action"] == "SELL"
     assert res["display_label"].startswith("SELL")
+    assert res["strength"] == res["display_score"]
 
 def test_adaptive_model_blends_with_rule_score(monkeypatch):
     from btc_scraper.ml_engine import signal_score as score_mod

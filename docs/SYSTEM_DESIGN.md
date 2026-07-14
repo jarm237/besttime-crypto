@@ -1,6 +1,6 @@
 # AI Quant Trading System Design Document (TDD)
 
-> **Cập nhật lần cuối**: 07/07/2026 — Architecture v2.1 + Phase 7 Alternative Data Layer (production-integrated)
+> **Cập nhật lần cuối**: 14/07/2026 — Architecture v2.1 + current signal detection/scoring assessment
 
 Tài liệu này đóng vai trò là **Technical Design Document (TDD)** tổng thể, mô tả kiến trúc, luồng dữ liệu, feature engineering, Causal AI stack và định hướng phát triển của nền tảng **AI Quant Trading Platform**.
 
@@ -24,14 +24,15 @@ Market Data (Binance WebSocket / REST fallback)
    (ATR, RSI, EMA9/21, SMA50/200, MACD, BB, Chandelier)
              │
              ▼
-   Signal Engine (7 Layers)
-   L1: SMA200 Trend → L2: SMA50 Pullback → L3: EMA Crossover
-   L4: Chandelier → L5: Volume+SFP → L6: Fear&Greed → L7: ML Scoring
+   Signal Detection Engine
+   RSI reversal, EMA crossover, SFP, Pullback, Break-SMA50,
+   Chandelier, ADX/Choppiness, Volume, Fear&Greed
              │
              ▼
    SignalGeneratorAgent
+   ├─ signal_score.py: internal 0-100 score + display_score
    ├─ Feature Extractor → Meta Model (RF+LGBM+CatBoost+XGB)
-   ├─ Signal Score + Kelly Fraction
+   ├─ Meta confidence + Kelly / volatility / regime sizing
    └─ CausalContextBridge ──────────────────────────────────────┐
              │                                                   │
              ▼                                                   ▼
@@ -75,7 +76,10 @@ CandleStore (in-memory, thread-safe RLock)
 Feature Extraction (vectorized Pandas/NumPy)
       │
       ▼
-Signal Generation (7 layers)
+Signal Detection (rule labels + TP/SL)
+      │
+      ▼
+Signal Scoring (0=strong SELL, 50=neutral, 100=strong BUY)
       │
       ▼
 ML Ensemble Scoring (meta_confidence, kelly_fraction)
@@ -153,6 +157,49 @@ causal_alpha            # Blending factor used
 entry_price / sl_price / tp_price
 hold_hours
 is_win                  # Target label (1=Win, 0=Loss)
+```
+
+---
+
+## 2.4. Signal Detection & Scoring Flow
+
+Tài liệu đánh giá chi tiết: [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md).
+
+Luồng production hiện tại:
+
+```text
+main.py::fetch_and_display()
+  -> AgentOrchestrator.run_cycle()
+  -> MarketAnalystAgent
+  -> analyze_market() for 15m + 1h/4h/1d
+  -> SignalGeneratorAgent
+  -> evaluate_signal_score() / score_signal()
+  -> CausalContextBridge + CausalGate
+  -> RiskManagerAgent
+  -> PortfolioManagerAgent
+  -> ExecutionAgent / AutoTrader
+```
+
+Các ngưỡng và ngữ nghĩa chính:
+
+| Layer | Current behavior |
+| --- | --- |
+| Raw signal | Text label từ RSI, EMA, SFP, pullback, break-SMA50, regime và sentiment. |
+| Internal score | `0 = strong SELL`, `50 = NEUTRAL`, `100 = strong BUY`. |
+| Strength / display score | Direction-normalized: BUY dùng `score`, SELL dùng `100 - score`; AutoTrader dùng `strength` cho threshold. |
+| Meta confidence | Thiếu `meta_confidence` thì AutoTrader bỏ qua, không auto-trade. |
+| MTF confluence | 1h/4h/1d alignment cộng/trừ score; 1h ngược chiều bị phạt mạnh nhất. |
+| Causal gate | `CRITICAL` đổi `signal_score.action` về `NEUTRAL`; AutoTrader hard-block nếu action không còn BUY/SELL trước execution. |
+| AutoTrader gate | Bỏ qua WEAK signal, dưới ngưỡng meta/score, trùng vị thế, tương quan > 0.75, circuit breaker hoặc exposure breach. |
+
+Current assessment:
+
+```text
+Signal detection: PASS
+Signal scoring: PASS - side-agnostic strength added
+Paper auto-trade gating: PASS
+Live execution readiness: CONDITIONAL
+Maintainability: analysis/core.py should be split into smaller strategy modules
 ```
 
 ---
@@ -314,7 +361,7 @@ weights = PortfolioManager(method="MVO", risk_aversion=2.0, max_weight=0.30)
 | Mean PnL | -0.134% | -0.304% |
 | SL Hit Rate | 72.1% | 40.4% |
 
-**Known Issue**: Nghịch lý Reward-PnL — PPO chốt lời non, phí 0.3% ăn 30-60% lợi nhuận.  
+**Known Issue**: Nghịch lý Reward-PnL — PPO chốt lời non, phí 0.3% ăn 30-60% lợi nhuận.
 **Roadmap**: Simplify reward → net PnL; chuyển sang `MlpLstmPolicy`; tăng step size 15m→1h.
 
 ---
@@ -416,7 +463,7 @@ LLMContextProvider (v5.0)
 
 ---
 
-**Document Version**: 3.0.0  
-**Last Updated**: 2026-07-02  
-**Architecture**: v2.1 (Event-Driven Causal AI)  
+**Document Version**: 3.0.0
+**Last Updated**: 2026-07-02
+**Architecture**: v2.1 (Event-Driven Causal AI)
 **Test Coverage**: 196/196 PASSED ✅

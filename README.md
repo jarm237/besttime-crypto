@@ -2,9 +2,9 @@
 
 Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kết hợp **7 lớp lọc kỹ thuật**, **ML Ensemble**, **Reinforcement Learning Exit Manager** và **Causal World Model** — gửi cảnh báo thời gian thực qua Telegram và trực quan hoá qua Web Dashboard.
 
-> **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI  
-> **Test Suite**: ✅ **246/246 PASSED** (07/07/2026) — bao gồm 29 tests Phase 7 Alternative Data  
-> **Trạng thái**: Production-ready với paper trading và live trading có giám sát
+> **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI
+> **Đánh giá signal flow**: cập nhật 2026-07-14 tại [`docs/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](docs/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md)
+> **Trạng thái**: Production-ready cho signal research + paper trading; live trading cần giám sát và Phase 10 hardening trước khi tăng vốn.
 
 ---
 
@@ -40,6 +40,43 @@ Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kế
   - `AlternativeDataScheduler` tự động kích hoạt Parse.bot jobs theo múi giờ VN (`Asia/Ho_Chi_Minh`).
   - `CollectorHealthMonitor.check_etf_alert_conditions()` cảnh báo Telegram khi data stale >36h hoặc fail >2 ngày.
   - Confidence-weighted features: `effective_etf_momentum`, `effective_stablecoin_momentum`, `effective_risk_on_score` trong `causal_context_bridge.py`.
+
+---
+
+## Luồng chính phát hiện và chấm điểm tín hiệu
+
+Hệ thống hiện chạy theo pipeline multi-agent:
+
+```text
+Binance WebSocket / REST
+  -> MarketAnalystAgent
+  -> analyze_market() 15m + MTF 1h/4h/1d
+  -> rule signal label: BUY / SELL / WEAK / STRONG / NEUTRAL
+  -> score_signal(): score nội bộ 0-100 + meta_confidence + position_size
+  -> CausalContextBridge + CausalGate
+  -> RiskManagerAgent + PortfolioManagerAgent
+  -> AutoTrader.should_trade()
+  -> ExecutionEngine guard path
+  -> Telegram + Dashboard + shadow/counterfactual logs
+```
+
+Các điểm cần hiểu đúng:
+
+- `analysis/core.py` phát hiện tín hiệu từ RSI reversal, EMA crossover, SFP, pullback SMA50/EMA21, break SMA50, Chandelier, ADX/Choppiness, volume và Fear & Greed.
+- `signal_score.py` dùng score nội bộ: `0 = strong SELL`, `50 = NEUTRAL`, `100 = strong BUY`; đồng thời trả `strength` side-agnostic để AutoTrader so threshold công bằng cho BUY và SELL.
+- MTF confluence điều chỉnh score theo 1h/4h/1d; 1h ngược chiều bị phạt mạnh nhất.
+- AutoTrader không vào lệnh nếu thiếu `meta_confidence`, tín hiệu là `WEAK`, coin không được whitelist, score/meta dưới ngưỡng, trùng vị thế, vượt tương quan, hoặc bị circuit breaker/exposure guard.
+- Causal layer mặc định `CAUSAL_ALPHA=0.0` ở safe mode; `CRITICAL` risk đổi `signal_score.action` về `NEUTRAL` và AutoTrader hiện tôn trọng action này nếu được set trước execution; `HIGH/MEDIUM` gắn warning.
+
+Đánh giá hiện tại:
+
+```text
+Signal detection: PASS
+Signal scoring: PASS - đã thêm `strength` để sửa ngưỡng SELL/BUY
+Paper auto-trade gating: PASS
+Live execution readiness: CONDITIONAL
+Maintainability: analysis/core.py cần tách nhỏ dần
+```
 
 ---
 
@@ -212,7 +249,7 @@ besttime-crypto/
 ├── main.py                          # Entry point: WebSocket, scheduler, AI worker
 ├── btc_scraper/
 │   ├── analysis/
-│   │   ├── core.py                  # 7-layer signal engine (vectorized Pandas/NumPy)
+│   │   ├── core.py                  # Signal detection engine: indicators, patterns, TP/SL, tracker
 │   │   ├── indicators.py            # ATR, RSI, EMA, SMA, MACD, BB, Chandelier
 │   │   ├── signal_tracker.py        # Persistent signal state tracking (TTL 90m)
 │   │   ├── correlation.py           # MTF correlation matrix
@@ -311,6 +348,7 @@ besttime-crypto/
 ├── docs/
 │   ├── ARCHITECTURE_v2.md           # Architecture v2.1 technical doc
 │   ├── SYSTEM_DESIGN.md             # System Design Document (TDD)
+│   ├── SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md # Current signal flow assessment
 │   ├── causal_implementation_plan.md# Causal AI roadmap & status
 │   ├── trading_strategies_summary.md# Indicators & trading strategies
 │   ├── system_evaluation_report.md  # Deep system evaluation report
@@ -326,6 +364,7 @@ besttime-crypto/
 | Tài liệu | Mô tả |
 |----------|-------|
 | [SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) | Technical Design Document — kiến trúc, data pipeline, XAI, RL |
+| [SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md](docs/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md) | Đánh giá luồng phát hiện tín hiệu, score, CausalGate và AutoTrader gate hiện tại |
 | [ARCHITECTURE_v2.md](docs/ARCHITECTURE_v2.md) | Causal World Model v2.1 — Event-Driven Architecture |
 | [causal_implementation_plan.md](docs/causal_implementation_plan.md) | Roadmap & status chi tiết Phase 2.1 → Phase D |
 | [trading_strategies_summary.md](docs/trading_strategies_summary.md) | Công thức kỹ thuật, signal layers, TP/SL, RL |

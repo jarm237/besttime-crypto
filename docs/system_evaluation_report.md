@@ -1,10 +1,10 @@
-﻿# BÁO CÁO ĐÁNH GIÁ SÂU TOÀN DIỆN HỆ THỐNG
+# BÁO CÁO ĐÁNH GIÁ SÂU TOÀN DIỆN HỆ THỐNG
 
 ## DỰ ÁN: besttime-crypto (AI Quant Trading Platform)
 
-> **Ngày cập nhật**: 10/07/2026
+> **Ngày cập nhật**: 14/07/2026
 > **Người thực hiện**: Antigravity AI Coding Assistant
-> **Phiên bản báo cáo**: v3.0 (cập nhật từ v2.0 ngày 02/07/2026)
+> **Phiên bản báo cáo**: v3.1 (bổ sung đánh giá luồng signal detection/scoring ngày 14/07/2026)
 > **Mục tiêu**: Đánh giá toàn diện kiến trúc, bộ máy thuật toán, ML/RL/Causal/Backtesting/Execution stack, trạng thái tích hợp, độ phủ kiểm thử và các rủi ro kỹ thuật sau khi hoàn tất Phase 7 → Phase 10.
 
 ---
@@ -133,6 +133,22 @@ graph TD
 ---
 
 ## 3. ĐÁNH GIÁ TỪNG THÀNH PHẦN (COMPONENT ANALYSIS)
+
+### 3.0. Luồng phát hiện và chấm điểm tín hiệu hiện tại
+
+Đánh giá chi tiết được tách riêng tại [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md). Kết luận ngắn:
+
+```text
+Binance WS/REST -> MarketAnalystAgent -> analyze_market() 15m + MTF
+-> raw rule label -> score_signal() -> meta_confidence/Kelly
+-> CausalGate -> Risk/Portfolio gates -> AutoTrader.should_trade()
+-> ExecutionEngine guarded paper/live path
+```
+
+- **Detection**: PASS. Rule engine bao phủ RSI reversal, EMA crossover, SFP, pullback, break-SMA50, Chandelier, ADX/Choppiness, volume, sentiment và regime.
+- **Scoring**: PASS. Score nội bộ là trục hai chiều `0=strong SELL`, `50=neutral`, `100=strong BUY`; AutoTrader dùng thêm `strength` side-agnostic để so threshold công bằng cho BUY/SELL.
+- **Trade gate**: PASS cho local AutoTrader gates. AutoTrader yêu cầu `meta_confidence`, bỏ `WEAK`, kiểm tra strength/meta threshold, action gate, circuit breaker, correlation, VaR và exposure caps; các gate chỉ đổi `signals_info` vẫn chưa chắc chặn lệnh.
+- **Rủi ro chính**: `analysis/core.py` monolithic; label text ảnh hưởng trực tiếp scoring; full `MetaDecisionEngine` posterior chưa là đường quyết định chính trong mọi lệnh; live execution Phase 10 vẫn conditional.
 
 ### 3.1. Bộ máy Phân tích Kỹ thuật (`analysis/`)
 
@@ -503,11 +519,11 @@ FAILED tests/test_meta_model_v3.py::test_train_meta_model_v3_outputs_walkforward
 | **Feature Engineering**         | 6.0/10 | **8.5/10** | +2.5   | Phase 8 hoàn chỉnh: 100+ features, Triple Barrier, Meta-Labeling         |
 | **Alternative Data**            | 7.0/10 | **8.5/10** | +1.5   | Sprint 9 fixes tất cả bugs; 22 collectors production                     |
 | **Institutional Backtesting**   | 0/10   | **8.5/10** | +8.5   | Phase 9: Walk-Forward, MC 10K, Stress Tests hoàn chỉnh                  |
-| **Execution Intelligence**      | 0/10   | **8.0/10** | +8.0   | Phase 10: SlippagePredictor, LiquidityAnalyzer, TWAP, PostTrade         |
+| **Execution Intelligence**      | 0/10   | **7.0/10** | +7.0   | Paper/simulation guards tốt; live order-style routing vẫn conditional   |
 | **TimeGAN Synthetic Data**      | 7.0/10 | **8.0/10** | +1.0   | Stage 4 hoàn chỉnh, model artifacts saved                               |
 | **Độ phủ Kiểm thử**             | 9.0/10 | **8.5/10** | -0.5   | 317/321 (4 failures cần fix — giảm nhẹ do test mới fail)                |
 | **Tính bền vững Vận hành**      | 6.5/10 | **7.0/10** | +0.5   | write_atomic added; Graceful Shutdown & DB Circuit Breaker vẫn thiếu    |
-| **Sẵn sàng Production**         | 7.5/10 | **8.0/10** | +0.5   | Backtesting gates active; Execution guards active; Alpha=0.0 an toàn    |
+| **Sẵn sàng Production**         | 7.5/10 | **7.8/10** | +0.3   | Signal/paper readiness tốt; live execution cần hardening                |
 
 **Tổng hợp v3.0: 8.3/10** (+0.5 so với v2.0 = 7.8/10)
 

@@ -2,7 +2,7 @@
 
 Tài liệu tổng hợp toàn bộ chỉ báo kỹ thuật, công thức, quy tắc tín hiệu (7 lớp lọc), quản lý vị thế, RL Exit Manager và Causal World Model trong hệ thống bot giao dịch Crypto.
 
-> **Cập nhật lần cuối**: 02/07/2026 — Thêm Causal World Model (Phase A-D), Signal Tracker persistent, cập nhật RL actions (6 actions)
+> **Cập nhật lần cuối**: 14/07/2026 — Bổ sung ngữ nghĩa signal_score, MTF confluence, AutoTrader gate và liên kết đánh giá signal flow
 
 ---
 
@@ -94,6 +94,33 @@ Nến đóng cửa
 * **Extreme Fear** (score < −0.6): Hạ STRONG BUY → WEAK BUY
 * **Extreme Greed** (score > +0.6): Hạ STRONG SELL → WEAK SELL
 
+### Score Semantics & AutoTrader Gate (cập nhật 14/07/2026)
+
+Đánh giá đầy đủ: [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md).
+
+`signal_score.py` dùng score nội bộ hai chiều:
+
+```text
+0   = strongest SELL
+50  = NEUTRAL
+100 = strongest BUY
+```
+
+Vì vậy UI/Telegram dùng `display_score` để chuẩn hóa sức mạnh theo chiều tín hiệu:
+
+- BUY: `display_score = score`
+- SELL: `display_score = 100 - score`
+- NEUTRAL: `display_score = 0`
+
+AutoTrader hiện chỉ xem xét lệnh khi:
+
+- signal có BUY hoặc SELL rõ ràng, không phải `WEAK`;
+- có `meta_confidence`;
+- meta confidence và signal score vượt ngưỡng cấu hình;
+- không bị causal conflict, circuit breaker, duplicate position, correlation filter, VaR hoặc exposure cap chặn.
+
+Ghi chú vận hành: AutoTrader dùng `strength`, không dùng raw directional `score`, nên STRONG SELL có raw score thấp vẫn vượt ngưỡng đúng như STRONG BUY.
+
 ### L7 — ML Ensemble Scoring (MetaDecisionEngine)
 * **Mô hình**: RandomForest + LightGBM + CatBoost + XGBoost, Optuna tuning.
 * **Hiệu chuẩn**: Platt Sigmoid scaling → xác suất chính xác.
@@ -101,7 +128,7 @@ Nến đóng cửa
 * **Continuous Learning**: Hàng tuần auto-retrain (Concept Drift → CV ROC-AUC ≥ 0.55).
 
 ### Causal Gate (Phase B — Production)
-* `CRITICAL` risk (từ WorldState) → Override action → `NEUTRAL` (hard gate)
+* `CRITICAL` risk (từ WorldState) → override `signal_score.action` → `NEUTRAL`; AutoTrader hard-block nếu action không còn BUY/SELL trước execution
 * `HIGH / MEDIUM` risk → Warning flag `causal_warning=True` (soft gate, không override)
 * `LOW` risk → Pass through không thay đổi
 * Điều chỉnh bởi `CAUSAL_ALPHA` env var (0.0=rule-only, 0.1+=Bayesian blend)

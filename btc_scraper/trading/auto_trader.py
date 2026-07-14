@@ -51,6 +51,7 @@ from typing import Dict, List, Optional, Any
 
 from btc_scraper.analysis.correlation import correlation_engine, SECTOR_MAP
 from btc_scraper.trading.exposure_manager import exposure_manager
+from btc_scraper.ml_engine.signal_score import signal_strength_from_score, _primary_signal_action
 
 BASE_DIR = Path(__file__).parent.parent
 AUTO_TRADE_LOG = BASE_DIR / "logs" / "auto_trade_log.json"
@@ -342,21 +343,26 @@ class AutoTrader:
         """
         Kiểm tra xem có nên trade không.
 
-        Returns:
-            (should_trade: bool, reason: str)
+        `signal_score` is directional (0=strong SELL, 100=strong BUY).
+        Trade eligibility must use side-agnostic strength, not raw score,
+        otherwise strong SELL signals are incorrectly rejected by high thresholds.
         """
         # 1. Coin có trong whitelist không?
         if coin.upper() not in [c.upper() for c in self.allowed_coins]:
             return False, f"{coin} khong trong allowed_coins"
 
-        # 2. Phải là BUY hoặc SELL rõ ràng
-        is_buy = "BUY" in signal.upper()
-        is_sell = "SELL" in signal.upper()
-        if not (is_buy or is_sell):
-            return False, f"Signal {signal!r} khong phai BUY/SELL"
+        sig_score_obj = sig_score_obj or {}
+        raw_signal = str(signal or "")
+        raw_signal_upper = raw_signal.upper()
 
-        # 3. WEAK signal → bỏ qua
-        if "WEAK" in signal.upper():
+        # 2. Action từ signal_score là nguồn quyết định chính. Fallback parse raw text
+        # để giữ tương thích với các test/call cũ chưa truyền sig_score_obj.
+        action = str(sig_score_obj.get("action") or _primary_signal_action(raw_signal)).upper()
+        if action not in {"BUY", "SELL"}:
+            return False, f"Action {action!r} khong phai BUY/SELL"
+
+        # 3. WEAK signal → bỏ qua. Raw label vẫn hữu ích để phân biệt WEAK vs STRONG.
+        if "WEAK" in raw_signal_upper:
             return False, f"Signal WEAK, bo qua: {signal}"
 
         # 4. Meta confidence threshold
@@ -365,21 +371,28 @@ class AutoTrader:
                 f"Meta confidence {meta_confidence:.1%} < nguong {self.meta_threshold:.1%}"
             )
 
-        # 5. Xung đột: meta cao nhưng signal_score thấp + causal anomaly => no-trade.
+        # 5. Side-agnostic strength threshold
+        strength_score = sig_score_obj.get("strength")
+        if strength_score is None:
+            strength_score = signal_strength_from_score(action, signal_score)
+        try:
+            strength_score = float(strength_score)
+        except Exception:
+            strength_score = signal_strength_from_score(action, signal_score)
+
+        # 6. Xung đột: meta cao nhưng strength thấp + causal anomaly => no-trade.
         # Bảo vệ khỏi false positive khi world-model báo bất thường cấu trúc.
-        sig_score_obj = sig_score_obj or {}
-        has_causal_anomaly = bool(sig_score_obj.get("causal_anomaly_warning")) or ("CAUSAL ANOMALY" in signal.upper())
+        has_causal_anomaly = bool(sig_score_obj.get("causal_anomaly_warning")) or ("CAUSAL ANOMALY" in raw_signal_upper)
         meta_high_threshold = max(float(self.meta_threshold), 0.60)
         low_signal_threshold = max(int(self.score_threshold), 70)
-        if has_causal_anomaly and meta_confidence >= meta_high_threshold and signal_score <= low_signal_threshold:
+        if has_causal_anomaly and meta_confidence >= meta_high_threshold and strength_score <= low_signal_threshold:
             return False, (
-                f"Conflict gate: meta cao ({meta_confidence:.1%}) nhung score thap ({signal_score}) "
+                f"Conflict gate: meta cao ({meta_confidence:.1%}) nhung strength thap ({strength_score:.0f}) "
                 f"+ causal anomaly"
             )
 
-        # 6. Signal score threshold
-        if signal_score < self.score_threshold:
-            return False, f"Score {signal_score} < nguong {self.score_threshold}"
+        if strength_score < self.score_threshold:
+            return False, f"Strength {strength_score:.0f} < nguong {self.score_threshold}"
 
         return True, "OK"
 
@@ -476,6 +489,10 @@ class AutoTrader:
         signal = ana.get("signal", "")
         meta_prob = sig_score.get("meta_confidence")
         score = sig_score.get("score", 0)
+        action = str(sig_score.get("action") or _primary_signal_action(signal)).upper()
+        strength = sig_score.get("strength")
+        if strength is None:
+            strength = signal_strength_from_score(action, score)
 
         # Thiếu meta confidence → bỏ qua (model chưa train)
         if meta_prob is None:
@@ -499,8 +516,9 @@ class AutoTrader:
             _append_log(log_entry)
             return log_entry
 
-        # Direction
-        direction = "LONG" if "BUY" in signal.upper() else "SHORT"
+        # Direction comes from signal_score.action so upstream gates can neutralize trades
+        # without relying on raw text parsing.
+        direction = "LONG" if action == "BUY" else "SHORT"
 
         # Không trade nếu đã có position cùng direction
         if self._has_open_position(coin, direction):
@@ -601,6 +619,8 @@ class AutoTrader:
             "meta_confidence": round(float(meta_prob), 4),
             "meta_confidence_pct": int(round(float(meta_prob) * 100)),
             "signal_score": int(score),
+            "signal_strength": float(strength),
+            "signal_action": action,
             "kelly_fraction": sig_score.get("kelly_fraction"),
             "b_estimate": sig_score.get("b_estimate"),
             "order_type": "market",
@@ -703,6 +723,7 @@ class AutoTrader:
             "signal": signal,
             "meta_confidence": round(float(meta_prob), 4),
             "signal_score": int(score),
+            "signal_strength": signal_strength_from_score((ana.get("signal_score") or {}).get("action") or _primary_signal_action(signal), score),
             "status": "skipped",
             "reason_skip": reason,
             "entry_price": tp_sl.get("entry") or ana.get("close"),
