@@ -15,8 +15,8 @@
     "label": "Extreme Fear"
   },
   "2026-07-15T00:00:00Z": {
-    "score": -0.5,
-    "raw_value": 25,
-    "label": "Extreme Fear"
+    "score": 0.0,
+    "raw_value": 50,
+    "label": "Neutral"
   }
 }
