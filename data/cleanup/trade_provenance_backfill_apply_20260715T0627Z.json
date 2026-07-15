@@ -1,0 +1,283 @@
+{
+  "generated_at": "2026-07-15T06:30:13.491147+00:00",
+  "applied": true,
+  "mongo": {
+    "positions": {
+      "scanned": 220,
+      "changed": 220,
+      "origin_counts": {
+        "manual": 208,
+        "paper_mode": 12
+      },
+      "sample": [
+        {
+          "_id": "6a2fa6923a73e3f0206598d0",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:14.714080+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6a98c6b0d2b3c1c4b8e",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:14.714198+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6aa8c6b0d2b3c1c4b8f",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:14.714305+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6aa8c6b0d2b3c1c4b90",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:14.714345+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6aa8c6b0d2b3c1c4b91",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:14.714389+00:00"
+          }
+        }
+      ]
+    },
+    "closed_positions": {
+      "scanned": 221,
+      "changed": 221,
+      "origin_counts": {
+        "manual": 209,
+        "paper_mode": 12
+      },
+      "sample": [
+        {
+          "_id": "6a2fa6b6378eedb244bc6df2",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:19.520439+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6b7378eedb244bc6df3",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:19.520535+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6b7378eedb244bc6df4",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:19.520572+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6b7378eedb244bc6df5",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:19.520601+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6b7378eedb244bc6df6",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:19.520628+00:00"
+          }
+        }
+      ]
+    },
+    "closed_trades": {
+      "scanned": 240,
+      "changed": 240,
+      "origin_counts": {
+        "manual": 240
+      },
+      "sample": [
+        {
+          "_id": "6a2fa6c3378eedb244bc6dfa",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:23.915727+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6c3378eedb244bc6dfb",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:23.915786+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6c4378eedb244bc6dfc",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:23.915802+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6c4378eedb244bc6dfd",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:23.915815+00:00"
+          }
+        },
+        {
+          "_id": "6a2fa6c4378eedb244bc6dfe",
+          "metadata": {
+            "trade_origin": "manual",
+            "execution_mode": "manual",
+            "fill_source": null,
+            "created_by": "manual",
+            "is_paper": false,
+            "is_manual": true,
+            "is_test_record": false,
+            "provenance_backfilled_at": "2026-07-15T06:30:23.915826+00:00"
+          }
+        }
+      ]
+    },
+    "trades": {
+      "scanned": 0,
+      "changed": 0,
+      "origin_counts": {},
+      "sample": []
+    },
+    "orders": {
+      "scanned": 0,
+      "changed": 0,
+      "origin_counts": {},
+      "sample": []
+    },
+    "virtual_trades": {
+      "scanned": 0,
+      "changed": 0,
+      "origin_counts": {},
+      "sample": []
+    }
+  },
+  "json_logs": {
+    "btc_scraper/logs/auto_trade_log.json": {
+      "exists": true,
+      "scanned": 664,
+      "changed": 664,
+      "origin_counts": {
+        "live": 524,
+        "paper_mode": 140
+      }
+    },
+    "logs/adaptive_signals.json": {
+      "exists": true,
+      "scanned": 18995,
+      "changed": 18995,
+      "origin_counts": {
+        "manual": 18995
+      }
+    },
+    "data/latest_signals.json": {
+      "exists": true,
+      "scanned": 1,
+      "changed": 1,
+      "origin_counts": {
+        "manual": 1
+      }
+    },
+    "data/tracked_signals.json": {
+      "exists": true,
+      "scanned": 1,
+      "changed": 1,
+      "origin_counts": {
+        "manual": 1
+      }
+    }
+  }
+}

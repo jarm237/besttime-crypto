@@ -1,0 +1,61 @@
+{
+  "deleted_at": "2026-07-15T06:11:56.599534+00:00",
+  "collection": "positions",
+  "query": {
+    "_id": "6a572421a25f4201bad3d26f",
+    "entry_price": 100.0,
+    "status": "open"
+  },
+  "document": {
+    "_id": "6a572421a25f4201bad3d26f",
+    "coin": "BTC",
+    "id": "0e589c69-5d6b-4167-b608-4f7d26bc8ffd",
+    "direction": "LONG",
+    "entry_price": 100.0,
+    "invested_usdt": 75.0,
+    "entry_signal_score": {
+      "score": 90,
+      "action": "BUY",
+      "meta_probability": 0.85,
+      "position_size": 1.0
+    },
+    "entry_confidence": 0.85,
+    "entry_time": "2026-07-15 13:09",
+    "status": "open",
+    "note": "[AUTO-DRY_RUN] STRONG BUY | Meta=85%",
+    "trailing_sl": null,
+    "trailing_sl_active": false,
+    "last_signal": "NEUTRAL (BULLISH)",
+    "last_price": 64970.99,
+    "last_checked": "2026-07-15 13:11",
+    "min_pnl": 64870.99,
+    "dca_opportunity": null,
+    "last_signal_score": {
+      "action": "NEUTRAL",
+      "score": 30,
+      "strength": 0,
+      "display_score": 0,
+      "display_label": "NEUTRAL",
+      "confidence": "LOW",
+      "position_size": 0.25,
+      "raw_text": "NEUTRAL (BULLISH)",
+      "gated": false,
+      "meta_confidence": 0.3730769230769231,
+      "meta_confidence_pct": 37,
+      "meta_expected_return": null,
+      "meta_expected_drawdown": null,
+      "meta_expected_hold_time": null,
+      "meta_decision": {},
+      "kelly_fraction": 0.0,
+      "b_estimate": 1.0,
+      "meta_error": null,
+      "position_sizing_method": "hybrid",
+      "volatility_multiplier": 1.0,
+      "std_dev_pct": 0.0
+    },
+    "live_meta_confidence": 0.4797979797979799,
+    "suggested_sl": 56085.2384,
+    "suggested_tp1": 56685.2534,
+    "suggested_tp2": 57119.0285
+  }
+}

@@ -25,6 +25,56 @@ else:
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
 
+TRADE_ORIGIN_PAPER = "paper_mode"
+TRADE_ORIGIN_MANUAL = "manual"
+TRADE_ORIGIN_TEST = "test_function"
+TRADE_ORIGIN_LIVE = "live"
+
+
+def _is_running_under_pytest() -> bool:
+    return bool(os.getenv("PYTEST_CURRENT_TEST"))
+
+
+def _infer_trade_origin(
+    note: str = "",
+    execution_mode: str | None = None,
+    trade_origin: str | None = None,
+) -> str:
+    """Return stable provenance for manual, paper, live and test-created positions."""
+    if trade_origin:
+        return str(trade_origin)
+    if _is_running_under_pytest():
+        return TRADE_ORIGIN_TEST
+
+    mode = (execution_mode or "").strip().lower()
+    if mode == "paper":
+        return TRADE_ORIGIN_PAPER
+    if mode == "test":
+        return TRADE_ORIGIN_TEST
+    if mode == "live":
+        return TRADE_ORIGIN_LIVE
+
+    note_upper = (note or "").upper()
+    if "[AUTO-DRY_RUN]" in note_upper or "[PAPER]" in note_upper:
+        return TRADE_ORIGIN_PAPER
+    if "[AUTO-TEST]" in note_upper or "[TEST]" in note_upper:
+        return TRADE_ORIGIN_TEST
+    if "[AUTO-TESTNET]" in note_upper or "[AUTO-LIVE]" in note_upper:
+        return TRADE_ORIGIN_LIVE
+    return TRADE_ORIGIN_MANUAL
+
+
+def _default_execution_mode_for_origin(origin: str, execution_mode: str | None = None) -> str:
+    if execution_mode:
+        return str(execution_mode)
+    if origin == TRADE_ORIGIN_PAPER:
+        return "paper"
+    if origin == TRADE_ORIGIN_TEST:
+        return "test"
+    if origin == TRADE_ORIGIN_LIVE:
+        return "live"
+    return "manual"
+
 # Cache PPO model globally to avoid reloading on every cycle
 _PPO_MODEL_CACHE = None
 _LAST_MODEL_PATH = None
@@ -253,6 +303,12 @@ def add_position(
     invested_usdt: float = 0.0,
     signal_score: dict | None = None,
     confidence: float | None = None,
+    trade_origin: str | None = None,
+    execution_mode: str | None = None,
+    fill_source: str | None = None,
+    paper_run_id: str | None = None,
+    created_by: str | None = None,
+    source_test_name: str | None = None,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -266,6 +322,17 @@ def add_position(
     Returns:
         dict vị thế vừa tạo
     """
+    resolved_origin = _infer_trade_origin(
+        note=note,
+        execution_mode=execution_mode,
+        trade_origin=trade_origin,
+    )
+    resolved_execution_mode = _default_execution_mode_for_origin(
+        resolved_origin,
+        execution_mode=execution_mode,
+    )
+    pytest_test_name = os.getenv("PYTEST_CURRENT_TEST") if resolved_origin == TRADE_ORIGIN_TEST else None
+
     pos = {
         "coin": coin,
         "id": str(uuid.uuid4()),
@@ -282,6 +349,15 @@ def add_position(
         "last_signal": None,
         "last_price": None,
         "last_checked": None,
+        "trade_origin": resolved_origin,
+        "execution_mode": resolved_execution_mode,
+        "fill_source": fill_source or ("real_paper" if resolved_origin == TRADE_ORIGIN_PAPER else None),
+        "paper_run_id": paper_run_id or os.getenv("PAPER_RUN_ID", "").strip(),
+        "created_by": created_by or ("pytest" if resolved_origin == TRADE_ORIGIN_TEST else "manual"),
+        "source_test_name": source_test_name or pytest_test_name,
+        "is_paper": resolved_origin == TRADE_ORIGIN_PAPER,
+        "is_manual": resolved_origin == TRADE_ORIGIN_MANUAL,
+        "is_test_record": resolved_origin == TRADE_ORIGIN_TEST,
     }
     positions_col.insert_one(pos.copy())
     return pos
@@ -389,6 +465,15 @@ def close_position(coin: str, sell_price: float) -> dict:
             "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
             "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
             "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
+            "trade_origin": closed_data.get("trade_origin"),
+            "execution_mode": closed_data.get("execution_mode"),
+            "fill_source": closed_data.get("fill_source"),
+            "paper_run_id": closed_data.get("paper_run_id"),
+            "created_by": closed_data.get("created_by"),
+            "source_test_name": closed_data.get("source_test_name"),
+            "is_paper": closed_data.get("is_paper"),
+            "is_manual": closed_data.get("is_manual"),
+            "is_test_record": closed_data.get("is_test_record"),
         }
         closed_trades_col.insert_one(simple)
     except Exception:
@@ -556,6 +641,15 @@ def close_partial_position(coin: str, sell_price: float, percentage: float) -> d
             "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
             "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
             "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
+            "trade_origin": closed_data.get("trade_origin"),
+            "execution_mode": closed_data.get("execution_mode"),
+            "fill_source": closed_data.get("fill_source"),
+            "paper_run_id": closed_data.get("paper_run_id"),
+            "created_by": closed_data.get("created_by"),
+            "source_test_name": closed_data.get("source_test_name"),
+            "is_paper": closed_data.get("is_paper"),
+            "is_manual": closed_data.get("is_manual"),
+            "is_test_record": closed_data.get("is_test_record"),
         }
         closed_trades_col.insert_one(simple)
     except Exception as e:

@@ -109,7 +109,10 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             entry_price=price,
             direction=direction,
             note="[MANUAL] Telegram Command",
-            invested_usdt=invested_usdt
+            invested_usdt=invested_usdt,
+            trade_origin="manual",
+            execution_mode="manual",
+            created_by="telegram_command",
         )
         
         reply = (
@@ -204,4 +207,3 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
                 reply_to_message_id=reply_to_id,
                 chat_id=chat_id
             )
-

@@ -1005,10 +1005,13 @@ class AutoTrader:
         decision = dataclasses.replace(decision, sizing=sizing_decision)
 
         # Đặt lệnh qua ExecutionEngine (Phase 1: tất cả write đi qua đây)
+        log_mode = "DRY_RUN" if self.dry_run else "TESTNET"
+        trade_origin = "paper_mode" if self.dry_run else "live"
+        execution_mode = "paper" if self.dry_run else "live"
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "timestamp_str": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "mode": "DRY_RUN" if self.dry_run else "TESTNET",
+            "mode": log_mode,
             "coin": coin,
             "symbol": symbol,
             "direction": direction,
@@ -1035,6 +1038,12 @@ class AutoTrader:
             "live_authorized": decision.live_authorized,
             "final_status": decision.final_status.value,
             "decision_breakdown": decision.breakdown.to_dict() if decision.breakdown else None,
+            "trade_origin": trade_origin,
+            "execution_mode": execution_mode,
+            "created_by": "auto_trader",
+            "is_paper": trade_origin == "paper_mode",
+            "is_manual": False,
+            "is_test_record": False,
         }
 
         try:
@@ -1075,6 +1084,11 @@ class AutoTrader:
             log_entry["guard_action"] = rec.guard_action
             log_entry["expected_slippage_bps"] = rec.expected_slippage_bps
             log_entry["liquidity_score"] = rec.liquidity_score
+            log_entry["execution_mode"] = rec.execution_mode
+            log_entry["fill_source"] = rec.fill_source
+            log_entry["paper_run_id"] = rec.paper_run_id
+            log_entry["trade_origin"] = "paper_mode" if rec.execution_mode == "paper" else trade_origin
+            log_entry["is_paper"] = log_entry["trade_origin"] == "paper_mode"
 
             if rec.status == "REJECTED":
                 log_entry["status"] = "rejected_by_guard"
@@ -1093,6 +1107,11 @@ class AutoTrader:
                     invested_usdt=usdt_amount,
                     signal_score=sig_score,
                     confidence=float(meta_prob),
+                    trade_origin=log_entry["trade_origin"],
+                    execution_mode=rec.execution_mode,
+                    fill_source=rec.fill_source,
+                    paper_run_id=rec.paper_run_id,
+                    created_by="auto_trader",
                 )
             except Exception:
                 pass

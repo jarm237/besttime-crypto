@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-07-15T06:31:55.258964+00:00",
+  "applied": false,
+  "mongo": {
+    "positions": {
+      "scanned": 220,
+      "changed": 0,
+      "origin_counts": {
+        "manual": 208,
+        "paper_mode": 12
+      },
+      "sample": []
+    },
+    "closed_positions": {
+      "scanned": 221,
+      "changed": 0,
+      "origin_counts": {
+        "manual": 209,
+        "paper_mode": 12
+      },
+      "sample": []
+    },
+    "closed_trades": {
+      "scanned": 240,
+      "changed": 0,
+      "origin_counts": {
+        "manual": 240
+      },
+      "sample": []
+    },
+    "trades": {
+      "scanned": 0,
+      "changed": 0,
+      "origin_counts": {},
+      "sample": []
+    },
+    "orders": {
+      "scanned": 0,
+      "changed": 0,
+      "origin_counts": {},
+      "sample": []
+    },
+    "virtual_trades": {
+      "scanned": 0,
+      "changed": 0,
+      "origin_counts": {},
+      "sample": []
+    }
+  },
+  "json_logs": {
+    "btc_scraper/logs/auto_trade_log.json": {
+      "exists": true,
+      "scanned": 664,
+      "changed": 0,
+      "origin_counts": {
+        "live": 524,
+        "paper_mode": 140
+      }
+    },
+    "logs/adaptive_signals.json": {
+      "exists": true,
+      "scanned": 18995,
+      "changed": 0,
+      "origin_counts": {
+        "manual": 18995
+      }
+    }
+  }
+}

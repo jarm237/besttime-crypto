@@ -24,7 +24,10 @@ def cmd_add(args):
             coin=args.coin,
             entry_price=args.entry_price,
             direction=args.direction,
-            note=args.note
+            note=args.note,
+            trade_origin="manual",
+            execution_mode="manual",
+            created_by="manage_positions_cli",
         )
         console.print(f"\n[bold green]✅ Đã thêm vị thế MỚI:[/bold green]")
         console.print(pos)
