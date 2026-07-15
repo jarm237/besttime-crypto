@@ -238,11 +238,14 @@ class LiveExecutionGuard:
             )
         return None
 
-    def _check_system_health(self) -> Optional[GuardResult]:
+    def _check_system_health(self, intent: str) -> Optional[GuardResult]:
         """
         Check model, data, DB health via cached snapshot.
         Only blocks ENTRY-type orders.
         """
+        if intent in (OrderIntent.EXIT, OrderIntent.EMERGENCY_EXIT, OrderIntent.REDUCE_POSITION):
+            return None  # health checks do not block exits
+
         now = time.time()
         if now - self._health_cache_at < self._health_ttl and self._health_cache:
             health = self._health_cache
@@ -252,10 +255,22 @@ class LiveExecutionGuard:
             self._health_cache_at = now
 
         if not health.get("ready", True):
-            failing = [k for k, v in health.get("dependencies", {}).items() if not v]
+            deps = health.get("dependencies", {})
+            if deps.get("account_state") is False:
+                reason = "stale_account_state"
+            elif deps.get("market_data") is False:
+                reason = "stale_market_data"
+            elif deps.get("model_features") is False:
+                reason = "stale_model_features"
+            elif deps.get("orderbook") is False:
+                reason = "stale_orderbook"
+            else:
+                failing = [k for k, v in deps.items() if not v]
+                reason = f"system_health_check_failed: {failing}"
+
             return GuardResult(
                 allowed=False,
-                reason=f"system_health_check_failed: {failing}",
+                reason=reason,
                 severity="CRITICAL",
                 blocked_by="system_health",
             )
@@ -317,7 +332,7 @@ class LiveExecutionGuard:
                 ("kill_switch",     lambda: self._check_kill_switch(ctx.intent)),
                 ("rollout_stage",   lambda: self._check_rollout_stage(ctx)),
                 ("hard_risk",       lambda: self._check_hard_risk(ctx)),
-                ("system_health",   self._check_system_health),
+                ("system_health",   lambda: self._check_system_health(ctx.intent)),
                 ("execution_risk",  lambda: self._check_execution_risk(ctx)),
             ]
         else:

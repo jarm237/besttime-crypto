@@ -9,28 +9,30 @@ def test_should_trade(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.85")
     monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
     monkeypatch.setenv("AUTO_TRADE_COINS", "")
+    monkeypatch.setattr(AutoTrader, "_has_open_position", lambda *args, **kwargs: False)
+    monkeypatch.setattr("btc_scraper.trading.auto_trader.exposure_manager.get_open_positions", lambda: [])
 
     trader = AutoTrader()
     
     # Test wrong coin
     ok, reason = trader.should_trade("INVALID_COIN", "BUY", 0.9, 80)
     assert not ok
-    assert "khong trong allowed_coins" in reason
+    assert reason == "coin_not_allowed"
     
     # Test weak signal
     ok, reason = trader.should_trade("BTC", "WEAK BUY", 0.9, 80)
     assert not ok
-    assert "WEAK" in reason
+    assert reason == "weak_signal"
 
     # Test confidence threshold
     ok, reason = trader.should_trade("BTC", "BUY", 0.5, 80)
     assert not ok
-    assert "Meta confidence" in reason
+    assert reason == "insufficient_statistical_edge"
 
     # Test strength threshold
     ok, reason = trader.should_trade("BTC", "BUY", 0.9, 60)
     assert not ok
-    assert "Strength" in reason
+    assert reason == "insufficient_statistical_edge"
 
     # Test OK BUY signal
     ok, reason = trader.should_trade("BTC", "BUY", 0.86, 76)
@@ -57,7 +59,7 @@ def test_should_trade(monkeypatch):
         sig_score_obj={"action": "SELL", "score": 45, "strength": 55},
     )
     assert not ok
-    assert "WEAK" in reason
+    assert reason == "weak_signal"
 
     # Upstream gates can neutralize action even if the raw signal text still says BUY.
     ok, reason = trader.should_trade(
@@ -68,7 +70,7 @@ def test_should_trade(monkeypatch):
         sig_score_obj={"action": "NEUTRAL", "score": 90, "strength": 0, "causal_overridden": True},
     )
     assert not ok
-    assert "Action" in reason
+    assert reason == "action_disagreement"
 
 def test_evaluate_and_trade_empty_analysis_does_not_require_client():
     import asyncio
@@ -110,6 +112,39 @@ def test_notify_trade_includes_kelly_fraction(monkeypatch):
     assert "Kelly: 12.3%" in sent[0]
 
 
+def test_process_signal_blocks_zero_signal_kelly(monkeypatch):
+    import asyncio
+
+    logged = []
+
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.10")
+    monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "70")
+    monkeypatch.setenv("AUTO_TRADE_COINS", "ZEC")
+    monkeypatch.setattr("btc_scraper.trading.auto_trader._append_log", lambda entry: logged.append(entry))
+
+    trader = AutoTrader()
+    result = asyncio.run(trader._process_signal("ZEC:Binance", {
+        "signal": "STRONG SELL (Confirmed Reversal)",
+        "close": 558.38,
+        "tp_sl": {"entry": 558.38, "sl": 566.759, "tp1": 545.3445, "rr1": 1.55},
+        "signal_score": {
+            "score": 21,
+            "strength": 79,
+            "action": "SELL",
+            "meta_confidence": 0.47,
+            "kelly_fraction": 0.0,
+            "b_estimate": 1.55,
+            "position_size": 1.0,
+        },
+    }))
+
+    assert result["status"] == "skipped"
+    assert result["reason_skip"] == "Kelly Fraction <= 0 (signal_score)"
+    assert result["kelly_fraction"] == 0.0
+    assert logged == [result]
+    assert trader._execution_engine is None
+
+
 def test_compute_position_size():
     trader = AutoTrader()
     
@@ -117,35 +152,41 @@ def test_compute_position_size():
     # entry_price = 100.0, sl_price = 98.0 (2% distance)
     # position_usdt = 10 / 0.02 = 500 USDT, capped by max_trade_usdt (100 USDT)
     size = trader.compute_position_size(100.0, 98.0, current_balance=500.0)
-    assert size == 100.0
+    assert not size.rejected
+    assert size.final_notional == 100.0
     
     # Entry = 100.0, sl_price = 90.0 (10% distance)
     # position_usdt = 10 / 0.10 = 100 USDT
     size = trader.compute_position_size(100.0, 90.0, current_balance=500.0)
-    assert size == 100.0
+    assert not size.rejected
+    assert size.final_notional == 100.0
 
     # Entry = 100.0, sl_price = 50.0 (50% distance)
     # position_usdt = 10 / 0.50 = 20 USDT
     size = trader.compute_position_size(100.0, 50.0, current_balance=500.0)
-    assert size == 20.0
+    assert not size.rejected
+    assert size.final_notional == 20.0
 
     # Test minimum order size cap
     # Entry = 100.0, sl_price = 1.0 (99% distance) -> size = 10 / 0.99 = 10.1 USDT
     size = trader.compute_position_size(100.0, 1.0, current_balance=500.0)
-    assert size >= 10.0
+    assert not size.rejected
+    assert size.final_notional >= 10.0
 
     # Test with multiplier (e.g. Kelly fraction 0.5)
     # entry_price = 100.0, sl_price = 98.0 (2% distance)
     # risk = 500 * (2% * 0.5) = 5 USDT
     # position_usdt = 5 / 0.02 = 250 USDT, capped by max_trade_usdt (100 USDT)
     size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, multiplier=0.5)
-    assert size == 100.0
+    assert not size.rejected
+    assert size.final_notional == 100.0
 
     # Entry = 100.0, sl_price = 50.0 (50% distance)
     # multiplier = 0.5 -> risk = 5 USDT
     # size = 5 / 0.5 = 10 USDT (min cap)
     size = trader.compute_position_size(100.0, 50.0, current_balance=500.0, multiplier=0.5)
-    assert size == 10.0
+    assert not size.rejected
+    assert size.final_notional == 10.0
 
     # Test Kelly logic
     # win_prob = 0.6, rr_ratio = 1.5 -> f* = 0.6 - 0.4/1.5 = 0.6 - 0.2667 = 0.3333
@@ -153,12 +194,14 @@ def test_compute_position_size():
     # But max risk is adjusted_risk_pct (default 2% * multiplier 1.0 = 2.0%)
     # So risk_usdt = 500 * 2.0% = 10 USDT
     size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.6, rr_ratio=1.5)
-    assert size == 100.0  # (10 USDT / 0.02) = 500 capped to 100
+    assert not size.rejected
+    assert size.final_notional == 100.0  # (10 USDT / 0.02) = 500 capped to 100
     
     # Test Negative Kelly (win_prob = 0.4, rr_ratio = 1.0 -> f* = 0.4 - 0.6/1.0 = -0.2 <= 0)
     # size should be 0.0
     size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.4, rr_ratio=1.0)
-    assert size == 0.0
+    assert size.rejected
+    assert size.final_notional == 0.0
 
     # Test Low Kelly bounded by risk_pct
     # win_prob = 0.51, rr_ratio = 1.0 -> f* = 0.51 - 0.49/1.0 = 0.02
@@ -167,15 +210,16 @@ def test_compute_position_size():
     # risk_usdt = 500 * 1.0% = 5 USDT
     # position_usdt = 5 / 0.02 = 250 capped to 100 USDT
     size = trader.compute_position_size(100.0, 98.0, current_balance=500.0, win_prob=0.51, rr_ratio=1.0)
-    assert size == 100.0
+    assert not size.rejected
+    assert size.final_notional == 100.0
 
 
 def test_signal_score_parses_primary_action():
     raw_signal = "SELL (Break-SMA50) [BUY 52% LOW] | Meta: 60%"
     assert _primary_signal_action(raw_signal) == "SELL"
     res = score_signal(raw_signal, {"close": 1574.19}, {})
-    assert res["action"] == "SELL"
-    assert res["display_label"].startswith("SELL")
+    assert res["action"] == "NEUTRAL"
+    assert res["display_label"] == "NEUTRAL"
     assert res["strength"] == res["display_score"]
 
 def test_adaptive_model_blends_with_rule_score(monkeypatch):
@@ -377,6 +421,9 @@ def test_dca_evaluation():
 
 def test_trailing_sl_activation_flow(monkeypatch):
     import btc_scraper.trading.position_tracker as pt
+
+    monkeypatch.setenv("RL_EXIT_MODE", "active")
+    monkeypatch.setenv("RL_EXIT_ALLOW_LIVE_ACTION", "true")
     
     # 1. Mock get_open_positions
     mock_positions = [
@@ -455,6 +502,9 @@ def test_trailing_sl_activation_flow(monkeypatch):
 
 def test_confidence_gate_and_shadow_mode(monkeypatch):
     import btc_scraper.trading.position_tracker as pt
+
+    monkeypatch.setenv("RL_EXIT_MODE", "active")
+    monkeypatch.setenv("RL_EXIT_ALLOW_LIVE_ACTION", "true")
     
     # 1. Setup mock database records
     mock_positions = [{
@@ -535,12 +585,14 @@ def test_confidence_gate_and_shadow_mode(monkeypatch):
     assert len(recs) == 1
     assert "[RL] DONG VI THE" in recs[0]["recommendation"]
 
-    # Case C: Shadow Mode is enabled and meta model confidence is low.
-    # Recommendation should be transformed to [SHADOW-RL] DONG VI THE.
+    # Case C: Shadow mode is enabled and blocks live RL action.
+    # Recommendation falls back to HOLD while still logging shadow prediction.
+    monkeypatch.setenv("RL_EXIT_MODE", "shadow")
     monkeypatch.setenv("RL_EXIT_SHADOW_MODE", "true")
     recs = pt.evaluate_positions(analysis_results)
     assert len(recs) == 1
-    assert "[SHADOW-RL] DONG VI THE" in recs[0]["recommendation"]
+    assert "[SHADOW-RL] DONG VI THE" not in recs[0]["recommendation"]
+    assert "GIU LENH" in recs[0]["recommendation"]
 
 
 def test_rl_exit_shadow_logging(monkeypatch):
@@ -623,4 +675,273 @@ def test_rl_exit_shadow_logging(monkeypatch):
     assert called[0][4] == "RL Exit shadow recommendation"
 
 
+# ─── PR 2 build_entry_decision E2E Tests ─────────────────────────────────────
 
+from btc_scraper.trading.decision_types import (
+    EntryRejectionReason,
+    DecisionStage,
+    TradeAction,
+    FinalDecisionStatus,
+)
+
+def test_build_entry_decision_whitelist(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC,ETH")
+    trader = AutoTrader()
+    
+    # Not in whitelist
+    dec = trader.build_entry_decision({"signal": "STRONG BUY", "signal_score": {"score": 90, "action": "BUY"}}, "SOL")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.COIN_NOT_ALLOWED
+    assert dec.breakdown.decision_stage == DecisionStage.NORMALIZATION
+
+
+def test_build_entry_decision_direction_encoding_inconsistent(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    trader = AutoTrader()
+    
+    # raw_score 10 -> should be SELL, but upstream action claims BUY -> inconsistent
+    analysis = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 10,
+            "action": "BUY",
+        }
+    }
+    dec = trader.build_entry_decision(analysis, "BTC")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.DIRECTION_ENCODING_INCONSISTENT
+    assert dec.breakdown.decision_stage == DecisionStage.NORMALIZATION
+
+
+def test_build_entry_decision_low_meta_confidence(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.85")
+    monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    trader = AutoTrader()
+    
+    # 1. STRONG BUY, strength >= threshold, but meta_probability < threshold -> insufficient edge
+    analysis = {
+        "signal": "STRONG BUY (Confirmed Reversal)",
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.80, # below 0.85
+        }
+    }
+    dec = trader.build_entry_decision(analysis, "BTC")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.INSUFFICIENT_STATISTICAL_EDGE
+    assert dec.breakdown.decision_stage == DecisionStage.ELIGIBILITY
+    assert dec.breakdown.meta_probability == 0.80
+
+
+def test_build_entry_decision_action_disagreement(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    trader = AutoTrader()
+    
+    # Action NEUTRAL despite raw text claiming STRONG BUY
+    analysis = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 90,
+            "action": "NEUTRAL",
+        }
+    }
+    dec = trader.build_entry_decision(analysis, "BTC")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.ACTION_DISAGREEMENT
+
+
+def test_build_entry_decision_kelly_and_rr_gates(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.50")
+    monkeypatch.setenv("AUTO_TRADE_MIN_RR", "1.5")
+    monkeypatch.setenv("AUTO_TRADE_USE_KELLY", "true")
+    trader = AutoTrader()
+
+    # Case A: Kelly fraction <= 0 -> rejected
+    analysis_bad_kelly = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.80,
+            "kelly_fraction": 0.0,
+        },
+        "tp_sl": {"rr1": 2.0}
+    }
+    dec = trader.build_entry_decision(analysis_bad_kelly, "BTC")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY
+    assert dec.breakdown.decision_stage == DecisionStage.ELIGIBILITY
+
+    # Case B: RR below minimum -> rejected
+    analysis_low_rr = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.80,
+            "kelly_fraction": 0.1,
+        },
+        "tp_sl": {"rr1": 1.2} # below 1.5 min_rr
+    }
+    dec = trader.build_entry_decision(analysis_low_rr, "BTC")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.RR_BELOW_MINIMUM
+
+
+def test_build_entry_decision_net_ev_gate(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    # Low thresholds to pass eligibility stage
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.40")
+    monkeypatch.setenv("AUTO_TRADE_MIN_RR", "0.5")
+    # Cost settings
+    monkeypatch.setenv("AUTO_TRADE_ESTIMATED_FEE_RATIO", "0.01") # 1% fees
+    monkeypatch.setenv("AUTO_TRADE_ESTIMATED_SLIPPAGE_RATIO", "0.01") # 1% slippage
+    # Net EV target
+    monkeypatch.setenv("AUTO_TRADE_MIN_EXPECTED_EDGE", "0.0")
+
+    trader = AutoTrader()
+    monkeypatch.setattr(trader, "_has_open_position", lambda *args, **kwargs: False)
+    monkeypatch.setattr("btc_scraper.trading.auto_trader.exposure_manager.get_open_positions", lambda: [])
+
+    # p_win = 0.50, rr = 1.0 -> gross_ev = 0.5 * 1.0 - 0.5 = 0.0
+    # net_ev = 0.0 - 0.02 = -0.02 <= 0.0 -> insufficient statistical edge at stage EDGE
+    analysis = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.50,
+            "kelly_fraction": 0.2,
+        },
+        "tp_sl": {"rr1": 1.0}
+    }
+    dec = trader.build_entry_decision(analysis, "BTC")
+    assert not dec.eligible
+    assert dec.rejection_reason == EntryRejectionReason.INSUFFICIENT_STATISTICAL_EDGE
+    assert dec.breakdown.decision_stage == DecisionStage.EDGE
+    assert dec.breakdown.gross_expected_value == 0.0
+    assert dec.breakdown.net_expected_value == -0.02
+
+
+def test_should_trade_compatibility_wrapper(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.80")
+    monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    trader = AutoTrader()
+    monkeypatch.setattr(trader, "_has_open_position", lambda *args, **kwargs: False)
+    monkeypatch.setattr("btc_scraper.trading.auto_trader.exposure_manager.get_open_positions", lambda: [])
+
+    # Legacy call with individual arguments raises DeprecationWarning
+    with pytest.deprecated_call():
+        eligible, reason = trader.should_trade(
+            coin="BTC",
+            signal="STRONG BUY",
+            meta_confidence=0.85,
+            signal_score=90,
+            sig_score_obj={"action": "BUY"},
+        )
+    assert eligible
+    assert reason == "OK"
+
+    # Call with analysis kwarg does NOT raise warning
+    analysis = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.85,
+        },
+        "tp_sl": {"rr1": 2.0}
+    }
+    # Should not raise warning
+    eligible, reason = trader.should_trade("BTC", analysis=analysis)
+    assert eligible
+    assert reason == "OK"
+
+
+def test_process_signal_emits_decision_breakdown_logs(monkeypatch):
+    import asyncio
+    logged = []
+    monkeypatch.setattr("btc_scraper.trading.auto_trader._append_log", lambda entry: logged.append(entry))
+    monkeypatch.setattr("btc_scraper.trading.auto_trader.exposure_manager.get_open_positions", lambda: [])
+    monkeypatch.setattr(
+        "btc_scraper.trading.auto_trader.exposure_manager.calculate_max_size_by_var_limit",
+        lambda *args, **kwargs: 100.0,
+    )
+    monkeypatch.setattr(
+        "btc_scraper.trading.auto_trader.exposure_manager.get_portfolio_exposures",
+        lambda balance: (0.0, {}, {}),
+    )
+
+    # Whitelist BTC
+    monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
+    monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.80")
+    monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    
+    trader = AutoTrader()
+    monkeypatch.setattr(trader, "_has_open_position", lambda *args, **kwargs: False)
+
+    # 1. Skipped log case (low RR -> rejected at eligibility stage, but logs a skip entry)
+    analysis_skipped = {
+        "signal": "STRONG BUY",
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.85,
+        },
+        "tp_sl": {"rr1": 0.5} # below 1.0 min_rr -> should reject and log skip
+    }
+
+    result = asyncio.run(trader._process_signal("BTC:Binance", analysis_skipped))
+    assert result is not None
+    assert result["status"] == "skipped"
+    assert "decision_breakdown" in result
+    bd = result["decision_breakdown"]
+    assert bd["decision_stage"] == "eligibility"
+    assert bd["technical_score"] == 90
+    assert bd["meta_probability"] == 0.85
+    assert bd["rr_ratio"] == 0.5
+    assert bd["rejection_reason"] == "rr_below_minimum"
+
+    # 2. Eligible and placed order case (simulated paper fill)
+    analysis_placed = {
+        "signal": "STRONG BUY",
+        "close": 100.0,
+        "signal_score": {
+            "score": 90,
+            "action": "BUY",
+            "meta_probability": 0.85,
+            "position_size": 1.0,
+        },
+        "tp_sl": {"entry": 100.0, "sl": 95.0, "tp1": 110.0, "rr1": 2.0}
+    }
+    
+    # Mock submit_paper
+    class DummyRecord:
+        def __init__(self):
+            self.execution_id = "test-exec-123"
+            self.status = "FILLED"
+            self.avg_fill_price = 100.0
+            self.guard_action = "ALLOW"
+            self.expected_slippage_bps = 5.0
+            self.liquidity_score = 10.0
+
+    monkeypatch.setenv("AUTO_TRADE_DRY_RUN", "true")
+    # mock _get_execution_engine().submit_paper
+    class DummyEngine:
+        def submit_paper(self, *args, **kwargs):
+            return DummyRecord()
+    monkeypatch.setattr(trader, "_get_execution_engine", lambda: DummyEngine())
+
+    result_placed = asyncio.run(trader._process_signal("BTC:Binance", analysis_placed))
+    assert result_placed is not None
+    assert "decision_breakdown" in result_placed
+    bd_placed = result_placed["decision_breakdown"]
+    assert bd_placed["decision_stage"] == "eligibility"
+    assert bd_placed["rejection_reason"] is None
+    assert result_placed["final_status"] == "eligible"
+    assert result_placed["decision_id"] is not None

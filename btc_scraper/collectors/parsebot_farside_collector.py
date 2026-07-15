@@ -200,13 +200,22 @@ def _parse_and_save_records_to_db(result: Dict[str, Any]) -> None:
             continue
         
         # Extract date
-        flow_date = rec.get("date") or rec.get("flow_date")
+        flow_date = rec.get("date") or rec.get("flow_date") or rec.get("Date")
         if not flow_date:
             continue
             
         # Extract flow value (USDM)
         flow_val = None
-        for key in ("total_flow", "total_flow_usd_m", "net_flow", "flow", "total", "net"):
+        for key in (
+            "total_flow",
+            "total_flow_usd_m",
+            "net_flow",
+            "flow",
+            "total",
+            "net",
+            "Total",
+            "Net",
+        ):
             v = rec.get(key)
             if v is not None:
                 try:

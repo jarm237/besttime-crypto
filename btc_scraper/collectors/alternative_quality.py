@@ -468,9 +468,9 @@ class CollectorHealthMonitor:
     def check_etf_alert_conditions(self) -> Optional[AlertRecord]:
         """Check MongoDB fetch logs and cache status for ETF specific alert conditions.
         Emits alert if:
-        - ETF flow has failed for more than 2 consecutive days (last 48 hours).
+        - Parse.bot returns 401/403/402 (Authentication or billing/quota error).
+        - ETF flow has failed consecutively for more than 2 days.
         - ETF flow data is stale (>36 hours).
-        - Parse.bot returns 401/403 (Authentication error).
         """
         try:
             from btc_scraper.core.db import db
@@ -479,9 +479,23 @@ class CollectorHealthMonitor:
         except Exception:
             return None
 
+        now = datetime.now(timezone.utc)
+
+        def _parse_fetch_time(doc: Dict[str, Any]) -> Optional[datetime]:
+            fetched_at_str = doc.get("fetched_at")
+            if not fetched_at_str:
+                return None
+            try:
+                dt = datetime.fromisoformat(str(fetched_at_str).replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt.astimezone(timezone.utc)
+            except Exception:
+                return None
+
         # 1. Check for 401/403 authentication error in last 24 hours
         try:
-            limit_dt = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            limit_dt = (now - timedelta(hours=24)).isoformat()
             auth_errors = list(logs_col.find({
                 "source": "parsebot_farside",
                 "status": "failed",
@@ -504,36 +518,93 @@ class CollectorHealthMonitor:
         except Exception:
             pass
 
-        # 2. Check for failed > 2 days (48 hours) consecutive
+        # 2. Check for billing/quota errors in last 24 hours.
         try:
-            last_attempts = list(logs_col.find({"source": "parsebot_farside"}).sort("fetched_at", -1).limit(20))
-            if last_attempts:
-                limit_dt = datetime.now(timezone.utc) - timedelta(days=2)
-                recent_attempts = []
-                for attempt in last_attempts:
-                    fetched_at_str = attempt.get("fetched_at")
-                    if fetched_at_str:
-                        attempt_dt = datetime.fromisoformat(fetched_at_str.replace("Z", "+00:00"))
-                        if attempt_dt > limit_dt:
-                            recent_attempts.append(attempt)
-                
-                if recent_attempts and all(att.get("status") == "failed" for att in recent_attempts):
+            limit_dt = (now - timedelta(hours=24)).isoformat()
+            billing_errors = list(logs_col.find({
+                "source": "parsebot_farside",
+                "status": "failed",
+                "fetched_at": {"$gte": limit_dt},
+                "error": {"$regex": "402|Payment Required|quota|billing|subscription", "$options": "i"}
+            }).sort("fetched_at", -1).limit(5))
+            if billing_errors:
+                latest_billing_err_time = billing_errors[0].get("fetched_at")
+                recent_success = logs_col.find_one({
+                    "source": "parsebot_farside",
+                    "status": "ok",
+                    "fetched_at": {"$gt": latest_billing_err_time}
+                })
+                if not recent_success:
                     return AlertRecord(
                         "critical",
                         "parsebot_farside",
-                        f"ETF flow has failed consecutively for more than 2 days (total {len(recent_attempts)} failed attempts)."
+                        f"Billing/quota error detected (402/Payment Required) in Parse.bot requests: {billing_errors[0].get('error')}"
                     )
         except Exception:
             pass
 
-        # 3. Check for stale data > 36 hours
+        # 3. Check for ETF flow failed > 2 days (48 hours) consecutively.
+        try:
+            last_attempts = list(logs_col.find({
+                "source": "parsebot_farside",
+                "symbol": {"$in": ["BTC", "ETH", "SOL"]},
+                "mode": {"$in": ["recent", "all"]},
+            }).sort("fetched_at", -1).limit(200))
+            consecutive_failed: List[Dict[str, Any]] = []
+            for attempt in last_attempts:
+                if attempt.get("status") != "failed":
+                    break
+                consecutive_failed.append(attempt)
+
+            if consecutive_failed:
+                parsed_times = [dt for dt in (_parse_fetch_time(att) for att in consecutive_failed) if dt]
+                if parsed_times:
+                    failure_age_hours = (now - min(parsed_times)).total_seconds() / 3600.0
+                    if failure_age_hours >= 48:
+                        first_failed_at = min(parsed_times).isoformat()
+                        last_failed_at = max(parsed_times).isoformat()
+                        return AlertRecord(
+                            "critical",
+                            "parsebot_farside",
+                            "ETF flow has failed consecutively for "
+                            f"{failure_age_hours:.1f} hours "
+                            f"(total {len(consecutive_failed)} failed attempts, "
+                            f"first_failed_at={first_failed_at}, last_failed_at={last_failed_at})."
+                        )
+        except Exception:
+            pass
+
+        # 4. Check for all recent ETF flow attempts failing inside 48h without
+        # claiming the condition has lasted for the full 2-day threshold.
+        try:
+            limit_dt = (now - timedelta(days=2)).isoformat()
+            recent_etf_attempts = list(logs_col.find({
+                "source": "parsebot_farside",
+                "symbol": {"$in": ["BTC", "ETH", "SOL"]},
+                "mode": {"$in": ["recent", "all"]},
+                "fetched_at": {"$gte": limit_dt},
+            }).sort("fetched_at", -1).limit(20))
+            if recent_etf_attempts and all(att.get("status") == "failed" for att in recent_etf_attempts):
+                parsed_times = [dt for dt in (_parse_fetch_time(att) for att in recent_etf_attempts) if dt]
+                if parsed_times:
+                    failure_age_hours = (now - min(parsed_times)).total_seconds() / 3600.0
+                    return AlertRecord(
+                        "warning",
+                        "parsebot_farside",
+                        "ETF flow recent attempts are currently failing "
+                        f"(total {len(recent_etf_attempts)} failed attempts over {failure_age_hours:.1f} hours)."
+                    )
+        except Exception:
+            pass
+
+        # 5. Check for stale data > 36 hours
         try:
             latest_flow = flows_col.find_one({"source": "parsebot_farside", "status": "ok"}, sort=[("fetched_at", -1)])
             if latest_flow:
                 fetched_at_str = latest_flow.get("fetched_at")
                 if fetched_at_str:
-                    fetched_dt = datetime.fromisoformat(fetched_at_str.replace("Z", "+00:00"))
-                    age_hours = (datetime.now(timezone.utc) - fetched_dt).total_seconds() / 3600.0
+                    fetched_dt = _parse_fetch_time(latest_flow)
+                    age_hours = (now - fetched_dt).total_seconds() / 3600.0 if fetched_dt else 0.0
                     if age_hours > 36:
                         return AlertRecord(
                             "warning",

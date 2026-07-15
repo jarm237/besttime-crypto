@@ -322,6 +322,80 @@ def signal_strength_from_score(action: str, score: int | float) -> int:
     return int(round(max(0.0, min(100.0, strength))))
 
 
+# ── Signed score normalization ────────────────────────────────────────────────
+# Used by the canonical entry decision pipeline (PR 1).
+
+from btc_scraper.trading.decision_types import NormalizedSignalScore, TradeAction
+
+# Default threshold: strength must reach this to be considered BUY/SELL.
+# Matches the existing AUTO_TRADE_SCORE_THRESHOLD default of 75.
+DEFAULT_ACTION_THRESHOLD: float = 50.0
+
+
+def normalize_directional_score(
+    raw_score: float,
+    *,
+    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+) -> NormalizedSignalScore:
+    """Normalize a raw 0-100 directional score into a canonical representation.
+
+    Formula::
+
+        directional_score = round((raw_score - 50) * 2)
+
+    Examples:
+
+        | Raw score | Directional | Strength | Action  |
+        |----------:|------------:|---------:|---------|
+        |        95 |         +90 |       90 | BUY     |
+        |         5 |         -90 |       90 | SELL    |
+        |        70 |         +40 |       40 | NEUTRAL |
+        |        30 |         -40 |       40 | NEUTRAL |
+        |        50 |           0 |        0 | NEUTRAL |
+
+    The action is derived *solely* from ``directional_score`` and
+    ``action_threshold`` — it is never taken from an external input.
+    Callers should compare the returned ``action`` with any upstream
+    action to detect ``DIRECTION_ENCODING_INCONSISTENT``.
+
+    Args:
+        raw_score: Internal score on the 0-100 axis
+                   (0 = strongest SELL, 50 = NEUTRAL, 100 = strongest BUY).
+        action_threshold: Minimum ``strength`` required for a non-NEUTRAL
+                          action.  Defaults to ``DEFAULT_ACTION_THRESHOLD``.
+
+    Returns:
+        NormalizedSignalScore with directional_score, strength, and derived action.
+    """
+    try:
+        raw = float(raw_score)
+    except (TypeError, ValueError):
+        raw = 50.0
+    raw = max(0.0, min(100.0, raw))
+
+    directional = round((raw - 50.0) * 2.0)
+    strength = abs(directional)
+
+    # Clamp to [-100, +100] and [0, 100] respectively
+    directional = max(-100, min(100, directional))
+    strength = max(0, min(100, strength))
+
+    threshold = max(0.0, float(action_threshold))
+    if strength >= threshold and directional > 0:
+        action = TradeAction.BUY
+    elif strength >= threshold and directional < 0:
+        action = TradeAction.SELL
+    else:
+        action = TradeAction.NEUTRAL
+
+    return NormalizedSignalScore(
+        raw_score=raw,
+        directional_score=directional,
+        strength=strength,
+        action=action,
+    )
+
+
 def position_size_from_score(score: int, min_size: float = 0.25, max_size: float = 1.0) -> float:
     frac = abs(score - 50) / 50.0
     size = min_size + frac * (max_size - min_size)
@@ -447,14 +521,18 @@ def _load_optimized_params():
         return _OPTIMIZED_PARAMS_CACHE
     from pathlib import Path
     import json
-    cfg_path = Path(__file__).parent.parent / "logs" / "optimized_trading_params.json"
-    if cfg_path.exists():
-        try:
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                _OPTIMIZED_PARAMS_CACHE = json.load(f)
-                return _OPTIMIZED_PARAMS_CACHE
-        except Exception:
-            pass
+    candidate_paths = [
+        Path(__file__).parent.parent / "logs" / "optimized_trading_params.json",
+        Path(__file__).parent.parent.parent / "logs" / "optimized_trading_params.json",
+    ]
+    for cfg_path in candidate_paths:
+        if cfg_path.exists():
+            try:
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    _OPTIMIZED_PARAMS_CACHE = json.load(f)
+                    return _OPTIMIZED_PARAMS_CACHE
+            except Exception:
+                pass
     _OPTIMIZED_PARAMS_CACHE = {}
     return _OPTIMIZED_PARAMS_CACHE
 

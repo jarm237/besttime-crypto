@@ -63,15 +63,19 @@ def _load_optimized_params():
         return _OPTIMIZED_PARAMS_CACHE
     from pathlib import Path
     import json
-    cfg_path = Path(__file__).parent.parent / "logs" / "optimized_trading_params.json"
-    if cfg_path.exists():
-        try:
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                _OPTIMIZED_PARAMS_CACHE = json.load(f)
-                return _OPTIMIZED_PARAMS_CACHE
-        except Exception as _params_err:
-            import logging as _log
-            _log.getLogger(__name__).warning("[analysis] load optimized params failed: %s", _params_err)
+    candidate_paths = [
+        Path(__file__).parent.parent / "logs" / "optimized_trading_params.json",
+        Path(__file__).parent.parent.parent / "logs" / "optimized_trading_params.json",
+    ]
+    for cfg_path in candidate_paths:
+        if cfg_path.exists():
+            try:
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    _OPTIMIZED_PARAMS_CACHE = json.load(f)
+                    return _OPTIMIZED_PARAMS_CACHE
+            except Exception as _params_err:
+                import logging as _log
+                _log.getLogger(__name__).warning("[analysis] load optimized params failed: %s", _params_err)
     _OPTIMIZED_PARAMS_CACHE = {}
     return _OPTIMIZED_PARAMS_CACHE
 

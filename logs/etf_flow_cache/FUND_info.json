@@ -3,22 +3,9 @@
   "endpoint": "get_fund_info",
   "symbol": "FUND",
   "mode": "info",
-  "status": "ok",
-  "value": {
-    "status": "success",
-    "data": {
-      "NAV (14th July 2026)": "£178.68",
-      "Launch price": "£100.00",
-      "Launch date": "29 March 2022",
-      "Investment advisor": "FS Investors Ltd",
-      "Director of investment advisor": "Jonathan Bier (FCA)",
-      "FCA host": "Brooklands Fund Management Ltd",
-      "Fund administrator": "Abacus Financial Services Ltd",
-      "Fund auditor": "BDO",
-      "Fund registration": "Gibraltar Financial Services Commission"
-    }
-  },
-  "data_quality": 1.0,
-  "fetched_at": "2026-07-14T11:22:35.314661+00:00",
-  "error": null
+  "status": "failed",
+  "value": null,
+  "data_quality": 0.0,
+  "fetched_at": "2026-07-15T06:06:06.744992+00:00",
+  "error": "402 Client Error: Payment Required for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_fund_info"
 }

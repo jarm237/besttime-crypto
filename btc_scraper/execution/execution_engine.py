@@ -29,6 +29,9 @@ from .order_type_selector import OrderTypeSelector, Urgency
 from .execution_planner import ExecutionPlanner
 from .post_trade_analyzer import PostTradeAnalyzer
 from .exchange_adapter import WriteExchangeAdapter, make_write_adapter_from_env
+from btc_scraper.execution.reservation_store import ReservationStore
+from btc_scraper.trading.decision_types import ReservationStatus
+from btc_scraper.execution.hard_risk_limits import OrderIntent
 
 logger = logging.getLogger(__name__)
 
@@ -81,12 +84,29 @@ class ExecutionEngine:
         })
         self._planner = ExecutionPlanner(self.config.twap.__dict__)
         self._post_trade = PostTradeAnalyzer(reports_dir=reports_dir)
+        self._reservation_store = ReservationStore()
         import asyncio
         self._execution_lock = asyncio.Lock()
 
     def attach_adapter(self, adapter: WriteExchangeAdapter) -> None:
         """Attach (or replace) the exchange write adapter at runtime."""
         self._adapter = adapter
+
+    @staticmethod
+    def _build_idempotency_key(signal: Dict[str, Any], record: ExecutionRecord, symbol: str, side: str) -> str:
+        """Build a stable fallback idempotency key for callers that do not pass one.
+
+        Production callers should pass an explicit key from EntryDecision. This
+        fallback still includes the fields from the remediation plan so unrelated
+        tests/runs with the same signal id do not collide with stale reservations.
+        """
+        strategy = signal.get("strategy") or signal.get("signal_strategy") or "default"
+        bucket = signal.get("decision_timestamp_bucket")
+        if not bucket:
+            entry_time = signal.get("entry_time")
+            bucket = str(entry_time)[:16] if entry_time else record.timestamp
+        signal_id = signal.get("id") or record.signal_id
+        return f"{signal_id}:{symbol}:{side}:{strategy}:{bucket}"
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
@@ -302,6 +322,47 @@ class ExecutionEngine:
 
             intent = signal.get("intent", OrderIntent.ENTRY)
 
+            # ── SQLite Atomic Reservation Gate ──
+            is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
+            reservation_id = None
+
+            if is_entry:
+                reservation_id = f"res-{uuid.uuid4()}"
+                idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
+
+                rec_res, created_new = self._reservation_store.reserve(
+                    reservation_id=reservation_id,
+                    idempotency_key=idempotency_key,
+                    entry_decision_id=signal.get("decision_id") or record.signal_id,
+                    symbol=symbol,
+                    side=side.lower(),
+                    reserved_notional=notional_usdt,
+                )
+                reservation_id = rec_res.reservation_id
+                idempotency_key = rec_res.idempotency_key
+
+                if not created_new:
+                    logger.warning(f"[ExecutionEngine] Duplicate request detected via idempotency: {idempotency_key}")
+                    if rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
+                        record.status = OrderStatus.FILLED
+                        record.reason = "Duplicate request already completed"
+                        return record
+                    elif rec_res.status == ReservationStatus.PENDING:
+                        record.guard_action = "REJECT"
+                        return self._tracker.reject(record, reason="Duplicate request in progress")
+                    else:
+                        record.guard_action = "REJECT"
+                        return self._tracker.reject(
+                            record,
+                            reason="Idempotency key already used; reconciliation required",
+                        )
+
+            # Add active totals from SQLite store to pre-trade count
+            active_notional, active_slots = self._reservation_store.get_active_notional_and_slots(
+                exclude_reservation_id=reservation_id
+            )
+            open_positions_count += active_slots
+
             state_snap = LiveStateSnapshot(
                 observed_at=datetime.now(timezone.utc),
                 portfolio_equity_usdt=portfolio_equity_usdt,
@@ -323,6 +384,8 @@ class ExecutionEngine:
             guard_result = self._live_guard.validate(ctx)
             if not guard_result.allowed:
                 logger.warning(f"[ExecutionEngine] LiveExecutionGuard BLOCKED: {guard_result.reason}")
+                if reservation_id:
+                    self._reservation_store.release(reservation_id)
                 record.guard_action = "REJECT"
                 return self._tracker.reject(record, reason=guard_result.reason)
 
@@ -339,6 +402,8 @@ class ExecutionEngine:
 
             if guard.action == GuardAction.REJECT:
                 logger.info(f"[ExecutionEngine] LIVE REJECTED {coin} {side}: {guard.reason}")
+                if reservation_id:
+                    self._reservation_store.release(reservation_id)
                 return self._tracker.reject(record, reason=guard.reason)
 
             if guard.action == GuardAction.REDUCE and guard.adjusted_qty_usdt:
@@ -363,6 +428,8 @@ class ExecutionEngine:
             )
 
             if order_decision.order_type == "SKIP":
+                if reservation_id:
+                    self._reservation_store.release(reservation_id)
                 return self._tracker.reject(record, reason=order_decision.reason)
 
             record.order_type = order_decision.order_type
@@ -373,10 +440,15 @@ class ExecutionEngine:
             self._tracker.register(record)
             try:
                 is_buy = side == "BUY"
+                params = {}
+                if reservation_id:
+                    params["clientOrderId"] = idempotency_key
+                    params["reservationId"] = reservation_id
+
                 if is_buy:
-                    order = await self._adapter.create_market_buy(symbol, notional_usdt)
+                    order = await self._adapter.create_market_buy(symbol, notional_usdt, params)
                 else:
-                    order = await self._adapter.create_market_sell(symbol, notional_usdt)
+                    order = await self._adapter.create_market_sell(symbol, notional_usdt, params)
 
                 # Build fill from exchange response
                 fill_price = float(order.get("price") or record.submitted_price)
@@ -402,11 +474,32 @@ class ExecutionEngine:
                     f"(slip {expected_slip:.1f} bps, liq {snap.liquidity_score:.2f})"
                 )
 
+                # SQLite Reservation store updates
+                if reservation_id:
+                    filled_notional = fill_qty * fill_price
+                    ex_id = order.get("id")
+                    if filled_notional < 0.9 * notional_usdt:
+                        self._reservation_store.partial_commit(
+                            reservation_id,
+                            filled_notional=filled_notional,
+                            exchange_order_id=ex_id,
+                            client_order_id=idempotency_key,
+                        )
+                    else:
+                        self._reservation_store.commit(
+                            reservation_id,
+                            filled_notional=filled_notional,
+                            exchange_order_id=ex_id,
+                            client_order_id=idempotency_key,
+                        )
+
                 # ── 6. Post-trade analysis ───────────────────────────────────
                 self._post_trade.analyze(record.to_dict())
 
             except Exception as exc:
                 logger.error(f"[ExecutionEngine] Order submission failed: {exc}")
+                if reservation_id:
+                    self._reservation_store.release(reservation_id)
                 record.status = OrderStatus.REJECTED
                 record.reason = str(exc)
                 self._tracker._history.append(record)

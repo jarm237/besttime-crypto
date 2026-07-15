@@ -45,13 +45,28 @@ from __future__ import annotations
 import json
 import os
 import time
+import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
 from btc_scraper.analysis.correlation import correlation_engine, SECTOR_MAP
 from btc_scraper.trading.exposure_manager import exposure_manager
-from btc_scraper.ml_engine.signal_score import signal_strength_from_score, _primary_signal_action
+from btc_scraper.ml_engine.signal_score import (
+    signal_strength_from_score,
+    _primary_signal_action,
+    normalize_directional_score,
+)
+from btc_scraper.trading.decision_types import (
+    TradeAction,
+    EntryRejectionReason,
+    AuthorizationReason,
+    FinalDecisionStatus,
+    DecisionStage,
+    DecisionBreakdown,
+    SizingDecision,
+    EntryDecision,
+)
 
 BASE_DIR = Path(__file__).parent.parent
 AUTO_TRADE_LOG = BASE_DIR / "logs" / "auto_trade_log.json"
@@ -184,6 +199,31 @@ class AutoTrader:
     def kelly_fraction(self) -> float:
         return _env_float("AUTO_TRADE_KELLY_FRACTION", 0.5)
 
+    @property
+    def min_rr(self) -> float:
+        """Minimum reward-to-risk ratio for entry.  Default 1.0."""
+        return _env_float("AUTO_TRADE_MIN_RR", 1.0)
+
+    @property
+    def min_expected_edge(self) -> float:
+        """Minimum net expected value for entry.  Default 0.0."""
+        return _env_float("AUTO_TRADE_MIN_EXPECTED_EDGE", 0.0)
+
+    @property
+    def estimated_fee_ratio(self) -> float:
+        """Estimated round-trip fee ratio (taker).  Default 0.001 (10 bps)."""
+        return _env_float("AUTO_TRADE_ESTIMATED_FEE_RATIO", 0.001)
+
+    @property
+    def estimated_slippage_ratio(self) -> float:
+        """Estimated slippage ratio.  Default 0.0005 (5 bps)."""
+        return _env_float("AUTO_TRADE_ESTIMATED_SLIPPAGE_RATIO", 0.0005)
+
+    @property
+    def estimated_funding_cost(self) -> float:
+        """Estimated funding cost ratio per trade.  Default 0.0."""
+        return _env_float("AUTO_TRADE_ESTIMATED_FUNDING_COST", 0.0)
+
     def _get_execution_engine(self):
         """Lazy-init ExecutionEngine with WriteExchangeAdapter.
         
@@ -275,126 +315,465 @@ class AutoTrader:
         multiplier: float = 1.0,
         win_prob: Optional[float] = None,
         rr_ratio: Optional[float] = None,
-    ) -> float:
-        """
-        Tính position size dựa trên fixed fractional risk (2% mặc định) nhân với setup multiplier (Kelly/Regime).
-
-        Formula:
-            risk_usdt = account_balance * (risk_pct * multiplier) / 100
-            sl_distance_pct = |entry - sl| / entry
-            position_usdt = risk_usdt / sl_distance_pct
-
-        Cap tại max_trade_usdt và min_trade_usdt.
-
-        Args:
-            entry_price: Giá vào lệnh
-            sl_price: Giá stop-loss
-            current_balance: Balance thực tế (nếu None, dùng AUTO_TRADE_ACCOUNT_USDT)
-            multiplier: Hệ số nhân điều chỉnh rủi ro của setup (Kelly fraction, market regime)
-            win_prob: Xác suất thắng dự kiến (từ meta_confidence)
-            rr_ratio: Reward-to-Risk ratio (từ tp_sl dict)
+        var_cap: Optional[float] = None,
+        exposure_cap: Optional[float] = None,
+        max_trade_cap: Optional[float] = None,
+        min_trade_cap: Optional[float] = None,
+    ) -> SizingDecision:
+        """Tính position size dựa trên fixed fractional risk (2% mặc định)
+        nhân với setup multiplier (Kelly/Regime) và áp dụng các cap rủi ro.
 
         Returns:
-            Số USDT để invest vào lệnh này, hoặc 0.0 nếu rủi ro không đạt yêu cầu.
+            SizingDecision object.
         """
+        # 1. Validate prices
+        if entry_price <= 0.0 or sl_price <= 0.0:
+            return SizingDecision(
+                entry_price=entry_price,
+                sl_price=sl_price,
+                stop_distance_pct=0.0,
+                risk_pct=0.0,
+                risk_notional=0.0,
+                raw_notional=0.0,
+                rejected=True,
+                rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
+            )
+
+        # 2. Stop distance calculation
+        sl_distance_pct = abs(entry_price - sl_price) / entry_price
+        if sl_distance_pct < 0.001:
+            return SizingDecision(
+                entry_price=entry_price,
+                sl_price=sl_price,
+                stop_distance_pct=sl_distance_pct,
+                risk_pct=0.0,
+                risk_notional=0.0,
+                raw_notional=0.0,
+                rejected=True,
+                rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
+            )
+
         balance = current_balance if current_balance and current_balance > 0 else self.account_usdt
-        
-        # Dynamic Risk Management with Kelly Criterion
-        adjusted_risk_pct = self.risk_pct * max(0.01, min(1.0, multiplier))
+
+        # 3. Risk-based sizing
+        risk_pct = self.risk_pct * max(0.01, min(1.0, multiplier))
+        risk_notional = balance * risk_pct / 100.0
+        raw_notional = risk_notional / sl_distance_pct
+
+        # Start sequential caps enforcement
+        notional = raw_notional
+
+        # 4. Kelly adjustment
+        kelly_adjusted = None
+        kelly_f = None
         if self.use_kelly and win_prob is not None and rr_ratio is not None and rr_ratio > 0:
             kelly_f = win_prob - (1.0 - win_prob) / rr_ratio
             if kelly_f <= 0:
-                return 0.0  # Từ chối lệnh vì kỳ vọng âm
-            
+                return SizingDecision(
+                    entry_price=entry_price,
+                    sl_price=sl_price,
+                    stop_distance_pct=sl_distance_pct,
+                    risk_pct=risk_pct,
+                    risk_notional=risk_notional,
+                    raw_notional=raw_notional,
+                    rejected=True,
+                    rejection_reason=EntryRejectionReason.NON_POSITIVE_KELLY,
+                )
             kelly_risk_pct = kelly_f * self.kelly_fraction * 100.0
-            # Giới hạn max risk là adjusted_risk_pct (ví dụ 2%)
-            adjusted_risk_pct = min(kelly_risk_pct, adjusted_risk_pct)
+            kelly_risk_notional = balance * kelly_risk_pct / 100.0
+            kelly_adjusted = kelly_risk_notional / sl_distance_pct
+            notional = min(notional, kelly_adjusted)
 
-        risk_usdt = balance * adjusted_risk_pct / 100.0  # VD: 500 * (2% * 0.5) = 5 USDT risk
+        # 5. VaR Cap
+        var_capped = None
+        if var_cap is not None:
+            var_capped = var_cap
+            notional = min(notional, var_capped)
 
-        if entry_price <= 0 or sl_price <= 0:
-            # Fallback: dùng adjusted risk nếu không có SL
-            return min(self.max_trade_usdt, max(self.min_trade_usdt, risk_usdt))
+        # 6. Exposure Cap
+        exposure_capped = None
+        if exposure_cap is not None:
+            exposure_capped = exposure_cap
+            notional = min(notional, exposure_capped)
 
-        sl_distance_pct = abs(entry_price - sl_price) / entry_price
-        if sl_distance_pct < 0.001:
-            # SL quá gần, dùng 0.5% minimum distance để tránh oversizing
-            sl_distance_pct = 0.005
+        # 7. Hard Max Cap
+        max_trade_capped = None
+        max_limit = max_trade_cap if max_trade_cap is not None else self.max_trade_usdt
+        if notional > max_limit:
+            max_trade_capped = max_limit
+            notional = min(notional, max_limit)
 
-        # risk_usdt / sl_distance = notional cần thiết để risk đúng risk_pct
-        position_usdt = risk_usdt / sl_distance_pct
+        # 8. Min Notional Validation
+        min_limit = min_trade_cap if min_trade_cap is not None else self.min_trade_usdt
+        allowed_risk = risk_notional
+        if kelly_f is not None:
+            kelly_risk_pct = kelly_f * self.kelly_fraction * 100.0
+            allowed_risk = min(allowed_risk, balance * kelly_risk_pct / 100.0)
 
-        # Apply caps
-        position_usdt = min(position_usdt, self.max_trade_usdt)
-        position_usdt = max(position_usdt, self.min_trade_usdt)
+        if notional < min_limit:
+            # Reject if min notional exceeds allowed risk
+            min_notional_risk = min_limit * sl_distance_pct
+            if min_notional_risk > allowed_risk:
+                return SizingDecision(
+                    entry_price=entry_price,
+                    sl_price=sl_price,
+                    stop_distance_pct=sl_distance_pct,
+                    risk_pct=risk_pct,
+                    risk_notional=risk_notional,
+                    raw_notional=raw_notional,
+                    kelly_adjusted=kelly_adjusted,
+                    var_capped=var_capped,
+                    exposure_capped=exposure_capped,
+                    max_trade_capped=max_trade_capped,
+                    final_notional=0.0,
+                    rejected=True,
+                    rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
+                )
+            else:
+                notional = min_limit
 
-        return round(position_usdt, 2)
+        return SizingDecision(
+            entry_price=entry_price,
+            sl_price=sl_price,
+            stop_distance_pct=sl_distance_pct,
+            risk_pct=risk_pct,
+            risk_notional=risk_notional,
+            raw_notional=raw_notional,
+            kelly_adjusted=kelly_adjusted,
+            var_capped=var_capped,
+            exposure_capped=exposure_capped,
+            max_trade_capped=max_trade_capped,
+            final_notional=round(notional, 2),
+            rejected=False,
+        )
 
     # ─── Trade Decision ─────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _resolve_meta_probability(sig_score_obj: Dict[str, Any]) -> Optional[float]:
+        """Resolve meta_probability from signal_score, supporting the
+        meta_confidence → meta_probability migration.
+
+        Reads ``meta_probability`` first; falls back to ``meta_confidence``.
+        Logs a deprecation note when the old key is used.
+        """
+        val = sig_score_obj.get("meta_probability")
+        if val is None:
+            val = sig_score_obj.get("meta_confidence")
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return None
+
+    def build_entry_decision(
+        self,
+        analysis: Dict[str, Any],
+        coin: str,
+    ) -> EntryDecision:
+        """Canonical entry decision pipeline.
+
+        This is the single source of truth for whether a trade should be
+        entered.  All policy checks live here — ``should_trade()`` is a
+        backward-compatible wrapper.
+
+        Pipeline stages (in precedence order):
+            1. NORMALIZATION — validate action / direction encoding
+            2. ELIGIBILITY  — meta_probability, RR, Kelly, EV, strength
+            3. EDGE         — net expected value gate
+            4. SIZING       — position size computation
+
+        Returns:
+            EntryDecision with full DecisionBreakdown.
+        """
+        sig_score = analysis.get("signal_score") or {}
+        raw_signal = str(analysis.get("signal", ""))
+        raw_signal_upper = raw_signal.upper()
+        tp_sl = analysis.get("tp_sl") or {}
+
+        score = sig_score.get("score", 50)
+        try:
+            score = int(score)
+        except (TypeError, ValueError):
+            score = 50
+
+        # ── Stage: NORMALIZATION ──────────────────────────────────────────
+        normalized = normalize_directional_score(
+            score, action_threshold=self.score_threshold,
+        )
+
+        # Determine action from signal_score object (upstream).
+        upstream_action_str = str(
+            sig_score.get("action") or _primary_signal_action(raw_signal)
+        ).upper()
+        try:
+            upstream_action = TradeAction(upstream_action_str)
+        except ValueError:
+            upstream_action = TradeAction.NEUTRAL
+
+        # Helper to build rejection quickly
+        def _reject(
+            reason: EntryRejectionReason,
+            stage: DecisionStage = DecisionStage.NORMALIZATION,
+            **extra_breakdown,
+        ) -> EntryDecision:
+            bd = DecisionBreakdown(
+                decision_stage=stage,
+                technical_score=score,
+                directional_score=normalized.directional_score,
+                signal_strength=normalized.strength,
+                signal_action=upstream_action,
+                rejection_reason=reason,
+                **extra_breakdown,
+            )
+            return EntryDecision(
+                eligible=False,
+                action=upstream_action,
+                rejection_reason=reason,
+                final_status=FinalDecisionStatus.REJECTED,
+                breakdown=bd,
+                sizing=None,
+                signal_eligible=False,
+                eligibility_reason=reason,
+            )
+
+        # 1. Coin whitelist
+        if coin.upper() not in [c.upper() for c in self.allowed_coins]:
+            return _reject(EntryRejectionReason.COIN_NOT_ALLOWED)
+
+        # 2. Action must be BUY or SELL
+        if upstream_action not in (TradeAction.BUY, TradeAction.SELL):
+            return _reject(EntryRejectionReason.ACTION_DISAGREEMENT)
+
+        # 3. WEAK signal
+        if "WEAK" in raw_signal_upper:
+            return _reject(EntryRejectionReason.WEAK_SIGNAL)
+
+        # 4. Direction encoding consistency check
+        # When the normalized action has enough strength to be non-NEUTRAL,
+        # it must agree with the upstream action.
+        if (
+            normalized.action != TradeAction.NEUTRAL
+            and normalized.action != upstream_action
+        ):
+            return _reject(EntryRejectionReason.DIRECTION_ENCODING_INCONSISTENT)
+
+        # ── Stage: ELIGIBILITY ────────────────────────────────────────────
+        meta_prob = self._resolve_meta_probability(sig_score)
+
+        # 5. Meta probability threshold (rejects if None or below threshold)
+        if meta_prob is None or meta_prob < self.meta_threshold:
+            return _reject(
+                EntryRejectionReason.INSUFFICIENT_STATISTICAL_EDGE,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+            )
+
+        # 6. Side-agnostic strength threshold
+        strength = sig_score.get("strength")
+        if strength is None:
+            strength = signal_strength_from_score(upstream_action.value, score)
+        try:
+            strength = float(strength)
+        except (TypeError, ValueError):
+            strength = signal_strength_from_score(upstream_action.value, score)
+
+        # Causal anomaly conflict gate
+        has_causal_anomaly = bool(
+            sig_score.get("causal_anomaly_warning")
+        ) or ("CAUSAL ANOMALY" in raw_signal_upper)
+        meta_high = max(float(self.meta_threshold), 0.60)
+        low_signal = max(int(self.score_threshold), 70)
+        if (
+            has_causal_anomaly
+            and meta_prob >= meta_high
+            and strength <= low_signal
+        ):
+            return _reject(
+                EntryRejectionReason.CAUSAL_REGIME_VETO,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+            )
+
+        if strength < self.score_threshold:
+            return _reject(
+                EntryRejectionReason.INSUFFICIENT_STATISTICAL_EDGE,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+            )
+
+        # 7. RR gate
+        rr_ratio = float(tp_sl.get("rr1", 0.0) or 0.0)
+        if rr_ratio <= self.min_rr:
+            return _reject(
+                EntryRejectionReason.RR_BELOW_MINIMUM,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+                rr_ratio=rr_ratio,
+            )
+
+        # 8. Kelly fraction
+        signal_kelly = sig_score.get("kelly_fraction")
+        kelly_raw_val: Optional[float] = None
+        if signal_kelly is not None:
+            try:
+                kelly_raw_val = float(signal_kelly)
+            except (TypeError, ValueError):
+                kelly_raw_val = None
+
+        if self.use_kelly and kelly_raw_val is not None and kelly_raw_val <= 0.0:
+            return _reject(
+                EntryRejectionReason.NON_POSITIVE_KELLY,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+                rr_ratio=rr_ratio,
+                kelly_raw=kelly_raw_val,
+                kelly_applied=0.0,
+            )
+
+        # 9. Circuit Breaker Gate
+        cb_ok, cb_reason = self._check_circuit_breaker()
+        if not cb_ok:
+            return _reject(
+                EntryRejectionReason.CIRCUIT_BREAKER,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+                rr_ratio=rr_ratio,
+                kelly_raw=kelly_raw_val,
+            )
+
+        # 10. Existing Position check
+        direction = "LONG" if upstream_action == TradeAction.BUY else "SHORT"
+        if self._has_open_position(coin, direction):
+            return _reject(
+                EntryRejectionReason.EXISTING_POSITION,
+                stage=DecisionStage.ELIGIBILITY,
+                meta_probability=meta_prob,
+                rr_ratio=rr_ratio,
+                kelly_raw=kelly_raw_val,
+            )
+
+        # 11. Correlation Filter Check
+        open_positions = exposure_manager.get_open_positions()
+        for p in open_positions:
+            open_coin = p.get("coin", "").upper()
+            if open_coin != coin.upper():
+                corr = correlation_engine.get_correlation(open_coin, coin)
+                if corr > 0.75:
+                    return _reject(
+                        EntryRejectionReason.CORRELATION_FILTER,
+                        stage=DecisionStage.ELIGIBILITY,
+                        meta_probability=meta_prob,
+                        rr_ratio=rr_ratio,
+                        kelly_raw=kelly_raw_val,
+                    )
+
+        # ── Stage: EDGE — canonical EV computation ────────────────────────
+        gross_ev: Optional[float] = None
+        net_ev: Optional[float] = None
+        estimated_cost = (
+            self.estimated_fee_ratio
+            + self.estimated_slippage_ratio
+            + self.estimated_funding_cost
+        )
+
+        if rr_ratio > 0:
+            gross_ev = meta_prob * rr_ratio - (1.0 - meta_prob)
+            net_ev = gross_ev - estimated_cost
+
+            if net_ev <= self.min_expected_edge:
+                return _reject(
+                    EntryRejectionReason.INSUFFICIENT_STATISTICAL_EDGE,
+                    stage=DecisionStage.EDGE,
+                    meta_probability=meta_prob,
+                    rr_ratio=rr_ratio,
+                    gross_expected_value=round(gross_ev, 6),
+                    estimated_cost=round(estimated_cost, 6),
+                    net_expected_value=round(net_ev, 6),
+                    kelly_raw=kelly_raw_val,
+                    kelly_applied=kelly_raw_val if kelly_raw_val and kelly_raw_val > 0 else 0.0,
+                )
+
+        # ── Build successful breakdown (SIZING stage will be added by caller) ──
+        breakdown = DecisionBreakdown(
+            decision_stage=DecisionStage.ELIGIBILITY,
+            technical_score=score,
+            directional_score=normalized.directional_score,
+            signal_strength=int(strength),
+            signal_action=upstream_action,
+            meta_probability=meta_prob,
+            rr_ratio=rr_ratio,
+            gross_expected_value=round(gross_ev, 6) if gross_ev is not None else None,
+            estimated_cost=round(estimated_cost, 6),
+            net_expected_value=round(net_ev, 6) if net_ev is not None else None,
+            kelly_raw=kelly_raw_val,
+            kelly_applied=kelly_raw_val if kelly_raw_val and kelly_raw_val > 0 else None,
+        )
+
+        return EntryDecision(
+            eligible=True,
+            action=upstream_action,
+            rejection_reason=None,
+            final_status=FinalDecisionStatus.ELIGIBLE,
+            breakdown=breakdown,
+            sizing=None,
+            signal_eligible=True,
+            eligibility_reason=None,
+        )
 
     def should_trade(
         self,
         coin: str,
-        signal: str,
-        meta_confidence: float,
-        signal_score: int,
+        signal: str = None,
+        meta_confidence: float = None,
+        signal_score: int = None,
         sig_score_obj: Dict[str, Any] | None = None,
+        *,
+        analysis: Dict[str, Any] | None = None,
     ) -> tuple[bool, str]:
-        """
-        Kiểm tra xem có nên trade không.
+        """Backward-compatible trade eligibility check.
 
-        `signal_score` is directional (0=strong SELL, 100=strong BUY).
-        Trade eligibility must use side-agnostic strength, not raw score,
-        otherwise strong SELL signals are incorrectly rejected by high thresholds.
+        New callers should pass ``analysis`` directly.
+        Legacy callers passing individual parameters will get a deprecation
+        warning; the method builds a synthetic analysis dict and delegates
+        to ``build_entry_decision()``.
         """
-        # 1. Coin có trong whitelist không?
-        if coin.upper() not in [c.upper() for c in self.allowed_coins]:
-            return False, f"{coin} khong trong allowed_coins"
+        if analysis is not None:
+            decision = self.build_entry_decision(analysis, coin)
+            if decision.eligible:
+                return True, "OK"
+            reason = decision.rejection_reason
+            return False, reason.value if reason else "rejected"
 
+        # Legacy path — build a minimal analysis dict
+        warnings.warn(
+            "Legacy should_trade() arguments are deprecated; pass analysis= instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         sig_score_obj = sig_score_obj or {}
-        raw_signal = str(signal or "")
-        raw_signal_upper = raw_signal.upper()
+        legacy_analysis: Dict[str, Any] = {
+            "signal": signal or "",
+            "signal_score": {
+                **sig_score_obj,
+                "score": signal_score if signal_score is not None else sig_score_obj.get("score", 50),
+                "meta_probability": meta_confidence,
+                "meta_confidence": meta_confidence,
+            },
+            "tp_sl": sig_score_obj.get("tp_sl") or {"rr1": sig_score_obj.get("rr1", 99.0)},
+        }
+        # Ensure strength is carried over
+        if "strength" in sig_score_obj:
+            legacy_analysis["signal_score"]["strength"] = sig_score_obj["strength"]
+        if "action" in sig_score_obj:
+            legacy_analysis["signal_score"]["action"] = sig_score_obj["action"]
 
-        # 2. Action từ signal_score là nguồn quyết định chính. Fallback parse raw text
-        # để giữ tương thích với các test/call cũ chưa truyền sig_score_obj.
-        action = str(sig_score_obj.get("action") or _primary_signal_action(raw_signal)).upper()
-        if action not in {"BUY", "SELL"}:
-            return False, f"Action {action!r} khong phai BUY/SELL"
-
-        # 3. WEAK signal → bỏ qua. Raw label vẫn hữu ích để phân biệt WEAK vs STRONG.
-        if "WEAK" in raw_signal_upper:
-            return False, f"Signal WEAK, bo qua: {signal}"
-
-        # 4. Meta confidence threshold
-        if meta_confidence < self.meta_threshold:
-            return False, (
-                f"Meta confidence {meta_confidence:.1%} < nguong {self.meta_threshold:.1%}"
-            )
-
-        # 5. Side-agnostic strength threshold
-        strength_score = sig_score_obj.get("strength")
-        if strength_score is None:
-            strength_score = signal_strength_from_score(action, signal_score)
-        try:
-            strength_score = float(strength_score)
-        except Exception:
-            strength_score = signal_strength_from_score(action, signal_score)
-
-        # 6. Xung đột: meta cao nhưng strength thấp + causal anomaly => no-trade.
-        # Bảo vệ khỏi false positive khi world-model báo bất thường cấu trúc.
-        has_causal_anomaly = bool(sig_score_obj.get("causal_anomaly_warning")) or ("CAUSAL ANOMALY" in raw_signal_upper)
-        meta_high_threshold = max(float(self.meta_threshold), 0.60)
-        low_signal_threshold = max(int(self.score_threshold), 70)
-        if has_causal_anomaly and meta_confidence >= meta_high_threshold and strength_score <= low_signal_threshold:
-            return False, (
-                f"Conflict gate: meta cao ({meta_confidence:.1%}) nhung strength thap ({strength_score:.0f}) "
-                f"+ causal anomaly"
-            )
-
-        if strength_score < self.score_threshold:
-            return False, f"Strength {strength_score:.0f} < nguong {self.score_threshold}"
-
-        return True, "OK"
+        decision = self.build_entry_decision(legacy_analysis, coin)
+        if decision.eligible:
+            return True, "OK"
+        reason = decision.rejection_reason
+        return False, reason.value if reason else "rejected"
 
     def _has_open_position(self, coin: str, direction: str) -> bool:
         """Kiểm tra đã có position cùng coin+direction chưa."""
@@ -485,59 +864,69 @@ class AutoTrader:
     async def _process_signal(self, key: str, ana: Dict) -> Optional[Dict]:
         """Xử lý một signal từ một coin."""
         coin = key.split(":")[0].upper()
-        sig_score = ana.get("signal_score") or {}
         signal = ana.get("signal", "")
-        meta_prob = sig_score.get("meta_confidence")
-        score = sig_score.get("score", 0)
-        action = str(sig_score.get("action") or _primary_signal_action(signal)).upper()
-        strength = sig_score.get("strength")
-        if strength is None:
-            strength = signal_strength_from_score(action, score)
+        sig_score = ana.get("signal_score") or {}
 
-        # Thiếu meta confidence → bỏ qua (model chưa train)
-        if meta_prob is None:
-            return None
+        # 1. Evaluate canonical entry decision
+        decision = self.build_entry_decision(ana, coin)
 
-        # Kiểm tra should_trade
-        ok, reason = self.should_trade(
-            coin,
-            signal,
-            float(meta_prob),
-            int(score),
-            sig_score_obj=sig_score,
-        )
-        if not ok:
-            return None  # Không log skip bình thường để tránh spam
+        if not decision.eligible:
+            # Silently skip low-priority or expected non-trade signals
+            silent_reasons = {
+                EntryRejectionReason.COIN_NOT_ALLOWED,
+                EntryRejectionReason.ACTION_DISAGREEMENT,
+                EntryRejectionReason.WEAK_SIGNAL,
+                EntryRejectionReason.DIRECTION_ENCODING_INCONSISTENT,
+                EntryRejectionReason.EXISTING_POSITION,
+            }
+            if decision.rejection_reason in silent_reasons:
+                return None
 
-        # Kiểm tra circuit breaker + daily limit
-        cb_ok, cb_reason = self._check_circuit_breaker()
-        if not cb_ok:
-            log_entry = self._build_skip_log(coin, signal, meta_prob, score, cb_reason, ana)
+            # Skip without logging if it failed meta probability / strength thresholds at eligibility stage
+            if (
+                decision.rejection_reason == EntryRejectionReason.INSUFFICIENT_STATISTICAL_EDGE
+                and decision.breakdown
+                and decision.breakdown.decision_stage == DecisionStage.ELIGIBILITY
+            ):
+                return None
+
+            # Log skip for structural or risk failures (e.g. circuit breaker, EV edge, Kelly, correlation)
+            meta_val = decision.breakdown.meta_probability if decision.breakdown else None
+            score_val = decision.breakdown.technical_score if decision.breakdown else 50
+
+            reason_str = decision.rejection_reason.value if decision.rejection_reason else "rejected"
+            if decision.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY:
+                reason_str = "Kelly Fraction <= 0 (signal_score)"
+            elif decision.rejection_reason == EntryRejectionReason.CIRCUIT_BREAKER:
+                _, reason_str = self._check_circuit_breaker()
+            elif decision.rejection_reason == EntryRejectionReason.CORRELATION_FILTER:
+                # Match old correlation log format
+                reason_str = "correlation_filter"
+                open_positions = exposure_manager.get_open_positions()
+                for p in open_positions:
+                    open_coin = p.get("coin", "").upper()
+                    if open_coin != coin:
+                        corr = correlation_engine.get_correlation(open_coin, coin)
+                        if corr > 0.75:
+                            reason_str = f"Tuong quan cao voi vi the dang mo {open_coin} ({corr:.2f} > 0.75)"
+                            break
+
+            log_entry = self._build_skip_log(
+                coin,
+                signal,
+                reason_str,
+                ana,
+                decision,
+            )
             _append_log(log_entry)
             return log_entry
 
-        # Direction comes from signal_score.action so upstream gates can neutralize trades
-        # without relying on raw text parsing.
-        direction = "LONG" if action == "BUY" else "SHORT"
-
-        # Không trade nếu đã có position cùng direction
-        if self._has_open_position(coin, direction):
-            return None
-
-        # --- 1. Correlation Filter (Bộ lọc tương quan) ---
-        open_positions = exposure_manager.get_open_positions()
-        for p in open_positions:
-            open_coin = p.get("coin", "").upper()
-            if open_coin != coin:
-                corr = correlation_engine.get_correlation(open_coin, coin)
-                if corr > 0.75:
-                    log_entry = self._build_skip_log(
-                        coin, signal, meta_prob, score, 
-                        f"Tuong quan cao voi vi the dang mo {open_coin} ({corr:.2f} > 0.75)", 
-                        ana
-                    )
-                    _append_log(log_entry)
-                    return log_entry
+        # Decision is eligible, proceed with sizing & execution
+        direction = "LONG" if decision.action == TradeAction.BUY else "SHORT"
+        meta_prob = decision.breakdown.meta_probability
+        score = decision.breakdown.technical_score
+        strength = decision.breakdown.signal_strength
+        action = decision.action.value
 
         # Lấy TP/SL data
         tp_sl = ana.get("tp_sl") or {}
@@ -560,25 +949,10 @@ class AutoTrader:
 
         rr_ratio = float(tp_sl.get("rr1", 0.0))
 
-        usdt_amount = self.compute_position_size(
-            entry_price=float(entry_price),
-            sl_price=float(sl_price),
-            current_balance=real_balance,
-            multiplier=float(sig_score.get("position_size", 1.0)),
-            win_prob=float(meta_prob),
-            rr_ratio=rr_ratio,
-        )
-
-        if usdt_amount <= 0:
-            log_entry = self._build_skip_log(coin, signal, meta_prob, score, "Kelly Fraction <= 0 (Ky vong am)", ana)
-            _append_log(log_entry)
-            return log_entry
-
         # --- 2. Portfolio VaR Sizing Scale Down ---
+        symbol = f"{coin}/USDT"
+        open_positions = exposure_manager.get_open_positions()
         max_var_size = exposure_manager.calculate_max_size_by_var_limit(coin, open_positions, real_balance)
-        if usdt_amount > max_var_size:
-            print(f"[VaR Sizing] Scale down {coin} size from {usdt_amount:.2f} to {max_var_size:.2f} due to Portfolio VaR limit")
-            usdt_amount = max_var_size
 
         # --- 3. Exposure Caps (Total, Sector, Single) Scale Down ---
         total_pct, coin_pct, sector_pct = exposure_manager.get_portfolio_exposures(real_balance)
@@ -586,28 +960,51 @@ class AutoTrader:
         remaining_single = max(0.0, (0.15 - coin_pct.get(coin, 0.0)) * real_balance)
         remaining_sector = max(0.0, (0.35 - sector_pct.get(sector, 0.0)) * real_balance)
         remaining_total = max(0.0, (0.75 - total_pct) * real_balance)
-        
         max_exposure_size = min(remaining_single, remaining_sector, remaining_total)
-        if usdt_amount > max_exposure_size:
-            print(f"[Exposure Sizing] Scale down {coin} size from {usdt_amount:.2f} to {max_exposure_size:.2f} due to Exposure caps")
-            usdt_amount = max_exposure_size
 
-        usdt_amount = round(usdt_amount, 2)
+        sizing_decision = self.compute_position_size(
+            entry_price=float(entry_price),
+            sl_price=float(sl_price),
+            current_balance=real_balance,
+            multiplier=float(sig_score.get("position_size", 1.0)),
+            win_prob=float(meta_prob or 0.5),
+            rr_ratio=rr_ratio,
+            var_cap=max_var_size,
+            exposure_cap=max_exposure_size,
+            max_trade_cap=self.max_trade_usdt,
+            min_trade_cap=self.min_trade_usdt,
+        )
 
-        # Check if amount is below minimum notional
-        if usdt_amount < self.min_trade_usdt:
+        if sizing_decision.rejected:
+            import dataclasses
+            decision = dataclasses.replace(
+                decision,
+                eligible=False,
+                rejection_reason=sizing_decision.rejection_reason,
+                sizing=sizing_decision,
+            )
+            
+            reason_str = "sizing_rejected"
+            if sizing_decision.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY:
+                reason_str = "Kelly Fraction <= 0 (Ky vong am)"
+            elif sizing_decision.rejection_reason == EntryRejectionReason.INVALID_SIZING_INPUT:
+                reason_str = f"Size lenh sau co gian {sizing_decision.final_notional:.2f} USDT < min {self.min_trade_usdt:.2f} USDT"
+            
             log_entry = self._build_skip_log(
-                coin, signal, meta_prob, score, 
-                f"Size lenh sau co gian {usdt_amount:.2f} USDT < min {self.min_trade_usdt:.2f} USDT", 
-                ana
+                coin,
+                signal,
+                reason_str,
+                ana,
+                decision,
             )
             _append_log(log_entry)
             return log_entry
 
-        # Dặt lệnh qua ExecutionEngine (Phase 1: tất cả write đi qua đây)
-        symbol = f"{coin}/USDT"
-        order_side = "buy" if direction == "LONG" else "sell"
+        usdt_amount = sizing_decision.final_notional
+        import dataclasses
+        decision = dataclasses.replace(decision, sizing=sizing_decision)
 
+        # Đặt lệnh qua ExecutionEngine (Phase 1: tất cả write đi qua đây)
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "timestamp_str": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -616,8 +1013,9 @@ class AutoTrader:
             "symbol": symbol,
             "direction": direction,
             "signal": signal,
-            "meta_confidence": round(float(meta_prob), 4),
-            "meta_confidence_pct": int(round(float(meta_prob) * 100)),
+            "meta_confidence": round(float(meta_prob or 0.0), 4),
+            "meta_probability": round(float(meta_prob or 0.0), 4),
+            "meta_confidence_pct": int(round(float(meta_prob or 0.0) * 100)),
             "signal_score": int(score),
             "signal_strength": float(strength),
             "signal_action": action,
@@ -632,6 +1030,11 @@ class AutoTrader:
             "order_id": None,
             "status": None,
             "error": None,
+            "decision_id": decision.decision_id,
+            "signal_eligible": decision.signal_eligible,
+            "live_authorized": decision.live_authorized,
+            "final_status": decision.final_status.value,
+            "decision_breakdown": decision.breakdown.to_dict() if decision.breakdown else None,
         }
 
         try:
@@ -713,20 +1116,41 @@ class AutoTrader:
         _append_log(log_entry)
         return log_entry
 
-    def _build_skip_log(self, coin, signal, meta_prob, score, reason, ana) -> Dict:
+    def _build_skip_log(
+        self,
+        coin: str,
+        signal: str,
+        reason: str,
+        ana: Dict,
+        decision: EntryDecision,
+    ) -> Dict:
         tp_sl = ana.get("tp_sl") or {}
+        sig_score = ana.get("signal_score") or {}
+        meta_prob = decision.breakdown.meta_probability if decision.breakdown else None
+        score = decision.breakdown.technical_score if decision.breakdown else 50
+        strength = decision.breakdown.signal_strength if decision.breakdown else 0
+
         return {
             "timestamp": datetime.now().isoformat(),
             "timestamp_str": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "mode": "DRY_RUN" if self.dry_run else "TESTNET",
             "coin": coin,
             "signal": signal,
-            "meta_confidence": round(float(meta_prob), 4),
+            "meta_confidence": round(float(meta_prob or 0.0), 4) if meta_prob is not None else None,
+            "meta_probability": round(float(meta_prob or 0.0), 4) if meta_prob is not None else None,
             "signal_score": int(score),
-            "signal_strength": signal_strength_from_score((ana.get("signal_score") or {}).get("action") or _primary_signal_action(signal), score),
+            "signal_strength": float(strength),
+            "kelly_fraction": sig_score.get("kelly_fraction"),
+            "b_estimate": sig_score.get("b_estimate"),
             "status": "skipped",
             "reason_skip": reason,
             "entry_price": tp_sl.get("entry") or ana.get("close"),
+            "decision_id": decision.decision_id,
+            "signal_eligible": decision.signal_eligible,
+            "live_authorized": decision.live_authorized,
+            "final_status": decision.final_status.value,
+            "rejection_reason": decision.rejection_reason.value if decision.rejection_reason else None,
+            "decision_breakdown": decision.breakdown.to_dict() if decision.breakdown else None,
         }
 
     def _notify_trade(self, entry: Dict) -> None:
