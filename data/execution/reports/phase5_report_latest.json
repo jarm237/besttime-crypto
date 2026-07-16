@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-16T03:50:58.361526+00:00",
+  "generated_at": "2026-07-16T07:39:04.373803+00:00",
   "fills_breakdown": {
     "real_paper": 0,
     "synthetic": 100,
@@ -29,9 +29,9 @@
   },
   "model_monitoring": {
     "prediction_distribution": {
-      "count": 60703,
-      "mean": 0.5094,
-      "std": 0.0826,
+      "count": 62558,
+      "mean": 0.5095,
+      "std": 0.0824,
       "min": 0.1667,
       "p25": 0.4683,
       "p50": 0.487,
@@ -55,25 +55,25 @@
       }
     },
     "calibration": {
-      "mean_calibration_error": 0.2269,
+      "mean_calibration_error": 0.2266,
       "buckets": {
         "0.0-0.4": {
-          "count": 7313,
+          "count": 7511,
           "wins": 0,
           "actual_win_rate": 0.0,
           "expected_win_rate": 0.2,
           "error": 0.2
         },
         "0.4-0.6": {
-          "count": 40914,
-          "wins": 10861,
-          "actual_win_rate": 0.2655,
+          "count": 42237,
+          "wins": 11270,
+          "actual_win_rate": 0.2668,
           "expected_win_rate": 0.5,
-          "error": 0.2345
+          "error": 0.2332
         },
         "0.6-0.7": {
-          "count": 12332,
-          "wins": 12332,
+          "count": 12666,
+          "wins": 12666,
           "actual_win_rate": 1.0,
           "expected_win_rate": 0.6499999999999999,
           "error": 0.35
@@ -104,7 +104,7 @@
       "total_signals_emitted": 0,
       "actual_trades_logged": 666,
       "matched_aligned_decisions": 666,
-      "rl_exit_shadow_recommendations": 90
+      "rl_exit_shadow_recommendations": 93
     },
     "blocked_reasons": {
       "slippage_guard": 6,

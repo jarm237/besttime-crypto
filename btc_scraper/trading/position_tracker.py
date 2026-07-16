@@ -309,6 +309,19 @@ def add_position(
     paper_run_id: str | None = None,
     created_by: str | None = None,
     source_test_name: str | None = None,
+    prediction_id: str | None = None,
+    signal_id: str | None = None,
+    entry_decision_id: str | None = None,
+    reservation_id: str | None = None,
+    idempotency_key: str | None = None,
+    client_order_id: str | None = None,
+    exchange_order_id: str | None = None,
+    fill_id: str | None = None,
+    position_id: str | None = None,
+    lifecycle_schema_version: str = "trade-lifecycle-v1",
+    model_version: str | None = None,
+    artifact_sha256: str | None = None,
+    feature_schema_version: str | None = None,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -322,6 +335,14 @@ def add_position(
     Returns:
         dict vị thế vừa tạo
     """
+    if position_id:
+        try:
+            existing = positions_col.find_one({"id": position_id}, {"_id": 0})
+            if existing:
+                return existing
+        except Exception:
+            pass
+
     resolved_origin = _infer_trade_origin(
         note=note,
         execution_mode=execution_mode,
@@ -335,7 +356,19 @@ def add_position(
 
     pos = {
         "coin": coin,
-        "id": str(uuid.uuid4()),
+        "id": position_id or str(uuid.uuid4()),
+        "prediction_id": prediction_id,
+        "signal_id": signal_id,
+        "entry_decision_id": entry_decision_id,
+        "reservation_id": reservation_id,
+        "idempotency_key": idempotency_key,
+        "client_order_id": client_order_id,
+        "exchange_order_id": exchange_order_id,
+        "fill_id": fill_id,
+        "lifecycle_schema_version": lifecycle_schema_version,
+        "model_version": model_version,
+        "artifact_sha256": artifact_sha256,
+        "feature_schema_version": feature_schema_version,
         "direction": direction.upper(),
         "entry_price": float(entry_price),
         "invested_usdt": float(invested_usdt),
@@ -429,9 +462,13 @@ def close_position(coin: str, sell_price: float) -> dict:
 
     closed_data = {
         **pos,
+        "outcome_id": pos.get("outcome_id") or f"out-{uuid.uuid4().hex[:12]}",
+        "outcome_revision": int(pos.get("outcome_revision") or 1),
+        "closed_at": datetime.now().isoformat(),
         "sell_price": float(sell_price),
         "exit_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "pnl_pct": round(pnl_pct, 4),
+        "net_pnl_pct": round(pnl_pct, 4),
         "pnl_usd_per_1000": round(1000 * pnl_pct / 100, 2),
         "pnl_usd_actual": round(pnl_usd_actual, 2),
         "fee_usd": round(fee_usd, 2),
@@ -465,6 +502,15 @@ def close_position(coin: str, sell_price: float) -> dict:
             "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
             "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
             "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
+            "prediction_id": closed_data.get("prediction_id"),
+            "signal_id": closed_data.get("signal_id"),
+            "position_id": closed_data.get("id"),
+            "outcome_id": closed_data.get("outcome_id"),
+            "outcome_revision": closed_data.get("outcome_revision"),
+            "net_pnl_pct": closed_data.get("net_pnl_pct"),
+            "model_version": closed_data.get("model_version"),
+            "artifact_sha256": closed_data.get("artifact_sha256"),
+            "feature_schema_version": closed_data.get("feature_schema_version"),
             "trade_origin": closed_data.get("trade_origin"),
             "execution_mode": closed_data.get("execution_mode"),
             "fill_source": closed_data.get("fill_source"),

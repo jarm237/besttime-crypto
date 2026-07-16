@@ -1063,7 +1063,13 @@ class AutoTrader:
                 "coin": coin,
                 "signal_raw": signal,
                 "signal": signal,
-                "id": str(int(time.time())),
+                "id": ana.get("signal_id") or str(int(time.time())),
+                "prediction_id": ana.get("prediction_id"),
+                "signal_id": ana.get("signal_id") or ana.get("id"),
+                "entry_decision_id": decision.decision_id,
+                "decision_id": decision.decision_id,
+                "idempotency_key": ana.get("idempotency_key"),
+                "lifecycle_schema_version": ana.get("lifecycle_schema_version", "trade-lifecycle-v1"),
                 "entry_time": datetime.now().isoformat(),
             }
 
@@ -1114,6 +1120,19 @@ class AutoTrader:
                     fill_source=rec.fill_source,
                     paper_run_id=rec.paper_run_id,
                     created_by="auto_trader",
+                    prediction_id=rec.prediction_id or ana.get("prediction_id"),
+                    signal_id=rec.signal_id,
+                    entry_decision_id=rec.entry_decision_id or decision.decision_id,
+                    reservation_id=rec.reservation_id,
+                    idempotency_key=rec.idempotency_key,
+                    client_order_id=rec.client_order_id,
+                    exchange_order_id=rec.exchange_order_id,
+                    fill_id=rec.fills[0].fill_id if rec.fills else rec.execution_id,
+                    position_id=rec.position_id or None,
+                    lifecycle_schema_version=rec.lifecycle_schema_version,
+                    model_version=decision.model_version,
+                    artifact_sha256=decision.artifact_hash,
+                    feature_schema_version=decision.feature_schema_version,
                 )
             except Exception:
                 pass

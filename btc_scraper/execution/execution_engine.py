@@ -35,6 +35,13 @@ from btc_scraper.execution.hard_risk_limits import OrderIntent
 
 logger = logging.getLogger(__name__)
 
+PAPER_RECOVERY_SIMULATION_FLAGS = (
+    "simulate_timeout_after_reserve",
+    "simulate_crash_after_fill_before_commit",
+    "paper_fill_fraction",
+    "paper_cancel_remaining",
+)
+
 
 class ExecutionEngine:
     """
@@ -53,6 +60,7 @@ class ExecutionEngine:
         reports_dir: str = "data/execution/reports",
         exchange_adapter: Optional[WriteExchangeAdapter] = None,
         live_guard: Optional[Any] = None,
+        reservation_db_path: Optional[str] = None,
     ):
         self.config = config or ExecutionConfig()
         if live_guard is not None:
@@ -84,7 +92,7 @@ class ExecutionEngine:
         })
         self._planner = ExecutionPlanner(self.config.twap.__dict__)
         self._post_trade = PostTradeAnalyzer(reports_dir=reports_dir)
-        self._reservation_store = ReservationStore()
+        self._reservation_store = ReservationStore(db_path=reservation_db_path)
         import asyncio
         self._execution_lock = asyncio.Lock()
 
@@ -134,6 +142,14 @@ class ExecutionEngine:
 
         record = ExecutionRecord(
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
+            prediction_id=signal.get("prediction_id", ""),
+            entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            reservation_id=signal.get("reservation_id", ""),
+            idempotency_key=signal.get("idempotency_key", ""),
+            client_order_id=signal.get("client_order_id", ""),
+            exchange_order_id=signal.get("exchange_order_id", ""),
+            position_id=signal.get("position_id", ""),
+            lifecycle_schema_version=signal.get("lifecycle_schema_version", "trade-lifecycle-v1"),
             coin=coin,
             side=side,
             intended_qty=qty,
@@ -144,6 +160,45 @@ class ExecutionEngine:
             execution_mode="paper",
             paper_run_id=os.getenv("PAPER_RUN_ID", "").strip(),
         )
+
+        intent = signal.get("intent", OrderIntent.ENTRY)
+        is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
+        if is_entry:
+            symbol = f"{coin}/USDT"
+            reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
+            idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
+            rec_res, created_new = self._reservation_store.reserve(
+                reservation_id=reservation_id,
+                idempotency_key=idempotency_key,
+                entry_decision_id=record.entry_decision_id or record.signal_id,
+                symbol=symbol,
+                side=side.lower(),
+                reserved_notional=notional_usdt,
+            )
+            record.reservation_id = rec_res.reservation_id
+            record.idempotency_key = rec_res.idempotency_key
+            record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
+            if not created_new and rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
+                record.status = OrderStatus.FILLED
+                record.reason = "duplicate_idempotency_key_already_committed"
+                record.filled_qty = rec_res.filled_notional / decision_price if decision_price > 0 else 0.0
+                record.avg_fill_price = decision_price
+                record.submit_time = datetime.now(timezone.utc).isoformat()
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
+            if not created_new and rec_res.status in (ReservationStatus.RELEASED, ReservationStatus.EXPIRED):
+                record.status = OrderStatus.REJECTED
+                record.reason = f"reservation_{rec_res.status.value}"
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
+            if signal.get("simulate_timeout_after_reserve"):
+                record.status = OrderStatus.TIMEOUT
+                record.reason = "simulated_timeout_after_reserve"
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────
         snap = self._liquidity.analyze_from_candle(
@@ -175,6 +230,8 @@ class ExecutionEngine:
 
         if guard.action == GuardAction.REJECT:
             logger.info(f"[Execution] REJECTED {coin} {side}: {guard.reason}")
+            if record.reservation_id:
+                self._reservation_store.release(record.reservation_id)
             return self._tracker.reject(record, reason=guard.reason)
 
         if guard.action == GuardAction.REDUCE and guard.adjusted_qty_usdt:
@@ -199,6 +256,8 @@ class ExecutionEngine:
         )
 
         if order_decision.order_type == "SKIP":
+            if record.reservation_id:
+                self._reservation_store.release(record.reservation_id)
             return self._tracker.reject(record, reason=order_decision.reason)
 
         record.order_type = order_decision.order_type
@@ -213,7 +272,46 @@ class ExecutionEngine:
 
         record.submit_time = datetime.now(timezone.utc).isoformat()
         self._tracker.register(record)
+        fill_fraction = float(signal.get("paper_fill_fraction", 1.0) or 1.0)
+        fill_fraction = max(0.0, min(1.0, fill_fraction))
+        if fill_fraction < 1.0:
+            fill = FillEvent(
+                execution_id=record.execution_id,
+                price=fill_price,
+                qty=record.intended_qty * fill_fraction,
+                fee=record.intended_notional * fill_fraction * 0.0005,
+            )
+            record.add_fill(fill)
+            self._tracker._write_jsonl(record)
+            if record.reservation_id:
+                self._reservation_store.partial_commit(
+                    record.reservation_id,
+                    filled_notional=record.filled_qty * record.avg_fill_price,
+                    client_order_id=record.client_order_id,
+                )
+            if signal.get("paper_cancel_remaining"):
+                self._tracker.cancel(record.execution_id, reason="paper_cancel_remaining")
+                if record.reservation_id:
+                    self._reservation_store.release(record.reservation_id)
+            return record
+
         self._tracker.simulate_fill(record, fill_price=fill_price)
+        if signal.get("simulate_crash_after_fill_before_commit"):
+            return record
+        if record.reservation_id:
+            filled_notional = record.filled_qty * record.avg_fill_price
+            if filled_notional < 0.9 * notional_usdt:
+                self._reservation_store.partial_commit(
+                    record.reservation_id,
+                    filled_notional=filled_notional,
+                    client_order_id=record.client_order_id,
+                )
+            else:
+                self._reservation_store.commit(
+                    record.reservation_id,
+                    filled_notional=filled_notional,
+                    client_order_id=record.client_order_id,
+                )
 
         logger.debug(
             f"[Execution] FILLED {coin} {side} @ {fill_price:.4f} "
@@ -239,6 +337,9 @@ class ExecutionEngine:
             notional_usdt: position size in USDT
             urgency: Urgency.NORMAL | Urgency.HIGH
         """
+        if any(flag in signal for flag in PAPER_RECOVERY_SIMULATION_FLAGS):
+            raise ValueError("Paper recovery simulation flags are not allowed in live mode")
+
         if self._adapter is None:
             logger.warning("[ExecutionEngine] No exchange adapter — falling back to paper mode")
             return self.submit_paper(signal, candle, notional_usdt=notional_usdt, urgency=urgency)
@@ -261,6 +362,14 @@ class ExecutionEngine:
 
         record = ExecutionRecord(
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
+            prediction_id=signal.get("prediction_id", ""),
+            entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            reservation_id=signal.get("reservation_id", ""),
+            idempotency_key=signal.get("idempotency_key", ""),
+            client_order_id=signal.get("client_order_id", ""),
+            exchange_order_id=signal.get("exchange_order_id", ""),
+            position_id=signal.get("position_id", ""),
+            lifecycle_schema_version=signal.get("lifecycle_schema_version", "trade-lifecycle-v1"),
             coin=coin,
             side=side,
             intended_qty=qty,
@@ -329,6 +438,9 @@ class ExecutionEngine:
             if is_entry:
                 reservation_id = f"res-{uuid.uuid4()}"
                 idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
+                record.reservation_id = reservation_id
+                record.idempotency_key = idempotency_key
+                record.client_order_id = idempotency_key
 
                 rec_res, created_new = self._reservation_store.reserve(
                     reservation_id=reservation_id,
@@ -340,6 +452,9 @@ class ExecutionEngine:
                 )
                 reservation_id = rec_res.reservation_id
                 idempotency_key = rec_res.idempotency_key
+                record.reservation_id = reservation_id
+                record.idempotency_key = idempotency_key
+                record.client_order_id = idempotency_key
 
                 if not created_new:
                     logger.warning(f"[ExecutionEngine] Duplicate request detected via idempotency: {idempotency_key}")
@@ -478,6 +593,7 @@ class ExecutionEngine:
                 if reservation_id:
                     filled_notional = fill_qty * fill_price
                     ex_id = order.get("id")
+                    record.exchange_order_id = str(ex_id or "")
                     if filled_notional < 0.9 * notional_usdt:
                         self._reservation_store.partial_commit(
                             reservation_id,

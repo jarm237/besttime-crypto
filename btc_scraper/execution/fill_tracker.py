@@ -52,6 +52,14 @@ class ExecutionRecord:
     # Identity
     execution_id: str = field(default_factory=lambda: str(uuid.uuid4())[:12])
     signal_id: str = ""
+    prediction_id: str = ""
+    entry_decision_id: str = ""
+    reservation_id: str = ""
+    idempotency_key: str = ""
+    client_order_id: str = ""
+    exchange_order_id: str = ""
+    position_id: str = ""
+    lifecycle_schema_version: str = "trade-lifecycle-v1"
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     # Instrument

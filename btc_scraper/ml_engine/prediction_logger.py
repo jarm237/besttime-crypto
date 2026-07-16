@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .artifact_resolver import ROOT
+from .data_contracts import validate_runtime_event
 
 
 def _git_commit() -> str | None:
@@ -35,7 +36,10 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
     started = time.perf_counter()
     now = datetime.now(timezone.utc)
     entry: dict[str, Any] = {
-        "prediction_id": str(uuid.uuid4()), "timestamp": now.isoformat(), "symbol": symbol,
+        "event_type": "prediction_created", "schema_version": "prediction-created-v1",
+        "event_id": str(uuid.uuid4()), "event_time": now.isoformat(), "ingest_time": now.isoformat(),
+        "producer": "prediction_logger", "prediction_id": str(uuid.uuid4()),
+        "timestamp": now.isoformat(), "symbol": symbol,
         "decision_context": decision_context, "model_name": model_name, "model_version": model_version,
         "artifact_sha256": artifact_sha256, "feature_schema_version": feature_schema_version,
         "feature_hash": feature_hash(features), "calibration_method": calibration_method,
@@ -47,6 +51,7 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
     if extra:
         entry.update(extra)
     entry["latency_ms"] = round((time.perf_counter() - started) * 1000, 4)
+    validate_runtime_event(entry).raise_for_errors()
     destination = log_dir or ROOT / "logs" / "prediction_audit"
     destination.mkdir(parents=True, exist_ok=True)
     with (destination / f"predictions_{now.strftime('%Y-%m-%d')}.jsonl").open("a", encoding="utf-8") as fh:

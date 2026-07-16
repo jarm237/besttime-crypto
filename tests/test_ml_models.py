@@ -98,6 +98,8 @@ def test_adaptive_scoring_log_and_stats(temp_logs_dir):
     assert len(log) == 2
     assert log[0]["coin"] == "BTC"
     assert log[0]["result"] == "WIN"
+    assert log[0]["traceability_scope"] == "offline_only"
+    assert log[0]["runtime_calibration_eligible"] is False
     
     # Check stats computation
     stats = ads.compute_score_stats()

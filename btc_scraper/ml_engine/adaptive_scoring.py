@@ -76,6 +76,14 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
     rec = {
         "coin": closed_data.get("coin"),
         "id": closed_data.get("id"),
+        "prediction_id": closed_data.get("prediction_id"),
+        "signal_id": closed_data.get("signal_id"),
+        "position_id": closed_data.get("position_id") or closed_data.get("id"),
+        "outcome_id": closed_data.get("outcome_id"),
+        "model_version": closed_data.get("model_version"),
+        "artifact_sha256": closed_data.get("artifact_sha256"),
+        "feature_schema_version": closed_data.get("feature_schema_version"),
+        "dataset_manifest_hash": closed_data.get("dataset_manifest_hash"),
         "entry_price": closed_data.get("entry_price"),
         "sell_price": closed_data.get("sell_price"),
         "pnl_pct": closed_data.get("pnl_pct"),
@@ -87,6 +95,12 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
         # support regime analysis: try to pick regime from closed_data or inner signal_score
         "regime": (closed_data.get("regime") or signal_score.get("regime") if isinstance(signal_score, dict) else None),
     }
+    rec["traceability_scope"] = (
+        "runtime_linked"
+        if rec.get("prediction_id") and rec.get("signal_id") and rec.get("position_id")
+        else "offline_only"
+    )
+    rec["runtime_calibration_eligible"] = rec["traceability_scope"] == "runtime_linked"
 
     log = _load_log()
     log.append(rec)

@@ -50,7 +50,10 @@ CALIB_RATIO = 0.20
 DRIFT_THRESHOLD     = 0.53  # Holdout ROC-AUC must exceed this to swap model
 
 # Import the fixed labeled-trade generator (time-aligned MTF, FEATURE_SCHEMA)
-from train_april_model import generate_labeled_trades
+try:
+    from scripts.train_april_model import generate_labeled_trades
+except ImportError:
+    from train_april_model import generate_labeled_trades
 # ─────────────────────────────────────────────────────────────────────────────
 
 def fetch_candles(coin: str, interval: str, start_dt: datetime, end_dt: datetime) -> list[dict]:
