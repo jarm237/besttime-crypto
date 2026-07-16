@@ -136,7 +136,7 @@ graph TD
 
 ### 3.0. Luồng phát hiện và chấm điểm tín hiệu hiện tại
 
-Đánh giá chi tiết được tách riêng tại [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md). Kết luận ngắn:
+Đánh giá chi tiết được tách riêng tại [`signal_detection_and_scoring_assessment.md`](signal_detection_and_scoring_assessment.md). Kết luận ngắn:
 
 ```text
 Binance WS/REST -> MarketAnalystAgent -> analyze_market() 15m + MTF

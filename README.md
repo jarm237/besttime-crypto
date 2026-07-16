@@ -3,7 +3,7 @@
 Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kết hợp **7 lớp lọc kỹ thuật**, **ML Ensemble**, **Reinforcement Learning Exit Manager** và **Causal World Model** — gửi cảnh báo thời gian thực qua Telegram và trực quan hoá qua Web Dashboard.
 
 > **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI
-> **Đánh giá signal flow**: cập nhật 2026-07-14 tại [`evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md)
+> **Đánh giá signal flow**: cập nhật 2026-07-14 tại [`evaluations/signal_detection_and_scoring_assessment.md`](evaluations/signal_detection_and_scoring_assessment.md)
 > **Trạng thái**: Production-ready cho signal research + paper trading; live trading cần giám sát và Phase 10 hardening trước khi tăng vốn.
 
 ---
@@ -353,7 +353,7 @@ besttime-crypto/
 │   ├── phase7/                      # Phase 7 Alternative Data docs
 │   └── phase8/                      # Phase 8 Feature Engineering docs
 ├── evaluations/
-│   ├── SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md # Current signal flow assessment
+│   ├── signal_detection_and_scoring_assessment.md # Current signal flow assessment
 │   ├── system_evaluation_report.md  # Deep system evaluation report
 │   └── ...                          # Module evaluation reports
 └── tests/                               # 246 tests (100% PASS)
@@ -366,7 +366,7 @@ besttime-crypto/
 | Tài liệu | Mô tả |
 |----------|-------|
 | [SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) | Technical Design Document — kiến trúc, data pipeline, XAI, RL |
-| [SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md](evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md) | Đánh giá luồng phát hiện tín hiệu, score, CausalGate và AutoTrader gate hiện tại |
+| [signal_detection_and_scoring_assessment.md](evaluations/signal_detection_and_scoring_assessment.md) | Đánh giá luồng phát hiện tín hiệu, score, CausalGate và AutoTrader gate hiện tại |
 | [ARCHITECTURE_v2.md](docs/ARCHITECTURE_v2.md) | Causal World Model v2.1 — Event-Driven Architecture |
 | [causal_implementation_plan.md](docs/causal_implementation_plan.md) | Roadmap & status chi tiết Phase 2.1 → Phase D |
 | [trading_strategies_summary.md](docs/trading_strategies_summary.md) | Công thức kỹ thuật, signal layers, TP/SL, RL |

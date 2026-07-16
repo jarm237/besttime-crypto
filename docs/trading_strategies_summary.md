@@ -96,7 +96,7 @@ Nến đóng cửa
 
 ### Score Semantics & AutoTrader Gate (cập nhật 14/07/2026)
 
-Đánh giá đầy đủ: [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](../evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md).
+Đánh giá đầy đủ: [`signal_detection_and_scoring_assessment.md`](../evaluations/signal_detection_and_scoring_assessment.md).
 
 `signal_score.py` dùng score nội bộ hai chiều:
 
