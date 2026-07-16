@@ -3,7 +3,7 @@
 Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kết hợp **7 lớp lọc kỹ thuật**, **ML Ensemble**, **Reinforcement Learning Exit Manager** và **Causal World Model** — gửi cảnh báo thời gian thực qua Telegram và trực quan hoá qua Web Dashboard.
 
 > **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI
-> **Đánh giá signal flow**: cập nhật 2026-07-14 tại [`docs/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](docs/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md)
+> **Đánh giá signal flow**: cập nhật 2026-07-14 tại [`evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md)
 > **Trạng thái**: Production-ready cho signal research + paper trading; live trading cần giám sát và Phase 10 hardening trước khi tăng vốn.
 
 ---
@@ -348,12 +348,14 @@ besttime-crypto/
 ├── docs/
 │   ├── ARCHITECTURE_v2.md           # Architecture v2.1 technical doc
 │   ├── SYSTEM_DESIGN.md             # System Design Document (TDD)
-│   ├── SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md # Current signal flow assessment
 │   ├── causal_implementation_plan.md# Causal AI roadmap & status
 │   ├── trading_strategies_summary.md# Indicators & trading strategies
-│   ├── system_evaluation_report.md  # Deep system evaluation report
 │   ├── phase7/                      # Phase 7 Alternative Data docs
 │   └── phase8/                      # Phase 8 Feature Engineering docs
+├── evaluations/
+│   ├── SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md # Current signal flow assessment
+│   ├── system_evaluation_report.md  # Deep system evaluation report
+│   └── ...                          # Module evaluation reports
 └── tests/                               # 246 tests (100% PASS)
 ```
 
@@ -364,11 +366,11 @@ besttime-crypto/
 | Tài liệu | Mô tả |
 |----------|-------|
 | [SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) | Technical Design Document — kiến trúc, data pipeline, XAI, RL |
-| [SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md](docs/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md) | Đánh giá luồng phát hiện tín hiệu, score, CausalGate và AutoTrader gate hiện tại |
+| [SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md](evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md) | Đánh giá luồng phát hiện tín hiệu, score, CausalGate và AutoTrader gate hiện tại |
 | [ARCHITECTURE_v2.md](docs/ARCHITECTURE_v2.md) | Causal World Model v2.1 — Event-Driven Architecture |
 | [causal_implementation_plan.md](docs/causal_implementation_plan.md) | Roadmap & status chi tiết Phase 2.1 → Phase D |
 | [trading_strategies_summary.md](docs/trading_strategies_summary.md) | Công thức kỹ thuật, signal layers, TP/SL, RL |
-| [system_evaluation_report.md](docs/system_evaluation_report.md) | Đánh giá sâu hệ thống (02/07/2026) |
+| [system_evaluation_report.md](evaluations/system_evaluation_report.md) | Đánh giá sâu hệ thống (02/07/2026) |
 | [ML_DATA_GUIDE.md](docs/ML_DATA_GUIDE.md) | Hướng dẫn chuẩn bị data ML |
 | [Phase7_Alternative_Data_Implementation_Plan_UPDATED.md](docs/phase7/Phase7_Alternative_Data_Implementation_Plan_UPDATED.md) | Phase 7 Alternative Data — Sprint 9 COMPLETE |
 | [Phase7_Parsebot_Farside_ETF_Flow_Frequency_Improvement_Plan.md](docs/phase7/Phase7_Parsebot_Farside_ETF_Flow_Frequency_Improvement_Plan.md) | ETF Flow cron schedule & MongoDB storage |

@@ -163,7 +163,7 @@ is_win                  # Target label (1=Win, 0=Loss)
 
 ## 2.4. Signal Detection & Scoring Flow
 
-Tài liệu đánh giá chi tiết: [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md).
+Tài liệu đánh giá chi tiết: [`SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](../evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md).
 
 Luồng production hiện tại:
 

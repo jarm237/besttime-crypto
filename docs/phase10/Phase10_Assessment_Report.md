@@ -39,7 +39,7 @@ Phase 10 live execution readiness: CONDITIONAL / NEEDS HARDENING
 
 ## 1.1. Signal Flow Context
 
-Phase 10 sits after the signal detection/scoring gate. The current upstream flow is documented in [`../SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](../SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md):
+Phase 10 sits after the signal detection/scoring gate. The current upstream flow is documented in [`../../evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md`](../../evaluations/SIGNAL_DETECTION_AND_SCORING_ASSESSMENT.md):
 
 ```text
 analyze_market() -> score_signal() -> CausalGate -> Risk/Portfolio gates
@@ -241,4 +241,3 @@ Before moving from paper trading to controlled live trading, complete at least:
 3. TWAP child order lifecycle.
 4. ML slippage v2 schema/path fixes.
 5. Live-path test coverage with mocked exchange adapter.
-
