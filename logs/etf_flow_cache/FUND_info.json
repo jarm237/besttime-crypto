@@ -6,6 +6,6 @@
   "status": "failed",
   "value": null,
   "data_quality": 0.0,
-  "fetched_at": "2026-07-15T11:48:07.754372+00:00",
+  "fetched_at": "2026-07-16T03:12:26.673785+00:00",
   "error": "402 Client Error: Payment Required for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_fund_info"
 }

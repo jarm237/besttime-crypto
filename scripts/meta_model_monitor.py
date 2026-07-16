@@ -1,5 +1,6 @@
 """
-Compute rolling 7/30/90d metrics from logs/predictions_YYYY-MM-DD.log and data/closed_trades.json.
+Compute rolling 7/30/90d metrics from logs/prediction_audit/predictions_YYYY-MM-DD.jsonl
+and data/closed_trades.json.
 Writes a JSON report to logs/meta_model_monitor_{now}.json and prints a short summary.
 
 Usage:
@@ -17,7 +18,7 @@ import argparse
 
 BASE = os.path.dirname(os.path.dirname(__file__))
 LOGS = os.path.join(BASE, "logs")
-PRED_LOG_DIR = LOGS  # thư mục chứa các file predictions_YYYY-MM-DD.log
+PRED_LOG_DIR = os.path.join(LOGS, "prediction_audit")
 TRADES_PATH = os.path.join(BASE, "data", "closed_trades.json")
 
 
@@ -44,16 +45,13 @@ def parse_iso(ts: str) -> Optional[datetime]:
 
 
 def load_predictions(logs_dir: str) -> List[Dict[str, Any]]:
-    """Load tất cả predictions từ các file predictions_YYYY-MM-DD.log.
-    
-    Backward-compatible: nếu file predictions.log cũ tồn tại thì cũng đọc kèm.
-    """
+    """Load tất cả predictions từ prediction audit JSONL."""
     import glob
 
     preds = []
 
     # Đọc các file theo ngày
-    pattern = os.path.join(logs_dir, "predictions_????-??-??.log")
+    pattern = os.path.join(logs_dir, "predictions_????-??-??.jsonl")
     daily_files = sorted(glob.glob(pattern))
     for fpath in daily_files:
         with open(fpath, "r", encoding="utf-8") as f:
@@ -68,23 +66,8 @@ def load_predictions(logs_dir: str) -> List[Dict[str, Any]]:
                 ts = obj.get("timestamp")
                 dt = parse_iso(ts)
                 obj["_ts"] = dt
-                preds.append(obj)
-
-    # Backward-compatible: đọc file predictions.log cũ nếu còn tồn tại
-    legacy_path = os.path.join(logs_dir, "predictions.log")
-    if os.path.exists(legacy_path):
-        with open(legacy_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    obj = json.loads(line)
-                except Exception:
-                    continue
-                ts = obj.get("timestamp")
-                dt = parse_iso(ts)
-                obj["_ts"] = dt
+                obj.setdefault("probability", obj.get("calibrated_prediction", obj.get("raw_prediction")))
+                obj.setdefault("coin", obj.get("symbol"))
                 preds.append(obj)
 
     # Sắp xếp theo timestamp

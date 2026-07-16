@@ -707,10 +707,9 @@ async def async_main():
         _alt_health_monitor = None
     # ──────────────────────────────────────────────────────────────────────────
 
-    # Hiển thị trạng thái Shadow Mode & Meta Model khi khởi động
+    # Hiển thị trạng thái Meta Model khi khởi động
     try:
-        import os, time as _time, json as _json
-        shadow_log_path = str(build_logs_path("shadow_predictions.json"))
+        import os, json as _json
         meta_metric_path = str(build_logs_path("meta_model.json"))
 
         # Meta Model status
@@ -727,32 +726,6 @@ async def async_main():
         else:
             console.print("[dim yellow]  [Meta Model] Chua train. Chay: python -m btc_scraper.meta_model --train[/dim yellow]")
 
-        # Shadow Mode status
-        if os.path.exists(shadow_log_path):
-            try:
-                with open(shadow_log_path, "r", encoding="utf-8") as _f:
-                    _shadow_data = _json.load(_f)
-                if isinstance(_shadow_data, list) and len(_shadow_data) > 0:
-                    _first_ts = _shadow_data[0].get("timestamp", os.path.getctime(shadow_log_path))
-                else:
-                    _first_ts = os.path.getctime(shadow_log_path)
-            except Exception:
-                _first_ts = os.path.getctime(shadow_log_path)
-
-            _age_days = (_time.time() - _first_ts) / 86400
-            if _age_days < 7:
-                _days_left = 7 - _age_days
-                console.print(
-                    f"[bold magenta]  [Shadow Mode] Sprint 2 dang chay: "
-                    f"{_age_days:.1f}/7 ngay | Con {_days_left:.1f} ngay -> Reminder luc 09:00 hang ngay[/bold magenta]\n"
-                )
-            else:
-                console.print(
-                    f"[bold green]  [Shadow Mode] Da du 7 ngay! "
-                    f"Chay: python scripts/shadow_log.py de xem calibration report.[/bold green]\n"
-                )
-        else:
-            console.print("[dim]  [Shadow Mode] Chua bat dau (se tu dong ghi log khi co BUY/SELL signal).[/dim]\n")
     except Exception:
         pass
 
@@ -794,129 +767,6 @@ async def async_main():
         schedule.every().sunday.at("23:30").do(run_continuous_learning_job)
         schedule.every().sunday.at("23:45").do(run_weekly_report_job)
 
-        # ── Shadow Mode Reminder ──────────────────────────────────────────
-        def check_shadow_mode_reminder():
-            """
-            Kiểm tra hàng ngày xem Shadow Mode đã chạy đủ 7 ngày chưa.
-            Nếu đủ 7 ngày: gửi Telegram alert với calibration report và hướng dẫn chuyển Sprint 3.
-            Sau khi gửi xong, tự hủy job này khỏi schedule.
-            """
-            import os, time as _time
-            shadow_log_path = str(build_logs_path("shadow_predictions.json"))
-
-            if not os.path.exists(shadow_log_path):
-                return  # chưa có dữ liệu shadow mode, bỏ qua
-
-            # Kiểm tra thời gian tạo file (lần đầu tiên ghi shadow log)
-            # Lấy timestamp của record đầu tiên trong file thay vì getctime vì file json có thể bị ghi đè liên tục
-            try:
-                import json as _json
-                with open(shadow_log_path, "r", encoding="utf-8") as _f:
-                    _shadow_data = _json.load(_f)
-                if isinstance(_shadow_data, list) and len(_shadow_data) > 0:
-                    first_record_ts = _shadow_data[0].get("timestamp", os.path.getctime(shadow_log_path))
-                else:
-                    first_record_ts = os.path.getctime(shadow_log_path)
-            except Exception:
-                first_record_ts = os.path.getctime(shadow_log_path)
-
-            file_age_days = (_time.time() - first_record_ts) / 86400
-
-            if file_age_days < 7:
-                days_left = max(0, 7 - file_age_days)
-                msg = f"[dim][Shadow] {file_age_days:.1f} ngày / 7 ngày. Còn {days_left:.1f} ngày nữa.[/dim]"
-                console.print(msg)
-                try:
-                    from btc_scraper.telegram_bot import send_telegram_message
-                    send_telegram_message(
-                        f"🔔 [SHADOW MODE PROGRESS]\n"
-                        f"Sprint 2 đang chạy: {file_age_days:.1f}/7 ngày | Còn {days_left:.1f} ngày nữa.", 
-                        parse_mode=None
-                    )
-                except Exception as e:
-                    console.print(f"[red][Shadow] Lỗi gửi Telegram progress: {e}[/red]")
-                return
-
-            # Đã đủ 7 ngày → generate calibration report và gửi Telegram
-            console.print("[bold yellow][Shadow] Đã 7 ngày! Đang tạo calibration report...[/bold yellow]")
-            try:
-                from scripts.shadow_log import calibration_report
-                report = calibration_report(min_samples=3)
-
-                lines = [
-                    "[SHADOW MODE - SPRINT 2 COMPLETE]",
-                    "Meta Model da chay duoc 7 ngay.",
-                    "",
-                ]
-
-                if report["status"] == "no_data":
-                    lines += [
-                        "Chua co du lieu calibration.",
-                        "Ly do: khong co position nao duoc dong trong 7 ngay.",
-                        "Tiep tuc Shadow Mode them 1 tuan.",
-                    ]
-                else:
-                    lines += [
-                        f"Tong completed: {report['total_completed']} | Pending: {report['total_pending']}",
-                        f"Overall Win Rate thuc te: {report.get('overall_win_rate', 'N/A')}%",
-                        "",
-                        "=== CALIBRATION BUCKETS ===",
-                    ]
-                    for bucket, data in report.get("buckets", {}).items():
-                        if data.get("actual_wr") is not None:
-                            ok = "[OK]" if data.get("calibrated") else "[LECH]"
-                            lines.append(
-                                f"{bucket}: du doan={data['predicted_wr']}% | thuc te={data['actual_wr']}% "
-                                f"(n={data['count']}) {ok}"
-                            )
-                        else:
-                            lines.append(f"{bucket}: chua du sample (n={data['count']})<3)")
-
-                    lines += [
-                        "",
-                        f"Monotonic: {'Co' if report.get('monotonic_calibration') else 'Khong'}",
-                        "",
-                        report.get("recommendation", ""),
-                        "",
-                    ]
-
-                    # Hướng dẫn Sprint 3 nếu model tốt
-                    if report.get("monotonic_calibration"):
-                        lines += [
-                            "=== NEXT STEPS: SPRINT 3 ===",
-                            "1. Xem calibration report day du:",
-                            "   python scripts/shadow_log.py",
-                            "",
-                            "2. Bat Signal Filter trong signal_score.py:",
-                            "   Uncomment dong: META_REJECT_THRESHOLD = 0.45",
-                            "   (hoac set env: META_REJECT_THRESHOLD=0.45)",
-                            "",
-                            "3. Restart bot de ap dung:",
-                            "   Ctrl+C roi chay lai python main.py",
-                        ]
-                    else:
-                        lines += [
-                            "=== NEXT STEPS ===",
-                            "Model chua calibrated hoan toan.",
-                            "Tiep tuc Shadow Mode them 1 tuan.",
-                            "Chay: python scripts/shadow_log.py de xem chi tiet.",
-                        ]
-
-                message = "\n".join(lines)
-                from btc_scraper.telegram_bot import send_telegram_message
-                send_telegram_message(message, parse_mode=None)
-                console.print("[bold green][Shadow] Da gui Telegram reminder Sprint 2 complete![/bold green]")
-
-                # Huỷ job này khỏi schedule (dùng sentinel)
-                return schedule.CancelJob
-
-            except Exception as e:
-                console.print(f"[red][Shadow] Loi tao calibration report: {e}[/red]")
-
-        # Chạy kiểm tra mỗi ngày lúc 09:00 sáng
-        schedule.every().day.at("09:00").do(check_shadow_mode_reminder)
-        # ──────────────────────────────────────────────────────────────────
-            
         console.print(
             f"[dim]>> Lên lịch tổng quát vào: {general_minutes} | Quét khẩn cấp vị thế mở vào: {focused_minutes}. Nhấn Ctrl+C để dừng.[/dim]\n"
         )

@@ -249,7 +249,7 @@ Khuyen nghi:
 
 Co cac file:
 
-- `logs/predictions_YYYY-MM-DD.log`
+- `logs/prediction_audit/predictions_YYYY-MM-DD.jsonl`
 - `logs/meta_prob_entry_YYYY-MM-DD.log`
 - `logs/daily/meta_prob_entry_YYYY-MM-DD.log`
 - `data/execution/fills/*.jsonl`
@@ -413,4 +413,3 @@ Nen di theo thu tu:
 2. Sua builder raw OHLCV de rebuild dataset sach tu `data/fresh_training_data_2023_2026`.
 3. Tao run folder co manifest/hash de moi lan train co the reproduce.
 4. Sau khi candidate pass walk-forward + calibration + backtest, moi promote thanh `logs/meta_model.joblib`.
-

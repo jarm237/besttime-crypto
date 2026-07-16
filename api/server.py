@@ -197,38 +197,28 @@ def ready(response: Response):
 
 
 def _read_prediction_logs(logs_dir: str, days: int = 7) -> list:
-    """Đọc nhiều file predictions_YYYY-MM-DD.log trong khoảng `days` ngày gần nhất.
-    
-    - days=0: đọc tất cả các file có pattern predictions_YYYY-MM-DD.log
+    """Đọc prediction audit JSONL trong khoảng `days` ngày gần nhất.
+
+    - days=0: đọc tất cả `prediction_audit/predictions_YYYY-MM-DD.jsonl`
     - days>0: chỉ đọc các file trong `days` ngày gần nhất (UTC)
-    - Backward-compatible: nếu có file predictions.log cũ cũng đọc kèm.
     """
     import glob
     from datetime import datetime, timezone, timedelta
 
     preds = []
+    cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).date() if days > 0 else None
 
-    # Tính ngưỡng ngày tối thiểu (UTC)
-    if days > 0:
-        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).date()
-    else:
-        cutoff_date = None
-
-    # Đọc các file theo ngày: predictions_YYYY-MM-DD.log
-    pattern = os.path.join(logs_dir, "predictions_????-??-??.log")
-    daily_files = sorted(glob.glob(pattern))
-    for fpath in daily_files:
-        # Lọc theo ngày từ tên file
-        fname = os.path.basename(fpath)  # predictions_YYYY-MM-DD.log
+    pattern = os.path.join(logs_dir, "prediction_audit", "predictions_????-??-??.jsonl")
+    for fpath in sorted(glob.glob(pattern)):
+        fname = os.path.basename(fpath)
         try:
-            file_date_str = fname[len("predictions_"):-len(".log")]  # YYYY-MM-DD
             from datetime import date
-            file_date = date.fromisoformat(file_date_str)
+            file_date = date.fromisoformat(fname[len("predictions_"):-len(".jsonl")])
         except Exception:
             file_date = None
 
         if cutoff_date and file_date and file_date < cutoff_date:
-            continue  # bỏ qua các file quá cũ
+            continue
 
         try:
             with open(fpath, "r", encoding="utf-8") as f:
@@ -237,41 +227,15 @@ def _read_prediction_logs(logs_dir: str, days: int = 7) -> list:
                     if not line:
                         continue
                     try:
-                        preds.append(json.loads(line))
+                        row = json.loads(line)
+                        row.setdefault("probability", row.get("calibrated_prediction", row.get("raw_prediction")))
+                        row.setdefault("coin", row.get("symbol"))
+                        preds.append(row)
                     except Exception:
                         continue
         except Exception:
             continue
 
-    # Backward-compatible: đọc file predictions.log cũ nếu còn tồn tại
-    legacy_path = os.path.join(logs_dir, "predictions.log")
-    if os.path.exists(legacy_path):
-        try:
-            with open(legacy_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        obj = json.loads(line)
-                        # Lọc theo ngày nếu cần
-                        if cutoff_date:
-                            ts = obj.get("timestamp", "")
-                            day_str = ts[:10]
-                            try:
-                                from datetime import date
-                                obj_date = date.fromisoformat(day_str)
-                                if obj_date < cutoff_date:
-                                    continue
-                            except Exception:
-                                pass
-                        preds.append(obj)
-                    except Exception:
-                        continue
-        except Exception:
-            pass
-
-    # Sắp xếp theo timestamp tăng dần
     preds.sort(key=lambda x: x.get("timestamp", ""))
     return preds
 
@@ -508,7 +472,7 @@ def get_model_health():
 
 @app.get("/api/meta-model/metrics")
 def get_meta_model_metrics(days: int = 7):
-    """Trả về metrics của meta-model và sample dự đoán gần nhất từ logs/predictions_YYYY-MM-DD.log.
+    """Trả về metrics của meta-model và sample dự đoán gần nhất từ prediction audit.
     
     - days: số ngày gần nhất cần lấy (mặc định 7). Truyền 0 để lấy tất cả.
     """

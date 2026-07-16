@@ -20588,5 +20588,71 @@
     "actual_result": "LOSS",
     "actual_pnl_pct": -0.284,
     "closed_at": "2026-07-16 08:19:39"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784167878",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784167878.490226,
+    "timestamp_str": "2026-07-16 09:11:18",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784170980",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784170980.4018831,
+    "timestamp_str": "2026-07-16 10:03:00",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784173828",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784173828.033484,
+    "timestamp_str": "2026-07-16 10:50:28",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784173857",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784173857.304186,
+    "timestamp_str": "2026-07-16 10:50:57",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784174055",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784174055.0265207,
+    "timestamp_str": "2026-07-16 10:54:15",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784174164",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784174164.2987556,
+    "timestamp_str": "2026-07-16 10:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "bdf749e4-d5d4-46ae-af33-982c0842ab2d",
+    "note": "RL Exit shadow recommendation"
   }
 ]

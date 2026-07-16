@@ -1129,30 +1129,11 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
         # Prediction-level logging (append newline-delimited JSON, mỗi ngày 1 file)
         try:
-            import hashlib
             from datetime import datetime, timezone
             from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
             from btc_scraper.ml_engine.prediction_logger import append_prediction
 
             now_utc = datetime.now(timezone.utc)
-            features_json = json.dumps(row, separators=(",", ":"), ensure_ascii=False)
-            features_hash = hashlib.md5(features_json.encode("utf-8")).hexdigest()
-            log_entry = {
-                "timestamp": now_utc.isoformat(),
-                "probability": prob,
-                "features_hash": features_hash,
-                "coin": analysis_info.get("coin"),
-                "action": analysis_info.get("action"),
-                "signal": analysis_info.get("signal"),
-                "model_version": MODEL_VERSION,
-                **ev_metrics,
-            }
-            LOGS.mkdir(parents=True, exist_ok=True)
-            # Ghi vào file theo ngày: predictions_YYYY-MM-DD.log
-            day_str = now_utc.strftime("%Y-%m-%d")
-            pred_log = LOGS / f"predictions_{day_str}.log"
-            with open(pred_log, "a", encoding="utf-8") as lf:
-                lf.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
             artifact = get_artifact_resolver().resolve("meta_model")
             append_prediction(
                 model_name="meta_model", model_version=MODEL_VERSION,

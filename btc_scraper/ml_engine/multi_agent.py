@@ -104,6 +104,8 @@ class SignalGeneratorAgent(BaseAgent):
         signals_info = []
         for key, ana in list(analysis.items()):
             coin = key.split(":")[0]
+            ana.setdefault("coin", coin)
+            ana.setdefault("symbol", f"{coin}USDT")
             # Chấm điểm và dự báo xác suất thắng
             sig_score = evaluate_signal_score(ana)
             ana["signal_score"] = sig_score
@@ -264,27 +266,7 @@ class ExecutionAgent(BaseAgent):
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")
             
-        # 2. Ghi nhận dự báo vào Shadow Predictions Log (Shadow Mode)
-        try:
-            from scripts.shadow_log import log_signal_prediction
-            for key, ana in analysis.items():
-                sig_score = ana.get("signal_score") or {}
-                meta_prob = sig_score.get("meta_confidence")
-                sig = ana.get("signal", "")
-                if meta_prob is not None and ("BUY" in sig or "SELL" in sig):
-                    coin = key.split(":")[0]
-                    log_signal_prediction(
-                        symbol=f"{coin}USDT",
-                        signal=sig,
-                        meta_prob=meta_prob,
-                        signal_score=sig_score.get("score", 50),
-                        regime=ana.get("regime") or (sig_score.get("regime") or ""),
-                        htf_trend=ana.get("htf_trend", ""),
-                    )
-        except Exception as e:
-            console.print(f"[dim red][ExecutionAgent] Lỗi ghi shadow log: {e}[/dim red]")
-
-        # 3. Phase D: Counterfactual analysis cho lệnh thua gần nhất
+        # 2. Phase D: Counterfactual analysis cho lệnh thua gần nhất
         try:
             import json as _json, os as _os
             from btc_scraper.ml_engine.causal_context_bridge import build_world_state_from_ana

@@ -531,18 +531,6 @@ def main():
         json.dump(metrics, f, indent=2, ensure_ascii=False)
     print(f"  [+] Saved calibration metrics to {METRIC_OUT}")
     
-    # Save simulated predictions to shadow log so that we can inspect it or run other reports
-    shadow_records = []
-    for r, new_prob in zip(all_trades, new_probs):
-        r_copy = dict(r)
-        r_copy.pop("features", None) # remove raw feature dict to keep shadow log clean
-        r_copy["meta_prob"] = round(float(new_prob), 4)
-        shadow_records.append(r_copy)
-        
-    shadow_log_path = LOGS_DIR / "shadow_predictions.json"
-    with open(shadow_log_path, "w", encoding="utf-8") as f:
-        json.dump(shadow_records, f, indent=2, ensure_ascii=False)
-    print(f"  [+] Saved simulated shadow predictions to {shadow_log_path}")
     print("=" * 65)
     print("  CALIBRATION PROCESS COMPLETED SUCCESSFULLY!")
     print("=" * 65)

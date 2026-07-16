@@ -490,25 +490,7 @@ def close_position(coin: str, sell_price: float) -> dict:
     except Exception:
         pass
 
-    # Sprint 2: Cập nhật actual_result vào shadow log để calibrate Meta Model
-    try:
-        import sys as _sys
-        import os as _os
-        _proj_root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-        if _proj_root not in _sys.path:
-            _sys.path.insert(0, _proj_root)
-        from scripts.shadow_log import update_outcome as _shadow_update
-        _pos_id = closed_data.get("id") or closed_data.get("coin")
-        if _pos_id:
-            _shadow_update(
-                position_id=_pos_id,
-                actual_result=closed_data.get("result", "LOSS"),
-                actual_pnl_pct=float(closed_data.get("pnl_pct", 0.0)),
-            )
-    except Exception:
-        pass
-
-    # Fix #2: Cập nhật outcome cho RL Exit shadow records của position này
+    # Cập nhật outcome cho RL Exit shadow records của position này.
     try:
         import sys as _sys
         import os as _os

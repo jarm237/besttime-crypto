@@ -830,6 +830,8 @@ class AutoTrader:
                             continue
                         # Ensure close present
                         tf_ana["close"] = tf_ana.get("close") or tf_ana.get("close_price") or 0.0
+                        tf_ana.setdefault("coin", coin)
+                        tf_ana.setdefault("symbol", f"{coin}USDT")
                         try:
                             sig_score = evaluate_signal_score(tf_ana)
                             tf_ana["signal_score"] = sig_score

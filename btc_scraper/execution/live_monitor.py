@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).parent.parent.parent
 SNAPSHOT_PATH = BASE_DIR / "data" / "execution" / "live_monitor_snapshot.json"
-PREDICTIONS_LOG = BASE_DIR / "logs"
+PREDICTIONS_LOG = BASE_DIR / "logs" / "prediction_audit"
 ALT_DATA_DIR = BASE_DIR / "data" / "raw_alternative"
 FILLS_DIR = BASE_DIR / "data" / "execution" / "fills"
 
@@ -186,9 +186,9 @@ class LiveMonitor:
         now = time.time()
         health: Dict[str, bool] = {}
 
-        # Model health: look for recent prediction log
+        # Model health: look for recent prediction audit log
         try:
-            log_files = sorted(PREDICTIONS_LOG.glob("predictions_*.log"), reverse=True)
+            log_files = sorted(PREDICTIONS_LOG.glob("predictions_*.jsonl"), reverse=True)
             if log_files:
                 age_m = (now - log_files[0].stat().st_mtime) / 60
                 health["model"] = age_m < MODEL_STALE_THRESHOLD_MINUTES
