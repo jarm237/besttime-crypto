@@ -46,8 +46,34 @@ def test_add_position_can_explicitly_mark_manual(monkeypatch):
     assert pos["is_manual"] is True
 
 
+def test_manual_position_records_whether_it_follows_a_system_signal(monkeypatch):
+    dummy = _DummyCollection()
+    monkeypatch.setattr(position_tracker, "positions_col", dummy)
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+
+    pos = position_tracker.add_position(
+        "BTC",
+        100.0,
+        trade_origin="manual",
+        manual_decision_basis="system_signal",
+        signal_id="signal-123",
+    )
+
+    assert pos["trade_origin"] == "manual"
+    assert pos["manual_decision_basis"] == "system_signal"
+    assert pos["is_system_signal_manual"] is True
+    assert pos["signal_id"] == "signal-123"
+
+
 def test_backfill_classifier_distinguishes_paper_manual_and_test():
     assert classify_record({"mode": "DRY_RUN", "status": "FILLED"})["trade_origin"] == "paper_mode"
     assert classify_record({"note": "[MANUAL] Telegram Command"})["trade_origin"] == "manual"
     assert classify_record({"source_test_name": "tests/test_x.py::case"})["trade_origin"] == "test_function"
     assert classify_record({"mode": "TESTNET", "fill_source": "live"})["trade_origin"] == "live"
+
+
+def test_backfill_marks_legacy_manual_records_as_unknown_basis():
+    metadata = classify_record({"note": "[MANUAL] Telegram Command"})
+
+    assert metadata["manual_decision_basis"] == "unknown"
+    assert metadata["is_system_signal_manual"] is False

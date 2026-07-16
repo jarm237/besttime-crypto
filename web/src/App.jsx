@@ -52,7 +52,7 @@ function App() {
   const [showCloseModal, setShowCloseModal] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(null);
 
-  const [newPos, setNewPos] = useState({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '' });
+  const [newPos, setNewPos] = useState({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '', manual_decision_basis: 'personal_discretion', signal_id: '' });
   const [closePrice, setClosePrice] = useState('');
   
   const [showPartialModal, setShowPartialModal] = useState(null);
@@ -214,7 +214,7 @@ function App() {
         invested_usdt: parseFloat(newPos.invested_usdt || 0)
       });
       setShowAddModal(false);
-      setNewPos({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '' });
+      setNewPos({ coin: 'BTC', entry_price: '', direction: 'LONG', note: '', invested_usdt: '', manual_decision_basis: 'personal_discretion', signal_id: '' });
       fetchData();
     } catch (err) {
       alert(err.response?.data?.detail || 'Error adding position');
@@ -706,6 +706,16 @@ function App() {
                   ) : (
                     <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(56,189,248,0.2)', color: '#38bdf8', fontWeight: 'bold' }}>
                       MANUAL
+                    </span>
+                  )}
+                  {!pos.is_auto && pos.manual_decision_basis === 'system_signal' && (
+                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(34,197,94,0.2)', color: '#22c55e', fontWeight: 'bold' }}>
+                      SYSTEM SIGNAL
+                    </span>
+                  )}
+                  {!pos.is_auto && pos.manual_decision_basis === 'personal_discretion' && (
+                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', fontWeight: 'bold' }}>
+                      PERSONAL
                     </span>
                   )}
                   {pos.dca_opportunity && (
@@ -1936,6 +1946,19 @@ function App() {
                 <label className="form-label">Ghi Chú</label>
                 <input className="form-control" value={newPos.note} onChange={e => setNewPos({ ...newPos, note: e.target.value })} placeholder="VD: Mua theo tín hiệu SFP" />
               </div>
+              <div className="form-group">
+                <label className="form-label">Cơ sở vào lệnh</label>
+                <select className="form-control" value={newPos.manual_decision_basis} onChange={e => setNewPos({ ...newPos, manual_decision_basis: e.target.value })}>
+                  <option value="personal_discretion">Quyết định cá nhân</option>
+                  <option value="system_signal">Theo tín hiệu hệ thống</option>
+                </select>
+              </div>
+              {newPos.manual_decision_basis === 'system_signal' && (
+                <div className="form-group">
+                  <label className="form-label">Signal ID (tùy chọn)</label>
+                  <input className="form-control" value={newPos.signal_id} onChange={e => setNewPos({ ...newPos, signal_id: e.target.value })} placeholder="Tín hiệu đã dẫn tới lệnh này" />
+                </div>
+              )}
               <button type="submit" className="btn btn-primary w-full mt-4">Thêm Vị Thế</button>
             </form>
           </div>

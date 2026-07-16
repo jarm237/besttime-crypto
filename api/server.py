@@ -283,6 +283,8 @@ class PositionCreate(BaseModel):
     direction: Literal["LONG", "SHORT"] = "LONG"
     note: str = ""
     invested_usdt: float = 0.0
+    manual_decision_basis: Literal["system_signal", "personal_discretion"] = "personal_discretion"
+    signal_id: str | None = None
 
 class PositionClose(BaseModel):
     sell_price: float
@@ -316,7 +318,12 @@ def add_position(pos: PositionCreate):
             entry_price=pos.entry_price,
             direction=pos.direction,
             note=pos.note,
-            invested_usdt=pos.invested_usdt
+            invested_usdt=pos.invested_usdt,
+            trade_origin="manual",
+            execution_mode="manual",
+            created_by="web_dashboard",
+            manual_decision_basis=pos.manual_decision_basis,
+            signal_id=pos.signal_id,
         )
         return {"status": "success", "position": new_pos}
     except ValueError as e:

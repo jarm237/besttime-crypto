@@ -30,6 +30,31 @@ TRADE_ORIGIN_MANUAL = "manual"
 TRADE_ORIGIN_TEST = "test_function"
 TRADE_ORIGIN_LIVE = "live"
 
+# This answers a separate question from trade_origin: a human can place a
+# manual order because the system produced a signal, or independently.
+MANUAL_DECISION_SYSTEM_SIGNAL = "system_signal"
+MANUAL_DECISION_PERSONAL = "personal_discretion"
+MANUAL_DECISION_UNKNOWN = "unknown"
+_MANUAL_DECISION_BASES = {
+    MANUAL_DECISION_SYSTEM_SIGNAL,
+    MANUAL_DECISION_PERSONAL,
+    MANUAL_DECISION_UNKNOWN,
+}
+
+
+def _resolve_manual_decision_basis(
+    trade_origin: str,
+    manual_decision_basis: str | None,
+) -> str | None:
+    """Normalize why a person created a manual position."""
+    if trade_origin != TRADE_ORIGIN_MANUAL:
+        return None
+    basis = (manual_decision_basis or MANUAL_DECISION_PERSONAL).strip().lower()
+    if basis not in _MANUAL_DECISION_BASES:
+        allowed = ", ".join(sorted(_MANUAL_DECISION_BASES))
+        raise ValueError(f"manual_decision_basis must be one of: {allowed}")
+    return basis
+
 
 def _is_running_under_pytest() -> bool:
     return bool(os.getenv("PYTEST_CURRENT_TEST"))
@@ -322,6 +347,7 @@ def add_position(
     model_version: str | None = None,
     artifact_sha256: str | None = None,
     feature_schema_version: str | None = None,
+    manual_decision_basis: str | None = None,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -351,6 +377,10 @@ def add_position(
     resolved_execution_mode = _default_execution_mode_for_origin(
         resolved_origin,
         execution_mode=execution_mode,
+    )
+    resolved_manual_decision_basis = _resolve_manual_decision_basis(
+        resolved_origin,
+        manual_decision_basis,
     )
     pytest_test_name = os.getenv("PYTEST_CURRENT_TEST") if resolved_origin == TRADE_ORIGIN_TEST else None
 
@@ -391,6 +421,8 @@ def add_position(
         "is_paper": resolved_origin == TRADE_ORIGIN_PAPER,
         "is_manual": resolved_origin == TRADE_ORIGIN_MANUAL,
         "is_test_record": resolved_origin == TRADE_ORIGIN_TEST,
+        "manual_decision_basis": resolved_manual_decision_basis,
+        "is_system_signal_manual": resolved_manual_decision_basis == MANUAL_DECISION_SYSTEM_SIGNAL,
     }
     positions_col.insert_one(pos.copy())
     return pos
@@ -520,6 +552,8 @@ def close_position(coin: str, sell_price: float) -> dict:
             "is_paper": closed_data.get("is_paper"),
             "is_manual": closed_data.get("is_manual"),
             "is_test_record": closed_data.get("is_test_record"),
+            "manual_decision_basis": closed_data.get("manual_decision_basis"),
+            "is_system_signal_manual": closed_data.get("is_system_signal_manual"),
         }
         closed_trades_col.insert_one(simple)
     except Exception:
@@ -678,6 +712,8 @@ def close_partial_position(coin: str, sell_price: float, percentage: float) -> d
             "is_paper": closed_data.get("is_paper"),
             "is_manual": closed_data.get("is_manual"),
             "is_test_record": closed_data.get("is_test_record"),
+            "manual_decision_basis": closed_data.get("manual_decision_basis"),
+            "is_system_signal_manual": closed_data.get("is_system_signal_manual"),
         }
         closed_trades_col.insert_one(simple)
     except Exception as e:

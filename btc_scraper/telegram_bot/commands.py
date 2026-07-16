@@ -94,6 +94,18 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
                 return
         else:
             price = get_latest_price(coin)
+
+        manual_decision_basis = "personal_discretion"
+        if len(parts) >= 6:
+            basis_map = {"signal": "system_signal", "personal": "personal_discretion"}
+            manual_decision_basis = basis_map.get(parts[5].lower())
+            if manual_decision_basis is None:
+                send_telegram_message(
+                    "Invalid decision source. Use <code>signal</code> or <code>personal</code>.",
+                    reply_to_message_id=reply_to_id,
+                    chat_id=chat_id,
+                )
+                return
             
         if price <= 0:
             send_telegram_message(
@@ -113,6 +125,7 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             trade_origin="manual",
             execution_mode="manual",
             created_by="telegram_command",
+            manual_decision_basis=manual_decision_basis,
         )
         
         reply = (

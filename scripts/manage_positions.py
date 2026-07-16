@@ -28,6 +28,7 @@ def cmd_add(args):
             trade_origin="manual",
             execution_mode="manual",
             created_by="manage_positions_cli",
+            manual_decision_basis=args.manual_decision_basis,
         )
         console.print(f"\n[bold green]✅ Đã thêm vị thế MỚI:[/bold green]")
         console.print(pos)
@@ -123,6 +124,13 @@ def main():
     parser_add.add_argument("direction", nargs="?", choices=["LONG", "SHORT"], default="LONG", help="Hướng vị thế (mặc định: LONG cho Spot)")
     parser_add.add_argument("--note", "-n", default="", help="Ghi chú thêm")
     
+    parser_add.add_argument(
+        "--manual-decision-basis",
+        choices=["system_signal", "personal_discretion"],
+        default="personal_discretion",
+        help="Whether the entry follows a system signal or personal discretion",
+    )
+
     # Command: close
     parser_close = subparsers.add_parser("close", help="Đóng vị thế")
     parser_close.add_argument("coin", help="Tên coin (vd: BTC)")

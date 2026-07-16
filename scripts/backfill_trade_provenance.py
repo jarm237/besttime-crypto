@@ -109,6 +109,15 @@ def classify_record(record: Dict[str, Any]) -> Dict[str, Any]:
         else:
             created_by = "manual"
 
+    # Historical manual records have no reliable structured indicator of why
+    # they were created.  Do not infer this from free-text notes: leave them
+    # explicitly unknown so they cannot be treated as signal-following data.
+    manual_decision_basis = None
+    if origin == "manual":
+        manual_decision_basis = str(record.get("manual_decision_basis") or "unknown").lower()
+        if manual_decision_basis not in {"system_signal", "personal_discretion", "unknown"}:
+            manual_decision_basis = "unknown"
+
     return {
         "trade_origin": origin,
         "execution_mode": execution_mode,
@@ -117,6 +126,8 @@ def classify_record(record: Dict[str, Any]) -> Dict[str, Any]:
         "is_paper": origin == "paper_mode",
         "is_manual": origin == "manual",
         "is_test_record": origin == "test_function",
+        "manual_decision_basis": manual_decision_basis,
+        "is_system_signal_manual": manual_decision_basis == "system_signal",
     }
 
 
