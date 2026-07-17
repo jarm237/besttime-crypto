@@ -28,6 +28,8 @@ def cmd_add(args):
             trade_origin="manual",
             execution_mode="manual",
             created_by="manage_positions_cli",
+            order_creator="user",
+            order_channel="cli",
             manual_decision_basis=args.manual_decision_basis,
         )
         console.print(f"\n[bold green]✅ Đã thêm vị thế MỚI:[/bold green]")
@@ -63,6 +65,7 @@ def cmd_list(args):
     table.add_column("Coin", style="cyan")
     table.add_column("Hướng", style="magenta")
     table.add_column("Entry", justify="right")
+    table.add_column("Nguồn", style="blue")
     table.add_column("Tín hiệu Gần Nhất", style="yellow")
     table.add_column("Giá Hiện Tại", justify="right")
     table.add_column("Ghi chú")
@@ -72,6 +75,7 @@ def cmd_list(args):
             p['coin'],
             p['direction'],
             str(p['entry_price']),
+            position_tracker.format_order_provenance(p),
             str(p.get('last_signal', 'N/A')),
             str(p.get('last_price', 'N/A')),
             p.get('note', '')

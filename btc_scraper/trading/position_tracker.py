@@ -30,6 +30,34 @@ TRADE_ORIGIN_MANUAL = "manual"
 TRADE_ORIGIN_TEST = "test_function"
 TRADE_ORIGIN_LIVE = "live"
 
+ORDER_CREATOR_SYSTEM = "system"
+ORDER_CREATOR_USER = "user"
+ORDER_CREATOR_TEST = "test"
+
+ORDER_CHANNEL_PAPER_RUNNER = "paper_runner"
+ORDER_CHANNEL_LIVE_RUNNER = "live_runner"
+ORDER_CHANNEL_TELEGRAM = "telegram"
+ORDER_CHANNEL_UI = "ui"
+ORDER_CHANNEL_CLI = "cli"
+ORDER_CHANNEL_MANUAL = "manual"
+ORDER_CHANNEL_TEST = "test"
+ORDER_CHANNEL_UNKNOWN = "unknown"
+_ORDER_CREATORS = {
+    ORDER_CREATOR_SYSTEM,
+    ORDER_CREATOR_USER,
+    ORDER_CREATOR_TEST,
+}
+_ORDER_CHANNELS = {
+    ORDER_CHANNEL_PAPER_RUNNER,
+    ORDER_CHANNEL_LIVE_RUNNER,
+    ORDER_CHANNEL_TELEGRAM,
+    ORDER_CHANNEL_UI,
+    ORDER_CHANNEL_CLI,
+    ORDER_CHANNEL_MANUAL,
+    ORDER_CHANNEL_TEST,
+    ORDER_CHANNEL_UNKNOWN,
+}
+
 # This answers a separate question from trade_origin: a human can place a
 # manual order because the system produced a signal, or independently.
 MANUAL_DECISION_SYSTEM_SIGNAL = "system_signal"
@@ -99,6 +127,89 @@ def _default_execution_mode_for_origin(origin: str, execution_mode: str | None =
     if origin == TRADE_ORIGIN_LIVE:
         return "live"
     return "manual"
+
+
+def _infer_order_channel(created_by: str | None) -> str:
+    source = (created_by or "").strip().lower()
+    if "telegram" in source or source in {"tele", "tg"}:
+        return ORDER_CHANNEL_TELEGRAM
+    if "ui" in source or "web" in source or "dashboard" in source:
+        return ORDER_CHANNEL_UI
+    if "cli" in source or "manage_positions" in source:
+        return ORDER_CHANNEL_CLI
+    if "pytest" in source or "test" in source:
+        return ORDER_CHANNEL_TEST
+    if source:
+        return ORDER_CHANNEL_MANUAL
+    return ORDER_CHANNEL_UNKNOWN
+
+
+def _resolve_order_provenance(
+    trade_origin: str,
+    execution_mode: str,
+    created_by: str | None,
+    order_creator: str | None = None,
+    order_channel: str | None = None,
+) -> tuple[str, str]:
+    """Normalize who created an order and through which surface."""
+    if order_creator:
+        resolved_creator = str(order_creator).strip().lower()
+    elif trade_origin in {TRADE_ORIGIN_PAPER, TRADE_ORIGIN_LIVE}:
+        resolved_creator = ORDER_CREATOR_SYSTEM
+    elif trade_origin == TRADE_ORIGIN_TEST:
+        resolved_creator = ORDER_CREATOR_TEST
+    else:
+        resolved_creator = ORDER_CREATOR_USER
+    if resolved_creator not in _ORDER_CREATORS:
+        allowed = ", ".join(sorted(_ORDER_CREATORS))
+        raise ValueError(f"order_creator must be one of: {allowed}")
+
+    if order_channel:
+        resolved_channel = str(order_channel).strip().lower()
+    elif trade_origin == TRADE_ORIGIN_PAPER or execution_mode == "paper":
+        resolved_channel = ORDER_CHANNEL_PAPER_RUNNER
+    elif trade_origin == TRADE_ORIGIN_LIVE or execution_mode == "live":
+        resolved_channel = ORDER_CHANNEL_LIVE_RUNNER
+    elif trade_origin == TRADE_ORIGIN_TEST:
+        resolved_channel = ORDER_CHANNEL_TEST
+    else:
+        resolved_channel = _infer_order_channel(created_by)
+    if resolved_channel not in _ORDER_CHANNELS:
+        allowed = ", ".join(sorted(_ORDER_CHANNELS))
+        raise ValueError(f"order_channel must be one of: {allowed}")
+    return resolved_creator, resolved_channel
+
+
+def format_order_provenance(position: dict) -> str:
+    """Human-readable provenance label for Telegram/CLI surfaces."""
+    origin = position.get("trade_origin")
+    execution_mode = position.get("execution_mode") or _default_execution_mode_for_origin(origin or TRADE_ORIGIN_MANUAL)
+    try:
+        creator, channel = _resolve_order_provenance(
+            trade_origin=origin or TRADE_ORIGIN_MANUAL,
+            execution_mode=str(execution_mode),
+            created_by=position.get("created_by"),
+            order_creator=position.get("order_creator"),
+            order_channel=position.get("order_channel"),
+        )
+    except ValueError:
+        creator = ORDER_CREATOR_USER if origin == TRADE_ORIGIN_MANUAL else None
+        channel = _infer_order_channel(position.get("created_by"))
+    if position.get("is_system_paper_order") or origin == TRADE_ORIGIN_PAPER:
+        return "System paper mode"
+    if creator == ORDER_CREATOR_USER:
+        if channel == ORDER_CHANNEL_TELEGRAM:
+            return "User via Telegram"
+        if channel == ORDER_CHANNEL_UI:
+            return "User via UI"
+        if channel == ORDER_CHANNEL_CLI:
+            return "User via CLI"
+        return "User manual"
+    if origin == TRADE_ORIGIN_LIVE:
+        return "System live"
+    if origin == TRADE_ORIGIN_TEST:
+        return "Test"
+    return "Unknown"
 
 # Cache PPO model globally to avoid reloading on every cycle
 _PPO_MODEL_CACHE = None
@@ -348,6 +459,8 @@ def add_position(
     artifact_sha256: str | None = None,
     feature_schema_version: str | None = None,
     manual_decision_basis: str | None = None,
+    order_creator: str | None = None,
+    order_channel: str | None = None,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -381,6 +494,14 @@ def add_position(
     resolved_manual_decision_basis = _resolve_manual_decision_basis(
         resolved_origin,
         manual_decision_basis,
+    )
+    resolved_created_by = created_by or ("pytest" if resolved_origin == TRADE_ORIGIN_TEST else "manual")
+    resolved_order_creator, resolved_order_channel = _resolve_order_provenance(
+        trade_origin=resolved_origin,
+        execution_mode=resolved_execution_mode,
+        created_by=resolved_created_by,
+        order_creator=order_creator,
+        order_channel=order_channel,
     )
     pytest_test_name = os.getenv("PYTEST_CURRENT_TEST") if resolved_origin == TRADE_ORIGIN_TEST else None
 
@@ -416,11 +537,27 @@ def add_position(
         "execution_mode": resolved_execution_mode,
         "fill_source": fill_source or ("real_paper" if resolved_origin == TRADE_ORIGIN_PAPER else None),
         "paper_run_id": paper_run_id or os.getenv("PAPER_RUN_ID", "").strip(),
-        "created_by": created_by or ("pytest" if resolved_origin == TRADE_ORIGIN_TEST else "manual"),
+        "created_by": resolved_created_by,
+        "order_creator": resolved_order_creator,
+        "order_channel": resolved_order_channel,
         "source_test_name": source_test_name or pytest_test_name,
         "is_paper": resolved_origin == TRADE_ORIGIN_PAPER,
         "is_manual": resolved_origin == TRADE_ORIGIN_MANUAL,
         "is_test_record": resolved_origin == TRADE_ORIGIN_TEST,
+        "is_system_order": resolved_order_creator == ORDER_CREATOR_SYSTEM,
+        "is_user_order": resolved_order_creator == ORDER_CREATOR_USER,
+        "is_system_paper_order": (
+            resolved_order_creator == ORDER_CREATOR_SYSTEM
+            and resolved_order_channel == ORDER_CHANNEL_PAPER_RUNNER
+        ),
+        "is_user_telegram_order": (
+            resolved_order_creator == ORDER_CREATOR_USER
+            and resolved_order_channel == ORDER_CHANNEL_TELEGRAM
+        ),
+        "is_user_ui_order": (
+            resolved_order_creator == ORDER_CREATOR_USER
+            and resolved_order_channel == ORDER_CHANNEL_UI
+        ),
         "manual_decision_basis": resolved_manual_decision_basis,
         "is_system_signal_manual": resolved_manual_decision_basis == MANUAL_DECISION_SYSTEM_SIGNAL,
     }
@@ -548,10 +685,17 @@ def close_position(coin: str, sell_price: float) -> dict:
             "fill_source": closed_data.get("fill_source"),
             "paper_run_id": closed_data.get("paper_run_id"),
             "created_by": closed_data.get("created_by"),
+            "order_creator": closed_data.get("order_creator"),
+            "order_channel": closed_data.get("order_channel"),
             "source_test_name": closed_data.get("source_test_name"),
             "is_paper": closed_data.get("is_paper"),
             "is_manual": closed_data.get("is_manual"),
             "is_test_record": closed_data.get("is_test_record"),
+            "is_system_order": closed_data.get("is_system_order"),
+            "is_user_order": closed_data.get("is_user_order"),
+            "is_system_paper_order": closed_data.get("is_system_paper_order"),
+            "is_user_telegram_order": closed_data.get("is_user_telegram_order"),
+            "is_user_ui_order": closed_data.get("is_user_ui_order"),
             "manual_decision_basis": closed_data.get("manual_decision_basis"),
             "is_system_signal_manual": closed_data.get("is_system_signal_manual"),
         }
@@ -708,10 +852,17 @@ def close_partial_position(coin: str, sell_price: float, percentage: float) -> d
             "fill_source": closed_data.get("fill_source"),
             "paper_run_id": closed_data.get("paper_run_id"),
             "created_by": closed_data.get("created_by"),
+            "order_creator": closed_data.get("order_creator"),
+            "order_channel": closed_data.get("order_channel"),
             "source_test_name": closed_data.get("source_test_name"),
             "is_paper": closed_data.get("is_paper"),
             "is_manual": closed_data.get("is_manual"),
             "is_test_record": closed_data.get("is_test_record"),
+            "is_system_order": closed_data.get("is_system_order"),
+            "is_user_order": closed_data.get("is_user_order"),
+            "is_system_paper_order": closed_data.get("is_system_paper_order"),
+            "is_user_telegram_order": closed_data.get("is_user_telegram_order"),
+            "is_user_ui_order": closed_data.get("is_user_ui_order"),
             "manual_decision_basis": closed_data.get("manual_decision_basis"),
             "is_system_signal_manual": closed_data.get("is_system_signal_manual"),
         }

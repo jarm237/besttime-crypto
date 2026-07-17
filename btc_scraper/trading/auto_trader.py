@@ -1120,6 +1120,8 @@ class AutoTrader:
                     fill_source=rec.fill_source,
                     paper_run_id=rec.paper_run_id,
                     created_by="auto_trader",
+                    order_creator="system",
+                    order_channel="paper_runner" if rec.execution_mode == "paper" else "live_runner",
                     prediction_id=rec.prediction_id or ana.get("prediction_id"),
                     signal_id=rec.signal_id,
                     entry_decision_id=rec.entry_decision_id or decision.decision_id,

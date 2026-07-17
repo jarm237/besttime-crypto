@@ -24,7 +24,7 @@ def format_status_message() -> str:
 
 
 def format_positions_message() -> str:
-    from btc_scraper.trading.position_tracker import get_open_positions
+    from btc_scraper.trading.position_tracker import format_order_provenance, get_open_positions
     positions = get_open_positions()
     if not positions:
         return "ℹ️ Hiện không có vị thế mở nào đang được theo dõi."
@@ -49,6 +49,7 @@ def format_positions_message() -> str:
         
         lines.append(
             f"• {pnl_emoji} <b>{coin} ({direction})</b>\n"
+            f"  👉 Nguồn: <code>{format_order_provenance(p)}</code>\n"
             f"  👉 Vốn: <code>${p.get('invested_usdt', 0.0):.2f} USDT</code>\n"
             f"  👉 Giá vào: <code>{entry:{val_format}}</code> | Hiện tại: <code>{current:{val_format}}</code>\n"
             f"  👉 Trạng thái: <b>{pnl_text}</b>\n"
@@ -78,4 +79,3 @@ def format_performance_message() -> str:
         f"• <b>PnL thực tế tích luỹ:</b> <code>{perf['total_pnl_usd_actual']:+.2f} USDT</code>"
     )
     return msg
-

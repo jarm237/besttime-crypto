@@ -37,6 +37,18 @@ JSON_LOGS = (
     REPO_ROOT / "logs" / "adaptive_signals.json",
 )
 
+ORDER_CREATOR_SYSTEM = "system"
+ORDER_CREATOR_USER = "user"
+ORDER_CREATOR_TEST = "test"
+ORDER_CHANNEL_PAPER_RUNNER = "paper_runner"
+ORDER_CHANNEL_LIVE_RUNNER = "live_runner"
+ORDER_CHANNEL_TELEGRAM = "telegram"
+ORDER_CHANNEL_UI = "ui"
+ORDER_CHANNEL_CLI = "cli"
+ORDER_CHANNEL_MANUAL = "manual"
+ORDER_CHANNEL_TEST = "test"
+ORDER_CHANNEL_UNKNOWN = "unknown"
+
 
 def _stringify(value: Any) -> Any:
     if isinstance(value, ObjectId):
@@ -46,6 +58,21 @@ def _stringify(value: Any) -> Any:
     if isinstance(value, list):
         return [_stringify(v) for v in value]
     return value
+
+
+def _infer_order_channel(created_by: str | None) -> str:
+    source = str(created_by or "").strip().lower()
+    if "telegram" in source or source in {"tele", "tg"}:
+        return ORDER_CHANNEL_TELEGRAM
+    if "ui" in source or "web" in source or "dashboard" in source:
+        return ORDER_CHANNEL_UI
+    if "cli" in source or "manage_positions" in source:
+        return ORDER_CHANNEL_CLI
+    if "pytest" in source or "test" in source:
+        return ORDER_CHANNEL_TEST
+    if source:
+        return ORDER_CHANNEL_MANUAL
+    return ORDER_CHANNEL_UNKNOWN
 
 
 def classify_record(record: Dict[str, Any]) -> Dict[str, Any]:
@@ -109,6 +136,28 @@ def classify_record(record: Dict[str, Any]) -> Dict[str, Any]:
         else:
             created_by = "manual"
 
+    existing_creator = record.get("order_creator")
+    existing_channel = record.get("order_channel")
+    if existing_creator:
+        order_creator = str(existing_creator).strip().lower()
+    elif origin in {"paper_mode", "live"}:
+        order_creator = ORDER_CREATOR_SYSTEM
+    elif origin == "test_function":
+        order_creator = ORDER_CREATOR_TEST
+    else:
+        order_creator = ORDER_CREATOR_USER
+
+    if existing_channel:
+        order_channel = str(existing_channel).strip().lower()
+    elif origin == "paper_mode":
+        order_channel = ORDER_CHANNEL_PAPER_RUNNER
+    elif origin == "live":
+        order_channel = ORDER_CHANNEL_LIVE_RUNNER
+    elif origin == "test_function":
+        order_channel = ORDER_CHANNEL_TEST
+    else:
+        order_channel = _infer_order_channel(created_by)
+
     # Historical manual records have no reliable structured indicator of why
     # they were created.  Do not infer this from free-text notes: leave them
     # explicitly unknown so they cannot be treated as signal-following data.
@@ -123,9 +172,25 @@ def classify_record(record: Dict[str, Any]) -> Dict[str, Any]:
         "execution_mode": execution_mode,
         "fill_source": fill_source,
         "created_by": created_by,
+        "order_creator": order_creator,
+        "order_channel": order_channel,
         "is_paper": origin == "paper_mode",
         "is_manual": origin == "manual",
         "is_test_record": origin == "test_function",
+        "is_system_order": order_creator == ORDER_CREATOR_SYSTEM,
+        "is_user_order": order_creator == ORDER_CREATOR_USER,
+        "is_system_paper_order": (
+            order_creator == ORDER_CREATOR_SYSTEM
+            and order_channel == ORDER_CHANNEL_PAPER_RUNNER
+        ),
+        "is_user_telegram_order": (
+            order_creator == ORDER_CREATOR_USER
+            and order_channel == ORDER_CHANNEL_TELEGRAM
+        ),
+        "is_user_ui_order": (
+            order_creator == ORDER_CREATOR_USER
+            and order_channel == ORDER_CHANNEL_UI
+        ),
         "manual_decision_basis": manual_decision_basis,
         "is_system_signal_manual": manual_decision_basis == "system_signal",
     }

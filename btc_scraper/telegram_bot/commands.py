@@ -125,6 +125,8 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             trade_origin="manual",
             execution_mode="manual",
             created_by="telegram_command",
+            order_creator="user",
+            order_channel="telegram",
             manual_decision_basis=manual_decision_basis,
         )
         
