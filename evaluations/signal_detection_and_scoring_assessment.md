@@ -3,6 +3,7 @@
 > Updated: 2026-07-14
 > Scope: `main.py`, `btc_scraper/analysis/`, `btc_scraper/ml_engine/`, `btc_scraper/trading/auto_trader.py`
 > Verdict: **Signal detection and AutoTrader local gates are active. SELL threshold semantics have been fixed with side-agnostic `strength`; several orchestrator-level gates still need stronger execution wiring.**
+> Superseded operational status: 2026-07-17 system reports mark live execution as **BLOCKED** until Gate A runtime evidence and shadow evidence are complete. See `docs/remediation/System_Status_Report_2026-07-17.md`.
 
 ---
 
@@ -276,8 +277,8 @@ Signal scoring: PASS - side-agnostic strength added
 Paper auto-trade gating: PASS
 Causal safe gate: PASS for pre-execution `signal_score.action` neutralization; runtime anomaly timing remains partial
 Risk/Portfolio orchestrator gates: PARTIAL - update signals_info, not analysis
-Live execution readiness: CONDITIONAL
+Live execution readiness: BLOCKED pending Gate A/shadow evidence
 Maintainability: NEEDS REFACTOR
 ```
 
-The system is suitable for monitored signal research and cautious paper trading. The SELL threshold bug is fixed. Before controlled live trading, prioritize wiring runtime causal/risk/portfolio gate outputs into `analysis`, richer audit reasons, and Phase 10 live execution hardening.
+The 2026-07-14 signal-flow assessment remains valid for local scoring/gating semantics. The newer 2026-07-17 operational reports supersede its live-readiness line: live execution is blocked until Gate A runtime evidence, shadow evidence, and Phase 5 readiness are satisfied.

@@ -4,7 +4,7 @@
 
 > **Ngày cập nhật**: 17/07/2026
 > **Người thực hiện**: Antigravity AI Coding Assistant
-> **Phiên bản báo cáo**: v3.2 (bổ sung runtime linkage/provenance và operational correction ngày 17/07/2026)
+> **Phiên bản báo cáo**: v3.3 (đồng bộ docs/system reports sau runtime linkage/provenance update ngày 17/07/2026)
 > **Mục tiêu**: Đánh giá toàn diện kiến trúc, bộ máy thuật toán, ML/RL/Causal/Backtesting/Execution stack, trạng thái tích hợp, độ phủ kiểm thử và các rủi ro kỹ thuật sau khi hoàn tất Phase 7 → Phase 10.
 
 ---
@@ -24,6 +24,7 @@ WLD manual signal correction: APPLIED
 Shadow evidence window: NOT STARTED
 Runtime calibration readiness: BLOCKED
 Meta promotion readiness: BLOCKED
+Live trading: DISABLED
 ```
 
 Điểm cập nhật quan trọng:
@@ -32,6 +33,7 @@ Meta promotion readiness: BLOCKED
 - Telegram `/positions` và CLI list hiển thị nguồn lệnh;
 - WLD open duplicate đã được xóa, WLD closed record gần nhất đã được sửa thành manual theo system signal;
 - backup operational correction nằm tại `data/cleanup/wld_manual_signal_correction_backup_2026-07-17.json`;
+- documentation rollup mới nằm tại `docs/remediation/System_Status_Report_2026-07-17.md`;
 - chưa start shadow window và chưa retrain/promote Meta Model.
 
 Focused verification:

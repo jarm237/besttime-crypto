@@ -8,7 +8,7 @@ Tài liệu này đóng vai trò là **Technical Design Document (TDD)** tổng 
 
 ## 1. Architecture Diagram
 
-Sơ đồ kiến trúc tổng thể phản ánh kiến trúc v2.1 (Event-Driven + Causal World Model):
+Sơ đồ kiến trúc tổng thể phản ánh kiến trúc v2.2 (Event-Driven + Causal World Model + runtime linkage/provenance):
 
 ```text
 Market Data (Binance WebSocket / REST fallback)
@@ -58,7 +58,8 @@ Market Data (Binance WebSocket / REST fallback)
    ├─ lifecycle IDs
    ├─ trade_origin
    ├─ order_creator
-   └─ order_channel
+   ├─ order_channel
+   └─ runtime outcome linkage hooks
              │
              ▼
    logs/counterfactual_log.json + Mongo position/outcome records
@@ -85,6 +86,8 @@ Interpretation:
 - `manual_decision_basis = system_signal`: user accepted a system signal, but the order remains user-created.
 
 Telegram `/positions` and CLI list views display a human-readable provenance label.
+
+The runtime linkage/calibration framework is implemented, but fresh Gate A paper-runtime evidence and the shadow evidence window remain pending. Meta Model runtime recalibration and promotion remain blocked until linked runtime outcomes are sufficient.
 
 ---
 
@@ -224,7 +227,10 @@ Current assessment:
 Signal detection: PASS
 Signal scoring: PASS - side-agnostic strength added
 Paper auto-trade gating: PASS
-Live execution readiness: CONDITIONAL
+Runtime linkage framework: IMPLEMENTED
+Gate A runtime evidence: PENDING
+Shadow evidence window: NOT STARTED
+Live execution readiness: BLOCKED
 Maintainability: analysis/core.py should be split into smaller strategy modules
 ```
 

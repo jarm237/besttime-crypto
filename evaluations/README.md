@@ -14,11 +14,12 @@ Thư mục này gom các báo cáo đánh giá và assessment dùng để rà so
 ## Cập Nhật Mới Nhất
 
 ```text
-2026-07-17: trade provenance taxonomy implemented; WLD operational correction applied; shadow evidence window still not started.
+2026-07-17: docs/system reports synchronized; runtime linkage framework implemented; Gate A fresh runtime evidence pending; shadow evidence window still not started.
 ```
 
 Chi tiết vận hành nằm tại:
 
 ```text
+docs/remediation/System_Status_Report_2026-07-17.md
 docs/remediation/System_Operational_Update_2026-07-17.md
 ```

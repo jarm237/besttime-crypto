@@ -3,6 +3,8 @@
 Ngày đánh giá: 2026-07-17
 Trạng thái đánh giá: cập nhật sau runtime linkage/provenance và WLD operational correction
 
+Nguồn trạng thái tổng hợp: `docs/remediation/System_Status_Report_2026-07-17.md`
+
 ## Tóm Tắt Điều Hành
 
 Hệ thống ML hiện có 3 lớp chính:

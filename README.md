@@ -2,9 +2,9 @@
 
 Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kết hợp **7 lớp lọc kỹ thuật**, **ML Ensemble**, **Reinforcement Learning Exit Manager** và **Causal World Model** — gửi cảnh báo thời gian thực qua Telegram và trực quan hoá qua Web Dashboard.
 
-> **Phiên bản hiện tại**: Architecture v2.1 — Event-Driven Causal AI
-> **Đánh giá signal flow**: cập nhật 2026-07-14 tại [`evaluations/signal_detection_and_scoring_assessment.md`](evaluations/signal_detection_and_scoring_assessment.md)
-> **Trạng thái**: Production-ready cho signal research + paper trading; live trading cần giám sát và Phase 10 hardening trước khi tăng vốn.
+> **Phiên bản hiện tại**: Architecture v2.2 — Event-Driven Causal AI + runtime linkage/provenance
+> **Đánh giá hệ thống**: cập nhật 2026-07-17 tại [`evaluations/system_evaluation_report.md`](evaluations/system_evaluation_report.md)
+> **Trạng thái**: Production-ready cho signal research + paper trading; live trading vẫn bị chặn cho đến khi Gate A, shadow evidence window và Phase 5 readiness đạt.
 
 ---
 
@@ -18,12 +18,14 @@ Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kế
   - `HybridContextProvider` — kết hợp Rule-based + Bayesian inference, điều chỉnh bởi `CAUSAL_ALPHA` env var.
   - `CausalGate` — CRITICAL risk override sang NEUTRAL, HIGH/MEDIUM risk warning trong `SignalGeneratorAgent`.
   - `CounterfactualEngine` — tự động phân tích lệnh thua, lưu `logs/counterfactual_log.json`.
-- **ML Ensemble**: RandomForest + LightGBM + CatBoost + XGBoost với Optuna hyperparameter tuning, Platt calibration, Feature Correlation Filter.
-- **Reinforcement Learning Exit Manager (PPO)**: Môi trường Gymnasium 18D state / 6 actions — học chiến lược đóng lệnh tối ưu.
+- **ML Ensemble**: Meta Model v3.1 production, Adaptive RF canonical artifact và runtime prediction audit với model/schema/artifact traceability.
+- **Reinforcement Learning Exit Manager (Recurrent PPO)**: observation contract 20D / 6 actions, đang ở shadow/advisory mode; active exit action vẫn bị guard.
+- **Runtime Outcome Linkage**: stable lifecycle IDs, data contracts, calibration sample store, Gate A evidence tooling và shadow evidence governance.
 - **Signal Tracker**: Theo dõi trạng thái tín hiệu bền vững (active, TP1/TP2 hit, SL hit) qua `data/tracked_signals.json`, TTL 90 phút.
 - **Fear & Greed Index (Lớp 6)**: `alternative.me/fng`, cache 1h — tự động hạ cấp tín hiệu theo sentiment cực đoan.
 - **Gemini AI Analyst**: Tổng hợp tín hiệu 15m + MTF + lịch sử giao dịch (RAG) → nhận định thị trường tiếng Việt.
 - **Auto Trading (CCXT)**: Tự động đặt/đóng lệnh Market trên Binance Testnet/Mainnet. Hỗ trợ chế độ Dry Run.
+- **Trade Provenance**: chuẩn hóa `order_creator` + `order_channel` để phân biệt system paper orders với user Telegram/UI/CLI orders.
 - **Portfolio Optimization**: Mean-Variance Optimization (MVO) khi có ≥ 2 tín hiệu đồng thời.
 - **Circuit Breaker**: Dừng tự động 24h sau 5 lệnh thua liên tiếp; giới hạn 5 lệnh/ngày.
 - **Web Dashboard**: React/Vite tại `http://localhost:3000`:
@@ -74,9 +76,14 @@ Các điểm cần hiểu đúng:
 Signal detection: PASS
 Signal scoring: PASS - đã thêm `strength` để sửa ngưỡng SELL/BUY
 Paper auto-trade gating: PASS
-Live execution readiness: CONDITIONAL
+Runtime linkage framework: IMPLEMENTED
+Gate A runtime evidence: PENDING
+Shadow evidence window: NOT STARTED
+Live execution readiness: BLOCKED
 Maintainability: analysis/core.py cần tách nhỏ dần
 ```
+
+Trạng thái vận hành mới nhất nằm tại [`docs/remediation/System_Status_Report_2026-07-17.md`](docs/remediation/System_Status_Report_2026-07-17.md) và [`docs/remediation/System_Operational_Update_2026-07-17.md`](docs/remediation/System_Operational_Update_2026-07-17.md).
 
 ---
 
@@ -84,12 +91,21 @@ Maintainability: analysis/core.py cần tách nhỏ dần
 
 Trên bộ dữ liệu lịch sử **18 tháng** (01/2025 - 06/2026) với **18,904 mẫu giao dịch đóng**:
 
-| Metric | Adaptive Model (RF) | Meta Confidence Model |
+| Metric | Adaptive RF | Meta Model v3.1 |
 |--------|--------------------|-----------------------|
 | **Time-Series CV ROC-AUC** | `0.620 ± 0.010` | `0.6355 ± 0.0081` |
 | **Holdout ROC-AUC** | `0.642` | — |
 | **Accuracy** | 62% | — |
-| **Platt Calibration** | — | ✅ (sai số < 10%) |
+| **Calibration** | — | Isotonic; tail buckets vẫn bị clamp khi thiếu runtime evidence |
+
+Ghi chú vận hành 2026-07-17:
+
+```text
+Adaptive RF artifact path: canonicalized at logs/adaptive_model.joblib
+Meta Model runtime calibration: blocked until linked runtime outcomes are sufficient
+RL Exit: shadow/advisory; no live autonomous exit action
+Live trading: disabled
+```
 
 ### Backtest tín hiệu (8,000 nến):
 
@@ -346,14 +362,14 @@ besttime-crypto/
 │   ├── autoencoder.pt               # TimeGAN autoencoder checkpoint
 │   └── supervisor.pt                # TimeGAN supervisor checkpoint
 ├── docs/
-│   ├── ARCHITECTURE_v2.md           # Architecture v2.1 technical doc
-│   ├── SYSTEM_DESIGN.md             # System Design Document (TDD)
+│   ├── ARCHITECTURE_v2.md           # Historical Architecture v2.x technical doc
+│   ├── SYSTEM_DESIGN.md             # Current System Design Document (TDD)
 │   ├── causal_implementation_plan.md# Causal AI roadmap & status
 │   ├── trading_strategies_summary.md# Indicators & trading strategies
 │   ├── phase7/                      # Phase 7 Alternative Data docs
 │   └── phase8/                      # Phase 8 Feature Engineering docs
 ├── evaluations/
-│   ├── signal_detection_and_scoring_assessment.md # Current signal flow assessment
+│   ├── signal_detection_and_scoring_assessment.md # Historical signal flow assessment
 │   ├── system_evaluation_report.md  # Deep system evaluation report
 │   └── ...                          # Module evaluation reports
 └── tests/                               # 246 tests (100% PASS)

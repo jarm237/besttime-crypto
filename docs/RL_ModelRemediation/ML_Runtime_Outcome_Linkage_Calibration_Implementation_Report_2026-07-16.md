@@ -1,6 +1,7 @@
 # ML Runtime Outcome Linkage & Calibration Implementation Report
 
 **Date:** 2026-07-16  
+**Documentation rollup:** `docs/remediation/System_Status_Report_2026-07-17.md`
 **Plan implemented:** `docs/ML_RUNTIME_OUTCOME_LINKAGE_CALIBRATION_PLAN_v1_1.md`  
 **Status:** implementation foundation passed; producer integration and runtime evidence remain pending.
 

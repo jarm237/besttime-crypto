@@ -2,6 +2,7 @@
 
 - Ngay lap: 2026-07-16
 - Cap nhat van hanh: 2026-07-17
+- Bao cao trang thai tong hop: `docs/remediation/System_Status_Report_2026-07-17.md`
 - He thong: besttime-crypto
 - Trang thai: rollout-ready (giu nguyen safety conditions)
 

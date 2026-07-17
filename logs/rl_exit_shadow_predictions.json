@@ -25206,5 +25206,82 @@
     "meta_prob": 0.5636,
     "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784254263",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784254263.441939,
+    "timestamp_str": "2026-07-17 09:11:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5455,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784254573",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784254573.8361142,
+    "timestamp_str": "2026-07-17 09:16:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784254863",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784254863.370813,
+    "timestamp_str": "2026-07-17 09:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784255164",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784255164.9805002,
+    "timestamp_str": "2026-07-17 09:26:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5283,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784255478",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784255478.9477215,
+    "timestamp_str": "2026-07-17 09:31:18",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784255763",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784255763.7475889,
+    "timestamp_str": "2026-07-17 09:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "XAUTUSDT_RL_1784256063",
+    "symbol": "XAUTUSDT",
+    "timestamp": 1784256063.861831,
+    "timestamp_str": "2026-07-17 09:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "6d63c9a0-9ce2-4a4b-94f3-4e3403e0002c",
+    "note": "RL Exit shadow recommendation"
   }
 ]

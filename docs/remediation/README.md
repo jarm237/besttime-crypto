@@ -29,6 +29,7 @@ Phase 6 — Live Production Readiness
 
 | Ngày | Báo cáo | Trạng thái |
 | --- | --- | --- |
+| 2026-07-17 | `System_Status_Report_2026-07-17.md` | Documentation rollup; live trading blocked; Gate A/shadow evidence pending |
 | 2026-07-17 | `System_Operational_Update_2026-07-17.md` | Trade provenance implemented; WLD operational correction applied; shadow evidence not started |
 
 Trạng thái hiện tại:
@@ -39,5 +40,7 @@ System paper vs user Telegram/UI/CLI distinction: IMPLEMENTED
 WLD duplicate open correction: APPLIED
 Gate A runtime evidence: PENDING
 Shadow evidence window: NOT STARTED
+Runtime calibration readiness: BLOCKED
+Meta promotion readiness: BLOCKED
 Live trading: DISABLED
 ```

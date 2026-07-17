@@ -10,7 +10,7 @@
       "time": "2026-07-17 07:00",
       "signal": "SELL (Crossover)",
       "entry": 1.942,
-      "current_price": 1.927,
+      "current_price": 1.926,
       "tp_sl": {
         "entry": 1.942,
         "sl": 2.0418,
@@ -22,7 +22,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 37,
+      "age_minutes": 67,
       "created_at_ts": 1784251396.4899147
     }
   ],
@@ -34,7 +34,7 @@
       "time": "2026-07-17 07:00",
       "signal": "SELL (Crossover)",
       "entry": 573.55,
-      "current_price": 571.87,
+      "current_price": 571.41,
       "tp_sl": {
         "entry": 573.55,
         "sl": 588.4926,
@@ -46,7 +46,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 37,
+      "age_minutes": 67,
       "created_at_ts": 1784251393.5345137
     }
   ],
@@ -57,7 +57,7 @@
       "time": "2026-07-17 08:15",
       "signal": "SELL (Break-SMA50)",
       "entry": 0.3233,
-      "current_price": 0.3231,
+      "current_price": 0.322,
       "tp_sl": {
         "entry": 0.3233,
         "sl": 0.324,
@@ -68,8 +68,8 @@
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
       "reason": "Gia XUYEN THU'NG SMA50 (0.32) trong Bear Market (duoi SMA200) — trailing stop kich hoat! | Market regime SIDEWAY: tien hanh can than",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 45,
+      "status": "Hit TP1 (Da dat TP1)",
+      "age_minutes": 75,
       "created_at_ts": 1784250965.5901291
     }
   ],
