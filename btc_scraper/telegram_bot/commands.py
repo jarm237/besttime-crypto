@@ -192,11 +192,17 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             
         from btc_scraper.trading.position_tracker import close_position, close_partial_position
         try:
+            close_filters = {
+                "trade_origin": "manual",
+                "execution_mode": "manual",
+                "order_creator": "user",
+                "order_channel": "telegram",
+            }
             if percentage >= 100:
-                closed_data = close_position(coin, price)
+                closed_data = close_position(coin, price, **close_filters)
                 is_partial = False
             else:
-                closed_data = close_partial_position(coin, price, percentage)
+                closed_data = close_partial_position(coin, price, percentage, **close_filters)
                 is_partial = True
                 
             pnl = closed_data["pnl_pct"]

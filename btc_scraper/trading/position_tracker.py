@@ -574,7 +574,59 @@ def get_open_positions() -> list[dict]:
         return []
 
 
-def close_position(coin: str, sell_price: float) -> dict:
+def _build_open_position_query(
+    coin: str,
+    *,
+    trade_origin: str | None = None,
+    execution_mode: str | None = None,
+    order_creator: str | None = None,
+    order_channel: str | None = None,
+    created_by: str | None = None,
+) -> dict:
+    query = {"coin": coin.upper(), "status": "open"}
+    if trade_origin is not None:
+        query["trade_origin"] = trade_origin
+    if execution_mode is not None:
+        query["execution_mode"] = execution_mode
+    if order_creator is not None:
+        query["order_creator"] = order_creator
+    if order_channel is not None:
+        query["order_channel"] = order_channel
+    if created_by is not None:
+        query["created_by"] = created_by
+    return query
+
+
+def _find_open_position(
+    coin: str,
+    *,
+    trade_origin: str | None = None,
+    execution_mode: str | None = None,
+    order_creator: str | None = None,
+    order_channel: str | None = None,
+    created_by: str | None = None,
+) -> dict | None:
+    query = _build_open_position_query(
+        coin,
+        trade_origin=trade_origin,
+        execution_mode=execution_mode,
+        order_creator=order_creator,
+        order_channel=order_channel,
+        created_by=created_by,
+    )
+    return positions_col.find_one(query, {"_id": 0})
+
+
+def close_position(
+    coin: str,
+    sell_price: float,
+    *,
+    trade_origin: str | None = None,
+    execution_mode: str | None = None,
+    order_creator: str | None = None,
+    order_channel: str | None = None,
+    created_by: str | None = None,
+) -> dict:
     """
     Đóng vị thế và tính toán chỉ số hiệu suất.
 
@@ -589,7 +641,14 @@ def close_position(coin: str, sell_price: float) -> dict:
     _LSTM_STATE_CACHE.pop(coin, None)
     save_lstm_cache()
 
-    pos = positions_col.find_one({"coin": coin, "status": "open"}, {"_id": 0})
+    pos = _find_open_position(
+        coin,
+        trade_origin=trade_origin,
+        execution_mode=execution_mode,
+        order_creator=order_creator,
+        order_channel=order_channel,
+        created_by=created_by,
+    )
     if not pos:
         raise ValueError(f"Không tìm thấy vị thế đang mở cho {coin}.")
 
@@ -735,7 +794,17 @@ def close_position(coin: str, sell_price: float) -> dict:
     return closed_data
 
 
-def close_partial_position(coin: str, sell_price: float, percentage: float) -> dict:
+def close_partial_position(
+    coin: str,
+    sell_price: float,
+    percentage: float,
+    *,
+    trade_origin: str | None = None,
+    execution_mode: str | None = None,
+    order_creator: str | None = None,
+    order_channel: str | None = None,
+    created_by: str | None = None,
+) -> dict:
     """
     Đóng một phần vị thế (theo phần trăm) và tính toán chỉ số hiệu suất cho phần đó.
     Vị thế gốc sẽ được giảm invested_usdt tương ứng.
@@ -744,7 +813,14 @@ def close_partial_position(coin: str, sell_price: float, percentage: float) -> d
     if percentage <= 0 or percentage >= 100:
         raise ValueError(f"Phần trăm chốt lời phải nằm trong khoảng (0, 100). Giá trị: {percentage}")
 
-    pos = positions_col.find_one({"coin": coin, "status": "open"}, {"_id": 0})
+    pos = _find_open_position(
+        coin,
+        trade_origin=trade_origin,
+        execution_mode=execution_mode,
+        order_creator=order_creator,
+        order_channel=order_channel,
+        created_by=created_by,
+    )
     if not pos:
         raise ValueError(f"Không tìm thấy vị thế đang mở cho {coin}.")
 

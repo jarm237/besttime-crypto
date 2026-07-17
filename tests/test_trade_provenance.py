@@ -149,3 +149,65 @@ def test_backfill_marks_legacy_manual_records_as_unknown_basis():
 
     assert metadata["manual_decision_basis"] == "unknown"
     assert metadata["is_system_signal_manual"] is False
+
+
+class _MemoryCollection:
+    def __init__(self):
+        self.rows = []
+
+    def insert_one(self, doc):
+        self.rows.append(dict(doc))
+
+    def find_one(self, query, projection=None):
+        for row in self.rows:
+            if all(row.get(key) == value for key, value in query.items()):
+                return {key: value for key, value in row.items() if key != "_id"}
+        return None
+
+    def update_one(self, query, update):
+        for row in self.rows:
+            if all(row.get(key) == value for key, value in query.items()):
+                row.update(update.get("$set", {}))
+                return
+
+
+def test_telegram_close_filters_out_older_paper_position(monkeypatch):
+    positions = _MemoryCollection()
+    closed_positions = _MemoryCollection()
+    closed_trades = _MemoryCollection()
+    monkeypatch.setattr(position_tracker, "positions_col", positions)
+    monkeypatch.setattr(position_tracker, "closed_positions_col", closed_positions)
+    monkeypatch.setattr(position_tracker, "closed_trades_col", closed_trades)
+    monkeypatch.setattr(position_tracker, "save_lstm_cache", lambda: None)
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+
+    paper = position_tracker.add_position(
+        "DOGE",
+        0.20,
+        trade_origin="paper_mode",
+        execution_mode="paper",
+        created_by="paper_runner",
+    )
+    telegram = position_tracker.add_position(
+        "DOGE",
+        0.25,
+        trade_origin="manual",
+        execution_mode="manual",
+        created_by="telegram_command",
+        order_creator="user",
+        order_channel="telegram",
+    )
+
+    outcome = position_tracker.close_position(
+        "DOGE",
+        sell_price=0.30,
+        trade_origin="manual",
+        execution_mode="manual",
+        order_creator="user",
+        order_channel="telegram",
+    )
+
+    assert outcome["id"] == telegram["id"]
+    assert positions.find_one({"id": telegram["id"]})["status"] == "closed"
+    assert positions.find_one({"id": paper["id"]})["status"] == "open"
+    assert closed_positions.rows[0]["id"] == telegram["id"]

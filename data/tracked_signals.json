@@ -5,77 +5,57 @@
   "XLM": [],
   "AEVO": [],
   "NEAR": [],
-  "AR": [
+  "AR": [],
+  "TRB": [],
+  "ETH": [
     {
-      "time": "2026-07-17 07:00",
+      "time": "2026-07-17 19:00",
       "signal": "SELL (Crossover)",
-      "entry": 1.942,
-      "current_price": 1.926,
+      "entry": 1822.5,
+      "current_price": 1822.85,
       "tp_sl": {
-        "entry": 1.942,
-        "sl": 2.0418,
-        "tp1": 1.8107,
-        "tp2": 1.6794,
+        "entry": 1822.5,
+        "sl": 1907.7579,
+        "tp1": 1710.3592,
+        "tp2": 1598.2184,
         "rr1": 1.32,
         "rr2": 2.63,
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 67,
-      "created_at_ts": 1784251396.4899147
+      "age_minutes": 14,
+      "created_at_ts": 1784302262.8514552
     }
   ],
-  "TRB": [],
-  "ETH": [],
   "IOTA": [],
-  "BNB": [
-    {
-      "time": "2026-07-17 07:00",
-      "signal": "SELL (Crossover)",
-      "entry": 573.55,
-      "current_price": 571.41,
-      "tp_sl": {
-        "entry": 573.55,
-        "sl": 588.4926,
-        "tp1": 546.0528,
-        "tp2": 518.5557,
-        "rr1": 1.84,
-        "rr2": 3.68,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 67,
-      "created_at_ts": 1784251393.5345137
-    }
-  ],
+  "BNB": [],
   "ENA": [],
   "XPL": [],
-  "TRX": [
-    {
-      "time": "2026-07-17 08:15",
-      "signal": "SELL (Break-SMA50)",
-      "entry": 0.3233,
-      "current_price": 0.322,
-      "tp_sl": {
-        "entry": 0.3233,
-        "sl": 0.324,
-        "tp1": 0.3224,
-        "tp2": 0.3215,
-        "rr1": 1.26,
-        "rr2": 2.52,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "Gia XUYEN THU'NG SMA50 (0.32) trong Bear Market (duoi SMA200) — trailing stop kich hoat! | Market regime SIDEWAY: tien hanh can than",
-      "status": "Hit TP1 (Da dat TP1)",
-      "age_minutes": 75,
-      "created_at_ts": 1784250965.5901291
-    }
-  ],
+  "TRX": [],
   "ZEC": [],
   "XAUT": [],
-  "BTC": [],
+  "BTC": [
+    {
+      "time": "2026-07-17 22:15",
+      "signal": "SELL (Crossover)",
+      "entry": 62946.6,
+      "current_price": 63176.0,
+      "tp_sl": {
+        "entry": 62946.6,
+        "sl": 63587.9676,
+        "tp1": 61825.8625,
+        "tp2": 60705.1251,
+        "rr1": 1.75,
+        "rr2": 3.49,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 + Gia duoi SMA200 (Bear Market confirmed)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 30,
+      "created_at_ts": 1784301361.9854145
+    }
+  ],
   "XRP": [],
   "SOPH": [],
   "SOL": [],
