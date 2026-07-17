@@ -27,6 +27,9 @@ Recovery/out-of-order evidence: PASSED on covered paper path
 Lifecycle recovery E2E with runtime data: COVERED PAPER PATH PASSED
 Operational Gate A evidence tooling: IMPLEMENTED
 Operational Gate A evidence from paper runtime: PENDING
+Trade provenance taxonomy: IMPLEMENTED
+Manual/system paper distinction: IMPLEMENTED
+WLD manual signal correction: APPLIED
 Shadow evidence window: NOT STARTED
 Runtime calibration readiness: BLOCKED
 Meta promotion readiness: BLOCKED
@@ -59,6 +62,13 @@ PHASE5_LIVE_READINESS_GATE=false
 ```
 
 Tail sizing clamp remains enabled until tail buckets have enough linked runtime samples across evaluation windows.
+
+Operational update on 2026-07-17:
+- normalized order provenance now distinguishes `system + paper_runner` from `user + telegram/ui/cli`;
+- Telegram `/positions` and CLI position listing expose a human-readable source label;
+- legacy backfill support can populate the same provenance fields for historical records;
+- duplicate open WLD was removed and the prior WLD closed trade was corrected to a manual Telegram trade following a system signal;
+- this operator correction does not start Gate A or shadow evidence collection.
 
 ## WS0 / PR0 - Data Contract Registry
 
@@ -268,6 +278,14 @@ Delivered:
 Delivered through `LinkageReport`, `lifecycle_observability.py`, `runtime_health.py`, `shadow_evidence_window.py`, and runtime calibration reports:
 - Linkage coverage.
 - Producer-level lifecycle ID coverage.
+- Producer/order provenance coverage:
+  - `order_creator`;
+  - `order_channel`;
+  - `is_system_order`;
+  - `is_user_order`;
+  - `is_system_paper_order`;
+  - `is_user_telegram_order`;
+  - `is_user_ui_order`.
 - Orphan counts.
 - Orphan owner/actionability.
 - Duplicate outcome count.
@@ -825,4 +843,52 @@ Result:
 
 ```text
 11 passed
+```
+
+Trade provenance and WLD correction update:
+
+Delivered:
+- `position_tracker.py` normalizes order provenance into `order_creator` and `order_channel`;
+- `auto_trader.py` marks paper orders as `system + paper_runner`;
+- Telegram `/buy` marks user orders as `user + telegram`;
+- `scripts/manage_positions.py` marks CLI orders as `user + cli`;
+- `/positions` now displays `Nguồn`, for example `System paper mode` or `User via Telegram`;
+- `scripts/backfill_trade_provenance.py` can annotate legacy records with the same provenance fields;
+- WLD duplicate open position was removed and the prior closed WLD trade was corrected to manual/system-signal provenance.
+
+Corrected WLD record:
+
+```text
+id: deadd193-2f1b-4bd1-afef-c75a95d33181
+direction: SHORT
+entry_price: 0.3978
+sell_price: 0.3943
+invested_usdt: 500.0
+pnl_pct: 0.8798
+pnl_usd_actual: 4.40
+fee_usd: 1.00
+received_usdt: 503.39
+r_multiplier: 0.51
+result: WIN
+trade_origin: manual
+manual_decision_basis: system_signal
+order_channel: telegram
+```
+
+Verification:
+
+```bash
+.venv/bin/pytest tests/test_trade_provenance.py tests/ml/test_paper_lifecycle_e2e.py -q
+```
+
+Result:
+
+```text
+19 passed
+```
+
+Operational correction backup:
+
+```text
+data/cleanup/wld_manual_signal_correction_backup_2026-07-17.json
 ```

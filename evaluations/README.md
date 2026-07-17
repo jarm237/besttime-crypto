@@ -10,3 +10,15 @@ Thư mục này gom các báo cáo đánh giá và assessment dùng để rà so
 | `ml_model_evaluation.md` | Đánh giá ML model |
 | `system_evaluation_report.md` | Đánh giá tổng thể hệ thống |
 | `implementation_plan_comparison.md` | So sánh implementation plan |
+
+## Cập Nhật Mới Nhất
+
+```text
+2026-07-17: trade provenance taxonomy implemented; WLD operational correction applied; shadow evidence window still not started.
+```
+
+Chi tiết vận hành nằm tại:
+
+```text
+docs/remediation/System_Operational_Update_2026-07-17.md
+```

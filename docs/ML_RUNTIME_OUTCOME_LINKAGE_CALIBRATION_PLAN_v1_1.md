@@ -1,6 +1,7 @@
 # ML Runtime Outcome Linkage & Calibration Remediation Plan v1.1
 
 - Ngay lap: 2026-07-16
+- Cap nhat van hanh: 2026-07-17
 - He thong: besttime-crypto
 - Trang thai: rollout-ready (giu nguyen safety conditions)
 
@@ -15,6 +16,7 @@ Muc tieu cuoi:
 - Tach biet ro offline learning va runtime calibration
 - Khong auto-promote neu thieu linkage/evidence
 - Truy vet day du model/artifact/schema/outcome moi trade
+- Phan biet ro lenh system paper voi lenh user qua Telegram/UI/CLI
 - Giu tail sizing clamp den khi du evidence runtime
 
 ## 2) Nguyen tac bat buoc
@@ -80,8 +82,23 @@ IDs bat buoc:
 - reservation_id, idempotency_key
 - client_order_id, exchange_order_id, fill_id
 - position_id, outcome_id
+- trade_origin, order_creator, order_channel
 
 Them `TradeLifecycleContext` canonical va schema version cho contract IDs.
+
+Order provenance canonical:
+
+```text
+order_creator = system | user | test
+order_channel = paper_runner | live_runner | telegram | ui | cli | manual | test | unknown
+```
+
+Ghi chu quan trong:
+- system paper order: `order_creator=system`, `order_channel=paper_runner`
+- Telegram/manual user order: `order_creator=user`, `order_channel=telegram`
+- UI/manual user order: `order_creator=user`, `order_channel=ui`
+- CLI/manual user order: `order_creator=user`, `order_channel=cli`
+- manual trade theo signal van la user-created trade, dung `manual_decision_basis=system_signal`
 
 ### WS2 - Prediction -> Signal -> Decision Linkage
 - Prediction envelope bat buoc linkage IDs
@@ -334,6 +351,12 @@ Calibration stale:
 8. PR7: WS7 Candidate-only governance + shadow gate + rollback atomicity
 9. PR8: WS8 Adaptive RF traceability
 10. PR9: WS9 Observability + WS10 Naming/runbook cleanup
+
+Operational update 2026-07-17:
+- Trade provenance taxonomy implemented.
+- System paper mode vs user Telegram/UI/CLI distinction implemented.
+- WLD duplicate open correction and manual system-signal correction applied.
+- Shadow evidence window remains not started.
 
 ## 14) Definition of done (giu nguyen safety)
 

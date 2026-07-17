@@ -1,7 +1,7 @@
 # Báo Cáo Đánh Giá Mô Hình ML - besttime-crypto
 
-Ngày đánh giá: 2026-07-16  
-Trạng thái đánh giá: cập nhật sau khi bỏ Prediction Shadow legacy
+Ngày đánh giá: 2026-07-17
+Trạng thái đánh giá: cập nhật sau runtime linkage/provenance và WLD operational correction
 
 ## Tóm Tắt Điều Hành
 
@@ -19,6 +19,50 @@ Kết luận ngắn:
 - RL Exit Shadow có tracking outcome tốt hơn Meta prediction audit.
 - Điểm nghẽn lớn nhất hiện tại là **runtime outcome linkage cho Meta Model chưa khép vòng**: prediction audit có rất nhiều prediction nhưng gần như không có `signal_id`, `position_id`, `order_id`, `fill_id`, nên chưa thể dùng trực tiếp để calibration từ dữ liệu thật.
 - "Continuous Learning" hiện là offline retrain/backtest learning, chưa phải continuous learning từ runtime outcome thật.
+- Runtime linkage/calibration framework hiện đã có covered paper path, recovery/out-of-order evidence và Gate A evidence tooling, nhưng shadow evidence window vẫn chưa bắt đầu.
+- Trade provenance đã được chuẩn hóa để tách system paper orders khỏi user Telegram/UI/CLI orders.
+- WLD operational correction ngày 2026-07-17 đã xóa duplicate open WLD và sửa closed WLD gần nhất thành manual theo system signal; đây là data correction, không phải bằng chứng runtime calibration để promote model.
+
+## Cập Nhật Vận Hành 2026-07-17
+
+Runtime provenance mới:
+
+```text
+order_creator = system | user | test
+order_channel = paper_runner | live_runner | telegram | ui | cli | manual | test | unknown
+```
+
+Điều này giúp phân biệt:
+- paper orders do hệ thống tạo: `system + paper_runner`;
+- manual Telegram orders: `user + telegram`;
+- UI orders: `user + ui`;
+- CLI orders: `user + cli`;
+- manual orders theo signal vẫn là user-created, với `manual_decision_basis = system_signal`.
+
+WLD correction:
+
+```text
+open_wld_count = 0
+corrected_id = deadd193-2f1b-4bd1-afef-c75a95d33181
+entry_price = 0.3978
+exit_price = 0.3943
+pnl_pct = 0.8798
+result = WIN
+trade_origin = manual
+manual_decision_basis = system_signal
+order_channel = telegram
+```
+
+Focused verification:
+
+```text
+tests/test_trade_provenance.py + tests/ml/test_paper_lifecycle_e2e.py: 19 passed
+```
+
+ML interpretation:
+- The correction improves operational trade history consistency.
+- It should not be treated as fresh runtime calibration evidence for Meta Model promotion.
+- Meta Model promotion remains blocked until Gate A and shadow evidence windows are satisfied.
 
 ## 1. Kiến Trúc ML Hiện Tại
 

@@ -1,35 +1,55 @@
 {
   "TRUMP": [],
   "TAO": [],
-  "AVAX": [
+  "AVAX": [],
+  "XLM": [],
+  "AEVO": [],
+  "NEAR": [],
+  "AR": [
     {
       "time": "2026-07-17 07:00",
       "signal": "SELL (Crossover)",
-      "entry": 6.51,
-      "current_price": 6.516,
+      "entry": 1.942,
+      "current_price": 1.927,
       "tp_sl": {
-        "entry": 6.51,
-        "sl": 6.8341,
-        "tp1": 5.9437,
-        "tp2": 5.3774,
-        "rr1": 1.75,
-        "rr2": 3.49,
+        "entry": 1.942,
+        "sl": 2.0418,
+        "tp1": 1.8107,
+        "tp2": 1.6794,
+        "rr1": 1.32,
+        "rr2": 2.63,
         "method": "ATR+DynamicSL+Resistance+BB (Short)"
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 74,
-      "created_at_ts": 1784246464.9108295
+      "age_minutes": 37,
+      "created_at_ts": 1784251396.4899147
     }
   ],
-  "XLM": [],
-  "AEVO": [],
-  "NEAR": [],
-  "AR": [],
   "TRB": [],
   "ETH": [],
   "IOTA": [],
-  "BNB": [],
+  "BNB": [
+    {
+      "time": "2026-07-17 07:00",
+      "signal": "SELL (Crossover)",
+      "entry": 573.55,
+      "current_price": 571.87,
+      "tp_sl": {
+        "entry": 573.55,
+        "sl": 588.4926,
+        "tp1": 546.0528,
+        "tp2": 518.5557,
+        "rr1": 1.84,
+        "rr2": 3.68,
+        "method": "ATR+DynamicSL+Resistance+BB (Short)"
+      },
+      "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
+      "status": "Running (Van con hieu luc)",
+      "age_minutes": 37,
+      "created_at_ts": 1784251393.5345137
+    }
+  ],
   "ENA": [],
   "XPL": [],
   "TRX": [
@@ -37,7 +57,7 @@
       "time": "2026-07-17 08:15",
       "signal": "SELL (Break-SMA50)",
       "entry": 0.3233,
-      "current_price": 0.3233,
+      "current_price": 0.3231,
       "tp_sl": {
         "entry": 0.3233,
         "sl": 0.324,
@@ -49,32 +69,12 @@
       },
       "reason": "Gia XUYEN THU'NG SMA50 (0.32) trong Bear Market (duoi SMA200) — trailing stop kich hoat! | Market regime SIDEWAY: tien hanh can than",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 0,
+      "age_minutes": 45,
       "created_at_ts": 1784250965.5901291
     }
   ],
   "ZEC": [],
-  "XAUT": [
-    {
-      "time": "2026-07-17 07:15",
-      "signal": "WEAK BUY (Crossover-Blocked)",
-      "entry": 3988.97,
-      "current_price": 3997.57,
-      "tp_sl": {
-        "entry": 3988.97,
-        "sl": 3975.83,
-        "tp1": 4011.9311,
-        "tp2": 4031.0617,
-        "rr1": 1.75,
-        "rr2": 3.2,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 NHUNG Chandelier=BEAR — thi truong dang downtrend theo ATR, chu y!",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 64,
-      "created_at_ts": 1784247364.8948932
-    }
-  ],
+  "XAUT": [],
   "BTC": [],
   "XRP": [],
   "SOPH": [],

@@ -2,10 +2,43 @@
 
 ## DỰ ÁN: besttime-crypto (AI Quant Trading Platform)
 
-> **Ngày cập nhật**: 14/07/2026
+> **Ngày cập nhật**: 17/07/2026
 > **Người thực hiện**: Antigravity AI Coding Assistant
-> **Phiên bản báo cáo**: v3.1 (bổ sung đánh giá luồng signal detection/scoring ngày 14/07/2026)
+> **Phiên bản báo cáo**: v3.2 (bổ sung runtime linkage/provenance và operational correction ngày 17/07/2026)
 > **Mục tiêu**: Đánh giá toàn diện kiến trúc, bộ máy thuật toán, ML/RL/Causal/Backtesting/Execution stack, trạng thái tích hợp, độ phủ kiểm thử và các rủi ro kỹ thuật sau khi hoàn tất Phase 7 → Phase 10.
+
+---
+
+## CURRENT UPDATE — 17/07/2026
+
+Trạng thái vận hành mới nhất:
+
+```text
+Runtime linkage/calibration framework: IMPLEMENTED
+Paper lifecycle covered path: PASSED
+Recovery/out-of-order evidence on covered paper path: PASSED
+Gate A runtime evidence tooling: IMPLEMENTED
+Trade provenance taxonomy: IMPLEMENTED
+System paper vs user Telegram/UI/CLI distinction: IMPLEMENTED
+WLD manual signal correction: APPLIED
+Shadow evidence window: NOT STARTED
+Runtime calibration readiness: BLOCKED
+Meta promotion readiness: BLOCKED
+```
+
+Điểm cập nhật quan trọng:
+- lệnh do hệ thống tạo qua paper mode được phân loại `order_creator=system`, `order_channel=paper_runner`;
+- lệnh do người dùng tạo qua Telegram/UI/CLI được phân loại `order_creator=user`, `order_channel=telegram|ui|cli`;
+- Telegram `/positions` và CLI list hiển thị nguồn lệnh;
+- WLD open duplicate đã được xóa, WLD closed record gần nhất đã được sửa thành manual theo system signal;
+- backup operational correction nằm tại `data/cleanup/wld_manual_signal_correction_backup_2026-07-17.json`;
+- chưa start shadow window và chưa retrain/promote Meta Model.
+
+Focused verification:
+
+```text
+tests/test_trade_provenance.py + tests/ml/test_paper_lifecycle_e2e.py: 19 passed
+```
 
 ---
 
@@ -24,6 +57,16 @@
 | CoinCausalFinder + AnomalySignal  | ❌ Không có               | ✅ **Mới** — Granger + Lagged Correlation + z-score signals  |
 | ShadowModeTracker                 | Stub                     | ✅ **Hoàn chỉnh** — A/B comparison metrics pipeline          |
 | Meta Model Version                | v3.0                     | **v3.1** — Kelly Sizing, TTL Cache, adaptive_signals_v2      |
+
+## CHANGELOG v3.1 → v3.2
+
+| Hạng mục | v3.1 | v3.2 |
+| --- | --- | --- |
+| Runtime outcome linkage | Framework foundation | Covered paper path + recovery evidence passed; Gate A runtime evidence still pending |
+| Trade provenance | `trade_origin`/`created_by` rời rạc | Canonical `order_creator` + `order_channel` + source flags |
+| Paper vs manual source display | Dễ nhầm trên Telegram/UI | `/positions` displays source; CLI list includes source |
+| WLD operational records | Duplicate open WLD + prior paper-looking closed WLD | Open WLD removed; prior closed WLD corrected to manual system-signal trade |
+| Shadow evidence | Not started | Still not started; Gate A required first |
 
 ---
 
@@ -699,4 +742,3 @@ Tính đến **10/07/2026**, hệ thống `besttime-crypto` đã đạt đến m
 _Báo cáo được tổng hợp từ phân tích trực tiếp mã nguồn: `main.py`, `multi_agent.py`, `causal_context_bridge.py`, `decision_engine.py`, `analysis/core.py`, `analysis/htf_utils.py`, `signal_tracker.py`, `counterfactual_engine.py`, `world_state.py`, `backtesting/engine.py`, `execution/execution_engine.py`, `feature_engineering/`, `collectors/`, và kết quả `pytest` ngày 10/07/2026 (317 passed, 4 failed, 62 warnings, 119.13s)._
 
 _Phiên bản báo cáo: v3.0 | Cập nhật: 10/07/2026_
-

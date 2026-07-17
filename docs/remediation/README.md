@@ -24,3 +24,20 @@ Phase 6 — Live Production Readiness
 - Không chuyển phase nếu acceptance criteria chưa đạt.
 - Không bật live trước khi Phase 5 kết luận GO.
 - Mọi thay đổi model và execution phải có rollback.
+
+## Cập Nhật Vận Hành Mới Nhất
+
+| Ngày | Báo cáo | Trạng thái |
+| --- | --- | --- |
+| 2026-07-17 | `System_Operational_Update_2026-07-17.md` | Trade provenance implemented; WLD operational correction applied; shadow evidence not started |
+
+Trạng thái hiện tại:
+
+```text
+Trade provenance taxonomy: IMPLEMENTED
+System paper vs user Telegram/UI/CLI distinction: IMPLEMENTED
+WLD duplicate open correction: APPLIED
+Gate A runtime evidence: PENDING
+Shadow evidence window: NOT STARTED
+Live trading: DISABLED
+```
