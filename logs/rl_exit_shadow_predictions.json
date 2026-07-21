@@ -33937,5 +33937,19 @@
     "actual_result": "LOSS",
     "actual_pnl_pct": -1.3649,
     "closed_at": "2026-07-20 17:01:18"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784622064",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784622064.0574012,
+    "timestamp_str": "2026-07-21 15:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3382,
+    "position_id": "866e297b-fed2-4c2a-a4bf-a04c7f218f72",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.4412,
+    "closed_at": "2026-07-21 15:21:07"
   }
 ]
