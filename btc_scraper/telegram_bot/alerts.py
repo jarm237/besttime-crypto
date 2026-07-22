@@ -13,6 +13,25 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
 
     import html
 
+    # Alternative Data is informational only. It is shown once in each section
+    # and is never used to classify, score, size or execute a signal.
+    alternative_reference = next(
+        (
+            ana.get("alternative_data_reference")
+            for ana in analysis_results.values()
+            if isinstance(ana.get("alternative_data_reference"), dict)
+        ),
+        None,
+    )
+    alternative_reference_line = ""
+    if alternative_reference:
+        alt_status = html.escape(str(alternative_reference.get("status", "unavailable")))
+        alt_summary = html.escape(str(alternative_reference.get("summary", "no fresh reference values")))
+        alternative_reference_line = (
+            f"\nℹ️ <b>Alternative Data — CHỈ THAM KHẢO</b> "
+            f"({alt_status}, không tác động tín hiệu): <code>{alt_summary}</code>"
+        )
+
     # Lọc ra các coin có tín hiệu hành động (BUY/SELL)
     active_signals = []
     neutral_signals = []
@@ -159,7 +178,7 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         if not items:
             return None
             
-        header = f"🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO]</b> 🔔\nKhung nến: <b>15m</b>\n{title}"
+        header = f"🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO]</b> 🔔\nKhung nến: <b>15m</b>{alternative_reference_line}\n{title}"
         chunk_text = header
         first_msg_id = None
         
@@ -497,4 +516,3 @@ def send_shadow_mode_report(
 
     message = "\n".join(lines)
     return send_telegram_message(message, parse_mode="HTML")
-

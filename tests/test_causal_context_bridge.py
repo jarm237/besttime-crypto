@@ -77,6 +77,19 @@ class TestBuildWorldState:
         state = build_world_state_from_ana({})
         assert state is not None  # should not raise
 
+    def test_alternative_data_is_not_loaded_into_decision_state(self, buy_ana, monkeypatch):
+        def fail_if_loaded(*args, **kwargs):
+            raise AssertionError("decision path must not load Alternative Data")
+
+        monkeypatch.setattr(
+            "btc_scraper.collectors.alternative_data.load_alternative_data",
+            fail_if_loaded,
+        )
+        state = build_world_state_from_ana(buy_ana)
+        assert state is not None
+        assert state.alternative.decision_eligible is False
+        assert state.alternative.risk_on_score is None
+
 
 # ─── get_hybrid_provider (singleton) ─────────────────────────────────────────
 
@@ -123,6 +136,42 @@ class TestEnhanceSignal:
         # If provider succeeds, result should not contain top-level error
         if result:
             assert "action" in result or "context_skipped" in result
+
+    def test_reference_payload_is_removed_from_decision_input(self, buy_ana, monkeypatch):
+        captured = {}
+
+        class FakeProvider:
+            def should_apply_context(self, world_state):
+                return False
+
+        class FakeEngine:
+            def decide_with_provider(self, analysis_info, provider, state):
+                captured.update(analysis_info)
+                return {"action": "HOLD"}
+
+        monkeypatch.setattr(
+            "btc_scraper.ml_engine.causal_context_bridge.get_hybrid_provider",
+            lambda alpha=None: FakeProvider(),
+        )
+        monkeypatch.setattr(
+            "btc_scraper.ml_engine.causal_context_bridge.get_decision_engine",
+            lambda: FakeEngine(),
+        )
+
+        result = enhance_signal_with_causal_context(
+            ana=buy_ana,
+            analysis_info={
+                **buy_ana,
+                "alternative_data_reference": {
+                    "mode": "reference_only",
+                    "values": {"risk_on_score": -1.0},
+                },
+            },
+            alpha=0.0,
+        )
+
+        assert result["action"] == "HOLD"
+        assert "alternative_data_reference" not in captured
 
 
 # ─── CounterfactualEngine integration via bridge ──────────────────────────────

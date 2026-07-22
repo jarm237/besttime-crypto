@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import math
 import os
 import time
@@ -10,6 +9,8 @@ from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+from btc_scraper.core.utils import write_atomic
 
 
 class CollectorError(RuntimeError):
@@ -35,8 +36,7 @@ class CollectorBase(ABC):
         if target is None:
             raise CollectorError("An output path is required for persistence")
         target.parent.mkdir(parents=True, exist_ok=True)
-        with open(target, "w", encoding="utf-8") as handle:
-            json.dump(_json_safe(payload), handle, indent=2, ensure_ascii=False, allow_nan=False)
+        write_atomic(str(target), _json_safe(payload))
         return target
 
     def _read_json(self, path: Optional[str | os.PathLike[str]] = None) -> Optional[Dict[str, Any]]:

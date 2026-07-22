@@ -38,8 +38,9 @@ def test_world_state_roundtrip_preserves_alternative_layer():
     assert restored.alternative.exchange_netflow == -125000.0
     assert restored.alternative.whale_score == 0.82
     assert restored.alternative.options_iv == 0.31
-    assert restored.alternative.stablecoin_supply_total == 0.0
-    assert restored.alternative.open_interest_pressure == 0.0
+    assert restored.alternative.stablecoin_supply_total is None
+    assert restored.alternative.open_interest_pressure is None
+    assert restored.alternative.decision_eligible is False
 
 
 def test_load_alternative_data_returns_defaults_when_missing(tmp_path):
@@ -128,5 +129,6 @@ class AlternativeSnapshotSchemaTest(unittest.TestCase):
         )
 
         self.assertIn("alternative", snapshot.world_state)
-        self.assertEqual(snapshot.world_state["alternative"]["stablecoin_supply_total"], 0.0)
+        self.assertIsNone(snapshot.world_state["alternative"]["stablecoin_supply_total"])
+        self.assertFalse(snapshot.world_state["alternative"]["decision_eligible"])
         self.assertIn("chain_tvl", snapshot.world_state["alternative"])

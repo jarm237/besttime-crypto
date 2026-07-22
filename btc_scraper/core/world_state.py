@@ -98,26 +98,32 @@ class RiskLayer:
 
 @dataclass
 class AlternativeLayer:
-    """Alternative data features that enrich the market state."""
-    exchange_netflow: float = 0.0
-    whale_score: float = 0.0
-    stablecoin_supply: float = 0.0
-    stablecoin_supply_total: float = 0.0
-    etf_flow: float = 0.0
-    chain_tvl: float = 0.0
-    defi_liquidity_score: float = 0.0
-    orderbook_imbalance: float = 0.0
-    funding_pressure: float = 0.0
-    open_interest_pressure: float = 0.0
-    large_tx_proxy_score: float = 0.0
-    options_iv: float = 0.0
-    options_iv_rank: float = 0.0
-    options_skew: float = 0.0
-    macro_pressure: float = 0.0
-    macro_risk_score: float = 0.0
-    stablecoin_momentum: float = 0.0
-    etf_momentum: float = 0.0
-    risk_on_score: float = 0.0
+    """Reference-only Alternative Data carried by snapshots.
+
+    Missing observations remain ``None``.  ``decision_eligible`` is fail-closed
+    and must not be enabled until a separate production rollout is approved.
+    """
+    mode: str = "reference_only"
+    decision_eligible: bool = False
+    exchange_netflow: Optional[float] = None
+    whale_score: Optional[float] = None
+    stablecoin_supply: Optional[float] = None
+    stablecoin_supply_total: Optional[float] = None
+    etf_flow: Optional[float] = None
+    chain_tvl: Optional[float] = None
+    defi_liquidity_score: Optional[float] = None
+    orderbook_imbalance: Optional[float] = None
+    funding_pressure: Optional[float] = None
+    open_interest_pressure: Optional[float] = None
+    large_tx_proxy_score: Optional[float] = None
+    options_iv: Optional[float] = None
+    options_iv_rank: Optional[float] = None
+    options_skew: Optional[float] = None
+    macro_pressure: Optional[float] = None
+    macro_risk_score: Optional[float] = None
+    stablecoin_momentum: Optional[float] = None
+    etf_momentum: Optional[float] = None
+    risk_on_score: Optional[float] = None
     updated_at: Optional[datetime] = None
 
 

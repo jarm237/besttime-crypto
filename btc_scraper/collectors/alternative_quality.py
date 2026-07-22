@@ -22,6 +22,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from btc_scraper.collectors.alternative_data import _default_payload
 from btc_scraper.collectors.feature_source_registry import FEATURE_SOURCE_REGISTRY
+from btc_scraper.core.utils import write_atomic
 from btc_scraper.core.paths import build_data_path
 
 logger = logging.getLogger(__name__)
@@ -337,8 +338,7 @@ class DataQualityDashboard:
         existing.append(report.to_dict())
         # Keep last 5 000 entries on disk
         existing = existing[-5000:]
-        with open(self.quality_log_path, "w", encoding="utf-8") as fh:
-            json.dump(existing, fh, indent=2, ensure_ascii=False)
+        write_atomic(str(self.quality_log_path), existing)
 
 
 # ---------------------------------------------------------------------------

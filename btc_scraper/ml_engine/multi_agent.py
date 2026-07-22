@@ -4,6 +4,7 @@ Multi-Agent AI Platform — Định nghĩa các Agent chuyên biệt và Orchest
 
 import os
 import time
+import copy
 from typing import Dict, Any, List
 from rich.console import Console
 
@@ -98,9 +99,22 @@ class SignalGeneratorAgent(BaseAgent):
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
+        from btc_scraper.collectors.alternative_reference import (
+            build_alternative_reference,
+            load_alternative_reference,
+        )
         from btc_scraper.ml_engine.signal_score import evaluate_signal_score
         from btc_scraper.ml_engine.causal_context_bridge import enhance_signal_with_causal_context
-        
+
+        # Load once per cycle. This object is attached only after every decision
+        # operation has completed and is never copied into signals_info.
+        try:
+            alternative_reference = load_alternative_reference()
+        except Exception as exc:
+            alternative_reference = build_alternative_reference({})
+            alternative_reference["load_error"] = str(exc)
+        context["alternative_data_reference"] = copy.deepcopy(alternative_reference)
+
         signals_info = []
         for key, ana in list(analysis.items()):
             coin = key.split(":")[0]
@@ -134,6 +148,10 @@ class SignalGeneratorAgent(BaseAgent):
                         console.print(f"[yellow][CausalGate] {coin}: Elevated risk ({risk_level}) — warning only[/yellow]")
             except Exception as _ce:
                 pass  # Graceful degradation: causal context không ảnh hưởng core flow
+
+            # Display/audit context only. Keep this assignment after scoring and
+            # causal evaluation so Alternative Data cannot affect real signals.
+            ana["alternative_data_reference"] = copy.deepcopy(alternative_reference)
             
             # Đọc cutoff và thông tin Kelly mặc định
             meta_conf = sig_score.get("meta_confidence", 0.5)

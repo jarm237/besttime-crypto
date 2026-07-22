@@ -74,3 +74,35 @@ def test_send_signals_alert_ignores_legacy_missed_signals(monkeypatch):
     assert sent
     assert all("THEO DÕI TÍN HIỆU" not in message for message in sent)
     assert all("Entry cũ" not in message for message in sent)
+
+
+def test_send_signals_alert_labels_alternative_data_as_reference_only(monkeypatch):
+    sent = []
+
+    monkeypatch.setattr(alerts, "TELEGRAM_BOT_TOKEN", "token")
+    monkeypatch.setattr(alerts, "TELEGRAM_CHAT_ID", "chat")
+    monkeypatch.setattr(
+        alerts,
+        "send_telegram_message",
+        lambda message, parse_mode=None: sent.append(message) or len(sent),
+    )
+
+    alerts.send_signals_alert({
+        "BTC:Binance": {
+            "signal": "BUY",
+            "reason": "technical setup",
+            "close": 100.0,
+            "rsi": 55.0,
+            "signal_score": {"action": "BUY", "score": 70},
+            "alternative_data_reference": {
+                "status": "partial",
+                "summary": "risk_on=-0.250 | F&G=33",
+                "decision_eligible": False,
+            },
+        }
+    })
+
+    assert sent
+    assert "Alternative Data — CHỈ THAM KHẢO" in sent[0]
+    assert "không tác động tín hiệu" in sent[0]
+    assert "risk_on=-0.250 | F&amp;G=33" in sent[0]

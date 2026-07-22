@@ -212,12 +212,24 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             etf_payload = ETFCollector().collect(force=force)
-            payload.update({"etf_flow": etf_payload.get("etf_flow")})
-            if isinstance(etf_payload, dict) and etf_payload.get("error"):
-                payload["_errors"]["etf"] = etf_payload.get("error")
+            etf_status = etf_payload.get("status", "success")
+            payload["_statuses"]["etf"] = {
+                "status": etf_status,
+                "reason": etf_payload.get("reason"),
+                "observed_at": etf_payload.get("timestamp"),
+            }
+            payload.update({
+                "etf_flow": etf_payload.get("etf_flow"),
+                "etf_flow_confidence": etf_payload.get("etf_flow_confidence", 0.0),
+                "etf_flow_source": etf_payload.get("etf_flow_source", "none"),
+                "etf_flow_scope": etf_payload.get("etf_flow_scope", "us_spot_btc_etf"),
+            })
+            if etf_status in {"error", "failed"}:
+                payload["_errors"]["etf"] = etf_payload.get("reason") or etf_status
         except Exception as e:
             payload.update({"etf_flow": None})
             payload["_errors"]["etf"] = repr(e)
+            payload["_statuses"]["etf"] = {"status": "error", "reason": str(e)}
 
         try:
             google_payload = GoogleTrendsCollector().collect(force=force)

@@ -6,6 +6,6 @@
   "status": "failed",
   "value": null,
   "data_quality": 0.0,
-  "fetched_at": "2026-07-22T02:11:34.308634+00:00",
-  "error": "402 Client Error: Payment Required for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_solana_etf_flows"
+  "fetched_at": "2026-07-22T02:48:12.709302+00:00",
+  "error": "429 Client Error: Too Many Requests for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_solana_etf_flows"
 }

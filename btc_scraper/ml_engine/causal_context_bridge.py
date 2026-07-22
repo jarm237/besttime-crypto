@@ -20,7 +20,7 @@ import datetime
 from typing import Dict, Optional
 
 from btc_scraper.collectors.macro_collector import load_macro_state
-from btc_scraper.collectors.alternative_data import load_alternative_data
+from btc_scraper.collectors.alternative_reference import strip_alternative_reference
 from btc_scraper.core.fear_greed import resolve_fear_greed_value
 
 logger = logging.getLogger(__name__)
@@ -110,29 +110,10 @@ def build_world_state_from_ana(ana: Dict):
         state.macro.RealYield = float(macro_state.get("RealYield", 0.0))
         state.macro.BondYield = float(macro_state.get("BondYield", 4.5))
 
-        # Alternative data features with safe defaults
-        alt_state = load_alternative_data()
-        def _get_float(key: str, default: float = 0.0) -> float:
-            val = alt_state.get(key)
-            if val is None:
-                return default
-            try:
-                return float(val)
-            except (ValueError, TypeError):
-                return default
-
-        state.alternative.exchange_netflow = _get_float("exchange_netflow", 0.0)
-        state.alternative.whale_score = _get_float("whale_score", 0.0)
-        state.alternative.stablecoin_supply = _get_float("stablecoin_supply", 0.0)
-        state.alternative.etf_flow = _get_float("etf_flow", 0.0)
-        state.alternative.options_iv = _get_float("options_iv", 0.0)
-        state.alternative.orderbook_imbalance = _get_float("orderbook_imbalance", 0.0)
-        state.alternative.liquidity_pressure = _get_float("liquidity_pressure", 0.0)
-        state.alternative.macro_pressure = _get_float("macro_pressure", 0.0)
-        state.alternative.funding_pressure = _get_float("funding_pressure", 0.0)
-        state.alternative.stablecoin_momentum = _get_float("effective_stablecoin_momentum", _get_float("stablecoin_momentum", 0.0))
-        state.alternative.etf_momentum = _get_float("effective_etf_momentum", _get_float("etf_momentum", 0.0))
-        state.alternative.risk_on_score = _get_float("effective_risk_on_score", _get_float("risk_on_score", 0.0))
+        # Alternative Data is deliberately not loaded into decision state.
+        # It is attached only after scoring by SignalGeneratorAgent as a
+        # reference-only payload. This prevents future rule/model changes from
+        # silently turning an informational field into trading evidence.
 
         return state
     except Exception as exc:
@@ -164,7 +145,8 @@ def enhance_signal_with_causal_context(
         if provider is None or engine is None or state is None:
             return {}
 
-        enhanced = engine.decide_with_provider(analysis_info, provider, state)
+        decision_input = strip_alternative_reference(analysis_info)
+        enhanced = engine.decide_with_provider(decision_input, provider, state)
         return enhanced or {}
 
     except Exception as exc:
