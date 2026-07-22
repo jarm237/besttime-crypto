@@ -96,13 +96,19 @@ def test_send_signals_alert_labels_alternative_data_as_reference_only(monkeypatc
             "signal_score": {"action": "BUY", "score": 70},
             "alternative_data_reference": {
                 "status": "partial",
-                "summary": "risk_on=-0.250 | F&G=33",
+                "interpretation": (
+                    "Khẩu vị rủi ro yếu, thị trường thiên về thận trọng; "
+                    "tâm lý đang sợ hãi."
+                ),
                 "decision_eligible": False,
             },
         }
     })
 
     assert sent
-    assert "Alternative Data — CHỈ THAM KHẢO" in sent[0]
+    assert "Alternative Data — BỐI CẢNH THAM KHẢO" in sent[0]
+    assert "một phần dữ liệu" in sent[0]
     assert "không tác động tín hiệu" in sent[0]
-    assert "risk_on=-0.250 | F&amp;G=33" in sent[0]
+    assert "Khẩu vị rủi ro yếu" in sent[0]
+    assert "tâm lý đang sợ hãi" in sent[0]
+    assert "risk_on=" not in sent[0]

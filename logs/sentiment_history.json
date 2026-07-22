@@ -16,7 +16,9 @@
   },
   "2026-07-22T00:00:00Z": {
     "score": -0.34,
+    "normalized_score": -0.34,
     "raw_value": 33,
-    "label": "Fear"
+    "label": "Fear",
+    "observed_at": "2026-07-22T00:00:00+00:00"
   }
 }

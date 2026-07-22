@@ -25,11 +25,22 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
     )
     alternative_reference_line = ""
     if alternative_reference:
-        alt_status = html.escape(str(alternative_reference.get("status", "unavailable")))
-        alt_summary = html.escape(str(alternative_reference.get("summary", "no fresh reference values")))
+        status_labels = {
+            "available": "đầy đủ",
+            "partial": "một phần dữ liệu",
+            "stale": "dữ liệu đã cũ",
+            "unavailable": "chưa có dữ liệu",
+        }
+        raw_status = str(alternative_reference.get("status", "unavailable"))
+        alt_status = html.escape(status_labels.get(raw_status, raw_status))
+        alt_summary = html.escape(str(
+            alternative_reference.get("interpretation")
+            or alternative_reference.get("summary")
+            or "Dữ liệu bối cảnh chưa đủ hoặc đã cũ."
+        ))
         alternative_reference_line = (
-            f"\nℹ️ <b>Alternative Data — CHỈ THAM KHẢO</b> "
-            f"({alt_status}, không tác động tín hiệu): <code>{alt_summary}</code>"
+            f"\nℹ️ <b>Alternative Data — BỐI CẢNH THAM KHẢO</b> "
+            f"({alt_status}; không tác động tín hiệu): {alt_summary}"
         )
 
     # Lọc ra các coin có tín hiệu hành động (BUY/SELL)

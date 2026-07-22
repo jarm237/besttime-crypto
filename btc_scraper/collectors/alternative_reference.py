@@ -55,6 +55,107 @@ def _parse_timestamp(value: Any) -> Optional[datetime]:
     return parsed.astimezone(timezone.utc)
 
 
+def _interpret_risk_on(value: float) -> str:
+    if value <= -0.45:
+        return "khẩu vị rủi ro rất yếu, thị trường đang nghiêng rõ về phòng thủ"
+    if value <= -0.10:
+        return "khẩu vị rủi ro yếu, thị trường thiên về thận trọng"
+    if value < 0.10:
+        return "khẩu vị rủi ro trung tính"
+    if value < 0.45:
+        return "khẩu vị rủi ro tích cực"
+    return "khẩu vị rủi ro rất mạnh, tâm lý chấp nhận rủi ro đang cao"
+
+
+def _interpret_macro_pressure(value: float) -> str:
+    if value >= 0.65:
+        return "áp lực vĩ mô cao, là lực cản đối với tài sản rủi ro"
+    if value >= 0.35:
+        return "áp lực vĩ mô ở mức vừa"
+    return "áp lực vĩ mô thấp, chưa tạo lực cản đáng kể"
+
+
+def _interpret_funding(value: float) -> str:
+    if value >= 0.60:
+        return "vị thế Long đang đông, rủi ro điều chỉnh do đòn bẩy tăng"
+    if value >= 0.15:
+        return "funding thiên Long nhưng chưa ở mức cực đoan"
+    if value > -0.15:
+        return "funding cân bằng, chưa có dấu hiệu đòn bẩy cực đoan"
+    if value > -0.60:
+        return "funding thiên Short nhưng chưa ở mức cực đoan"
+    return "vị thế Short đang đông, cần lưu ý khả năng short squeeze"
+
+
+def _interpret_fear_greed(value: float) -> str:
+    if value < 25:
+        return "tâm lý cực kỳ sợ hãi"
+    if value < 45:
+        return "tâm lý đang sợ hãi"
+    if value <= 55:
+        return "tâm lý trung tính"
+    if value <= 75:
+        return "tâm lý đang tham lam"
+    return "tâm lý cực kỳ tham lam"
+
+
+def _interpret_etf_flow(value: float) -> str:
+    if value > 0:
+        return "dòng tiền ETF đang vào ròng"
+    if value < 0:
+        return "dòng tiền ETF đang rút ròng"
+    return "dòng tiền ETF đang cân bằng"
+
+
+def _interpret_signal_implication(values: Dict[str, Optional[float]]) -> str:
+    risk_on = values.get("risk_on_score")
+    if risk_on is None:
+        return "Hàm ý cho tín hiệu: chưa đủ dữ liệu để xác định thiên kiến BUY hay SELL"
+    if risk_on <= -0.45:
+        return (
+            "Hàm ý cho tín hiệu: bối cảnh nghiêng mạnh về phòng thủ; "
+            "BUY cần xác nhận chặt hơn, còn SELL đồng thuận hơn với môi trường chung"
+        )
+    if risk_on <= -0.10:
+        return (
+            "Hàm ý cho tín hiệu: bối cảnh chưa ủng hộ mua đuổi; "
+            "SELL hoặc giảm rủi ro đồng thuận hơn với trạng thái chung"
+        )
+    if risk_on < 0.10:
+        return "Hàm ý cho tín hiệu: bối cảnh không tạo thiên kiến rõ cho BUY hay SELL"
+    if risk_on < 0.45:
+        return (
+            "Hàm ý cho tín hiệu: BUY theo xu hướng đồng thuận hơn với bối cảnh; "
+            "SELL cần thêm xác nhận"
+        )
+    return (
+        "Hàm ý cho tín hiệu: BUY đồng thuận với trạng thái risk-on mạnh, "
+        "nhưng cần tránh mua đuổi khi tâm lý quá hưng phấn"
+    )
+
+
+def interpret_alternative_values(values: Dict[str, Optional[float]]) -> str:
+    """Translate fresh numeric observations into market-language context."""
+    interpretations: list[str] = []
+    interpreters = (
+        ("risk_on_score", _interpret_risk_on),
+        ("fear_greed_raw", _interpret_fear_greed),
+        ("macro_pressure", _interpret_macro_pressure),
+        ("funding_pressure", _interpret_funding),
+        ("etf_flow", _interpret_etf_flow),
+    )
+    for field, interpreter in interpreters:
+        value = values.get(field)
+        if value is not None:
+            interpretations.append(interpreter(value))
+
+    if not interpretations:
+        return "Dữ liệu bối cảnh chưa đủ hoặc đã cũ."
+    context = "; ".join(interpretations)
+    context = context[0].upper() + context[1:] + "."
+    return f"{context} {_interpret_signal_implication(values)}."
+
+
 def build_alternative_reference(
     payload: Dict[str, Any],
     *,
@@ -126,23 +227,7 @@ def build_alternative_reference(
     else:
         status = "available"
 
-    summary_parts = []
-    summary_labels = {
-        "risk_on_score": "risk_on",
-        "macro_pressure": "macro",
-        "funding_pressure": "funding",
-        "fear_greed_raw": "F&G",
-        "etf_flow": "ETF",
-    }
-    for field, label in summary_labels.items():
-        value = values.get(field)
-        if value is not None:
-            summary_parts.append(
-                f"{label}={value:.3f}"
-                if field != "fear_greed_raw"
-                else f"{label}={value:.0f}"
-            )
-    summary = " | ".join(summary_parts) if summary_parts else "no fresh reference values"
+    interpretation = interpret_alternative_values(values)
 
     return {
         "mode": REFERENCE_MODE,
@@ -158,7 +243,10 @@ def build_alternative_reference(
         "stale_fields": stale_features,
         "values": values,
         "features": features,
-        "summary": summary,
+        "interpretation": interpretation,
+        # Backward-compatible display key. Raw observations remain available
+        # under ``values`` for audit/API consumers.
+        "summary": interpretation,
     }
 
 
