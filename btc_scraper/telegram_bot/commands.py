@@ -1,15 +1,73 @@
+import html
+import math
 import queue
+import re
+
 from .api import send_telegram_message, get_latest_price
 from .formatters import format_status_message, format_positions_message, format_performance_message
 
 # Command queue for main-thread execution
-telegram_command_queue = queue.Queue()
+telegram_command_queue = queue.Queue(maxsize=1)
+
+_COIN_PATTERN = re.compile(r"^[A-Z0-9]{2,15}$")
+_DECISION_BASIS_MAP = {
+    "signal": "system_signal",
+    "personal": "personal_discretion",
+}
+
+
+def _reply(text: str, chat_id: str | int, reply_to_id: int | None) -> None:
+    send_telegram_message(text, reply_to_message_id=reply_to_id, chat_id=chat_id)
+
+
+def _normalize_command(token: str) -> str:
+    """Support Telegram group commands such as /status@besttime_bot."""
+    return token.split("@", 1)[0].lower()
+
+
+def _normalize_coin(value: str) -> str:
+    coin = value.strip().upper().replace("/", "").replace("-", "").replace("_", "")
+    if coin.endswith("USDT"):
+        coin = coin[:-4]
+    if not _COIN_PATTERN.fullmatch(coin):
+        raise ValueError("Mã coin chỉ được gồm 2-15 chữ cái hoặc chữ số.")
+    return coin
+
+
+def _positive_number(value: str, label: str) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} phải là một số hợp lệ.") from exc
+    if not math.isfinite(number) or number <= 0:
+        raise ValueError(f"{label} phải là số dương hữu hạn.")
+    return number
+
+
+def _buy_usage() -> str:
+    return (
+        "❌ Cú pháp sai. Ví dụ:\n"
+        "• Giá thị trường: <code>/buy BTC LONG 50</code>\n"
+        "• Giá chỉ định: <code>/buy BTC LONG 50 67100</code>\n"
+        "• Theo tín hiệu hệ thống: <code>/buy BTC LONG 50 signal</code>"
+    )
+
+
+def _close_usage() -> str:
+    return (
+        "❌ Cú pháp sai. Ví dụ:\n"
+        "• Đóng toàn bộ: <code>/close BTC</code>\n"
+        "• Đóng một phần: <code>/close BTC 50%</code>\n"
+        "• Một phần kèm giá: <code>/close BTC 50% 67500</code>\n"
+        "• Toàn bộ kèm giá: <code>/close BTC 67500</code>"
+    )
+
 
 def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | None = None) -> None:
     parts = text.split()
     if not parts:
         return
-    cmd = parts[0].lower()
+    cmd = _normalize_command(parts[0])
     
     if cmd in ("/start", "/help"):
         help_msg = (
@@ -20,20 +78,28 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             "• <code>/perf</code> hoặc <code>/summary</code>: Xem báo cáo hiệu suất giao dịch.\n\n"
             "<b>Lệnh quản lý vị thế:</b>\n"
             "• <code>/positions</code>: Xem danh sách vị thế đang mở.\n"
-            "• <code>/buy &lt;coin&gt; &lt;LONG/SHORT&gt; [vốn USDT] [giá vào]</code>: Mở vị thế thủ công.\n"
+            "• <code>/buy &lt;coin&gt; &lt;LONG/SHORT&gt; [vốn USDT] [giá vào] [signal/personal]</code>: Mở vị thế thủ công.\n"
             "  <i>Ví dụ: <code>/buy BTC LONG 50 67100</code></i>\n"
-            "• <code>/close &lt;coin&gt; [giá đóng]</code>: Đóng vị thế thủ công.\n"
-            "  <i>Ví dụ: <code>/close BTC 67500</code></i>"
+            "• <code>/close &lt;coin&gt; [phần trăm] [giá đóng]</code>: Đóng toàn bộ hoặc một phần vị thế.\n"
+            "  <i>Ví dụ: <code>/close BTC 50%</code> hoặc <code>/close BTC 67500</code></i>"
         )
-        send_telegram_message(help_msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
+        _reply(help_msg, chat_id, reply_to_id)
         
     elif cmd == "/status":
         msg = format_status_message()
         send_telegram_message(msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd in ("/scan", "/signals"):
-        send_telegram_message("⏳ Đang tiến hành quét thị trường và phân tích tín hiệu...", reply_to_message_id=reply_to_id, chat_id=chat_id)
-        telegram_command_queue.put("scan")
+        try:
+            telegram_command_queue.put_nowait({
+                "command": "scan",
+                "chat_id": chat_id,
+                "reply_to_id": reply_to_id,
+            })
+        except queue.Full:
+            _reply("⏳ Yêu cầu quét trước đó đang chờ xử lý.", chat_id, reply_to_id)
+        else:
+            _reply("⏳ Đang tiến hành quét thị trường và phân tích tín hiệu...", chat_id, reply_to_id)
         
     elif cmd in ("/perf", "/summary"):
         msg = format_performance_message()
@@ -44,17 +110,16 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
         send_telegram_message(msg, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd == "/buy":
-        if len(parts) < 3:
-            send_telegram_message(
-                "❌ Cú pháp sai. Ví dụ:\n"
-                "• Theo giá thị trường: <code>/buy BTC LONG 50</code>\n"
-                "• Theo giá chỉ định: <code>/buy BTC LONG 50 67100</code>",
-                reply_to_message_id=reply_to_id,
-                chat_id=chat_id
-            )
+        if len(parts) < 3 or len(parts) > 6:
+            _reply(_buy_usage(), chat_id, reply_to_id)
             return
-            
-        coin = parts[1].upper()
+
+        try:
+            coin = _normalize_coin(parts[1])
+        except ValueError as exc:
+            _reply(f"❌ {exc}", chat_id, reply_to_id)
+            return
+
         direction = parts[2].upper()
         if direction not in ("LONG", "SHORT", "BUY", "SELL"):
             send_telegram_message(
@@ -72,42 +137,34 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
         invested_usdt = 50.0
         if len(parts) >= 4:
             try:
-                invested_usdt = float(parts[3])
-            except ValueError:
-                send_telegram_message(
-                    "❌ Số vốn USDT phải là một số hợp lệ.",
-                    reply_to_message_id=reply_to_id,
-                    chat_id=chat_id
-                )
+                invested_usdt = _positive_number(parts[3], "Số vốn USDT")
+            except ValueError as exc:
+                _reply(f"❌ {exc}", chat_id, reply_to_id)
                 return
-                
+
         price = 0.0
+        manual_decision_basis = "personal_discretion"
         if len(parts) >= 5:
-            try:
-                price = float(parts[4])
-            except ValueError:
-                send_telegram_message(
-                    "❌ Giá vào lệnh phải là một số hợp lệ.",
-                    reply_to_message_id=reply_to_id,
-                    chat_id=chat_id
-                )
+            basis = _DECISION_BASIS_MAP.get(parts[4].lower())
+            if basis is not None and len(parts) == 5:
+                manual_decision_basis = basis
+            else:
+                try:
+                    price = _positive_number(parts[4], "Giá vào lệnh")
+                except ValueError as exc:
+                    _reply(f"❌ {exc}", chat_id, reply_to_id)
+                    return
+
+        if len(parts) == 6:
+            manual_decision_basis = _DECISION_BASIS_MAP.get(parts[5].lower(), "")
+            if not manual_decision_basis:
+                _reply("❌ Nguồn quyết định phải là <code>signal</code> hoặc <code>personal</code>.", chat_id, reply_to_id)
                 return
-        else:
+
+        if price == 0:
             price = get_latest_price(coin)
 
-        manual_decision_basis = "personal_discretion"
-        if len(parts) >= 6:
-            basis_map = {"signal": "system_signal", "personal": "personal_discretion"}
-            manual_decision_basis = basis_map.get(parts[5].lower())
-            if manual_decision_basis is None:
-                send_telegram_message(
-                    "Invalid decision source. Use <code>signal</code> or <code>personal</code>.",
-                    reply_to_message_id=reply_to_id,
-                    chat_id=chat_id,
-                )
-                return
-            
-        if price <= 0:
+        if not math.isfinite(price) or price <= 0:
             send_telegram_message(
                 f"❌ Không lấy được giá vào lệnh cho coin <b>{coin}</b>. Vui lòng nhập giá thủ công.",
                 reply_to_message_id=reply_to_id,
@@ -115,20 +172,44 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             )
             return
             
-        from btc_scraper.trading.position_tracker import add_position
-        pos = add_position(
-            coin=coin,
-            entry_price=price,
-            direction=direction,
-            note="[MANUAL] Telegram Command",
-            invested_usdt=invested_usdt,
-            trade_origin="manual",
-            execution_mode="manual",
-            created_by="telegram_command",
-            order_creator="user",
-            order_channel="telegram",
-            manual_decision_basis=manual_decision_basis,
+        from btc_scraper.trading.position_tracker import add_position, get_open_positions
+        duplicate = next(
+            (
+                position for position in get_open_positions()
+                if str(position.get("coin", "")).upper() == coin
+                and (
+                    position.get("order_channel") == "telegram"
+                    or position.get("created_by") == "telegram_command"
+                )
+            ),
+            None,
         )
+        if duplicate:
+            _reply(
+                f"⚠️ Đã có vị thế Telegram đang mở cho <b>{coin}</b>. "
+                "Hãy đóng vị thế hiện tại trước khi mở lệnh mới.",
+                chat_id,
+                reply_to_id,
+            )
+            return
+
+        try:
+            pos = add_position(
+                coin=coin,
+                entry_price=price,
+                direction=direction,
+                note="[MANUAL] Telegram Command",
+                invested_usdt=invested_usdt,
+                trade_origin="manual",
+                execution_mode="manual",
+                created_by="telegram_command",
+                order_creator="user",
+                order_channel="telegram",
+                manual_decision_basis=manual_decision_basis,
+            )
+        except Exception as exc:
+            _reply(f"❌ Không thể mở vị thế: {html.escape(str(exc))}", chat_id, reply_to_id)
+            return
         
         reply = (
             "✅ <b>ĐÃ MỞ VỊ THẾ THỦ CÔNG:</b>\n"
@@ -140,19 +221,16 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
         send_telegram_message(reply, reply_to_message_id=reply_to_id, chat_id=chat_id)
         
     elif cmd == "/close":
-        if len(parts) < 2:
-            send_telegram_message(
-                "❌ Cú pháp sai. Ví dụ:\n"
-                "• Đóng toàn bộ: <code>/close BTC</code>\n"
-                "• Đóng 1 phần: <code>/close BTC 50%</code>\n"
-                "• Kèm giá: <code>/close BTC 50% 67500</code>\n"
-                "• Toàn bộ kèm giá: <code>/close BTC 67500</code>",
-                reply_to_message_id=reply_to_id,
-                chat_id=chat_id
-            )
+        if len(parts) < 2 or len(parts) > 4:
+            _reply(_close_usage(), chat_id, reply_to_id)
             return
-            
-        coin = parts[1].upper()
+
+        try:
+            coin = _normalize_coin(parts[1])
+        except ValueError as exc:
+            _reply(f"❌ {exc}", chat_id, reply_to_id)
+            return
+
         percentage = 100.0
         price = 0.0
         
@@ -160,29 +238,32 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             # Could be percentage (50%) or price (67500)
             if parts[2].endswith('%'):
                 try:
-                    percentage = float(parts[2].replace('%', ''))
-                except ValueError:
-                    send_telegram_message("❌ Phần trăm đóng lệnh không hợp lệ.", reply_to_message_id=reply_to_id, chat_id=chat_id)
+                    percentage = _positive_number(parts[2][:-1], "Phần trăm đóng lệnh")
+                except ValueError as exc:
+                    _reply(f"❌ {exc}", chat_id, reply_to_id)
                     return
             else:
                 try:
-                    price = float(parts[2])
-                except ValueError:
-                    send_telegram_message("❌ Giá hoặc phần trăm không hợp lệ.", reply_to_message_id=reply_to_id, chat_id=chat_id)
+                    price = _positive_number(parts[2], "Giá đóng lệnh")
+                except ValueError as exc:
+                    _reply(f"❌ {exc}", chat_id, reply_to_id)
                     return
-        elif len(parts) >= 4:
-            # Expected: /close BTC 50% 67500 or /close BTC 50 67500
+        elif len(parts) == 4:
             try:
-                percentage = float(parts[2].replace('%', ''))
-                price = float(parts[3])
-            except ValueError:
-                send_telegram_message("❌ Cú pháp giá hoặc phần trăm không hợp lệ.", reply_to_message_id=reply_to_id, chat_id=chat_id)
+                percentage = _positive_number(parts[2].removesuffix('%'), "Phần trăm đóng lệnh")
+                price = _positive_number(parts[3], "Giá đóng lệnh")
+            except ValueError as exc:
+                _reply(f"❌ {exc}", chat_id, reply_to_id)
                 return
 
-        if price <= 0:
+        if percentage > 100:
+            _reply("❌ Phần trăm đóng lệnh không được vượt quá 100%.", chat_id, reply_to_id)
+            return
+
+        if not math.isfinite(price) or price <= 0:
             price = get_latest_price(coin)
             
-        if price <= 0:
+        if not math.isfinite(price) or price <= 0:
             send_telegram_message(
                 f"❌ Không lấy được giá thị trường cho <b>{coin}</b> để đóng lệnh. Vui lòng nhập giá thủ công.",
                 reply_to_message_id=reply_to_id,
@@ -223,8 +304,7 @@ def handle_telegram_command(text: str, chat_id: str | int, reply_to_id: int | No
             )
             send_telegram_message(reply, reply_to_message_id=reply_to_id, chat_id=chat_id)
         except Exception as e:
-            send_telegram_message(
-                f"❌ Không thể đóng vị thế: {e}",
-                reply_to_message_id=reply_to_id,
-                chat_id=chat_id
-            )
+            _reply(f"❌ Không thể đóng vị thế: {html.escape(str(e))}", chat_id, reply_to_id)
+
+    else:
+        _reply(f"❓ Lệnh <code>{html.escape(cmd)}</code> không được hỗ trợ. Dùng /help để xem danh sách lệnh.", chat_id, reply_to_id)

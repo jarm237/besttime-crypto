@@ -584,15 +584,25 @@ async def run_scheduler():
     Chỉ dừng khi nhận KeyboardInterrupt (Ctrl+C) hoặc CancelledError.
     """
     from btc_scraper.telegram_bot import telegram_command_queue
+    from btc_scraper.telegram_bot.api import send_telegram_message
+    telegram_scan_task = None
     while not shutdown_event_async.is_set():
         try:
             # Xử lý các lệnh từ Telegram gửi xuống
             try:
                 while not telegram_command_queue.empty():
                     cmd = telegram_command_queue.get_nowait()
-                    if cmd == "scan":
-                        console.print("[bold yellow]⚡ [Telegram Bot] Trực tiếp kích hoạt quét thị trường...[/bold yellow]")
-                        asyncio.create_task(fetch_and_display_with_retry())
+                    command_name = cmd.get("command") if isinstance(cmd, dict) else cmd
+                    if command_name == "scan":
+                        if telegram_scan_task is None or telegram_scan_task.done():
+                            console.print("[bold yellow]⚡ [Telegram Bot] Trực tiếp kích hoạt quét thị trường...[/bold yellow]")
+                            telegram_scan_task = asyncio.create_task(fetch_and_display_with_retry())
+                        elif isinstance(cmd, dict):
+                            send_telegram_message(
+                                "⏳ Hệ thống đang quét thị trường. Vui lòng chờ kết quả hiện tại.",
+                                chat_id=cmd.get("chat_id"),
+                                reply_to_message_id=cmd.get("reply_to_id"),
+                            )
                     telegram_command_queue.task_done()
             except queue.Empty:
                 pass

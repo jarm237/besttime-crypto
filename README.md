@@ -141,6 +141,7 @@ cd web && npm install && cd ..
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_chat_id
+TELEGRAM_ALLOWED_CHAT_IDS=optional_chat_id_1,optional_chat_id_2
 
 # Gemini AI — hỗ trợ nhiều key round-robin
 GEMINI_API_KEY_1=your_gemini_api_key

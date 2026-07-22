@@ -5,13 +5,47 @@ from btc_scraper.core.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 from .api import send_telegram_message
 from .commands import handle_telegram_command
 
+BOT_COMMANDS = [
+    {"command": "start", "description": "Mở hướng dẫn sử dụng"},
+    {"command": "help", "description": "Xem danh sách lệnh"},
+    {"command": "status", "description": "Xem trạng thái hệ thống"},
+    {"command": "scan", "description": "Quét thị trường ngay"},
+    {"command": "perf", "description": "Xem hiệu suất giao dịch"},
+    {"command": "positions", "description": "Xem các vị thế đang mở"},
+    {"command": "buy", "description": "Mở vị thế thủ công"},
+    {"command": "close", "description": "Đóng toàn bộ hoặc một phần"},
+]
+
+
+def _allowed_chat_ids() -> set[str]:
+    configured = os.getenv("TELEGRAM_ALLOWED_CHAT_IDS", "")
+    chat_ids = {value.strip() for value in configured.split(",") if value.strip()}
+    if TELEGRAM_CHAT_ID:
+        chat_ids.add(str(TELEGRAM_CHAT_ID).strip())
+    return chat_ids
+
+
+def _register_bot_commands() -> None:
+    """Keep Telegram's command menu synchronized with supported commands."""
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setMyCommands"
+    try:
+        response = requests.post(url, json={"commands": BOT_COMMANDS}, timeout=10)
+        response.raise_for_status()
+        payload = response.json()
+        if not payload.get("ok"):
+            print(f"[Telegram Bot] Khong the cap nhat menu lenh: {payload}")
+    except Exception as exc:
+        print(f"[Telegram Bot] Loi khi cap nhat menu lenh: {exc}")
+
+
 def start_telegram_listener() -> None:
     """Background listener to poll for Telegram commands."""
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("[Telegram Bot] TELEGRAM_BOT_TOKEN hoac TELEGRAM_CHAT_ID chua duoc cau hinh. Bo qua khoi dong listener.")
+    if not TELEGRAM_BOT_TOKEN or not _allowed_chat_ids():
+        print("[Telegram Bot] TELEGRAM_BOT_TOKEN hoac danh sach chat duoc phep chua duoc cau hinh. Bo qua khoi dong listener.")
         return
 
     print("[Telegram Bot] Dang khoi dong Telegram Command Listener...")
+    _register_bot_commands()
     
     # Avoid executing old commands before startup
     offset = 0
@@ -30,8 +64,7 @@ def start_telegram_listener() -> None:
     while True:
         try:
             # Dynamic check of allowed chat IDs from environment
-            allowed_chat_ids = os.getenv("TELEGRAM_ALLOWED_CHAT_IDS", "")
-            allowed_list = [x.strip() for x in allowed_chat_ids.split(",") if x.strip()] if allowed_chat_ids else ([str(TELEGRAM_CHAT_ID)] if TELEGRAM_CHAT_ID else [])
+            allowed_list = _allowed_chat_ids()
 
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
             params = {"offset": offset, "timeout": 20}
@@ -81,4 +114,3 @@ def start_telegram_listener() -> None:
         except Exception as e:
             print(f"[Telegram Bot] Loi trong vong lap polling: {e}")
             time.sleep(5)
-

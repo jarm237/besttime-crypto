@@ -27,27 +27,7 @@
   "NEAR": [],
   "AR": [],
   "TRB": [],
-  "ETH": [
-    {
-      "time": "2026-07-22 07:00",
-      "signal": "BUY (Crossover)",
-      "entry": 1929.16,
-      "current_price": 1932.67,
-      "tp_sl": {
-        "entry": 1929.16,
-        "sl": 1916.1315,
-        "tp1": 1951.9263,
-        "tp2": 1974.6926,
-        "rr1": 1.75,
-        "rr2": 3.49,
-        "method": "ATR+DynamicSL+Support+BB (Long)"
-      },
-      "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 89,
-      "created_at_ts": 1784678462.5240471
-    }
-  ],
+  "ETH": [],
   "IOTA": [],
   "BNB": [
     {
