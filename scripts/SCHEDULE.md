@@ -83,9 +83,18 @@ ETF flow data is daily data and must **not** be fetched inside every 15-minute s
 
 | Job | Cron | Time (VN) | Symbols |
 |:---|:---|:---|:---|
-| `fetch_parsebot_etf_recent` | `0 6,7,8,9 * * 2-6` | 06:00–09:00 Tue–Sat | BTC, ETH, SOL |
-| `fetch_parsebot_etf_all` | `30 9 * * 2-6` | 09:30 Tue–Sat | BTC, ETH |
-| `fetch_parsebot_fund_info` | `0 10 * * *` | 10:00 daily | FUND |
+| `fetch_parsebot_etf_recent` | `0 9 * * 2-6` | 09:00 Tue–Sat | BTC, ETH, SOL |
+| `fetch_parsebot_etf_all` | `30 9 * * 6` | 09:30 Saturday | BTC, ETH |
+| `fetch_parsebot_fund_info` | `0 10 * * 0` | 10:00 Sunday | FUND |
+
+With the default symbol lists this schedule uses at most 84 base requests in a
+calendar month (69 recent + 10 full-history + 5 fund-info). Keep
+`PARSEBOT_MAX_RETRIES=1`; even if every request retries once, usage is capped at
+168 requests, leaving headroom below the 200-request monthly allowance.
+Every HTTP attempt is also counted in `logs/parsebot_request_usage.json`. Once
+`PARSEBOT_MONTHLY_REQUEST_LIMIT` (default `200`) is reached, the collector stops
+before sending another request; this counter also covers retries and manual CLI
+runs.
 
 ### Manual CLI trigger (dry-run)
 

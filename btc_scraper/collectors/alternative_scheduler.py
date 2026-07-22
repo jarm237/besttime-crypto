@@ -83,7 +83,7 @@ class AlternativeDataScheduler:
         self.last_error: Optional[Exception] = None
 
         # Parse.bot schedule tracking
-        self._last_recent_run_hour: Optional[int] = None
+        self._last_recent_run_day: Optional[str] = None
         self._last_all_run_day: Optional[str] = None
         self._last_fund_run_day: Optional[str] = None
 
@@ -162,35 +162,7 @@ class AlternativeDataScheduler:
                 from zoneinfo import ZoneInfo
                 tz = ZoneInfo(os.getenv("ETF_FLOW_TIMEZONE", "Asia/Ho_Chi_Minh"))
                 now_tz = datetime.now(tz)
-                day_str = now_tz.strftime("%Y-%m-%d")
-                weekday = now_tz.weekday()  # 0=Mon, 1=Tue, ..., 5=Sat, 6=Sun
-
-                from scripts.fetch_parsebot_etf_jobs import (
-                    fetch_parsebot_etf_recent_job,
-                    fetch_parsebot_etf_all_job,
-                    fetch_parsebot_fund_info_job,
-                )
-
-                # 1. Recent job: 0 6,7,8,9 * * 2-6 (Tue-Sat VN time)
-                if weekday in (1, 2, 3, 4, 5) and now_tz.hour in (6, 7, 8, 9):
-                    if self._last_recent_run_hour != now_tz.hour:
-                        logger.info("Scheduler triggering recent Parse.bot ETF job for hour %d", now_tz.hour)
-                        fetch_parsebot_etf_recent_job()
-                        self._last_recent_run_hour = now_tz.hour
-
-                # 2. All job: 30 9 * * 2-6 (Tue-Sat VN time)
-                if weekday in (1, 2, 3, 4, 5) and now_tz.hour == 9 and now_tz.minute >= 30:
-                    if self._last_all_run_day != day_str:
-                        logger.info("Scheduler triggering all historical Parse.bot ETF job for day %s", day_str)
-                        fetch_parsebot_etf_all_job()
-                        self._last_all_run_day = day_str
-
-                # 3. Fund info job: 0 10 * * * (daily)
-                if now_tz.hour >= 10:
-                    if self._last_fund_run_day != day_str:
-                        logger.info("Scheduler triggering Parse.bot fund info job for day %s", day_str)
-                        fetch_parsebot_fund_info_job()
-                        self._last_fund_run_day = day_str
+                self._run_scheduled_parsebot_jobs(now_tz)
 
             except Exception as e:
                 logger.warning("Error executing scheduled Parse.bot jobs in scheduler loop: %s", e)
@@ -231,6 +203,45 @@ class AlternativeDataScheduler:
                 except Exception:  # pragma: no cover
                     logger.exception("on_failure callback raised an exception.")
             return {}
+
+    def _run_scheduled_parsebot_jobs(self, now_tz: datetime) -> None:
+        """Run the low-frequency Parse.bot jobs due at ``now_tz``.
+
+        One recent run on each US-market publication day plus weekly all/fund
+        refreshes costs at most 84 base requests in any calendar month for the
+        default symbol lists (69 recent + 10 all + 5 fund). With one retry per
+        failed request, the worst case is 168 requests, below the 200/month
+        Parse.bot allowance.
+        """
+        from scripts.fetch_parsebot_etf_jobs import (
+            fetch_parsebot_etf_all_job,
+            fetch_parsebot_etf_recent_job,
+            fetch_parsebot_fund_info_job,
+        )
+
+        day_str = now_tz.strftime("%Y-%m-%d")
+        weekday = now_tz.weekday()  # 0=Mon, ..., 5=Sat, 6=Sun
+
+        # Recent: 09:00 Tue-Sat (three requests per run).
+        if weekday in (1, 2, 3, 4, 5) and now_tz.hour >= 9:
+            if self._last_recent_run_day != day_str:
+                logger.info("Scheduler triggering recent Parse.bot ETF job for day %s", day_str)
+                fetch_parsebot_etf_recent_job()
+                self._last_recent_run_day = day_str
+
+        # Full history: 09:30 Saturday (two requests per run).
+        if weekday == 5 and (now_tz.hour, now_tz.minute) >= (9, 30):
+            if self._last_all_run_day != day_str:
+                logger.info("Scheduler triggering all historical Parse.bot ETF job for day %s", day_str)
+                fetch_parsebot_etf_all_job()
+                self._last_all_run_day = day_str
+
+        # Fund metadata: 10:00 Sunday (one request per run).
+        if weekday == 6 and now_tz.hour >= 10:
+            if self._last_fund_run_day != day_str:
+                logger.info("Scheduler triggering Parse.bot fund info job for day %s", day_str)
+                fetch_parsebot_fund_info_job()
+                self._last_fund_run_day = day_str
 
 
 class SchedulerRegistry:

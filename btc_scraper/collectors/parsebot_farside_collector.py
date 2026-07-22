@@ -30,6 +30,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,6 +44,53 @@ _logger = logging.getLogger(__name__)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CACHE_DIR = _REPO_ROOT / "logs" / "etf_flow_cache"
+_REQUEST_USAGE_PATH = _REPO_ROOT / "logs" / "parsebot_request_usage.json"
+_REQUEST_USAGE_LOCK = threading.Lock()
+
+
+def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int, int]:
+    """Atomically reserve one request from the configured monthly allowance.
+
+    Usage is persisted so scheduler restarts and manual CLI jobs share the same
+    quota. A corrupt counter fails closed to avoid accidentally exceeding the
+    external API limit.
+    """
+    try:
+        limit = max(1, int(os.getenv("PARSEBOT_MONTHLY_REQUEST_LIMIT", "200")))
+    except ValueError:
+        limit = 200
+
+    usage_path = Path(os.getenv("PARSEBOT_REQUEST_USAGE_PATH", str(_REQUEST_USAGE_PATH)))
+    month = (now or datetime.now(timezone.utc)).strftime("%Y-%m")
+    usage_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with _REQUEST_USAGE_LOCK:
+        with usage_path.open("a+", encoding="utf-8") as handle:
+            try:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            except ImportError:  # pragma: no cover - Windows uses process lock only
+                pass
+
+            handle.seek(0)
+            raw = handle.read().strip()
+            try:
+                state = json.loads(raw) if raw else {}
+                count = int(state.get("count", 0)) if state.get("month") == month else 0
+            except (TypeError, ValueError, json.JSONDecodeError):
+                _logger.error("Invalid Parse.bot request usage file; refusing API request: %s", usage_path)
+                return False, limit, limit
+
+            if count >= limit:
+                return False, count, limit
+
+            count += 1
+            handle.seek(0)
+            handle.truncate()
+            json.dump({"month": month, "count": count}, handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+            return True, count, limit
 
 # ---------------------------------------------------------------------------
 # Endpoint mapping (đọc từ env, fallback về tên mặc định)
@@ -399,6 +447,21 @@ class ParsebotFarsideETFCollector:
             return result
 
         for attempt in range(self.max_retries + 1):
+            allowed, request_count, request_limit = _reserve_parsebot_request()
+            if not allowed:
+                result = self._result(
+                    symbol,
+                    mode,
+                    "quota_exhausted",
+                    None,
+                    0.0,
+                    f"Parse.bot monthly request limit reached ({request_count}/{request_limit})",
+                    endpoint,
+                )
+                _save_cache(result)
+                _logger.warning("parsebot_farside monthly quota exhausted (%d/%d)", request_count, request_limit)
+                return result
+
             try:
                 response = _requests.get(url, headers=self._headers(), timeout=self.timeout)
                 response.raise_for_status()

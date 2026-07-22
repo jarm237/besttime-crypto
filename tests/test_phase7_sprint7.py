@@ -22,6 +22,43 @@ import pytest
 # ---------------------------------------------------------------------------
 
 class TestAlternativeDataScheduler:
+    def test_parsebot_schedule_runs_once_per_due_day(self):
+        from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
+
+        sched = AlternativeDataScheduler()
+        tuesday_9am = datetime(2026, 7, 21, 9, 0, tzinfo=timezone.utc)
+
+        with (
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_recent_job") as recent,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_all_job") as all_history,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_fund_info_job") as fund,
+        ):
+            sched._run_scheduled_parsebot_jobs(tuesday_9am)
+            sched._run_scheduled_parsebot_jobs(tuesday_9am.replace(minute=15))
+
+        recent.assert_called_once_with()
+        all_history.assert_not_called()
+        fund.assert_not_called()
+
+    def test_parsebot_weekly_jobs_only_run_on_weekend(self):
+        from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
+
+        sched = AlternativeDataScheduler()
+        saturday = datetime(2026, 7, 25, 9, 30, tzinfo=timezone.utc)
+        sunday = datetime(2026, 7, 26, 10, 0, tzinfo=timezone.utc)
+
+        with (
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_recent_job") as recent,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_all_job") as all_history,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_fund_info_job") as fund,
+        ):
+            sched._run_scheduled_parsebot_jobs(saturday)
+            sched._run_scheduled_parsebot_jobs(sunday)
+
+        recent.assert_called_once_with()
+        all_history.assert_called_once_with()
+        fund.assert_called_once_with()
+
     @pytest.mark.network
     def test_run_once_returns_payload(self, tmp_path):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
@@ -112,6 +149,31 @@ class TestAlternativeDataScheduler:
         statuses = reg.status_all()
         assert "primary" in statuses
         assert "secondary" in statuses
+
+
+def test_parsebot_monthly_request_guard_persists_and_resets(tmp_path):
+    from btc_scraper.collectors.parsebot_farside_collector import _reserve_parsebot_request
+
+    usage_path = tmp_path / "parsebot_usage.json"
+    july = datetime(2026, 7, 22, tzinfo=timezone.utc)
+    august = datetime(2026, 8, 1, tzinfo=timezone.utc)
+
+    with patch.dict(
+        "os.environ",
+        {
+            "PARSEBOT_MONTHLY_REQUEST_LIMIT": "2",
+            "PARSEBOT_REQUEST_USAGE_PATH": str(usage_path),
+        },
+    ):
+        assert _reserve_parsebot_request(july) == (True, 1, 2)
+        assert _reserve_parsebot_request(july) == (True, 2, 2)
+        assert _reserve_parsebot_request(july) == (False, 2, 2)
+        assert _reserve_parsebot_request(august) == (True, 1, 2)
+
+    assert json.loads(usage_path.read_text(encoding="utf-8")) == {
+        "month": "2026-08",
+        "count": 1,
+    }
 
 
 # ---------------------------------------------------------------------------
