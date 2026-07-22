@@ -93,9 +93,9 @@ class Phase7Sprint2Tests(unittest.TestCase):
 
     def test_yahoo_collector_parses_macro_tickers(self):
         fake_hist = {
-            "DXY": {"Close": [101.5]},
-            "VIX": {"Close": [18.2]},
-            "Gold": {"Close": [2030.0]},
+            "DX-Y.NYB": {"Close": [101.5]},
+            "^VIX": {"Close": [18.2]},
+            "GC=F": {"Close": [2030.0]},
         }
 
         with patch("btc_scraper.collectors.yahoo_collector._fetch_history", side_effect=lambda ticker, period: fake_hist[ticker]):
@@ -105,6 +105,45 @@ class Phase7Sprint2Tests(unittest.TestCase):
         self.assertEqual(data["dxy"], 101.5)
         self.assertEqual(data["vix"], 18.2)
         self.assertEqual(data["gold"], 2030.0)
+
+    def test_yahoo_collector_reports_error_when_all_tickers_fail(self):
+        with patch(
+            "btc_scraper.collectors.yahoo_collector._fetch_history",
+            side_effect=RuntimeError("network down"),
+        ) as fetch:
+            data = YahooCollector(retries=2, delay_seconds=0).collect(force=True)
+
+        self.assertEqual(data["status"], "error")
+        self.assertIsNone(data["dxy"])
+        self.assertIsNone(data["vix"])
+        self.assertIsNone(data["gold"])
+        self.assertIn("failed_series", data["reason"])
+        self.assertEqual(fetch.call_count, 9)
+
+    def test_yahoo_collector_preserves_partial_data_but_reports_error(self):
+        def fetch(ticker, period):
+            if ticker == "^VIX":
+                raise RuntimeError("VIX unavailable")
+            return {"Close": [101.5 if ticker == "DX-Y.NYB" else 2030.0]}
+
+        with patch("btc_scraper.collectors.yahoo_collector._fetch_history", side_effect=fetch):
+            data = YahooCollector(retries=0, delay_seconds=0).collect(force=True)
+
+        self.assertEqual(data["status"], "error")
+        self.assertEqual(data["dxy"], 101.5)
+        self.assertIsNone(data["vix"])
+        self.assertEqual(data["gold"], 2030.0)
+        self.assertIn("vix (^VIX)", data["reason"])
+
+    def test_yahoo_collector_rejects_invalid_close(self):
+        with patch(
+            "btc_scraper.collectors.yahoo_collector._fetch_history",
+            return_value={"Close": [float("nan")]},
+        ):
+            data = YahooCollector(retries=0, delay_seconds=0).collect(force=True)
+
+        self.assertEqual(data["status"], "error")
+        self.assertIsNone(data["dxy"])
 
     def test_collect_alternative_data_merges_sprint2_features(self):
         def defillama_side_effect(*args, **kwargs):
@@ -121,8 +160,14 @@ class Phase7Sprint2Tests(unittest.TestCase):
              patch("btc_scraper.collectors.defillama_collector._fetch_json", side_effect=defillama_side_effect), \
              patch("btc_scraper.collectors.fred_collector._fetch_json", return_value={"observations": [{"value": "4.1"}]}), \
              patch("btc_scraper.collectors.fred_collector._fetch_us10y_from_yahoo", return_value=4.1), \
-             patch("btc_scraper.collectors.yahoo_collector._fetch_history", side_effect=lambda ticker, period: {"DXY": {"Close": [100.1]}, "VIX": {"Close": [20.1]}, "Gold": {"Close": [1900.0]}}[ticker]):
-            payload = collect_alternative_data(output_path=str(Path(tempfile.gettempdir()) / "merged.json"), force=True)
+             patch("btc_scraper.collectors.yahoo_collector._fetch_history", side_effect=lambda ticker, period: {"DX-Y.NYB": {"Close": [100.1]}, "^VIX": {"Close": [20.1]}, "GC=F": {"Close": [1900.0]}}[ticker]):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                payload = collect_alternative_data(
+                    output_path=str(Path(temp_dir) / "merged.json"),
+                    raw_store_dir=str(Path(temp_dir) / "raw"),
+                    feature_snapshot_path=str(Path(temp_dir) / "snapshot.json"),
+                    force=True,
+                )
 
         self.assertEqual(payload["funding_rate"], 0.0002)
         self.assertEqual(payload["open_interest"], 999.0)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import logging
 import os
 import time
 from pathlib import Path
@@ -15,6 +16,8 @@ except Exception:  # pragma: no cover - optional dependency
     yf = None
 
 from btc_scraper.core.paths import build_data_path
+
+_logger = logging.getLogger(__name__)
 
 DATA_FILE = str(build_data_path("macro_state.json"))
 
@@ -58,22 +61,24 @@ def fetch_and_save_macro() -> Dict[str, float | str]:
     result: Dict[str, float | str] = {}
 
     for name, ticker in MACRO_TICKERS.items():
-        try:
-            if yf is not None:
+        if yf is not None:
+            try:
                 hist = yf.Ticker(ticker).history(period="2d")
                 if hist is not None and not hist.empty:
                     result[name] = float(hist["Close"].iloc[-1])
                     continue
-            
-            # Try REST fallback if yf is None or fails
-            val = _fetch_ticker_rest(ticker)
-            if val is not None:
-                result[name] = val
-            else:
-                result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
-        except Exception as _macro_err:
-            import logging as _log
-            _log.getLogger(__name__).warning("[macro_collector] fetch failed for %s: %s — using default", name, _macro_err)
+            except Exception as exc:
+                _logger.warning(
+                    "[macro_collector] yfinance fetch failed for %s: %s — trying REST fallback",
+                    name,
+                    exc,
+                )
+
+        val = _fetch_ticker_rest(ticker)
+        if val is not None:
+            result[name] = val
+        else:
+            _logger.warning("[macro_collector] all fetch methods failed for %s — using default", name)
             result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
 
     result.setdefault("DXY", 100.0)

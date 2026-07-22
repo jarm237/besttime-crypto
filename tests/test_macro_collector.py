@@ -45,6 +45,12 @@ class DummyYFModule:
         return DummyTicker(symbol)
 
 
+class FailingYFModule:
+    @staticmethod
+    def Ticker(symbol):
+        raise RuntimeError(f"yfinance failed for {symbol}")
+
+
 def test_fetch_and_save_macro_writes_json(tmp_path, monkeypatch):
     output_path = tmp_path / "macro_state.json"
     monkeypatch.setattr(macro_collector, "DATA_FILE", str(output_path))
@@ -59,6 +65,20 @@ def test_fetch_and_save_macro_writes_json(tmp_path, monkeypatch):
     persisted = json.loads(output_path.read_text(encoding="utf-8"))
     assert persisted["DXY"] == 101.2
     assert persisted["timestamp"]
+
+
+def test_fetch_and_save_macro_uses_rest_after_yfinance_error(tmp_path, monkeypatch):
+    output_path = tmp_path / "macro_state.json"
+    rest_values = {"DX-Y.NYB": 102.0, "^VIX": 21.0, "^TNX": 4.2}
+    monkeypatch.setattr(macro_collector, "DATA_FILE", str(output_path))
+    monkeypatch.setattr(macro_collector, "yf", FailingYFModule())
+    monkeypatch.setattr(macro_collector, "_fetch_ticker_rest", rest_values.get)
+
+    result = macro_collector.fetch_and_save_macro()
+
+    assert result["DXY"] == 102.0
+    assert result["VIX"] == 21.0
+    assert result["BondYield"] == 4.2
 
 
 def test_load_macro_state_reads_existing_file(tmp_path, monkeypatch):

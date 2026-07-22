@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+import math
 import os
+import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from btc_scraper.collectors.collector_base import CollectorBase
-import logging
 
 _logger = logging.getLogger(__name__)
 
@@ -61,6 +63,32 @@ def _fetch_history(ticker: str, period: str = "2d") -> Any:
     raise RuntimeError(f"Failed to fetch history for {ticker} (yfinance missing or failed, and REST fallback failed)")
 
 
+def _latest_close(hist: Any) -> float:
+    """Extract and validate the most recent close from a Yahoo history payload."""
+    closes = hist.get("Close") if hasattr(hist, "get") else None
+    if closes is None:
+        raise ValueError("history payload has no Close series")
+
+    if hasattr(closes, "iloc"):
+        if len(closes) == 0:
+            raise ValueError("Close series is empty")
+        value = closes.iloc[-1]
+    elif isinstance(closes, (list, tuple)):
+        values = [value for value in closes if value is not None]
+        if not values:
+            raise ValueError("Close series is empty")
+        value = values[-1]
+    elif isinstance(closes, (int, float)):
+        value = closes
+    else:
+        raise ValueError("unsupported Close series type")
+
+    close = float(value)
+    if not math.isfinite(close) or close <= 0:
+        raise ValueError(f"invalid close value: {close!r}")
+    return close
+
+
 class YahooCollector(CollectorBase):
     name = "yahoo"
 
@@ -75,10 +103,10 @@ class YahooCollector(CollectorBase):
             "status": "success",
             "reason": None,
             "timestamp": timestamp,
-            "data": {"dxy": 0.0, "vix": 0.0, "gold": 0.0},
-            "dxy": 0.0,
-            "vix": 0.0,
-            "gold": 0.0,
+            "data": {"dxy": None, "vix": None, "gold": None},
+            "dxy": None,
+            "vix": None,
+            "gold": None,
         }
 
         if not self.enabled:
@@ -89,54 +117,31 @@ class YahooCollector(CollectorBase):
                 self._write_json(payload, self.output_path)
             return payload
 
-        try:
-            series = {
-                "DXY": "DX-Y.NYB",
-                "VIX": "^VIX",
-                "Gold": "GC=F",
-            }
-            for key, ticker in series.items():
-                hist = None
-                for candidate in (ticker, key, key.lower(), key.upper()):
-                    try:
-                        hist = _fetch_history(candidate, period="2d")
-                        break
-                    except Exception:
-                        continue
-                if hist is None:
-                    continue
+        series = {
+            "dxy": "DX-Y.NYB",
+            "vix": "^VIX",
+            "gold": "GC=F",
+        }
+        failures = []
+        for key, ticker in series.items():
+            last_error: Optional[Exception] = None
+            for attempt in range(self.retries + 1):
+                try:
+                    value = _latest_close(_fetch_history(ticker, period="2d"))
+                    payload[key] = value
+                    payload["data"][key] = value
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    if attempt < self.retries:
+                        time.sleep(self.delay_seconds * (2 ** attempt))
+            else:
+                failures.append(f"{key} ({ticker}): {last_error}")
 
-                closes = None
-                if isinstance(hist, dict):
-                    closes = hist.get("Close")
-                    if closes is None and key.lower() in hist:
-                        nested = hist.get(key.lower())
-                        if isinstance(nested, dict):
-                            closes = nested.get("Close")
-                elif hasattr(hist, "get"):
-                    closes = hist.get("Close")
-
-                if closes is None:
-                    continue
-                if hasattr(closes, "iloc") and len(closes) > 0:
-                    payload[key.lower()] = float(closes.iloc[-1])
-                elif isinstance(closes, list) and closes:
-                    payload[key.lower()] = float(closes[-1])
-                elif isinstance(closes, (int, float)):
-                    payload[key.lower()] = float(closes)
-                payload["data"][key.lower()] = payload[key.lower()]
-        except Exception as e:
-            _logger.exception("YahooCollector failed")
-            payload = {
-                "source": self.name,
-                "status": "error",
-                "reason": repr(e),
-                "timestamp": timestamp,
-                "data": None,
-                "dxy": 0.0,
-                "vix": 0.0,
-                "gold": 0.0,
-            }
+        if failures:
+            payload["status"] = "error"
+            payload["reason"] = "failed_series: " + "; ".join(failures)
+            _logger.error("YahooCollector failed to collect required series: %s", payload["reason"])
 
         if self.output_path is not None:
             self._write_json(payload, self.output_path)

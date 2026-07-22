@@ -121,7 +121,9 @@ class AlternativeDataCollector(CollectorBase):
             yahoo_payload = YahooCollector().collect(force=force)
             payload["_statuses"]["yahoo"] = {"status": yahoo_payload.get("status", "success"), "reason": yahoo_payload.get("reason"), "observed_at": yahoo_payload.get("timestamp")}
             payload.update({"dxy": yahoo_payload.get("dxy"), "vix": yahoo_payload.get("vix"), "gold": yahoo_payload.get("gold")})
-            if isinstance(yahoo_payload, dict) and yahoo_payload.get("error"):
+            if yahoo_payload.get("status") == "error":
+                payload["_errors"]["yahoo"] = yahoo_payload.get("reason") or "Yahoo collector reported an error"
+            elif yahoo_payload.get("error"):
                 payload["_errors"]["yahoo"] = yahoo_payload.get("error")
         except Exception as e:
             payload.update({"dxy": None, "vix": None, "gold": None})
