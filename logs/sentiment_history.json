@@ -13,5 +13,10 @@
     "score": -0.5,
     "raw_value": 25,
     "label": "Extreme Fear"
+  },
+  "2026-07-22T00:00:00Z": {
+    "score": -0.34,
+    "raw_value": 33,
+    "label": "Fear"
   }
 }

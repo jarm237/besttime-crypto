@@ -10025,3 +10025,79 @@ To github.com:jarm237/besttime-crypto.git
 }
 Removed /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260717T190100Z.json
 Removed /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260717T190040Z.joblib
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/periodic_recalibration.py:90: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  'timestamp': datetime.utcnow().isoformat(),
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/periodic_recalibration.py:37: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  return datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/periodic_recalibration.py:37: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  return datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/periodic_recalibration.py:47: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  f.write(f"{datetime.utcnow().isoformat()} - {line}\n")
+[main ed71ca0] Auto: recalibrated meta model (sigmoid) 20260721T190011Z
+ 2 files changed, 243 insertions(+)
+ create mode 100644 logs/meta_model_calibrated_periodic_20260721T190008Z.joblib
+ create mode 100644 logs/recalibration_20260721T190011Z.json
+To github.com:jarm237/besttime-crypto.git
+   c8396c6..ed71ca0  main -> main
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/periodic_recalibration.py:47: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  f.write(f"{datetime.utcnow().isoformat()} - {line}\n")
+{
+  "best": {
+    "method": "sigmoid",
+    "error": 7.0,
+    "metrics": {
+      "roc_auc": 0.6450341253512091,
+      "brier": 0.23348148565640145,
+      "mean_calibration_error": 7.0,
+      "buckets": {
+        "0.0-0.4": {
+          "count": 757,
+          "wins": 258,
+          "losses": 499,
+          "actual_wr": 34.1,
+          "predicted_wr": 20.0,
+          "calibration_error": 14.1,
+          "calibrated": false
+        },
+        "0.4-0.6": {
+          "count": 1374,
+          "wins": 696,
+          "losses": 678,
+          "actual_wr": 50.7,
+          "predicted_wr": 50.0,
+          "calibration_error": 0.7,
+          "calibrated": true
+        },
+        "0.6-0.7": {
+          "count": 231,
+          "wins": 169,
+          "losses": 62,
+          "actual_wr": 73.2,
+          "predicted_wr": 65.0,
+          "calibration_error": 8.2,
+          "calibrated": true
+        },
+        "0.7-0.8": {
+          "count": 45,
+          "wins": 36,
+          "losses": 9,
+          "actual_wr": 80.0,
+          "predicted_wr": 75.0,
+          "calibration_error": 5.0,
+          "calibrated": true
+        },
+        "0.8-1.0": {
+          "count": 0,
+          "actual_wr": null,
+          "predicted_wr": null,
+          "calibration_error": null,
+          "calibrated": false
+        }
+      }
+    },
+    "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260721T190008Z.joblib"
+  },
+  "report": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260721T190011Z.json"
+}
+Removed /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260718T190011Z.json
+Removed /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260718T190008Z.joblib
