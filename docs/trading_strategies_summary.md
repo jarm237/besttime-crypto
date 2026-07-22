@@ -15,7 +15,6 @@ Tài liệu tổng hợp toàn bộ chỉ báo kỹ thuật, công thức, quy t
   - `CCXT Auto Trading Monitor`: Dry Run / Live, Circuit Breaker, daily trade limit, audit logs.
   - `Meta Model Analytics`: Feature importance, calibration buckets, ROC-AUC.
   - `Gemini AI Insights`: Báo cáo AI từ `data/latest_ai_analysis.json`.
-- **Signal Tracker**: Tín hiệu đã phát trước đó được theo dõi bền vững (TTL 90 phút), hiển thị trong Telegram dưới mục "THEO DÕI TÍN HIỆU ĐÃ CÓ TRƯỚC ĐÓ".
 
 ---
 
@@ -166,35 +165,9 @@ Tham số mặc định: `atr_sl_mult = 1.2`, `atr_tp_mult = 3.5`
 
 ---
 
-## 4. Signal Tracker (Persistent — mới)
+## 4. Quản lý Vị thế
 
-`btc_scraper/analysis/signal_tracker.py` — theo dõi trạng thái tín hiệu bền vững:
-
-- **Storage**: `data/tracked_signals.json` (per-coin, append-only với dedup theo timestamp)
-- **TTL**: 90 phút — tự động prune sau khi hết hạn
-- **States**: `Running (Van con hieu luc)` → `Hit TP1` / `Hit TP2` / `Hit SL`
-- **Evaluation**: So sánh current_close với TP1/TP2/SL của mỗi signal còn active
-
-```python
-from btc_scraper.analysis.signal_tracker import signal_tracker
-
-# Đăng ký tín hiệu mới
-signal_tracker.register_signal(
-    coin="BTC", signal_time="2026-07-02T09:00",
-    signal="STRONG BUY", entry=65000.0,
-    tp_sl={"tp1": 67000, "tp2": 70000, "sl": 63000},
-    reason="RSI Reversal + Golden Cross"
-)
-
-# Đánh giá tín hiệu đang theo dõi
-tracked = signal_tracker.evaluate_signals("BTC", current_close=66000.0)
-```
-
----
-
-## 5. Quản lý Vị thế
-
-### 5.1. Khuyến nghị tự động (evaluate_positions)
+### 4.1. Khuyến nghị tự động (evaluate_positions)
 
 | Tình huống | Khuyến nghị | Urgency |
 |-----------|------------|---------|
@@ -205,7 +178,7 @@ tracked = signal_tracker.evaluate_signals("BTC", current_close=66000.0)
 | PnL < −3% | ⚠️ CẢNH BÁO LỖ | MEDIUM |
 | Còn lại | 💤 GIỮ LỆNH | LOW |
 
-### 5.2. Công thức Hiệu suất
+### 4.2. Công thức Hiệu suất
 
 $$PnL\%_{LONG} = \frac{ExitPrice - EntryPrice}{EntryPrice} \times 100$$
 $$PnL\%_{SHORT} = \frac{EntryPrice - ExitPrice}{EntryPrice} \times 100$$
@@ -216,7 +189,7 @@ $$Fee = Invested \times 0.001 + (Invested + PnL_{USD}) \times 0.001$$
 
 ---
 
-## 6. Reinforcement Learning Exit Manager (Phase 4)
+## 5. Reinforcement Learning Exit Manager (Phase 4)
 
 ### Môi trường (Gymnasium — `rl_trading_env.py`)
 
@@ -272,9 +245,9 @@ python evaluate_rl_phase4.py
 
 ---
 
-## 7. Causal World Model Integration
+## 6. Causal World Model Integration
 
-### 7.1. WorldState (5 Layers)
+### 6.1. WorldState (5 Layers)
 ```python
 WorldState
   ├─ macro:     DXY, FedRate, RealYield, BondYield, VIX
@@ -284,7 +257,7 @@ WorldState
   └─ risk:      CurrentDrawdown, Volatility, VaR95, Sharpe
 ```
 
-### 7.2. HybridContextProvider
+### 6.2. HybridContextProvider
 ```python
 # Alpha=0.0 → 100% rules (safe mode, default)
 # Alpha=0.3 → 70% rules + 30% Bayesian
@@ -297,7 +270,7 @@ report = provider.generate_context_report(original_score=0.75, world_state=state
 # → ContextReport: adjusted_score=0.52, risk_level="HIGH", adjustments=[...]
 ```
 
-### 7.3. CounterfactualEngine (Phase D)
+### 6.3. CounterfactualEngine (Phase D)
 ```python
 # ExecutionAgent tự động chạy sau mỗi cycle cho losing trades
 engine = CounterfactualEngine()
@@ -312,9 +285,9 @@ result = engine.analyze_trade(
 
 ---
 
-## 8. Giao dịch Tự động (Auto-Trading CCXT)
+## 7. Giao dịch Tự động (Auto-Trading CCXT)
 
-### 8.1. Điều kiện Kích hoạt (`should_trade`)
+### 7.1. Điều kiện Kích hoạt (`should_trade`)
 1. Coin trong whitelist `AUTO_TRADE_COINS`
 2. Tín hiệu BUY/SELL rõ ràng (không WEAK/NEUTRAL)
 3. `meta_confidence` ≥ ngưỡng (mặc định **85%**)
@@ -323,32 +296,32 @@ result = engine.analyze_trade(
 6. Circuit Breaker & daily limit bình thường
 7. Causal Gate không override → NEUTRAL
 
-### 8.2. Position Sizing (Fixed-Fractional Risk)
+### 7.2. Position Sizing (Fixed-Fractional Risk)
 $$Risk\_USDT = Account\_USDT \times 2\%$$
 $$Position = \frac{Risk\_USDT}{SL\_Distance\%}$$
 
 Min: 10 USDT / Max: 100 USDT
 
-### 8.3. Circuit Breaker
+### 7.3. Circuit Breaker
 - **Daily limit**: 5 lệnh/ngày
 - **Consecutive loss gate**: 5 lệnh thua liên tiếp → dừng 24h
 - **Drawdown gate** (RiskManagerAgent): drawdown > 10% → tất cả tín hiệu → NEUTRAL
 
-### 8.4. Auto Close
+### 7.4. Auto Close
 - Mỗi 5 phút: kiểm tra giá vs SL/TP của vị thế `[AUTO-...]`
 - SL hit → Market close + "LOSS" vào Circuit Breaker + Telegram alert
 - TP2 hit → Market close + "WIN" + Telegram
 
 ---
 
-## 9. Portfolio Optimization & Multi-Agent
+## 8. Portfolio Optimization & Multi-Agent
 
-### 9.1. Portfolio Sizing (khi ≥ 2 tín hiệu đồng thời)
+### 8.1. Portfolio Sizing (khi ≥ 2 tín hiệu đồng thời)
 1. **Tương quan returns**: ma trận covariance 100 nến 15m gần nhất.
 2. **MVO**: Tối đa hóa Sharpe dựa trên expected returns (meta_confidence) và covariance.
 3. **Risk Parity**: Cân bằng đóng góp rủi ro của mỗi tài sản.
 
-### 9.2. Kiến trúc 6-Agent
+### 8.2. Kiến trúc 6-Agent
 
 | Agent | Vai trò |
 |-------|---------|
@@ -361,7 +334,7 @@ Min: 10 USDT / Max: 100 USDT
 
 ---
 
-## 10. Kết quả Backtest v2 (Tham khảo)
+## 9. Kết quả Backtest v2 (Tham khảo)
 
 ```bash
 python -X utf8 backtest_eval.py

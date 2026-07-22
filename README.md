@@ -21,7 +21,6 @@ Nền tảng giao dịch tiền điện tử tự động thế hệ mới, kế
 - **ML Ensemble**: Meta Model v3.1 production, Adaptive RF canonical artifact và runtime prediction audit với model/schema/artifact traceability.
 - **Reinforcement Learning Exit Manager (Recurrent PPO)**: observation contract 20D / 6 actions, đang ở shadow/advisory mode; active exit action vẫn bị guard.
 - **Runtime Outcome Linkage**: stable lifecycle IDs, data contracts, calibration sample store, Gate A evidence tooling và shadow evidence governance.
-- **Signal Tracker**: Theo dõi trạng thái tín hiệu bền vững (active, TP1/TP2 hit, SL hit) qua `data/tracked_signals.json`, TTL 90 phút.
 - **Fear & Greed Index (Lớp 6)**: `alternative.me/fng`, cache 1h — tự động hạ cấp tín hiệu theo sentiment cực đoan.
 - **Gemini AI Analyst**: Tổng hợp tín hiệu 15m + MTF + lịch sử giao dịch (RAG) → nhận định thị trường tiếng Việt.
 - **Auto Trading (CCXT)**: Tự động đặt/đóng lệnh Market trên Binance Testnet/Mainnet. Hỗ trợ chế độ Dry Run.
@@ -265,9 +264,8 @@ besttime-crypto/
 ├── main.py                          # Entry point: WebSocket, scheduler, AI worker
 ├── btc_scraper/
 │   ├── analysis/
-│   │   ├── core.py                  # Signal detection engine: indicators, patterns, TP/SL, tracker
+│   │   ├── core.py                  # Signal detection engine: indicators, patterns, TP/SL
 │   │   ├── indicators.py            # ATR, RSI, EMA, SMA, MACD, BB, Chandelier
-│   │   ├── signal_tracker.py        # Persistent signal state tracking (TTL 90m)
 │   │   ├── correlation.py           # MTF correlation matrix
 │   │   └── structure.py             # Market structure (support/resistance)
 │   ├── core/
@@ -340,7 +338,6 @@ besttime-crypto/
 ├── data/
 │   ├── causal_graph.json            # Knowledge graph (v2.0)
 │   ├── context_rules.json           # Context rules config (v2.0)
-│   ├── tracked_signals.json         # Persistent signal state
 │   ├── latest_signals.json          # Latest analysis snapshot
 │   └── latest_ai_analysis.json      # Latest Gemini AI report
 ├── logs/

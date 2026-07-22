@@ -16,7 +16,6 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
     # Lọc ra các coin có tín hiệu hành động (BUY/SELL)
     active_signals = []
     neutral_signals = []
-    missed_valid_signals = []
     
     from btc_scraper.ml_engine.signal_score import extract_signal_fields
     def _is_actionable_alert(signal_text: str) -> bool:
@@ -155,34 +154,6 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         else:
             neutral_signals.append(line)
             
-        # Kiểm tra tín hiệu bỏ lỡ còn hiệu lực (Running)
-        for ms in ana.get("missed_signals", []):
-            if "Running" in ms["status"]:
-                ms_fields = extract_signal_fields(ms)
-                ms_sig = ms.get("signal", ms_fields.get("raw", ""))
-                ms_emoji = "⏳ 🟢" if "BUY" in ms_sig else "⏳ 🔴"
-                ms_val_format = ",.4f" if ms["entry"] < 10 else ",.2f"
-                ms_entry_str = f"{ms['entry']:{ms_val_format}}"
-
-                try:
-                    ms_current_price = float(ms.get("current_price", close_val))
-                except (TypeError, ValueError):
-                    ms_current_price = None
-                ms_current_price_str = f"{ms_current_price:{ms_val_format}}" if ms_current_price is not None and ms_current_price > 0 else "-"
-                
-                ms_tp_sl = ms["tp_sl"]
-                ms_sl_str = f"{ms_tp_sl.get('sl', 0.0):{ms_val_format}}"
-                ms_tp1_str = f"{ms_tp_sl.get('tp1', 0.0):{ms_val_format}}"
-                ms_tp2_str = f"{ms_tp_sl.get('tp2', 0.0):{ms_val_format}}"
-                
-                escaped_ms_sig = html.escape(ms_sig)
-                ms_line = (
-                    f"{ms_emoji} <b>{coin}</b> (Tín hiệu cũ {ms['age_minutes']}p trước): <b>{escaped_ms_sig}</b>\n"
-                    f"  Entry cũ: <code>{ms_entry_str}</code> | Giá hiện tại: <code>{ms_current_price_str}</code>\n"
-                    f"  SL: <code>{ms_sl_str}</code> | TP1: <code>{ms_tp1_str}</code> (R:R {ms_tp_sl.get('rr1', 0.0)}) | TP2: <code>{ms_tp2_str}</code> (R:R {ms_tp_sl.get('rr2', 0.0)})"
-                )
-                missed_valid_signals.append(ms_line)
-            
     # Gửi từng phần tin nhắn riêng biệt để tránh gộp chung gây rối mắt
     def _send_section(title: str, items: list[str]) -> int | None:
         if not items:
@@ -209,7 +180,6 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         return first_msg_id
 
     neutral_msg_id = _send_section("\n📈 <b>Trạng thái thị trường:</b>", neutral_signals)
-    missed_msg_id = _send_section("\n⏳ <b>THEO DÕI TÍN HIỆU ĐÃ CÓ TRƯỚC ĐÓ:</b>", missed_valid_signals)
     active_msg_id = _send_section("\n🔥 <b>TÍN HIỆU ĐÁNG CHÚ Ý:</b>", active_signals)
     
     # MTF (1h/4h/1d) signals section (nếu có dữ liệu được truyền vào)
@@ -220,9 +190,7 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
     # Trả về message_id ưu tiên để AI reply vào (ưu tiên Tín hiệu đáng chú ý)
     if active_msg_id is not None:
         return active_msg_id
-    if missed_msg_id is not None:
-        return missed_msg_id
-    # Nếu không có active/missed, ưu tiên trả về HTF nếu có
+    # Nếu không có active, ưu tiên trả về HTF nếu có
     if htf_msg_id is not None:
         return htf_msg_id
     return neutral_msg_id
@@ -529,5 +497,4 @@ def send_shadow_mode_report(
 
     message = "\n".join(lines)
     return send_telegram_message(message, parse_mode="HTML")
-
 

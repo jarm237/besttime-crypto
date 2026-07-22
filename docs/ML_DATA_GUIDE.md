@@ -262,7 +262,6 @@ data/
 ├── rag_prompts.md             ← Markdown narratives cho Gemini AI
 ├── causal_graph.json          ← Knowledge graph (v2.0): manual + learned edges
 ├── context_rules.json         ← Context rules config + enable_learned_rules flag
-├── tracked_signals.json       ← Persistent signal tracker state (TTL 90m)
 ├── latest_signals.json        ← Latest analysis snapshot (read by Dashboard)
 └── latest_ai_analysis.json    ← Latest Gemini AI report (read by Dashboard)
 

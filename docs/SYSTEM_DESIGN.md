@@ -447,18 +447,7 @@ Closed Trade → Append Dataset → Feature Validation
 
 ---
 
-## 13. Signal Tracker (Persistent)
-
-`SignalTracker` theo dõi trạng thái tín hiệu bền vững qua file `data/tracked_signals.json`:
-
-- **TTL**: 90 phút — tự động prune signals cũ.
-- **States**: `Running`, `Hit TP1`, `Hit TP2`, `Hit SL`.
-- **Evaluation**: Mỗi scan so sánh current_close với TP1/TP2/SL của mỗi signal còn active.
-- **Integration**: `signal_tracker.register_signal()` được gọi trong `analysis/core.py`; tracked signals hiển thị trong Telegram alerts dưới "THEO DÕI TÍN HIỆU ĐÃ CÓ".
-
----
-
-## 14. Lộ trình Phát triển (Roadmap)
+## 13. Lộ trình Phát triển (Roadmap)
 
 ```text
 Phase 1-4 ✅   Feature Engineering + Regime + Ensemble ML + RL Exit

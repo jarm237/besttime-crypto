@@ -34611,5 +34611,27 @@
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784683563",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784683563.450047,
+    "timestamp_str": "2026-07-22 08:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784683872",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784683872.6242316,
+    "timestamp_str": "2026-07-22 08:31:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation"
   }
 ]

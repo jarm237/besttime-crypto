@@ -782,7 +782,6 @@ class LLMContextProvider(ContextProvider):
 | `btc_scraper/ml_engine/agents/liquidity_agent.py` | Phase 6.0: Funding/OI/Orderbook watcher | ✅ Production |
 | `btc_scraper/ml_engine/agents/sentiment_agent.py` | Phase 6.0: Fear&Greed/social watcher | ✅ Production |
 | `btc_scraper/ml_engine/agents/consensus_engine.py` | Phase 6.0: Causal Voting + Bayesian Fusion | ✅ Production |
-| `btc_scraper/analysis/signal_tracker.py` | Persistent signal tracking (TTL 90m, data/tracked_signals.json) | ✅ Production |
 | `btc_scraper/collectors/macro_collector.py` | DXY, VIX, RealYield, BondYield fetcher | ✅ Production |
 
 ### New Test Files (Phase A-D)

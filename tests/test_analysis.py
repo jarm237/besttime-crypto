@@ -1,4 +1,4 @@
-from btc_scraper.analysis import analyze_all_market, calculate_tp_sl
+from btc_scraper.analysis import analyze_all_market, analyze_market, calculate_tp_sl
 from btc_scraper.analysis.structure import is_trend_following_allowed
 
 
@@ -31,6 +31,12 @@ def test_analyze_all_market_runs_and_returns_signals():
     assert all("tp_sl" in item for item in results)
     assert all("market_regime" in item for item in results)
     assert all("trend_following_allowed" in item for item in results)
+
+
+def test_analyze_market_does_not_track_missed_signals():
+    result = analyze_market(make_synthetic_candles(260), coin_name="BTC")
+
+    assert "missed_signals" not in result
 
 
 def test_calculate_tp_sl_directional_targets():

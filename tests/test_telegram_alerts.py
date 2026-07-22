@@ -41,3 +41,36 @@ def test_send_signals_alert_includes_kelly_fraction(monkeypatch):
     assert msg_id == 1
     assert sent
     assert "Kelly: 12.3%" in sent[0]
+
+
+def test_send_signals_alert_ignores_legacy_missed_signals(monkeypatch):
+    sent = []
+
+    monkeypatch.setattr(alerts, "TELEGRAM_BOT_TOKEN", "token")
+    monkeypatch.setattr(alerts, "TELEGRAM_CHAT_ID", "chat")
+    monkeypatch.setattr(
+        alerts,
+        "send_telegram_message",
+        lambda message, parse_mode=None: sent.append(message) or len(sent),
+    )
+
+    alerts.send_signals_alert({
+        "BTC:Binance": {
+            "signal": "NEUTRAL",
+            "reason": "no active setup",
+            "close": 100.0,
+            "rsi": 50.0,
+            "signal_score": {},
+            "missed_signals": [{
+                "signal": "BUY",
+                "entry": 99.0,
+                "status": "Running (Van con hieu luc)",
+                "age_minutes": 10,
+                "tp_sl": {"sl": 98.0, "tp1": 101.0, "tp2": 102.0},
+            }],
+        }
+    })
+
+    assert sent
+    assert all("THEO DÕI TÍN HIỆU" not in message for message in sent)
+    assert all("Entry cũ" not in message for message in sent)

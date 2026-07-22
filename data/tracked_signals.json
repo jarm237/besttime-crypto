@@ -4,7 +4,7 @@
       "time": "2026-07-22 07:00",
       "signal": "SELL (Crossover)",
       "entry": 1.589,
-      "current_price": 1.592,
+      "current_price": 1.587,
       "tp_sl": {
         "entry": 1.589,
         "sl": 1.6805,
@@ -16,7 +16,7 @@
       },
       "reason": "EMA9 cat xuong EMA21 (Xu huong giam — chua du du lieu SMA200)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 75,
+      "age_minutes": 90,
       "created_at_ts": 1784678464.6408856
     }
   ],
@@ -32,7 +32,7 @@
       "time": "2026-07-22 07:00",
       "signal": "BUY (Crossover)",
       "entry": 1929.16,
-      "current_price": 1933.09,
+      "current_price": 1932.67,
       "tp_sl": {
         "entry": 1929.16,
         "sl": 1916.1315,
@@ -44,7 +44,7 @@
       },
       "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 79,
+      "age_minutes": 89,
       "created_at_ts": 1784678462.5240471
     }
   ],
@@ -54,7 +54,7 @@
       "time": "2026-07-22 07:15",
       "signal": "BUY (Crossover)",
       "entry": 574.66,
-      "current_price": 574.01,
+      "current_price": 573.2,
       "tp_sl": {
         "entry": 574.66,
         "sl": 572.3014,
@@ -66,7 +66,7 @@
       },
       "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 60,
+      "age_minutes": 74,
       "created_at_ts": 1784679362.7174606
     }
   ],
@@ -75,7 +75,7 @@
       "time": "2026-07-22 07:15",
       "signal": "SELL (SFP-Liquidity-Sweep)",
       "entry": 0.0871,
-      "current_price": 0.0869,
+      "current_price": 0.0872,
       "tp_sl": {
         "entry": 0.0871,
         "sl": 0.0878,
@@ -87,7 +87,7 @@
       },
       "reason": "Quet thanh khoan dinh: wick vuot 0.09 roi dong cua duoi resistance | RSI=61.3 | Bull Market - co the chi la fakeout",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 7,
+      "age_minutes": 22,
       "created_at_ts": 1784682506.1147501
     }
   ],
@@ -97,7 +97,7 @@
       "time": "2026-07-22 07:00",
       "signal": "STRONG SELL (Confirmed Reversal)",
       "entry": 0.3295,
-      "current_price": 0.3293,
+      "current_price": 0.3292,
       "tp_sl": {
         "entry": 0.3295,
         "sl": 0.3306,
@@ -109,34 +109,14 @@
       },
       "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 7,
+      "age_minutes": 22,
       "created_at_ts": 1784682506.8197305
     }
   ],
   "ZEC": [],
   "XAUT": [],
   "BTC": [],
-  "XRP": [
-    {
-      "time": "2026-07-22 03:00",
-      "signal": "STRONG SELL (Confirmed Reversal)",
-      "entry": 1.1422,
-      "current_price": 1.1442,
-      "tp_sl": {
-        "entry": 1.1422,
-        "sl": 1.1716,
-        "tp1": 1.1126,
-        "tp2": 1.0724,
-        "rr1": 1.0,
-        "rr2": 2.37,
-        "method": "ATR+DynamicSL+Resistance+BB (Short)"
-      },
-      "reason": "RSI cat xuong duoi 70 (dao chieu tu Overbought) (volume trung binh)",
-      "status": "Running (Van con hieu luc)",
-      "age_minutes": 89,
-      "created_at_ts": 1784677564.054963
-    }
-  ],
+  "XRP": [],
   "SOPH": [],
   "SOL": [],
   "WLD": [],
@@ -145,7 +125,7 @@
       "time": "2026-07-22 07:15",
       "signal": "BUY (Crossover)",
       "entry": 0.07368,
-      "current_price": 0.07354,
+      "current_price": 0.07344,
       "tp_sl": {
         "entry": 0.0737,
         "sl": 0.0732,
@@ -157,7 +137,7 @@
       },
       "reason": "EMA9 cat len EMA21 + Chandelier=BULL + Gia tren SMA200 (Bull Market confirmed)",
       "status": "Running (Van con hieu luc)",
-      "age_minutes": 60,
+      "age_minutes": 74,
       "created_at_ts": 1784679363.1759698
     }
   ]

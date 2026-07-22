@@ -205,89 +205,6 @@ def make_signal_table(analysis_results: dict[str, dict]) -> Table:
     return table
 
 
-def make_missed_signals_table(analysis_results: dict[str, dict]) -> Table | None:
-    """Tạo bảng các tín hiệu mua/bán có thể đã bị bỏ qua trong vòng 90 phút qua"""
-    # Gom tất cả các missed_signals của các coin lại
-    all_missed = []
-    for key, ana in analysis_results.items():
-        coin, exchange = key.split(":")
-        for ms in ana.get("missed_signals", []):
-            all_missed.append((coin, exchange, ms, ana.get("close", 0.0)))
-            
-    if not all_missed:
-        return None
-        
-    table = Table(
-        title="[bold orange3]CAC TIN HIEU CO THE DA BI BO QUA (TRONG VONG 90 PHUT TRUOC)[/]",
-        box=box.DOUBLE_EDGE,
-        border_style="orange3",
-        header_style="bold orange3",
-        show_lines=True,
-    )
-    
-    table.add_column("Coin", style="bold yellow")
-    table.add_column("San")
-    table.add_column("Thoi Gian", justify="center")
-    table.add_column("Do Tre", justify="center")
-    table.add_column("Tin Hieu", justify="center")
-    table.add_column("Entry Cu", justify="right")
-    table.add_column("Gia Hien Tai", justify="right", style="cyan")
-    table.add_column("Stop Loss", justify="right", style="bright_red")
-    table.add_column("TP1 / TP2 (R:R)", justify="right", style="bright_green")
-    table.add_column("Trang Thai", justify="center")
-    
-    for coin, exchange, ms, current_close in all_missed:
-        from btc_scraper.ml_engine.signal_score import extract_signal_fields
-        ms_sig_fields = extract_signal_fields(ms)
-        sig = ms.get("signal", ms_sig_fields.get("raw", ""))
-        
-        # Color signal
-        sig_styled = f"[white]{sig}[/]"
-        if "STRONG BUY" in sig or "BUY" in sig:
-            sig_styled = f"[bold bright_green]{sig}[/]"
-        elif "STRONG SELL" in sig or "SELL" in sig:
-            sig_styled = f"[bold bright_red]{sig}[/]"
-            
-        val_format = ",.4f" if ms["entry"] < 10 else ",.2f"
-        entry_str = f"{ms['entry']:{val_format}}"
-        current_str = f"{current_close:{val_format}}" if current_close > 0 else "-"
-        
-        tp_sl = ms["tp_sl"]
-        sl_val = tp_sl.get("sl", 0.0)
-        tp1_val = tp_sl.get("tp1", 0.0)
-        tp2_val = tp_sl.get("tp2", 0.0)
-        rr1_val = tp_sl.get("rr1", 0.0)
-        rr2_val = tp_sl.get("rr2", 0.0)
-        
-        sl_str = f"{sl_val:{val_format}}" if sl_val > 0 else "-"
-        tp_str = f"{tp1_val:{val_format}} ({rr1_val}) / {tp2_val:{val_format}} ({rr2_val})"
-        
-        # Color status
-        status = ms["status"]
-        status_styled = f"[white]{status}[/]"
-        if "Hit TP" in status:
-            status_styled = f"[bold bright_green]{status}[/]"
-        elif "Hit SL" in status:
-            status_styled = f"[bold bright_red]{status}[/]"
-        elif "Running" in status:
-            status_styled = f"[bold yellow]{status}[/]"
-            
-        table.add_row(
-            coin,
-            exchange,
-            ms["time"].split(" ")[1] if " " in ms["time"] else ms["time"],  # chỉ lấy giờ phút
-            f"{ms['age_minutes']}p truoc",
-            sig_styled,
-            entry_str,
-            current_str,
-            sl_str,
-            tp_str,
-            status_styled
-        )
-        
-    return table
-
-
 def make_min_capital_table(analysis_results: dict[str, dict]) -> Table:
     """
     Tính vốn tối thiểu nên giao dịch cho mỗi coin dựa trên TP/SL % thực tế
@@ -409,14 +326,6 @@ def print_all(results: dict[str, dict[str, list[dict]]], analysis_results: dict[
     signal_table = make_signal_table(analysis_results)
     console.print(signal_table)
     console.print()
-
-    # In bảng các tín hiệu bỏ lỡ
-    missed_table = make_missed_signals_table(analysis_results)
-    if missed_table:
-        console.print(missed_table)
-        console.print()
-    else:
-        console.print("[dim]>> Khong co tin hieu Mua/Ban nao bi bo lo trong 90 phut qua.[/dim]\n")
 
     # In bảng vốn tối thiểu khuyến nghị
     min_cap_table = make_min_capital_table(analysis_results)

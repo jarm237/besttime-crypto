@@ -70,17 +70,6 @@ def _build_coin_block(key: str, info: dict) -> str:
             f"TP2={_format_price(tp2_val)} (R:R={rr2_val})"
         )
 
-    missed_signals = info.get("missed_signals", [])
-    if missed_signals:
-        lines.append("  Tin hieu mua/ban da bo qua trong 90p qua:")
-        for ms in missed_signals:
-            ms_tp = ms["tp_sl"]
-            lines.append(
-                f"    - Luc {ms['time']} ({ms['age_minutes']}p truoc): {ms['signal']} "
-                f"tai Entry={_format_price(ms['entry'])} | SL={_format_price(ms_tp.get('sl', 0.0))} | "
-                f"TP1={_format_price(ms_tp.get('tp1', 0.0))} (R:R={ms_tp.get('rr1', 0.0)}) -> Trang thai: {ms['status']}"
-            )
-
     lines.append("")
     lines.append("  --- Lich su 8 nen gan nhat (moi moi nhat) ---")
 
@@ -253,4 +242,3 @@ def _build_rag_block(
 
     lines.append("")
     return "\n".join(lines)
-

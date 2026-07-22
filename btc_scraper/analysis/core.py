@@ -15,7 +15,6 @@ from .structure import (
     _structure_flags, is_bullish_sfp, is_bearish_sfp, is_trend_following_allowed,
     wick_ratios, calculate_smc_structure
 )
-from .signal_tracker import signal_tracker
 REGIME_MULTIPLIERS_MAP = {
     "STRONG_TREND_BULL": {"tp_scale": 1.2, "sl_scale": 0.8},
     "STRONG_TREND_BEAR": {"tp_scale": 1.2, "sl_scale": 0.8},
@@ -758,37 +757,9 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
             "bb_upper": c["bb_upper"], "bb_middle": c["bb_middle"], "bb_lower": c["bb_lower"]
         })
 
-    # Theo dõi tín hiệu (Signal Tracker)
-    missed_signals = []
-    current_close = close_prices[-1]
-    
-    def _is_actionable_signal(sig: str) -> bool:
-        sig_text = str(sig).upper()
-        if "NEUTRAL" in sig_text:
-            return False
-        return "BUY" in sig_text or "SELL" in sig_text or "SHORT" in sig_text
-
-    if coin_name:
-        # 1. Đăng ký tín hiệu hiện tại nếu hợp lệ
-        if _is_actionable_signal(current_sig):
-            current_time = candles[-1]["time"]
-            signal_tracker.register_signal(
-                coin=coin_name,
-                signal_time=current_time,
-                signal=current_sig,
-                entry=current_close,
-                tp_sl=current_tp_sl,
-                reason=current_reason,
-                current_price=current_close,
-            )
-            
-        # 2. Đánh giá và lấy danh sách tín hiệu đang theo dõi
-        missed_signals = signal_tracker.evaluate_signals(coin_name, current_close)
-
     res = {
         **current_data,
         "history": history,
-        "missed_signals": missed_signals,
         "signal": current_sig,
         "reason": current_reason,
         "tp_sl": current_tp_sl,
@@ -1319,4 +1290,3 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
         })
 
     return results
-

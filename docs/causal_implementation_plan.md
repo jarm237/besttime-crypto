@@ -52,7 +52,6 @@ CAUSAL_ALPHA=0.0
 | `btc_scraper/ml_engine/agents/liquidity_agent.py` | 6.0 | Funding/OI watcher |
 | `btc_scraper/ml_engine/agents/sentiment_agent.py` | 6.0 | Fear&Greed watcher |
 | `btc_scraper/ml_engine/agents/consensus_engine.py` | 6.0 | Bayesian Fusion / Causal Voting |
-| `btc_scraper/analysis/signal_tracker.py` | — | Persistent signal state (TTL 90m) |
 | `btc_scraper/collectors/macro_collector.py` | — | DXY, VIX, RealYield fetcher |
 | `tests/test_causal_context_bridge.py` | A | 10 integration tests |
 | `tests/test_causal_runtime_integration.py` | A-D | End-to-end runtime |
