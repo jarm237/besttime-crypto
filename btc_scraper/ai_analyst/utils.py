@@ -30,8 +30,9 @@ def _apply_dynamic_risk_and_sentiment(
     if sentiment is None:
         sentiment = {}
 
-    fear_score = float(sentiment.get("score", 0.0))
-    fear_extreme = fear_score <= -0.6
+    fear_score_raw = sentiment.get("normalized_score", sentiment.get("score"))
+    fear_score = float(fear_score_raw) if fear_score_raw is not None else None
+    fear_extreme = fear_score is not None and fear_score <= -0.6
 
     from btc_scraper.ml_engine.signal_score import extract_signal_fields
     for info in analysis_results.values():
@@ -57,4 +58,3 @@ def _apply_dynamic_risk_and_sentiment(
         if atr_ma > 0:
             info["atr_shock"] = atr_shock_filter(atr_current, atr_ma)
             info["atr_used"] = atr_used_for_chandelier(atr_current, atr_ma)
-

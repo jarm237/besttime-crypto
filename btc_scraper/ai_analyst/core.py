@@ -50,10 +50,10 @@ def analyze_with_gemini(
         rag_str = _build_rag_block(analysis_results, closed_trades)
 
         sentiment_str = ""
-        if sentiment:
-            raw = sentiment.get("raw_value", 50)
-            label = sentiment.get("label", "Neutral")
-            score = sentiment.get("score", 0.0)
+        if sentiment and sentiment.get("raw_value") is not None:
+            raw = sentiment.get("raw_value")
+            label = sentiment.get("label") or "Unknown"
+            score = sentiment.get("normalized_score", sentiment.get("score"))
             trend_list = sentiment.get("trend", [])
             trend_text = "\n  ".join(trend_list) if trend_list else ""
             sentiment_str = (

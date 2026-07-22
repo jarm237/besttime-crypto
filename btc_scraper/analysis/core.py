@@ -262,13 +262,13 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
     bos_bull_list, bos_bear_list, choch_bull_list, choch_bear_list = calculate_smc_structure(candles)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     sentiment_data = get_market_sentiment()
-    sentiment_score = sentiment_data["score"]
-    sentiment_label = sentiment_data["label"]
-    sentiment_raw = sentiment_data["raw_value"]
+    sentiment_score = sentiment_data.get("normalized_score")
+    sentiment_label = sentiment_data.get("label")
+    sentiment_raw = sentiment_data.get("raw_value")
     
-    # Lưu sentiment vào history để tracking trend
-    _save_sentiment_to_history(sentiment_data)
+    # Compare against the latest observation before today, then persist today.
     sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
+    _save_sentiment_to_history(sentiment_data)
 
     # Ghi lại chỉ số vào nến để hiển thị
     for i, c in enumerate(candles):
@@ -469,14 +469,17 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
         )
 
         # Lớp 6 — Sentiment modifier (không chặn tín hiệu mạnh)
-        sentiment_note = f" | Sentiment: {sentiment_raw}/100 ({sentiment_label_vi(sentiment_label)})"
-        extreme_fear = sentiment_score < -0.6
-        extreme_greed = sentiment_score > 0.6
+        sentiment_note = (
+            f" | Sentiment: {sentiment_raw}/100 ({sentiment_label_vi(sentiment_label)})"
+            if sentiment_raw is not None else " | Sentiment: unavailable"
+        )
+        extreme_fear = sentiment_score is not None and sentiment_score < -0.6
+        extreme_greed = sentiment_score is not None and sentiment_score > 0.6
         
         # Sentiment Trend (recovery/risk signal)
         sentiment_recovery = sentiment_trend_data.get("recovery_signal", False)
         sentiment_risk = sentiment_trend_data.get("risk_signal", False)
-        sentiment_trend_direction = sentiment_trend_data.get("trend", "STABLE")
+        sentiment_trend_direction = sentiment_trend_data.get("trend", "UNKNOWN")
         
         base_confidence = 0.55
         if above_sma200 and chandelier_state == "BULL":
@@ -766,13 +769,18 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
         "trend_context": trend_context,
         "sentiment": {
             "score": sentiment_score,
+            "normalized_score": sentiment_score,
             "label": sentiment_label,
             "raw_value": sentiment_raw,
-            "trend": sentiment_trend_data.get("trend", "STABLE"),
+            "trend": sentiment_trend_data.get("trend", "UNKNOWN"),
+            "daily_momentum": sentiment_trend_data.get("daily_momentum"),
             "momentum": sentiment_trend_data.get("momentum", 0.0),
             "recovery_signal": sentiment_trend_data.get("recovery_signal", False),
             "risk_signal": sentiment_trend_data.get("risk_signal", False),
             "hours_in_extreme": sentiment_trend_data.get("hours_in_extreme", 0),
+            "consecutive_extreme_days": sentiment_trend_data.get("consecutive_extreme_days", 0),
+            "status": sentiment_data.get("status"),
+            "stale": sentiment_data.get("stale", False),
         },
     }
     # Attach scoring metadata (phase 1-5 basic implementation). Keep backward compatibility.
@@ -824,7 +832,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     # Global market sentiment (reused for all coins / candles in this historical run)
     sentiment_data = get_market_sentiment()
-    sentiment_score = sentiment_data.get("score")
+    sentiment_score = sentiment_data.get("normalized_score")
     sentiment_label = sentiment_data.get("label")
     sentiment_raw = sentiment_data.get("raw_value")
     sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
@@ -953,9 +961,12 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
                 c_sentiment_label = c_sentiment["label"]
                 c_sentiment_raw = c_sentiment["raw_value"]
 
-        extreme_fear = c_sentiment_score < -0.6
-        extreme_greed = c_sentiment_score > 0.6
-        sentiment_note = f" | Sentiment: {c_sentiment_raw}/100 ({sentiment_label_vi(c_sentiment_label)})"
+        extreme_fear = c_sentiment_score is not None and c_sentiment_score < -0.6
+        extreme_greed = c_sentiment_score is not None and c_sentiment_score > 0.6
+        sentiment_note = (
+            f" | Sentiment: {c_sentiment_raw}/100 ({sentiment_label_vi(c_sentiment_label)})"
+            if c_sentiment_raw is not None else " | Sentiment: unavailable"
+        )
 
         rsi_turning_up   = (prev_rsi <= 30) and (current_rsi > 30)
         rsi_turning_down = (prev_rsi >= 70) and (current_rsi < 70)

@@ -67,7 +67,7 @@ class Phase7Sprint3Tests(unittest.TestCase):
             collector = AlternativeMeCollector(output_path=str(Path(tempfile.gettempdir()) / "alternative_me.json"))
             data = collector.collect(force=True)
         self.assertEqual(data["fear_greed_raw"], 78.0)
-        self.assertEqual(data["fear_greed_score"], 0.78)
+        self.assertAlmostEqual(data["fear_greed_score"], 0.56)
         self.assertEqual(data["fear_greed_regime"], "greed")
 
     def test_alternative_me_collector_skips_when_disabled(self):

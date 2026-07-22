@@ -1,1 +1,16 @@
-{"current_stage": 1}
+{
+  "current_stage": 1,
+  "previous_stage": null,
+  "last_transition": "HALTED",
+  "last_transition_reason": "test_halt",
+  "last_transition_at": "2026-07-22T02:27:52.988147+00:00",
+  "stage_started_at": 1784687272.988006,
+  "history": [
+    {
+      "event": "HALTED",
+      "from": 1,
+      "at": "2026-07-22T02:27:52.988147+00:00",
+      "reason": "test_halt"
+    }
+  ]
+}

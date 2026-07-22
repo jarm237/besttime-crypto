@@ -34,6 +34,7 @@ from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_pos
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper.core.paths import build_data_path, build_logs_path, build_scripts_path
+from btc_scraper.core.fear_greed import resolve_fear_greed_value
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.candle_store import candle_store
 from btc_scraper.exchanges.binance_ws import BinanceWebSocketManager
@@ -45,6 +46,15 @@ from btc_scraper.collectors.alternative_data import load_alternative_data
 
 
 console = Console()
+
+
+def _resolve_analysis_fear_greed(analysis: dict) -> float:
+    sentiment = analysis.get("sentiment") or {}
+    return resolve_fear_greed_value(
+        sentiment.get("raw_value"),
+        analysis.get("fear_greed"),
+        default=50.0,
+    )
 
 # ─── Auto-restart config ─────────────────────────────────────────────────────
 MAX_RETRIES = 5               # Số lần retry tối đa liên tiếp trước khi bỏ cuộc
@@ -372,12 +382,7 @@ async def fetch_and_display():
     try:
         # Phase A fix: đọc đúng key "BTC:Binance" và lấy fear_greed từ đúng path
         btc_ana = analysis.get("BTC:Binance", {})
-        _sentiment = btc_ana.get("sentiment") or {}
-        fear_greed = float(
-            _sentiment.get("raw_value")
-            or btc_ana.get("fear_greed")
-            or 50.0
-        )
+        fear_greed = _resolve_analysis_fear_greed(btc_ana)
         macro_state = load_macro_state()
         causal_payload = {
             "signal": btc_ana.get("signal", "neutral"),

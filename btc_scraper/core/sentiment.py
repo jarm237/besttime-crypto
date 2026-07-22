@@ -10,9 +10,12 @@ Score mapping: 0-100 → -1.0 (Cực kỳ Bearish) đến +1.0 (Cực kỳ Bulli
 
 import time
 import json
+import os
 import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+
+from btc_scraper.core.fear_greed import normalize_fear_greed, parse_fear_greed_record
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Cache đơn giản trong bộ nhớ (1 giờ)
@@ -20,8 +23,13 @@ from datetime import datetime, timezone
 _CACHE_TTL = 3600  # seconds
 
 _cache: dict = {
-    "score": 0.0,
-    "raw_value": 50,
+    "score": None,
+    "normalized_score": None,
+    "raw_value": None,
+    "label": None,
+    "observed_at": None,
+    "observation_date": None,
+    "status": "empty",
     "timestamp": 0.0,
     "trend": [],
 }
@@ -35,31 +43,38 @@ def _fetch_fear_and_greed() -> dict:
     """
     Gọi Alternative.me API và trả về dict:
         {"score": float (-1.0 đến 1.0), "label": str, "raw_value": int, "trend": list}
-    Nếu lỗi → trả về giá trị neutral (0.0).
+    Lỗi mạng/schema được chuyển cho caller để dùng stale cache hoặc unavailable.
     """
     url = "https://api.alternative.me/fng/?limit=5&format=json"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "besttime-crypto-bot/1.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read().decode())
-        
-        current = data["data"][0]
-        raw = int(current["value"])
-        label = current["value_classification"]
-        # Map 0-100 → -1.0 đến +1.0
-        score = round((raw - 50) / 50.0, 3)
-        
-        trend = []
-        for item in data.get("data", []):
-            ts = int(item["timestamp"])
-            date_str = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%d/%m")
-            trend.append(f"{date_str}: {item['value']}/100 ({item['value_classification']})")
-            
-        return {"score": score, "label": label, "raw_value": raw, "trend": trend}
-    except Exception as e:
-        # Không crash bot khi API lỗi
-        print(f"  [Sentiment] Không thể lấy Fear & Greed Index: {e}", flush=True)
-        return {"score": 0.0, "label": "Neutral", "raw_value": 50, "trend": []}
+    req = urllib.request.Request(url, headers={"User-Agent": "besttime-crypto-bot/1.0"})
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        data = json.loads(resp.read().decode())
+
+    records = data.get("data", [])
+    if not records:
+        raise ValueError("Alternative.me returned no Fear & Greed observations")
+    current = parse_fear_greed_record(records[0])
+
+    trend = []
+    for item in records:
+        observed = parse_fear_greed_record(item)
+        trend.append(
+            f"{observed.observed_at.strftime('%d/%m')}: "
+            f"{observed.raw_value}/100 ({observed.classification})"
+        )
+
+    return {
+        "score": current.normalized_score,  # backward-compatible alias
+        "normalized_score": current.normalized_score,
+        "label": current.classification,
+        "raw_value": current.raw_value,
+        "observed_at": current.observed_at.isoformat(),
+        "observation_date": current.observation_date,
+        "source": current.source,
+        "status": "success",
+        "stale": False,
+        "trend": trend,
+    }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -79,16 +94,41 @@ def get_market_sentiment() -> dict:
     now = time.time()
 
     if now - _cache["timestamp"] < _CACHE_TTL:
-        return {k: _cache.get(k) for k in ("score", "label", "raw_value", "trend")}
+        return {k: v for k, v in _cache.items() if k != "timestamp"}
 
-    result = _fetch_fear_and_greed()
+    try:
+        result = _fetch_fear_and_greed()
+    except Exception as exc:
+        print(f"  [Sentiment] Không thể lấy Fear & Greed Index: {exc}", flush=True)
+        if _cache.get("raw_value") is not None:
+            result = {
+                **{k: v for k, v in _cache.items() if k != "timestamp"},
+                "status": "stale",
+                "stale": True,
+                "error": str(exc),
+            }
+        else:
+            result = {
+                "score": None,
+                "normalized_score": None,
+                "label": None,
+                "raw_value": None,
+                "observed_at": None,
+                "observation_date": None,
+                "source": "alternative.me",
+                "status": "unavailable",
+                "stale": False,
+                "error": str(exc),
+                "trend": [],
+            }
     _cache.update(result)
     _cache["timestamp"] = now
-    print(
-        f"  [Sentiment] Fear & Greed Index: {result['raw_value']}/100 "
-        f"({result['label']}) -> score={result['score']:+.2f}",
-        flush=True,
-    )
+    if result.get("raw_value") is not None:
+        print(
+            f"  [Sentiment] Fear & Greed Index: {result['raw_value']}/100 "
+            f"({result['label']}) -> score={result['normalized_score']:+.2f}",
+            flush=True,
+        )
     return result
 
 
@@ -118,7 +158,7 @@ def get_historical_sentiment_map(limit: int = 1000) -> dict:
         for item in data.get("data", []):
             raw = int(item["value"])
             label = item["value_classification"]
-            score = round((raw - 50) / 50.0, 3)
+            score = normalize_fear_greed(raw)
             ts = int(item["timestamp"])
             date_str = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
             mapping[date_str] = {"score": score, "label": label, "raw_value": raw}
@@ -131,19 +171,49 @@ def get_historical_sentiment_map(limit: int = 1000) -> dict:
 #  Sentiment History Tracking (hỗ trợ tính sentiment_trend)
 # ──────────────────────────────────────────────────────────────────────────────
 
+def _observation_date(value: dict, fallback: date | None = None) -> date:
+    explicit = value.get("observation_date")
+    if explicit:
+        return date.fromisoformat(str(explicit)[:10])
+    observed_at = value.get("observed_at")
+    if observed_at:
+        return datetime.fromisoformat(str(observed_at).replace("Z", "+00:00")).date()
+    return fallback or datetime.now(timezone.utc).date()
+
+
+def _normalized_score(value: dict) -> float | None:
+    score = value.get("normalized_score")
+    if score is None:
+        score = value.get("score")
+    if score is None and value.get("raw_value") is not None:
+        score = normalize_fear_greed(value["raw_value"])
+    return float(score) if score is not None else None
+
+
+def _history_by_date(history: dict) -> dict[date, dict]:
+    """Deduplicate legacy timestamp keys into one observation per UTC date."""
+    daily: dict[date, tuple[str, dict]] = {}
+    for key, value in history.items():
+        if not isinstance(value, dict):
+            continue
+        try:
+            observed_date = date.fromisoformat(str(key)[:10])
+        except ValueError:
+            continue
+        if observed_date not in daily or str(key) > daily[observed_date][0]:
+            daily[observed_date] = (str(key), value)
+    return {observed_date: item[1] for observed_date, item in daily.items()}
+
+
 def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/sentiment_history.json"):
-    """
-    Lưu snapshot sentiment hiện tại vào file history để theo dõi xu hướng.
-    
-    History format:
-    {
-        "2026-06-15T14:00:00Z": {"score": 0.2, "raw_value": 60, "label": "Greed"},
-        "2026-06-15T13:00:00Z": {"score": -0.4, "raw_value": 30, "label": "Fear"},
-        ...
-    }
-    """
+    """Upsert one canonical daily observation and retain a bounded history."""
     from pathlib import Path
     try:
+        raw_value = sentiment_dict.get("raw_value")
+        score = _normalized_score(sentiment_dict)
+        if raw_value is None or score is None:
+            return
+
         history_path = Path(history_file)
         history_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -156,32 +226,25 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/s
             except Exception:
                 history = {}
         
-        # Use date-only key (UTC midnight) so history stores one entry per day
-        # Format: "YYYY-MM-DDT00:00:00Z" — compatible with existing loaders
-        date_key = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00Z")
-        history[date_key] = {
-            "score": sentiment_dict.get("score", 0.0),
-            "raw_value": sentiment_dict.get("raw_value", 50),
-            "label": sentiment_dict.get("label", "Neutral")
+        daily = _history_by_date(history)
+        observed_date = _observation_date(sentiment_dict)
+        daily[observed_date] = {
+            "score": score,  # backward-compatible alias
+            "normalized_score": score,
+            "raw_value": raw_value,
+            "label": sentiment_dict.get("label") or "Unknown",
+            "observed_at": sentiment_dict.get("observed_at"),
         }
-        
-        # Keep only last 720 entries (30 days) — defensive: operate on date keys
-        if len(history) > 720:
-            sorted_keys = sorted(history.keys(), reverse=True)
-            history = {k: history[k] for k in sorted_keys[:720]}
 
-        # Defensive safety: if history appears to contain many entries for the
-        # same UTC date (indication of a prior bug), emit a warning and avoid
-        # destructive truncation. This helps prevent accidental overwrite of
-        # a restored multi-day history by a misbehaving live process.
-        dates_seen = {k[:10] for k in history.keys()}
-        if len(history) >= 100 and len(dates_seen) == 1:
-            print(
-                "  [Sentiment][Warning] Detected many entries for a single date in history;\n"
-                "  Skipping write to avoid overwriting full historical data. Run migrate_sentiment_history.py to restore.",
-                flush=True,
-            )
-            return
+        try:
+            retention_days = max(1, int(os.getenv("FEAR_GREED_HISTORY_RETENTION_DAYS", "90")))
+        except ValueError:
+            retention_days = 90
+        retained_dates = sorted(daily, reverse=True)[:retention_days]
+        history = {
+            f"{observed.isoformat()}T00:00:00Z": daily[observed]
+            for observed in sorted(retained_dates)
+        }
         
         # Save updated history
         with open(history_path, 'w', encoding='utf-8') as f:
@@ -191,31 +254,19 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/s
 
 
 def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", current_sentiment: dict = None) -> dict:
-    """
-    Tính xu hướng sentiment từ history.
-
-    Nếu current_sentiment được cung cấp, hàm sẽ dùng giá trị này làm điểm hiện tại
-    để đảm bảo trend được tính trên dữ liệu sentiment thực tế thay vì chỉ dựa vào history cũ.
-    
-    Trả về:
-    {
-        "trend": "UP" / "DOWN" / "STABLE",          # Chiều xu hướng (so với 1-3 giờ trước)
-        "momentum": float,                          # Tốc độ thay đổi (score/hour)
-        "recovery_signal": bool,                    # True nếu đang hồi phục từ extreme_fear
-        "risk_signal": bool,                        # True nếu giảm nhanh từ greed
-        "hours_in_extreme": int,                    # Số giờ ở extreme (fear/greed)
-    }
-    """
+    """Compare a daily observation with the latest observation before its date."""
     from pathlib import Path
-    
+
     default_trend = {
-        "trend": "STABLE",
-        "momentum": 0.0,
+        "trend": "UNKNOWN",
+        "daily_momentum": None,
+        "momentum": None,  # deprecated alias
         "recovery_signal": False,
         "risk_signal": False,
-        "hours_in_extreme": 0,
+        "consecutive_extreme_days": 0,
+        "hours_in_extreme": 0,  # deprecated alias; value is now days
     }
-    
+
     try:
         history_path = Path(history_file)
         if history_path.exists():
@@ -224,31 +275,30 @@ def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", curre
         else:
             history = {}
         
-        sorted_times = sorted(history.keys(), reverse=True)
-
+        daily = _history_by_date(history)
         if current_sentiment is not None:
-            current = {
-                "score": current_sentiment.get("score", 0.0),
-                "raw_value": current_sentiment.get("raw_value", 50),
-                "label": current_sentiment.get("label", "Neutral"),
-            }
-            if len(sorted_times) < 1:
+            current = dict(current_sentiment)
+            current_date = _observation_date(current)
+            previous_dates = [observed for observed in daily if observed < current_date]
+            if not previous_dates or _normalized_score(current) is None:
                 return default_trend
-            prev = history[sorted_times[0]]
+            previous_date = max(previous_dates)
+            prev = daily[previous_date]
         else:
-            if len(sorted_times) < 2:
+            sorted_dates = sorted(daily, reverse=True)
+            if len(sorted_dates) < 2:
                 return default_trend
-            current = history[sorted_times[0]]
-            prev = history[sorted_times[1]]
-        
-        current_score = current.get("score", 0.0)
-        prev_score = prev.get("score", 0.0)
-        
-        # Tính momentum (thay đổi score mỗi giờ)
+            current_date, previous_date = sorted_dates[:2]
+            current, prev = daily[current_date], daily[previous_date]
+
+        current_score = _normalized_score(current)
+        prev_score = _normalized_score(prev)
+        if current_score is None or prev_score is None:
+            return default_trend
+
         score_diff = current_score - prev_score
         momentum = round(score_diff, 3)
-        
-        # Xác định trend
+
         if score_diff > 0.1:
             trend = "UP"
         elif score_diff < -0.1:
@@ -256,9 +306,8 @@ def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", curre
         else:
             trend = "STABLE"
         
-        # Detect recovery từ extreme fear
-        current_label = current.get("label", "Neutral")
-        prev_label = prev.get("label", "Neutral")
+        current_label = current.get("label") or "Unknown"
+        prev_label = prev.get("label") or "Unknown"
         recovery_signal = (
             prev_label == "Extreme Fear"
             and current_label in ["Fear", "Neutral", "Greed"]
@@ -268,7 +317,6 @@ def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", curre
             and current_score < 0  # Vẫn còn bearish nhưng đang hồi phục
         )
         
-        # Detect risk từ extreme greed
         risk_signal = (
             prev_label == "Extreme Greed"
             and current_label in ["Greed", "Neutral", "Fear"]
@@ -278,19 +326,25 @@ def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", curre
             and current_score > 0.6  # Vẫn còn bullish nhưng đang giảm
         )
         
-        # Count hours ở extreme
-        hours_in_extreme = 0
-        for i, ts in enumerate(sorted_times[:24]):  # Check last 24 hours
-            label = history[ts].get("label", "")
-            if label in ["Extreme Fear", "Extreme Greed"]:
-                hours_in_extreme += 1
-        
+        observations = dict(daily)
+        observations[current_date] = current
+        consecutive_extreme_days = 0
+        expected_date = current_date
+        while expected_date in observations:
+            label = observations[expected_date].get("label", "")
+            if label not in ("Extreme Fear", "Extreme Greed"):
+                break
+            consecutive_extreme_days += 1
+            expected_date -= timedelta(days=1)
+
         return {
             "trend": trend,
+            "daily_momentum": momentum,
             "momentum": momentum,
             "recovery_signal": recovery_signal,
             "risk_signal": risk_signal,
-            "hours_in_extreme": hours_in_extreme,
+            "consecutive_extreme_days": consecutive_extreme_days,
+            "hours_in_extreme": consecutive_extreme_days,
         }
     except Exception as e:
         print(f"  [Sentiment] Lỗi tính trend: {e}", flush=True)

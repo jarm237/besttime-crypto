@@ -21,6 +21,7 @@ from typing import Dict, Optional
 
 from btc_scraper.collectors.macro_collector import load_macro_state
 from btc_scraper.collectors.alternative_data import load_alternative_data
+from btc_scraper.core.fear_greed import resolve_fear_greed_value
 
 logger = logging.getLogger(__name__)
 
@@ -86,10 +87,10 @@ def build_world_state_from_ana(ana: Dict):
 
         # Sentiment
         _sentiment = ana.get("sentiment") or {}
-        fear_greed = float(
-            _sentiment.get("raw_value")
-            or ana.get("fear_greed")
-            or 50.0
+        fear_greed = resolve_fear_greed_value(
+            _sentiment.get("raw_value"),
+            ana.get("fear_greed"),
+            default=50.0,
         )
         state.sentiment.FearGreed = fear_greed
 

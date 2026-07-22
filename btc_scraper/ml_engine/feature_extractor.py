@@ -12,6 +12,8 @@ Nếu cần thêm feature, tạo model version mới (thêm _v2 vào model file)
 from typing import Dict, List, Tuple, Any
 import math
 
+from btc_scraper.core.fear_greed import first_not_none
+
 # ─── CANONICAL FEATURE SCHEMA ──────────────────────────────────────────────────
 # Base features cố định cho Meta Model.
 # Tên feature PHẢI nhất quán giữa training và runtime inference.
@@ -222,22 +224,21 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
 
     # 6. fear_greed (raw 0-100)
     # Lấy từ nhiều nguồn: context.sentiment_raw, sentiment.raw_value
-    fg_raw = (
-        info.get("sentiment_raw")
-        or info.get("fear_greed")
-        or (info.get("sentiment") or {}).get("raw_value")
-        or (info.get("sentiment") or {}).get("score")
+    sentiment = info.get("sentiment") or {}
+    fg_raw = first_not_none(
+        info.get("sentiment_raw"),
+        info.get("fear_greed"),
+        sentiment.get("raw_value"),
     )
     if fg_raw is not None:
-        # Có thể là score dạng -1..1, cần chuẩn hóa về 0-100
-        fg = _safe_float(fg_raw, default=50.0)
-        if -1.0 <= fg <= 1.0 and fg != 50.0:
-            # dạng normalized score -> convert to 0-100
-            f["fear_greed"] = (fg + 1) / 2 * 100
-        else:
-            f["fear_greed"] = max(0.0, min(100.0, fg))
+        f["fear_greed"] = max(0.0, min(100.0, _safe_float(fg_raw, default=50.0)))
     else:
-        f["fear_greed"] = 50.0
+        normalized = first_not_none(sentiment.get("normalized_score"), sentiment.get("score"))
+        if normalized is None:
+            f["fear_greed"] = 50.0
+        else:
+            normalized = max(-1.0, min(1.0, _safe_float(normalized, default=0.0)))
+            f["fear_greed"] = (normalized + 1.0) / 2.0 * 100.0
 
     # 7. ema_distance_pct = (ema9 - ema21) / close * 100
     ema9 = _safe_float(info.get("ema9"), default=0.0)

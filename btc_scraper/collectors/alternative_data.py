@@ -131,11 +131,12 @@ class AlternativeDataCollector(CollectorBase):
             altme_payload = AlternativeMeCollector().collect(force=force)
             status = altme_payload.get("status")
             payload["_statuses"]["alternative_me"] = {"status": status, "reason": altme_payload.get("reason"), "observed_at": altme_payload.get("timestamp")}
-            if status == "success" and isinstance(altme_payload.get("data"), dict):
+            if status in ("success", "stale") and isinstance(altme_payload.get("data"), dict):
                 payload.update({
                     "fear_greed_raw": altme_payload["data"].get("fear_greed_raw"),
                     "fear_greed_score": altme_payload["data"].get("fear_greed_score"),
                     "fear_greed_regime": altme_payload["data"].get("fear_greed_regime"),
+                    "fear_greed_observed_at": altme_payload["data"].get("fear_greed_observed_at"),
                 })
             elif status == "error":
                 payload["_errors"]["alternative_me"] = altme_payload.get("reason")

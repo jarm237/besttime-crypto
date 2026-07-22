@@ -5,7 +5,7 @@
 > **Repository Regression Gate**: ✅ PASSED  
 > **Operational Paper Validation**: ⏳ IN PROGRESS  
 > **Live Production Approval**: ❌ NOT GRANTED  
-> **Report Timestamp**: 2026-07-16T16:07:38.551931+00:00  
+> **Report Timestamp**: 2026-07-22T02:27:52.630595+00:00  
 
 ---
 
@@ -30,7 +30,7 @@ This gate verifies that the metric tracking, logs aggregation, and post-trade an
 
 | Check | Target | Actual | Status |
 | :--- | :---: | :---: | :---: |
-| **Total Fills (Real + Synth)** | $\ge 100$ | **113** | 🟢 PASS |
+| **Total Fills (Real + Synth)** | $\ge 100$ | **122** | 🟢 PASS |
 | **Report Pipeline Generation** | Success | **Success** | 🟢 PASS |
 | **All Metrics Computable** | True | **True** | 🟢 PASS |
 
@@ -60,9 +60,9 @@ This gate strictly evaluates live execution characteristics and real market beha
 
 To avoid false positive evaluations, completeness is measured strictly from the actual loaded data. If the paid subscription APIs (Glassnode, Whale Alert) are not active, they are reported as `NOT_MEASURED`.
 
-- **Mean Completeness (Required Features)**: `0.9950`
+- **Mean Completeness (Required Features)**: `1.0000`
 - **5th Percentile Completeness (Required)**: `1.0000`
-- **Longest Stale/Missing Streak**: `1 snapshots`
+- **Longest Stale/Missing Streak**: `0 snapshots`
 - **Stale Snapshots Rate**: `0.0%`
 - **Skipped Paid Providers**:
   - Glassnode: `NOT_MEASURED` (disabled_free_plan_not_supported)
@@ -92,14 +92,14 @@ Using the augmented dataset, the transaction cost drag calculators were verified
 Decisions and predictions are aligned song song at the exact same timestamps to evaluate counterfactual metrics:
 
 - **Total Emitted Signals**: 0
-- **Actual Orders Executed**: 670
-- **Matched Aligned Decisions**: 670
+- **Actual Orders Executed**: 698
+- **Matched Aligned Decisions**: 698
 
 ### Risk Filter Interventions
-- **Slippage Guard Blocked**: 7
+- **Slippage Guard Blocked**: 14
 - **Kelly Fraction Sizing rejections**: 343
 - **Sector Correlation Filter skipped**: 55
-- **Other Filters / Failures**: 252
+- **Other Filters / Failures**: 264
 
 ### Causal Benefit Estimation
 - **Actual Realized PnL (With Risk Guards)**: `$0.00 USDT`

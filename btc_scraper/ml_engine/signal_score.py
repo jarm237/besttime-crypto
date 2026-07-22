@@ -224,7 +224,8 @@ def _apply_context_adjustments(score: int, data: Dict, context: Dict) -> int:
     sentiment = data.get("sentiment") or {}
     score_adj = 0
     try:
-        s = float(sentiment.get("score", 0.0))
+        score_value = sentiment.get("normalized_score", sentiment.get("score"))
+        s = float(score_value) if score_value is not None else None
         # Allow overriding penalty via context: use explicit penalty value if provided
         explicit_penalty = None
         try:
@@ -232,12 +233,12 @@ def _apply_context_adjustments(score: int, data: Dict, context: Dict) -> int:
         except Exception:
             explicit_penalty = None
 
-        if s <= -0.6 and "BUY" in data.get("signal", ""):
+        if s is not None and s <= -0.6 and "BUY" in data.get("signal", ""):
             if explicit_penalty is not None:
                 score += explicit_penalty
             else:
                 score -= 20
-        if s >= 0.6 and "SELL" in data.get("signal", ""):
+        if s is not None and s >= 0.6 and "SELL" in data.get("signal", ""):
             if explicit_penalty is not None:
                 score += explicit_penalty
             else:
