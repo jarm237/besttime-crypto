@@ -140,7 +140,7 @@ class GovernedArtifactLoader:
             import torch
             return torch.load(path, map_location=device or "cpu", weights_only=True)
         if suffix == ".zip" and model_class is not None:
-            return model_class.load(path, device=device)
+            return model_class.load(path, device=device or "auto")
         raise ArtifactGovernanceError(f"unsupported_artifact_format:{suffix}")
 
     @staticmethod
