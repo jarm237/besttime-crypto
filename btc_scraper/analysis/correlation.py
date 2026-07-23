@@ -167,15 +167,16 @@ class CorrelationEngine:
             
         merged_df = merged_df.sort_values(by="time").set_index("time")
         
-        # Forward fill giá để xử lý lệch nến, sau đó điền 0 cho mốc đầu tiên
-        merged_df = merged_df.ffill().bfill()
+        # Only propagate already-observed prices forward. Backfilling would make a
+        # symbol appear before its first observation and leak future information.
+        merged_df = merged_df.ffill()
         
         # Chỉ lấy dữ liệu trong khoảng lookback (nến 1h -> lookback_days * 24 nến)
         max_rows = lookback_days * 24
         merged_df = merged_df.tail(max_rows)
         
         # Tính phần trăm thay đổi (returns)
-        returns_df = merged_df.pct_change().dropna(how="all")
+        returns_df = merged_df.pct_change(fill_method=None).dropna(how="all")
         
         # Tính tương quan và hiệp phương sai
         self.correlation_matrix = returns_df.corr(method="pearson")

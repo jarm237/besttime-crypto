@@ -36423,5 +36423,93 @@
     "meta_prob": 0.4683,
     "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784769373",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784769373.1188724,
+    "timestamp_str": "2026-07-23 08:16:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784769663",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784769663.1209552,
+    "timestamp_str": "2026-07-23 08:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784769963",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784769963.0624256,
+    "timestamp_str": "2026-07-23 08:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784770273",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784770273.7407095,
+    "timestamp_str": "2026-07-23 08:31:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3017,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784770567",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784770567.7140877,
+    "timestamp_str": "2026-07-23 08:36:07",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3017,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784770863",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784770863.897495,
+    "timestamp_str": "2026-07-23 08:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3017,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1784771077",
+    "symbol": "BTCUSDT",
+    "timestamp": 1784771077.8795164,
+    "timestamp_str": "2026-07-23 08:44:37",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784771183",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784771183.6412964,
+    "timestamp_str": "2026-07-23 08:46:23",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
   }
 ]

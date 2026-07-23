@@ -1,4 +1,5 @@
 import math
+from enum import Enum
 from btc_scraper.core.sentiment import (
     get_market_sentiment, 
     sentiment_label_vi,
@@ -30,6 +31,24 @@ REGIME_MULTIPLIERS_MAP = {
 }
 
 _OPTIMIZED_PARAMS_CACHE = None
+
+
+class SignalAction(str, Enum):
+    """Canonical trade direction, independent from the display label."""
+
+    BUY = "BUY"
+    SELL = "SELL"
+    NEUTRAL = "NEUTRAL"
+
+
+def signal_action(signal: str | None) -> SignalAction:
+    """Resolve legacy labels without interpreting bullish/bearish bias as orders."""
+    label = str(signal or "").strip().upper()
+    if label == "BUY" or label.startswith(("BUY (", "WEAK BUY", "STRONG BUY")):
+        return SignalAction.BUY
+    if label == "SELL" or label.startswith(("SELL (", "WEAK SELL", "STRONG SELL")):
+        return SignalAction.SELL
+    return SignalAction.NEUTRAL
 
 def _calculate_position_size(
     base_confidence: float,
@@ -91,6 +110,7 @@ def calculate_tp_sl(
     atr_sl_mult: float = 1.2,
     atr_tp_mult: float = 5.0,
     regime: str = None,
+    action: SignalAction | str | None = None,
 ) -> dict:
     """
     Tính mức Entry, Take Profit (TP1, TP2) và Stop Loss (SL) dựa trên:
@@ -102,6 +122,7 @@ def calculate_tp_sl(
 
     Trả về dict:
       entry, sl, tp1, tp2, rr1 (Risk:Reward cho TP1), rr2, method
+      Tín hiệu NEUTRAL trả về dict rỗng, không có risk levels.
     """
     opt_params = _load_optimized_params()
     atr_tp_mult = opt_params.get("atr_tp_mult", atr_tp_mult)
@@ -127,8 +148,12 @@ def calculate_tp_sl(
     atr_tp_mult = atr_tp_mult * tp_scale
     atr_sl_mult = atr_sl_mult * sl_scale
 
-    is_buy = "BUY" in signal.upper() or "BULLISH" in signal.upper()
-    is_sell = "SELL" in signal.upper() or "BEARISH" in signal.upper()
+    resolved_action = SignalAction(action) if action is not None else signal_action(signal)
+    if resolved_action is SignalAction.NEUTRAL:
+        return {}
+
+    is_buy = resolved_action is SignalAction.BUY
+    is_sell = resolved_action is SignalAction.SELL
 
     if atr <= 0 or close <= 0:
         return {"entry": close, "sl": 0.0, "tp1": 0.0, "tp2": 0.0, "rr1": 0.0, "rr2": 0.0, "method": "N/A"}
@@ -176,13 +201,6 @@ def calculate_tp_sl(
         tp2 = max(tp2_candidates) if tp2_candidates else tp1 * 0.99
 
         method = "ATR+DynamicSL+Resistance+BB (Short)"
-
-    else:
-        # NEUTRAL: chỉ tính mức tham chiếu, không có lệnh
-        sl  = entry - atr_sl_mult * atr
-        tp1 = entry + atr_tp_mult * atr
-        tp2 = resistance if resistance > tp1 else tp1 * 1.01
-        method = "ATR (Tham chieu - Chua co lenh)"
 
     # Tỷ lệ Risk:Reward
     risk = abs(entry - sl)
@@ -492,6 +510,7 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
             base_confidence -= 0.05
 
         def finalize(sig: str, reason: str):
+            action = signal_action(sig)
             tp_sl = calculate_tp_sl(
                 close=current_close,
                 signal=sig,
@@ -502,8 +521,13 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
                 bb_middle=current_bb_middle,
                 bb_lower=current_bb_lower,
                 regime=candles[t].get("regime") if (t < len(candles) and t >= -len(candles)) else None,
+                action=action,
             )
-            direction = "SHORT" if "SELL" in sig.upper() or "SHORT" in sig.upper() else ("LONG" if "BUY" in sig.upper() or "BULL" in sig.upper() else None)
+            direction = (
+                "LONG" if action is SignalAction.BUY
+                else "SHORT" if action is SignalAction.SELL
+                else None
+            )
             confidence = max(0.0, min(1.0, base_confidence))
             position_size = 1.0
 
@@ -563,8 +587,11 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
                 position_size = max(position_size * 0.8, 0.25)
 
             position_size = round(max(0.25, min(1.0, position_size)), 2)
+            if action is SignalAction.NEUTRAL:
+                position_size = 0.0
 
             data = {
+                "action": action.value,
                 "rsi": current_rsi,
                 "ema9": current_ema9,
                 "ema21": current_ema21,
@@ -649,6 +676,7 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
                 "rsi_turning_up": rsi_turning_up,
                 "rsi_turning_down": rsi_turning_down,
                 "sentiment_score": sentiment_score,
+                "sentiment_available": sentiment_score is not None,
                 "sentiment_label": sentiment_label,
                 "sentiment_raw": sentiment_raw,
                 "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
@@ -781,6 +809,7 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
             "consecutive_extreme_days": sentiment_trend_data.get("consecutive_extreme_days", 0),
             "status": sentiment_data.get("status"),
             "stale": sentiment_data.get("stale", False),
+            "available": sentiment_score is not None,
         },
     }
     # Attach scoring metadata (phase 1-5 basic implementation). Keep backward compatibility.
@@ -830,12 +859,11 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
     hv60_list = calculate_hv(close_prices, 60)
     bos_bull_list, bos_bear_list, choch_bull_list, choch_bear_list = calculate_smc_structure(candles)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
-    # Global market sentiment (reused for all coins / candles in this historical run)
-    sentiment_data = get_market_sentiment()
-    sentiment_score = sentiment_data.get("normalized_score")
-    sentiment_label = sentiment_data.get("label")
-    sentiment_raw = sentiment_data.get("raw_value")
-    sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
+    # Historical analysis must be point-in-time safe. Missing historical sentiment
+    # is distinct from a real neutral observation and contributes no modifier.
+    sentiment_score = None
+    sentiment_label = None
+    sentiment_raw = None
 
     # Đưa các chỉ báo vào nến
     for i in range(n):
@@ -916,8 +944,17 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
         candles[i]["volatility_regime_panic_sell"] = 1.0 if (candles[i]["atr_percentile"] >= 80.0 and current_close < candles[i]["sma200"] and candles[i]["adx"] >= 25.0) else 0.0
         candles[i]["volatility_regime_low_liquidity"] = 1.0 if candles[i]["volume_percentile"] <= 20.0 else 0.0
         candles[i]["volatility_regime_pump_risk"] = 1.0 if (candles[i]["volume_percentile"] >= 90.0 and candles[i]["atr_percentile"] >= 70.0 and candles[i]["adx"] >= 25.0) else 0.0
-        candles[i]["regime"] = regime_from_values(current_close, candles[i]["sma200"], candles[i]["ema21"], candles[i]["sma50"], candles[i]["adx"], candles[i]["atr_percentile"]).get("regime")
-        candles[i]["regime_confidence"] = regime_from_values(current_close, candles[i]["sma200"], candles[i]["ema21"], candles[i]["sma50"], candles[i]["adx"], candles[i]["atr_percentile"]).get("confidence")
+        atr_price_pct = (candles[i]["atr"] / current_close * 100.0) if current_close and candles[i]["atr"] else 0.0
+        regime_info = regime_from_values(
+            current_close,
+            candles[i]["sma200"],
+            candles[i]["ema21"],
+            candles[i]["sma50"],
+            candles[i]["adx"],
+            atr_price_pct,
+        )
+        candles[i]["regime"] = regime_info.get("regime")
+        candles[i]["regime_confidence"] = regime_info.get("confidence")
 
     results = []
 
@@ -1161,10 +1198,12 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             bb_middle   = current_bb_middle,
             bb_lower    = current_bb_lower,
             regime      = regime_info.get("regime"),
+            action      = signal_action(sig),
         )
 
         # Prepare lightweight data/context for scoring (keeps backward compatibility)
         score_data = {
+            "action": signal_action(sig).value,
             "rsi": current_rsi,
             "rsi_delta": current_rsi - rsi_list[i-3] if i >= 3 else 0.0,
             "ema9": current_ema9,
@@ -1185,7 +1224,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             "support": support,
             "resistance": resistance,
             "confidence": round(0.5, 2),
-            "position_size": 1.0,
+            "position_size": 0.0 if signal_action(sig) is SignalAction.NEUTRAL else 1.0,
             "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
             "regime": regime_info.get("regime"),
             "regime_confidence": regime_info.get("confidence"),
@@ -1196,6 +1235,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
                 "score": c_sentiment_score,
                 "label": c_sentiment_label,
                 "raw_value": c_sentiment_raw,
+                "available": c_sentiment_score is not None,
             },
             "volume": current_volume,
             "vol_sma20": current_vol_sma,
@@ -1245,10 +1285,11 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             "regime_confidence": regime_info.get("confidence"),
             "trend_following_allowed": trend_following_allowed,
             "confidence": 0.50,
-            "position_size": 1.0,
+            "position_size": 0.0 if signal_action(sig) is SignalAction.NEUTRAL else 1.0,
             "support": support,
             "resistance": resistance,
             "signal": sig,
+            "action": signal_action(sig).value,
             "reason": reason,
             "tp_sl": tp_sl_dict,
             "chandelier": chandelier_state,
@@ -1257,6 +1298,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
                 "score": c_sentiment_score,
                 "label": c_sentiment_label,
                 "raw_value": c_sentiment_raw,
+                "available": c_sentiment_score is not None,
             },
             "volume": current_volume,
             "vol_sma20": current_vol_sma,

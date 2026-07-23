@@ -152,7 +152,14 @@ def calculate_rsi(prices: list[float], period: int = 14) -> list[float]:
     
     rs = ewm_gain / ewm_loss
     rsi_vals = 100.0 - (100.0 / (1.0 + rs))
-    rsi_vals = np.where(ewm_loss == 0, 100.0, rsi_vals)
+    both_zero = (ewm_gain == 0) & (ewm_loss == 0)
+    only_loss_zero = (ewm_gain > 0) & (ewm_loss == 0)
+    only_gain_zero = (ewm_gain == 0) & (ewm_loss > 0)
+    rsi_vals = np.select(
+        [both_zero, only_loss_zero, only_gain_zero],
+        [50.0, 100.0, 0.0],
+        default=rsi_vals,
+    )
     
     final = rs_list + rsi_vals.tolist()
     return final[:len(prices)]

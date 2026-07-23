@@ -79,6 +79,28 @@ def test_correlation_engine_fallbacks(mock_cov_corr):
     assert engine.get_correlation("AEVO", "AEVO") == 1.0
 
 
+def test_correlation_does_not_backfill_before_listing(tmp_path):
+    times = pd.date_range("2026-01-01", periods=8, freq="h")
+    pd.DataFrame({"time": times, "close": [100, 101, 99, 103, 100, 106, 102, 109]}).to_csv(
+        tmp_path / "BTC_1h_2026-01.csv", index=False
+    )
+    sol_prices = [10, 12, 11, 15, 13]
+    pd.DataFrame({"time": times[3:], "close": sol_prices}).to_csv(
+        tmp_path / "SOL_1h_2026-01.csv", index=False
+    )
+    engine = CorrelationEngine(
+        data_dir=str(tmp_path),
+        cache_path=str(tmp_path / "correlation.json"),
+    )
+
+    correlation, _ = engine.calculate_correlation_matrix(lookback_days=30)
+    expected = pd.Series([103, 100, 106, 102, 109]).pct_change().corr(
+        pd.Series(sol_prices).pct_change()
+    )
+
+    assert correlation.loc["BTC", "SOL"] == pytest.approx(expected)
+
+
 def test_exposure_manager_caps():
     # 1. Test basic calculations
     mock_data = [
