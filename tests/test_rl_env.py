@@ -139,6 +139,51 @@ def test_multi_trade_exit_env_cycle(dummy_trades):
     assert terminated  # Should be terminated after 2 trades
 
 
+def test_multi_trade_resets_all_trade_local_state(dummy_trades):
+    env = MultiTradeExitEnv(trades=dummy_trades, config={"max_episode_length": 5}, trades_per_episode=2)
+    env.reset(seed=3)
+    env.prev_pnl, env.min_pnl, env.max_pnl = 9.0, -8.0, 10.0
+    _, _, terminated, truncated, _ = env.step(4)
+    assert not terminated and not truncated
+    assert env.prev_pnl == 0.0
+    assert env.min_pnl == 0.0
+    assert env.max_pnl == 0.0
+    assert env.current_drawdown == 0.0
+    assert env.last_action is None
+
+
+def test_time_limit_is_truncated_not_terminated():
+    previous_cache = TradeExitEnv._COIN_CANDLES_CACHE
+    candles = [{"time": f"t{i}", "close": 100.0, "high": 100.0, "low": 100.0, "atr": 1.0} for i in range(5)]
+    TradeExitEnv._COIN_CANDLES_CACHE = {"TST": candles}
+    try:
+        env = TradeExitEnv([{"coin": "TST", "entry_time": "t0", "signal_raw": "BUY"}], {"max_episode_length": 1})
+        env.reset(seed=1)
+        _, _, terminated, truncated, info = env.step(0)
+        assert terminated is False
+        assert truncated is True
+        assert info["done_reason"] == "MAX_STEPS"
+    finally:
+        TradeExitEnv._COIN_CANDLES_CACHE = previous_cache
+
+
+def test_multi_trade_final_time_limit_stays_truncated():
+    previous_cache = TradeExitEnv._COIN_CANDLES_CACHE
+    candles = [{"time": f"t{i}", "close": 100.0, "high": 100.0, "low": 100.0, "atr": 1.0} for i in range(5)]
+    TradeExitEnv._COIN_CANDLES_CACHE = {"TST": candles}
+    try:
+        env = MultiTradeExitEnv(
+            [{"coin": "TST", "entry_time": "t0", "signal_raw": "BUY"}],
+            {"max_episode_length": 1}, trades_per_episode=1,
+        )
+        env.reset(seed=1)
+        _, _, terminated, truncated, _ = env.step(0)
+        assert terminated is False
+        assert truncated is True
+    finally:
+        TradeExitEnv._COIN_CANDLES_CACHE = previous_cache
+
+
 def test_ppo_smoke_train(dummy_trades):
     # Set up environments for training smoke test
     env = MultiTradeExitEnv(

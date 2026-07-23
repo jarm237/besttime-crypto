@@ -233,9 +233,8 @@ def load_lstm_cache():
     global _LSTM_STATE_CACHE
     if os.path.exists(_LSTM_CACHE_FILE):
         try:
-            import pickle
-            with open(_LSTM_CACHE_FILE, "rb") as f:
-                _LSTM_STATE_CACHE = pickle.load(f)
+            from btc_scraper.ml_engine.governed_artifact_loader import load_trusted_pickle
+            _LSTM_STATE_CACHE = load_trusted_pickle(_LSTM_CACHE_FILE)
             print(f"[RL Exit Agent] Restored LSTM state cache from {_LSTM_CACHE_FILE} (found {len(_LSTM_STATE_CACHE)} keys)")
         except Exception as e:
             print(f"[RL Exit Agent] Warning: Không thể khôi phục LSTM cache: {e}")
@@ -284,20 +283,23 @@ def load_latest_ppo_model() -> str | None:
 def get_ppo_model(device: str = "auto"):
     """Tải model PPO động và cache."""
     global _PPO_MODEL_CACHE, _LAST_MODEL_PATH
-    model_path = load_latest_ppo_model()
-    if not model_path:
-        return None
-    if _PPO_MODEL_CACHE is None or _LAST_MODEL_PATH != model_path:
+    if _PPO_MODEL_CACHE is None:
         try:
             from sb3_contrib import RecurrentPPO
+            from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
             if device == "auto":
                 device = _get_default_device()
             elif device == "cuda" and not torch.cuda.is_available():
                 print("[RL Exit Agent] CUDA requested but not available. Falling back to CPU.")
                 device = "cpu"
-            _PPO_MODEL_CACHE = RecurrentPPO.load(model_path, device=device)
-            _LAST_MODEL_PATH = model_path
-            print(f"[RL Exit Agent] Loaded RecurrentPPO model: {model_path} on device={device}")
+            allowed = ("production", "shadow") if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true" else ("production",)
+            loaded = get_governed_artifact_loader().load_production(
+                "rl_exit", "rl-exit-obs-v2", allowed_statuses=allowed,
+                model_class=RecurrentPPO, device=device,
+            )
+            _PPO_MODEL_CACHE = loaded.model
+            _LAST_MODEL_PATH = str(loaded.path)
+            print(f"[RL Exit Agent] Loaded governed RecurrentPPO model: {loaded.artifact_id} on device={device}")
         except Exception as e:
             print(f"[RL Exit Agent] Warning: Lỗi khi load model: {e}")
             return None

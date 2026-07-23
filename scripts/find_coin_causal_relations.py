@@ -92,9 +92,8 @@ def _load_from_pkl_cache(
     """
     logger.info(f"Loading pkl cache: {path}")
     try:
-        import pickle
-        with open(path, "rb") as f:
-            cache = pickle.load(f)
+        from btc_scraper.ml_engine.governed_artifact_loader import load_trusted_pickle
+        cache = load_trusted_pickle(path, approved_root=Path(path).resolve().parent)
     except Exception as e:
         logger.error(f"Failed to load pkl: {e}")
         return pd.DataFrame()

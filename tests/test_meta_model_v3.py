@@ -3,8 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import numpy as np
+import pytest
 
-from btc_scraper.ml_engine.meta_model_v3 import MetaModelV3Config, train_from_dataset_v3
+from btc_scraper.ml_engine.meta_model_v3 import (
+    MetaModelV3Config, compute_calibration_buckets, expected_calibration_error,
+    train_from_dataset_v3,
+)
 
 
 def _build_synthetic_dataset(n: int = 180) -> pd.DataFrame:
@@ -57,3 +62,39 @@ def test_train_meta_model_v3_outputs_walkforward_and_comparison(tmp_path: Path):
     assert "model_comparison" in metrics
     assert "baseline_old_style" in metrics["model_comparison"]
     assert "fallback" in metrics
+    assert metrics["calibration_selection_split"] == "CALIBRATION"
+    assert metrics["final_evaluation_split"] == "FINAL_HOLDOUT"
+    assert metrics["holdout_used_for_selection"] is False
+    assert metrics["split_manifest_sha256"]
+    assert metrics["artifact_sha256"]
+    assert metrics["feature_schema_version"].startswith("meta-v3-")
+    assert metrics["status"] == "candidate"
+    assert metrics["calibration_method"] in {"sigmoid", "isotonic"}
+    assert set(metrics["calibration_selection_metrics"]) == {"sigmoid", "isotonic"}
+    assert all(row["test_range"][1] <= sum(metrics["split"][key] for key in ("train", "calib")) for row in metrics["walk_forward"])
+
+
+def test_calibration_bucket_uses_mean_probability_not_midpoint():
+    buckets = compute_calibration_buckets(
+        np.array([.699, .698, .697]), np.array([1, 0, 1]), min_samples=1,
+    )
+    assert buckets["0.6-0.7"]["predicted_wr"] == pytest.approx(69.8)
+    assert buckets["0.6-0.7"]["predicted_wr"] != pytest.approx(65.0)
+
+
+def test_expected_calibration_error_reference_and_boundaries():
+    probs = np.array([0.0, 0.2, 0.8, 1.0])
+    labels = np.array([0, 0, 1, 1])
+    assert expected_calibration_error(probs, labels) == pytest.approx(0.1)
+
+
+def test_numeric_meta_label_uses_one_as_positive(tmp_path: Path):
+    df = _build_synthetic_dataset(90).drop(columns=["result"])
+    df["meta_label"] = [0, 1] * 45
+    dataset_path = tmp_path / "numeric_labels.parquet"
+    df.to_parquet(dataset_path, index=False)
+    out = train_from_dataset_v3(
+        dataset_path, tmp_path / "out",
+        MetaModelV3Config(label_column="meta_label", positive_label="1", calibration=False),
+    )
+    assert out["metrics"]["label_distribution"] == {"WIN": 45, "LOSS": 45}

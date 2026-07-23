@@ -1,0 +1,7 @@
+{
+  "status": "BLOCKED",
+  "automated_live_entry": false,
+  "reason": "ML engine remediation and shadow validation are not complete",
+  "required_release_gates": ["A", "B", "C", "D", "E", "F"],
+  "manual_reauthorization_required": true
+}

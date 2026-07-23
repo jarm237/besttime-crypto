@@ -108,7 +108,6 @@ def _parse_time_slice(rec: dict) -> str | None:
 
 def _segment_metrics(records: list[dict]) -> tuple[dict, dict]:
     try:
-        import joblib
         import numpy as np
         from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
     except Exception as e:
@@ -122,7 +121,8 @@ def _segment_metrics(records: list[dict]) -> tuple[dict, dict]:
     from btc_scraper.ml_engine.feature_extractor import records_to_dataset
     from btc_scraper.ml_engine.meta_model import model_predict_proba
 
-    bundle = joblib.load(MODEL_PATH)
+    from btc_scraper.ml_engine.governed_artifact_loader import load_offline_joblib_artifact
+    bundle = load_offline_joblib_artifact(MODEL_PATH, approved_root=LOGS)
     model = bundle.get("model") if isinstance(bundle, dict) else bundle
     selected_features = bundle.get("features") if isinstance(bundle, dict) else None
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,7 +38,7 @@ class MetaModelV3Config:
 
 
 def compute_calibration_buckets(probs: np.ndarray, labels: np.ndarray, min_samples: int = 3) -> dict[str, dict[str, Any]]:
-    buckets: dict[str, list[int]] = {
+    buckets: dict[str, list[tuple[float, int]]] = {
         "0.0-0.4": [],
         "0.4-0.6": [],
         "0.6-0.7": [],
@@ -46,17 +47,17 @@ def compute_calibration_buckets(probs: np.ndarray, labels: np.ndarray, min_sampl
     }
 
     for prob, y in zip(probs, labels):
-        label = int(y)
+        pair = (float(prob), int(y))
         if prob < 0.4:
-            buckets["0.0-0.4"].append(label)
+            buckets["0.0-0.4"].append(pair)
         elif prob < 0.6:
-            buckets["0.4-0.6"].append(label)
+            buckets["0.4-0.6"].append(pair)
         elif prob < 0.7:
-            buckets["0.6-0.7"].append(label)
+            buckets["0.6-0.7"].append(pair)
         elif prob < 0.8:
-            buckets["0.7-0.8"].append(label)
+            buckets["0.7-0.8"].append(pair)
         else:
-            buckets["0.8-1.0"].append(label)
+            buckets["0.8-1.0"].append(pair)
 
     out: dict[str, dict[str, Any]] = {}
     for bucket, values in buckets.items():
@@ -70,11 +71,12 @@ def compute_calibration_buckets(probs: np.ndarray, labels: np.ndarray, min_sampl
             }
             continue
 
-        wins = int(sum(values))
+        probabilities = [prob for prob, _ in values]
+        labels_in_bucket = [label for _, label in values]
+        wins = int(sum(labels_in_bucket))
         total = int(len(values))
         actual_wr = wins / max(total, 1) * 100
-        lo, hi = [float(v) for v in bucket.split("-")]
-        predicted_wr = (lo + hi) / 2 * 100
+        predicted_wr = float(np.mean(probabilities)) * 100
         error = actual_wr - predicted_wr
         out[bucket] = {
             "count": total,
@@ -86,6 +88,40 @@ def compute_calibration_buckets(probs: np.ndarray, labels: np.ndarray, min_sampl
             "calibrated": abs(error) <= 10.0,
         }
     return out
+
+
+def expected_calibration_error(probs: np.ndarray, labels: np.ndarray, min_samples: int = 1) -> float:
+    """Weighted absolute calibration error using actual mean probabilities."""
+    pairs = [(float(prob), int(label)) for prob, label in zip(probs, labels)]
+    total = len(pairs)
+    if total == 0:
+        return 0.0
+    ranges = ((0.0, 0.4), (0.4, 0.6), (0.6, 0.7), (0.7, 0.8), (0.8, 1.0))
+    error = 0.0
+    for index, (lower, upper) in enumerate(ranges):
+        bucket = [(prob, label) for prob, label in pairs if lower <= prob < upper or (index == len(ranges) - 1 and prob == 1.0)]
+        if len(bucket) < min_samples:
+            continue
+        predicted = sum(prob for prob, _ in bucket) / len(bucket)
+        observed = sum(label for _, label in bucket) / len(bucket)
+        error += len(bucket) / total * abs(observed - predicted)
+    return float(error)
+
+
+def _fit_calibrator(
+    base_pipeline: Pipeline,
+    method: str,
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_calib: np.ndarray,
+    y_calib: np.ndarray,
+) -> Any:
+    fold = np.concatenate([np.full(len(y_train), -1, dtype=int), np.zeros(len(y_calib), dtype=int)])
+    calibrator = CalibratedClassifierCV(
+        estimator=clone(base_pipeline), method=method, cv=PredefinedSplit(fold), n_jobs=-1,
+    )
+    calibrator.fit(np.vstack([X_train, X_calib]), np.concatenate([y_train, y_calib]))
+    return calibrator
 
 
 class SklearnEnsembleBinary(ClassifierMixin, BaseEstimator):
@@ -115,6 +151,7 @@ class SklearnEnsembleBinary(ClassifierMixin, BaseEstimator):
     def fit(self, X: np.ndarray, y: np.ndarray) -> "SklearnEnsembleBinary":
         self.rf.fit(X, y)
         self.et.fit(X, y)
+        self.classes_ = np.unique(y)
         self.models_ = {"rf": self.rf, "et": self.et}
 
         imp = []
@@ -223,8 +260,18 @@ def train_from_dataset_v3(
         df[cfg.time_column] = pd.to_datetime(df[cfg.time_column], utc=True, errors="coerce")
         df = df.sort_values(cfg.time_column, kind="mergesort").reset_index(drop=True)
 
-    y_raw = df[cfg.label_column].astype(str).str.upper().fillna("")
-    y = (y_raw == str(cfg.positive_label).upper()).astype(int).values
+    label_series = df[cfg.label_column]
+    if pd.api.types.is_numeric_dtype(label_series):
+        try:
+            positive_value = float(cfg.positive_label)
+        except (TypeError, ValueError):
+            positive_value = 1.0
+        y = (pd.to_numeric(label_series, errors="coerce") == positive_value).astype(int).values
+    else:
+        y_raw = label_series.astype("string").str.upper().fillna("")
+        y = (y_raw == str(cfg.positive_label).upper()).astype(int).values
+    if len(np.unique(y)) < 2:
+        raise ValueError("Training label must contain both positive and negative samples")
 
     drop_cols = {
         cfg.label_column,
@@ -258,6 +305,9 @@ def train_from_dataset_v3(
 
     X = X_df.values
     feature_names = list(X_df.columns)
+    feature_schema_version = "meta-v3-" + hashlib.sha256(
+        json.dumps(feature_names, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:12]
     n = len(X)
     if n < 60:
         raise ValueError(f"Need at least 60 samples for Sprint 10 training, got {n}")
@@ -282,44 +332,30 @@ def train_from_dataset_v3(
     model_to_use: Any = base_pipeline
     calibration_method: str | None = None
 
+    calibration_selection_metrics: dict[str, float] = {}
     if cfg.calibration and len(np.unique(y_calib)) > 1:
         best_err = float("inf")
-        best_model = None
         best_method = None
+        # Reserve the newest part of CALIBRATION for method selection. The FINAL
+        # HOLDOUT is never read until the selected calibrator has been refitted.
+        selection_size = max(3, len(y_calib) // 3)
+        calibration_fit_end = len(y_calib) - selection_size
+        X_cal_fit, y_cal_fit = X_calib[:calibration_fit_end], y_calib[:calibration_fit_end]
+        X_cal_select, y_cal_select = X_calib[calibration_fit_end:], y_calib[calibration_fit_end:]
         for method in ("sigmoid", "isotonic"):
             try:
-                fold = np.concatenate(
-                    [
-                        np.full(len(y_train), -1, dtype=int),
-                        np.zeros(len(y_calib), dtype=int),
-                    ]
-                )
-                calibrator = CalibratedClassifierCV(
-                    estimator=clone(base_pipeline),
-                    method=method,
-                    cv=PredefinedSplit(fold),
-                    n_jobs=-1,
-                )
-                X_train_cal = np.vstack([X_train, X_calib])
-                y_train_cal = np.concatenate([y_train, y_calib])
-                calibrator.fit(X_train_cal, y_train_cal)
-                probs = calibrator.predict_proba(X_test)[:, 1]
-                buckets = compute_calibration_buckets(probs, y_test)
-                errs = [
-                    abs(v["calibration_error"])
-                    for v in buckets.values()
-                    if v.get("calibration_error") is not None
-                ]
-                if errs:
-                    mean_err = float(np.mean(errs))
-                    if mean_err < best_err:
-                        best_err = mean_err
-                        best_model = calibrator
-                        best_method = method
+                if len(X_cal_fit) < 2 or len(np.unique(y_cal_fit)) < 2 or len(X_cal_select) == 0:
+                    continue
+                candidate = _fit_calibrator(base_pipeline, method, X_train, y_train, X_cal_fit, y_cal_fit)
+                selection_probs = candidate.predict_proba(X_cal_select)[:, 1]
+                error = expected_calibration_error(selection_probs, y_cal_select)
+                calibration_selection_metrics[method] = error
+                if error < best_err:
+                    best_err, best_method = error, method
             except Exception:
                 continue
-        if best_model is not None:
-            model_to_use = best_model
+        if best_method is not None:
+            model_to_use = _fit_calibrator(base_pipeline, best_method, X_train, y_train, X_calib, y_calib)
             calibration_method = best_method
 
     test_probs = model_to_use.predict_proba(X_test)[:, 1]
@@ -347,7 +383,11 @@ def train_from_dataset_v3(
         except Exception:
             legacy_metrics = None
 
-    walk_forward = _walk_forward_eval(X, y, base_pipeline, n_splits=cfg.walk_forward_splits)
+    # Walk-forward diagnostics are restricted to pre-holdout rows so the final
+    # holdout is scored only by the already-selected final model/baseline report.
+    walk_forward = _walk_forward_eval(
+        X[:calib_end], y[:calib_end], base_pipeline, n_splits=cfg.walk_forward_splits,
+    )
 
     # Feature importance.
     importance_values: np.ndarray | None = None
@@ -388,8 +428,20 @@ def train_from_dataset_v3(
     calibration_path = output_dir / "calibration_report_v3.json"
     importance_path = output_dir / "feature_importance_v3.json"
 
+    split_manifest = {
+        "train": [0, train_end], "calibration": [train_end, calib_end],
+        "final_holdout": [calib_end, n], "time_ordered": True,
+    }
+    split_manifest_sha256 = hashlib.sha256(
+        json.dumps(split_manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
     metadata = {
         "version": "v3",
+        "runtime_contract": "sklearn-joblib-v1",
+        "model_name": "meta_model_v3",
+        "model_version": "v3-remediated",
+        "feature_schema_version": feature_schema_version,
+        "status": "candidate",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "dataset_path": str(dataset_path),
         "n_samples": int(n),
@@ -398,6 +450,12 @@ def train_from_dataset_v3(
         "label_column": cfg.label_column,
         "label_distribution": {"WIN": int(y.sum()), "LOSS": int(len(y) - y.sum())},
         "calibration_method": calibration_method,
+        "calibration_selection_split": "CALIBRATION",
+        "final_evaluation_split": "FINAL_HOLDOUT",
+        "holdout_used_for_selection": False,
+        "split_manifest": split_manifest,
+        "split_manifest_sha256": split_manifest_sha256,
+        "calibration_selection_metrics": calibration_selection_metrics,
         "split": {
             "train": int(len(y_train)),
             "calib": int(len(y_calib)),
@@ -435,6 +493,9 @@ def train_from_dataset_v3(
         },
         model_path,
     )
+
+    from .artifact_resolver import sha256_file
+    metadata["artifact_sha256"] = sha256_file(model_path)
 
     metrics_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     calibration_path.write_text(

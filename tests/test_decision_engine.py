@@ -13,7 +13,9 @@ import pytest
 import numpy as np
 
 import btc_scraper.ml_engine.meta_model as mm
-from btc_scraper.ml_engine.decision_engine import MetaDecisionEngine, DEFAULT_EVIDENCE_WEIGHTS
+from btc_scraper.ml_engine.decision_engine import (
+    MetaDecisionEngine, DEFAULT_EVIDENCE_WEIGHTS, DecisionAction, apply_final_risk_gate,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -199,6 +201,68 @@ class TestComputePosterior:
         assert 0.0 <= p <= 1.0
 
 
+class TestFinalRiskGate:
+    def test_critical_stop_is_immutable(self):
+        action, reasons = apply_final_risk_gate("BUY", "CRITICAL", True)
+        assert action is DecisionAction.ALLOW_EXIT_ONLY
+        assert "critical_context_hard_stop" in reasons
+
+    def test_high_stop_blocks_entry(self):
+        action, reasons = apply_final_risk_gate("INCREASE", "HIGH", True)
+        assert action is DecisionAction.BLOCK_ENTRY
+        assert "high_context_entry_block" in reasons
+
+    def test_apply_context_cannot_overwrite_critical_stop(self):
+        engine = MetaDecisionEngine()
+        base = {"action": "BUY", "posterior_probability": .9, "expected_return": .2, "reason": "base"}
+        result = engine.apply_context(base, {"adjusted_score": .99, "risk_level": "CRITICAL", "stop_processing": True})
+        assert result["action"] == "ALLOW_EXIT_ONLY"
+        assert result["risk_reason_codes"] == ["critical_context_hard_stop"]
+
+    def test_provider_path_does_not_reinfer(self, monkeypatch):
+        engine = MetaDecisionEngine()
+        calls = 0
+        def decide(_info, **_kwargs):
+            nonlocal calls
+            calls += 1
+            return {"action": "BUY", "posterior_probability": .8, "expected_return": .2, "reason": "base"}
+        class Report:
+            def to_dict(self):
+                return {"adjusted_score": .7, "risk_level": "LOW", "stop_processing": False}
+        class Provider:
+            name = "test"
+            def should_apply_context(self, _state): return True
+            def generate_context_report(self, _score, _state): return Report()
+        monkeypatch.setattr(engine, "decide", decide)
+        engine.decide_with_provider({"signal_id": "sig-1"}, Provider(), object())
+        assert calls == 1
+
+    def test_provider_path_persists_one_final_decision(self, monkeypatch, tmp_path):
+        from btc_scraper.ml_engine import decision_engine as decision_module
+        from btc_scraper.ml_engine import runtime_evidence_store as evidence_module
+        store = evidence_module.RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+        store.write_prediction_evidence(
+            {"prediction_id": "pred-1", "value": .8},
+            {"prediction_id": "pred-1", "features": [1]},
+        )
+        monkeypatch.setattr(evidence_module, "_STORE", store)
+        monkeypatch.setattr(decision_module, "predict_meta_confidence", lambda _info: {
+            "probability": .8, "expected_return": .2, "prediction_id": "pred-1",
+            "model_version": "v", "artifact_sha256": "sha",
+        })
+        class Report:
+            def to_dict(self): return {"adjusted_score": .9, "risk_level": "LOW", "stop_processing": False}
+        class Provider:
+            name = "test"
+            def should_apply_context(self, _state): return True
+            def generate_context_report(self, _score, _state): return Report()
+        result = MetaDecisionEngine().decide_with_provider({"signal_id": "sig-1", "signal": "BUY"}, Provider(), object())
+        with store._connect() as db:
+            rows = db.execute("SELECT prediction_id, payload FROM final_decisions").fetchall()
+        assert len(rows) == 1
+        assert rows[0][0] == result["prediction_id"] == "pred-1"
+
+
 # ---------------------------------------------------------------------------
 # decide() without model
 # ---------------------------------------------------------------------------
@@ -292,5 +356,3 @@ class TestDecideWithModel:
             f"Expected IGNORE for near-zero EV, got {result['action']} "
             f"(expected_return={result.get('expected_return')})"
         )
-
-

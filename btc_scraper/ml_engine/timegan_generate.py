@@ -50,7 +50,8 @@ def load_timegan_checkpoint(
     rec = Recovery(latent_dim=latent_dim, hidden_dim=hidden_dim, output_size=5)
     
     if os.path.exists(checkpoint_path):
-        ckpt = torch.load(checkpoint_path, map_location=device)
+        from .governed_artifact_loader import load_training_checkpoint
+        ckpt = load_training_checkpoint(checkpoint_path, device=device)
         if "generator_state" in ckpt and "recovery_state" in ckpt:
             gen.load_state_dict(ckpt["generator_state"])
             rec.load_state_dict(ckpt["recovery_state"])
@@ -239,8 +240,8 @@ def load_synthetic_candles(path: str = "data/rl_synthetic_candles.pkl") -> Dict:
     Returns:
         Dict with keys: sequences, n_sequences, seq_len, features
     """
-    with open(path, "rb") as f:
-        data = pickle.load(f)
+    from .governed_artifact_loader import load_trusted_pickle
+    data = load_trusted_pickle(path, approved_root=Path(path).resolve().parent)
     
     logger.info(f"Loaded {data['n_sequences']} synthetic sequences from {path}")
     return data

@@ -24,10 +24,10 @@ class CalibrationBucket:
 def runtime_calibration_report(
     samples: Iterable[Mapping[str, Any]],
     *,
-    generated_at: datetime | None = None,
+    generated_at: datetime,
     windows_days: tuple[int, ...] = (7, 14, 30, 90),
 ) -> dict[str, Any]:
-    now = generated_at or datetime.now(timezone.utc)
+    now = generated_at.astimezone(timezone.utc) if generated_at.tzinfo else generated_at.replace(tzinfo=timezone.utc)
     rows = latest_calibration_events(sample for sample in samples if _is_runtime_sample(sample))
     report = {
         "generated_at": now.isoformat(),
@@ -46,7 +46,19 @@ def runtime_calibration_report(
         elif metrics["evidence_state"] == "insufficient" and health == "HEALTHY":
             health = "INSUFFICIENT_OUTCOMES"
     report["global_health"] = health
+    from .operational_health import record_healthy
+    record_healthy("runtime_calibration")
     return report
+
+
+def guarded_runtime_calibration_report(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Promotion-safe boundary: report failures are observable and propagated."""
+    try:
+        return runtime_calibration_report(*args, **kwargs)
+    except Exception as exc:
+        from .operational_health import record_degradation
+        record_degradation("runtime_calibration", "calibration_report_failure_total", exc)
+        raise
 
 
 def latest_calibration_events(samples: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -218,8 +230,9 @@ def _quantile(values: list[float], q: float) -> float:
 def _in_window(row: Mapping[str, Any], now: datetime, days: int) -> bool:
     timestamp = _parse_dt(str(row.get("closed_at") or row.get("event_time") or row.get("prediction_time") or ""))
     if timestamp is None:
-        return True
-    return timestamp >= now - timedelta(days=days)
+        return False
+    timestamp = timestamp.astimezone(timezone.utc)
+    return now - timedelta(days=days) <= timestamp <= now
 
 
 def _parse_dt(value: str) -> datetime | None:

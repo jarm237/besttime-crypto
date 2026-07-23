@@ -66,8 +66,8 @@ def load_and_prepare_candles(
     if cache_file and os.path.exists(cache_file):
         try:
             print(f"[RL Environment] Loading indicator cache from {cache_file}...")
-            with open(cache_file, "rb") as f:
-                cached = pickle.load(f)
+            from .governed_artifact_loader import load_trusted_pickle
+            cached = load_trusted_pickle(cache_file)
             # Filter to requested coins if specified
             if coins:
                 target = set(c.upper() for c in coins)
@@ -426,6 +426,13 @@ class TradeExitEnv(gym.Env):
         self.max_pnl = 0.0
         self.episode_rewards = []
         self.episode_done_reason = ""
+        self.prev_pnl = 0.0
+        self.min_pnl = 0.0
+        self.current_drawdown = 0.0
+        self.holding_steps = 0
+        self.last_action = None
+        self.trade_done = False
+        self.trade_rewards = []
         
         # Regime names for internal tracking
         self.regime_names = [
@@ -441,48 +448,46 @@ class TradeExitEnv(gym.Env):
         else:
             self.active_trades = self.valid_trades
         print(f"[RL Env] Curriculum phase set to '{phase}'. Active trades: {len(self.active_trades)}")
+
+    def _reset_trade_state(self, trade: dict) -> dict:
+        """Initialize every trade-local field from one canonical boundary."""
+        self.trade = trade
+        self.coin = trade["coin"]
+        self.entry_candle_idx = trade["candle_idx"]
+        entry_candle = self.coin_candles[self.coin][self.entry_candle_idx]
+        self.entry_price = float(entry_candle["close"])
+        self.current_step = 0
+        self.prev_pnl = 0.0
+        self.max_pnl = 0.0
+        self.min_pnl = 0.0
+        self.current_drawdown = 0.0
+        self.holding_steps = 0
+        self.last_action = None
+        self.trade_done = False
+        self.trade_rewards = []
+        self.trailing_sl_active = False
+        sig = str(trade.get("signal_raw", "BUY")).upper()
+        self.direction = "SHORT" if "SELL" in sig or "SHORT" in sig else "LONG"
+        tp_sl = calculate_tp_sl(
+            close=entry_candle["close"], signal=trade.get("signal_raw", "BUY"),
+            atr=entry_candle.get("atr", 1.0), support=entry_candle.get("support", 0.0),
+            resistance=entry_candle.get("resistance", 0.0), bb_upper=entry_candle.get("bb_upper", 0.0),
+            bb_middle=entry_candle.get("bb_middle", 0.0), bb_lower=entry_candle.get("bb_lower", 0.0),
+            regime=entry_candle.get("regime"),
+        )
+        self.sl, self.tp = tp_sl["sl"], tp_sl["tp1"]
+        return entry_candle
         
     def reset(self, seed=None, options=None) -> Tuple[np.ndarray, Dict]:
         """Reset environment to initial state."""
         super().reset(seed=seed)
         
-        self.current_step = 0
         self.episode_rewards = []
         self.episode_done_reason = ""
-        self.trailing_sl_active = False
         
         # Select trade
         self.current_trade_idx = self.np_random.integers(0, len(self.active_trades))
-        self.trade = self.active_trades[self.current_trade_idx]
-        
-        self.coin = self.trade["coin"]
-        self.entry_candle_idx = self.trade["candle_idx"]
-        
-        # Setup initial entry candle state
-        entry_candle = self.coin_candles[self.coin][self.entry_candle_idx]
-        self.entry_price = entry_candle["close"]
-        self.max_pnl = 0.0
-        self.prev_pnl = 0.0
-        self.min_pnl = 0.0
-        
-        # Direction
-        sig = str(self.trade.get("signal_raw", "BUY")).upper()
-        self.direction = "SHORT" if "SELL" in sig or "SHORT" in sig else "LONG"
-        
-        # Compute dynamic TP & SL
-        tp_sl = calculate_tp_sl(
-            close=entry_candle["close"],
-            signal=self.trade.get("signal_raw", "BUY"),
-            atr=entry_candle.get("atr", 1.0),
-            support=entry_candle.get("support", 0.0),
-            resistance=entry_candle.get("resistance", 0.0),
-            bb_upper=entry_candle.get("bb_upper", 0.0),
-            bb_middle=entry_candle.get("bb_middle", 0.0),
-            bb_lower=entry_candle.get("bb_lower", 0.0),
-            regime=entry_candle.get("regime")
-        )
-        self.sl = tp_sl["sl"]
-        self.tp = tp_sl["tp1"]
+        entry_candle = self._reset_trade_state(self.active_trades[self.current_trade_idx])
         
         obs = self._get_observation(entry_candle, 0)
         info = {
@@ -498,6 +503,7 @@ class TradeExitEnv(gym.Env):
         
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """Execute one time step."""
+        self.last_action = int(action)
         # Index in preloaded candles
         idx = self.entry_candle_idx + self.current_step
         
@@ -542,6 +548,7 @@ class TradeExitEnv(gym.Env):
             
         self.max_pnl = max(self.max_pnl, current_pnl)
         self.min_pnl = min(self.min_pnl, current_pnl)
+        self.current_drawdown = self.max_pnl - current_pnl
         
         # Dense reward shaping: use the step-to-step difference in Net PnL (percentage).
         # Total reward accumulated over the episode will equal final realized Net PnL.
@@ -646,17 +653,20 @@ class TradeExitEnv(gym.Env):
 
         # Advance step and record reward
         self.current_step += 1
+        self.holding_steps = self.current_step
         self.episode_rewards.append(reward)
+        self.trade_rewards.append(reward)
 
         # Check max episode length
-        truncated = self.current_step >= self.max_episode_length
-        if truncated and not terminated:
-            terminated = True
+        truncated = self.current_step >= self.max_episode_length and not terminated
+        if truncated:
             done_reason = "MAX_STEPS"
             net_pnl = current_pnl - _round_trip_cost_pct()
             reward = (net_pnl - self.prev_pnl) * self.reward_scale
             self.prev_pnl = net_pnl
             self.episode_rewards[-1] = reward
+            self.trade_rewards[-1] = reward
+        self.trade_done = terminated or truncated
 
             
         # Fetch next candle observation
@@ -797,46 +807,18 @@ class MultiTradeExitEnv(TradeExitEnv):
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         obs, reward, terminated, truncated, info = super().step(action)
         
-        if terminated:
+        if terminated or truncated:
             self.trades_completed += 1
             
             if self.trades_completed < self.trades_per_episode:
-                self.current_step = 0
-                
                 # Pick a random trade
                 self.current_trade_idx = self.np_random.integers(0, len(self.active_trades))
-                self.trade = self.active_trades[self.current_trade_idx]
-                
-                self.coin = self.trade["coin"]
-                self.entry_candle_idx = self.trade["candle_idx"]
-                
-                # Reset candle entry state
-                entry_candle = self.coin_candles[self.coin][self.entry_candle_idx]
-                self.entry_price = entry_candle["close"]
-                self.max_pnl = 0.0
-                
-                sig = str(self.trade.get("signal_raw", "BUY")).upper()
-                self.direction = "SHORT" if "SELL" in sig or "SHORT" in sig else "LONG"
-                
-                tp_sl = calculate_tp_sl(
-                    close=entry_candle["close"],
-                    signal=self.trade.get("signal_raw", "BUY"),
-                    atr=entry_candle.get("atr", 1.0),
-                    support=entry_candle.get("support", 0.0),
-                    resistance=entry_candle.get("resistance", 0.0),
-                    bb_upper=entry_candle.get("bb_upper", 0.0),
-                    bb_middle=entry_candle.get("bb_middle", 0.0),
-                    bb_lower=entry_candle.get("bb_lower", 0.0),
-                    regime=entry_candle.get("regime")
-                )
-                self.sl = tp_sl["sl"]
-                self.tp = tp_sl["tp1"]
-                self.trailing_sl_active = False
+                entry_candle = self._reset_trade_state(self.active_trades[self.current_trade_idx])
                 
                 obs = self._get_observation(entry_candle, 0)
                 terminated = False  # Don't terminate yet
+                truncated = False
             else:
-                terminated = True
                 info["total_trades"] = self.trades_completed
                 info["episode_reward"] = np.sum(self.episode_rewards)
                 

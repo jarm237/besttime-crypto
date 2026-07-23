@@ -120,7 +120,7 @@ class ArtifactResolver:
         return ArtifactLoadResult(model_name, path, metadata_path, True, True, None, digest, schema, status, metadata)
 
     def health(self) -> dict[str, dict[str, Any]]:
-        return {name: self.resolve(name).to_dict() for name in self.config}
+        return {name: self.resolve(name, require_metadata=True).to_dict() for name in self.config}
 
 
 def get_artifact_resolver() -> ArtifactResolver:

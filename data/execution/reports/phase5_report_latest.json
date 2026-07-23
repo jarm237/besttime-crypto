@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-07-22T02:27:52.630595+00:00",
+  "generated_at": "2026-07-23T02:44:04.077570+00:00",
   "fills_breakdown": {
     "real_paper": 0,
     "synthetic": 100,
-    "debug": 22,
-    "total": 122
+    "debug": 23,
+    "total": 123
   },
   "reject_rate_pct": 4.76,
   "fill_rate_pct": 95.24,
@@ -29,9 +29,9 @@
   },
   "model_monitoring": {
     "prediction_distribution": {
-      "count": 80057,
-      "mean": 0.5082,
-      "std": 0.0833,
+      "count": 71059,
+      "mean": 0.5091,
+      "std": 0.0828,
       "min": 0.1667,
       "p25": 0.4683,
       "p50": 0.487,
@@ -44,9 +44,9 @@
     "missing_rate": {
       "completeness_pct": "NOT_MEASURED",
       "missing_rate_pct": "NOT_MEASURED",
-      "mean_completeness": 1.0,
+      "mean_completeness": 0.994,
       "p05_completeness": 1.0,
-      "longest_missing_streak": 0,
+      "longest_missing_streak": 1,
       "stale_rate_pct": 0.0,
       "n_features": 10,
       "skipped_providers": {
@@ -55,39 +55,39 @@
       }
     },
     "calibration": {
-      "mean_calibration_error": 0.2275,
+      "mean_calibration_error": 0.228,
       "buckets": {
         "0.0-0.4": {
-          "count": 10063,
+          "count": 8815,
           "wins": 0,
           "actual_win_rate": 0.0,
           "expected_win_rate": 0.2,
           "error": 0.2
         },
         "0.4-0.6": {
-          "count": 53639,
-          "wins": 14076,
-          "actual_win_rate": 0.2624,
+          "count": 47497,
+          "wins": 12343,
+          "actual_win_rate": 0.2599,
           "expected_win_rate": 0.5,
-          "error": 0.2376
+          "error": 0.2401
         },
         "0.6-0.7": {
-          "count": 16156,
-          "wins": 16156,
+          "count": 14571,
+          "wins": 14571,
           "actual_win_rate": 1.0,
           "expected_win_rate": 0.6499999999999999,
           "error": 0.35
         },
         "0.7-0.8": {
-          "count": 171,
-          "wins": 171,
+          "count": 153,
+          "wins": 153,
           "actual_win_rate": 1.0,
           "expected_win_rate": 0.75,
           "error": 0.25
         },
         "0.8-1.0": {
-          "count": 28,
-          "wins": 28,
+          "count": 23,
+          "wins": 23,
           "actual_win_rate": 1.0,
           "expected_win_rate": 0.9,
           "error": 0.1
@@ -102,14 +102,14 @@
   "causal_shadow": {
     "summary": {
       "total_signals_emitted": 0,
-      "actual_trades_logged": 698,
-      "matched_aligned_decisions": 698,
-      "rl_exit_shadow_recommendations": 147
+      "actual_trades_logged": 707,
+      "matched_aligned_decisions": 707,
+      "rl_exit_shadow_recommendations": 153
     },
     "blocked_reasons": {
-      "slippage_guard": 14,
+      "slippage_guard": 19,
       "kelly_fraction_limit": 343,
-      "correlation_filter": 55,
+      "correlation_filter": 58,
       "other": 264
     },
     "performance_impact": {

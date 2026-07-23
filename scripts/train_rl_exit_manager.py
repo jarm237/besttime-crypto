@@ -130,8 +130,8 @@ def load_synthetic_training_data(
     if not candle_path or not os.path.exists(candle_path):
         return {}, []
 
-    with open(candle_path, "rb") as f:
-        data = pickle.load(f)
+    from btc_scraper.ml_engine.governed_artifact_loader import load_trusted_pickle
+    data = load_trusted_pickle(candle_path, approved_root=Path(candle_path).resolve().parent)
 
     sequences = data.get("sequences") if isinstance(data, dict) else data
     sequences = np.asarray(sequences, dtype=np.float32)
@@ -300,15 +300,15 @@ def train_agent(
 
         # Wrap with Monitor for proper evaluation stats.
         eval_env = Monitor(_eval_env_base)
+        from btc_scraper.ml_engine.governed_artifact_loader import load_offline_rl_artifact
+        rl_root = Path("logs/rl_models")
 
         if algorithm.lower() == "ppo":
             if latest_model:
                 print(f"[RL] Warm-starting RecurrentPPO from {os.path.basename(latest_model)}...")
-                model = RecurrentPPO.load(
-                    latest_model,
-                    env=env,
-                    device=device,
-                    custom_objects={"learning_rate": learning_rate},
+                model = load_offline_rl_artifact(
+                    latest_model, model_class=RecurrentPPO, approved_root=rl_root,
+                    env=env, device=device, custom_objects={"learning_rate": learning_rate},
                 )
             else:
                 model = RecurrentPPO(
@@ -329,7 +329,7 @@ def train_agent(
         elif algorithm.lower() == "dqn":
             if latest_model:
                 print(f"[RL] Warm-starting DQN from {os.path.basename(latest_model)}...")
-                model = DQN.load(latest_model, env=env, device=device, custom_objects={"learning_rate": learning_rate})
+                model = load_offline_rl_artifact(latest_model, model_class=DQN, approved_root=rl_root, env=env, device=device, custom_objects={"learning_rate": learning_rate})
             else:
                 model = DQN(
                     "MlpPolicy",
@@ -345,7 +345,7 @@ def train_agent(
         elif algorithm.lower() == "a2c":
             if latest_model:
                 print(f"[RL] Warm-starting A2C from {os.path.basename(latest_model)}...")
-                model = A2C.load(latest_model, env=env, device=device, custom_objects={"learning_rate": learning_rate})
+                model = load_offline_rl_artifact(latest_model, model_class=A2C, approved_root=rl_root, env=env, device=device, custom_objects={"learning_rate": learning_rate})
             else:
                 model = A2C(
                     "MlpPolicy",
@@ -438,12 +438,14 @@ def compare_agents(
         env.set_curriculum_phase("full")
         
         try:
+            from btc_scraper.ml_engine.governed_artifact_loader import load_offline_rl_artifact
+            rl_root = Path("logs/rl_models")
             if algo.lower() == "ppo":
-                model = RecurrentPPO.load(path, env=env, device=device)
+                model = load_offline_rl_artifact(path, model_class=RecurrentPPO, approved_root=rl_root, env=env, device=device)
             elif algo.lower() == "dqn":
-                model = DQN.load(path, env=env, device=device)
+                model = load_offline_rl_artifact(path, model_class=DQN, approved_root=rl_root, env=env, device=device)
             elif algo.lower() == "a2c":
-                model = A2C.load(path, env=env, device=device)
+                model = load_offline_rl_artifact(path, model_class=A2C, approved_root=rl_root, env=env, device=device)
             else:
                 continue
                 

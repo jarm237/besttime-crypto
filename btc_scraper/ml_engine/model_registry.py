@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import os
+import fcntl
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,9 +15,25 @@ REGISTRY_PATH = ROOT / "logs" / "model_registry.json"
 VALID_STATUSES = {"candidate", "shadow", "production", "archive", "rejected", "disabled"}
 
 
+class RegistryConflictError(RuntimeError):
+    pass
+
+
 class ModelRegistry:
-    def __init__(self, path: Path | str = REGISTRY_PATH) -> None:
+    def __init__(self, path: Path | str = REGISTRY_PATH, promotion_guard_path: Path | str | None = None) -> None:
         self.path = Path(path)
+        self.lock_path = self.path.with_suffix(self.path.suffix + ".lock")
+        self.promotion_guard_path = Path(promotion_guard_path) if promotion_guard_path is not None else ROOT / "config" / "ml_engine_readiness.json"
+
+    @contextmanager
+    def _locked(self, *, exclusive: bool):
+        self.lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.lock_path.open("a+") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
     def _read(self) -> dict[str, list[dict[str, Any]]]:
         if not self.path.exists():
@@ -25,9 +43,27 @@ class ModelRegistry:
 
     def _write(self, data: dict[str, list[dict[str, Any]]]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp = self.path.with_suffix(self.path.suffix + f".{os.getpid()}.tmp")
+        with tmp.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(data, ensure_ascii=False, indent=2))
+            handle.flush()
+            os.fsync(handle.fileno())
         os.replace(tmp, self.path)
+        directory_fd = os.open(self.path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+
+    def _assert_promotion_unfrozen(self) -> None:
+        if not self.promotion_guard_path.exists() or os.getenv("ML_MODEL_PROMOTION_OVERRIDE", "false").lower() in {"1", "true", "yes"}:
+            return
+        try:
+            guard = json.loads(self.promotion_guard_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise RegistryConflictError(f"promotion_guard_unreadable:{exc}") from exc
+        if guard.get("status") != "AUTHORIZED":
+            raise RegistryConflictError("promotion_frozen_during_remediation")
 
     def register(self, record: dict[str, Any]) -> dict[str, Any]:
         name, version, status = record.get("model_name"), record.get("version"), record.get("status", "candidate")
@@ -42,41 +78,78 @@ class ModelRegistry:
             result["artifact_path"] = str(artifact.relative_to(ROOT))
             result.setdefault("sha256", sha256_file(artifact))
         result.setdefault("registered_at", datetime.now(timezone.utc).isoformat())
-        data = self._read()
-        if any(r.get("model_name") == name and r.get("version") == version for r in data["records"]):
-            raise ValueError("model version already registered; artifacts are immutable")
         if status == "production":
-            for existing in data["records"]:
-                if existing.get("model_name") == name and existing.get("status") == "production":
-                    existing["status"] = "archive"
-                    existing["archived_at"] = result["registered_at"]
-                    result.setdefault("previous_production_version", existing.get("version"))
-        data["records"].append(result)
-        self._write(data)
+            self._assert_promotion_unfrozen()
+        with self._locked(exclusive=True):
+            data = self._read()
+            if any(r.get("model_name") == name and r.get("version") == version for r in data["records"]):
+                raise ValueError("model version already registered; artifacts are immutable")
+            if status == "production":
+                for existing in data["records"]:
+                    if existing.get("model_name") == name and existing.get("status") == "production":
+                        existing["status"] = "archive"
+                        existing["archived_at"] = result["registered_at"]
+                        result.setdefault("previous_production_version", existing.get("version"))
+            data["records"].append(result)
+            self._write(data)
         return result
 
     def active(self, model_name: str, allowed_statuses: tuple[str, ...] = ("production",)) -> dict[str, Any] | None:
-        records = [r for r in self._read()["records"] if r.get("model_name") == model_name and r.get("status") in allowed_statuses]
+        with self._locked(exclusive=False):
+            records = [r for r in self._read()["records"] if r.get("model_name") == model_name and r.get("status") in allowed_statuses]
         return records[-1] if records else None
 
     def rollback(self, model_name: str, version: str) -> dict[str, Any]:
-        data = self._read()
-        target = next((r for r in data["records"] if r.get("model_name") == model_name and r.get("version") == version), None)
-        if target is None:
-            raise KeyError("rollback version not found")
-        for item in data["records"]:
-            if item.get("model_name") == model_name and item.get("status") == "production":
-                item["status"] = "archive"
-        target["status"] = "production"
-        target["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
-        self._write(data)
+        with self._locked(exclusive=True):
+            data = self._read()
+            target = next((r for r in data["records"] if r.get("model_name") == model_name and r.get("version") == version), None)
+            if target is None:
+                raise KeyError("rollback version not found")
+            for item in data["records"]:
+                if item.get("model_name") == model_name and item.get("status") == "production":
+                    item["status"] = "archive"
+            target["status"] = "production"
+            target["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
+            self._write(data)
         return target
+
+    def promote(self, model_name: str, candidate_id: str, expected_current_production_id: str | None) -> dict[str, Any]:
+        """CAS promotion: fail if the production slot changed since review."""
+        self._assert_promotion_unfrozen()
+        with self._locked(exclusive=True):
+            data = self._read()
+            productions = [r for r in data["records"] if r.get("model_name") == model_name and r.get("status") == "production"]
+            current = productions[-1] if productions else None
+            current_id = None if current is None else str(current.get("artifact_id") or current.get("version"))
+            if current_id != expected_current_production_id:
+                from .operational_health import increment
+                increment("registry_conflict_total")
+                raise RegistryConflictError(f"production_changed:{current_id}:{expected_current_production_id}")
+            target = next(
+                (r for r in data["records"] if r.get("model_name") == model_name
+                 and str(r.get("artifact_id") or r.get("version")) == candidate_id), None,
+            )
+            if target is None or target.get("status") not in {"candidate", "shadow"}:
+                raise ValueError("promotion target must be an active candidate or shadow artifact")
+            evidence = target.get("metrics") or target.get("metadata") or {}
+            if evidence.get("holdout_used_for_selection") is not False and str(model_name).startswith("meta_model"):
+                raise ValueError("promotion blocked: holdout isolation is not proven")
+            now = datetime.now(timezone.utc).isoformat()
+            if current is not None:
+                current["status"], current["archived_at"] = "archive", now
+            target["status"], target["promoted_at"] = "production", now
+            target["previous_production_id"] = current_id
+            self._write(data)
+            return dict(target)
 
     def permits_artifact(self, model_name: str, artifact_path: Path, sha256: str | None,
                          allowed_statuses: tuple[str, ...] = ("production", "shadow")) -> bool:
-        record = self.active(model_name, allowed_statuses)
-        if record is None:
+        try:
+            record = self.active(model_name, allowed_statuses)
+            if record is None:
+                return False
+            expected_path = str(artifact_path.resolve().relative_to(ROOT)).replace("/", "\\")
+            registered_path = str(record.get("artifact_path", "")).replace("/", "\\")
+            return registered_path == expected_path and (not record.get("sha256") or record.get("sha256") == sha256)
+        except (ValueError, OSError):
             return False
-        expected_path = str(artifact_path.resolve().relative_to(ROOT)).replace("/", "\\")
-        registered_path = str(record.get("artifact_path", "")).replace("/", "\\")
-        return registered_path == expected_path and (not record.get("sha256") or record.get("sha256") == sha256)

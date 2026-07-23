@@ -924,6 +924,15 @@ class AutoTrader:
             return log_entry
 
         # Decision is eligible, proceed with sizing & execution
+        if not self.dry_run:
+            from btc_scraper.ml_engine.readiness_gate import live_entry_authorized
+            authorized, readiness_reason = live_entry_authorized()
+            if not authorized:
+                log_entry = self._build_skip_log(coin, signal, readiness_reason, ana, decision)
+                log_entry["ml_engine_live_gate"] = "BLOCKED"
+                _append_log(log_entry)
+                return log_entry
+
         direction = "LONG" if decision.action == TradeAction.BUY else "SHORT"
         meta_prob = decision.breakdown.meta_probability
         score = decision.breakdown.technical_score

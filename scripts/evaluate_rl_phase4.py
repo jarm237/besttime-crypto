@@ -88,14 +88,16 @@ def evaluate_rl_agent(
     print(f"\n[EVAL] Evaluating {algo.upper()} agent ({n_episodes} episodes) on device={device}...")
 
     env = make_env(trades)
+    from btc_scraper.ml_engine.governed_artifact_loader import load_offline_rl_artifact
+    rl_root = Path("logs/rl_models")
 
     try:
         if algo.lower() == "ppo":
-            model = RecurrentPPO.load(model_path, env=env, device=device)
+            model = load_offline_rl_artifact(model_path, model_class=RecurrentPPO, approved_root=rl_root, env=env, device=device)
         elif algo.lower() == "dqn":
-            model = DQN.load(model_path, env=env, device=device)
+            model = load_offline_rl_artifact(model_path, model_class=DQN, approved_root=rl_root, env=env, device=device)
         elif algo.lower() == "a2c":
-            model = A2C.load(model_path, env=env, device=device)
+            model = load_offline_rl_artifact(model_path, model_class=A2C, approved_root=rl_root, env=env, device=device)
         else:
             raise ValueError(f"Unknown algorithm: {algo}")
     except Exception as e:
@@ -247,7 +249,7 @@ def generate_phase_4_report(n_episodes: int = 50):
         "date": datetime.now().isoformat(),
         "n_eval_episodes": n_episodes,
         "environment": {
-            "state_space": 18,
+            "state_space": 20,
             "action_space": 6,
             "actions": ["HOLD", "PARTIAL_CLOSE_50", "MOVE_SL_TO_BREAKEVEN", "TAKE_PROFIT", "EXIT", "TRAILING_SL_ATR"],
             "episode_length": 50,
@@ -328,10 +330,11 @@ def print_phase_4_summary():
     print("  - PPO: ent_coef=0.01 for better exploration")
     print("  - MultiTradeExitEnv: 5 trades per episode for efficiency")
 
-    print("\n[OK] State Space (18 features):")
+    print("\n[OK] State Space (20 features):")
     print("  RSI, MACD_hist, ATR%, ADX, meta_confidence")
     print("  regime (8 one-hot), PnL%, hold_time, fear_greed")
     print("  volume_ratio, bb_width_pct")
+    print("  max_drawdown, average_market_correlation")
 
     print("\n[OK] Action Space (6 discrete):")
     print("  0=HOLD, 1=PARTIAL_CLOSE_50, 2=MOVE_SL_TO_BREAKEVEN, 3=TAKE_PROFIT, 4=EXIT, 5=TRAILING_SL_ATR")

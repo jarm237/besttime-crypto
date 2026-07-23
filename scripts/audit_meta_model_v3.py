@@ -44,7 +44,8 @@ def main() -> None:
     auc = float(roc_auc_score(y.iloc[test_idx], clf.predict_proba(x.iloc[test_idx])[:, 1]))
     # Exact saved v3 pipeline on the same chronological test slice. The bundle's
     # recorded ordered feature schema is used, so this detects preprocessing drift.
-    bundle = joblib.load(ROOT / "logs/meta_model_v3.joblib")
+    from btc_scraper.ml_engine.governed_artifact_loader import load_offline_joblib_artifact
+    bundle = load_offline_joblib_artifact(ROOT / "logs/meta_model_v3.joblib", approved_root=ROOT / "logs")
     saved_features = bundle["features"]
     exact_x = x.reindex(columns=saved_features, fill_value=0.0)
     exact_probs = bundle["model"].predict_proba(exact_x.iloc[test_idx])[:, 1]

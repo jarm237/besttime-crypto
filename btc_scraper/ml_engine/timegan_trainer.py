@@ -77,7 +77,8 @@ def pretrain_autoencoder(
     # resume support: if resume_from provided and exists, load model + optimizer state
     start_epoch = 0
     if resume_from and os.path.exists(resume_from):
-        ck = torch.load(resume_from, map_location=device)
+        from .governed_artifact_loader import load_training_checkpoint
+        ck = load_training_checkpoint(resume_from, device=device)
         emb.load_state_dict(ck.get("embedder_state", {}))
         rec.load_state_dict(ck.get("recovery_state", {}))
         if "opt_state" in ck:
@@ -173,7 +174,8 @@ def pretrain_supervisor(
     # resume support
     start_epoch = 0
     if resume_from and os.path.exists(resume_from):
-        ck = torch.load(resume_from, map_location=device)
+        from .governed_artifact_loader import load_training_checkpoint
+        ck = load_training_checkpoint(resume_from, device=device)
         sup.load_state_dict(ck.get("supervisor_state", {}))
         if "opt_state" in ck:
             try:
@@ -285,7 +287,8 @@ def train_timegan_adversarial(
     # resume support
     start_epoch = 0
     if resume_from and os.path.exists(resume_from):
-        ck = torch.load(resume_from, map_location=device)
+        from .governed_artifact_loader import load_training_checkpoint
+        ck = load_training_checkpoint(resume_from, device=device)
         gen.load_state_dict(ck.get("generator_state", {}))
         sup.load_state_dict(ck.get("supervisor_state", {}))
         disc.load_state_dict(ck.get("discriminator_state", {}))
@@ -420,7 +423,8 @@ def run_stage3_pipeline(
     )
 
     # load embedder/recovery states
-    ae_state = torch.load(ae_ck, map_location=device)
+    from .governed_artifact_loader import load_training_checkpoint
+    ae_state = load_training_checkpoint(ae_ck, device=device)
 
     if verbose:
         logger.info("Stage3: starting supervisor pretrain")
@@ -428,7 +432,7 @@ def run_stage3_pipeline(
         sequences, epochs=sup_epochs, batch_size=batch_size, lr=lr, device=device, emb_state_dict=ae_state.get("embedder_state"), save_path=sup_ck, verbose=verbose
     )
 
-    sup_state = torch.load(sup_ck, map_location=device)
+    sup_state = load_training_checkpoint(sup_ck, device=device)
 
     if verbose:
         logger.info("Stage3: starting adversarial training")

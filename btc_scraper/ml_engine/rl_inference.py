@@ -17,4 +17,6 @@ def guarded_rl_predict(model: Any, observation: np.ndarray, *, state: Any, episo
         return int(action), next_state
     except Exception:
         breaker.record_failure()
+        from .operational_health import record_degradation
+        record_degradation("ml_inference", "ml_inference_failure_total", "rl_inference_failed")
         raise

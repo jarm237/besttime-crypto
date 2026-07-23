@@ -1,0 +1,218 @@
+{
+  "version": "v3",
+  "runtime_contract": "sklearn-joblib-v1",
+  "model_name": "meta_model_v3",
+  "model_version": "v3-remediated",
+  "feature_schema_version": "meta-v3-b6e41b3e74dc",
+  "status": "candidate",
+  "created_at": "2026-07-23T02:38:40.175933+00:00",
+  "dataset_path": "data/feature_store/training/ml_dataset_v3.parquet",
+  "n_samples": 24070,
+  "n_features": 99,
+  "features": [
+    "signal_score",
+    "rsi",
+    "macd_hist",
+    "atr_pct",
+    "volume_ratio",
+    "fear_greed",
+    "ema_distance_pct",
+    "bb_width_pct",
+    "adx",
+    "mtf_alignment",
+    "regime_trending_bull",
+    "regime_trending_bear",
+    "regime_ranging",
+    "regime_high_volatility",
+    "return_15m",
+    "return_1h",
+    "return_4h",
+    "return_1d",
+    "ema9_slope",
+    "ema21_slope",
+    "sma50_slope",
+    "sma200_slope",
+    "ema_distance_zscore",
+    "realized_vol_20",
+    "realized_vol_50",
+    "atr_percentile",
+    "volatility_regime_compression",
+    "volatility_regime_breakout",
+    "volatility_regime_mean_reversion",
+    "volatility_regime_panic_sell",
+    "volatility_regime_low_liquidity",
+    "volatility_regime_pump_risk",
+    "distance_support_pct",
+    "distance_resistance_pct",
+    "higher_high",
+    "lower_low",
+    "market_structure_break",
+    "obv",
+    "cmf",
+    "mfi",
+    "volume_acceleration",
+    "volume_percentile",
+    "roc_14",
+    "roc_50",
+    "hv20",
+    "hv60",
+    "bos_bull",
+    "bos_bear",
+    "choch_bull",
+    "choch_bear",
+    "sentiment_momentum",
+    "sentiment_recovery",
+    "sentiment_risk",
+    "sentiment_trend_up",
+    "sentiment_trend_down",
+    "tf_1h_bull",
+    "tf_4h_bull",
+    "tf_1d_bull",
+    "regime_strong_trend",
+    "regime_weak_trend",
+    "regime_compression",
+    "regime_breakout",
+    "regime_mean_reversion",
+    "regime_panic_sell",
+    "regime_low_liquidity",
+    "regime_pump_risk",
+    "fracdiff_source_log_price",
+    "fracdiff_return_1_raw",
+    "fracdiff_d_0_00",
+    "fracdiff_d_0_20",
+    "fracdiff_d_0_40",
+    "fracdiff_d_0_60",
+    "fracdiff_d_0_80",
+    "fracdiff_d_selected",
+    "fracdiff_price",
+    "fracdiff_return_1",
+    "coin_AEVO",
+    "coin_AR",
+    "coin_AVAX",
+    "coin_BNB",
+    "coin_BTC",
+    "coin_DOGE",
+    "coin_ENA",
+    "coin_ETH",
+    "coin_IOTA",
+    "coin_NEAR",
+    "coin_SOL",
+    "coin_SOPH",
+    "coin_TAO",
+    "coin_TRB",
+    "coin_TRUMP",
+    "coin_TRX",
+    "coin_WLD",
+    "coin_XLM",
+    "coin_XPL",
+    "coin_XRP",
+    "coin_ZEC",
+    "entry_hour",
+    "entry_dayofweek"
+  ],
+  "label_column": "meta_label",
+  "label_distribution": {
+    "WIN": 8130,
+    "LOSS": 15940
+  },
+  "calibration_method": "isotonic",
+  "calibration_selection_split": "CALIBRATION",
+  "final_evaluation_split": "FINAL_HOLDOUT",
+  "holdout_used_for_selection": false,
+  "split_manifest": {
+    "train": [
+      0,
+      16849
+    ],
+    "calibration": [
+      16849,
+      20459
+    ],
+    "final_holdout": [
+      20459,
+      24070
+    ],
+    "time_ordered": true
+  },
+  "split_manifest_sha256": "f7bf756efa61a6a4fe536ec7dd9715733e2f404a5f2326d4b5cf05e3d61c8b3d",
+  "calibration_selection_metrics": {
+    "sigmoid": 0.07083498688811966,
+    "isotonic": 0.048298658661268534
+  },
+  "split": {
+    "train": 16849,
+    "calib": 3610,
+    "test": 3611
+  },
+  "test_metrics": {
+    "roc_auc": 0.8368332433099273,
+    "accuracy": 0.7648850733868734,
+    "brier": 0.15495914556870885
+  },
+  "walk_forward": [
+    {
+      "train_range": [
+        0,
+        13298
+      ],
+      "test_range": [
+        13298,
+        16366
+      ],
+      "n_train": 13298,
+      "n_test": 3068,
+      "roc_auc": 0.8677494101786315,
+      "accuracy": 0.7979139504563233,
+      "brier": 0.15138495242837333
+    },
+    {
+      "train_range": [
+        3068,
+        16366
+      ],
+      "test_range": [
+        16366,
+        19434
+      ],
+      "n_train": 13298,
+      "n_test": 3068,
+      "roc_auc": 0.8399456944876984,
+      "accuracy": 0.7601043024771839,
+      "brier": 0.17102689753458333
+    }
+  ],
+  "model_comparison": {
+    "baseline_old_style": {
+      "roc_auc": 0.8450563813258114,
+      "accuracy": 0.774023816117419,
+      "brier": 0.15197689970295267
+    },
+    "new_model_v3": {
+      "roc_auc": 0.8368332433099273,
+      "accuracy": 0.7648850733868734,
+      "brier": 0.15495914556870885
+    },
+    "delta_roc_auc": -0.008223138015884146,
+    "delta_accuracy": -0.009138742730545601,
+    "delta_brier": 0.0029822458657561834,
+    "legacy_metrics_file": "evaluations/ml_engine_remediation_20260723/meta_model.json",
+    "legacy_metrics_loaded": false
+  },
+  "fallback": {
+    "old_model_path": "evaluations/ml_engine_remediation_20260723/meta_model.joblib",
+    "old_model_exists": false,
+    "strategy": "keep_old_model_as_fallback"
+  },
+  "config": {
+    "label_column": "meta_label",
+    "time_column": "entry_time",
+    "coin_column": "coin",
+    "positive_label": "1",
+    "calibration": true,
+    "random_state": 42,
+    "train_ratio": 0.7,
+    "calib_ratio": 0.15,
+    "walk_forward_splits": 3
+  },
+  "artifact_sha256": "f6463b855ca418f03188b68e1af456657bd2dff863ffce1e069dc1e8432d6c34"
+}

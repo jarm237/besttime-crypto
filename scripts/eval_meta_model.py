@@ -17,7 +17,6 @@ OUT = LOGS / "meta_model_eval_results.json"
 
 def main():
     try:
-        import joblib
         import numpy as np
         from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_fscore_support, brier_score_loss, average_precision_score
     except Exception as e:
@@ -34,7 +33,8 @@ def main():
     print("Loading model...")
     # Ensure project root is on sys.path so unpickling can import local modules
     sys.path.insert(0, str(BASE))
-    bundle = joblib.load(MODEL_PATH)
+    from btc_scraper.ml_engine.governed_artifact_loader import load_offline_joblib_artifact
+    bundle = load_offline_joblib_artifact(MODEL_PATH, approved_root=LOGS)
     model = bundle.get("model") if isinstance(bundle, dict) else bundle
     selected_features = bundle.get("features") if isinstance(bundle, dict) else None
 

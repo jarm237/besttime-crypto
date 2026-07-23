@@ -1,0 +1,20 @@
+{
+  "invalidated_at": "2026-07-23T00:00:00+00:00",
+  "scope": "historical calibration and promotion evidence generated before the ML engine remediation",
+  "reason_codes": [
+    "INVALIDATED_HOLDOUT_SELECTION_LEAKAGE",
+    "INVALIDATED_CALIBRATION_BUCKET_BUG"
+  ],
+  "affected_reports": [
+    "logs/meta_model.json",
+    "logs/calibration_report_v3.json",
+    "logs/calibration_70_20_10.json",
+    "logs/meta_model_agg_calibration.json",
+    "logs/recalibration_20260720T190011Z.json",
+    "logs/recalibration_20260721T190011Z.json",
+    "logs/recalibration_20260722T190012Z.json",
+    "logs/recalibration_latest.json"
+  ],
+  "promotion_eligible": false,
+  "replacement_evidence_required": true
+}

@@ -6,6 +6,10 @@
   "observation_schema_version": "rl-exit-obs-v2",
   "observation_feature_count": 20,
   "status": "shadow",
+  "runtime_contract": "stable-baselines-v1",
   "promotion_blocked": true,
-  "reason": "underperforms_rule_baseline_and_observation_drift"
+  "reason": "underperforms_rule_baseline_and_observation_drift",
+  "environment_validation_status": "REQUIRES_ENVIRONMENT_REVALIDATION",
+  "retrain_required": true,
+  "retrain_reason": "confirmed_cross_trade_state_leakage_and_time_limit_semantics_change"
 }

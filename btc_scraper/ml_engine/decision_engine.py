@@ -1,4 +1,6 @@
+from enum import Enum
 from typing import Dict, Optional, TYPE_CHECKING
+import uuid
 
 from .meta_model import predict_meta_confidence
 
@@ -13,6 +15,43 @@ DEFAULT_EVIDENCE_WEIGHTS = {
     "regime": 0.15,
     "volatility": 0.15,
 }
+
+
+class DecisionAction(str, Enum):
+    BUY = "BUY"
+    SELL = "SELL"
+    HOLD = "HOLD"
+    IGNORE = "IGNORE"
+    INCREASE = "INCREASE"
+    REDUCE = "REDUCE"
+    NEUTRAL = "NEUTRAL"
+    BLOCK_ENTRY = "BLOCK_ENTRY"
+    ALLOW_REDUCE_ONLY = "ALLOW_REDUCE_ONLY"
+    ALLOW_EXIT_ONLY = "ALLOW_EXIT_ONLY"
+
+
+def apply_final_risk_gate(
+    proposed_action: str | DecisionAction,
+    risk_level: str,
+    stop_processing: bool,
+) -> tuple[DecisionAction, tuple[str, ...]]:
+    """Apply immutable exposure constraints after every model/context adjustment."""
+    try:
+        action = DecisionAction(str(getattr(proposed_action, "value", proposed_action)).upper())
+    except ValueError:
+        action = DecisionAction.HOLD
+    if not stop_processing:
+        return action, ()
+    risk = str(getattr(risk_level, "value", risk_level)).upper()
+    if risk == "CRITICAL":
+        return DecisionAction.ALLOW_EXIT_ONLY, ("critical_context_hard_stop",)
+    if risk == "HIGH" and action in {
+        DecisionAction.BUY,
+        DecisionAction.SELL,
+        DecisionAction.INCREASE,
+    }:
+        return DecisionAction.BLOCK_ENTRY, ("high_context_entry_block",)
+    return action, ()
 
 
 class MetaDecisionEngine:
@@ -121,7 +160,18 @@ class MetaDecisionEngine:
             weighted += value * weight
         return self._clamp01(weighted / total_weight)
 
-    def decide(self, analysis_info: Dict) -> Dict:
+    @staticmethod
+    def _persist_final_decision(decision: Dict) -> None:
+        if not decision.get("prediction_id"):
+            return
+        try:
+            from .runtime_evidence_store import get_runtime_evidence_store
+            get_runtime_evidence_store().append_final_decision(decision)
+        except Exception as exc:
+            from .operational_health import record_degradation
+            record_degradation("prediction_audit", "prediction_audit_write_failure_total", exc)
+
+    def decide(self, analysis_info: Dict, *, persist_final: bool = True) -> Dict:
         meta = predict_meta_confidence(analysis_info)
         if not isinstance(meta, dict) or meta.get("probability") is None:
             return {
@@ -130,6 +180,12 @@ class MetaDecisionEngine:
                 "posterior_probability": None,
                 "meta_probability": None,
                 "meta_ev": None,
+                "signal_id": analysis_info.get("signal_id") or analysis_info.get("id"),
+                "prediction_id": None,
+                "decision_id": str(uuid.uuid4()),
+                "context_snapshot_id": None,
+                "model_version": None,
+                "artifact_sha256": None,
             }
 
         meta_prob = float(meta["probability"])
@@ -170,7 +226,7 @@ class MetaDecisionEngine:
             f"ev={expected_return:.4f}",
         ]
 
-        return {
+        final_decision = {
             "action": action,
             "posterior_probability": posterior,
             "meta_probability": meta_prob,
@@ -185,7 +241,64 @@ class MetaDecisionEngine:
             "prob_sl": meta.get("prob_sl"),
             "meta_ev": meta.get("expected_return"),
             "reason": " | ".join(reason),
+            "signal_id": analysis_info.get("signal_id") or analysis_info.get("id"),
+            "prediction_id": meta.get("prediction_id"),
+            "model_version": meta.get("model_version"),
+            "artifact_sha256": meta.get("artifact_sha256"),
+            "decision_id": str(uuid.uuid4()),
+            "context_snapshot_id": None,
         }
+        if persist_final:
+            self._persist_final_decision(final_decision)
+        return final_decision
+
+    def apply_context(self, base_decision: Dict, context_report: Dict, *, analysis_info: Optional[Dict] = None) -> Dict:
+        """Apply context to an existing inference and enforce the final hard-risk gate."""
+        if not context_report or base_decision.get("error"):
+            self._persist_final_decision(base_decision)
+            return base_decision
+
+        original_posterior = base_decision.get("posterior_probability", 0.5)
+        adjusted_posterior = self._clamp01(context_report.get("adjusted_score", original_posterior))
+        adjustments = context_report.get("adjustments", [])
+        stop_processing = bool(context_report.get("stop_processing", False))
+        risk_level = str(getattr(context_report.get("risk_level", "LOW"), "value", context_report.get("risk_level", "LOW"))).upper()
+        expected_return = float(base_decision.get("expected_return") or 0.0)
+
+        proposed_action = base_decision.get("action", "HOLD")
+        if adjusted_posterior >= self.buy_threshold:
+            proposed_action = "BUY" if expected_return >= self.min_ev_pct else "INCREASE"
+        elif adjusted_posterior <= self.sell_threshold:
+            proposed_action = "SELL" if expected_return <= -self.min_ev_pct else "REDUCE"
+        elif self.hold_threshold <= adjusted_posterior <= 1.0 - self.hold_threshold:
+            proposed_action = "HOLD"
+        if abs(expected_return) < self.min_ev_pct:
+            proposed_action = "IGNORE"
+
+        final_action, risk_reasons = apply_final_risk_gate(proposed_action, risk_level, stop_processing)
+        reason_parts = [base_decision.get("reason", "")]
+        for adj in sorted(adjustments, key=lambda x: abs(x.get("impact", 0)), reverse=True)[:2]:
+            reason_parts.append(f"[{adj.get('layer', 'context')}] {adj.get('reason', '')}")
+        reason_parts.extend(risk_reasons)
+        context_snapshot_id = context_report.get("context_snapshot_id") or str(uuid.uuid4())
+
+        final_decision = {
+            **base_decision,
+            "action": final_action.value,
+            "posterior_probability": original_posterior,
+            "adjusted_posterior": adjusted_posterior,
+            "context_adjustment": adjusted_posterior - original_posterior,
+            "context_risk_level": risk_level,
+            "context_adjustments": adjustments,
+            "stop_processing": stop_processing,
+            "risk_reason_codes": list(risk_reasons),
+            "context_snapshot_id": context_snapshot_id,
+            "decision_id": base_decision.get("decision_id") or str(uuid.uuid4()),
+            "signal_id": base_decision.get("signal_id") or (analysis_info or {}).get("signal_id") or (analysis_info or {}).get("id"),
+            "reason": " | ".join(part for part in reason_parts if part),
+        }
+        self._persist_final_decision(final_decision)
+        return final_decision
 
     def decide_with_context(
         self,
@@ -194,59 +307,16 @@ class MetaDecisionEngine:
     ) -> Dict:
         """
         Make decision incorporating causal context adjustment.
-        
+
         Args:
             analysis_info: Base analysis information
             context_report: ContextReport dict (from ContextEngine)
-            
+
         Returns:
             Enhanced decision dict with context adjustments
         """
-        # Get base decision
-        base_decision = self.decide(analysis_info)
-
-        if not context_report or base_decision.get("error"):
-            return base_decision
-
-        # Extract context adjustments
-        original_posterior = base_decision.get("posterior_probability", 0.5)
-        adjusted_posterior = context_report.get("adjusted_score", original_posterior)
-        adjustments = context_report.get("adjustments", [])
-        stop_processing = context_report.get("stop_processing", False)
-        risk_level = context_report.get("risk_level", "LOW")
-
-        # Check if we should override decision due to stop_processing
-        if stop_processing and risk_level in ["CRITICAL", "HIGH"]:
-            base_decision["action"] = "REDUCE" if base_decision["action"] in ["BUY", "INCREASE"] else base_decision["action"]
-            base_decision["action"] = "HOLD" if base_decision["action"] == "NEUTRAL" else base_decision["action"]
-
-        # Recalculate action based on adjusted posterior
-        action = base_decision["action"]
-        if adjusted_posterior >= self.buy_threshold:
-            action = "BUY" if base_decision.get("expected_return", 0) >= self.min_ev_pct else "INCREASE"
-        elif adjusted_posterior <= self.sell_threshold:
-            action = "SELL" if base_decision.get("expected_return", 0) <= -self.min_ev_pct else "REDUCE"
-        elif self.hold_threshold <= adjusted_posterior <= 1.0 - self.hold_threshold:
-            action = "HOLD"
-
-        # Build enhanced reason
-        reason_parts = [base_decision.get("reason", "")]
-        if adjustments:
-            top_adjustments = sorted(adjustments, key=lambda x: abs(x.get("impact", 0)), reverse=True)[:2]
-            for adj in top_adjustments:
-                reason_parts.append(f"[{adj['layer']}] {adj['reason']}")
-
-        return {
-            **base_decision,
-            "action": action,
-            "posterior_probability": original_posterior,
-            "adjusted_posterior": adjusted_posterior,
-            "context_adjustment": adjusted_posterior - original_posterior,
-            "context_risk_level": risk_level,
-            "context_adjustments": adjustments,
-            "stop_processing": stop_processing,
-            "reason": " | ".join(reason_parts),
-        }
+        base_decision = self.decide(analysis_info, persist_final=False)
+        return self.apply_context(base_decision, context_report or {}, analysis_info=analysis_info)
 
     def decide_with_provider(
         self,
@@ -271,14 +341,22 @@ class MetaDecisionEngine:
             Enhanced decision dict, same shape as decide_with_context().
         """
         # Get base decision
-        base_decision = self.decide(analysis_info)
+        base_decision = self.decide(analysis_info, persist_final=False)
         if base_decision.get("error") or base_decision.get("posterior_probability") is None:
             return base_decision
 
         # Check if provider wants to apply context in current market conditions
-        if not context_provider.should_apply_context(world_state):
+        try:
+            should_apply = context_provider.should_apply_context(world_state)
+        except Exception as exc:
+            from .operational_health import record_degradation
+            record_degradation("context_provider", "context_provider_failure_total", exc)
+            self._persist_final_decision(base_decision)
+            return base_decision
+        if not should_apply:
             base_decision["context_provider"] = context_provider.name
             base_decision["context_skipped"] = True
+            self._persist_final_decision(base_decision)
             return base_decision
 
         original_posterior = base_decision.get("posterior_probability", 0.5)
@@ -288,14 +366,16 @@ class MetaDecisionEngine:
             report = context_provider.generate_context_report(original_posterior, world_state)
         except Exception as exc:
             import logging
+            from .operational_health import record_degradation
+            record_degradation("context_provider", "context_provider_failure_total", exc)
             logging.getLogger(__name__).error(
                 f"[DecisionEngine] ContextProvider '{context_provider.name}' failed: {exc}"
             )
+            self._persist_final_decision(base_decision)
             return base_decision
 
-        # Delegate to decide_with_context using serialized report
         return {
-            **self.decide_with_context(analysis_info, report.to_dict()),
+            **self.apply_context(base_decision, report.to_dict(), analysis_info=analysis_info),
             "context_provider": context_provider.name,
             "context_skipped": False,
         }

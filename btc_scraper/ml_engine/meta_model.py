@@ -1066,7 +1066,15 @@ def load_model():
                 message=r".*xgboost.*(No visible GPU is found|Device is changed from GPU to CPU|Changing updater from `grow_gpu_hist`).*",
                 category=UserWarning,
             )
-            _MODEL_CACHE = joblib.load(MODEL_OUT)
+            from btc_scraper.ml_engine.artifact_resolver import DEFAULT_CONFIG
+            from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
+            canonical_path = get_governed_artifact_loader().resolver.resolve("meta_model").path
+            if canonical_path is not None and MODEL_OUT.resolve() == canonical_path.resolve():
+                loaded = get_governed_artifact_loader().load_production("meta_model", "meta-v3.1-43f")
+                _MODEL_CACHE = loaded.model
+            else:
+                # Unit tests redirect MODEL_OUT to an isolated fixture.
+                _MODEL_CACHE = get_governed_artifact_loader().load_test_artifact(MODEL_OUT)
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
             feature_names = _MODEL_CACHE.get("features")
@@ -1135,7 +1143,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
             now_utc = datetime.now(timezone.utc)
             artifact = get_artifact_resolver().resolve("meta_model")
-            append_prediction(
+            prediction_event = append_prediction(
                 model_name="meta_model", model_version=MODEL_VERSION,
                 artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
                 raw_prediction=prob, calibrated_prediction=prob, features=row,
@@ -1147,12 +1155,27 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 fill_id=analysis_info.get("fill_id"),
                 extra={"signal": analysis_info.get("signal"), "sizing_probability": sizing_probability},
             )
-        except Exception:
-            # Don't fail prediction if logging fails
-            pass
+        except Exception as exc:
+            import logging
+            from btc_scraper.ml_engine.operational_health import record_degradation
+            record_degradation("prediction_audit", "prediction_audit_write_failure_total", exc)
+            logging.getLogger(__name__).warning(
+                "Prediction audit write failed",
+                extra={"signal_id": analysis_info.get("signal_id"), "model_version": MODEL_VERSION, "error_type": type(exc).__name__},
+            )
+            prediction_event = {}
 
-        return {"probability": prob, "sizing_probability": sizing_probability, **ev_metrics}
+        return {
+            "probability": prob,
+            "sizing_probability": sizing_probability,
+            "prediction_id": prediction_event.get("prediction_id"),
+            "model_version": MODEL_VERSION,
+            "artifact_sha256": artifact.sha256 if 'artifact' in locals() else None,
+            **ev_metrics,
+        }
     except Exception as e:
+        from btc_scraper.ml_engine.operational_health import record_degradation
+        record_degradation("ml_inference", "ml_inference_failure_total", e)
         return {"error": str(e), "probability": None}
 
 

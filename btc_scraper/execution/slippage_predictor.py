@@ -83,15 +83,13 @@ class SlippagePredictorV2:
         self._load_model()
 
     def _load_model(self) -> None:
-        if not self._model_path.exists():
-            logger.info("slippage_model_v2.joblib not found — using rule-based v1")
-            return
         try:
-            import joblib
-            self._model = joblib.load(self._model_path)
-            logger.info(f"Loaded ML slippage model from {self._model_path}")
+            from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
+            loaded = get_governed_artifact_loader().load_production("slippage_model_v2", "slippage-v2-12f")
+            self._model = loaded.model
+            logger.info("Loaded governed slippage model %s", loaded.artifact_id)
         except Exception as e:
-            logger.warning(f"Failed to load ML model: {e} — using rule-based v1")
+            logger.info("Governed slippage model unavailable: %s — using rule-based v1", e)
 
     def predict(
         self,

@@ -62,8 +62,10 @@ def _get_db_conn_ok() -> int:
 
 def _get_model_ok() -> bool:
     try:
-        from btc_scraper.ml_engine.meta_model import MODEL_OUT
-        return bool(MODEL_OUT.exists())
+        from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
+        from btc_scraper.ml_engine.model_registry import ModelRegistry
+        result = get_artifact_resolver().resolve("meta_model", require_metadata=True)
+        return bool(result.healthy and result.path and ModelRegistry().permits_artifact("meta_model", result.path, result.sha256))
     except Exception:
         return False
 
@@ -174,6 +176,12 @@ def _metrics_response() -> Response:
         "# TYPE besttime_pipeline_status gauge",
         f"besttime_pipeline_status {pipeline_status}",
     ]
+    from btc_scraper.ml_engine.operational_health import health_snapshot
+    for metric, value in sorted(health_snapshot()["metrics"].items()):
+        lines.extend([
+            f"# TYPE besttime_{metric} counter",
+            f"besttime_{metric} {value}",
+        ])
     return Response("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
 
 
@@ -474,7 +482,16 @@ def get_model_health():
     for name, item in health.items():
         active = registry.active(name, ("production", "shadow", "candidate", "disabled"))
         item["registry_record"] = active
-    return health
+    from btc_scraper.ml_engine.operational_health import health_snapshot
+    from btc_scraper.ml_engine.runtime_evidence_store import get_runtime_evidence_store
+    from btc_scraper.ml_engine.readiness_gate import live_entry_authorized
+    live_authorized, live_reason = live_entry_authorized()
+    return {
+        "artifacts": health,
+        "operational": health_snapshot(),
+        "runtime_evidence": get_runtime_evidence_store().health(),
+        "live_entry": {"authorized": live_authorized, "reason": live_reason},
+    }
 
 
 @app.get("/api/meta-model/metrics")

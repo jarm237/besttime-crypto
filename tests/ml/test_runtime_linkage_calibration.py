@@ -232,7 +232,7 @@ def test_runtime_calibration_uses_latest_amendment_revision_only():
     calibration = runtime_calibration_report([
         rev1_report.samples[0].to_event(),
         rev2_report.samples[0].to_event(),
-    ])
+    ], generated_at=datetime(2026, 7, 20, tzinfo=timezone.utc))
     assert calibration["windows"]["7"]["sample_count"] == 1
     assert calibration["windows"]["7"]["breakdowns"]["side"]["LONG"]["net_pnl_pct"] == 2.5
 
@@ -289,11 +289,24 @@ def test_feature_schema_mismatch_is_quarantined_with_reason():
 
 def test_runtime_calibration_report_has_windows_and_evidence_states():
     report = link_runtime_outcomes([_prediction()], [_outcome()])
-    calibration = runtime_calibration_report([sample.to_event() for sample in report.samples])
+    calibration = runtime_calibration_report(
+        [sample.to_event() for sample in report.samples],
+        generated_at=datetime(2026, 7, 20, tzinfo=timezone.utc),
+    )
     assert calibration["windows"]["7"]["sample_count"] == 1
     assert calibration["windows"]["7"]["evidence_state"] == "insufficient"
     assert evidence_state(30) == "provisional"
     assert evidence_state(100) == "usable"
+
+
+def test_runtime_calibration_window_boundaries_and_future_exclusion():
+    now = datetime(2026, 7, 20, 12, 0, tzinfo=timezone.utc)
+    base = link_runtime_outcomes([_prediction()], [_outcome()]).samples[0].to_event()
+    exact = {**base, "prediction_id": "exact", "closed_at": (now - timedelta(days=7)).isoformat()}
+    before = {**base, "prediction_id": "before", "closed_at": (now - timedelta(days=7, microseconds=1)).isoformat()}
+    future = {**base, "prediction_id": "future", "closed_at": (now + timedelta(microseconds=1)).isoformat()}
+    calibration = runtime_calibration_report([exact, before, future], generated_at=now, windows_days=(7,))
+    assert calibration["windows"]["7"]["sample_count"] == 1
 
 
 def test_recalibration_candidate_is_candidate_only():

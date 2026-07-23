@@ -126,19 +126,16 @@ def _load_adaptive_model():
     if _ADAPTIVE_MODEL is not None:
         return _ADAPTIVE_MODEL
     try:
-        import joblib
-        from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
-        from btc_scraper.ml_engine.model_registry import ModelRegistry
-        result = get_artifact_resolver().resolve("adaptive_rf")
-        if result.healthy and result.path is not None and ModelRegistry().permits_artifact("adaptive_rf", result.path, result.sha256, ("production",)):
-            model_path = str(result.path)
+        from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
+        loaded = get_governed_artifact_loader().load_production("adaptive_rf", "adaptive-rf-v2")
+        if loaded.model is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore",
                     message=r".*xgboost.*(No visible GPU is found|Device is changed from GPU to CPU|Changing updater from `grow_gpu_hist`).*",
                     category=UserWarning,
                 )
-                data = joblib.load(model_path)
+                data = loaded.model
             # Fix n_jobs issue for single sample inference
             model = data.get("model") if isinstance(data, dict) else data
             def set_n_jobs(est):

@@ -245,18 +245,14 @@ class RLExitAgent(BaseAgent):
 
     def _load_rl_model(self):
         try:
-            from stable_baselines3 import PPO
-            import glob
-            # Tìm file model ppo mới nhất trong logs/rl_models/
-            models = glob.glob("logs/rl_models/rl_exit_ppo_*.zip")
-            if not models:
-                # Fallback tìm best_model.zip
-                models = glob.glob("logs/rl_models/best_model.zip")
-                
-            if models:
-                latest_model = max(models)
-                self.model = PPO.load(latest_model)
-                console.print(f"[bold green]  [RLExitAgent] Loaded RL Model: {os.path.basename(latest_model)}[/bold green]")
+            from sb3_contrib import RecurrentPPO
+            from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
+            allowed = ("production", "shadow") if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true" else ("production",)
+            loaded = get_governed_artifact_loader().load_production(
+                "rl_exit", "rl-exit-obs-v2", allowed_statuses=allowed, model_class=RecurrentPPO,
+            )
+            self.model = loaded.model
+            console.print(f"[bold green]  [RLExitAgent] Loaded governed RL Model: {loaded.artifact_id}[/bold green]")
         except Exception as e:
             console.print(f"[dim red]  [RLExitAgent] Không thể load model RL exit: {e}[/dim red]")
 

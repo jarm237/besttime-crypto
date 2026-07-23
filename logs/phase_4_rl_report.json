@@ -1,10 +1,10 @@
 {
   "phase": 4,
   "title": "Reinforcement Learning Exit Manager \u2014 Phase 2 Optimized",
-  "date": "2026-06-28T22:04:18.840425",
-  "n_eval_episodes": 100,
+  "date": "2026-07-23T09:28:25.590640",
+  "n_eval_episodes": 20,
   "environment": {
-    "state_space": 18,
+    "state_space": 20,
     "action_space": 6,
     "actions": [
       "HOLD",
@@ -49,93 +49,93 @@
   },
   "rl_agents": {
     "ppo": {
-      "mean_reward": -2.1499221798175023,
-      "std_reward": 1.3626528581795496,
-      "mean_pnl": 0.06428351214612897,
+      "mean_reward": -2.165174517964117,
+      "std_reward": 2.752884333185696,
+      "mean_pnl": 0.01540467957077799,
       "action_distribution": {
-        "HOLD": 1637,
-        "PARTIAL_CLOSE_50": 88,
-        "MOVE_SL_BE": 304,
+        "HOLD": 412,
+        "PARTIAL_CLOSE_50": 19,
+        "MOVE_SL_BE": 108,
         "TAKE_PROFIT": 0,
-        "EXIT": 27,
-        "TRAILING_SL_ATR": 9
+        "EXIT": 6,
+        "TRAILING_SL_ATR": 1
       },
       "done_reasons": {
-        "SL_HIT": 335,
-        "TP_HIT": 67,
-        "PARTIAL_CLOSE_50": 76,
-        "EXIT": 22
+        "TP_HIT": 21,
+        "SL_HIT": 59,
+        "PARTIAL_CLOSE_50": 16,
+        "EXIT": 4
       },
-      "n_episodes": 100
+      "n_episodes": 20
     },
     "dqn": {
-      "mean_reward": -2.265558636151097,
-      "std_reward": 1.210276630928554,
-      "mean_pnl": 0.0641011003888986,
+      "mean_reward": -0.9993190532054562,
+      "std_reward": 1.9990910004284321,
+      "mean_pnl": -0.13191946211931413,
       "action_distribution": {
-        "HOLD": 1420,
-        "PARTIAL_CLOSE_50": 238,
-        "MOVE_SL_BE": 154,
-        "TAKE_PROFIT": 0,
-        "EXIT": 2,
-        "TRAILING_SL_ATR": 310
-      },
-      "done_reasons": {
-        "SL_HIT": 235,
-        "TP_HIT": 87,
-        "PARTIAL_CLOSE_50": 177,
-        "EXIT": 1
-      },
-      "n_episodes": 100
-    },
-    "a2c": {
-      "mean_reward": -2.311789147483779,
-      "std_reward": 1.4288010472559478,
-      "mean_pnl": -0.09872335183105582,
-      "action_distribution": {
-        "HOLD": 3082,
-        "PARTIAL_CLOSE_50": 0,
-        "MOVE_SL_BE": 167,
+        "HOLD": 338,
+        "PARTIAL_CLOSE_50": 66,
+        "MOVE_SL_BE": 107,
         "TAKE_PROFIT": 0,
         "EXIT": 0,
-        "TRAILING_SL_ATR": 122
+        "TRAILING_SL_ATR": 114
       },
       "done_reasons": {
-        "SL_HIT": 371,
-        "TP_HIT": 115,
-        "MAX_STEPS": 5
+        "PARTIAL_CLOSE_50": 60,
+        "TP_HIT": 21,
+        "SL_HIT": 18,
+        "MAX_STEPS": 1
       },
-      "n_episodes": 100
+      "n_episodes": 20
+    },
+    "a2c": {
+      "mean_reward": -1.9526984013207507,
+      "std_reward": 4.259194812820647,
+      "mean_pnl": 0.2593890321461637,
+      "action_distribution": {
+        "HOLD": 1175,
+        "PARTIAL_CLOSE_50": 0,
+        "MOVE_SL_BE": 63,
+        "TAKE_PROFIT": 0,
+        "EXIT": 0,
+        "TRAILING_SL_ATR": 40
+      },
+      "done_reasons": {
+        "SL_HIT": 61,
+        "TP_HIT": 38,
+        "MAX_STEPS": 1
+      },
+      "n_episodes": 20
     }
   },
   "rule_based": {
-    "mean_reward": -1.8638234849769746,
-    "std_reward": 1.7011599880403137,
-    "mean_pnl": 0.15770126409039203,
-    "win_rate": 0.2657200811359026,
+    "mean_reward": -0.9133676644533617,
+    "std_reward": 3.441829627817708,
+    "mean_pnl": 0.1805031371441422,
+    "win_rate": 0.44,
     "done_reasons": {
-      "SL_HIT": 356,
-      "TP_HIT": 131,
-      "MAX_STEPS": 6
+      "TP_HIT": 44,
+      "SL_HIT": 47,
+      "MAX_STEPS": 9
     },
-    "n_episodes": 100
+    "n_episodes": 20
   },
   "comparison_summary": {
     "best_agent": "rule_based",
-    "rule_based_mean_reward": -1.8638234849769746,
-    "rule_based_win_rate": 0.2657200811359026,
+    "rule_based_mean_reward": -0.9133676644533617,
+    "rule_based_win_rate": 0.44,
     "rl_improvements": {
       "ppo": {
-        "delta_reward": -0.28609869484052775,
-        "mean_reward": -2.1499221798175023
+        "delta_reward": -1.2518068535107552,
+        "mean_reward": -2.165174517964117
       },
       "dqn": {
-        "delta_reward": -0.4017351511741225,
-        "mean_reward": -2.265558636151097
+        "delta_reward": -0.08595138875209452,
+        "mean_reward": -0.9993190532054562
       },
       "a2c": {
-        "delta_reward": -0.4479656625068045,
-        "mean_reward": -2.311789147483779
+        "delta_reward": -1.039330736867389,
+        "mean_reward": -1.9526984013207507
       }
     }
   }
