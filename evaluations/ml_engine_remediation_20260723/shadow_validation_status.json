@@ -1,6 +1,6 @@
 {
   "passed": false,
-  "generated_at": "2026-07-23T04:16:00.066656+00:00",
+  "generated_at": "2026-07-23T06:02:35.549907+00:00",
   "source": "runtime_evidence.sqlite",
   "evidence_schema_version": 2,
   "readiness_rule_version": "shadow-readiness-v2",
@@ -15,33 +15,46 @@
     "closed_paper_trades": false,
     "elapsed_days": false,
     "active_trading_days": false,
-    "symbols": false,
-    "regimes": false,
+    "symbols": true,
+    "regimes": true,
     "hard_risk_violations": true,
     "governance_bypasses": true,
     "evidence_integrity": true,
-    "artifact_lineage_coverage": false,
-    "decision_linkage_coverage": false
+    "artifact_lineage_coverage": true,
+    "decision_linkage_coverage": true
   },
   "failed_checks": [
     "closed_paper_trades",
     "elapsed_days",
-    "active_trading_days",
-    "symbols",
-    "regimes",
-    "artifact_lineage_coverage",
-    "decision_linkage_coverage"
+    "active_trading_days"
   ],
   "metrics": {
-    "closed_paper_trades": 0,
-    "elapsed_days": 0.0,
-    "active_trading_days": 0,
-    "symbols": [],
-    "regimes": [],
+    "closed_paper_trades": 21,
+    "elapsed_days": 24.601800346145833,
+    "active_trading_days": 9,
+    "symbols": [
+      "AVAX",
+      "BNB",
+      "BTC",
+      "DOGE",
+      "ETH",
+      "NEAR",
+      "SOL",
+      "TAO",
+      "WLD",
+      "XAUT",
+      "XPL",
+      "ZEC"
+    ],
+    "regimes": [
+      "PANIC",
+      "RANGE",
+      "TREND"
+    ],
     "hard_risk_violations": 0,
     "governance_bypasses": 0,
-    "artifact_lineage_coverage": 0.0,
-    "decision_linkage_coverage": 0.0,
+    "artifact_lineage_coverage": 1.0,
+    "decision_linkage_coverage": 1.0,
     "evidence_health": {
       "status": "healthy",
       "integrity": "ok",
@@ -57,19 +70,22 @@
       "quarantined_corrupt_payloads": 0
     },
     "calibration_drift": {
-      "sample_count": 0,
-      "brier": null,
-      "ece": null
+      "sample_count": 21,
+      "brier": 0.20249999999999999,
+      "ece": 0.1928571428571429
     },
-    "decision_distribution": {},
+    "decision_distribution": {
+      "BUY": 9,
+      "SELL": 12
+    },
     "decision_distribution_drift": {
       "status": "REFERENCE_REQUIRED",
       "reference_distribution": null
     },
     "latency_ms": {
-      "p50": 3.57205,
-      "p95": 5.61215,
-      "p99": 8.198374999999979
+      "p50": 2.486,
+      "p95": 5.0,
+      "p99": 6.726656
     },
     "context_provider_failure_count": 0,
     "context_provider_failure_rate": 0.0,
@@ -77,6 +93,22 @@
     "audit_write_failure_rate": 0.0,
     "fallback_usage_count": 0,
     "fallback_usage_rate": 0.0,
-    "pnl_drawdown_by_regime": {}
+    "pnl_drawdown_by_regime": {
+      "TREND": {
+        "sample_count": 7,
+        "net_pnl_pct": -3.747,
+        "max_drawdown_pct": 3.8836
+      },
+      "RANGE": {
+        "sample_count": 11,
+        "net_pnl_pct": -1.5526,
+        "max_drawdown_pct": 4.4131
+      },
+      "PANIC": {
+        "sample_count": 3,
+        "net_pnl_pct": -6.118600000000001,
+        "max_drawdown_pct": 6.118600000000001
+      }
+    }
   }
 }
