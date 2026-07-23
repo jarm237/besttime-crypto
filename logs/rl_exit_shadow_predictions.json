@@ -34423,7 +34423,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784678763",
@@ -34434,7 +34437,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784679064",
@@ -34445,7 +34451,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784679373",
@@ -34456,7 +34465,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784679663",
@@ -34467,7 +34479,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784679964",
@@ -34478,7 +34493,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682491",
@@ -34489,7 +34507,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682494",
@@ -34500,7 +34521,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682497",
@@ -34511,7 +34535,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682500",
@@ -34522,7 +34549,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682502",
@@ -34533,7 +34563,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682513",
@@ -34544,7 +34577,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682528",
@@ -34555,7 +34591,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682544",
@@ -34566,7 +34605,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682571",
@@ -34577,7 +34619,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682663",
@@ -34588,7 +34633,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784682973",
@@ -34599,7 +34647,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784683263",
@@ -34610,7 +34661,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784683563",
@@ -34621,7 +34675,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784683872",
@@ -34632,7 +34689,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784684164",
@@ -34643,7 +34703,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784684281",
@@ -34654,7 +34717,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5455,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784684463",
@@ -34665,7 +34731,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784684772",
@@ -34676,7 +34745,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784685063",
@@ -34687,7 +34759,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784685363",
@@ -34698,7 +34773,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5455,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784685671",
@@ -34709,7 +34787,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784685965",
@@ -34720,7 +34801,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784686322",
@@ -34731,7 +34815,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784686574",
@@ -34742,7 +34829,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784686863",
@@ -34753,7 +34843,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784687163",
@@ -34764,7 +34857,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "BTCUSDT_RL_1784687228",
@@ -34786,7 +34882,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784687763",
@@ -34797,7 +34896,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784688063",
@@ -34808,7 +34910,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784688381",
@@ -34819,7 +34924,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784688663",
@@ -34830,7 +34938,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784688963",
@@ -34841,7 +34952,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784689274",
@@ -34852,7 +34966,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784689563",
@@ -34863,7 +34980,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784689863",
@@ -34874,7 +34994,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784690173",
@@ -34885,7 +35008,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784690435",
@@ -34896,7 +35022,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784690461",
@@ -34907,7 +35036,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784690763",
@@ -34918,7 +35050,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784691088",
@@ -34929,7 +35064,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694524",
@@ -34940,7 +35078,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694527",
@@ -34951,7 +35092,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694547",
@@ -34962,7 +35106,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694555",
@@ -34973,7 +35120,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694577",
@@ -34984,7 +35134,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694583",
@@ -34995,7 +35148,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694609",
@@ -35006,7 +35162,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694615",
@@ -35017,7 +35176,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694618",
@@ -35028,7 +35190,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694641",
@@ -35039,7 +35204,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694647",
@@ -35050,7 +35218,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694650",
@@ -35061,7 +35232,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694684",
@@ -35072,7 +35246,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784694963",
@@ -35083,7 +35260,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696318",
@@ -35094,7 +35274,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696321",
@@ -35105,7 +35288,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696323",
@@ -35116,7 +35302,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696337",
@@ -35127,7 +35316,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696353",
@@ -35138,7 +35330,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696473",
@@ -35149,7 +35344,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784696763",
@@ -35160,7 +35358,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784697063",
@@ -35171,7 +35372,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784697373",
@@ -35182,7 +35386,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784697663",
@@ -35193,7 +35400,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784697964",
@@ -35204,7 +35414,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784698273",
@@ -35215,7 +35428,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784698563",
@@ -35226,7 +35442,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784698864",
@@ -35237,7 +35456,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784699173",
@@ -35248,7 +35470,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784699464",
@@ -35259,7 +35484,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784699763",
@@ -35270,7 +35498,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784700073",
@@ -35281,7 +35512,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
   },
   {
     "prediction_id": "ETHUSDT_RL_1784700364",
@@ -35292,6 +35526,902 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784700663",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784700663.5861428,
+    "timestamp_str": "2026-07-22 13:11:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784700975",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784700975.25685,
+    "timestamp_str": "2026-07-22 13:16:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784701263",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784701263.5340967,
+    "timestamp_str": "2026-07-22 13:21:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784701563",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784701563.376045,
+    "timestamp_str": "2026-07-22 13:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784701886",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784701886.5588427,
+    "timestamp_str": "2026-07-22 13:31:26",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784702163",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784702163.7662764,
+    "timestamp_str": "2026-07-22 13:36:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.4798,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784702463",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784702463.9296024,
+    "timestamp_str": "2026-07-22 13:41:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4798,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784702802",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784702802.8887928,
+    "timestamp_str": "2026-07-22 13:46:42",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.487,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784703063",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784703063.6794593,
+    "timestamp_str": "2026-07-22 13:51:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784703364",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784703364.0250742,
+    "timestamp_str": "2026-07-22 13:56:04",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784703674",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784703674.0668724,
+    "timestamp_str": "2026-07-22 14:01:14",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.487,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784703963",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784703963.602135,
+    "timestamp_str": "2026-07-22 14:06:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.487,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784704263",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784704263.2948203,
+    "timestamp_str": "2026-07-22 14:11:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4798,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784704573",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784704573.3431575,
+    "timestamp_str": "2026-07-22 14:16:13",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.487,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784704863",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784704863.7316601,
+    "timestamp_str": "2026-07-22 14:21:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784705163",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784705163.9014308,
+    "timestamp_str": "2026-07-22 14:26:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784705475",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784705475.838588,
+    "timestamp_str": "2026-07-22 14:31:15",
+    "rl_action": 5,
+    "action_label": "TRAILING_SL_ATR",
+    "meta_prob": 0.4798,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784705763",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784705763.9820497,
+    "timestamp_str": "2026-07-22 14:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1784706064",
+    "symbol": "ETHUSDT",
+    "timestamp": 1784706064.0619223,
+    "timestamp_str": "2026-07-22 14:41:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "d5a929d8-7c27-4561-b482-d7636ced81c9",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8634,
+    "closed_at": "2026-07-22 14:41:07"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784727074",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784727074.170261,
+    "timestamp_str": "2026-07-22 20:31:14",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784727363",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784727363.8516457,
+    "timestamp_str": "2026-07-22 20:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784727664",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784727664.0024586,
+    "timestamp_str": "2026-07-22 20:41:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784727975",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784727975.109703,
+    "timestamp_str": "2026-07-22 20:46:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784728264",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784728264.087137,
+    "timestamp_str": "2026-07-22 20:51:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3382,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784728564",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784728564.30126,
+    "timestamp_str": "2026-07-22 20:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.2635,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784730963",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784730963.865108,
+    "timestamp_str": "2026-07-22 21:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784731264",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784731264.3092952,
+    "timestamp_str": "2026-07-22 21:41:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784731574",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784731574.6822443,
+    "timestamp_str": "2026-07-22 21:46:14",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784731863",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784731863.6407075,
+    "timestamp_str": "2026-07-22 21:51:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784732163",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784732163.8686216,
+    "timestamp_str": "2026-07-22 21:56:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784732478",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784732478.9728875,
+    "timestamp_str": "2026-07-22 22:01:18",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784732765",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784732765.868529,
+    "timestamp_str": "2026-07-22 22:06:05",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784733064",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784733064.379017,
+    "timestamp_str": "2026-07-22 22:11:04",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784733384",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784733384.8742776,
+    "timestamp_str": "2026-07-22 22:16:24",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784733663",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784733663.4100246,
+    "timestamp_str": "2026-07-22 22:21:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784733963",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784733963.553143,
+    "timestamp_str": "2026-07-22 22:26:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3017,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784734273",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784734273.9378362,
+    "timestamp_str": "2026-07-22 22:31:13",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784734563",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784734563.428663,
+    "timestamp_str": "2026-07-22 22:36:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784734863",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784734863.8733556,
+    "timestamp_str": "2026-07-22 22:41:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784735187",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784735187.9666045,
+    "timestamp_str": "2026-07-22 22:46:27",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3017,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784735464",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784735464.0425847,
+    "timestamp_str": "2026-07-22 22:51:04",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784735764",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784735764.1696625,
+    "timestamp_str": "2026-07-22 22:56:04",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784736070",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784736070.2320065,
+    "timestamp_str": "2026-07-22 23:01:10",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.5636,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784736363",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784736363.3969696,
+    "timestamp_str": "2026-07-22 23:06:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784736663",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784736663.5570683,
+    "timestamp_str": "2026-07-22 23:11:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784736984",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784736984.3442295,
+    "timestamp_str": "2026-07-22 23:16:24",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784737265",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784737265.6620958,
+    "timestamp_str": "2026-07-22 23:21:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784737565",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784737565.8681428,
+    "timestamp_str": "2026-07-22 23:26:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784737871",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784737871.86046,
+    "timestamp_str": "2026-07-22 23:31:11",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784738163",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784738163.27767,
+    "timestamp_str": "2026-07-22 23:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784738463",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784738463.0792446,
+    "timestamp_str": "2026-07-22 23:41:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.3731,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784738779",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784738779.7802927,
+    "timestamp_str": "2026-07-22 23:46:19",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784739064",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784739064.7644634,
+    "timestamp_str": "2026-07-22 23:51:04",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.5636,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784739364",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784739364.1833334,
+    "timestamp_str": "2026-07-22 23:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784739679",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784739679.9294286,
+    "timestamp_str": "2026-07-23 00:01:19",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784739964",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784739964.0813916,
+    "timestamp_str": "2026-07-23 00:06:04",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784740263",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784740263.8621247,
+    "timestamp_str": "2026-07-23 00:11:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.5636,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784740579",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784740579.9704084,
+    "timestamp_str": "2026-07-23 00:16:19",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784740863",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784740863.2084358,
+    "timestamp_str": "2026-07-23 00:21:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784741163",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784741163.164012,
+    "timestamp_str": "2026-07-23 00:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784741474",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784741474.225208,
+    "timestamp_str": "2026-07-23 00:31:14",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784741763",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784741763.5068064,
+    "timestamp_str": "2026-07-23 00:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784742063",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784742063.429713,
+    "timestamp_str": "2026-07-23 00:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784742376",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784742376.6763077,
+    "timestamp_str": "2026-07-23 00:46:16",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6327,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784742663",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784742663.9018319,
+    "timestamp_str": "2026-07-23 00:51:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784742964",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784742964.1358426,
+    "timestamp_str": "2026-07-23 00:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784743273",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784743273.0783606,
+    "timestamp_str": "2026-07-23 01:01:13",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784743563",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784743563.3428245,
+    "timestamp_str": "2026-07-23 01:06:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768745",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768745.913506,
+    "timestamp_str": "2026-07-23 08:05:45",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768748",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768748.680859,
+    "timestamp_str": "2026-07-23 08:05:48",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768759",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768759.076599,
+    "timestamp_str": "2026-07-23 08:05:59",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768772",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768772.0275326,
+    "timestamp_str": "2026-07-23 08:06:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768786",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768786.0563824,
+    "timestamp_str": "2026-07-23 08:06:26",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768799",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768799.4706557,
+    "timestamp_str": "2026-07-23 08:06:39",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784768810",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784768810.835121,
+    "timestamp_str": "2026-07-23 08:06:50",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "TAOUSDT_RL_1784769064",
+    "symbol": "TAOUSDT",
+    "timestamp": 1784769064.0808735,
+    "timestamp_str": "2026-07-23 08:11:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "645259d5-7844-4b8d-8b66-016633d56e25",
     "note": "RL Exit shadow recommendation"
   }
 ]
