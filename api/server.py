@@ -485,11 +485,13 @@ def get_model_health():
     from btc_scraper.ml_engine.operational_health import health_snapshot
     from btc_scraper.ml_engine.runtime_evidence_store import get_runtime_evidence_store
     from btc_scraper.ml_engine.readiness_gate import live_entry_authorized
+    from btc_scraper.ml_engine.shadow_validation import cached_shadow_validation
     live_authorized, live_reason = live_entry_authorized()
     return {
         "artifacts": health,
         "operational": health_snapshot(),
         "runtime_evidence": get_runtime_evidence_store().health(),
+        "shadow_validation": cached_shadow_validation(),
         "live_entry": {"authorized": live_authorized, "reason": live_reason},
     }
 

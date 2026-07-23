@@ -12,6 +12,14 @@
   "rl_policy_enabled": false,
   "rl_policy_gate": false,
   "shadow_validation_gate": false,
+  "shadow_validation_gate_source": "runtime_evidence.sqlite",
+  "shadow_validation_thresholds": {
+    "minimum_closed_paper_trades": 100,
+    "minimum_elapsed_days": 30,
+    "minimum_active_trading_days": 10,
+    "minimum_symbols": 3,
+    "minimum_regimes": 3
+  },
   "manual_authorization_gate": false,
   "failed_gates": [
     "shadow_validation_gate",

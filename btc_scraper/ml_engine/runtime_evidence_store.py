@@ -65,6 +65,14 @@ class RuntimeEvidenceStore:
                     record_id TEXT, details TEXT NOT NULL, detected_at TEXT NOT NULL,
                     resolved_at TEXT
                 );
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_final_decision_prediction
+                    ON final_decisions(prediction_id) WHERE prediction_id IS NOT NULL;
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_outcome_position_revision
+                    ON outcome_links(
+                        json_extract(payload, '$.position_id'),
+                        CAST(json_extract(payload, '$.outcome_revision') AS INTEGER)
+                    )
+                    WHERE json_extract(payload, '$.position_id') IS NOT NULL;
             """)
 
     @contextmanager
@@ -108,25 +116,36 @@ class RuntimeEvidenceStore:
                 )
         except ValueError as exc:
             if "non-idempotent" in str(exc):
-                self._record_incident("duplicate_conflicting_payload", prediction_id, str(exc))
+                self._record_incident("duplicate_conflicting_payload", "predictions", prediction_id, str(exc))
             raise
 
     def append_final_decision(self, decision: Mapping[str, Any]) -> None:
         decision_id = str(decision["decision_id"])
+        prediction_id = str(decision.get("prediction_id") or "")
+        if not prediction_id:
+            raise ValueError("final decision must reference exactly one prediction")
         payload = _canonical(decision)
         try:
             with self.transaction() as db:
+                if db.execute("SELECT 1 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone() is None:
+                    raise ValueError("final decision references unknown prediction")
                 digest = payload_sha256(decision)
                 existing = db.execute("SELECT payload_sha256 FROM final_decisions WHERE decision_id=?", (decision_id,)).fetchone()
                 if existing and existing[0] != digest:
                     raise ValueError("non-idempotent duplicate final decision")
+                other = db.execute(
+                    "SELECT decision_id FROM final_decisions WHERE prediction_id=? AND decision_id<>?",
+                    (prediction_id, decision_id),
+                ).fetchone()
+                if other:
+                    raise ValueError("prediction already has a final decision")
                 db.execute(
                     "INSERT OR IGNORE INTO final_decisions VALUES (?, ?, ?, ?, ?)",
-                    (decision_id, decision.get("prediction_id"), payload, digest, datetime.now(timezone.utc).isoformat()),
+                    (decision_id, prediction_id, payload, digest, datetime.now(timezone.utc).isoformat()),
                 )
         except ValueError as exc:
-            if "non-idempotent" in str(exc):
-                self._record_incident("duplicate_conflicting_payload", decision_id, str(exc))
+            if "non-idempotent" in str(exc) or "already has" in str(exc):
+                self._record_incident("duplicate_conflicting_payload", "final_decisions", decision_id, str(exc))
             raise
 
     def append_audit_event(self, event: Mapping[str, Any]) -> None:
@@ -140,30 +159,72 @@ class RuntimeEvidenceStore:
     def append_outcome_link(self, outcome: Mapping[str, Any]) -> None:
         outcome_id = str(outcome["outcome_id"])
         prediction_id = str(outcome["prediction_id"])
+        position_id = str(outcome.get("position_id") or "")
+        try:
+            outcome_revision = int(outcome.get("outcome_revision"))
+        except (TypeError, ValueError):
+            outcome_revision = 0
         payload = _canonical(outcome)
         try:
             with self.transaction() as db:
                 if db.execute("SELECT 1 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone() is None:
                     raise ValueError("outcome references unknown prediction")
+                if not position_id or outcome_revision < 1:
+                    raise ValueError("outcome requires position_id and positive outcome_revision")
                 digest = payload_sha256(outcome)
                 existing = db.execute("SELECT payload_sha256 FROM outcome_links WHERE outcome_id=?", (outcome_id,)).fetchone()
                 if existing and existing[0] != digest:
                     raise ValueError("non-idempotent duplicate outcome link")
+                logical_duplicate = db.execute(
+                    "SELECT outcome_id, payload_sha256 FROM outcome_links "
+                    "WHERE json_extract(payload, '$.position_id')=? "
+                    "AND CAST(json_extract(payload, '$.outcome_revision') AS INTEGER)=?",
+                    (position_id, outcome_revision),
+                ).fetchone()
+                if logical_duplicate and logical_duplicate[0] != outcome_id:
+                    raise ValueError("conflicting outcome amendment revision")
                 db.execute(
                     "INSERT OR IGNORE INTO outcome_links VALUES (?, ?, ?, ?, ?)",
                     (outcome_id, prediction_id, payload, digest, datetime.now(timezone.utc).isoformat()),
                 )
         except ValueError as exc:
-            if "non-idempotent" in str(exc):
-                self._record_incident("duplicate_conflicting_payload", outcome_id, str(exc))
+            if "non-idempotent" in str(exc) or "conflicting outcome" in str(exc):
+                self._record_incident("duplicate_conflicting_payload", "outcome_links", outcome_id, str(exc))
             raise
 
-    def _record_incident(self, incident_type: str, record_id: str, details: str) -> None:
+    def _record_incident(self, incident_type: str, table_name: str, record_id: str, details: str) -> None:
         with self.transaction() as db:
             db.execute(
                 "INSERT INTO evidence_incidents(incident_type,record_id,details,detected_at) VALUES (?,?,?,?)",
                 (incident_type, record_id, details, datetime.now(timezone.utc).isoformat()),
             )
+            db.execute(
+                "INSERT OR IGNORE INTO evidence_quarantine VALUES (?,?,?,?)",
+                (table_name, record_id, incident_type, datetime.now(timezone.utc).isoformat()),
+            )
+
+    def latest_outcomes(self) -> list[dict[str, Any]]:
+        """Return only the highest valid amendment revision for each position."""
+        latest: dict[str, tuple[int, dict[str, Any]]] = {}
+        with self._connect() as db:
+            rows = db.execute("SELECT payload FROM outcome_links ORDER BY written_at, outcome_id").fetchall()
+        for (raw_payload,) in rows:
+            payload = json.loads(raw_payload)
+            position_id = str(payload.get("position_id") or "")
+            revision = int(payload.get("outcome_revision") or 0)
+            current = latest.get(position_id)
+            if position_id and revision > 0 and (current is None or revision > current[0]):
+                latest[position_id] = (revision, payload)
+        return [row for _, row in latest.values()]
+
+    def shadow_evidence_rows(self) -> dict[str, list[dict[str, Any]]]:
+        """Read canonical JSON payloads used by the derived shadow gate."""
+        result: dict[str, list[dict[str, Any]]] = {}
+        with self._connect() as db:
+            for table in ("predictions", "final_decisions", "audit_events"):
+                result[table] = [json.loads(row[0]) for row in db.execute(f"SELECT payload FROM {table}")]
+        result["outcomes"] = self.latest_outcomes()
+        return result
 
     def health(self) -> dict[str, Any]:
         corrupt_payloads = self.verify_and_quarantine()
@@ -178,6 +239,13 @@ class RuntimeEvidenceStore:
                 "SELECT COUNT(*) FROM final_decisions d LEFT JOIN predictions p USING(prediction_id) "
                 "WHERE d.prediction_id IS NOT NULL AND p.prediction_id IS NULL"
             ).fetchone()[0]
+            decisions_without_prediction = db.execute(
+                "SELECT COUNT(*) FROM final_decisions WHERE prediction_id IS NULL OR prediction_id=''"
+            ).fetchone()[0]
+            duplicate_decision_predictions = db.execute(
+                "SELECT COUNT(*) FROM (SELECT prediction_id FROM final_decisions "
+                "WHERE prediction_id IS NOT NULL GROUP BY prediction_id HAVING COUNT(*)<>1)"
+            ).fetchone()[0]
             orphan_outcomes = db.execute(
                 "SELECT COUNT(*) FROM outcome_links o LEFT JOIN predictions p USING(prediction_id) "
                 "WHERE p.prediction_id IS NULL"
@@ -186,20 +254,25 @@ class RuntimeEvidenceStore:
             unresolved_incidents = db.execute(
                 "SELECT COUNT(*) FROM evidence_incidents WHERE resolved_at IS NULL"
             ).fetchone()[0]
+            quarantined_records = db.execute("SELECT COUNT(*) FROM evidence_quarantine").fetchone()[0]
             integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
         healthy = (
             integrity == "ok"
             and orphan_snapshots == 0 and missing_snapshots == 0
             and orphan_decisions == 0 and orphan_outcomes == 0
+            and decisions_without_prediction == 0 and duplicate_decision_predictions == 0
             and foreign_key_violations == 0 and corrupt_payloads == 0
-            and unresolved_incidents == 0
+            and unresolved_incidents == 0 and quarantined_records == 0
         )
         return {
             "status": "healthy" if healthy else "degraded",
             "integrity": integrity, "orphan_snapshots": orphan_snapshots, "missing_snapshots": missing_snapshots,
             "orphan_decisions": orphan_decisions, "orphan_outcomes": orphan_outcomes,
+            "decisions_without_prediction": decisions_without_prediction,
+            "duplicate_decision_predictions": duplicate_decision_predictions,
             "foreign_key_violations": foreign_key_violations,
             "unresolved_incidents": unresolved_incidents,
+            "quarantined_records": quarantined_records,
             "quarantined_corrupt_payloads": corrupt_payloads,
         }
 

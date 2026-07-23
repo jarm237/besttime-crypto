@@ -764,6 +764,19 @@ def close_position(
     except Exception:
         pass
 
+    # Canonical transactional outcome evidence. Only model-linked positions are
+    # eligible; manual/legacy positions without a prediction remain excluded.
+    if closed_data.get("prediction_id"):
+        try:
+            from btc_scraper.ml_engine.runtime_evidence_store import get_runtime_evidence_store
+            get_runtime_evidence_store().append_outcome_link({
+                **closed_data,
+                "position_id": closed_data.get("id"),
+            })
+        except Exception as exc:
+            from btc_scraper.ml_engine.operational_health import record_degradation
+            record_degradation("prediction_audit", "prediction_audit_write_failure_total", exc)
+
     # Ghi log outcomes cho adaptive scoring (không phá lỗi nếu module không có)
     try:
         from btc_scraper.ml_engine.adaptive_scoring import log_trade_outcome

@@ -78,6 +78,38 @@ The follow-up production-readiness review was implemented as additional controls
 - Calibration evidence includes split counts/distributions, log loss, ECE, MCE, bucket coverage, tail support, time/regime stability, and CV–holdout gap.
 - RL environment, observation, and reward schemas are frozen under explicit version identifiers.
 
+## Evidence-derived shadow gate
+
+The shadow gate is no longer trusted from an editable aggregate flag. Runtime authorization derives it from the canonical SQLite evidence store with these defaults:
+
+```text
+closed paper trades >= 100
+elapsed days >= 30
+active trading days >= 10
+symbols >= 3
+regimes >= 3
+hard-risk violations = 0
+governance bypasses = 0
+evidence integrity = healthy
+artifact lineage coverage = 100%
+final-decision linkage coverage = 100%
+```
+
+The evidence store now enforces one snapshot per prediction, one known prediction per final decision, one final decision per prediction, immutable outcome revisions by `position_id + outcome_revision`, and latest-revision-only outcome reads. Conflicting duplicates are rejected, quarantined, and degrade health. Registry promotion is blocked whenever runtime evidence health is degraded.
+
+Only explicitly scoped paper runs count: `paper_run_id` is mandatory and records carrying pytest/test/E2E/fixture provenance are excluded even if a producer incorrectly sets `is_test_record=false`. This prevents integration-test traffic from satisfying operational gates.
+
+Current generated evidence: `evaluations/ml_engine_remediation_20260723/shadow_validation_status.json`.
+
+```text
+shadow gate: BLOCKED
+eligible closed paper outcomes: 0
+evidence integrity: healthy
+remaining evidence: 100 trades / 30 days / 10 active days / 3 symbols / 3 regimes
+```
+
+Operational shadow reporting also exposes calibration drift, decision distribution, latency p50/p95/p99, context-provider and audit-write failure rates, fallback usage, and PnL/drawdown by regime. The API model-health endpoint exposes the same derived report.
+
 ## Release-gate status
 
 | Gate | Status | Evidence |

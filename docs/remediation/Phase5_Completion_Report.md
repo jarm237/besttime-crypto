@@ -5,7 +5,7 @@
 > **Repository Regression Gate**: ✅ PASSED  
 > **Operational Paper Validation**: ⏳ IN PROGRESS  
 > **Live Production Approval**: ❌ NOT GRANTED  
-> **Report Timestamp**: 2026-07-23T03:05:20.181432+00:00  
+> **Report Timestamp**: 2026-07-23T03:37:36.968380+00:00  
 
 ---
 
@@ -92,13 +92,13 @@ Using the augmented dataset, the transaction cost drag calculators were verified
 Decisions and predictions are aligned song song at the exact same timestamps to evaluate counterfactual metrics:
 
 - **Total Emitted Signals**: 0
-- **Actual Orders Executed**: 709
-- **Matched Aligned Decisions**: 709
+- **Actual Orders Executed**: 711
+- **Matched Aligned Decisions**: 711
 
 ### Risk Filter Interventions
-- **Slippage Guard Blocked**: 20
+- **Slippage Guard Blocked**: 21
 - **Kelly Fraction Sizing rejections**: 343
-- **Sector Correlation Filter skipped**: 59
+- **Sector Correlation Filter skipped**: 60
 - **Other Filters / Failures**: 264
 
 ### Causal Benefit Estimation

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T03:05:20.181432+00:00",
+  "generated_at": "2026-07-23T03:37:36.968380+00:00",
   "fills_breakdown": {
     "real_paper": 0,
     "synthetic": 100,
@@ -29,9 +29,9 @@
   },
   "model_monitoring": {
     "prediction_distribution": {
-      "count": 71525,
-      "mean": 0.5091,
-      "std": 0.0827,
+      "count": 71991,
+      "mean": 0.509,
+      "std": 0.0826,
       "min": 0.1667,
       "p25": 0.4683,
       "p50": 0.487,
@@ -55,25 +55,25 @@
       }
     },
     "calibration": {
-      "mean_calibration_error": 0.2281,
+      "mean_calibration_error": 0.2282,
       "buckets": {
         "0.0-0.4": {
-          "count": 8842,
+          "count": 8893,
           "wins": 0,
           "actual_win_rate": 0.0,
           "expected_win_rate": 0.2,
           "error": 0.2
         },
         "0.4-0.6": {
-          "count": 47892,
-          "wins": 12433,
-          "actual_win_rate": 0.2596,
+          "count": 48264,
+          "wins": 12507,
+          "actual_win_rate": 0.2591,
           "expected_win_rate": 0.5,
-          "error": 0.2404
+          "error": 0.2409
         },
         "0.6-0.7": {
-          "count": 14615,
-          "wins": 14615,
+          "count": 14658,
+          "wins": 14658,
           "actual_win_rate": 1.0,
           "expected_win_rate": 0.6499999999999999,
           "error": 0.35
@@ -102,14 +102,14 @@
   "causal_shadow": {
     "summary": {
       "total_signals_emitted": 0,
-      "actual_trades_logged": 709,
-      "matched_aligned_decisions": 709,
-      "rl_exit_shadow_recommendations": 154
+      "actual_trades_logged": 711,
+      "matched_aligned_decisions": 711,
+      "rl_exit_shadow_recommendations": 155
     },
     "blocked_reasons": {
-      "slippage_guard": 20,
+      "slippage_guard": 21,
       "kelly_fraction_limit": 343,
-      "correlation_filter": 59,
+      "correlation_filter": 60,
       "other": 264
     },
     "performance_impact": {

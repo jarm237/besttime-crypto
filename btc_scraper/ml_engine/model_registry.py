@@ -73,6 +73,16 @@ class ModelRegistry:
         if guard.get("status") != "AUTHORIZED":
             raise RegistryConflictError("promotion_frozen_during_remediation")
 
+    @staticmethod
+    def _assert_runtime_evidence_healthy() -> None:
+        evidence_path = ROOT / "logs" / "runtime_evidence.sqlite"
+        if not evidence_path.exists():
+            return
+        from .runtime_evidence_store import RuntimeEvidenceStore
+        health = RuntimeEvidenceStore(evidence_path).health()
+        if health.get("status") != "healthy":
+            raise RegistryConflictError("promotion_blocked_by_runtime_evidence_health")
+
     def register(self, record: dict[str, Any]) -> dict[str, Any]:
         name, version, status = record.get("model_name"), record.get("version"), record.get("status", "candidate")
         if not name or not version or status not in VALID_STATUSES:
@@ -88,6 +98,7 @@ class ModelRegistry:
         result.setdefault("registered_at", datetime.now(timezone.utc).isoformat())
         if status == "production":
             self._assert_promotion_unfrozen()
+            self._assert_runtime_evidence_healthy()
         with self._locked(exclusive=True):
             data = self._read()
             if any(r.get("model_name") == name and r.get("version") == version for r in data["records"]):
@@ -124,6 +135,7 @@ class ModelRegistry:
     def promote(self, model_name: str, candidate_id: str, expected_current_production_id: str | None) -> dict[str, Any]:
         """CAS promotion: fail if the production slot changed since review."""
         self._assert_promotion_unfrozen()
+        self._assert_runtime_evidence_healthy()
         with self._locked(exclusive=True):
             data = self._read()
             productions = [r for r in data["records"] if r.get("model_name") == model_name and r.get("status") == "production"]

@@ -20,7 +20,11 @@ FOUNDATION_GATES = (
 )
 
 
-def derive_readiness(readiness: dict[str, Any]) -> dict[str, Any]:
+def derive_readiness(
+    readiness: dict[str, Any],
+    *,
+    shadow_validation_passed: bool | None = None,
+) -> dict[str, Any]:
     """Return a normalized readiness document with a non-editable derived result."""
     gates = {name: readiness.get(name) is True for name in FOUNDATION_GATES}
     rl_required = readiness.get("rl_policy_required_for_live_entry") is True
@@ -29,7 +33,11 @@ def derive_readiness(readiness: dict[str, Any]) -> dict[str, Any]:
         if rl_required
         else readiness.get("rl_policy_enabled") is not True
     )
-    gates["shadow_validation_gate"] = readiness.get("shadow_validation_gate") is True
+    gates["shadow_validation_gate"] = (
+        shadow_validation_passed
+        if shadow_validation_passed is not None
+        else readiness.get("shadow_validation_gate") is True
+    )
     gates["manual_authorization_gate"] = readiness.get("manual_authorization_gate") is True
     live_ready = all(gates.values())
     result = dict(readiness)
@@ -49,7 +57,13 @@ def live_entry_authorized(path: Path | str = READINESS_PATH) -> tuple[bool, str]
         readiness = json.loads(Path(path).read_text(encoding="utf-8"))
     except Exception as exc:
         return False, f"readiness_config_unavailable:{type(exc).__name__}"
-    readiness = derive_readiness(readiness)
+    try:
+        from .shadow_validation import cached_shadow_validation
+        shadow_evidence = cached_shadow_validation()
+        shadow_passed = shadow_evidence["passed"] is True
+    except Exception:
+        shadow_passed = False
+    readiness = derive_readiness(readiness, shadow_validation_passed=shadow_passed)
     if not readiness["live_ready"]:
         failed = ",".join(readiness["failed_gates"])
         return False, f"ml_engine_readiness_blocked:{failed}"

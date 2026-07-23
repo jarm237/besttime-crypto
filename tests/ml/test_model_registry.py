@@ -66,3 +66,21 @@ def test_rl_promotion_requires_multi_criterion_gate(tmp_path, monkeypatch):
     })
     with pytest.raises(ValueError, match="RL multi-criterion"):
         registry.promote("rl_exit", "2", "1")
+
+
+def test_promotion_is_blocked_when_runtime_evidence_is_degraded(tmp_path, monkeypatch):
+    monkeypatch.setattr("btc_scraper.ml_engine.model_registry.ROOT", tmp_path)
+    (tmp_path / "logs").mkdir()
+    from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
+    store = RuntimeEvidenceStore(tmp_path / "logs" / "runtime_evidence.sqlite")
+    prediction = {"prediction_id": "p-1", "probability": 0.6}
+    store.write_prediction_evidence(prediction, {"prediction_id": "p-1", "features": []})
+    with store._connect() as db:
+        db.execute("UPDATE predictions SET payload='tampered' WHERE prediction_id='p-1'")
+    (tmp_path / "prod.bin").write_bytes(b"prod")
+    (tmp_path / "cand.bin").write_bytes(b"candidate")
+    registry = ModelRegistry(tmp_path / "registry.json")
+    registry.register({"model_name": "x", "version": "1", "status": "candidate", "artifact_path": "prod.bin"})
+    registry.register({"model_name": "x", "version": "2", "status": "candidate", "artifact_path": "cand.bin"})
+    with pytest.raises(RegistryConflictError, match="runtime_evidence_health"):
+        registry.promote("x", "2", None)

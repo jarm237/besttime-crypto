@@ -1,0 +1,80 @@
+{
+  "passed": false,
+  "generated_at": "2026-07-23T03:40:19.163235+00:00",
+  "source": "runtime_evidence.sqlite",
+  "thresholds": {
+    "minimum_closed_paper_trades": 100,
+    "minimum_elapsed_days": 30.0,
+    "minimum_active_trading_days": 10,
+    "minimum_symbols": 3,
+    "minimum_regimes": 3
+  },
+  "checks": {
+    "closed_paper_trades": false,
+    "elapsed_days": false,
+    "active_trading_days": false,
+    "symbols": false,
+    "regimes": false,
+    "hard_risk_violations": true,
+    "governance_bypasses": true,
+    "evidence_integrity": true,
+    "artifact_lineage_coverage": false,
+    "decision_linkage_coverage": false
+  },
+  "failed_checks": [
+    "closed_paper_trades",
+    "elapsed_days",
+    "active_trading_days",
+    "symbols",
+    "regimes",
+    "artifact_lineage_coverage",
+    "decision_linkage_coverage"
+  ],
+  "metrics": {
+    "closed_paper_trades": 0,
+    "elapsed_days": 0.0,
+    "active_trading_days": 0,
+    "symbols": [],
+    "regimes": [],
+    "hard_risk_violations": 0,
+    "governance_bypasses": 0,
+    "artifact_lineage_coverage": 0.0,
+    "decision_linkage_coverage": 0.0,
+    "evidence_health": {
+      "status": "healthy",
+      "integrity": "ok",
+      "orphan_snapshots": 0,
+      "missing_snapshots": 0,
+      "orphan_decisions": 0,
+      "orphan_outcomes": 0,
+      "decisions_without_prediction": 0,
+      "duplicate_decision_predictions": 0,
+      "foreign_key_violations": 0,
+      "unresolved_incidents": 0,
+      "quarantined_records": 0,
+      "quarantined_corrupt_payloads": 0
+    },
+    "calibration_drift": {
+      "sample_count": 0,
+      "brier": null,
+      "ece": null
+    },
+    "decision_distribution": {},
+    "decision_distribution_drift": {
+      "status": "REFERENCE_REQUIRED",
+      "reference_distribution": null
+    },
+    "latency_ms": {
+      "p50": 3.57205,
+      "p95": 5.61215,
+      "p99": 8.198374999999979
+    },
+    "context_provider_failure_count": 0,
+    "context_provider_failure_rate": 0.0,
+    "audit_write_failure_count": 0,
+    "audit_write_failure_rate": 0.0,
+    "fallback_usage_count": 0,
+    "fallback_usage_rate": 0.0,
+    "pnl_drawdown_by_regime": {}
+  }
+}

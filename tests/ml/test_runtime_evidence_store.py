@@ -54,6 +54,33 @@ def test_outcome_must_reference_existing_prediction(tmp_path):
         store.append_outcome_link({"outcome_id": "o-1", "prediction_id": "missing"})
 
 
+def test_final_decision_requires_one_unique_known_prediction(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    store.write_prediction_evidence(*_payload(1))
+    with pytest.raises(ValueError, match="exactly one prediction"):
+        store.append_final_decision({"decision_id": "d-missing"})
+    store.append_final_decision({"decision_id": "d-1", "prediction_id": "p-1", "action": "HOLD"})
+    with pytest.raises(ValueError, match="already has"):
+        store.append_final_decision({"decision_id": "d-2", "prediction_id": "p-1", "action": "BUY"})
+    health = store.health()
+    assert health["status"] == "degraded"
+    assert health["quarantined_records"] == 1
+
+
+def test_latest_outcome_revision_is_canonical_and_conflicts_quarantine(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    store.write_prediction_evidence(*_payload(1))
+    base = {"prediction_id": "p-1", "position_id": "pos-1"}
+    store.append_outcome_link({**base, "outcome_id": "o-1", "outcome_revision": 1, "net_pnl_pct": -1.0})
+    store.append_outcome_link({**base, "outcome_id": "o-2", "outcome_revision": 2, "net_pnl_pct": 2.0})
+    assert store.latest_outcomes() == [
+        {**base, "outcome_id": "o-2", "outcome_revision": 2, "net_pnl_pct": 2.0}
+    ]
+    with pytest.raises(ValueError, match="conflicting outcome amendment"):
+        store.append_outcome_link({**base, "outcome_id": "o-other", "outcome_revision": 2, "net_pnl_pct": 9.0})
+    assert store.health()["status"] == "degraded"
+
+
 def test_corrupt_payload_is_quarantined_and_health_degrades(tmp_path):
     store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
     store.write_prediction_evidence(*_payload(1))
