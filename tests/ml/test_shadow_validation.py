@@ -1,7 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
-from btc_scraper.ml_engine.shadow_validation import ShadowThresholds, evaluate_shadow_validation
+from btc_scraper.ml_engine.shadow_validation import (
+    SHADOW_READINESS_RULE_VERSION,
+    ShadowThresholds,
+    _store_signature,
+    evaluate_shadow_validation,
+)
+from btc_scraper.ml_engine.runtime_evidence_store import RUNTIME_EVIDENCE_SCHEMA_VERSION
 
 
 def _append_trade(store, index, closed_at, symbol, regime):
@@ -61,6 +67,11 @@ def test_shadow_gate_is_derived_from_canonical_evidence(tmp_path):
     assert result["metrics"]["decision_linkage_coverage"] == 1.0
     assert result["metrics"]["latency_ms"]["p95"] is not None
     assert set(result["metrics"]["pnl_drawdown_by_regime"]) == {"TREND", "RANGE", "PANIC"}
+    assert result["evidence_schema_version"] == RUNTIME_EVIDENCE_SCHEMA_VERSION
+    assert result["readiness_rule_version"] == SHADOW_READINESS_RULE_VERSION
+    signature = _store_signature(store)
+    assert RUNTIME_EVIDENCE_SCHEMA_VERSION in signature
+    assert SHADOW_READINESS_RULE_VERSION in signature
 
 
 def test_shadow_gate_fails_closed_without_outcomes(tmp_path):

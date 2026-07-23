@@ -11,6 +11,8 @@ from typing import Any, Iterator, Mapping
 
 from .artifact_resolver import ROOT
 
+RUNTIME_EVIDENCE_SCHEMA_VERSION = 2
+
 
 def _canonical(payload: Mapping[str, Any]) -> str:
     return json.dumps(dict(payload), ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
@@ -74,6 +76,7 @@ class RuntimeEvidenceStore:
                     )
                     WHERE json_extract(payload, '$.position_id') IS NOT NULL;
             """)
+            db.execute(f"PRAGMA user_version={RUNTIME_EVIDENCE_SCHEMA_VERSION}")
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:

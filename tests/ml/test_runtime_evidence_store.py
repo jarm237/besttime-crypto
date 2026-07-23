@@ -2,13 +2,19 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
+from btc_scraper.ml_engine.runtime_evidence_store import RUNTIME_EVIDENCE_SCHEMA_VERSION, RuntimeEvidenceStore
 
 
 def _payload(index):
     prediction = {"prediction_id": f"p-{index}", "probability": .6, "feature_hash": f"h-{index}"}
     snapshot = {"prediction_id": f"p-{index}", "features": [index], "feature_hash": f"h-{index}"}
     return prediction, snapshot
+
+
+def test_database_schema_version_is_explicit(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    with store._connect() as db:
+        assert db.execute("PRAGMA user_version").fetchone()[0] == RUNTIME_EVIDENCE_SCHEMA_VERSION
 
 
 def test_prediction_and_snapshot_are_atomic_and_idempotent(tmp_path):

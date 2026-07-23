@@ -7,8 +7,14 @@ from datetime import datetime, timezone
 from threading import Lock
 from typing import Any, Iterable, Mapping
 
-from .runtime_evidence_store import RuntimeEvidenceStore, get_runtime_evidence_store
+from .runtime_evidence_store import (
+    RUNTIME_EVIDENCE_SCHEMA_VERSION,
+    RuntimeEvidenceStore,
+    get_runtime_evidence_store,
+)
 from .operational_health import health_snapshot
+
+SHADOW_READINESS_RULE_VERSION = "shadow-readiness-v2"
 
 
 @dataclass(frozen=True)
@@ -21,7 +27,7 @@ class ShadowThresholds:
 
 
 _cache_lock = Lock()
-_cached_signature: tuple[tuple[int, int], ...] | None = None
+_cached_signature: tuple[Any, ...] | None = None
 _cached_report: dict[str, Any] | None = None
 
 
@@ -107,6 +113,8 @@ def evaluate_shadow_validation(
         "passed": all(checks.values()),
         "generated_at": current_time.isoformat(),
         "source": "runtime_evidence.sqlite",
+        "evidence_schema_version": RUNTIME_EVIDENCE_SCHEMA_VERSION,
+        "readiness_rule_version": SHADOW_READINESS_RULE_VERSION,
         "thresholds": asdict(limits),
         "checks": checks,
         "failed_checks": [name for name, passed in checks.items() if not passed],
@@ -157,8 +165,12 @@ def evaluate_shadow_validation(
     }
 
 
-def _store_signature(store: RuntimeEvidenceStore) -> tuple[tuple[int, int], ...]:
-    signature: list[tuple[int, int]] = []
+def _store_signature(store: RuntimeEvidenceStore) -> tuple[Any, ...]:
+    signature: list[Any] = [
+        RUNTIME_EVIDENCE_SCHEMA_VERSION,
+        SHADOW_READINESS_RULE_VERSION,
+        asdict(ShadowThresholds()),
+    ]
     for path in (store.path, store.path.with_name(store.path.name + "-wal")):
         try:
             stat = path.stat()

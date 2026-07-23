@@ -110,6 +110,8 @@ remaining evidence: 100 trades / 30 days / 10 active days / 3 symbols / 3 regime
 
 Operational shadow reporting also exposes calibration drift, decision distribution, latency p50/p95/p99, context-provider and audit-write failure rates, fallback usage, and PnL/drawdown by regime. The API model-health endpoint exposes the same derived report.
 
+Readiness cache invalidation is content/version aware: the key includes database and WAL signatures, `RUNTIME_EVIDENCE_SCHEMA_VERSION=2`, `SHADOW_READINESS_RULE_VERSION=shadow-readiness-v2`, and the active threshold set.
+
 ## Release-gate status
 
 | Gate | Status | Evidence |
