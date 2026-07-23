@@ -6,6 +6,8 @@ import os
 import platform
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from importlib.metadata import PackageNotFoundError, version as package_version
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +28,10 @@ class LoadedArtifact:
     model_version: str
     feature_schema_version: str
     lifecycle_status: str
+    registry_revision: str
+    deployment_slot: str
+    loaded_at: str
+    runtime_versions: dict[str, str]
     path: Path
     metadata: dict[str, Any]
 
@@ -59,6 +65,9 @@ class GovernedArtifactLoader:
                 raise ArtifactGovernanceError(f"lifecycle_status_not_allowed:{resolved.status}")
             if not self.registry.permits_artifact(model_family, path, resolved.sha256, allowed_statuses):
                 raise ArtifactGovernanceError("artifact_not_permitted_by_registry")
+            registry_record = self.registry.active(model_family, allowed_statuses)
+            if registry_record is None:
+                raise ArtifactGovernanceError("registry_record_disappeared_during_load")
             metadata = resolved.metadata
             metadata_status = str(metadata.get("status", resolved.status))
             if metadata_status not in allowed_statuses:
@@ -75,10 +84,15 @@ class GovernedArtifactLoader:
             model = self._deserialize(path, model_class=model_class, device=device)
             version = str(metadata.get("model_version") or metadata.get("version") or "unknown")
             artifact_id = str(metadata.get("artifact_id") or f"{model_family}:{version}:{resolved.sha256[:12]}")
+            registry_revision = self.registry.revision()
             loaded = LoadedArtifact(
                 model=model, artifact_id=artifact_id, artifact_sha256=str(resolved.sha256),
                 model_version=version, feature_schema_version=actual_schema,
-                lifecycle_status=metadata_status, path=path, metadata=metadata,
+                lifecycle_status=metadata_status, registry_revision=registry_revision,
+                deployment_slot=str(registry_record.get("deployment_slot") or registry_record.get("status") or metadata_status),
+                loaded_at=datetime.now(timezone.utc).isoformat(),
+                runtime_versions=self._runtime_versions(),
+                path=path, metadata=metadata,
             )
             try:
                 self._audit(model_family, loaded, (time.perf_counter() - started) * 1000)
@@ -130,13 +144,26 @@ class GovernedArtifactLoader:
         raise ArtifactGovernanceError(f"unsupported_artifact_format:{suffix}")
 
     @staticmethod
+    def _runtime_versions() -> dict[str, str]:
+        versions = {"python": platform.python_version()}
+        for distribution in ("numpy", "scikit-learn", "joblib", "torch", "stable-baselines3"):
+            try:
+                versions[distribution] = package_version(distribution)
+            except PackageNotFoundError:
+                continue
+        return versions
+
+    @staticmethod
     def _audit(model_family: str, loaded: LoadedArtifact, latency_ms: float) -> None:
         from .runtime_evidence_store import get_runtime_evidence_store
         get_runtime_evidence_store().append_audit_event({
             "event_type": "artifact_loaded", "model_family": model_family,
             "artifact_id": loaded.artifact_id, "artifact_sha256": loaded.artifact_sha256,
             "model_version": loaded.model_version, "feature_schema_version": loaded.feature_schema_version,
-            "lifecycle_status": loaded.lifecycle_status, "latency_ms": round(latency_ms, 4),
+            "lifecycle_status": loaded.lifecycle_status,
+            "registry_revision": loaded.registry_revision, "deployment_slot": loaded.deployment_slot,
+            "loaded_at": loaded.loaded_at, "runtime_versions": loaded.runtime_versions,
+            "latency_ms": round(latency_ms, 4),
         })
 
 

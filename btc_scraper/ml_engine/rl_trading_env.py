@@ -26,6 +26,10 @@ from btc_scraper.ml_engine.timegan import OHLCVScaler
 from datetime import timedelta
 from btc_scraper.core.config import FRESH_TRAINING_DATA_DIR
 
+RL_ENVIRONMENT_VERSION = "trade-exit-env-v2-no-cross-trade-state"
+RL_OBSERVATION_SCHEMA_VERSION = "rl-exit-observation-v1-20f"
+RL_REWARD_SCHEMA_VERSION = "rl-exit-reward-v2-net-pnl-delta-costed"
+
 
 def load_sentiment_history(sentiment_file: str = "logs/sentiment_history.json") -> dict:
     """Load historical sentiment Fear & Greed values by date."""

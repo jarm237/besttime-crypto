@@ -15,7 +15,7 @@ from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, brier_score_loss, roc_auc_score
+from sklearn.metrics import accuracy_score, brier_score_loss, log_loss, roc_auc_score
 from sklearn.model_selection import PredefinedSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -185,10 +185,42 @@ def _evaluate_binary(y_true: np.ndarray, y_prob: np.ndarray) -> dict[str, float 
     acc = float(accuracy_score(y_true, y_pred))
     brier = float(brier_score_loss(y_true, y_prob))
     return {
+        "sample_count": int(len(y_true)),
         "roc_auc": auc,
         "accuracy": acc,
         "brier": brier,
+        "log_loss": float(log_loss(y_true, y_prob, labels=[0, 1])),
+        "ece": expected_calibration_error(y_prob, y_true),
+        "mce": maximum_calibration_error(y_prob, y_true),
     }
+
+
+def maximum_calibration_error(probs: np.ndarray, labels: np.ndarray) -> float:
+    buckets = compute_calibration_buckets(probs, labels, min_samples=1)
+    errors = [
+        abs(float(bucket["calibration_error"])) / 100.0
+        for bucket in buckets.values()
+        if bucket["calibration_error"] is not None
+    ]
+    return max(errors, default=0.0)
+
+
+def _class_distribution(labels: np.ndarray) -> dict[str, int]:
+    return {"positive": int(np.sum(labels)), "negative": int(len(labels) - np.sum(labels))}
+
+
+def _segmented_metrics(
+    labels: np.ndarray,
+    probabilities: np.ndarray,
+    segment_names: np.ndarray,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for name in dict.fromkeys(str(value) for value in segment_names):
+        mask = np.asarray([str(value) == name for value in segment_names], dtype=bool)
+        if not np.any(mask):
+            continue
+        rows.append({"segment": name, **_evaluate_binary(labels[mask], probabilities[mask])})
+    return rows
 
 
 def _feature_group(name: str) -> str:
@@ -320,6 +352,24 @@ def train_from_dataset_v3(
     X_train, y_train = X[:train_end], y[:train_end]
     X_calib, y_calib = X[train_end:calib_end], y[train_end:calib_end]
     X_test, y_test = X[calib_end:], y[calib_end:]
+    if cfg.time_column in df.columns:
+        final_times = pd.to_datetime(df[cfg.time_column].iloc[calib_end:], utc=True, errors="coerce")
+        time_segments = np.asarray([
+            "UNKNOWN" if pd.isna(value) else f"{value.year}-Q{((value.month - 1) // 3) + 1}"
+            for value in final_times
+        ])
+    else:
+        time_segments = np.asarray(
+            [f"ordered_slice_{index + 1}" for index, chunk in enumerate(np.array_split(np.arange(len(y_test)), 4)) for _ in chunk]
+        )
+    regime_columns = [column for column in X_df.columns if column.startswith("regime_")]
+    if regime_columns:
+        regime_frame = X_df[regime_columns].iloc[calib_end:].fillna(0.0)
+        max_values = regime_frame.max(axis=1).to_numpy()
+        regime_segments = regime_frame.idxmax(axis=1).str.removeprefix("regime_").str.upper().to_numpy()
+        regime_segments = np.where(max_values > 0, regime_segments, "UNKNOWN")
+    else:
+        regime_segments = np.full(len(y_test), "UNKNOWN")
 
     base_pipeline = Pipeline(
         [
@@ -361,6 +411,11 @@ def train_from_dataset_v3(
     test_probs = model_to_use.predict_proba(X_test)[:, 1]
     v3_metrics = _evaluate_binary(y_test, test_probs)
     calibration_buckets = compute_calibration_buckets(test_probs, y_test)
+    supported_bucket_count = sum(bucket["count"] >= 100 for bucket in calibration_buckets.values())
+    nonempty_bucket_count = sum(bucket["count"] > 0 for bucket in calibration_buckets.values())
+    high_confidence_support = int(sum(
+        bucket["count"] for name, bucket in calibration_buckets.items() if name == "0.8-1.0"
+    ))
 
     # Baseline old-style model for explicit old-vs-new comparison.
     baseline = Pipeline(
@@ -435,6 +490,15 @@ def train_from_dataset_v3(
     split_manifest_sha256 = hashlib.sha256(
         json.dumps(split_manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
+    from .artifact_resolver import sha256_file
+    dataset_sha256 = sha256_file(dataset_path)
+    training_fingerprint = hashlib.sha256(json.dumps({
+        "dataset_sha256": dataset_sha256,
+        "feature_schema_version": feature_schema_version,
+        "split_manifest_sha256": split_manifest_sha256,
+        "config": cfg.to_dict(),
+    }, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    walk_forward_aucs = [row["roc_auc"] for row in walk_forward if row.get("roc_auc") is not None]
     metadata = {
         "version": "v3",
         "runtime_contract": "sklearn-joblib-v1",
@@ -444,6 +508,8 @@ def train_from_dataset_v3(
         "status": "candidate",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "dataset_path": str(dataset_path),
+        "dataset_sha256": dataset_sha256,
+        "training_fingerprint": training_fingerprint,
         "n_samples": int(n),
         "n_features": int(len(feature_names)),
         "features": feature_names,
@@ -461,8 +527,39 @@ def train_from_dataset_v3(
             "calib": int(len(y_calib)),
             "test": int(len(y_test)),
         },
+        "split_class_distribution": {
+            "train": _class_distribution(y_train),
+            "calibration": _class_distribution(y_calib),
+            "final_holdout": _class_distribution(y_test),
+        },
+        "calibration_set_adequacy": {
+            "sample_count": int(len(y_calib)),
+            "positive_count": int(np.sum(y_calib)),
+            "negative_count": int(len(y_calib) - np.sum(y_calib)),
+            "isotonic_minimum_met": bool(
+                len(y_calib) >= 1000 and np.sum(y_calib) >= 100 and (len(y_calib) - np.sum(y_calib)) >= 100
+            ),
+        },
         "test_metrics": v3_metrics,
+        "calibration_evidence": {
+            "bucket_coverage": {
+                "nonempty_buckets": nonempty_bucket_count,
+                "supported_buckets_min_100": supported_bucket_count,
+                "total_buckets": len(calibration_buckets),
+            },
+            "high_confidence_bucket_support": high_confidence_support,
+            "time_slice_stability": _segmented_metrics(y_test, test_probs, time_segments),
+            "regime_stability": _segmented_metrics(y_test, test_probs, regime_segments),
+        },
         "walk_forward": walk_forward,
+        "cv_holdout_gap": {
+            "mean_walk_forward_roc_auc": float(np.mean(walk_forward_aucs)) if walk_forward_aucs else None,
+            "final_holdout_roc_auc": v3_metrics["roc_auc"],
+            "roc_auc_gap": (
+                float(np.mean(walk_forward_aucs) - v3_metrics["roc_auc"])
+                if walk_forward_aucs and v3_metrics["roc_auc"] is not None else None
+            ),
+        },
         "model_comparison": {
             "baseline_old_style": baseline_metrics,
             "new_model_v3": v3_metrics,
@@ -494,7 +591,6 @@ def train_from_dataset_v3(
         model_path,
     )
 
-    from .artifact_resolver import sha256_file
     metadata["artifact_sha256"] = sha256_file(model_path)
 
     metrics_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
@@ -503,8 +599,20 @@ def train_from_dataset_v3(
             {
                 "version": "v3",
                 "calibration_method": calibration_method,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "artifact_sha256": metadata["artifact_sha256"],
+                "dataset_sha256": dataset_sha256,
+                "training_fingerprint": training_fingerprint,
+                "split_manifest": split_manifest,
+                "split_manifest_sha256": split_manifest_sha256,
+                "holdout_used_for_selection": False,
+                "split_sample_counts": metadata["split"],
+                "split_class_distribution": metadata["split_class_distribution"],
+                "calibration_set_adequacy": metadata["calibration_set_adequacy"],
                 "test_metrics": v3_metrics,
                 "buckets": calibration_buckets,
+                **metadata["calibration_evidence"],
+                "cv_holdout_gap": metadata["cv_holdout_gap"],
             },
             indent=2,
         ),

@@ -1,10 +1,60 @@
 {
   "version": "v3",
   "calibration_method": "isotonic",
+  "generated_at": "2026-07-23T02:56:42.724286+00:00",
+  "artifact_sha256": "359ff2ceded42bebc4a47ecb8fafab8fc847a02aed51bf52168532eb1251952e",
+  "dataset_sha256": "d6b2dc3e6d27ffd9053ec906944bb196a72728fd08155c3a3968f5802e40c8c1",
+  "training_fingerprint": "94258f221b692f54ed11d2b7821b09a0e2b537a9c8c33246c703719117033074",
+  "split_manifest": {
+    "train": [
+      0,
+      16849
+    ],
+    "calibration": [
+      16849,
+      20459
+    ],
+    "final_holdout": [
+      20459,
+      24070
+    ],
+    "time_ordered": true
+  },
+  "split_manifest_sha256": "f7bf756efa61a6a4fe536ec7dd9715733e2f404a5f2326d4b5cf05e3d61c8b3d",
+  "holdout_used_for_selection": false,
+  "split_sample_counts": {
+    "train": 16849,
+    "calib": 3610,
+    "test": 3611
+  },
+  "split_class_distribution": {
+    "train": {
+      "positive": 5656,
+      "negative": 11193
+    },
+    "calibration": {
+      "positive": 1179,
+      "negative": 2431
+    },
+    "final_holdout": {
+      "positive": 1295,
+      "negative": 2316
+    }
+  },
+  "calibration_set_adequacy": {
+    "sample_count": 3610,
+    "positive_count": 1179,
+    "negative_count": 2431,
+    "isotonic_minimum_met": true
+  },
   "test_metrics": {
+    "sample_count": 3611,
     "roc_auc": 0.8368332433099273,
     "accuracy": 0.7648850733868734,
-    "brier": 0.15495914556870885
+    "brier": 0.15495914556870885,
+    "log_loss": 0.4834993188309443,
+    "ece": 0.014163678250435664,
+    "mce": 0.0378
   },
   "buckets": {
     "0.0-0.4": {
@@ -50,5 +100,90 @@
       "calibration_error": -0.64,
       "calibrated": true
     }
+  },
+  "bucket_coverage": {
+    "nonempty_buckets": 4,
+    "supported_buckets_min_100": 4,
+    "total_buckets": 5
+  },
+  "high_confidence_bucket_support": 121,
+  "time_slice_stability": [
+    {
+      "segment": "2026-Q1",
+      "sample_count": 443,
+      "roc_auc": 0.8174107538311631,
+      "accuracy": 0.7494356659142212,
+      "brier": 0.16308644260249427,
+      "log_loss": 0.47548645841013504,
+      "ece": 0.017656503216363216,
+      "mce": 0.0663
+    },
+    {
+      "segment": "2026-Q2",
+      "sample_count": 3168,
+      "roc_auc": 0.8396297445103693,
+      "accuracy": 0.7670454545454546,
+      "brier": 0.15382265801000716,
+      "log_loss": 0.4846198040476168,
+      "ece": 0.015671450934674105,
+      "mce": 0.040999999999999995
+    }
+  ],
+  "regime_stability": [
+    {
+      "segment": "COMPRESSION",
+      "sample_count": 488,
+      "roc_auc": 0.7940686583911916,
+      "accuracy": 0.7254098360655737,
+      "brier": 0.17319924574023482,
+      "log_loss": 0.5035216955485358,
+      "ece": 0.02261524589172141,
+      "mce": 0.0467
+    },
+    {
+      "segment": "RANGING",
+      "sample_count": 2152,
+      "roc_auc": 0.8310099320468592,
+      "accuracy": 0.7616171003717472,
+      "brier": 0.15812563346626599,
+      "log_loss": 0.5119369443889831,
+      "ece": 0.012359175109982263,
+      "mce": 0.045700000000000005
+    },
+    {
+      "segment": "TRENDING_BULL",
+      "sample_count": 854,
+      "roc_auc": 0.8680444174056253,
+      "accuracy": 0.7903981264637002,
+      "brier": 0.13864064476139473,
+      "log_loss": 0.4095834059568343,
+      "ece": 0.028682735200276793,
+      "mce": 0.0385
+    },
+    {
+      "segment": "STRONG_TREND",
+      "sample_count": 84,
+      "roc_auc": 0.865985576923077,
+      "accuracy": 0.7857142857142857,
+      "brier": 0.1397510817502124,
+      "log_loss": 0.4117033505566904,
+      "ece": 0.027120098056048998,
+      "mce": 0.1158
+    },
+    {
+      "segment": "TRENDING_BEAR",
+      "sample_count": 33,
+      "roc_auc": 0.875,
+      "accuracy": 0.8484848484848485,
+      "brier": 0.1397478186278724,
+      "log_loss": 0.4285405579352823,
+      "ece": 0.09528543025425741,
+      "mce": 0.4375
+    }
+  ],
+  "cv_holdout_gap": {
+    "mean_walk_forward_roc_auc": 0.853847552333165,
+    "final_holdout_roc_auc": 0.8368332433099273,
+    "roc_auc_gap": 0.01701430902323775
   }
 }

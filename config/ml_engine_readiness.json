@@ -1,7 +1,23 @@
 {
   "status": "BLOCKED",
   "automated_live_entry": false,
-  "reason": "ML engine remediation and shadow validation are not complete",
+  "live_ready": false,
+  "implementation_gate": true,
+  "offline_regression_gate": true,
+  "decision_correctness_gate": true,
+  "calibration_methodology_gate": true,
+  "artifact_governance_gate": true,
+  "runtime_evidence_gate": true,
+  "rl_policy_required_for_live_entry": false,
+  "rl_policy_enabled": false,
+  "rl_policy_gate": false,
+  "shadow_validation_gate": false,
+  "manual_authorization_gate": false,
+  "failed_gates": [
+    "shadow_validation_gate",
+    "manual_authorization_gate"
+  ],
+  "reason": "Shadow validation and explicit manual reauthorization are pending; legacy RL policies are disabled",
   "required_release_gates": ["A", "B", "C", "D", "E", "F"],
   "manual_reauthorization_required": true
 }

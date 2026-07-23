@@ -60,6 +60,11 @@ class RuntimeEvidenceStore:
                     table_name TEXT NOT NULL, record_id TEXT NOT NULL, reason TEXT NOT NULL,
                     detected_at TEXT NOT NULL, PRIMARY KEY(table_name, record_id)
                 );
+                CREATE TABLE IF NOT EXISTS evidence_incidents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, incident_type TEXT NOT NULL,
+                    record_id TEXT, details TEXT NOT NULL, detected_at TEXT NOT NULL,
+                    resolved_at TEXT
+                );
             """)
 
     @contextmanager
@@ -81,38 +86,48 @@ class RuntimeEvidenceStore:
             raise ValueError("prediction/snapshot identity mismatch")
         pred_json, snap_json = _canonical(prediction), _canonical(snapshot)
         written_at = datetime.now(timezone.utc).isoformat()
-        with self.transaction() as db:
-            existing = db.execute("SELECT payload_sha256 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone()
-            digest = payload_sha256(prediction)
-            if existing and existing[0] != digest:
-                raise ValueError("non-idempotent duplicate prediction")
-            existing_snapshot = db.execute(
-                "SELECT payload_sha256 FROM feature_snapshots WHERE prediction_id=?", (prediction_id,)
-            ).fetchone()
-            snapshot_digest = payload_sha256(snapshot)
-            if existing_snapshot and existing_snapshot[0] != snapshot_digest:
-                raise ValueError("non-idempotent duplicate feature snapshot")
-            db.execute(
-                "INSERT OR IGNORE INTO predictions VALUES (?, ?, ?, ?)",
-                (prediction_id, pred_json, digest, written_at),
-            )
-            db.execute(
-                "INSERT OR IGNORE INTO feature_snapshots VALUES (?, ?, ?)",
-                (prediction_id, snap_json, snapshot_digest),
-            )
+        try:
+            with self.transaction() as db:
+                existing = db.execute("SELECT payload_sha256 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone()
+                digest = payload_sha256(prediction)
+                if existing and existing[0] != digest:
+                    raise ValueError("non-idempotent duplicate prediction")
+                existing_snapshot = db.execute(
+                    "SELECT payload_sha256 FROM feature_snapshots WHERE prediction_id=?", (prediction_id,)
+                ).fetchone()
+                snapshot_digest = payload_sha256(snapshot)
+                if existing_snapshot and existing_snapshot[0] != snapshot_digest:
+                    raise ValueError("non-idempotent duplicate feature snapshot")
+                db.execute(
+                    "INSERT OR IGNORE INTO predictions VALUES (?, ?, ?, ?)",
+                    (prediction_id, pred_json, digest, written_at),
+                )
+                db.execute(
+                    "INSERT OR IGNORE INTO feature_snapshots VALUES (?, ?, ?)",
+                    (prediction_id, snap_json, snapshot_digest),
+                )
+        except ValueError as exc:
+            if "non-idempotent" in str(exc):
+                self._record_incident("duplicate_conflicting_payload", prediction_id, str(exc))
+            raise
 
     def append_final_decision(self, decision: Mapping[str, Any]) -> None:
         decision_id = str(decision["decision_id"])
         payload = _canonical(decision)
-        with self.transaction() as db:
-            digest = payload_sha256(decision)
-            existing = db.execute("SELECT payload_sha256 FROM final_decisions WHERE decision_id=?", (decision_id,)).fetchone()
-            if existing and existing[0] != digest:
-                raise ValueError("non-idempotent duplicate final decision")
-            db.execute(
-                "INSERT OR IGNORE INTO final_decisions VALUES (?, ?, ?, ?, ?)",
-                (decision_id, decision.get("prediction_id"), payload, digest, datetime.now(timezone.utc).isoformat()),
-            )
+        try:
+            with self.transaction() as db:
+                digest = payload_sha256(decision)
+                existing = db.execute("SELECT payload_sha256 FROM final_decisions WHERE decision_id=?", (decision_id,)).fetchone()
+                if existing and existing[0] != digest:
+                    raise ValueError("non-idempotent duplicate final decision")
+                db.execute(
+                    "INSERT OR IGNORE INTO final_decisions VALUES (?, ?, ?, ?, ?)",
+                    (decision_id, decision.get("prediction_id"), payload, digest, datetime.now(timezone.utc).isoformat()),
+                )
+        except ValueError as exc:
+            if "non-idempotent" in str(exc):
+                self._record_incident("duplicate_conflicting_payload", decision_id, str(exc))
+            raise
 
     def append_audit_event(self, event: Mapping[str, Any]) -> None:
         payload = _canonical(event)
@@ -126,16 +141,28 @@ class RuntimeEvidenceStore:
         outcome_id = str(outcome["outcome_id"])
         prediction_id = str(outcome["prediction_id"])
         payload = _canonical(outcome)
+        try:
+            with self.transaction() as db:
+                if db.execute("SELECT 1 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone() is None:
+                    raise ValueError("outcome references unknown prediction")
+                digest = payload_sha256(outcome)
+                existing = db.execute("SELECT payload_sha256 FROM outcome_links WHERE outcome_id=?", (outcome_id,)).fetchone()
+                if existing and existing[0] != digest:
+                    raise ValueError("non-idempotent duplicate outcome link")
+                db.execute(
+                    "INSERT OR IGNORE INTO outcome_links VALUES (?, ?, ?, ?, ?)",
+                    (outcome_id, prediction_id, payload, digest, datetime.now(timezone.utc).isoformat()),
+                )
+        except ValueError as exc:
+            if "non-idempotent" in str(exc):
+                self._record_incident("duplicate_conflicting_payload", outcome_id, str(exc))
+            raise
+
+    def _record_incident(self, incident_type: str, record_id: str, details: str) -> None:
         with self.transaction() as db:
-            if db.execute("SELECT 1 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone() is None:
-                raise ValueError("outcome references unknown prediction")
-            digest = payload_sha256(outcome)
-            existing = db.execute("SELECT payload_sha256 FROM outcome_links WHERE outcome_id=?", (outcome_id,)).fetchone()
-            if existing and existing[0] != digest:
-                raise ValueError("non-idempotent duplicate outcome link")
             db.execute(
-                "INSERT OR IGNORE INTO outcome_links VALUES (?, ?, ?, ?, ?)",
-                (outcome_id, prediction_id, payload, digest, datetime.now(timezone.utc).isoformat()),
+                "INSERT INTO evidence_incidents(incident_type,record_id,details,detected_at) VALUES (?,?,?,?)",
+                (incident_type, record_id, details, datetime.now(timezone.utc).isoformat()),
             )
 
     def health(self) -> dict[str, Any]:
@@ -147,10 +174,32 @@ class RuntimeEvidenceStore:
             missing_snapshots = db.execute(
                 "SELECT COUNT(*) FROM predictions p LEFT JOIN feature_snapshots s USING(prediction_id) WHERE s.prediction_id IS NULL"
             ).fetchone()[0]
+            orphan_decisions = db.execute(
+                "SELECT COUNT(*) FROM final_decisions d LEFT JOIN predictions p USING(prediction_id) "
+                "WHERE d.prediction_id IS NOT NULL AND p.prediction_id IS NULL"
+            ).fetchone()[0]
+            orphan_outcomes = db.execute(
+                "SELECT COUNT(*) FROM outcome_links o LEFT JOIN predictions p USING(prediction_id) "
+                "WHERE p.prediction_id IS NULL"
+            ).fetchone()[0]
+            foreign_key_violations = len(db.execute("PRAGMA foreign_key_check").fetchall())
+            unresolved_incidents = db.execute(
+                "SELECT COUNT(*) FROM evidence_incidents WHERE resolved_at IS NULL"
+            ).fetchone()[0]
             integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+        healthy = (
+            integrity == "ok"
+            and orphan_snapshots == 0 and missing_snapshots == 0
+            and orphan_decisions == 0 and orphan_outcomes == 0
+            and foreign_key_violations == 0 and corrupt_payloads == 0
+            and unresolved_incidents == 0
+        )
         return {
-            "status": "healthy" if integrity == "ok" and orphan_snapshots == 0 and missing_snapshots == 0 and corrupt_payloads == 0 else "degraded",
+            "status": "healthy" if healthy else "degraded",
             "integrity": integrity, "orphan_snapshots": orphan_snapshots, "missing_snapshots": missing_snapshots,
+            "orphan_decisions": orphan_decisions, "orphan_outcomes": orphan_outcomes,
+            "foreign_key_violations": foreign_key_violations,
+            "unresolved_incidents": unresolved_incidents,
             "quarantined_corrupt_payloads": corrupt_payloads,
         }
 

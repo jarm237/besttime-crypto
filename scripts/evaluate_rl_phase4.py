@@ -17,7 +17,14 @@ from datetime import datetime
 from stable_baselines3 import DQN, A2C
 from sb3_contrib import RecurrentPPO
 
-from btc_scraper.ml_engine.rl_trading_env import TradeExitEnv, MultiTradeExitEnv
+from btc_scraper.ml_engine.rl_trading_env import (
+    RL_ENVIRONMENT_VERSION,
+    RL_OBSERVATION_SCHEMA_VERSION,
+    RL_REWARD_SCHEMA_VERSION,
+    TradeExitEnv,
+    MultiTradeExitEnv,
+)
+from btc_scraper.ml_engine.rl_promotion_gate import evaluate_rl_promotion
 from train_rl_exit_manager import load_trade_data
 
 
@@ -58,6 +65,37 @@ def make_env(trades: list[dict]) -> MultiTradeExitEnv:
     )
     env.set_curriculum_phase("full")
     return env
+
+
+def _risk_statistics(rewards: list[float], pnls: list[float]) -> dict:
+    cumulative = np.cumsum(np.asarray(pnls, dtype=float))
+    running_peak = np.maximum.accumulate(np.concatenate(([0.0], cumulative)))[1:]
+    drawdowns = running_peak - cumulative
+    return {
+        "median_reward": float(np.median(rewards)),
+        "tail_reward_p05": float(np.quantile(rewards, 0.05)),
+        "max_drawdown": float(np.max(drawdowns)) if len(drawdowns) else 0.0,
+    }
+
+
+def _evaluation_context(trades: list[dict], n_episodes: int) -> dict:
+    explicit_regimes = {
+        str(trade.get("regime") or trade.get("market_regime"))
+        for trade in trades if trade.get("regime") or trade.get("market_regime")
+    }
+    one_hot_regimes = {
+        key.removeprefix("regime_").upper()
+        for trade in trades
+        for key, value in trade.items()
+        if key.startswith("regime_") and value == 1
+    }
+    return {
+        "evaluation_seeds": list(range(n_episodes)),
+        "regimes_available": sorted(explicit_regimes | one_hot_regimes),
+        "seed_metrics": None,
+        "regime_metrics": None,
+        "transaction_cost_included": True,
+    }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -112,7 +150,7 @@ def evaluate_rl_agent(
     done_reasons = {}
 
     for ep in range(n_episodes):
-        obs, _ = env.reset()
+        obs, _ = env.reset(seed=ep)
         terminated = False
         ep_reward = 0.0
         ep_pnl = 0.0
@@ -164,6 +202,8 @@ def evaluate_rl_agent(
         "action_distribution": {action_names[k]: v for k, v in action_counts.items()},
         "done_reasons": done_reasons,
         "n_episodes": n_episodes,
+        **_risk_statistics(episode_rewards, episode_pnls),
+        **_evaluation_context(trades, n_episodes),
     }
 
 
@@ -186,7 +226,7 @@ def evaluate_rule_based(trades: list[dict], n_episodes: int = 50) -> dict:
     done_reasons = {}
 
     for ep in range(n_episodes):
-        obs, _ = env.reset()
+        obs, _ = env.reset(seed=ep)
         terminated = False
         ep_reward = 0.0
         ep_pnl = 0.0
@@ -225,6 +265,8 @@ def evaluate_rule_based(trades: list[dict], n_episodes: int = 50) -> dict:
         "win_rate": win_rate,
         "done_reasons": done_reasons,
         "n_episodes": n_episodes,
+        **_risk_statistics(episode_rewards, episode_pnls),
+        **_evaluation_context(trades, n_episodes),
     }
 
 
@@ -249,6 +291,9 @@ def generate_phase_4_report(n_episodes: int = 50):
         "date": datetime.now().isoformat(),
         "n_eval_episodes": n_episodes,
         "environment": {
+            "environment_version": RL_ENVIRONMENT_VERSION,
+            "observation_schema_version": RL_OBSERVATION_SCHEMA_VERSION,
+            "reward_schema_version": RL_REWARD_SCHEMA_VERSION,
             "state_space": 20,
             "action_space": 6,
             "actions": ["HOLD", "PARTIAL_CLOSE_50", "MOVE_SL_TO_BREAKEVEN", "TAKE_PROFIT", "EXIT", "TRAILING_SL_ATR"],
@@ -305,6 +350,13 @@ def generate_phase_4_report(n_episodes: int = 50):
             for algo, data in report["rl_agents"].items()
         },
     }
+    report["promotion_gates"] = {
+        algo: evaluate_rl_promotion(data, rb)
+        for algo, data in report["rl_agents"].items()
+    }
+    report["policy_readiness"] = "PASS" if any(
+        gate["passed"] for gate in report["promotion_gates"].values()
+    ) else "BLOCKED"
 
     # Save report
     os.makedirs("logs", exist_ok=True)

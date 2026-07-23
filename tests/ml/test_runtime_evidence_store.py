@@ -25,6 +25,9 @@ def test_non_idempotent_duplicate_is_rejected(tmp_path):
     store.write_prediction_evidence(prediction, snapshot)
     with pytest.raises(ValueError, match="non-idempotent"):
         store.write_prediction_evidence({**prediction, "probability": .9}, snapshot)
+    health = store.health()
+    assert health["status"] == "degraded"
+    assert health["unresolved_incidents"] == 1
 
 
 def test_concurrent_evidence_writes_preserve_all_rows(tmp_path):
@@ -59,3 +62,17 @@ def test_corrupt_payload_is_quarantined_and_health_degrades(tmp_path):
     health = store.health()
     assert health["status"] == "degraded"
     assert health["quarantined_corrupt_payloads"] == 1
+
+
+def test_health_reports_foreign_key_violations_and_orphans(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    with store._connect() as db:
+        db.execute("PRAGMA foreign_keys=OFF")
+        db.execute(
+            "INSERT INTO outcome_links VALUES (?,?,?,?,?)",
+            ("o-orphan", "p-missing", "{}", "bad-hash", "2026-01-01T00:00:00+00:00"),
+        )
+    health = store.health()
+    assert health["status"] == "degraded"
+    assert health["orphan_outcomes"] == 1
+    assert health["foreign_key_violations"] == 1

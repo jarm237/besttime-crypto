@@ -52,3 +52,17 @@ def test_meta_promotion_requires_holdout_isolation_evidence(tmp_path, monkeypatc
     registry.register({"model_name": "meta_model", "version": "2", "status": "candidate", "artifact_path": "cand.bin", "metrics": {"holdout_used_for_selection": True}})
     with pytest.raises(ValueError, match="holdout isolation"):
         registry.promote("meta_model", "2", "1")
+
+
+def test_rl_promotion_requires_multi_criterion_gate(tmp_path, monkeypatch):
+    monkeypatch.setattr("btc_scraper.ml_engine.model_registry.ROOT", tmp_path)
+    for name in ("prod.bin", "cand.bin"):
+        (tmp_path / name).write_bytes(name.encode())
+    registry = ModelRegistry(tmp_path / "registry.json")
+    registry.register({"model_name": "rl_exit", "version": "1", "status": "production", "artifact_path": "prod.bin"})
+    registry.register({
+        "model_name": "rl_exit", "version": "2", "status": "candidate",
+        "artifact_path": "cand.bin", "metrics": {"promotion_gate_passed": False},
+    })
+    with pytest.raises(ValueError, match="RL multi-criterion"):
+        registry.promote("rl_exit", "2", "1")

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import fcntl
+import hashlib
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -40,6 +41,13 @@ class ModelRegistry:
             return {"records": []}
         raw = json.loads(self.path.read_text(encoding="utf-8"))
         return raw if isinstance(raw, dict) and isinstance(raw.get("records"), list) else {"records": []}
+
+    def revision(self) -> str:
+        """Content-addressed registry revision used by runtime lineage events."""
+        with self._locked(exclusive=False):
+            data = self._read()
+        canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def _write(self, data: dict[str, list[dict[str, Any]]]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -134,6 +142,8 @@ class ModelRegistry:
             evidence = target.get("metrics") or target.get("metadata") or {}
             if evidence.get("holdout_used_for_selection") is not False and str(model_name).startswith("meta_model"):
                 raise ValueError("promotion blocked: holdout isolation is not proven")
+            if str(model_name).startswith("rl_") and evidence.get("promotion_gate_passed") is not True:
+                raise ValueError("promotion blocked: RL multi-criterion gate is not proven")
             now = datetime.now(timezone.utc).isoformat()
             if current is not None:
                 current["status"], current["archived_at"] = "archive", now

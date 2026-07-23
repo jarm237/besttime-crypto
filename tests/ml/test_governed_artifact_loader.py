@@ -33,7 +33,12 @@ def _setup(tmp_path, monkeypatch, *, registered=True, metadata_hash=None, schema
 
 def test_approved_production_artifact_loads(tmp_path, monkeypatch):
     loader, _ = _setup(tmp_path, monkeypatch)
-    assert loader.load_production("demo", "schema-v1").model["model"] == "approved"
+    loaded = loader.load_production("demo", "schema-v1")
+    assert loaded.model["model"] == "approved"
+    assert len(loaded.registry_revision) == 64
+    assert loaded.deployment_slot == "production"
+    assert loaded.loaded_at.endswith("+00:00")
+    assert "python" in loaded.runtime_versions
 
 
 def test_unpromoted_artifact_fails_closed(tmp_path, monkeypatch):

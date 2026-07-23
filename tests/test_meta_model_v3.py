@@ -67,10 +67,19 @@ def test_train_meta_model_v3_outputs_walkforward_and_comparison(tmp_path: Path):
     assert metrics["holdout_used_for_selection"] is False
     assert metrics["split_manifest_sha256"]
     assert metrics["artifact_sha256"]
+    assert metrics["dataset_sha256"]
+    assert metrics["training_fingerprint"]
     assert metrics["feature_schema_version"].startswith("meta-v3-")
     assert metrics["status"] == "candidate"
     assert metrics["calibration_method"] in {"sigmoid", "isotonic"}
     assert set(metrics["calibration_selection_metrics"]) == {"sigmoid", "isotonic"}
+    assert metrics["test_metrics"]["log_loss"] is not None
+    assert metrics["test_metrics"]["ece"] is not None
+    assert metrics["test_metrics"]["mce"] is not None
+    assert metrics["split_class_distribution"]["final_holdout"]["positive"] > 0
+    assert "time_slice_stability" in metrics["calibration_evidence"]
+    assert "regime_stability" in metrics["calibration_evidence"]
+    assert "cv_holdout_gap" in metrics
     assert all(row["test_range"][1] <= sum(metrics["split"][key] for key in ("train", "calib")) for row in metrics["walk_forward"])
 
 

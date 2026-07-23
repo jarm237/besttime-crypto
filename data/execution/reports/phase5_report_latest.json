@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T02:44:04.077570+00:00",
+  "generated_at": "2026-07-23T03:05:20.181432+00:00",
   "fills_breakdown": {
     "real_paper": 0,
     "synthetic": 100,
@@ -29,16 +29,16 @@
   },
   "model_monitoring": {
     "prediction_distribution": {
-      "count": 71059,
+      "count": 71525,
       "mean": 0.5091,
-      "std": 0.0828,
+      "std": 0.0827,
       "min": 0.1667,
       "p25": 0.4683,
       "p50": 0.487,
       "p75": 0.5636,
       "p90": 0.6327,
       "max": 1.0,
-      "pct_ge_0_75": 0.04,
+      "pct_ge_0_75": 0.03,
       "pct_ge_0_85": 0.01
     },
     "missing_rate": {
@@ -55,25 +55,25 @@
       }
     },
     "calibration": {
-      "mean_calibration_error": 0.228,
+      "mean_calibration_error": 0.2281,
       "buckets": {
         "0.0-0.4": {
-          "count": 8815,
+          "count": 8842,
           "wins": 0,
           "actual_win_rate": 0.0,
           "expected_win_rate": 0.2,
           "error": 0.2
         },
         "0.4-0.6": {
-          "count": 47497,
-          "wins": 12343,
-          "actual_win_rate": 0.2599,
+          "count": 47892,
+          "wins": 12433,
+          "actual_win_rate": 0.2596,
           "expected_win_rate": 0.5,
-          "error": 0.2401
+          "error": 0.2404
         },
         "0.6-0.7": {
-          "count": 14571,
-          "wins": 14571,
+          "count": 14615,
+          "wins": 14615,
           "actual_win_rate": 1.0,
           "expected_win_rate": 0.6499999999999999,
           "error": 0.35
@@ -102,14 +102,14 @@
   "causal_shadow": {
     "summary": {
       "total_signals_emitted": 0,
-      "actual_trades_logged": 707,
-      "matched_aligned_decisions": 707,
-      "rl_exit_shadow_recommendations": 153
+      "actual_trades_logged": 709,
+      "matched_aligned_decisions": 709,
+      "rl_exit_shadow_recommendations": 154
     },
     "blocked_reasons": {
-      "slippage_guard": 19,
+      "slippage_guard": 20,
       "kelly_fraction_limit": 343,
-      "correlation_filter": 58,
+      "correlation_filter": 59,
       "other": 264
     },
     "performance_impact": {

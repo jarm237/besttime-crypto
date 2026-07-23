@@ -41,24 +41,42 @@ Evidence directory: `evaluations/ml_engine_remediation_20260723/`.
 | Final holdout ROC-AUC | 0.836833 |
 | Final holdout accuracy | 0.764885 |
 | Final holdout Brier | 0.154959 |
+| Final holdout log loss | 0.483499 |
+| Final holdout ECE | 0.014164 |
+| Final holdout MCE | 0.037800 |
 | Baseline ROC-AUC | 0.845056 |
 | Candidate delta ROC-AUC | -0.008223 |
 | Holdout used for selection | false |
 
-The corrected candidate remains `candidate`. Offline holdout results are informational and do not authorize promotion; runtime shadow evidence is still mandatory.
+The calibration split contains 3,610 samples (1,179 positive / 2,431 negative), satisfying the configured isotonic evidence floor. The final holdout contains 3,611 samples (1,295 positive / 2,316 negative). Four of five confidence buckets have at least 100 samples; the high-confidence bucket has 121. The empty 0.7–0.8 bucket remains an explicit coverage limitation. The report now includes time-slice and regime diagnostics, CV–holdout AUC gap (0.017014), dataset SHA, artifact SHA, split-manifest SHA, and a content-derived training fingerprint.
+
+The corrected candidate remains `candidate`. Offline holdout results are informational and do not authorize promotion; runtime shadow evidence is still mandatory. Independent duplicate training runs matched within a strict `1e-12` tolerance; the maximum observed numerical delta was `1.11e-16`. See `meta_model_repeatability_report.json`.
 
 ### RL policy revalidation
 
 Evidence: `logs/phase_4_rl_report.json`, 20 episodes × 5 trades per agent.
 
-| Policy | Mean reward | Delta vs rule baseline |
-|---|---:|---:|
-| Rule baseline | -0.913368 | — |
-| PPO | -2.165175 | -1.251807 |
-| DQN | -0.999319 | -0.085951 |
-| A2C | -1.952698 | -1.039331 |
+The evaluator is now deterministic by episode seed and reports median reward, 5th-percentile reward, drawdown, cost inclusion, and explicit environment/reward/observation schema versions.
 
-All legacy RL policies remain blocked. Metadata marks `REQUIRES_ENVIRONMENT_REVALIDATION` and `retrain_required=true`; promotion cannot proceed until a newly trained policy beats the rule baseline and passes shadow validation.
+| Policy | Mean reward | Median reward | P05 reward | Max drawdown |
+|---|---:|---:|---:|---:|
+| Rule baseline | -2.742045 | -3.298362 | -8.705637 | 8.566726 |
+| PPO | -2.494745 | -1.980116 | -4.927371 | 2.489017 |
+| DQN | -0.887674 | -1.141272 | -3.282366 | 2.450536 |
+| A2C | -2.712148 | -2.525509 | -8.668568 | 11.811677 |
+
+The deterministic evaluation changes the point estimates and DQN is the strongest legacy policy on this sample. This does not authorize promotion: none of the policies has per-seed aggregate stability or per-regime comparison evidence. A2C additionally fails the drawdown comparison. All legacy RL policies remain blocked; the registry now rejects any `rl_*` promotion unless `promotion_gate_passed=true` is present in governed evidence.
+
+## Post-review hardening
+
+The follow-up production-readiness review was implemented as additional controls:
+
+- `live_ready`, status, and automated-live authorization are derived from independent gates at runtime; claimed aggregate booleans cannot bypass a failed gate.
+- RL can be optional only when explicitly disabled. An unapproved policy cannot be silently loaded as a fallback.
+- Every governed load audit includes artifact ID/SHA, registry revision, deployment slot, model/schema version, UTC load time, runtime library versions, and latency.
+- SQLite health checks database integrity, foreign-key violations, missing/orphan snapshots, orphan decisions/outcomes, payload hashes, and unresolved conflicting-duplicate incidents.
+- Calibration evidence includes split counts/distributions, log loss, ECE, MCE, bucket coverage, tail support, time/regime stability, and CV–holdout gap.
+- RL environment, observation, and reward schemas are frozen under explicit version identifiers.
 
 ## Release-gate status
 

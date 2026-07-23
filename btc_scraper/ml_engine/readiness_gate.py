@@ -4,10 +4,44 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 from .artifact_resolver import ROOT
 
 READINESS_PATH = ROOT / "config" / "ml_engine_readiness.json"
+
+FOUNDATION_GATES = (
+    "implementation_gate",
+    "offline_regression_gate",
+    "decision_correctness_gate",
+    "calibration_methodology_gate",
+    "artifact_governance_gate",
+    "runtime_evidence_gate",
+)
+
+
+def derive_readiness(readiness: dict[str, Any]) -> dict[str, Any]:
+    """Return a normalized readiness document with a non-editable derived result."""
+    gates = {name: readiness.get(name) is True for name in FOUNDATION_GATES}
+    rl_required = readiness.get("rl_policy_required_for_live_entry") is True
+    gates["rl_policy_gate"] = (
+        readiness.get("rl_policy_gate") is True
+        if rl_required
+        else readiness.get("rl_policy_enabled") is not True
+    )
+    gates["shadow_validation_gate"] = readiness.get("shadow_validation_gate") is True
+    gates["manual_authorization_gate"] = readiness.get("manual_authorization_gate") is True
+    live_ready = all(gates.values())
+    result = dict(readiness)
+    result.update(gates)
+    result["live_ready"] = live_ready
+    result["automated_live_entry"] = live_ready
+    result["status"] = "AUTHORIZED" if live_ready else "BLOCKED"
+    if not live_ready:
+        result["failed_gates"] = [name for name, passed in gates.items() if not passed]
+    else:
+        result["failed_gates"] = []
+    return result
 
 
 def live_entry_authorized(path: Path | str = READINESS_PATH) -> tuple[bool, str]:
@@ -15,8 +49,10 @@ def live_entry_authorized(path: Path | str = READINESS_PATH) -> tuple[bool, str]
         readiness = json.loads(Path(path).read_text(encoding="utf-8"))
     except Exception as exc:
         return False, f"readiness_config_unavailable:{type(exc).__name__}"
-    if readiness.get("status") != "AUTHORIZED" or readiness.get("automated_live_entry") is not True:
-        return False, str(readiness.get("reason") or "ml_engine_readiness_blocked")
+    readiness = derive_readiness(readiness)
+    if not readiness["live_ready"]:
+        failed = ",".join(readiness["failed_gates"])
+        return False, f"ml_engine_readiness_blocked:{failed}"
     if os.getenv("ML_ENGINE_LIVE_AUTHORIZED", "false").lower() not in {"1", "true", "yes"}:
         return False, "manual_live_reauthorization_missing"
     return True, "authorized"
