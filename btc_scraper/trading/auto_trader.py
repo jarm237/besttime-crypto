@@ -921,6 +921,7 @@ class AutoTrader:
                 decision,
             )
             _append_log(log_entry)
+            self._notify_trade(log_entry)
             return log_entry
 
         # Decision is eligible, proceed with sizing & execution
@@ -931,6 +932,7 @@ class AutoTrader:
                 log_entry = self._build_skip_log(coin, signal, readiness_reason, ana, decision)
                 log_entry["ml_engine_live_gate"] = "BLOCKED"
                 _append_log(log_entry)
+                self._notify_trade(log_entry)
                 return log_entry
 
         direction = "LONG" if decision.action == TradeAction.BUY else "SHORT"
@@ -1009,6 +1011,7 @@ class AutoTrader:
                 decision,
             )
             _append_log(log_entry)
+            self._notify_trade(log_entry)
             return log_entry
 
         usdt_amount = sizing_decision.final_notional
@@ -1111,6 +1114,7 @@ class AutoTrader:
                 log_entry["status"] = "rejected_by_guard"
                 log_entry["reason_skip"] = rec.reason
                 _append_log(log_entry)
+                self._notify_trade(log_entry)
                 return log_entry
 
             # Sync với position tracker
@@ -1164,6 +1168,9 @@ class AutoTrader:
                 log_entry["status"] = "error"
                 log_entry["error"] = err_str
 
+        if log_entry.get("status") in ("skipped", "rejected_by_guard"):
+            self._notify_trade(log_entry)
+
         _append_log(log_entry)
         return log_entry
 
@@ -1189,6 +1196,7 @@ class AutoTrader:
             "signal": signal,
             "meta_confidence": round(float(meta_prob or 0.0), 4) if meta_prob is not None else None,
             "meta_probability": round(float(meta_prob or 0.0), 4) if meta_prob is not None else None,
+            "meta_confidence_pct": int(round(float(meta_prob or 0.0) * 100)) if meta_prob is not None else None,
             "signal_score": int(score),
             "signal_strength": float(strength),
             "kelly_fraction": sig_score.get("kelly_fraction"),
@@ -1196,6 +1204,8 @@ class AutoTrader:
             "status": "skipped",
             "reason_skip": reason,
             "entry_price": tp_sl.get("entry") or ana.get("close"),
+            "sl_price": tp_sl.get("sl"),
+            "tp1_price": tp_sl.get("tp1"),
             "decision_id": decision.decision_id,
             "signal_eligible": decision.signal_eligible,
             "live_authorized": decision.live_authorized,
@@ -1226,8 +1236,19 @@ class AutoTrader:
             order_id = entry.get("order_id", "?")
             status = entry.get("status", "?")
             err = entry.get("error")
+            reason_skip = entry.get("reason_skip")
 
-            if err:
+            if status in ("skipped", "rejected_by_guard"):
+                msg = (
+                    f"[AUTO-TRADE SKIPPED] {mode}\n"
+                    f"Coin: {coin} | {direction}\n"
+                    f"Signal: {signal}\n"
+                    f"Meta: {meta_pct}% | Score: {score}\n"
+                    f"{kelly_line}"
+                    f"Entry: ${entry_price:,.4f}\n"
+                    f"Ly do skip: {reason_skip or err or 'Khong ro'}"
+                )
+            elif err:
                 msg = (
                     f"[AUTO-TRADE ERROR] {coin}\n"
                     f"Mode: {mode}\n"

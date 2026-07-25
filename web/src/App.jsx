@@ -363,11 +363,12 @@ function App() {
                     <th>Entry/SL/TP1</th>
                     <th>ID Lệnh</th>
                     <th>Trạng Thái</th>
+                    <th>Lý do</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[...autoTradeLogs].reverse().map((log, i) => {
-                    const isSkipped = log.status === 'skipped';
+                    const isSkipped = log.status === 'skipped' || log.status === 'rejected_by_guard';
                     const isError = log.status === 'error';
                     const isSuccess = !isSkipped && !isError;
                     const logMetaPct = isFiniteNumber(log.meta_confidence_pct)
@@ -402,6 +403,13 @@ function App() {
                           ) : (
                             <span className="badge badge-green">SUCCESS</span>
                           )}
+                        </td>
+                        <td
+                          className="text-sm"
+                          title={log.reason_skip || log.error || ''}
+                          style={{ maxWidth: '260px', color: isSkipped || isError ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                        >
+                          {log.reason_skip || log.error || 'N/A'}
                         </td>
                       </tr>
                     );

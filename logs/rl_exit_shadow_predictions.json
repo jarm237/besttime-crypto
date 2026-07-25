@@ -37242,5 +37242,27 @@
     "actual_result": "WIN",
     "actual_pnl_pct": 1.0385,
     "closed_at": "2026-07-24 20:37:25"
+  },
+  {
+    "prediction_id": "SOLUSDT_RL_1784959563",
+    "symbol": "SOLUSDT",
+    "timestamp": 1784959563.8396728,
+    "timestamp_str": "2026-07-25 13:06:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "70fb5427-3e72-45c0-83ed-e2bce2d01045",
+    "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "SOLUSDT_RL_1784959863",
+    "symbol": "SOLUSDT",
+    "timestamp": 1784959863.4633834,
+    "timestamp_str": "2026-07-25 13:11:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "70fb5427-3e72-45c0-83ed-e2bce2d01045",
+    "note": "RL Exit shadow recommendation"
   }
 ]

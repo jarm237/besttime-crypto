@@ -6,6 +6,6 @@
   "status": "failed",
   "value": null,
   "data_quality": 0.0,
-  "fetched_at": "2026-07-24T11:04:49.209516+00:00",
-  "error": "503 Server Error: Service Unavailable for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_bitcoin_etf_flows_recent"
+  "fetched_at": "2026-07-25T02:12:49.431467+00:00",
+  "error": "402 Client Error: Payment Required for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_bitcoin_etf_flows_recent"
 }
