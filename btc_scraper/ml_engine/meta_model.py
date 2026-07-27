@@ -34,6 +34,7 @@ BASE = Path(__file__).parent.parent.parent
 LOGS = build_logs_path()
 INPUT = LOGS / "adaptive_signals_v2.json"
 MODEL_OUT = LOGS / "meta_model.joblib"
+_DEFAULT_MODEL_OUT = MODEL_OUT
 MODEL_CANDIDATE_OUT = LOGS / "meta_model_candidate.joblib"
 METRIC_OUT = LOGS / "meta_model.json"
 FEATURE_IMPORTANCE_OUT = LOGS / "meta_feature_importance.json"
@@ -1045,8 +1046,21 @@ def load_model():
         _MODEL_LOAD_ERROR = None
         return _CACHED_MODEL
 
-    if not MODEL_OUT.exists():
-        _MODEL_LOAD_ERROR = f"no_model_file:{MODEL_OUT}"
+    model_path = MODEL_OUT
+    if not model_path.exists() and model_path == _DEFAULT_MODEL_OUT:
+        # Runtime logs are deployment-scoped, while governed model artifacts
+        # remain at the canonical path declared in model_artifacts.yaml.
+        from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
+
+        artifact = get_artifact_resolver().resolve("meta_model", require_metadata=True)
+        if artifact.healthy and artifact.path is not None:
+            model_path = artifact.path
+        else:
+            reason = artifact.reason or "artifact_unavailable"
+            _MODEL_LOAD_ERROR = f"model_artifact_unavailable:{reason}"
+            return None
+    elif not model_path.exists():
+        _MODEL_LOAD_ERROR = f"no_model_file:{model_path}"
         return None
     try:
         # Backward compatibility: some historical model bundles were serialized
@@ -1070,12 +1084,12 @@ def load_model():
             from btc_scraper.ml_engine.artifact_resolver import DEFAULT_CONFIG
             from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
             canonical_path = get_governed_artifact_loader().resolver.resolve("meta_model").path
-            if canonical_path is not None and MODEL_OUT.resolve() == canonical_path.resolve():
+            if canonical_path is not None and model_path.resolve() == canonical_path.resolve():
                 loaded = get_governed_artifact_loader().load_production("meta_model", "meta-v3.1-43f")
                 _MODEL_CACHE = loaded.model
             else:
                 # Unit tests redirect MODEL_OUT to an isolated fixture.
-                _MODEL_CACHE = get_governed_artifact_loader().load_test_artifact(MODEL_OUT)
+                _MODEL_CACHE = get_governed_artifact_loader().load_test_artifact(model_path)
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
             feature_names = _MODEL_CACHE.get("features")
