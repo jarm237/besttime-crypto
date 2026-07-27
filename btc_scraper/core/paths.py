@@ -21,7 +21,17 @@ def runtime_environment() -> str:
     return os.getenv("BTC_RUNTIME_ENVIRONMENT") or os.getenv("BTC_ENVIRONMENT") or "production"
 
 
+def runtime_lock_disabled() -> bool:
+    return os.getenv("BTC_DISABLE_RUNTIME_LOCK", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def runtime_lock_bypass_reason() -> str:
+    return os.getenv("BTC_RUNTIME_LOCK_BYPASS_REASON", "").strip() or "unspecified"
+
+
 def runtime_evidence_eligible() -> bool:
+    if runtime_lock_disabled():
+        return False
     explicit = os.getenv("BTC_EVIDENCE_ELIGIBLE")
     if explicit is not None:
         return explicit.strip().lower() in {"1", "true", "yes", "on"}

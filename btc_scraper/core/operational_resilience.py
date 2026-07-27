@@ -78,10 +78,25 @@ class DatabaseResilience:
 
 
 def service_health(*, db_ok: bool, exchange_ok: bool, model_ok: bool, data_path: str | Path = "data") -> dict[str, Any]:
+    from btc_scraper.core.paths import runtime_lock_bypass_reason, runtime_lock_disabled
+
     disk = shutil.disk_usage(Path(data_path))
     disk_ok = disk.free / max(disk.total, 1) >= .05
-    dependencies = {"db": bool(db_ok), "exchange": bool(exchange_ok), "model": bool(model_ok), "disk": disk_ok}
+    runtime_lock_ok = not runtime_lock_disabled()
+    dependencies = {
+        "db": bool(db_ok),
+        "exchange": bool(exchange_ok),
+        "model": bool(model_ok),
+        "disk": disk_ok,
+        "runtime_lock": runtime_lock_ok,
+    }
     return {"live": True, "ready": all(dependencies.values()), "dependencies": dependencies,
+            "runtime_ownership": {
+                "lock_required": True,
+                "lock_disabled": not runtime_lock_ok,
+                "severity": "CRITICAL" if not runtime_lock_ok else None,
+                "reason": runtime_lock_bypass_reason() if not runtime_lock_ok else None,
+            },
             "resources": {"disk_free_bytes": disk.free, "disk_free_ratio": disk.free / max(disk.total, 1)}}
 
 

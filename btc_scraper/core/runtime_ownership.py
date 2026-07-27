@@ -9,10 +9,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from btc_scraper.core.paths import RuntimePaths, get_runtime_paths, runtime_owner_metadata
+from btc_scraper.core.paths import (
+    RuntimePaths,
+    get_runtime_paths,
+    runtime_lock_bypass_reason,
+    runtime_lock_disabled,
+    runtime_owner_metadata,
+)
 
 
 class RuntimeLockError(RuntimeError):
+    pass
+
+
+class RuntimeOwnershipError(RuntimeLockError):
     pass
 
 
@@ -116,7 +126,50 @@ class RuntimeLock:
 
 def assert_runtime_owned() -> dict[str, Any]:
     """Acquire the configured runtime deployment lock for process startup."""
+    validate_runtime_lock_policy()
     return RuntimeLock().acquire()
+
+
+def validate_runtime_lock_policy(paths: RuntimePaths | None = None) -> dict[str, Any]:
+    paths = paths or get_runtime_paths()
+    if not runtime_lock_disabled():
+        return {"status": "enabled", "environment": paths.environment, "deployment_id": paths.deployment_id}
+    if paths.environment == "live":
+        raise RuntimeOwnershipError("BTC_DISABLE_RUNTIME_LOCK is forbidden in live environment")
+    return {
+        "status": "disabled",
+        "severity": "CRITICAL",
+        "environment": paths.environment,
+        "deployment_id": paths.deployment_id,
+        "runtime_id": paths.runtime_id,
+        "process_id": paths.process_id,
+        "reason": runtime_lock_bypass_reason(),
+        "evidence_eligible": False,
+    }
+
+
+def audit_runtime_lock_bypass(paths: RuntimePaths | None = None, *, reason: str | None = None) -> dict[str, Any] | None:
+    paths = paths or get_runtime_paths()
+    status = validate_runtime_lock_policy(paths)
+    if status["status"] != "disabled":
+        return None
+    event = {
+        "event_type": "runtime_lock_bypass_enabled",
+        "severity": "CRITICAL",
+        "written_at": _now(),
+        "environment": paths.environment,
+        "deployment_id": paths.deployment_id,
+        "runtime_id": paths.runtime_id,
+        "process_id": paths.process_id,
+        "hostname": paths.hostname,
+        "reason": reason or runtime_lock_bypass_reason(),
+        "evidence_eligible": False,
+    }
+    audit_path = paths.state_root / "runtime_lock_events.jsonl"
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    with audit_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True, default=str) + "\n")
+    return event
 
 
 def snapshot_runtime_roots(roots: Iterable[Path]) -> dict[Path, FileFingerprint]:

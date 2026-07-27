@@ -18,7 +18,7 @@ Hard blockers override numeric score.
 
 | Module | Score | Classification | Recommended disposition | Main blockers / risks |
 |---|---:|---|---|---|
-| `core` | 41 | Paper-ready | KEEP/REFACTOR | Core now centralizes deployment-scoped runtime roots, runtime identity metadata, state roots, lock paths, and hash-based ownership snapshots; timestamp/Decimal/error taxonomy still need broader consolidation. |
+| `core` | 42 | Paper-ready | KEEP/REFACTOR | Core now centralizes deployment-scoped runtime roots, runtime identity metadata, state roots, lock paths, hash-based ownership snapshots, and fail-closed/critical-audited runtime lock bypass policy; timestamp/Decimal/error taxonomy still need broader consolidation. |
 | `ml_engine.data_contracts` / `contracts` | 37 | Paper-ready | KEEP/REFACTOR | Prediction contract now requires production lineage fields; next work is broader schema/version compatibility across all event producers. |
 | `collectors` | 32 | Requires remediation | REFACTOR | Provider health/status exists for alternative data, but many external fallbacks need fixture/replay proof and provider-by-provider fail behavior classification. |
 | `exchanges` | 31 | Requires remediation | REFACTOR | CCXT wrapper and adapters exist, but precision/min-notional/order-state reconciliation needs end-to-end proof. |
@@ -39,7 +39,7 @@ Hard blockers override numeric score.
 | `telegram_bot` | 33 | Requires remediation | REFACTOR | Allowed chat ID support exists; dangerous command authorization/audit and outage behavior need full review. |
 | `ui` / `api` | 30 | Requires remediation | REFACTOR | Dashboard surfaces many states but stale/lineage/authorization display needs stronger guarantees. |
 | `data/` | 34 | Requires remediation | REFACTOR | New runtime writes default to deployment-owned roots; legacy historical data and promotion-gate inputs still need raw/processed/runtime/backtest/model lifecycle taxonomy. |
-| `logs/` / observability | 36 | Paper-ready | REFACTOR | Runtime metadata now includes deployment/runtime/process identity and guard fingerprints include hashes; rotation, correlation IDs, secret scanning, and evidence dashboards need completion. |
+| `logs/` / observability | 37 | Paper-ready | REFACTOR | Runtime metadata now includes deployment/runtime/process identity, guard fingerprints include hashes, and runtime lock bypass degrades health with critical audit; rotation, correlation IDs, secret scanning, and evidence dashboards need completion. |
 
 ## Hard Blockers
 

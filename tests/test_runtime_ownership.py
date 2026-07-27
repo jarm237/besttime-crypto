@@ -9,12 +9,16 @@ from pathlib import Path
 
 import pytest
 
-from btc_scraper.core.paths import REPO_ROOT, get_runtime_paths
+from btc_scraper.core.operational_resilience import service_health
+from btc_scraper.core.paths import REPO_ROOT, get_runtime_paths, runtime_evidence_eligible
 from btc_scraper.core.runtime_ownership import (
     RuntimeLock,
     RuntimeLockError,
+    RuntimeOwnershipError,
+    audit_runtime_lock_bypass,
     describe_runtime_changes,
     snapshot_runtime_roots,
+    validate_runtime_lock_policy,
     write_owner_sidecar,
 )
 
@@ -30,6 +34,8 @@ OWNERSHIP_ENV_KEYS = [
     "BTC_RUNTIME_EVIDENCE_PATH",
     "BTC_RESERVATION_DB_PATH",
     "BTC_RUNTIME_LOCK_PATH",
+    "BTC_DISABLE_RUNTIME_LOCK",
+    "BTC_RUNTIME_LOCK_BYPASS_REASON",
     "CATBOOST_INFO_DIR",
 ]
 
@@ -169,3 +175,42 @@ def test_runtime_guard_fingerprint_reports_hash_and_owner(tmp_path):
     assert state_change["before_hash"] != state_change["after_hash"]
     assert state_change["suspected_writer_runtime_id"] == "runtime-writer"
     assert state_change["suspected_writer_process_id"] == 12345
+
+
+def test_runtime_lock_bypass_is_forbidden_in_live(monkeypatch, tmp_path):
+    _clear_path_overrides(monkeypatch)
+    monkeypatch.setenv("BTC_RUNTIME_ENVIRONMENT", "live")
+    monkeypatch.setenv("BTC_DEPLOYMENT_ID", "live-main")
+    monkeypatch.setenv("BTC_RUNTIME_ID", "runtime-live-main")
+    monkeypatch.setenv("BTC_RUNTIME_ROOT", str(tmp_path / "runtime" / "live" / "live-main"))
+    monkeypatch.setenv("BTC_DISABLE_RUNTIME_LOCK", "1")
+
+    with pytest.raises(RuntimeOwnershipError):
+        validate_runtime_lock_policy()
+
+
+def test_runtime_lock_bypass_audits_critical_and_disables_evidence(monkeypatch, tmp_path):
+    _clear_path_overrides(monkeypatch)
+    monkeypatch.setenv("BTC_RUNTIME_ENVIRONMENT", "paper")
+    monkeypatch.setenv("BTC_DEPLOYMENT_ID", "paper-bypass")
+    monkeypatch.setenv("BTC_RUNTIME_ID", "runtime-paper-bypass")
+    monkeypatch.setenv("BTC_RUNTIME_ROOT", str(tmp_path / "runtime" / "paper" / "paper-bypass"))
+    monkeypatch.setenv("BTC_DISABLE_RUNTIME_LOCK", "true")
+    monkeypatch.setenv("BTC_RUNTIME_LOCK_BYPASS_REASON", "maintenance")
+    monkeypatch.setenv("BTC_EVIDENCE_ELIGIBLE", "true")
+
+    status = validate_runtime_lock_policy()
+    event = audit_runtime_lock_bypass()
+    health = service_health(db_ok=True, exchange_ok=True, model_ok=True, data_path=tmp_path)
+
+    assert status["status"] == "disabled"
+    assert status["severity"] == "CRITICAL"
+    assert event["event_type"] == "runtime_lock_bypass_enabled"
+    assert event["severity"] == "CRITICAL"
+    assert event["reason"] == "maintenance"
+    assert runtime_evidence_eligible() is False
+    assert health["ready"] is False
+    assert health["dependencies"]["runtime_lock"] is False
+    assert health["runtime_ownership"]["severity"] == "CRITICAL"
+    audit = (get_runtime_paths().state_root / "runtime_lock_events.jsonl").read_text(encoding="utf-8")
+    assert "runtime_lock_bypass_enabled" in audit

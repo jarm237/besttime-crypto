@@ -34,7 +34,7 @@ from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_pos
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper.core.paths import build_data_path, build_logs_path, build_scripts_path
-from btc_scraper.core.runtime_ownership import RuntimeLock
+from btc_scraper.core.runtime_ownership import RuntimeLock, audit_runtime_lock_bypass, runtime_lock_disabled
 from btc_scraper.core.fear_greed import resolve_fear_greed_value
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.candle_store import candle_store
@@ -824,7 +824,14 @@ async def async_main():
 def main():
     global runtime_lock
     try:
-        if os.getenv("BTC_DISABLE_RUNTIME_LOCK", "").lower() not in {"1", "true", "yes"}:
+        if runtime_lock_disabled():
+            bypass = audit_runtime_lock_bypass()
+            console.print(
+                "[bold red]CRITICAL: Runtime lock bypass enabled. "
+                f"environment={bypass['environment']} deployment_id={bypass['deployment_id']} "
+                f"runtime_id={bypass['runtime_id']} reason={bypass['reason']}[/bold red]"
+            )
+        else:
             runtime_lock = RuntimeLock()
             lock_info = runtime_lock.acquire()
             console.print(

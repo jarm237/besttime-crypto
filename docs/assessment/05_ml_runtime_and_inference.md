@@ -13,6 +13,7 @@ Status: production-ready candidate for runtime evidence; system production remai
 - `tests/recovery/` now proves persisted restart/replay boundaries from prediction through outcome revision conflicts.
 - P1.7 keeps outage/quarantine audit events append-only through `RuntimeEvidenceStore` and preserves runtime path isolation for test-controlled writers.
 - P1.8 adds `deployment_id`, `runtime_id`, `process_id`, `hostname`, and `started_at` metadata to runtime evidence and prediction JSONL mirrors.
+- Runtime lock bypass now forces runtime evidence ineligible, is forbidden in live, and degrades readiness with a critical audit event when used outside live.
 
 ## Gaps
 
