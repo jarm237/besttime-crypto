@@ -35,11 +35,12 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Callable, Dict, List, Optional
 
+from btc_scraper.core.paths import build_data_path
+
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-STATE_FILE = BASE_DIR / "data" / "kill_switch_state.json"
-SIGNAL_FILE = BASE_DIR / "data" / ".kill_signal"   # legacy file-based manual stop
+STATE_FILE = build_data_path("kill_switch_state.json")
+SIGNAL_FILE = build_data_path(".kill_signal")   # legacy file-based manual stop
 
 
 # ── State machine ─────────────────────────────────────────────────────────────

@@ -20,11 +20,11 @@ from typing import Any, Dict, List, Optional
 
 from .live_execution_guard import LiveExecutionGuard, OrderContext
 from .hard_risk_limits import OrderIntent
+from btc_scraper.core.paths import build_execution_data_path
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-DRY_RUN_REPORT_PATH = BASE_DIR / "data" / "execution" / "reports" / "dry_run_report.json"
+DRY_RUN_REPORT_PATH = build_execution_data_path("reports", "dry_run_report.json")
 
 
 @dataclass

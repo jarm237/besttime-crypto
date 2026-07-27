@@ -13,11 +13,13 @@ import os
 from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
+from btc_scraper.core.paths import build_logs_path
+
 BASE = os.path.dirname(__file__)
-ADAPTIVE_LOG = os.path.join(BASE, "..", "..", "logs", "adaptive_signals.json")
-ADAPTIVE_MODEL = os.path.join(BASE, "..", "..", "logs", "adaptive_model.json")
+ADAPTIVE_LOG = str(build_logs_path("adaptive_signals.json"))
+ADAPTIVE_MODEL = str(build_logs_path("adaptive_model.json"))
 # Canonical location is shared by training and runtime through ArtifactResolver.
-ADAPTIVE_MODEL_JOBLIB = os.path.join(BASE, "..", "..", "logs", "adaptive_model.joblib")
+ADAPTIVE_MODEL_JOBLIB = str(build_logs_path("adaptive_model.joblib"))
 
 
 def _ensure_dir(path: str) -> None:

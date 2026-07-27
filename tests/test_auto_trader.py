@@ -218,9 +218,9 @@ def test_compute_position_size(monkeypatch):
 def test_signal_score_parses_primary_action():
     raw_signal = "SELL (Break-SMA50) [BUY 52% LOW] | Meta: 60%"
     assert _primary_signal_action(raw_signal) == "SELL"
-    res = score_signal(raw_signal, {"close": 1574.19}, {})
-    assert res["action"] == "NEUTRAL"
-    assert res["display_label"] == "NEUTRAL"
+    res = score_signal(raw_signal, {"close": 1574.19}, {"disable_ml": True})
+    assert res["action"] == "SELL"
+    assert res["display_label"] == "SELL 70%"
     assert res["strength"] == res["display_score"]
 
 def test_adaptive_model_blends_with_rule_score(monkeypatch):

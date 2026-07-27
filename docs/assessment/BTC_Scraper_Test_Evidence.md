@@ -33,7 +33,7 @@ Full pytest now passes:
 Result:
 
 ```text
-712 passed, 121 warnings, 5 subtests passed in 262.06s (0:04:22)
+713 passed, 118 warnings, 5 subtests passed in 187.05s (0:03:07)
 ```
 
 ## Remediation Evidence
@@ -46,6 +46,7 @@ Result:
 | Prediction contract | Incomplete | HARDENED | `tests/ml/test_data_contracts.py` validates required lineage fields and rejects missing artifact hash. |
 | Execution dispatch fidelity | Mismatch | HARDENED | `tests/test_phase1_execution_pipeline_integration.py::TestSubmitLiveWithMockAdapter` proves selected LIMIT dispatches through limit adapter and TWAP live dispatch rejects fail-closed. |
 | Runtime/lifecycle evidence | Not executable | PASS | Runtime evidence, paper lifecycle, linkage calibration, phase10 execution and live guard tests pass. |
+| Test/runtime artifact isolation | Runtime artifacts polluted repo roots | PASS | `tests/conftest.py` redirects writable runtime roots to `/tmp/btc-scraper-tests/<run-id>/` and fails the session if repo `data/`, `logs/`, `catboost_info/`, or `btc_scraper/logs/` are modified. Full pytest passes with the guard enabled. |
 
 ## Targeted Test Runs
 
@@ -95,6 +96,24 @@ Result:
 21 passed
 ```
 
+Runtime artifact isolation:
+
+```bash
+.venv/bin/python -m pytest \
+  tests/test_paths_and_macro_freshness.py \
+  tests/ml/test_runtime_evidence_store.py \
+  tests/ml/test_prediction_traceability.py \
+  tests/test_phase1_execution_pipeline_integration.py::TestSubmitLiveWithMockAdapter \
+  tests/test_execution_reservation_concurrency.py \
+  tests/test_phase5_paper_trading_validation.py -q
+```
+
+Result:
+
+```text
+29 passed
+```
+
 ## Warning Summary
 
 The full test suite still emits warnings that should be tracked as P2/P3 quality work:
@@ -109,4 +128,4 @@ The full test suite still emits warnings that should be tracked as P2/P3 quality
 
 ## Operational Note
 
-Some tests write runtime artifacts under `data/execution`, `logs/execution`, `btc_scraper/logs`, model/training cache folders, and data-feature-store paths. This reinforces the data lifecycle remediation item: test/debug/paper/live runtime state needs stronger path isolation and environment tagging.
+Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged `environment=test`, `evidence_eligible=false`, and `paper_run_id=<run-id>` where the writer supports runtime metadata.

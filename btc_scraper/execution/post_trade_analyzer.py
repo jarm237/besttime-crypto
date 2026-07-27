@@ -13,6 +13,8 @@ from pathlib import Path
 import json
 from datetime import datetime, timezone
 
+from btc_scraper.core.paths import build_execution_data_path
+
 
 @dataclass
 class ExecutionCostBreakdown:
@@ -56,8 +58,8 @@ class PostTradeAnalyzer:
     SHORTFALL_EXCELLENT_BPS: float = 5.0
     SHORTFALL_GOOD_BPS: float = 15.0
 
-    def __init__(self, reports_dir: str = "data/execution/reports"):
-        self.reports_dir = Path(reports_dir)
+    def __init__(self, reports_dir: str | None = None):
+        self.reports_dir = Path(reports_dir) if reports_dir is not None else build_execution_data_path("reports")
         self.reports_dir.mkdir(parents=True, exist_ok=True)
 
     def analyze(self, record: Dict[str, Any]) -> ExecutionCostBreakdown:

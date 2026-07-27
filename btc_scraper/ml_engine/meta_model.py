@@ -28,9 +28,10 @@ import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score, PredefinedSplit
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.base import BaseEstimator, ClassifierMixin
+from btc_scraper.core.paths import build_logs_path, get_runtime_paths
 
 BASE = Path(__file__).parent.parent.parent
-LOGS = BASE / "logs"
+LOGS = build_logs_path()
 INPUT = LOGS / "adaptive_signals_v2.json"
 MODEL_OUT = LOGS / "meta_model.joblib"
 MODEL_CANDIDATE_OUT = LOGS / "meta_model_candidate.joblib"
@@ -468,7 +469,7 @@ class EnsembleMetaModel(ClassifierMixin, BaseEstimator):
         lgbm_params.update(self.base_params.get("lgbm", {}))
         lgbm_params.update(_get_backend_kwargs("lgbm", use_gpu=self.use_gpu, device_id=self.device_id))
         
-        catboost_params = {"iterations": self.n_estimators, "depth": 5, "learning_rate": 0.03, "l2_leaf_reg": 3, "verbose": 0, "thread_count": -1, "random_seed": self.random_state}
+        catboost_params = {"iterations": self.n_estimators, "depth": 5, "learning_rate": 0.03, "l2_leaf_reg": 3, "verbose": 0, "thread_count": -1, "random_seed": self.random_state, "train_dir": str(get_runtime_paths().catboost_info_dir)}
         catboost_params.update(self.base_params.get("catboost", {}))
         catboost_params.update(_get_backend_kwargs("catboost", use_gpu=self.use_gpu, device_id=self.device_id))
         

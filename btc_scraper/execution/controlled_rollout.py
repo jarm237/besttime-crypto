@@ -36,11 +36,11 @@ from typing import Any, Dict, Optional
 from .hard_risk_limits import HardRiskLimits, STAGE_LIMITS
 from .kill_switch import KillSwitch
 from .live_audit_log import LiveAuditLog
+from btc_scraper.core.paths import build_execution_data_path
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-ROLLOUT_STATE_PATH = BASE_DIR / "data" / "execution" / "rollout_state.json"
+ROLLOUT_STATE_PATH = build_execution_data_path("rollout_state.json")
 
 
 # ── Promotion criteria per stage ──────────────────────────────────────────────

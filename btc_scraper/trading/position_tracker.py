@@ -24,6 +24,7 @@ else:
 
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
+from btc_scraper.core.paths import build_logs_path
 
 TRADE_ORIGIN_PAPER = "paper_mode"
 TRADE_ORIGIN_MANUAL = "manual"
@@ -216,7 +217,7 @@ _PPO_MODEL_CACHE = None
 _LAST_MODEL_PATH = None
 _LSTM_STATE_CACHE = {}
 
-_LSTM_CACHE_FILE = "logs/rl_lstm_cache.pkl"
+_LSTM_CACHE_FILE = str(build_logs_path("rl_lstm_cache.pkl"))
 
 def save_lstm_cache():
     """Lưu _LSTM_STATE_CACHE xuống file pickle."""
@@ -257,7 +258,7 @@ def _get_default_device() -> str:
 
 def _legacy_latest_ppo_model() -> str | None:
     """Tìm file zip model PPO mới nhất."""
-    rl_dir = Path("logs/rl_models")
+    rl_dir = build_logs_path("rl_models")
     if not rl_dir.exists():
         return None
     matches = sorted(rl_dir.glob("rl_exit_ppo_*.zip"))

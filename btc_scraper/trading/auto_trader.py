@@ -67,10 +67,10 @@ from btc_scraper.trading.decision_types import (
     SizingDecision,
     EntryDecision,
 )
+from btc_scraper.core.paths import build_logs_path
 
-BASE_DIR = Path(__file__).parent.parent
-AUTO_TRADE_LOG = BASE_DIR / "logs" / "auto_trade_log.json"
-CIRCUIT_BREAKER_STATE = BASE_DIR / "logs" / "auto_trade_circuit.json"
+AUTO_TRADE_LOG = build_logs_path("auto_trade_log.json")
+CIRCUIT_BREAKER_STATE = build_logs_path("auto_trade_circuit.json")
 
 # ─── Config Loader ─────────────────────────────────────────────────────────────
 

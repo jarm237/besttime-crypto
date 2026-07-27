@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 from typing import Dict, List, Optional
 
-BASE = Path(__file__).parent.parent
-RL_SHADOW_LOG = BASE / "logs" / "rl_exit_shadow_predictions.json"
+from btc_scraper.core.paths import build_logs_path
+
+RL_SHADOW_LOG = build_logs_path("rl_exit_shadow_predictions.json")
 
 
 def _load_rl_shadow() -> List[Dict]:

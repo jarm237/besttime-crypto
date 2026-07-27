@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-BASE_DIR = Path(__file__).parent.parent.parent
+from btc_scraper.core.paths import build_data_path, build_execution_data_path
 
 ITEM_PASS = "PASS"
 ITEM_FAIL = "FAIL"
@@ -88,12 +88,12 @@ class LiveChecklist:
     ):
         self._exchange = exchange_client
         self._phase5_report_path = Path(phase5_report_path) if phase5_report_path else (
-            BASE_DIR / "data" / "execution" / "reports" / "phase5_report_latest.json"
+            build_execution_data_path("reports", "phase5_report_latest.json")
         )
         self._model_snapshot_path = Path(model_snapshot_path) if model_snapshot_path else (
-            BASE_DIR / "data" / "feature_store"
+            build_data_path("feature_store")
         )
-        self._rollback_dir = Path(rollback_dir) if rollback_dir else (BASE_DIR / "data" / "rollback")
+        self._rollback_dir = Path(rollback_dir) if rollback_dir else build_data_path("rollback")
         # Set of manually acknowledged check names
         self._acknowledged = set(acknowledged_manual_items or [])
 
@@ -297,7 +297,7 @@ class LiveChecklist:
     def run_and_save(self, output_path: Optional[str] = None) -> ChecklistResult:
         result = self.run()
         path = Path(output_path) if output_path else (
-            BASE_DIR / "data" / "execution" / "reports" / "live_checklist_latest.json"
+            build_execution_data_path("reports", "live_checklist_latest.json")
         )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(result.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")

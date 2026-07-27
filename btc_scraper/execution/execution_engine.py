@@ -32,6 +32,7 @@ from .exchange_adapter import WriteExchangeAdapter, make_write_adapter_from_env
 from btc_scraper.execution.reservation_store import ReservationStore
 from btc_scraper.trading.decision_types import ReservationStatus
 from btc_scraper.execution.hard_risk_limits import OrderIntent
+from btc_scraper.core.paths import build_execution_data_path, build_logs_path
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +56,9 @@ class ExecutionEngine:
     def __init__(
         self,
         config: ExecutionConfig = None,
-        log_dir: str = "logs/execution",
-        fills_dir: str = "data/execution/fills",
-        reports_dir: str = "data/execution/reports",
+        log_dir: str | None = None,
+        fills_dir: str | None = None,
+        reports_dir: str | None = None,
         exchange_adapter: Optional[WriteExchangeAdapter] = None,
         live_guard: Optional[Any] = None,
         reservation_db_path: Optional[str] = None,
@@ -68,6 +69,9 @@ class ExecutionEngine:
         else:
             from .live_execution_guard import LiveExecutionGuard
             self._live_guard = LiveExecutionGuard()
+        log_dir = log_dir or str(build_logs_path("execution"))
+        fills_dir = fills_dir or str(build_execution_data_path("fills"))
+        reports_dir = reports_dir or str(build_execution_data_path("reports"))
         # ── Write adapter — ONLY this engine holds a write-capable adapter ──
         self._adapter: Optional[WriteExchangeAdapter] = exchange_adapter
         self._tracker = FillTracker(log_dir=log_dir, fills_dir=fills_dir)
@@ -466,7 +470,7 @@ class ExecutionEngine:
 
             current_stage = 1
             try:
-                rollout_path = Path("data/execution/rollout_state.json")
+                rollout_path = build_execution_data_path("rollout_state.json")
                 if rollout_path.exists():
                     rollout_data = json.loads(rollout_path.read_text(encoding="utf-8"))
                     current_stage = int(rollout_data.get("current_stage", 1))

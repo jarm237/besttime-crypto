@@ -72,7 +72,9 @@ def test_promotion_is_blocked_when_runtime_evidence_is_degraded(tmp_path, monkey
     monkeypatch.setattr("btc_scraper.ml_engine.model_registry.ROOT", tmp_path)
     (tmp_path / "logs").mkdir()
     from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
-    store = RuntimeEvidenceStore(tmp_path / "logs" / "runtime_evidence.sqlite")
+    evidence_path = tmp_path / "logs" / "runtime_evidence.sqlite"
+    monkeypatch.setenv("BTC_RUNTIME_EVIDENCE_PATH", str(evidence_path))
+    store = RuntimeEvidenceStore(evidence_path)
     prediction = {"prediction_id": "p-1", "probability": 0.6}
     store.write_prediction_evidence(prediction, {"prediction_id": "p-1", "features": []})
     with store._connect() as db:

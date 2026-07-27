@@ -5,7 +5,6 @@ PR 5 — Concurrency, Idempotency, and Sizing edge cases tests.
 import json
 import pytest
 import asyncio
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 from btc_scraper.execution.execution_engine import ExecutionEngine
@@ -17,6 +16,7 @@ from btc_scraper.trading.auto_trader import AutoTrader
 from btc_scraper.execution.hard_risk_limits import OrderIntent
 from btc_scraper.execution.fill_tracker import OrderStatus
 from btc_scraper.execution.kill_switch import KSState
+from btc_scraper.core.paths import build_execution_data_path
 
 
 class DummyKillSwitch:
@@ -67,7 +67,7 @@ def guard_setup(tmp_path):
     live_mode.write_text(json.dumps({"enabled": True}))
 
     # Set up rollout stage = 1
-    rollout = Path("data/execution/rollout_state.json")
+    rollout = build_execution_data_path("rollout_state.json")
     rollout.parent.mkdir(parents=True, exist_ok=True)
     rollout.write_text(json.dumps({"current_stage": 1}))
 

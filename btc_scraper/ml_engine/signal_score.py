@@ -12,6 +12,8 @@ from pathlib import Path
 import json
 from datetime import datetime, timezone, timedelta
 
+from btc_scraper.core.paths import build_logs_path
+
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
 _RISK_METRICS_CACHE: dict = {}
@@ -57,7 +59,7 @@ def _use_kelly() -> bool:
 
 
 def _get_meta_prob_log_dir() -> Path:
-    return Path(__file__).parent.parent.parent / "logs"
+    return build_logs_path()
 
 
 def _get_meta_prob_log_path(logs_dir: Path | None = None, ts: datetime | None = None) -> Path:

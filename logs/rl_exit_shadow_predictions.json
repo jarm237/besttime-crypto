@@ -39248,5 +39248,16 @@
     "meta_prob": 0.3,
     "position_id": "test_pos_confidence",
     "note": "RL Exit shadow recommendation"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785124754",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785124754.9237192,
+    "timestamp_str": "2026-07-27 10:59:14",
+    "rl_action": 4,
+    "action_label": "EXIT",
+    "meta_prob": 0.3,
+    "position_id": "test_pos_confidence",
+    "note": "RL Exit shadow recommendation"
   }
 ]

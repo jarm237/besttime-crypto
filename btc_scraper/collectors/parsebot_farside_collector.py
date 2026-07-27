@@ -56,9 +56,9 @@ def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int
     external API limit.
     """
     try:
-        limit = max(1, int(os.getenv("PARSEBOT_MONTHLY_REQUEST_LIMIT", "200")))
+        limit = max(1, int(os.getenv("PARSEBOT_MONTHLY_REQUEST_LIMIT", "180")))
     except ValueError:
-        limit = 200
+        limit = 180
 
     usage_path = Path(os.getenv("PARSEBOT_REQUEST_USAGE_PATH", str(_REQUEST_USAGE_PATH)))
     month = (now or datetime.now(timezone.utc)).strftime("%Y-%m")

@@ -13,9 +13,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-BASE_DIR = Path(__file__).parent.parent.parent
-LOG_DIR = BASE_DIR / "logs"
-AUTO_TRADE_LOG = BASE_DIR / "btc_scraper" / "logs" / "auto_trade_log.json"
+from btc_scraper.core.paths import build_logs_path
+
+LOG_DIR = build_logs_path()
+AUTO_TRADE_LOG = build_logs_path("auto_trade_log.json")
 
 
 def load_rl_exit_shadow_predictions(log_dir: Path = LOG_DIR) -> List[Dict[str, Any]]:

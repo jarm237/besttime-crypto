@@ -16,9 +16,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-BASE_DIR = Path(__file__).parent.parent.parent
-LOG_DIR = BASE_DIR / "logs"
-DATA_DIR = BASE_DIR / "data"
+from btc_scraper.core.paths import build_data_path, build_logs_path
+
+LOG_DIR = build_logs_path()
+DATA_DIR = build_data_path()
 RAW_ALT_DIR = DATA_DIR / "raw_alternative"
 
 

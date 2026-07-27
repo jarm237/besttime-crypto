@@ -90,9 +90,10 @@ ETF flow data is daily data and must **not** be fetched inside every 15-minute s
 With the default symbol lists this schedule uses at most 84 base requests in a
 calendar month (69 recent + 10 full-history + 5 fund-info). Keep
 `PARSEBOT_MAX_RETRIES=1`; even if every request retries once, usage is capped at
-168 requests, leaving headroom below the 200-request monthly allowance.
+168 requests, leaving headroom below the 180-request operational guard and the
+200-request monthly allowance.
 Every HTTP attempt is also counted in `logs/parsebot_request_usage.json`. Once
-`PARSEBOT_MONTHLY_REQUEST_LIMIT` (default `200`) is reached, the collector stops
+`PARSEBOT_MONTHLY_REQUEST_LIMIT` (default `180`) is reached, the collector stops
 before sending another request; this counter also covers retries and manual CLI
 runs.
 

@@ -26,11 +26,12 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Callable, Dict, Optional
 
+from btc_scraper.core.paths import build_execution_data_path, build_logs_path
+
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-ALERT_DB_PATH = BASE_DIR / "data" / "execution" / "alerts_dedup.db"
-ALERT_LOG_PATH = BASE_DIR / "logs" / "alerts.log"
+ALERT_DB_PATH = build_execution_data_path("alerts_dedup.db")
+ALERT_LOG_PATH = build_logs_path("alerts.log")
 
 THROTTLE_WINDOW_SECONDS = 300     # 5 minutes
 ESCALATION_MIN_COUNT = 2          # escalate if alert fired ≥ 2 times in window

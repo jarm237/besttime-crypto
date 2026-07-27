@@ -25,8 +25,9 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Dict, Optional
 
-BASE_DIR = Path(__file__).parent.parent.parent
-AUDIT_LOG_DIR = BASE_DIR / "data" / "execution" / "audit"
+from btc_scraper.core.paths import build_execution_data_path
+
+AUDIT_LOG_DIR = build_execution_data_path("audit")
 AUDIT_LOG_FILE = AUDIT_LOG_DIR / "live_audit.jsonl"
 AUDIT_DB_FILE = AUDIT_LOG_DIR / "audit_index.db"
 

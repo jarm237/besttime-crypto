@@ -20,6 +20,14 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 from datetime import datetime, timezone
 
+from btc_scraper.core.paths import (
+    build_execution_data_path,
+    build_logs_path,
+    runtime_environment,
+    runtime_evidence_eligible,
+    runtime_paper_run_id,
+)
+
 
 # ── Enums ──────────────────────────────────────────────────────────────────────
 class OrderStatus:
@@ -106,6 +114,8 @@ class ExecutionRecord:
     # live/legacy execution records and can be used as Phase 5 evidence.
     execution_mode: str = "live"  # paper | live | replay | test
     paper_run_id: str = ""
+    environment: str = field(default_factory=runtime_environment)
+    evidence_eligible: bool = field(default_factory=runtime_evidence_eligible)
 
     # Fill events
     fills: List[FillEvent] = field(default_factory=list)
@@ -155,9 +165,9 @@ class FillTracker:
     Manages active orders and persists fill records.
     """
 
-    def __init__(self, log_dir: str = "logs/execution", fills_dir: str = "data/execution/fills"):
-        self.log_dir = Path(log_dir)
-        self.fills_dir = Path(fills_dir)
+    def __init__(self, log_dir: str | None = None, fills_dir: str | None = None):
+        self.log_dir = Path(log_dir) if log_dir is not None else build_logs_path("execution")
+        self.fills_dir = Path(fills_dir) if fills_dir is not None else build_execution_data_path("fills")
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.fills_dir.mkdir(parents=True, exist_ok=True)
 
@@ -251,6 +261,7 @@ class FillTracker:
 
     def _write_jsonl(self, record: ExecutionRecord) -> None:
         """Append to daily execution JSONL log."""
+        self._apply_runtime_metadata(record)
         date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         path = self._path_for_record(self.log_dir, "execution", date_str, record)
         with open(path, "a", encoding="utf-8") as f:
@@ -258,6 +269,7 @@ class FillTracker:
 
     def _write_fills_jsonl(self, record: ExecutionRecord) -> None:
         """Write completed fill record to fills dataset for ML training."""
+        self._apply_runtime_metadata(record)
         date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         path = self._path_for_record(self.fills_dir, "fills", date_str, record)
         with open(path, "a", encoding="utf-8") as f:
@@ -276,3 +288,10 @@ class FillTracker:
             target_dir = base_dir
         target_dir.mkdir(parents=True, exist_ok=True)
         return target_dir / f"{prefix}_{date_str}.jsonl"
+
+    @staticmethod
+    def _apply_runtime_metadata(record: ExecutionRecord) -> None:
+        record.environment = runtime_environment()
+        record.evidence_eligible = runtime_evidence_eligible()
+        if not record.paper_run_id:
+            record.paper_run_id = runtime_paper_run_id() or ""

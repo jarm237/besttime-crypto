@@ -7,12 +7,12 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import json
 import time
-from pathlib import Path
 from btc_scraper.core.sentiment import (
     get_market_sentiment, 
     _save_sentiment_to_history,
     get_sentiment_trend
 )
+from btc_scraper.core.paths import build_logs_path
 
 print("=" * 60)
 print("TEST: Sentiment Trend Tracking & Recovery Signal")
@@ -26,10 +26,10 @@ print(f"    Label: {sentiment['label']}")
 
 # 2. Lưu vào history
 _save_sentiment_to_history(sentiment)
-print(f"\n[2] Saved to history: logs/sentiment_history.json")
+hist_file = build_logs_path("sentiment_history.json")
+print(f"\n[2] Saved to history: {hist_file}")
 
 # 3. Check history file
-hist_file = Path("logs/sentiment_history.json")
 if hist_file.exists():
     with open(hist_file) as f:
         history = json.load(f)
@@ -44,8 +44,10 @@ else:
 
 # 4. Tính sentiment trend
 trend = get_sentiment_trend()
+momentum = trend["momentum"]
+momentum_display = f"{momentum:+.3f}" if momentum is not None else "N/A"
 print(f"\n[3] Sentiment Trend:")
-print(f"    Direction: {trend['trend']} (momentum: {trend['momentum']:+.3f})")
+print(f"    Direction: {trend['trend']} (momentum: {momentum_display})")
 print(f"    Recovery Signal: {trend['recovery_signal']}")
 print(f"    Risk Signal: {trend['risk_signal']}")
 print(f"    Hours in Extreme: {trend['hours_in_extreme']}")

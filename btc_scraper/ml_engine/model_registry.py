@@ -11,8 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from .artifact_resolver import ROOT, sha256_file
+from btc_scraper.core.paths import build_logs_path, get_runtime_paths
 
-REGISTRY_PATH = ROOT / "logs" / "model_registry.json"
+REGISTRY_PATH = build_logs_path("model_registry.json")
 VALID_STATUSES = {"candidate", "shadow", "production", "archive", "rejected", "disabled"}
 
 
@@ -75,7 +76,7 @@ class ModelRegistry:
 
     @staticmethod
     def _assert_runtime_evidence_healthy() -> None:
-        evidence_path = ROOT / "logs" / "runtime_evidence.sqlite"
+        evidence_path = get_runtime_paths().runtime_evidence_path
         if not evidence_path.exists():
             return
         from .runtime_evidence_store import RuntimeEvidenceStore

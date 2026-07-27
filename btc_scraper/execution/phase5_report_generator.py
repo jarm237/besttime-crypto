@@ -16,6 +16,7 @@ Enforces dual-gate evaluation:
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
@@ -26,10 +27,10 @@ from btc_scraper.execution.pnl_analyzer import run_pnl_analysis
 from btc_scraper.ml_engine.paper_trade_monitor import run_model_monitoring
 from btc_scraper.execution.causal_shadow_report import run_causal_shadow_analysis
 from btc_scraper.execution.post_trade_analyzer import PostTradeAnalyzer
+from btc_scraper.core.paths import REPO_ROOT, build_execution_data_path
 
-BASE_DIR = Path(__file__).parent.parent.parent
-REPORTS_DIR = BASE_DIR / "data" / "execution" / "reports"
-DOCS_DIR = BASE_DIR / "docs" / "remediation"
+REPORTS_DIR = build_execution_data_path("reports")
+DOCS_DIR = Path(os.getenv("BTC_REMEDIATION_DOCS_DIR", str(REPO_ROOT / "docs" / "remediation")))
 
 
 def generate_all_reports(environment: str = "production", default_fill_source: str = "real_paper") -> Dict[str, Any]:
@@ -110,7 +111,7 @@ def generate_all_reports(environment: str = "production", default_fill_source: s
     # Count critical incidents from live audit log scoped to paper validation window
     critical_incidents = 0
     try:
-        audit_file = BASE_DIR / "data" / "execution" / "audit" / "live_audit.jsonl"
+        audit_file = build_execution_data_path("audit", "live_audit.jsonl")
         if audit_file.exists():
             with audit_file.open(encoding="utf-8") as f:
                 for line in f:
@@ -206,6 +207,11 @@ def generate_markdown_report(data: Dict[str, Any]) -> None:
 
     comp_val = data["data_completeness_pct"]
     comp_str = f"{comp_val}%" if comp_val != "NOT_MEASURED" else "NOT_MEASURED"
+    missing_rate = data["model_monitoring"].get("missing_rate", {})
+    mean_completeness = missing_rate.get("mean_completeness", "NOT_MEASURED")
+    p05_completeness = missing_rate.get("p05_completeness", "NOT_MEASURED")
+    longest_missing_streak = missing_rate.get("longest_missing_streak", "NOT_MEASURED")
+    stale_rate_pct = missing_rate.get("stale_rate_pct", "NOT_MEASURED")
 
     # Dynamic status calculation for markdown rendering
     fills_val = data["live_readiness_gate"]["real_paper_fills"]
@@ -297,10 +303,10 @@ This gate strictly evaluates live execution characteristics and real market beha
 
 To avoid false positive evaluations, completeness is measured strictly from the actual loaded data. If the paid subscription APIs (Glassnode, Whale Alert) are not active, they are reported as `NOT_MEASURED`.
 
-- **Mean Completeness (Required Features)**: `{data["model_monitoring"]["missing_rate"]["mean_completeness"]:.4f}`
-- **5th Percentile Completeness (Required)**: `{data["model_monitoring"]["missing_rate"]["p05_completeness"]:.4f}`
-- **Longest Stale/Missing Streak**: `{data["model_monitoring"]["missing_rate"]["longest_missing_streak"]} snapshots`
-- **Stale Snapshots Rate**: `{data["model_monitoring"]["missing_rate"]["stale_rate_pct"]}%`
+- **Mean Completeness (Required Features)**: `{mean_completeness}`
+- **5th Percentile Completeness (Required)**: `{p05_completeness}`
+- **Longest Stale/Missing Streak**: `{longest_missing_streak} snapshots`
+- **Stale Snapshots Rate**: `{stale_rate_pct}%`
 - **Skipped Paid Providers**:
   - Glassnode: `NOT_MEASURED` (disabled_free_plan_not_supported)
   - Whale Alert: `NOT_MEASURED` (disabled_free_plan_not_supported)

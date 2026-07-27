@@ -13,6 +13,12 @@ from typing import Any
 from .artifact_resolver import ROOT
 from .data_contracts import validate_runtime_event
 from .runtime_evidence_store import RuntimeEvidenceStore, get_runtime_evidence_store
+from btc_scraper.core.paths import (
+    build_prediction_audit_path,
+    runtime_environment,
+    runtime_evidence_eligible,
+    runtime_paper_run_id,
+)
 
 
 def _git_commit() -> str | None:
@@ -64,6 +70,8 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
         "calibration_method": calibration_method,
         "raw_probability": raw_prediction, "calibrated_probability": calibrated_prediction,
         "raw_prediction": raw_prediction, "calibrated_prediction": calibrated_prediction,
+        "environment": runtime_environment(), "evidence_eligible": runtime_evidence_eligible(),
+        "paper_run_id": runtime_paper_run_id(),
         "fallback_used": bool(fallback_used), "git_commit": _git_commit(),
         "deployment_id": __import__("os").getenv("DEPLOYMENT_ID"), "signal_id": signal_id,
         "position_id": position_id, "order_id": order_id, "fill_id": fill_id,
@@ -75,11 +83,13 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
     snapshot = {"prediction_id": entry["prediction_id"], "feature_snapshot_id": snapshot_id,
                 "timestamp": entry["timestamp"],
                 "feature_schema_version": feature_schema_version, "features": features,
-                "feature_hash": entry["feature_hash"]}
+                "feature_hash": entry["feature_hash"],
+                "environment": runtime_environment(), "evidence_eligible": runtime_evidence_eligible(),
+                "paper_run_id": runtime_paper_run_id()}
     (evidence_store or get_runtime_evidence_store()).write_prediction_evidence(entry, snapshot)
 
     # JSONL remains a compatibility mirror; SQLite above is the source of truth.
-    destination = log_dir or ROOT / "logs" / "prediction_audit"
+    destination = Path(log_dir) if log_dir is not None else build_prediction_audit_path()
     try:
         destination.mkdir(parents=True, exist_ok=True)
         with (destination / f"predictions_{now.strftime('%Y-%m-%d')}.jsonl").open("a", encoding="utf-8") as fh:

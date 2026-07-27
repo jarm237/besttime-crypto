@@ -37,12 +37,13 @@ from .hard_risk_limits import HardRiskLimits, OrderIntent, RiskDecision
 from .kill_switch import KillSwitch, KSState
 from .live_audit_log import LiveAuditLog
 from .execution_risk_monitor import ExecutionRiskMonitor, GuardAction
+from btc_scraper.core.paths import build_data_path, build_execution_data_path
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-PHASE5_REPORT_PATH = BASE_DIR / "data" / "execution" / "reports" / "phase5_report_latest.json"
-LIVE_MODE_FLAG_PATH = BASE_DIR / "data" / "live_mode_enabled.json"
+PHASE5_REPORT_PATH = build_execution_data_path("reports", "phase5_report_latest.json")
+LIVE_MODE_FLAG_PATH = build_data_path("live_mode_enabled.json")
+LIVE_MONITOR_SNAPSHOT_PATH = build_execution_data_path("live_monitor_snapshot.json")
 PHASE5_GATE_CACHE_TTL_SECONDS = 30
 
 
@@ -278,7 +279,7 @@ class LiveExecutionGuard:
 
     def _read_health(self) -> Dict[str, Any]:
         try:
-            monitor_snap = BASE_DIR / "data" / "execution" / "live_monitor_snapshot.json"
+            monitor_snap = LIVE_MONITOR_SNAPSHOT_PATH
             if monitor_snap.exists():
                 snap = json.loads(monitor_snap.read_text(encoding="utf-8"))
                 return snap.get("system_health", {"ready": True})

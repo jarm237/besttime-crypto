@@ -30,14 +30,14 @@ from typing import Any, Callable, Dict, List, Optional
 from .hard_risk_limits import HardRiskLimits
 from .kill_switch import KillSwitch
 from .alerting import AlertManager
+from btc_scraper.core.paths import build_data_path, build_execution_data_path, build_prediction_audit_path
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-SNAPSHOT_PATH = BASE_DIR / "data" / "execution" / "live_monitor_snapshot.json"
-PREDICTIONS_LOG = BASE_DIR / "logs" / "prediction_audit"
-ALT_DATA_DIR = BASE_DIR / "data" / "raw_alternative"
-FILLS_DIR = BASE_DIR / "data" / "execution" / "fills"
+SNAPSHOT_PATH = build_execution_data_path("live_monitor_snapshot.json")
+PREDICTIONS_LOG = build_prediction_audit_path()
+ALT_DATA_DIR = build_data_path("raw_alternative")
+FILLS_DIR = build_execution_data_path("fills")
 
 DATA_STALE_THRESHOLD_MINUTES = 15
 MODEL_STALE_THRESHOLD_MINUTES = 10

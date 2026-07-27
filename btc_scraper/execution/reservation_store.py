@@ -15,10 +15,10 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Dict, List, Optional, Tuple
 
+from btc_scraper.core.paths import build_execution_data_path
 from btc_scraper.trading.decision_types import ReservationStatus
 
-BASE_DIR = Path(__file__).parent.parent.parent
-DEFAULT_DB_PATH = BASE_DIR / "data" / "execution" / "reservations.db"
+DEFAULT_DB_PATH = build_execution_data_path("reservations.db")
 
 
 @dataclass

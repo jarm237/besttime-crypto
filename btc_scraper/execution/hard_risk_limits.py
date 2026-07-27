@@ -23,8 +23,9 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Dict, Optional
 
-BASE_DIR = Path(__file__).parent.parent.parent
-STATE_PATH = BASE_DIR / "data" / "execution" / "risk_state.json"
+from btc_scraper.core.paths import build_execution_data_path
+
+STATE_PATH = build_execution_data_path("risk_state.json")
 
 # ── Intent constants ──────────────────────────────────────────────────────────
 

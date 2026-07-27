@@ -17,7 +17,7 @@ Immediate P0 acceptance gate for future live work:
 1. Restore test environment.
    - Status: `DONE`.
    - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements.txt` or `requirements-lock.txt`.
-   - Evidence: `.venv/bin/python -m pytest` passes with `712 passed, 121 warnings, 5 subtests passed`.
+   - Evidence: `.venv/bin/python -m pytest` passes with `713 passed, 118 warnings, 5 subtests passed`.
 
 2. Fix script compile blocker.
    - Status: `DONE`.
@@ -38,10 +38,12 @@ Immediate P0 acceptance gate for future live work:
    - Acceptance: E2E tests prove selected order type equals submitted order type; TWAP is either fully dispatched or disabled.
    - Evidence: selected LIMIT dispatches through limit adapter; selected TWAP rejects fail-closed until live TWAP child-order recovery has E2E coverage.
 
-5. Formalize data lifecycle.
-   - Separate raw, processed, feature, model, runtime, paper, backtest, quarantine.
-   - Require environment tag: `test`, `debug`, `synthetic`, `paper`, `shadow`, `live`.
-   - Acceptance: new runtime records without environment tag are rejected.
+5. Isolate test/runtime artifacts.
+   - Status: `DONE` for test runtime isolation.
+   - Writable runtime roots are redirected by pytest to `/tmp/btc-scraper-tests/<run-id>/`.
+   - Required test metadata is attached to runtime evidence where supported: `environment=test`, `evidence_eligible=false`, `paper_run_id=<run-id>`.
+   - Acceptance: full pytest passes with an artifact guard that fails if repo runtime roots are modified.
+   - Evidence: `.venv/bin/python -m pytest` passes with `713 passed, 118 warnings, 5 subtests passed` and no runtime artifact isolation violations.
 
 6. Prove restart/replay idempotency.
    - Acceptance: scenarios after prediction, decision, reservation, fill, and close are replayed without duplicate orders or conflicting outcomes.
@@ -83,6 +85,6 @@ Immediate P0 acceptance gate for future live work:
 1. Runtime/replay evidence expansion
 2. Feature point-in-time fixtures
 3. Collector fixtures and stale handling
-4. Data/log lifecycle cleanup
+4. Broader data/log lifecycle taxonomy beyond test isolation
 5. UI/Telegram operational hardening
 ```

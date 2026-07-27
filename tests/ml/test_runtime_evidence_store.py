@@ -79,9 +79,14 @@ def test_latest_outcome_revision_is_canonical_and_conflicts_quarantine(tmp_path)
     base = {"prediction_id": "p-1", "position_id": "pos-1"}
     store.append_outcome_link({**base, "outcome_id": "o-1", "outcome_revision": 1, "net_pnl_pct": -1.0})
     store.append_outcome_link({**base, "outcome_id": "o-2", "outcome_revision": 2, "net_pnl_pct": 2.0})
-    assert store.latest_outcomes() == [
-        {**base, "outcome_id": "o-2", "outcome_revision": 2, "net_pnl_pct": 2.0}
-    ]
+    latest = store.latest_outcomes()
+    assert len(latest) == 1
+    assert {
+        key: latest[0][key]
+        for key in ("prediction_id", "position_id", "outcome_id", "outcome_revision", "net_pnl_pct")
+    } == {**base, "outcome_id": "o-2", "outcome_revision": 2, "net_pnl_pct": 2.0}
+    assert latest[0]["environment"] == "test"
+    assert latest[0]["evidence_eligible"] is False
     with pytest.raises(ValueError, match="conflicting outcome amendment"):
         store.append_outcome_link({**base, "outcome_id": "o-other", "outcome_revision": 2, "net_pnl_pct": 9.0})
     assert store.health()["status"] == "degraded"

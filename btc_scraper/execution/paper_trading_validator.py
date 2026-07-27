@@ -19,13 +19,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-BASE_DIR = Path(__file__).parent.parent.parent
+from btc_scraper.core.paths import build_execution_data_path, build_logs_path
 
-FILLS_DIR = BASE_DIR / "data" / "execution" / "fills"
-EXEC_LOG_DIR = BASE_DIR / "logs" / "execution"
+FILLS_DIR = build_execution_data_path("fills")
+EXEC_LOG_DIR = build_logs_path("execution")
 PAPER_FILLS_DIR = FILLS_DIR / "paper"
 PAPER_EXEC_LOG_DIR = EXEC_LOG_DIR / "paper"
-AUTO_TRADE_LOG = BASE_DIR / "btc_scraper" / "logs" / "auto_trade_log.json"
+AUTO_TRADE_LOG = build_logs_path("auto_trade_log.json")
 
 _PRICE_TABLE: Dict[str, float] = {
     "BTC": 104_000.0,
@@ -403,6 +403,6 @@ def run_paper_trading_validation(
 if __name__ == "__main__":
     summary = run_paper_trading_validation(
         target_fills=100,
-        output_path=str(BASE_DIR / "data" / "execution" / "reports" / "phase5_fill_summary.json"),
+        output_path=str(build_execution_data_path("reports", "phase5_fill_summary.json")),
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))

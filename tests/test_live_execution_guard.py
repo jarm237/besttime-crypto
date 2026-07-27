@@ -168,10 +168,9 @@ def test_system_health_stale_reasons(temp_paths, monkeypatch):
     temp_paths["phase5"].write_text(json.dumps({"live_readiness_gate": {"passed": True}}))
     temp_paths["live_mode"].write_text(json.dumps({"enabled": True}))
 
-    # Mock health snapshot file path inside the guard's read method
     monkeypatch.setattr(
-        "btc_scraper.execution.live_execution_guard.BASE_DIR",
-        temp_paths["health"].parent.parent.parent,
+        "btc_scraper.execution.live_execution_guard.LIVE_MONITOR_SNAPSHOT_PATH",
+        temp_paths["health"],
     )
 
     guard = LiveExecutionGuard(

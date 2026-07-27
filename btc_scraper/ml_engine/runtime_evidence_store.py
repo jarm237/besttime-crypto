@@ -10,6 +10,12 @@ from pathlib import Path
 from typing import Any, Iterator, Mapping
 
 from .artifact_resolver import ROOT
+from btc_scraper.core.paths import (
+    get_runtime_paths,
+    runtime_environment,
+    runtime_evidence_eligible,
+    runtime_paper_run_id,
+)
 
 RUNTIME_EVIDENCE_SCHEMA_VERSION = 2
 
@@ -23,8 +29,8 @@ def payload_sha256(payload: Mapping[str, Any]) -> str:
 
 
 class RuntimeEvidenceStore:
-    def __init__(self, path: Path | str = ROOT / "logs" / "runtime_evidence.sqlite") -> None:
-        self.path = Path(path)
+    def __init__(self, path: Path | str | None = None) -> None:
+        self.path = Path(path) if path is not None else get_runtime_paths().runtime_evidence_path
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
 
@@ -92,6 +98,8 @@ class RuntimeEvidenceStore:
             db.close()
 
     def write_prediction_evidence(self, prediction: Mapping[str, Any], snapshot: Mapping[str, Any]) -> None:
+        prediction = self._with_runtime_metadata(prediction)
+        snapshot = self._with_runtime_metadata(snapshot)
         prediction_id = str(prediction["prediction_id"])
         if str(snapshot.get("prediction_id")) != prediction_id:
             raise ValueError("prediction/snapshot identity mismatch")
@@ -123,6 +131,7 @@ class RuntimeEvidenceStore:
             raise
 
     def append_final_decision(self, decision: Mapping[str, Any]) -> None:
+        decision = self._with_runtime_metadata(decision)
         decision_id = str(decision["decision_id"])
         prediction_id = str(decision.get("prediction_id") or "")
         if not prediction_id:
@@ -152,6 +161,7 @@ class RuntimeEvidenceStore:
             raise
 
     def append_audit_event(self, event: Mapping[str, Any]) -> None:
+        event = self._with_runtime_metadata(event)
         payload = _canonical(event)
         with self.transaction() as db:
             db.execute(
@@ -160,6 +170,7 @@ class RuntimeEvidenceStore:
             )
 
     def append_outcome_link(self, outcome: Mapping[str, Any]) -> None:
+        outcome = self._with_runtime_metadata(outcome)
         outcome_id = str(outcome["outcome_id"])
         prediction_id = str(outcome["prediction_id"])
         position_id = str(outcome.get("position_id") or "")
@@ -205,6 +216,14 @@ class RuntimeEvidenceStore:
                 "INSERT OR IGNORE INTO evidence_quarantine VALUES (?,?,?,?)",
                 (table_name, record_id, incident_type, datetime.now(timezone.utc).isoformat()),
             )
+
+    @staticmethod
+    def _with_runtime_metadata(payload: Mapping[str, Any]) -> dict[str, Any]:
+        result = dict(payload)
+        result.setdefault("environment", runtime_environment())
+        result.setdefault("evidence_eligible", runtime_evidence_eligible())
+        result.setdefault("paper_run_id", runtime_paper_run_id())
+        return result
 
     def latest_outcomes(self) -> list[dict[str, Any]]:
         """Return only the highest valid amendment revision for each position."""

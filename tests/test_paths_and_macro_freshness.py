@@ -1,15 +1,21 @@
-import os
 import time
-from pathlib import Path
 
 from btc_scraper.collectors.macro_collector import is_macro_state_fresh
-from btc_scraper.core.paths import build_data_path
+from btc_scraper.core.paths import REPO_ROOT, build_data_path, get_runtime_paths
 
 
-def test_build_data_path_uses_repo_root():
-    repo_root = Path(__file__).resolve().parents[1]
-    expected = repo_root / "data" / "latest_signals.json"
+def test_build_data_path_uses_runtime_root():
+    expected = get_runtime_paths().data_root / "latest_signals.json"
     assert build_data_path("latest_signals.json") == expected
+
+
+def test_full_suite_uses_isolated_runtime_paths():
+    runtime_paths = get_runtime_paths()
+    assert runtime_paths.environment == "test"
+    assert runtime_paths.data_root != REPO_ROOT / "data"
+    assert runtime_paths.logs_root != REPO_ROOT / "logs"
+    assert runtime_paths.evidence_eligible is False
+    assert runtime_paths.paper_run_id
 
 
 def test_macro_state_is_fresh_with_recent_timestamp(tmp_path):

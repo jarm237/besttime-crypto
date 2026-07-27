@@ -15,6 +15,7 @@ import urllib.request
 import urllib.error
 from datetime import date, datetime, timedelta, timezone
 
+from btc_scraper.core.paths import build_logs_path
 from btc_scraper.core.fear_greed import normalize_fear_greed, parse_fear_greed_record
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -205,7 +206,7 @@ def _history_by_date(history: dict) -> dict[date, dict]:
     return {observed_date: item[1] for observed_date, item in daily.items()}
 
 
-def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/sentiment_history.json"):
+def _save_sentiment_to_history(sentiment_dict: dict, history_file: str | None = None):
     """Upsert one canonical daily observation and retain a bounded history."""
     from pathlib import Path
     try:
@@ -214,7 +215,7 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/s
         if raw_value is None or score is None:
             return
 
-        history_path = Path(history_file)
+        history_path = Path(history_file) if history_file is not None else build_logs_path("sentiment_history.json")
         history_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Load existing history
@@ -253,7 +254,7 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str = "logs/s
         print(f"  [Sentiment] Lỗi lưu history: {e}", flush=True)
 
 
-def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", current_sentiment: dict = None) -> dict:
+def get_sentiment_trend(history_file: str | None = None, current_sentiment: dict = None) -> dict:
     """Compare a daily observation with the latest observation before its date."""
     from pathlib import Path
 
@@ -268,7 +269,7 @@ def get_sentiment_trend(history_file: str = "logs/sentiment_history.json", curre
     }
 
     try:
-        history_path = Path(history_file)
+        history_path = Path(history_file) if history_file is not None else build_logs_path("sentiment_history.json")
         if history_path.exists():
             with open(history_path, 'r', encoding='utf-8') as f:
                 history = json.load(f)
