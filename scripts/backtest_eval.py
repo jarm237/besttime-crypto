@@ -160,8 +160,8 @@ def run_backtest():
 
             from btc_scraper.ml_engine.signal_score import extract_signal_fields
             for i, r in enumerate(eval_results):
-                        sig_fields = extract_signal_fields(r)
-                        sig = r.get("signal", sig_fields.get("raw", ""))
+                sig_fields = extract_signal_fields(r)
+                sig = r.get("signal", sig_fields.get("raw", ""))
                 direction_group, sub = classify_signal(sig)
                 if direction_group is None:
                     continue

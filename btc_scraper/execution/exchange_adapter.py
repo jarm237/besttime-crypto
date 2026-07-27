@@ -82,6 +82,16 @@ class ReadOnlyExchangeAdapter(BaseExchangeAdapter):
             "Direct exchange writes are forbidden. Use ExecutionEngine.submit_live() instead."
         )
 
+    async def create_limit_buy(self, *args, **kwargs):
+        raise PermissionError(
+            "Direct exchange writes are forbidden. Use ExecutionEngine.submit_live() instead."
+        )
+
+    async def create_limit_sell(self, *args, **kwargs):
+        raise PermissionError(
+            "Direct exchange writes are forbidden. Use ExecutionEngine.submit_live() instead."
+        )
+
 
 # ── Write Adapter (ExecutionEngine only) ──────────────────────────────────────
 
@@ -139,6 +149,44 @@ class WriteExchangeAdapter(BaseExchangeAdapter):
             return self._dry_run_fill(symbol, "sell", usdt_amount)
         logger.info(f"[ExchangeAdapter] MARKET SELL {symbol} ${usdt_amount:.2f}")
         return await self._client.create_market_sell(symbol, usdt_amount, params)
+
+    async def create_limit_buy(
+        self,
+        symbol: str,
+        usdt_amount: float,
+        limit_price: float,
+        params: Optional[Dict] = None,
+    ) -> Dict[str, Any]:
+        """Place a limit buy order through the exchange."""
+        if self._client is None:
+            return {
+                **self._dry_run_fill(symbol, "buy", usdt_amount),
+                "type": "limit",
+                "price": limit_price,
+            }
+        logger.info(
+            f"[ExchangeAdapter] LIMIT BUY {symbol} ${usdt_amount:.2f} @ {limit_price:.8f}"
+        )
+        return await self._client.create_limit_buy(symbol, usdt_amount, limit_price, params)
+
+    async def create_limit_sell(
+        self,
+        symbol: str,
+        usdt_amount: float,
+        limit_price: float,
+        params: Optional[Dict] = None,
+    ) -> Dict[str, Any]:
+        """Place a limit sell order through the exchange."""
+        if self._client is None:
+            return {
+                **self._dry_run_fill(symbol, "sell", usdt_amount),
+                "type": "limit",
+                "price": limit_price,
+            }
+        logger.info(
+            f"[ExchangeAdapter] LIMIT SELL {symbol} ${usdt_amount:.2f} @ {limit_price:.8f}"
+        )
+        return await self._client.create_limit_sell(symbol, usdt_amount, limit_price, params)
 
     async def get_open_position_qty(self, symbol: str) -> float:
         """Return the signed live futures quantity for ``symbol``."""

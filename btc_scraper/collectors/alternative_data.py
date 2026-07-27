@@ -169,12 +169,25 @@ class AlternativeDataCollector(CollectorBase):
 
         try:
             blockchair_payload = BlockchairCollector().collect(force=force)
+            payload["_statuses"]["blockchair"] = {
+                "status": blockchair_payload.get("status", "success"),
+                "reason": blockchair_payload.get("reason"),
+                "observed_at": blockchair_payload.get("timestamp"),
+            }
             payload.update({"exchange_netflow": blockchair_payload.get("exchange_netflow")})
+            if isinstance(blockchair_payload.get("data"), dict):
+                status = blockchair_payload["data"].get("exchange_netflow_status")
+                if status:
+                    payload["_field_statuses"]["exchange_netflow"] = {
+                        "status": "missing",
+                        "reason": status,
+                    }
             if isinstance(blockchair_payload, dict) and blockchair_payload.get("error"):
                 payload["_errors"]["blockchair"] = blockchair_payload.get("error")
         except Exception as e:
             payload.update({"exchange_netflow": None})
             payload["_errors"]["blockchair"] = repr(e)
+            payload["_statuses"]["blockchair"] = {"status": "error", "reason": str(e)}
 
         try:
             whale_payload = WhaleAlertCollector().collect(force=force)

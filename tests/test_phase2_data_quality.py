@@ -96,6 +96,24 @@ def test_stale_metadata_and_required_optional_health():
     assert "etf_flow" not in health["required_health"]["missing"]
 
 
+def test_optional_health_uses_feature_metadata_availability():
+    payload = normalize_alternative_payload(
+        {"timestamp": datetime.now(timezone.utc).isoformat(), **_required_values()},
+        raw_store_dir=None,
+    )
+    monitor = CollectorHealthMonitor(dashboard=DataQualityDashboard(quality_log_path=None))
+    monitor.record_collection("alternative_data", payload)
+
+    health = monitor.health_snapshot()
+
+    assert health["required_health"]["healthy"] is True
+    assert health["optional_health"]["healthy"] is False
+    assert "etf_flow" in health["optional_health"]["missing"]
+    assert health["completeness"]["required"] == 1.0
+    assert health["completeness"]["optional"] < 1.0
+    assert health["completeness"]["all"] < 1.0
+
+
 class _JsonCollector(CollectorBase):
     name = "json"
 

@@ -68,11 +68,50 @@ def test_prediction_logger_emits_contract_valid_event(tmp_path):
         calibrated_prediction=.7,
         features=[1, 2],
         decision_context="entry",
+        symbol="BTC",
+        timeframe="15m",
+        side="BUY",
         log_dir=tmp_path,
     )
     assert validate_runtime_event(entry).ok
     assert entry["event_type"] == "prediction_created"
     assert entry["schema_version"] == "prediction-created-v1"
+    assert entry["feature_snapshot_id"]
+    assert entry["valid_until"]
+    assert entry["raw_probability"] == .7
+    assert entry["calibrated_probability"] == .7
+
+
+def test_prediction_contract_rejects_missing_production_lineage():
+    event = {
+        "event_type": "prediction_created",
+        "schema_version": "prediction-created-v1",
+        "event_id": "evt-1",
+        "event_time": "2026-07-16T00:00:00+00:00",
+        "ingest_time": "2026-07-16T00:00:01+00:00",
+        "producer": "prediction_logger",
+        "prediction_id": "pred-1",
+        "timestamp": "2026-07-16T00:00:00+00:00",
+        "predicted_at": "2026-07-16T00:00:00+00:00",
+        "model_name": "meta_model",
+        "model_version": "v1",
+        "feature_schema_version": "schema",
+        "feature_hash": "hash",
+        "raw_probability": .7,
+        "calibrated_probability": .7,
+        "decision_context": "entry",
+    }
+    result = validate_runtime_event(event)
+    fields = {error.field for error in result.errors}
+    assert not result.ok
+    assert {
+        "artifact_sha256",
+        "feature_snapshot_id",
+        "symbol",
+        "timeframe",
+        "side",
+        "valid_until",
+    }.issubset(fields)
 
 
 def test_prediction_logger_rejects_schema_override(tmp_path):
@@ -86,6 +125,27 @@ def test_prediction_logger_rejects_schema_override(tmp_path):
             calibrated_prediction=.7,
             features=[1, 2],
             decision_context="entry",
+            symbol="BTC",
+            timeframe="15m",
+            side="BUY",
             extra={"schema_version": "prediction-created-v2"},
+            log_dir=tmp_path,
+        )
+
+
+def test_prediction_logger_rejects_missing_artifact_hash(tmp_path):
+    with pytest.raises(ValueError, match="event contract validation failed"):
+        append_prediction(
+            model_name="meta_model",
+            model_version="v1",
+            artifact_sha256=None,
+            feature_schema_version="schema",
+            raw_prediction=.7,
+            calibrated_prediction=.7,
+            features=[1, 2],
+            decision_context="entry",
+            symbol="BTC",
+            timeframe="15m",
+            side="BUY",
             log_dir=tmp_path,
         )

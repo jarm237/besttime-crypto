@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-07-27T03:44:25.488013+00:00",
+  "n_total_attempts": 105,
+  "n_filled": 100,
+  "n_rejected": 5,
+  "n_partial_fill": 0,
+  "reject_rate_pct": 4.76,
+  "fill_rate_pct": 95.24,
+  "partial_fill_rate_pct": 0.0,
+  "latency": {
+    "mean_ms": 69.88,
+    "p50_ms": 72,
+    "p90_ms": 113,
+    "p95_ms": 114,
+    "max_ms": 118
+  },
+  "implementation_shortfall_bps": {
+    "mean_bps": 4.183,
+    "p50_bps": 3.986,
+    "p90_bps": 7.094,
+    "p95_bps": 7.535,
+    "max_bps": 9.545
+  },
+  "acceptance": {
+    "reject_rate_le_20": true,
+    "fill_rate_ge_80": true,
+    "shortfall_mae_le_10": true
+  }
+}

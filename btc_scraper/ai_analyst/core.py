@@ -8,6 +8,36 @@ from .builders import _build_coin_block, _build_mtf_block, _build_rag_block, _lo
 
 _logger = logging.getLogger(__name__)
 
+
+def _parse_closed_trade_time(trade: dict) -> datetime.datetime | None:
+    """Resolve a closed trade timestamp across legacy/manual/paper schemas."""
+    raw = (
+        trade.get("closed_at")
+        or trade.get("exit_time")
+        or trade.get("event_time")
+        or trade.get("timestamp")
+    )
+    if not raw:
+        return None
+
+    if isinstance(raw, datetime.datetime):
+        return raw.replace(tzinfo=None)
+
+    raw_str = str(raw).strip()
+    if not raw_str:
+        return None
+
+    if "T" in raw_str:
+        return datetime.datetime.fromisoformat(raw_str.replace("Z", "+00:00")).replace(tzinfo=None)
+
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            return datetime.datetime.strptime(raw_str, fmt)
+        except ValueError:
+            continue
+
+    return None
+
 def analyze_with_gemini(
     analysis_results: dict[str, dict],
     mtf_analysis: dict[str, dict] | None = None,
@@ -122,16 +152,19 @@ def generate_weekly_report() -> str:
     _skipped_count = 0
     for t in closed_trades:
         try:
-            exit_time_str = t.get("exit_time", "")
-            if "T" in exit_time_str:
-                dt = datetime.datetime.fromisoformat(exit_time_str.replace("Z", "+00:00")).replace(tzinfo=None)
-            else:
-                dt = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
+            dt = _parse_closed_trade_time(t)
+            if dt is None:
+                raise ValueError("missing_or_unparseable_closed_time")
             if dt >= week_ago:
                 recent_trades.append(t)
         except Exception as exc:
             _skipped_count += 1
-            _logger.debug("Skipping invalid AI analyst record (exit_time=%r): %s", t.get("exit_time"), exc)
+            _logger.debug(
+                "Skipping invalid AI analyst record (closed_at=%r, exit_time=%r): %s",
+                t.get("closed_at"),
+                t.get("exit_time"),
+                exc,
+            )
             continue
     if _skipped_count:
         _logger.debug("[ai_analyst] Skipped %d records with unparseable exit_time", _skipped_count)

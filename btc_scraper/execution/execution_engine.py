@@ -25,7 +25,7 @@ from .fill_tracker import FillTracker, ExecutionRecord, FillEvent, OrderStatus
 from .liquidity_analyzer import LiquidityAnalyzer
 from .slippage_predictor import SlippagePredictor
 from .execution_risk_monitor import ExecutionRiskMonitor, GuardAction
-from .order_type_selector import OrderTypeSelector, Urgency
+from .order_type_selector import OrderTypeSelector, Urgency, OrderType, OrderDecision
 from .execution_planner import ExecutionPlanner
 from .post_trade_analyzer import PostTradeAnalyzer
 from .exchange_adapter import WriteExchangeAdapter, make_write_adapter_from_env
@@ -319,6 +319,50 @@ class ExecutionEngine:
         )
         return record
 
+    async def _dispatch_live_order(
+        self,
+        *,
+        order_decision: OrderDecision,
+        side: str,
+        symbol: str,
+        notional_usdt: float,
+        limit_price: float,
+        params: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Submit the selected live order type without silently changing it.
+
+        TWAP is intentionally fail-closed until there is a complete live child
+        order dispatcher and recovery story.
+        """
+        if self._adapter is None:
+            raise RuntimeError("live exchange adapter is not attached")
+
+        order_type = order_decision.order_type
+        is_buy = side == "BUY"
+        if order_type == OrderType.MARKET:
+            return (
+                await self._adapter.create_market_buy(symbol, notional_usdt, params)
+                if is_buy else
+                await self._adapter.create_market_sell(symbol, notional_usdt, params)
+            )
+
+        if order_type in (OrderType.LIMIT, OrderType.AGGRESSIVE_LIMIT, OrderType.LIMIT_MAKER):
+            if limit_price <= 0:
+                raise ValueError(f"{order_type} requires a positive limit_price")
+            order_params = dict(params)
+            if order_decision.time_in_force:
+                order_params["timeInForce"] = order_decision.time_in_force
+            return (
+                await self._adapter.create_limit_buy(symbol, notional_usdt, limit_price, order_params)
+                if is_buy else
+                await self._adapter.create_limit_sell(symbol, notional_usdt, limit_price, order_params)
+            )
+
+        if order_type == OrderType.TWAP:
+            raise NotImplementedError("TWAP live dispatch is disabled until E2E recovery tests exist")
+
+        raise ValueError(f"unsupported live order type: {order_type}")
+
     async def submit_live(
         self,
         signal: Dict[str, Any],
@@ -551,19 +595,31 @@ class ExecutionEngine:
             record.submitted_price = order_decision.limit_price or decision_price
             record.submit_time = datetime.now(timezone.utc).isoformat()
 
+            if order_decision.order_type == OrderType.TWAP:
+                if reservation_id:
+                    self._reservation_store.release(reservation_id)
+                record.guard_action = "REJECT"
+                return self._tracker.reject(
+                    record,
+                    reason="TWAP live dispatch disabled until E2E recovery tests exist",
+                )
+
             # ── 5. Execute via WriteExchangeAdapter ──────────────────────────
             self._tracker.register(record)
             try:
-                is_buy = side == "BUY"
                 params = {}
                 if reservation_id:
                     params["clientOrderId"] = idempotency_key
                     params["reservationId"] = reservation_id
 
-                if is_buy:
-                    order = await self._adapter.create_market_buy(symbol, notional_usdt, params)
-                else:
-                    order = await self._adapter.create_market_sell(symbol, notional_usdt, params)
+                order = await self._dispatch_live_order(
+                    order_decision=order_decision,
+                    side=side,
+                    symbol=symbol,
+                    notional_usdt=notional_usdt,
+                    limit_price=record.submitted_price,
+                    params=params,
+                )
 
                 # Build fill from exchange response
                 fill_price = float(order.get("price") or record.submitted_price)

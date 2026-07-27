@@ -212,6 +212,80 @@ class CCXTClient:
                 raise RuntimeError(f"Lỗi API Key: Vui lòng kiểm tra lại. Nếu dùng Testnet, bạn phải tạo Key tại testnet.binancefuture.com (Futures Testnet), không dùng key Spot! Chi tiết: {e}")
             raise RuntimeError(f"Lỗi đặt lệnh: {e}")
 
+    async def create_limit_buy(
+        self,
+        symbol: str,
+        usdt_amount: float,
+        limit_price: float,
+        params: Optional[Dict] = None,
+    ) -> Dict[str, Any]:
+        """Place a LIMIT BUY order."""
+        if limit_price <= 0:
+            raise ValueError("limit_price must be greater than zero")
+        qty = usdt_amount / limit_price
+        if self.dry_run:
+            return {
+                "id": f"DRY-LIMIT-{symbol.replace('/', '')}-{int(time.time())}",
+                "symbol": symbol,
+                "side": "buy",
+                "type": "limit",
+                "amount": round(qty, 6),
+                "cost": usdt_amount,
+                "price": limit_price,
+                "status": "dry_run_simulated",
+                "timestamp": int(time.time() * 1000),
+            }
+
+        ex = self._get_exchange()
+        await ex.load_markets()
+        precise_qty = ex.amount_to_precision(symbol, qty)
+        precise_price = ex.price_to_precision(symbol, limit_price)
+        try:
+            return await ex.create_limit_buy_order(
+                symbol, float(precise_qty), float(precise_price), params=params or {}
+            )
+        except Exception as e:
+            if "-2015" in str(e) or "Invalid API-key" in str(e):
+                raise RuntimeError(f"Lỗi API Key: Vui lòng kiểm tra lại. Chi tiết: {e}")
+            raise RuntimeError(f"Lỗi đặt lệnh limit buy: {e}")
+
+    async def create_limit_sell(
+        self,
+        symbol: str,
+        usdt_amount: float,
+        limit_price: float,
+        params: Optional[Dict] = None,
+    ) -> Dict[str, Any]:
+        """Place a LIMIT SELL order."""
+        if limit_price <= 0:
+            raise ValueError("limit_price must be greater than zero")
+        qty = usdt_amount / limit_price
+        if self.dry_run:
+            return {
+                "id": f"DRY-LIMIT-{symbol.replace('/', '')}-{int(time.time())}",
+                "symbol": symbol,
+                "side": "sell",
+                "type": "limit",
+                "amount": round(qty, 6),
+                "cost": usdt_amount,
+                "price": limit_price,
+                "status": "dry_run_simulated",
+                "timestamp": int(time.time() * 1000),
+            }
+
+        ex = self._get_exchange()
+        await ex.load_markets()
+        precise_qty = ex.amount_to_precision(symbol, qty)
+        precise_price = ex.price_to_precision(symbol, limit_price)
+        try:
+            return await ex.create_limit_sell_order(
+                symbol, float(precise_qty), float(precise_price), params=params or {}
+            )
+        except Exception as e:
+            if "-2015" in str(e) or "Invalid API-key" in str(e):
+                raise RuntimeError(f"Lỗi API Key: Vui lòng kiểm tra lại. Chi tiết: {e}")
+            raise RuntimeError(f"Lỗi đặt lệnh limit sell: {e}")
+
     async def get_open_position_qty(self, symbol: str) -> float:
         """Return the signed base-asset quantity open for a futures symbol."""
         if self.dry_run:

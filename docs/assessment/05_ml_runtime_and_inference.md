@@ -1,0 +1,21 @@
+# 05 ML Runtime And Inference
+
+Status: paper-ready candidate with contract gaps.
+
+## Positive Findings
+
+- `prediction_logger.append_prediction()` writes prediction and feature snapshot evidence to SQLite and mirrors to JSONL.
+- Prediction envelopes now require `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
+- `RuntimeEvidenceStore` enforces prediction/snapshot identity, foreign keys, payload hashes, one final decision per prediction, and outcome revision uniqueness.
+- `decision_engine` persists final decisions when a prediction exists.
+- `position_tracker` appends outcome links for model-linked positions.
+- Shadow validation and runtime outcome linkage modules exist.
+
+## Gaps
+
+- Need proof that every production runtime cycle has at most one production prediction and exactly one final decision when actionable.
+- Need broader restart/replay scenario coverage beyond the current passing lifecycle tests.
+
+## Classification
+
+`PAPER_READY`, blocked from production until restart/replay and live evidence gaps close.

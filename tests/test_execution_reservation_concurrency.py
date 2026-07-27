@@ -43,7 +43,18 @@ def mock_adapter():
         "amount": 0.001,
         "fee": {"cost": 0.05},
     })
+    adapter.create_limit_buy = AsyncMock(return_value={
+        "id": "ord-123",
+        "price": 10000.0,
+        "amount": 0.001,
+        "fee": {"cost": 0.05},
+        "type": "limit",
+    })
     return adapter
+
+
+def _buy_write_mock(adapter):
+    return adapter.create_market_buy if adapter.create_market_buy.await_count else adapter.create_limit_buy
 
 
 @pytest.fixture
@@ -95,7 +106,7 @@ async def test_idempotency_deduplication(mock_adapter, tmp_path, guard_setup):
     # Submit first time -> fills successfully
     res1 = await engine.submit_live(signal1, candle, notional_usdt=10.0)
     assert res1.status == OrderStatus.FILLED
-    first_params = mock_adapter.create_market_buy.await_args.args[2]
+    first_params = _buy_write_mock(mock_adapter).await_args.args[-1]
     assert first_params["clientOrderId"] == "key-abc-123"
     assert first_params["reservationId"].startswith("res-")
 
@@ -103,7 +114,7 @@ async def test_idempotency_deduplication(mock_adapter, tmp_path, guard_setup):
     res2 = await engine.submit_live(signal1, candle, notional_usdt=10.0)
     assert res2.status == OrderStatus.FILLED
     assert res2.reason == "Duplicate request already completed"
-    assert mock_adapter.create_market_buy.await_count == 1
+    assert mock_adapter.create_market_buy.await_count + mock_adapter.create_limit_buy.await_count == 1
 
 
 @pytest.mark.anyio
@@ -146,6 +157,7 @@ async def test_released_idempotency_key_requires_reconciliation(mock_adapter, tm
     assert result.status == OrderStatus.REJECTED
     assert result.reason == "Idempotency key already used; reconciliation required"
     mock_adapter.create_market_buy.assert_not_awaited()
+    mock_adapter.create_limit_buy.assert_not_awaited()
 
 
 @pytest.mark.anyio
@@ -164,7 +176,10 @@ async def test_concurrency_race_condition_blocks_stage_1(mock_adapter, tmp_path,
             "amount": 0.001,
             "fee": {"cost": 0.05},
         }
+    async def slow_create_limit_buy(symbol, notional, price, params=None):
+        return await slow_create_buy(symbol, notional, params)
     mock_adapter.create_market_buy.side_effect = slow_create_buy
+    mock_adapter.create_limit_buy.side_effect = slow_create_limit_buy
 
     engine = ExecutionEngine(
         fills_dir=str(tmp_path / "fills"),

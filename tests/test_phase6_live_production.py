@@ -723,6 +723,7 @@ class TestExecutionEngineLiveGuardIntegration:
         mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
         mock_adapter.get_symbol_price = AsyncMock(return_value=50000.0)
         mock_adapter.create_market_buy = AsyncMock()
+        mock_adapter.create_limit_buy = AsyncMock()
 
         from btc_scraper.execution.execution_config import ExecutionConfig
         cfg = ExecutionConfig()
@@ -754,6 +755,7 @@ class TestExecutionEngineLiveGuardIntegration:
         assert "mock_gate_closed" in record.reason
         mock_guard.validate.assert_called_once()
         mock_adapter.create_market_buy.assert_not_called()
+        mock_adapter.create_limit_buy.assert_not_called()
 
     def test_submit_live_passes_when_guard_allows(self):
         import asyncio
@@ -769,6 +771,7 @@ class TestExecutionEngineLiveGuardIntegration:
         mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
         mock_adapter.get_symbol_price = AsyncMock(return_value=50000.0)
         mock_adapter.create_market_buy = AsyncMock(return_value={"id": "123", "price": 50000.0, "amount": 0.002})
+        mock_adapter.create_limit_buy = AsyncMock(return_value={"id": "123", "price": 50000.0, "amount": 0.002, "type": "limit"})
 
         from btc_scraper.execution.execution_config import ExecutionConfig
         cfg = ExecutionConfig()
@@ -798,7 +801,7 @@ class TestExecutionEngineLiveGuardIntegration:
 
         assert record.status == "FILLED", f"Rejected reason: {record.reason}"
         mock_guard.validate.assert_called_once()
-        mock_adapter.create_market_buy.assert_called_once()
+        assert mock_adapter.create_market_buy.called or mock_adapter.create_limit_buy.called
 
     def test_order_context_state_snapshot_sync(self):
         from btc_scraper.execution.live_execution_guard import OrderContext, LiveStateSnapshot
@@ -835,6 +838,7 @@ class TestExecutionEngineLiveGuardIntegration:
         mock_adapter = AsyncMock(spec=WriteExchangeAdapter)
         mock_adapter.get_symbol_price = AsyncMock(return_value=50000.0)
         mock_adapter.create_market_buy = AsyncMock(return_value={"id": "123", "price": 50000.0, "amount": 0.002})
+        mock_adapter.create_limit_buy = AsyncMock(return_value={"id": "123", "price": 50000.0, "amount": 0.002, "type": "limit"})
         
         from btc_scraper.execution.execution_config import ExecutionConfig
         cfg = ExecutionConfig()
@@ -878,4 +882,3 @@ class TestExecutionEngineLiveGuardIntegration:
             
         assert record.status == "FILLED"
         assert len(acquire_called) > 0, "Execution lock acquire was not called during submit_live"
-

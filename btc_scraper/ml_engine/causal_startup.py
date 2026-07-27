@@ -6,7 +6,13 @@ MUST succeed before bot proceeds, otherwise bot refuses to start.
 """
 
 import logging
+import sys
+from pathlib import Path
 from typing import Dict, Optional
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 logger = logging.getLogger(__name__)
 
@@ -48,26 +54,26 @@ class CausalSystemInitializer:
             logger.info("="*80)
 
             # Step 1: Validate graph (CRITICAL)
-            logger.info("\n[1/4] Validating causal graph...")
+            logger.info("\n[1/6] Validating causal graph...")
             if not self._validate_graph(graph_path):
                 raise RuntimeError("Graph validation failed")
             logger.info("✓ Graph validation passed")
 
             # Step 2: Load causal graph
-            logger.info("\n[2/4] Loading causal graph...")
+            logger.info("\n[2/6] Loading causal graph...")
             if not self._load_graph(graph_path):
                 raise RuntimeError("Graph loading failed")
             logger.info(f"✓ Graph loaded: {self.graph.get_summary()}")
 
             # Step 3: Initialize context engine
-            logger.info("\n[3/4] Initializing context engine...")
+            logger.info("\n[3/6] Initializing context engine...")
             if not self._load_context_engine(rules_path):
                 raise RuntimeError("Context engine initialization failed")
             logger.info(f"✓ Context engine initialized with rules")
 
             # Step 4: Initialize reasoning engine
             logger.info("\n[4/6] Initializing causal reasoning engine...")
-            if not self._load_reasoning_engine():
+            if not self._load_reasoning_engine(graph_path):
                 raise RuntimeError("Reasoning engine initialization failed")
             logger.info(f"✓ Reasoning engine initialized")
 
@@ -98,7 +104,7 @@ class CausalSystemInitializer:
     def _validate_graph(self, graph_path: str) -> bool:
         """Validate causal graph structure."""
         try:
-            from .graph_validator import validate_graph_or_fail
+            from btc_scraper.ml_engine.graph_validator import validate_graph_or_fail
             validate_graph_or_fail(graph_path)
             return True
         except Exception as e:
@@ -108,7 +114,7 @@ class CausalSystemInitializer:
     def _load_graph(self, graph_path: str) -> bool:
         """Load causal graph."""
         try:
-            from .causal_graph import CausalGraph
+            from btc_scraper.ml_engine.causal_graph import CausalGraph
             self.graph = CausalGraph(graph_path)
             return True
         except Exception as e:
@@ -118,18 +124,18 @@ class CausalSystemInitializer:
     def _load_context_engine(self, rules_path: str) -> bool:
         """Initialize context engine."""
         try:
-            from .context_engine import ContextEngine
+            from btc_scraper.ml_engine.context_engine import ContextEngine
             self.context_engine = ContextEngine(rules_path)
             return True
         except Exception as e:
             logger.error(f"Context engine initialization error: {str(e)}")
             return False
 
-    def _load_reasoning_engine(self) -> bool:
+    def _load_reasoning_engine(self, graph_path: str) -> bool:
         """Initialize reasoning engine."""
         try:
-            from .causal_reasoning import CausalReasoningEngine
-            self.reasoning_engine = CausalReasoningEngine("data/causal_graph.json")
+            from btc_scraper.ml_engine.causal_reasoning import CausalReasoningEngine
+            self.reasoning_engine = CausalReasoningEngine(graph_path)
             return True
         except Exception as e:
             logger.error(f"Reasoning engine initialization error: {str(e)}")
@@ -138,10 +144,10 @@ class CausalSystemInitializer:
     def _load_runtime_components(self, graph_path: str) -> bool:
         """Initialize runtime components used by the bot loop."""
         try:
-            from .causal_simulator import CausalSimulator
-            from .world_model_predictor import WorldModelPredictor
-            from .causal_anomaly_detector import CausalAnomalyDetector
-            from .agents.consensus_engine import CausalConsensusEngine
+            from btc_scraper.ml_engine.causal_simulator import CausalSimulator
+            from btc_scraper.ml_engine.world_model_predictor import WorldModelPredictor
+            from btc_scraper.ml_engine.causal_anomaly_detector import CausalAnomalyDetector
+            from btc_scraper.ml_engine.agents.consensus_engine import CausalConsensusEngine
 
             self.simulator = CausalSimulator(graph_path=graph_path)
             self.predictor = WorldModelPredictor(graph_path=graph_path)

@@ -145,7 +145,8 @@ def test_process_signal_blocks_zero_signal_kelly(monkeypatch):
     assert trader._execution_engine is None
 
 
-def test_compute_position_size():
+def test_compute_position_size(monkeypatch):
+    monkeypatch.setenv("AUTO_TRADE_KELLY_FRACTION", "0.5")
     trader = AutoTrader()
     
     # Default parameters: account_usdt = 500, risk_pct = 2.0% (10 USDT risk)
@@ -831,6 +832,7 @@ def test_should_trade_compatibility_wrapper(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.80")
     monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    monkeypatch.setenv("AUTO_TRADE_MIN_RR", "1.0")
     trader = AutoTrader()
     monkeypatch.setattr(trader, "_has_open_position", lambda *args, **kwargs: False)
     monkeypatch.setattr("btc_scraper.trading.auto_trader.exposure_manager.get_open_positions", lambda: [])
@@ -852,6 +854,7 @@ def test_should_trade_compatibility_wrapper(monkeypatch):
         "signal": "STRONG BUY",
         "signal_score": {
             "score": 90,
+            "strength": 90,
             "action": "BUY",
             "meta_probability": 0.85,
         },
@@ -881,6 +884,7 @@ def test_process_signal_emits_decision_breakdown_logs(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.80")
     monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
+    monkeypatch.setenv("AUTO_TRADE_MIN_RR", "1.0")
     
     trader = AutoTrader()
     monkeypatch.setattr(trader, "_has_open_position", lambda *args, **kwargs: False)

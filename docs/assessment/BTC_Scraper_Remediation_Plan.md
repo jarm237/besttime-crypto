@@ -1,0 +1,88 @@
+# BTC Scraper Remediation Plan
+
+Date: 2026-07-27
+
+## P0 - Safety / Correctness Blockers
+
+No confirmed live-trading P0 was proven in this static pass because live is already fail-closed through `main_live.py` and `LiveExecutionGuard`. P0 status should be re-evaluated after the full test suite and an E2E paper replay can run.
+
+Immediate P0 acceptance gate for future live work:
+
+- No live order can bypass `ExecutionEngine.submit_live()`.
+- No entry order can pass without Phase 5 gate, live flag, kill switch, hard risk, system health, execution risk, reservation, prediction lineage, and idempotency key.
+- Corrupt evidence store, unknown model artifact, or schema mismatch blocks new entries.
+
+## P1 - Production Blockers
+
+1. Restore test environment.
+   - Status: `DONE`.
+   - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements.txt` or `requirements-lock.txt`.
+   - Evidence: `.venv/bin/python -m pytest` passes with `712 passed, 121 warnings, 5 subtests passed`.
+
+2. Fix script compile blocker.
+   - Status: `DONE`.
+   - File: `scripts/backtest_eval.py`.
+   - Acceptance: full `compileall` over `btc_scraper`, `main.py`, `main_live.py`, `api`, and `scripts` passes.
+   - Evidence: `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts` exits 0.
+
+3. Harden prediction contract.
+   - Status: `DONE`.
+   - Add required fields: `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, `valid_until`.
+   - Reject null artifact hashes for production predictions.
+   - Acceptance: contract tests fail on missing fields and pass on complete envelope.
+   - Evidence: `tests/ml/test_data_contracts.py` and `tests/ml/test_prediction_traceability.py` pass.
+
+4. Fix live order type dispatch.
+   - Status: `DONE`.
+   - Ensure selected order type is actually submitted as MARKET, LIMIT, or TWAP.
+   - Acceptance: E2E tests prove selected order type equals submitted order type; TWAP is either fully dispatched or disabled.
+   - Evidence: selected LIMIT dispatches through limit adapter; selected TWAP rejects fail-closed until live TWAP child-order recovery has E2E coverage.
+
+5. Formalize data lifecycle.
+   - Separate raw, processed, feature, model, runtime, paper, backtest, quarantine.
+   - Require environment tag: `test`, `debug`, `synthetic`, `paper`, `shadow`, `live`.
+   - Acceptance: new runtime records without environment tag are rejected.
+
+6. Prove restart/replay idempotency.
+   - Acceptance: scenarios after prediction, decision, reservation, fill, and close are replayed without duplicate orders or conflicting outcomes.
+
+## P2 - Quality / Observability
+
+1. Add failure taxonomy.
+   - Classify broad fallback handlers as continue/degrade/fallback/block/quarantine/shutdown.
+
+2. Add point-in-time feature tests.
+   - Prove rolling/MTF/alternative/regime features at time T use only data available at or before T.
+
+3. Add score semantics matrix.
+   - Cover BUY/SELL symmetry, raw score vs display score vs strength, and threshold behavior.
+
+4. Add provider replay fixtures.
+   - Each collector should have successful, stale, missing, rate-limited, malformed, and disabled fixtures.
+
+5. Improve dashboard health.
+   - Show model version, artifact hash, fallback, calibration drift, prediction failures, open risk, execution status, and stale markers.
+
+## P3 - Maintainability
+
+1. Split large rule surfaces.
+   - Gradually extract `analysis/core.py` sections into smaller strategy/signal modules.
+
+2. Consolidate training scripts.
+   - Define canonical training pipeline and mark experiments as research.
+
+3. Normalize path ownership.
+   - Deprecate package-local runtime state under `btc_scraper/logs` and `btc_scraper/data` unless intentionally scoped.
+
+4. Document supported entry points.
+   - Every `__main__` module should be labeled supported, research, migration, or deprecated.
+
+## Execution Order
+
+```text
+1. Runtime/replay evidence expansion
+2. Feature point-in-time fixtures
+3. Collector fixtures and stale handling
+4. Data/log lifecycle cleanup
+5. UI/Telegram operational hardening
+```

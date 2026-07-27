@@ -104,10 +104,12 @@ class QualityReport:
         timestamp: datetime,
         issues: List[QualityIssue],
         payload_timestamp: Optional[datetime] = None,
+        payload: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.timestamp = timestamp
         self.issues = issues
         self.payload_timestamp = payload_timestamp
+        self.payload = payload
         self.is_healthy = len(issues) == 0
 
     @property
@@ -237,6 +239,7 @@ class DataQualityDashboard:
     def ingest(self, payload: Dict[str, Any]) -> QualityReport:
         """Check *payload* and record the result."""
         report = self.checker.check(payload)
+        report.payload = payload
         self._history.append(report)
         if len(self._history) > self.max_history:
             self._history = self._history[-self.max_history:]
@@ -636,17 +639,34 @@ class CollectorHealthMonitor:
         stale = set(report.stale_fields if report else [])
         required = [name for name, spec in FEATURE_SOURCE_REGISTRY.items() if spec.required]
         optional = [name for name, spec in FEATURE_SOURCE_REGISTRY.items() if not spec.required]
-        available_required = sum(name not in missing and name not in stale for name in required)
-        available_optional = sum(name not in missing and name not in stale for name in optional)
+
+        latest_payload = getattr(report, "payload", None)
+        metadata = latest_payload.get("feature_metadata", {}) if isinstance(latest_payload, dict) else {}
+
+        def is_available(name: str) -> bool:
+            meta = metadata.get(name)
+            if isinstance(meta, dict):
+                return bool(meta.get("available")) and not bool(meta.get("is_stale"))
+            return name not in missing and name not in stale
+
+        available_required = sum(is_available(name) for name in required)
+        available_optional = sum(is_available(name) for name in optional)
+        unavailable_required = {name for name in required if not is_available(name)}
+        unavailable_optional = {name for name in optional if not is_available(name)}
         return {
             "snapshot_count_24h": len(self._snapshots),
             "freshness": {"stale_features": sorted(stale), "is_fresh": not stale},
             "completeness": {
                 "required": round(available_required / max(len(required), 1), 4),
                 "optional": round(available_optional / max(len(optional), 1), 4),
+                "all": round(
+                    (available_required + available_optional)
+                    / max(len(required) + len(optional), 1),
+                    4,
+                ),
             },
-            "required_health": {"healthy": not any(name in missing or name in stale for name in required), "missing": sorted(missing.intersection(required))},
-            "optional_health": {"healthy": not any(name in missing or name in stale for name in optional), "missing": sorted(missing.intersection(optional))},
+            "required_health": {"healthy": not unavailable_required, "missing": sorted(unavailable_required)},
+            "optional_health": {"healthy": not unavailable_optional, "missing": sorted(unavailable_optional)},
             "quality": summary,
         }
 

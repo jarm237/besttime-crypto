@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -27,3 +28,12 @@ def test_top_level_initializer_returns_runtime_components():
     assert components["predictor"] is not None
     assert components["anomaly_detector"] is not None
     assert components["consensus_engine"] is not None
+
+
+def test_reasoning_engine_uses_configured_graph_path(tmp_path):
+    graph_path = tmp_path / "causal_graph.json"
+    shutil.copy("data/causal_graph.json", graph_path)
+
+    initializer = CausalSystemInitializer()
+    assert initializer._load_reasoning_engine(str(graph_path)) is True
+    assert initializer.reasoning_engine.graph.graph_path == str(graph_path)

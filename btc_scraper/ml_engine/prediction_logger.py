@@ -6,7 +6,7 @@ import json
 import subprocess
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,9 +27,20 @@ def feature_hash(values: Any) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+def _infer_side(value: Any) -> str | None:
+    text = str(value or "").upper()
+    if any(token in text for token in ("BUY", "LONG", "BULLISH")):
+        return "BUY"
+    if any(token in text for token in ("SELL", "SHORT", "BEARISH")):
+        return "SELL"
+    return "NO_TRADE"
+
+
 def append_prediction(*, model_name: str, model_version: str, artifact_sha256: str | None,
                       feature_schema_version: str, raw_prediction: Any, calibrated_prediction: Any,
                       features: Any, decision_context: str, symbol: str | None = None,
+                      timeframe: str | None = None, side: str | None = None,
+                      feature_snapshot_id: str | None = None, valid_until: str | None = None,
                       calibration_method: str | None = None, fallback_used: bool = False,
                       signal_id: str | None = None, position_id: str | None = None,
                       order_id: str | None = None, fill_id: str | None = None,
@@ -37,14 +48,21 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
                       evidence_store: RuntimeEvidenceStore | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     now = datetime.now(timezone.utc)
+    expires_at = valid_until or (now + timedelta(minutes=15)).isoformat()
+    f_hash = feature_hash(features)
+    snapshot_id = feature_snapshot_id or f"fs-{f_hash[:16]}"
+    side_value = side or _infer_side((extra or {}).get("signal"))
     entry: dict[str, Any] = {
         "event_type": "prediction_created", "schema_version": "prediction-created-v1",
         "event_id": str(uuid.uuid4()), "event_time": now.isoformat(), "ingest_time": now.isoformat(),
         "producer": "prediction_logger", "prediction_id": str(uuid.uuid4()),
-        "timestamp": now.isoformat(), "symbol": symbol,
+        "timestamp": now.isoformat(), "predicted_at": now.isoformat(), "valid_until": expires_at,
+        "symbol": symbol, "timeframe": timeframe,
         "decision_context": decision_context, "model_name": model_name, "model_version": model_version,
         "artifact_sha256": artifact_sha256, "feature_schema_version": feature_schema_version,
-        "feature_hash": feature_hash(features), "calibration_method": calibration_method,
+        "feature_snapshot_id": snapshot_id, "feature_hash": f_hash, "side": side_value,
+        "calibration_method": calibration_method,
+        "raw_probability": raw_prediction, "calibrated_probability": calibrated_prediction,
         "raw_prediction": raw_prediction, "calibrated_prediction": calibrated_prediction,
         "fallback_used": bool(fallback_used), "git_commit": _git_commit(),
         "deployment_id": __import__("os").getenv("DEPLOYMENT_ID"), "signal_id": signal_id,
@@ -54,7 +72,8 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
         entry.update(extra)
     entry["latency_ms"] = round((time.perf_counter() - started) * 1000, 4)
     validate_runtime_event(entry).raise_for_errors()
-    snapshot = {"prediction_id": entry["prediction_id"], "timestamp": entry["timestamp"],
+    snapshot = {"prediction_id": entry["prediction_id"], "feature_snapshot_id": snapshot_id,
+                "timestamp": entry["timestamp"],
                 "feature_schema_version": feature_schema_version, "features": features,
                 "feature_hash": entry["feature_hash"]}
     (evidence_store or get_runtime_evidence_store()).write_prediction_evidence(entry, snapshot)

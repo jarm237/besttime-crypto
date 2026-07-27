@@ -1143,11 +1143,20 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
             now_utc = datetime.now(timezone.utc)
             artifact = get_artifact_resolver().resolve("meta_model")
+            signal_text = analysis_info.get("signal")
+            signal_upper = str(signal_text or "").upper()
+            prediction_side = (
+                "BUY" if any(token in signal_upper for token in ("BUY", "LONG", "BULLISH"))
+                else "SELL" if any(token in signal_upper for token in ("SELL", "SHORT", "BEARISH"))
+                else "NO_TRADE"
+            )
             prediction_event = append_prediction(
                 model_name="meta_model", model_version=MODEL_VERSION,
                 artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
                 raw_prediction=prob, calibrated_prediction=prob, features=row,
                 decision_context="entry", symbol=analysis_info.get("coin"),
+                timeframe=analysis_info.get("timeframe") or analysis_info.get("interval") or "15m",
+                side=prediction_side,
                 calibration_method=(artifact.metadata or {}).get("calibration_method", "isotonic"),
                 fallback_used=False,
                 signal_id=analysis_info.get("signal_id") or analysis_info.get("id"),

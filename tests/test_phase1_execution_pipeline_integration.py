@@ -513,6 +513,8 @@ class TestSubmitLiveWithMockAdapter(unittest.TestCase):
         adapter.get_symbol_price = AsyncMock(return_value=price)
         adapter.create_market_buy = AsyncMock(return_value=mock_order)
         adapter.create_market_sell = AsyncMock(return_value=mock_order)
+        adapter.create_limit_buy = AsyncMock(return_value={**mock_order, "type": "limit"})
+        adapter.create_limit_sell = AsyncMock(return_value={**mock_order, "type": "limit"})
         return adapter
 
     def test_submit_live_calls_adapter_not_ccxt(self):
@@ -578,6 +580,89 @@ class TestSubmitLiveWithMockAdapter(unittest.TestCase):
         if record.status == OrderStatus.REJECTED:
             adapter.create_market_buy.assert_not_called()
             adapter.create_market_sell.assert_not_called()
+            adapter.create_limit_buy.assert_not_called()
+            adapter.create_limit_sell.assert_not_called()
+
+    def test_submit_live_dispatches_selected_limit_order(self):
+        """Selected LIMIT orders must be submitted as limit orders, not market."""
+        from btc_scraper.execution.live_execution_guard import GuardResult
+        from btc_scraper.execution.order_type_selector import OrderDecision, OrderType, TimeInForce
+
+        adapter = self._make_mock_adapter(50_000.0)
+        guard = MagicMock()
+        guard.validate.return_value = GuardResult(allowed=True, reason="ok")
+        cfg = _make_loose_config()
+        cfg.max_slippage_bps = 10_000.0
+        engine = ExecutionEngine(
+            config=cfg,
+            exchange_adapter=adapter,
+            live_guard=guard,
+            reservation_db_path=tempfile.mktemp(suffix=".db"),
+        )
+        engine._selector.select = MagicMock(return_value=OrderDecision(
+            order_type=OrderType.LIMIT,
+            limit_price=49_995.0,
+            time_in_force=TimeInForce.GTC,
+            reason="forced limit",
+        ))
+
+        loop = asyncio.new_event_loop()
+        try:
+            record = loop.run_until_complete(
+                engine.submit_live(
+                    {**_make_signal(), "id": "limit-dispatch", "idempotency_key": "limit-dispatch-key"},
+                    _make_candle(50_000.0),
+                    notional_usdt=100.0,
+                )
+            )
+        finally:
+            loop.close()
+
+        self.assertEqual(record.status, OrderStatus.FILLED)
+        self.assertEqual(record.order_type, OrderType.LIMIT)
+        adapter.create_market_buy.assert_not_called()
+        adapter.create_limit_buy.assert_called_once()
+        args = adapter.create_limit_buy.await_args.args
+        self.assertEqual(args[2], 49_995.0)
+        self.assertEqual(args[3]["timeInForce"], TimeInForce.GTC)
+
+    def test_submit_live_rejects_selected_twap_until_dispatch_is_supported(self):
+        """TWAP must fail closed until live child-order dispatch has E2E recovery tests."""
+        from btc_scraper.execution.live_execution_guard import GuardResult
+        from btc_scraper.execution.order_type_selector import OrderDecision, OrderType
+
+        adapter = self._make_mock_adapter(50_000.0)
+        guard = MagicMock()
+        guard.validate.return_value = GuardResult(allowed=True, reason="ok")
+        cfg = _make_loose_config()
+        cfg.max_slippage_bps = 10_000.0
+        engine = ExecutionEngine(
+            config=cfg,
+            exchange_adapter=adapter,
+            live_guard=guard,
+            reservation_db_path=tempfile.mktemp(suffix=".db"),
+        )
+        engine._selector.select = MagicMock(return_value=OrderDecision(
+            order_type=OrderType.TWAP,
+            reason="forced twap",
+        ))
+
+        loop = asyncio.new_event_loop()
+        try:
+            record = loop.run_until_complete(
+                engine.submit_live(
+                    {**_make_signal(), "id": "twap-disabled", "idempotency_key": "twap-disabled-key"},
+                    _make_candle(50_000.0),
+                    notional_usdt=100.0,
+                )
+            )
+        finally:
+            loop.close()
+
+        self.assertEqual(record.status, OrderStatus.REJECTED)
+        self.assertIn("TWAP live dispatch disabled", record.reason)
+        adapter.create_market_buy.assert_not_called()
+        adapter.create_limit_buy.assert_not_called()
 
 
 # ── AutoTrader uses ExecutionEngine ───────────────────────────────────────────

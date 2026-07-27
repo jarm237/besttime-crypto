@@ -63,6 +63,8 @@ def test_paper_lifecycle_links_prediction_to_closed_outcome(monkeypatch, tmp_pat
         features=[1.0, 2.0, 3.0],
         decision_context="entry",
         symbol="BTC",
+        timeframe="15m",
+        side="BUY",
         signal_id="sig-paper-1",
         log_dir=tmp_path / "prediction_audit",
     )
