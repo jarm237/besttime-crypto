@@ -49,6 +49,18 @@ _MIN_CANDIDATE_AUC = 0.50
 _MIN_PRODUCTION_AUC = 0.56
 
 
+def _resolve_prediction_symbol(analysis_info: dict) -> str:
+    """Return a non-empty symbol for prediction audit contracts."""
+    for key in ("coin", "symbol", "ticker"):
+        value = analysis_info.get(key)
+        if value is None:
+            continue
+        symbol = str(value).strip().upper()
+        if symbol:
+            return symbol.replace("/", "").removesuffix("USDT") or symbol
+    return "UNKNOWN"
+
+
 def should_replace_model(
     candidate_auc: float,
     production_auc: "float | None",
@@ -1169,7 +1181,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 model_name="meta_model", model_version=MODEL_VERSION,
                 artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
                 raw_prediction=prob, calibrated_prediction=prob, features=row,
-                decision_context="entry", symbol=analysis_info.get("coin"),
+                decision_context="entry", symbol=_resolve_prediction_symbol(analysis_info),
                 timeframe=analysis_info.get("timeframe") or analysis_info.get("interval") or "15m",
                 side=prediction_side,
                 calibration_method=(artifact.metadata or {}).get("calibration_method", "isotonic"),
@@ -1186,6 +1198,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             logging.getLogger(__name__).warning(
                 "Prediction audit write failed",
                 extra={"signal_id": analysis_info.get("signal_id"), "model_version": MODEL_VERSION, "error_type": type(exc).__name__},
+                exc_info=True,
             )
             prediction_event = {}
 

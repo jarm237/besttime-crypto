@@ -1,6 +1,14 @@
 import json
 
+from btc_scraper.ml_engine.meta_model import _resolve_prediction_symbol
 from btc_scraper.ml_engine.prediction_logger import append_prediction
+
+
+def test_meta_model_prediction_symbol_fallbacks_are_contract_safe():
+    assert _resolve_prediction_symbol({"coin": "btc"}) == "BTC"
+    assert _resolve_prediction_symbol({"symbol": "ETH/USDT"}) == "ETH"
+    assert _resolve_prediction_symbol({"ticker": "xrpUSDT"}) == "XRP"
+    assert _resolve_prediction_symbol({}) == "UNKNOWN"
 
 
 def test_prediction_envelope_contains_required_traceability_fields(tmp_path):
