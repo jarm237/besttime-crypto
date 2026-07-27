@@ -1,45 +1,16 @@
 {
-  "2026-07-19T00:00:00Z": {
-    "score": -0.44,
-    "raw_value": 28,
-    "label": "Fear"
-  },
-  "2026-07-20T00:00:00Z": {
-    "score": -0.42,
-    "raw_value": 29,
-    "label": "Fear"
-  },
-  "2026-07-21T00:00:00Z": {
-    "score": -0.5,
-    "raw_value": 25,
-    "label": "Extreme Fear"
-  },
-  "2026-07-22T00:00:00Z": {
-    "score": -0.34,
-    "normalized_score": -0.34,
-    "raw_value": 33,
+  "2026-07-26T00:00:00Z": {
+    "score": -0.48,
+    "normalized_score": -0.48,
+    "raw_value": 26,
     "label": "Fear",
-    "observed_at": "2026-07-22T00:00:00+00:00"
+    "observed_at": "2026-07-26T00:00:00+00:00"
   },
-  "2026-07-23T00:00:00Z": {
-    "score": -0.38,
-    "normalized_score": -0.38,
-    "raw_value": 31,
+  "2026-07-27T00:00:00Z": {
+    "score": -0.4,
+    "normalized_score": -0.4,
+    "raw_value": 30,
     "label": "Fear",
-    "observed_at": "2026-07-23T00:00:00+00:00"
-  },
-  "2026-07-24T00:00:00Z": {
-    "score": -0.44,
-    "normalized_score": -0.44,
-    "raw_value": 28,
-    "label": "Fear",
-    "observed_at": "2026-07-24T00:00:00+00:00"
-  },
-  "2026-07-25T00:00:00Z": {
-    "score": -0.46,
-    "normalized_score": -0.46,
-    "raw_value": 27,
-    "label": "Fear",
-    "observed_at": "2026-07-25T00:00:00+00:00"
+    "observed_at": "2026-07-27T00:00:00+00:00"
   }
 }
