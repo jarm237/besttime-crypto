@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from btc_scraper.core.runtime_ownership import describe_runtime_changes, snapshot_runtime_roots
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WATCH_ROOTS = (
@@ -16,19 +18,7 @@ WATCH_ROOTS = (
     REPO_ROOT / "btc_scraper" / "logs",
 )
 
-_INITIAL_RUNTIME_SNAPSHOT: dict[Path, tuple[int, int]] = {}
-
-
-def _snapshot_runtime_roots() -> dict[Path, tuple[int, int]]:
-    snapshot: dict[Path, tuple[int, int]] = {}
-    for root in WATCH_ROOTS:
-        if not root.exists():
-            continue
-        for path in root.rglob("*"):
-            if path.is_file():
-                stat = path.stat()
-                snapshot[path] = (stat.st_size, stat.st_mtime_ns)
-    return snapshot
+_INITIAL_RUNTIME_SNAPSHOT = {}
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -41,42 +31,41 @@ def pytest_configure(config: pytest.Config) -> None:
     os.environ["BTC_TEST_RUN_ID"] = run_id
     os.environ["BTC_RUNTIME_ENVIRONMENT"] = "test"
     os.environ["BTC_ENVIRONMENT"] = "test"
+    os.environ["BTC_DEPLOYMENT_ID"] = os.getenv("BTC_DEPLOYMENT_ID") or f"pytest-{run_id}"
+    os.environ["BTC_RUNTIME_ID"] = os.getenv("BTC_RUNTIME_ID") or run_id
     os.environ["BTC_EVIDENCE_ELIGIBLE"] = "false"
     os.environ["BTC_PAPER_RUN_ID"] = run_id
     os.environ["BTC_DATA_DIR"] = str(run_root / "data")
     os.environ["BTC_LOG_DIR"] = str(run_root / "logs")
     os.environ["BTC_MODEL_DIR"] = str(run_root / "models")
+    os.environ["BTC_STATE_DIR"] = str(run_root / "state")
     os.environ["BTC_EXECUTION_DATA_DIR"] = str(run_root / "data" / "execution")
     os.environ["BTC_PREDICTION_AUDIT_DIR"] = str(run_root / "logs" / "prediction_audit")
     os.environ["BTC_RUNTIME_EVIDENCE_PATH"] = str(run_root / "logs" / "runtime_evidence.sqlite")
+    os.environ["BTC_RESERVATION_DB_PATH"] = str(run_root / "data" / "execution" / "reservations.db")
     os.environ["CATBOOST_INFO_DIR"] = str(run_root / "catboost_info")
     os.environ["BTC_REMEDIATION_DOCS_DIR"] = str(run_root / "docs" / "remediation")
 
     run_root.mkdir(parents=True, exist_ok=True)
-    _INITIAL_RUNTIME_SNAPSHOT = _snapshot_runtime_roots()
+    _INITIAL_RUNTIME_SNAPSHOT = snapshot_runtime_roots(WATCH_ROOTS)
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if os.getenv("BTC_DISABLE_TEST_RUNTIME_GUARD", "").lower() in {"1", "true", "yes"}:
         return
 
-    after = _snapshot_runtime_roots()
-    changed = sorted(
-        str(path.relative_to(REPO_ROOT))
-        for path, state in after.items()
-        if _INITIAL_RUNTIME_SNAPSHOT.get(path) != state
-    )
-    deleted = sorted(
-        str(path.relative_to(REPO_ROOT))
-        for path in _INITIAL_RUNTIME_SNAPSHOT
-        if path not in after
-    )
-    if changed or deleted:
+    after = snapshot_runtime_roots(WATCH_ROOTS)
+    changes = describe_runtime_changes(_INITIAL_RUNTIME_SNAPSHOT, after, repo_root=REPO_ROOT)
+    if changes:
         tr = session.config.pluginmanager.get_plugin("terminalreporter")
         if tr is not None:
             tr.section("runtime artifact isolation")
-            for path in changed[:30]:
-                tr.write_line(f"modified-or-created: {path}")
-            for path in deleted[:30]:
-                tr.write_line(f"deleted: {path}")
+            for change in changes[:30]:
+                tr.write_line(
+                    "modified-or-created: "
+                    f"{change['path']} "
+                    f"before={change['before_hash']} after={change['after_hash']} "
+                    f"writer_runtime_id={change['suspected_writer_runtime_id']} "
+                    f"writer_process_id={change['suspected_writer_process_id']}"
+                )
         session.exitstatus = pytest.ExitCode.TESTS_FAILED

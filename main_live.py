@@ -8,13 +8,12 @@ from __future__ import annotations
 import os
 import sys
 import json
-from pathlib import Path
 
+from btc_scraper.core.paths import build_execution_data_path
 from btc_scraper.execution.live_checklist import LiveChecklist
 from btc_scraper.execution.kill_switch import KillSwitch
 
-BASE_DIR = Path(__file__).parent
-PHASE5_REPORT_PATH = BASE_DIR / "data" / "execution" / "reports" / "phase5_report_latest.json"
+PHASE5_REPORT_PATH = build_execution_data_path("reports", "phase5_report_latest.json")
 
 def assert_live_authorized() -> None:
     print("[Live Production] Performing fail-closed validation checks...")

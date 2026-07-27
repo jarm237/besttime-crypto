@@ -13,6 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.config import COINS
 from btc_scraper.core.operational_resilience import service_health
+from btc_scraper.core.paths import build_data_path, build_logs_path
 
 app = FastAPI(title="BestTime Crypto API")
 
@@ -25,8 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
-LATEST_SIGNALS_FILE = os.path.join(DATA_DIR, "latest_signals.json")
+DATA_DIR = build_data_path()
+LOGS_DIR = build_logs_path()
+LATEST_SIGNALS_FILE = build_data_path("latest_signals.json")
 
 
 def _get_queue_size() -> int:
@@ -304,7 +306,7 @@ class PositionClosePartial(BaseModel):
 @app.get("/api/ai-analysis")
 def get_ai_analysis():
     try:
-        with open("data/latest_ai_analysis.json", "r", encoding="utf-8") as f:
+        with open(build_data_path("latest_ai_analysis.json"), "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         return {"timestamp": 0, "report": "Chưa có dữ liệu phân tích từ Gemini AI. Vui lòng chờ..."}
@@ -434,10 +436,10 @@ def get_auto_trade_status():
 def get_auto_trade_logs():
     """Lấy lịch sử giao dịch tự động từ auto_trade_log.json."""
     try:
-        from btc_scraper.trading.auto_trader import AUTO_TRADE_LOG
-        if not AUTO_TRADE_LOG.exists():
+        auto_trade_log = build_logs_path("auto_trade_log.json")
+        if not auto_trade_log.exists():
             return []
-        with open(AUTO_TRADE_LOG, "r", encoding="utf-8") as f:
+        with open(auto_trade_log, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi đọc log auto-trade: {str(e)}")
@@ -508,8 +510,7 @@ def get_meta_model_metrics(days: int = 7):
     except Exception:
         model_metrics = {}
 
-    logs_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
-    preds = _read_prediction_logs(logs_dir, days=days)
+    preds = _read_prediction_logs(str(LOGS_DIR), days=days)
 
     summary = {"total_predictions": len(preds)}
     if preds:
@@ -663,14 +664,14 @@ def get_active_backtest_task():
 
 @app.get("/api/backtests/history")
 def get_backtest_history():
-    runs_dir = os.path.join(DATA_DIR, "backtests", "runs")
-    if not os.path.exists(runs_dir):
+    runs_dir = build_data_path("backtests", "runs")
+    if not runs_dir.exists():
         return []
         
     history = []
     for filename in os.listdir(runs_dir):
         if filename.startswith("run_") and filename.endswith(".json"):
-            filepath = os.path.join(runs_dir, filename)
+            filepath = runs_dir / filename
             try:
                 with open(filepath, "r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -693,8 +694,8 @@ def get_backtest_history():
 
 @app.get("/api/backtests/report/{run_id}")
 def get_backtest_report(run_id: str):
-    filepath = os.path.join(DATA_DIR, "backtests", "runs", f"run_{run_id}.json")
-    if not os.path.exists(filepath):
+    filepath = build_data_path("backtests", "runs", f"run_{run_id}.json")
+    if not filepath.exists():
         raise HTTPException(status_code=404, detail="Không tìm thấy báo cáo backtest.")
     try:
         with open(filepath, "r", encoding="utf-8") as f:

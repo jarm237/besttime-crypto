@@ -13,9 +13,12 @@ from typing import Any, Iterator, Mapping
 from .artifact_resolver import ROOT
 from btc_scraper.core.paths import (
     get_runtime_paths,
+    runtime_deployment_id,
     runtime_environment,
     runtime_evidence_eligible,
+    runtime_id,
     runtime_paper_run_id,
+    runtime_owner_metadata,
 )
 
 RUNTIME_EVIDENCE_SCHEMA_VERSION = 2
@@ -264,8 +267,14 @@ class RuntimeEvidenceStore:
     def _with_runtime_metadata(payload: Mapping[str, Any]) -> dict[str, Any]:
         result = dict(payload)
         result.setdefault("environment", runtime_environment())
+        result.setdefault("deployment_id", runtime_deployment_id())
+        result.setdefault("runtime_id", runtime_id())
         result.setdefault("evidence_eligible", runtime_evidence_eligible())
         result.setdefault("paper_run_id", runtime_paper_run_id())
+        owner = runtime_owner_metadata()
+        result.setdefault("process_id", owner["process_id"])
+        result.setdefault("hostname", owner["hostname"])
+        result.setdefault("started_at", owner["started_at"])
         return result
 
     def latest_outcomes(self) -> list[dict[str, Any]]:

@@ -34,6 +34,7 @@ from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_pos
 from btc_scraper.ai_analyst import analyze_with_gemini
 from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
 from btc_scraper.core.paths import build_data_path, build_logs_path, build_scripts_path
+from btc_scraper.core.runtime_ownership import RuntimeLock
 from btc_scraper.core.fear_greed import resolve_fear_greed_value
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.candle_store import candle_store
@@ -69,6 +70,7 @@ ai_queue: queue.Queue = queue.Queue()
 shutdown_event = threading.Event()
 shutdown_event_async = None  # Will be initialized in async_main
 managed_processes: list[subprocess.Popen] = []
+runtime_lock: RuntimeLock | None = None
 
 
 def _track_process(proc: subprocess.Popen) -> None:
@@ -820,7 +822,16 @@ async def async_main():
 
 
 def main():
+    global runtime_lock
     try:
+        if os.getenv("BTC_DISABLE_RUNTIME_LOCK", "").lower() not in {"1", "true", "yes"}:
+            runtime_lock = RuntimeLock()
+            lock_info = runtime_lock.acquire()
+            console.print(
+                "[dim]Runtime lock acquired: "
+                f"{lock_info['environment']}/{lock_info['deployment_id']} "
+                f"runtime_id={lock_info['runtime_id']}[/dim]"
+            )
         asyncio.run(async_main())
     except KeyboardInterrupt:
         console.print("\n[bold red]Đã dừng.[/bold red]")
@@ -828,6 +839,9 @@ def main():
         shutdown_event.set()
         ai_queue.put(None)
         _cleanup_managed_processes()
+        if runtime_lock is not None:
+            runtime_lock.release()
+            runtime_lock = None
 
 if __name__ == "__main__":
     main()

@@ -12,14 +12,15 @@ The repository already contains several production-shaped controls: fail-closed 
 
 The main blockers are not absence of safety concepts. The first remediation wave has removed the immediate test/compile/contract/dispatch blockers; remaining risk is concentrated in operational proof depth and state lifecycle:
 
-- Full local test assertions now pass: `739 passed, 118 warnings, 5 subtests passed`.
+- Full local test assertions now pass: `743 passed, 118 warnings, 5 subtests passed`.
 - Full compile now passes with `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts`.
 - `prediction_created` now requires production lineage fields including `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
 - Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until live adapter integration is rehearsed against child-order recovery.
 - Test runtime artifacts are now isolated under `/tmp/btc-scraper-tests/<run-id>/` with environment metadata and a pytest guard that blocks repo runtime-root mutation.
 - Restart/replay recovery tests now cover the baseline crash-boundary matrix from persisted prediction through outcome revision conflict and repeated multi-restart replay.
 - Live exchange outage baseline tests now cover submit timeout, rate-limit backoff, outage taxonomy, child-order persistence, cancel/replace ambiguity, WS/REST disagreement, and operator quarantine workflow through deterministic fake adapters.
-- Persistent production/paper data lifecycle is still broad across `data/`, `logs/`, `btc_scraper/data`, `btc_scraper/logs`, `models/`, and `checkpoints_gpu`, and needs a full taxonomy for raw/processed/runtime/paper/backtest/model/quarantine state.
+- Runtime ownership now provides deployment-scoped roots, identity metadata, per-deployment process locks, stale-lock audit, and hash-based guard reporting. A pre-existing `main.py` process should be restarted on these owned roots before claiming clean full-suite guard evidence.
+- Persistent historical data lifecycle is still broad across legacy `data/`, `logs/`, `btc_scraper/data`, `btc_scraper/logs`, `models/`, and `checkpoints_gpu`, and needs a full taxonomy for raw/processed/runtime/paper/backtest/model/quarantine state.
 - There are many broad `except Exception` fallback paths; some are intentional resilience, but they need classification into fail-closed, degrade, quarantine, or continue.
 
 ## Architecture Summary
@@ -71,18 +72,18 @@ Static AST inventory of `btc_scraper`:
 | `btc_scraper.ai_analyst` | 5 | 1 | 17 | 0 |
 | `btc_scraper.analysis` | 6 | 2 | 43 | 0 |
 | `btc_scraper.backtesting` | 16 | 15 | 30 | 0 |
-| `btc_scraper.collectors` | 24 | 37 | 189 | 0 |
-| `btc_scraper.core` | 15 | 28 | 119 | 11 |
+| `btc_scraper.collectors` | 24 | 37 | 191 | 0 |
+| `btc_scraper.core` | 16 | 32 | 151 | 13 |
 | `btc_scraper.exchanges` | 5 | 1 | 25 | 8 |
-| `btc_scraper.execution` | 29 | 75 | 279 | 24 |
+| `btc_scraper.execution` | 31 | 90 | 352 | 29 |
 | `btc_scraper.feature_engineering` | 13 | 24 | 102 | 0 |
-| `btc_scraper.ml_engine` | 74 | 137 | 682 | 2 |
+| `btc_scraper.ml_engine` | 74 | 137 | 689 | 2 |
 | `btc_scraper.regime` | 7 | 0 | 26 | 0 |
 | `btc_scraper.telegram_bot` | 6 | 0 | 24 | 0 |
-| `btc_scraper.trading` | 8 | 14 | 89 | 3 |
+| `btc_scraper.trading` | 8 | 14 | 91 | 3 |
 | `btc_scraper.ui` | 3 | 0 | 17 | 2 |
 
-Total: 212 Python modules, 334 classes, 1642 functions.
+Total: 215 Python modules, 353 classes, 1758 functions.
 
 ## Runtime Entry Points
 
@@ -143,6 +144,8 @@ Observed persistent stores:
 Key state families:
 
 - Runtime latest state: `data/latest_signals.json`, `data/latest_ai_analysis.json`, `data/macro_state.json`, `data/alternative_data.json`, `data/alternative_feature_snapshot.json`.
+- Owned runtime root: `runtime/<environment>/<deployment-id>/{data,logs,models,state}` by default for newly started processes.
+- Runtime lock: `runtime/<environment>/<deployment-id>/state/runtime.lock`, with stale-lock audit in `runtime_lock_events.jsonl`.
 - Feature store: `data/feature_store/**`.
 - Execution state: `data/execution/**`, `logs/execution/**`.
 - Runtime evidence: `logs/runtime_evidence.sqlite`, `logs/prediction_audit/*.jsonl`.
@@ -179,7 +182,7 @@ Paper trading: PAPER_READY with executable local test evidence
 Live entry: BLOCKED by gates and missing real exchange/testnet drill proof
 ML/causal/RL advanced components: mixed PAPER_READY / RESEARCH_ONLY
 Execution: STRONG PAPER_READY candidate, deterministic live-outage baseline exists, live TWAP still disabled until exchange-integrated drill evidence exists
-Operations: REQUIRES_REMEDIATION before production
+Operations: PAPER_READY baseline for ownership/isolation, still requires clean guard run and operator rehearsal before production
 ```
 
 See detailed scoring in `BTC_Scraper_Module_Scorecard.md`.

@@ -23,8 +23,11 @@ from datetime import datetime, timezone
 from btc_scraper.core.paths import (
     build_execution_data_path,
     build_logs_path,
+    runtime_deployment_id,
     runtime_environment,
     runtime_evidence_eligible,
+    runtime_id,
+    runtime_owner_metadata,
     runtime_paper_run_id,
 )
 
@@ -115,6 +118,11 @@ class ExecutionRecord:
     execution_mode: str = "live"  # paper | live | replay | test
     paper_run_id: str = ""
     environment: str = field(default_factory=runtime_environment)
+    deployment_id: str = field(default_factory=runtime_deployment_id)
+    runtime_id: str = field(default_factory=runtime_id)
+    process_id: int = 0
+    hostname: str = ""
+    started_at: str = ""
     evidence_eligible: bool = field(default_factory=runtime_evidence_eligible)
 
     # Fill events
@@ -292,6 +300,12 @@ class FillTracker:
     @staticmethod
     def _apply_runtime_metadata(record: ExecutionRecord) -> None:
         record.environment = runtime_environment()
+        record.deployment_id = runtime_deployment_id()
+        record.runtime_id = runtime_id()
+        owner = runtime_owner_metadata()
+        record.process_id = int(owner["process_id"])
+        record.hostname = str(owner["hostname"])
+        record.started_at = str(owner["started_at"])
         record.evidence_eligible = runtime_evidence_eligible()
         if not record.paper_run_id:
             record.paper_run_id = runtime_paper_run_id() or ""

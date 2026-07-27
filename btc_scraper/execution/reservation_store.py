@@ -15,10 +15,10 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Dict, List, Optional, Tuple
 
-from btc_scraper.core.paths import build_execution_data_path
+from btc_scraper.core.paths import get_runtime_paths
 from btc_scraper.trading.decision_types import ReservationStatus
 
-DEFAULT_DB_PATH = build_execution_data_path("reservations.db")
+DEFAULT_DB_PATH = get_runtime_paths().reservation_db_path
 
 
 @dataclass
@@ -61,7 +61,7 @@ class ReservationStore:
     """SQLite-backed persistent reservation store for thread-safe/process-safe operations."""
 
     def __init__(self, db_path: Optional[str | Path] = None):
-        self._db_path = Path(db_path) if db_path else DEFAULT_DB_PATH
+        self._db_path = Path(db_path) if db_path else get_runtime_paths().reservation_db_path
         self._lock = RLock()
         self._init_db()
 

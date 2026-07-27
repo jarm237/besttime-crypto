@@ -33,7 +33,7 @@ BTC_DISABLE_TEST_RUNTIME_GUARD=1 .venv/bin/python -m pytest
 Result:
 
 ```text
-739 passed, 118 warnings, 5 subtests passed in 143.82s (0:02:23)
+743 passed, 118 warnings, 5 subtests passed in 195.06s (0:03:15)
 ```
 
 ## Remediation Evidence
@@ -49,6 +49,7 @@ Result:
 | Test/runtime artifact isolation | Runtime artifacts polluted repo roots | PASS for test-controlled writers | `tests/conftest.py` redirects writable runtime roots to `/tmp/btc-scraper-tests/<run-id>/` and fails the session if repo `data/`, `logs/`, `catboost_info/`, or `btc_scraper/logs/` are modified. Guard-enabled targeted writer suites pass; guard-enabled full runs require no concurrent runtime process writing watched repo roots. |
 | Restart/replay evidence | Scenario matrix missing | PASS | `tests/recovery/` covers prediction→decision, decision→reservation, reservation→submit, ambiguous submit reconciliation, partial fill replay, fill→position projection, position→outcome, outcome revision conflicts, and multi-restart idempotency. |
 | Live exchange outage drills | Not verified | PASS for deterministic baseline | `tests/live_outage/` covers submit-timeout attach/defer/quarantine, rate-limit backoff and priority, REST/WS outage taxonomy, WS/REST conflict storage, child-order restart/partial-fill/quantity invariant, cancel/replace ambiguity, late fill accounting, and operator quarantine resolution. |
+| Runtime ownership / process isolation | Shared repo roots | PASS for code/test baseline | `tests/test_runtime_ownership.py` covers deployment-scoped roots, runtime identity metadata, per-deployment lock conflict, stale-lock recovery audit, subprocess path isolation, and guard fingerprint owner reporting. |
 
 ## Targeted Test Runs
 
@@ -171,6 +172,23 @@ Result:
 28 passed
 ```
 
+P1.8 runtime ownership/isolation:
+
+```bash
+.venv/bin/python -m pytest \
+  tests/test_runtime_ownership.py \
+  tests/test_paths_and_macro_freshness.py \
+  tests/ml/test_runtime_evidence_store.py \
+  tests/ml/test_prediction_traceability.py \
+  tests/test_execution_reservation_concurrency.py -q
+```
+
+Result:
+
+```text
+22 passed
+```
+
 ## Warning Summary
 
 The full test suite still emits warnings that should be tracked as P2/P3 quality work:
@@ -185,4 +203,4 @@ The full test suite still emits warnings that should be tracked as P2/P3 quality
 
 ## Operational Note
 
-Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged `environment=test`, `evidence_eligible=false`, and `paper_run_id=<run-id>` where the writer supports runtime metadata. P1.7 also removed import-time path leaks for alternative-data defaults, quality logs, `main.py` latest-signal writes, and auto-trader audit logs. During this run, a separate long-running `python3 main.py` process was present in the workspace; guard-enabled full pytest should be run with that process stopped or redirected.
+Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_STATE_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `BTC_RESERVATION_DB_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged with `environment`, `deployment_id`, `runtime_id`, `process_id`, `hostname`, `started_at`, `evidence_eligible`, and `paper_run_id` where the writer supports runtime metadata. P1.8 adds default deployment-scoped runtime roots under `runtime/<environment>/<deployment-id>/`, a per-deployment `state/runtime.lock`, stale-lock audit, and hash-based guard reporting. During this run, a separate long-running `python3 main.py` process was present in the workspace; guard-enabled full pytest should be run with that process stopped or restarted on the new owned runtime root.

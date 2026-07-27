@@ -1,6 +1,6 @@
 # 07 Execution And Reconciliation
 
-Status: strong paper-ready with deterministic live outage baseline.
+Status: production-ready candidate for local execution/recovery mechanics; live trading remains blocked.
 
 ## Positive Findings
 
@@ -13,12 +13,14 @@ Status: strong paper-ready with deterministic live outage baseline.
 - Live selected TWAP orders now reject fail-closed until live child-order dispatch and recovery tests exist.
 - Baseline recovery coordinator tests cover persisted reservation replay, ambiguous submit quarantine/attach, partial fill replay, and fill-to-position idempotency.
 - `LiveOutageCoordinator` and persisted outage stores now cover submit-timeout unknown state, rate-limit backoff, exchange outage taxonomy, WS/REST authority conflicts, operator quarantine resolution, cancel/replace ambiguity, and child-order replay invariants.
+- `ReservationStore` defaults to the deployment-owned reservation DB, and `FillTracker` records deployment/runtime/process identity on execution records.
 
 ## Gaps
 
 - Live liquidity currently uses candle-derived liquidity snapshots, which must be labeled approximation unless order book data is used.
 - Need exchange-integrated outage rehearsal beyond deterministic fake adapters before enabling live TWAP or loosening live-entry gates.
+- Need the existing repo-root `main.py` process restarted on owned runtime roots before clean full-suite guard evidence is claimed.
 
 ## Classification
 
-`PAPER_READY`, with deterministic outage evidence complete. Live trading remains blocked until exchange-integrated drill evidence and live liquidity proof are complete.
+`PRODUCTION_READY_CANDIDATE` for local execution/recovery mechanics. Live trading remains blocked until exchange-integrated drill evidence, clean runtime ownership rehearsal, and live liquidity proof are complete.

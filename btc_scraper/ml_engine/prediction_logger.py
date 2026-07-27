@@ -15,8 +15,11 @@ from .data_contracts import validate_runtime_event
 from .runtime_evidence_store import RuntimeEvidenceStore, get_runtime_evidence_store
 from btc_scraper.core.paths import (
     build_prediction_audit_path,
+    runtime_deployment_id,
     runtime_environment,
     runtime_evidence_eligible,
+    runtime_id,
+    runtime_owner_metadata,
     runtime_paper_run_id,
 )
 
@@ -70,12 +73,17 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
         "calibration_method": calibration_method,
         "raw_probability": raw_prediction, "calibrated_probability": calibrated_prediction,
         "raw_prediction": raw_prediction, "calibrated_prediction": calibrated_prediction,
-        "environment": runtime_environment(), "evidence_eligible": runtime_evidence_eligible(),
+        "environment": runtime_environment(), "deployment_id": runtime_deployment_id(),
+        "runtime_id": runtime_id(), "evidence_eligible": runtime_evidence_eligible(),
         "paper_run_id": runtime_paper_run_id(),
         "fallback_used": bool(fallback_used), "git_commit": _git_commit(),
         "deployment_id": __import__("os").getenv("DEPLOYMENT_ID"), "signal_id": signal_id,
         "position_id": position_id, "order_id": order_id, "fill_id": fill_id,
     }
+    owner = runtime_owner_metadata()
+    entry.setdefault("process_id", owner["process_id"])
+    entry.setdefault("hostname", owner["hostname"])
+    entry.setdefault("started_at", owner["started_at"])
     if extra:
         entry.update(extra)
     entry["latency_ms"] = round((time.perf_counter() - started) * 1000, 4)
@@ -84,8 +92,12 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
                 "timestamp": entry["timestamp"],
                 "feature_schema_version": feature_schema_version, "features": features,
                 "feature_hash": entry["feature_hash"],
-                "environment": runtime_environment(), "evidence_eligible": runtime_evidence_eligible(),
+                "environment": runtime_environment(), "deployment_id": runtime_deployment_id(),
+                "runtime_id": runtime_id(), "evidence_eligible": runtime_evidence_eligible(),
                 "paper_run_id": runtime_paper_run_id()}
+    snapshot.setdefault("process_id", owner["process_id"])
+    snapshot.setdefault("hostname", owner["hostname"])
+    snapshot.setdefault("started_at", owner["started_at"])
     (evidence_store or get_runtime_evidence_store()).write_prediction_evidence(entry, snapshot)
 
     # JSONL remains a compatibility mirror; SQLite above is the source of truth.

@@ -1,6 +1,6 @@
 # 05 ML Runtime And Inference
 
-Status: paper-ready with baseline recovery evidence.
+Status: production-ready candidate for runtime evidence; system production remains blocked.
 
 ## Positive Findings
 
@@ -12,12 +12,14 @@ Status: paper-ready with baseline recovery evidence.
 - Shadow validation and runtime outcome linkage modules exist.
 - `tests/recovery/` now proves persisted restart/replay boundaries from prediction through outcome revision conflicts.
 - P1.7 keeps outage/quarantine audit events append-only through `RuntimeEvidenceStore` and preserves runtime path isolation for test-controlled writers.
+- P1.8 adds `deployment_id`, `runtime_id`, `process_id`, `hostname`, and `started_at` metadata to runtime evidence and prediction JSONL mirrors.
 
 ## Gaps
 
 - Need production-cycle evidence that every live runtime cycle has at most one production prediction and exactly one final decision when actionable.
 - Need exchange-integrated outage evidence beyond deterministic fake-adapter drills.
+- Need a clean guard-enabled full-suite run after the legacy repo-root runtime process is restarted on owned roots.
 
 ## Classification
 
-`PAPER_READY`, blocked from production until exchange-integrated live recovery and operational evidence gaps close.
+`PRODUCTION_READY_CANDIDATE` for local runtime evidence mechanics, blocked from system production until exchange-integrated live recovery and operational evidence gaps close.
