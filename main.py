@@ -128,11 +128,11 @@ def ai_worker():
                 send_ai_reply(ai_report)
                 
             # Lưu AI report cho web dashboard
-            import json, os, time
+            import json, time
             from btc_scraper.core.utils import write_atomic
-            data_dir = build_data_path()
-            os.makedirs(data_dir, exist_ok=True)
-            write_atomic(str(data_dir / "latest_ai_analysis.json"), {"timestamp": time.time(), "report": ai_report})
+            output_path = build_data_path("latest_ai_analysis.json")
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            write_atomic(str(output_path), {"timestamp": time.time(), "report": ai_report})
                 
         except Exception as e:
             console.print(f"\n[bold red][AI Worker Error] Loi phan tich hoac gui Telegram: {e}[/bold red]")
@@ -476,11 +476,11 @@ async def fetch_and_display():
 
     # Lưu lại signals mới nhất để Web Dashboard đọc
     try:
-        import os, json
+        import json
         from btc_scraper.core.utils import write_atomic
-        data_dir = os.path.join(os.path.dirname(__file__), "data")
-        os.makedirs(data_dir, exist_ok=True)
-        write_atomic(os.path.join(data_dir, "latest_signals.json"), {"analysis": analysis, "mtf_analysis": mtf_analysis})
+        output_path = build_data_path("latest_signals.json")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        write_atomic(str(output_path), {"analysis": analysis, "mtf_analysis": mtf_analysis})
     except Exception as e:
         console.print(f"[dim red]Không thể lưu latest_signals.json: {e}[/dim red]")
 

@@ -12,12 +12,13 @@ The repository already contains several production-shaped controls: fail-closed 
 
 The main blockers are not absence of safety concepts. The first remediation wave has removed the immediate test/compile/contract/dispatch blockers; remaining risk is concentrated in operational proof depth and state lifecycle:
 
-- Full local test baseline now passes with `.venv/bin/python -m pytest`: `726 passed, 118 warnings, 5 subtests passed`.
+- Full local test assertions now pass: `739 passed, 118 warnings, 5 subtests passed`.
 - Full compile now passes with `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts`.
 - `prediction_created` now requires production lineage fields including `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
-- Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until E2E child-order recovery tests exist.
+- Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until live adapter integration is rehearsed against child-order recovery.
 - Test runtime artifacts are now isolated under `/tmp/btc-scraper-tests/<run-id>/` with environment metadata and a pytest guard that blocks repo runtime-root mutation.
 - Restart/replay recovery tests now cover the baseline crash-boundary matrix from persisted prediction through outcome revision conflict and repeated multi-restart replay.
+- Live exchange outage baseline tests now cover submit timeout, rate-limit backoff, outage taxonomy, child-order persistence, cancel/replace ambiguity, WS/REST disagreement, and operator quarantine workflow through deterministic fake adapters.
 - Persistent production/paper data lifecycle is still broad across `data/`, `logs/`, `btc_scraper/data`, `btc_scraper/logs`, `models/`, and `checkpoints_gpu`, and needs a full taxonomy for raw/processed/runtime/paper/backtest/model/quarantine state.
 - There are many broad `except Exception` fallback paths; some are intentional resilience, but they need classification into fail-closed, degrade, quarantine, or continue.
 
@@ -175,9 +176,9 @@ Current classification after the first remediation wave:
 ```text
 Signal research: PAPER_READY
 Paper trading: PAPER_READY with executable local test evidence
-Live entry: BLOCKED by gates and missing proof
+Live entry: BLOCKED by gates and missing real exchange/testnet drill proof
 ML/causal/RL advanced components: mixed PAPER_READY / RESEARCH_ONLY
-Execution: PAPER_READY candidate, live TWAP still disabled until recovery evidence exists
+Execution: STRONG PAPER_READY candidate, deterministic live-outage baseline exists, live TWAP still disabled until exchange-integrated drill evidence exists
 Operations: REQUIRES_REMEDIATION before production
 ```
 

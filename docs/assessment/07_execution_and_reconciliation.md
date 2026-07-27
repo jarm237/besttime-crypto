@@ -1,6 +1,6 @@
 # 07 Execution And Reconciliation
 
-Status: paper-ready with baseline recovery evidence.
+Status: strong paper-ready with deterministic live outage baseline.
 
 ## Positive Findings
 
@@ -12,12 +12,13 @@ Status: paper-ready with baseline recovery evidence.
 - Live selected LIMIT orders now dispatch through limit adapter methods instead of being silently converted to market orders.
 - Live selected TWAP orders now reject fail-closed until live child-order dispatch and recovery tests exist.
 - Baseline recovery coordinator tests cover persisted reservation replay, ambiguous submit quarantine/attach, partial fill replay, and fill-to-position idempotency.
+- `LiveOutageCoordinator` and persisted outage stores now cover submit-timeout unknown state, rate-limit backoff, exchange outage taxonomy, WS/REST authority conflicts, operator quarantine resolution, cancel/replace ambiguity, and child-order replay invariants.
 
 ## Gaps
 
 - Live liquidity currently uses candle-derived liquidity snapshots, which must be labeled approximation unless order book data is used.
-- Need live exchange outage drills for submit timeout, rate limits, child-order reconciliation, and operator quarantine workflow.
+- Need exchange-integrated outage rehearsal beyond deterministic fake adapters before enabling live TWAP or loosening live-entry gates.
 
 ## Classification
 
-`PAPER_READY`, with live trading still blocked until live exchange drill evidence and live liquidity proof are complete.
+`PAPER_READY`, with deterministic outage evidence complete. Live trading remains blocked until exchange-integrated drill evidence and live liquidity proof are complete.

@@ -11,12 +11,13 @@ Status: paper-ready with baseline recovery evidence.
 - `position_tracker` appends outcome links for model-linked positions.
 - Shadow validation and runtime outcome linkage modules exist.
 - `tests/recovery/` now proves persisted restart/replay boundaries from prediction through outcome revision conflicts.
+- P1.7 keeps outage/quarantine audit events append-only through `RuntimeEvidenceStore` and preserves runtime path isolation for test-controlled writers.
 
 ## Gaps
 
 - Need production-cycle evidence that every live runtime cycle has at most one production prediction and exactly one final decision when actionable.
-- Need live exchange outage drill evidence beyond the local persisted recovery matrix.
+- Need exchange-integrated outage evidence beyond deterministic fake-adapter drills.
 
 ## Classification
 
-`PAPER_READY`, blocked from production until live exchange recovery and operational evidence gaps close.
+`PAPER_READY`, blocked from production until exchange-integrated live recovery and operational evidence gaps close.

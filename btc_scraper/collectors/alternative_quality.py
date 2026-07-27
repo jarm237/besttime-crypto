@@ -31,7 +31,15 @@ logger = logging.getLogger(__name__)
 # Constants / thresholds
 # ---------------------------------------------------------------------------
 
-DEFAULT_QUALITY_LOG_PATH = str(build_data_path("alternative_quality.json"))
+DEFAULT_QUALITY_LOG_PATH = "alternative_quality.json"
+_DEFAULT_PATH = object()
+
+
+def _runtime_quality_log_path(value: str | os.PathLike[str]) -> Path:
+    path = Path(value)
+    if path.is_absolute() or path.parent != Path("."):
+        return path
+    return build_data_path(path)
 
 # (min_value, max_value) for each field. None means no bound check.
 FIELD_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float]]] = {
@@ -225,11 +233,12 @@ class DataQualityDashboard:
 
     def __init__(
         self,
-        quality_log_path: Optional[str] = DEFAULT_QUALITY_LOG_PATH,
+        quality_log_path: Optional[str | os.PathLike[str]] | object = _DEFAULT_PATH,
         max_history: int = 1000,
         checker: Optional[DataQualityChecker] = None,
     ) -> None:
-        self.quality_log_path = Path(quality_log_path) if quality_log_path else None
+        path_value = DEFAULT_QUALITY_LOG_PATH if quality_log_path is _DEFAULT_PATH else quality_log_path
+        self.quality_log_path = _runtime_quality_log_path(path_value) if path_value else None
         self.max_history = max_history
         self.checker = checker or DataQualityChecker()
         self._history: List[QualityReport] = []

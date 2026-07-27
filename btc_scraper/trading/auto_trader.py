@@ -72,6 +72,14 @@ from btc_scraper.core.paths import build_logs_path
 AUTO_TRADE_LOG = build_logs_path("auto_trade_log.json")
 CIRCUIT_BREAKER_STATE = build_logs_path("auto_trade_circuit.json")
 
+
+def _auto_trade_log_path() -> Path:
+    return build_logs_path("auto_trade_log.json")
+
+
+def _circuit_breaker_state_path() -> Path:
+    return build_logs_path("auto_trade_circuit.json")
+
 # ─── Config Loader ─────────────────────────────────────────────────────────────
 
 def _env_float(key: str, default: float) -> float:
@@ -98,17 +106,19 @@ def _env_list(key: str, default: List[str]) -> List[str]:
 # ─── Audit Log ─────────────────────────────────────────────────────────────────
 
 def _load_log() -> List[Dict]:
-    if not AUTO_TRADE_LOG.exists():
+    path = _auto_trade_log_path()
+    if not path.exists():
         return []
     try:
-        with open(AUTO_TRADE_LOG, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return []
 
 def _save_log(data: List[Dict]) -> None:
-    AUTO_TRADE_LOG.parent.mkdir(exist_ok=True)
-    with open(AUTO_TRADE_LOG, "w", encoding="utf-8") as f:
+    path = _auto_trade_log_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def _append_log(entry: Dict) -> None:
@@ -120,17 +130,19 @@ def _append_log(entry: Dict) -> None:
 # ─── Circuit Breaker State ──────────────────────────────────────────────────────
 
 def _load_circuit() -> Dict:
-    if not CIRCUIT_BREAKER_STATE.exists():
+    path = _circuit_breaker_state_path()
+    if not path.exists():
         return {"consecutive_losses": 0, "tripped_at": None, "total_trades_today": 0, "date": ""}
     try:
-        with open(CIRCUIT_BREAKER_STATE, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {"consecutive_losses": 0, "tripped_at": None, "total_trades_today": 0, "date": ""}
 
 def _save_circuit(state: Dict) -> None:
-    CIRCUIT_BREAKER_STATE.parent.mkdir(exist_ok=True)
-    with open(CIRCUIT_BREAKER_STATE, "w", encoding="utf-8") as f:
+    path = _circuit_breaker_state_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 

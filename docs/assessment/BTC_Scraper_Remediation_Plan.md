@@ -17,7 +17,7 @@ Immediate P0 acceptance gate for future live work:
 1. Restore test environment.
    - Status: `DONE`.
    - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements.txt` or `requirements-lock.txt`.
-   - Evidence: `.venv/bin/python -m pytest` passes with `726 passed, 118 warnings, 5 subtests passed`.
+   - Evidence: full pytest assertions pass with `739 passed, 118 warnings, 5 subtests passed`.
 
 2. Fix script compile blocker.
    - Status: `DONE`.
@@ -43,12 +43,17 @@ Immediate P0 acceptance gate for future live work:
    - Writable runtime roots are redirected by pytest to `/tmp/btc-scraper-tests/<run-id>/`.
    - Required test metadata is attached to runtime evidence where supported: `environment=test`, `evidence_eligible=false`, `paper_run_id=<run-id>`.
    - Acceptance: full pytest passes with an artifact guard that fails if repo runtime roots are modified.
-   - Evidence: `.venv/bin/python -m pytest` passes with `726 passed, 118 warnings, 5 subtests passed` and no runtime artifact isolation violations.
+   - Evidence: full pytest assertions pass with `739 passed, 118 warnings, 5 subtests passed`; guard-enabled targeted writer suites pass, while guard-enabled full runs require no concurrent runtime writer process in the repo.
 
 6. Prove restart/replay idempotency.
    - Status: `DONE` for baseline recovery matrix.
    - Acceptance: scenarios after prediction, decision, reservation, fill, and close are replayed without duplicate orders or conflicting outcomes.
    - Evidence: `tests/recovery/` passes with 13 tests covering persisted restart/replay boundaries and multi-restart idempotency.
+
+7. Prove live exchange outage behavior.
+   - Status: `DONE` for deterministic adapter baseline; live exchange/testnet drill still required before production.
+   - Acceptance: submit timeout, rate limit, REST/WS outage, child-order replay, cancel/replace ambiguity, WS/REST disagreement, and operator quarantine are covered without duplicate logical orders or silent state mutation.
+   - Evidence: `tests/live_outage/` passes with 13 tests and full pytest assertions pass with 739 tests.
 
 ## P2 - Quality / Observability
 
@@ -88,5 +93,6 @@ Immediate P0 acceptance gate for future live work:
 2. Collector fixtures and stale handling
 3. Failure taxonomy for broad fallback paths
 4. Broader data/log lifecycle taxonomy beyond test isolation
-5. UI/Telegram operational hardening
+5. Real exchange/testnet outage drill and operator runbook rehearsal
+6. UI/Telegram operational hardening
 ```

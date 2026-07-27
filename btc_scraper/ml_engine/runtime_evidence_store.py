@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,11 +36,22 @@ class RuntimeEvidenceStore:
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.path, timeout=30.0)
-        connection.execute("PRAGMA foreign_keys=ON")
-        connection.execute("PRAGMA busy_timeout=30000")
-        connection.execute("PRAGMA journal_mode=WAL")
-        return connection
+        last_error: sqlite3.OperationalError | None = None
+        for attempt in range(8):
+            connection = sqlite3.connect(self.path, timeout=30.0)
+            try:
+                connection.execute("PRAGMA foreign_keys=ON")
+                connection.execute("PRAGMA busy_timeout=30000")
+                connection.execute("PRAGMA journal_mode=WAL")
+                return connection
+            except sqlite3.OperationalError as exc:
+                connection.close()
+                if "locked" not in str(exc).lower():
+                    raise
+                last_error = exc
+                time.sleep(0.05 * (attempt + 1))
+        assert last_error is not None
+        raise last_error
 
     def _initialize(self) -> None:
         with self._connect() as db:

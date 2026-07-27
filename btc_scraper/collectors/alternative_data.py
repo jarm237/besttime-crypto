@@ -32,9 +32,17 @@ from btc_scraper.collectors.reddit_collector import RedditCollector
 from btc_scraper.collectors.alternative_me_collector import AlternativeMeCollector
 from btc_scraper.collectors.feature_source_registry import FEATURE_SOURCE_REGISTRY, feature_source_registry
 
-DEFAULT_OUTPUT_PATH = str(build_data_path("alternative_data.json"))
-DEFAULT_RAW_STORE_DIR = str(build_data_path("raw_alternative"))
-DEFAULT_FEATURE_SNAPSHOT_PATH = str(build_data_path("alternative_feature_snapshot.json"))
+DEFAULT_OUTPUT_PATH = "alternative_data.json"
+DEFAULT_RAW_STORE_DIR = "raw_alternative"
+DEFAULT_FEATURE_SNAPSHOT_PATH = "alternative_feature_snapshot.json"
+_DEFAULT_PATH = object()
+
+
+def _runtime_data_path(value: str | os.PathLike[str]) -> Path:
+    path = Path(value)
+    if path.is_absolute() or path.parent != Path("."):
+        return path
+    return build_data_path(path)
 
 
 class AlternativeDataCollector(CollectorBase):
@@ -44,15 +52,20 @@ class AlternativeDataCollector(CollectorBase):
 
     def __init__(
         self,
-        output_path: Optional[str | os.PathLike[str]] = DEFAULT_OUTPUT_PATH,
+        output_path: Optional[str | os.PathLike[str]] | object = _DEFAULT_PATH,
         retries: int = 2,
         delay_seconds: float = 1.0,
-        raw_store_dir: Optional[str | os.PathLike[str]] = DEFAULT_RAW_STORE_DIR,
-        feature_snapshot_path: Optional[str | os.PathLike[str]] = DEFAULT_FEATURE_SNAPSHOT_PATH,
+        raw_store_dir: Optional[str | os.PathLike[str]] | object = _DEFAULT_PATH,
+        feature_snapshot_path: Optional[str | os.PathLike[str]] | object = _DEFAULT_PATH,
     ) -> None:
-        super().__init__(output_path=output_path, retries=retries, delay_seconds=delay_seconds)
-        self.raw_store_dir = Path(raw_store_dir) if raw_store_dir is not None else None
-        self.feature_snapshot_path = Path(feature_snapshot_path) if feature_snapshot_path is not None else None
+        resolved_output = _runtime_data_path(DEFAULT_OUTPUT_PATH) if output_path is _DEFAULT_PATH else (
+            _runtime_data_path(output_path) if output_path is not None else None
+        )
+        super().__init__(output_path=resolved_output, retries=retries, delay_seconds=delay_seconds)
+        raw_path = DEFAULT_RAW_STORE_DIR if raw_store_dir is _DEFAULT_PATH else raw_store_dir
+        snapshot_path = DEFAULT_FEATURE_SNAPSHOT_PATH if feature_snapshot_path is _DEFAULT_PATH else feature_snapshot_path
+        self.raw_store_dir = _runtime_data_path(raw_path) if raw_path is not None else None
+        self.feature_snapshot_path = _runtime_data_path(snapshot_path) if snapshot_path is not None else None
 
     def collect(self, force: bool = False) -> Dict[str, Any]:
         payload = _default_payload()
@@ -297,10 +310,10 @@ class AlternativeDataCollector(CollectorBase):
 
 
 def collect_alternative_data(
-    output_path: Optional[str] = DEFAULT_OUTPUT_PATH,
+    output_path: Optional[str] | object = _DEFAULT_PATH,
     force: bool = False,
-    raw_store_dir: Optional[str] = DEFAULT_RAW_STORE_DIR,
-    feature_snapshot_path: Optional[str] = DEFAULT_FEATURE_SNAPSHOT_PATH,
+    raw_store_dir: Optional[str] | object = _DEFAULT_PATH,
+    feature_snapshot_path: Optional[str] | object = _DEFAULT_PATH,
     validate_startup: bool = True,
 ) -> Dict[str, Any]:
     """Collect and persist alternative-data payload."""
@@ -315,11 +328,11 @@ def collect_alternative_data(
     return scheduler.run(collector, force=force)
 
 
-def load_alternative_data(path: Optional[str] = DEFAULT_OUTPUT_PATH) -> Dict[str, Any]:
+def load_alternative_data(path: Optional[str | os.PathLike[str]] = None) -> Dict[str, Any]:
     """Load the alternative-data payload from disk, returning defaults when missing."""
     if path is None:
         path = DEFAULT_OUTPUT_PATH
-    target = Path(path)
+    target = _runtime_data_path(path)
     if not target.exists():
         return _default_payload()
     try:

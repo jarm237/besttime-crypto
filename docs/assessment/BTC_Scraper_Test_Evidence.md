@@ -24,16 +24,16 @@ Full repository compile now passes:
 
 Result: `PASS`.
 
-Full pytest now passes:
+Full pytest assertions now pass:
 
 ```bash
-.venv/bin/python -m pytest
+BTC_DISABLE_TEST_RUNTIME_GUARD=1 .venv/bin/python -m pytest
 ```
 
 Result:
 
 ```text
-726 passed, 118 warnings, 5 subtests passed in 195.34s (0:03:15)
+739 passed, 118 warnings, 5 subtests passed in 143.82s (0:02:23)
 ```
 
 ## Remediation Evidence
@@ -46,8 +46,9 @@ Result:
 | Prediction contract | Incomplete | HARDENED | `tests/ml/test_data_contracts.py` validates required lineage fields and rejects missing artifact hash. |
 | Execution dispatch fidelity | Mismatch | HARDENED | `tests/test_phase1_execution_pipeline_integration.py::TestSubmitLiveWithMockAdapter` proves selected LIMIT dispatches through limit adapter and TWAP live dispatch rejects fail-closed. |
 | Runtime/lifecycle evidence | Not executable | PASS | Runtime evidence, paper lifecycle, linkage calibration, phase10 execution and live guard tests pass. |
-| Test/runtime artifact isolation | Runtime artifacts polluted repo roots | PASS | `tests/conftest.py` redirects writable runtime roots to `/tmp/btc-scraper-tests/<run-id>/` and fails the session if repo `data/`, `logs/`, `catboost_info/`, or `btc_scraper/logs/` are modified. Full pytest passes with the guard enabled. |
+| Test/runtime artifact isolation | Runtime artifacts polluted repo roots | PASS for test-controlled writers | `tests/conftest.py` redirects writable runtime roots to `/tmp/btc-scraper-tests/<run-id>/` and fails the session if repo `data/`, `logs/`, `catboost_info/`, or `btc_scraper/logs/` are modified. Guard-enabled targeted writer suites pass; guard-enabled full runs require no concurrent runtime process writing watched repo roots. |
 | Restart/replay evidence | Scenario matrix missing | PASS | `tests/recovery/` covers prediction→decision, decision→reservation, reservation→submit, ambiguous submit reconciliation, partial fill replay, fill→position projection, position→outcome, outcome revision conflicts, and multi-restart idempotency. |
+| Live exchange outage drills | Not verified | PASS for deterministic baseline | `tests/live_outage/` covers submit-timeout attach/defer/quarantine, rate-limit backoff and priority, REST/WS outage taxonomy, WS/REST conflict storage, child-order restart/partial-fill/quantity invariant, cancel/replace ambiguity, late fill accounting, and operator quarantine resolution. |
 
 ## Targeted Test Runs
 
@@ -127,6 +128,18 @@ Result:
 13 passed
 ```
 
+Live exchange outage drill matrix:
+
+```bash
+.venv/bin/python -m pytest tests/live_outage -q
+```
+
+Result:
+
+```text
+13 passed
+```
+
 Runtime/recovery regression group:
 
 ```bash
@@ -143,6 +156,21 @@ Result:
 32 passed
 ```
 
+P1.7 regression group:
+
+```bash
+.venv/bin/python -m pytest \
+  tests/recovery \
+  tests/ml/test_paper_lifecycle_e2e.py \
+  tests/test_execution_reservation_concurrency.py -q
+```
+
+Result:
+
+```text
+28 passed
+```
+
 ## Warning Summary
 
 The full test suite still emits warnings that should be tracked as P2/P3 quality work:
@@ -157,4 +185,4 @@ The full test suite still emits warnings that should be tracked as P2/P3 quality
 
 ## Operational Note
 
-Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged `environment=test`, `evidence_eligible=false`, and `paper_run_id=<run-id>` where the writer supports runtime metadata.
+Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged `environment=test`, `evidence_eligible=false`, and `paper_run_id=<run-id>` where the writer supports runtime metadata. P1.7 also removed import-time path leaks for alternative-data defaults, quality logs, `main.py` latest-signal writes, and auto-trader audit logs. During this run, a separate long-running `python3 main.py` process was present in the workspace; guard-enabled full pytest should be run with that process stopped or redirected.
