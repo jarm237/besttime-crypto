@@ -17,7 +17,7 @@ Immediate P0 acceptance gate for future live work:
 1. Restore test environment.
    - Status: `DONE`.
    - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements.txt` or `requirements-lock.txt`.
-   - Evidence: full pytest assertions pass with `745 passed, 118 warnings, 5 subtests passed`.
+   - Evidence: full pytest assertions pass with `747 passed, 118 warnings, 5 subtests passed`.
 
 2. Fix script compile blocker.
    - Status: `DONE`.
@@ -43,7 +43,7 @@ Immediate P0 acceptance gate for future live work:
    - Writable runtime roots are redirected by pytest to `/tmp/btc-scraper-tests/<run-id>/`.
    - Required test metadata is attached to runtime evidence where supported: `environment=test`, `evidence_eligible=false`, `paper_run_id=<run-id>`.
    - Acceptance: full pytest passes with an artifact guard that fails if repo runtime roots are modified.
-   - Evidence: full pytest assertions pass with `745 passed, 118 warnings, 5 subtests passed`; guard-enabled targeted writer suites pass, while guard-enabled full runs require no concurrent runtime writer process in the repo.
+   - Evidence: full pytest assertions pass with `747 passed, 118 warnings, 5 subtests passed`; guard-enabled targeted writer suites pass, while guard-enabled full runs require no concurrent runtime writer process in the repo.
 
 6. Prove restart/replay idempotency.
    - Status: `DONE` for baseline recovery matrix.
@@ -98,7 +98,8 @@ Immediate P0 acceptance gate for future live work:
 2. Collector fixtures and stale handling
 3. Failure taxonomy for broad fallback paths
 4. Broader data/log lifecycle taxonomy beyond runtime ownership
-5. Clean guard-enabled full-suite run after restarting legacy runtime process on owned roots
-6. Real exchange/testnet outage drill and operator runbook rehearsal
-7. UI/Telegram operational hardening
+5. Runtime migration preflight before/after proof with `scripts/runtime_migration_preflight.py`
+6. Clean guard-enabled full-suite run after restarting legacy runtime process on owned roots
+7. Real exchange/testnet outage drill and operator runbook rehearsal
+8. UI/Telegram operational hardening
 ```

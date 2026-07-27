@@ -33,7 +33,7 @@ BTC_DISABLE_TEST_RUNTIME_GUARD=1 .venv/bin/python -m pytest
 Result:
 
 ```text
-745 passed, 118 warnings, 5 subtests passed in 165.89s (0:02:45)
+747 passed, 118 warnings, 5 subtests passed in 190.55s (0:03:10)
 ```
 
 ## Remediation Evidence
@@ -188,6 +188,30 @@ Result:
 24 passed
 ```
 
+P1.8 migration preflight tooling:
+
+```bash
+.venv/bin/python -m pytest tests/test_runtime_migration_preflight.py -q
+.venv/bin/python scripts/runtime_migration_preflight.py --pid 115043
+```
+
+Result:
+
+```text
+2 passed
+preflight report generated successfully
+```
+
+Observed preflight state:
+
+```text
+process=python3 main.py
+cwd=/home/tran-huynh/Workspaces/Personal/besttime-crypto
+ownership_env={}
+clean_guard_full_suite_ready=false
+legacy_roots_fingerprint_recorded=true
+```
+
 ## Warning Summary
 
 The full test suite still emits warnings that should be tracked as P2/P3 quality work:
@@ -202,4 +226,4 @@ The full test suite still emits warnings that should be tracked as P2/P3 quality
 
 ## Operational Note
 
-Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_STATE_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `BTC_RESERVATION_DB_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged with `environment`, `deployment_id`, `runtime_id`, `process_id`, `hostname`, `started_at`, `evidence_eligible`, and `paper_run_id` where the writer supports runtime metadata. P1.8 adds default deployment-scoped runtime roots under `runtime/<environment>/<deployment-id>/`, a per-deployment `state/runtime.lock`, stale-lock audit, hash-based guard reporting, and a hardened `BTC_DISABLE_RUNTIME_LOCK` policy: forbidden in `live`, critical-audited outside live, readiness-degrading, and evidence-ineligible. During this run, a separate long-running `python3 main.py` process was present in the workspace; guard-enabled full pytest should be run with that process stopped or restarted on the new owned runtime root.
+Pytest now isolates runtime writes under `/tmp/btc-scraper-tests/<run-id>/` via `BTC_DATA_DIR`, `BTC_LOG_DIR`, `BTC_MODEL_DIR`, `BTC_STATE_DIR`, `BTC_EXECUTION_DATA_DIR`, `BTC_PREDICTION_AUDIT_DIR`, `BTC_RUNTIME_EVIDENCE_PATH`, `BTC_RESERVATION_DB_PATH`, `CATBOOST_INFO_DIR`, and `BTC_REMEDIATION_DOCS_DIR`. Runtime records created during tests are tagged with `environment`, `deployment_id`, `runtime_id`, `process_id`, `hostname`, `started_at`, `evidence_eligible`, and `paper_run_id` where the writer supports runtime metadata. P1.8 adds default deployment-scoped runtime roots under `runtime/<environment>/<deployment-id>/`, a per-deployment `state/runtime.lock`, stale-lock audit, hash-based guard reporting, and a hardened `BTC_DISABLE_RUNTIME_LOCK` policy: forbidden in `live`, critical-audited outside live, readiness-degrading, and evidence-ineligible. `scripts/runtime_migration_preflight.py` now provides a read-only migration proof helper for process inventory, legacy-root fingerprinting, runtime lock/evidence/reservation snapshots, and before/after legacy-root comparison. During this run, a separate long-running `python3 main.py` process was present in the workspace without ownership environment variables; guard-enabled full pytest should be run with that process stopped or restarted on the new owned runtime root.

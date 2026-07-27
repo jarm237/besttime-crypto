@@ -12,7 +12,7 @@ The repository already contains several production-shaped controls: fail-closed 
 
 The main blockers are not absence of safety concepts. The first remediation wave has removed the immediate test/compile/contract/dispatch blockers; remaining risk is concentrated in operational proof depth and state lifecycle:
 
-- Full local test assertions now pass: `745 passed, 118 warnings, 5 subtests passed`.
+- Full local test assertions now pass: `747 passed, 118 warnings, 5 subtests passed`.
 - Full compile now passes with `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts`.
 - `prediction_created` now requires production lineage fields including `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
 - Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until live adapter integration is rehearsed against child-order recovery.
