@@ -33,7 +33,7 @@ Full pytest now passes:
 Result:
 
 ```text
-713 passed, 118 warnings, 5 subtests passed in 187.05s (0:03:07)
+726 passed, 118 warnings, 5 subtests passed in 195.34s (0:03:15)
 ```
 
 ## Remediation Evidence
@@ -47,6 +47,7 @@ Result:
 | Execution dispatch fidelity | Mismatch | HARDENED | `tests/test_phase1_execution_pipeline_integration.py::TestSubmitLiveWithMockAdapter` proves selected LIMIT dispatches through limit adapter and TWAP live dispatch rejects fail-closed. |
 | Runtime/lifecycle evidence | Not executable | PASS | Runtime evidence, paper lifecycle, linkage calibration, phase10 execution and live guard tests pass. |
 | Test/runtime artifact isolation | Runtime artifacts polluted repo roots | PASS | `tests/conftest.py` redirects writable runtime roots to `/tmp/btc-scraper-tests/<run-id>/` and fails the session if repo `data/`, `logs/`, `catboost_info/`, or `btc_scraper/logs/` are modified. Full pytest passes with the guard enabled. |
+| Restart/replay evidence | Scenario matrix missing | PASS | `tests/recovery/` covers prediction→decision, decision→reservation, reservation→submit, ambiguous submit reconciliation, partial fill replay, fill→position projection, position→outcome, outcome revision conflicts, and multi-restart idempotency. |
 
 ## Targeted Test Runs
 
@@ -112,6 +113,34 @@ Result:
 
 ```text
 29 passed
+```
+
+Restart/replay recovery matrix:
+
+```bash
+.venv/bin/python -m pytest tests/recovery -q
+```
+
+Result:
+
+```text
+13 passed
+```
+
+Runtime/recovery regression group:
+
+```bash
+.venv/bin/python -m pytest \
+  tests/ml/test_runtime_evidence_store.py \
+  tests/ml/test_paper_lifecycle_e2e.py \
+  tests/test_execution_reservation_concurrency.py \
+  tests/test_reservation.py -q
+```
+
+Result:
+
+```text
+32 passed
 ```
 
 ## Warning Summary

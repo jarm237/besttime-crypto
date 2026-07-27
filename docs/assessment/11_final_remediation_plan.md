@@ -10,10 +10,10 @@ This file points to the consolidated remediation plan for the initial assessment
 
 ```text
 Wave 1: test environment, compile blocker, prediction contract, execution dispatch, test artifact isolation - DONE
-Wave 2: ML runtime restart/replay matrix and shadow evidence
+Wave 2: ML runtime restart/replay matrix - DONE for baseline persisted recovery
 Wave 3: feature and collector point-in-time/replay evidence
 Wave 4: production/paper data-log lifecycle taxonomy beyond pytest isolation
-Wave 5: UI/Telegram operations
+Wave 5: live exchange recovery drills and UI/Telegram operations
 Wave 6: classify agents/causal/RL as research or gated production contributors
 ```
 

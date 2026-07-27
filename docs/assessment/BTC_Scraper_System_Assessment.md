@@ -12,11 +12,12 @@ The repository already contains several production-shaped controls: fail-closed 
 
 The main blockers are not absence of safety concepts. The first remediation wave has removed the immediate test/compile/contract/dispatch blockers; remaining risk is concentrated in operational proof depth and state lifecycle:
 
-- Full local test baseline now passes with `.venv/bin/python -m pytest`: `713 passed, 118 warnings, 5 subtests passed`.
+- Full local test baseline now passes with `.venv/bin/python -m pytest`: `726 passed, 118 warnings, 5 subtests passed`.
 - Full compile now passes with `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts`.
 - `prediction_created` now requires production lineage fields including `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
 - Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until E2E child-order recovery tests exist.
 - Test runtime artifacts are now isolated under `/tmp/btc-scraper-tests/<run-id>/` with environment metadata and a pytest guard that blocks repo runtime-root mutation.
+- Restart/replay recovery tests now cover the baseline crash-boundary matrix from persisted prediction through outcome revision conflict and repeated multi-restart replay.
 - Persistent production/paper data lifecycle is still broad across `data/`, `logs/`, `btc_scraper/data`, `btc_scraper/logs`, `models/`, and `checkpoints_gpu`, and needs a full taxonomy for raw/processed/runtime/paper/backtest/model/quarantine state.
 - There are many broad `except Exception` fallback paths; some are intentional resilience, but they need classification into fail-closed, degrade, quarantine, or continue.
 

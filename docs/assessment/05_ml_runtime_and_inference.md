@@ -1,6 +1,6 @@
 # 05 ML Runtime And Inference
 
-Status: paper-ready candidate with contract gaps.
+Status: paper-ready with baseline recovery evidence.
 
 ## Positive Findings
 
@@ -10,12 +10,13 @@ Status: paper-ready candidate with contract gaps.
 - `decision_engine` persists final decisions when a prediction exists.
 - `position_tracker` appends outcome links for model-linked positions.
 - Shadow validation and runtime outcome linkage modules exist.
+- `tests/recovery/` now proves persisted restart/replay boundaries from prediction through outcome revision conflicts.
 
 ## Gaps
 
-- Need proof that every production runtime cycle has at most one production prediction and exactly one final decision when actionable.
-- Need broader restart/replay scenario coverage beyond the current passing lifecycle tests.
+- Need production-cycle evidence that every live runtime cycle has at most one production prediction and exactly one final decision when actionable.
+- Need live exchange outage drill evidence beyond the local persisted recovery matrix.
 
 ## Classification
 
-`PAPER_READY`, blocked from production until restart/replay and live evidence gaps close.
+`PAPER_READY`, blocked from production until live exchange recovery and operational evidence gaps close.

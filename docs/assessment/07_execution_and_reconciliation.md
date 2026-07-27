@@ -1,6 +1,6 @@
 # 07 Execution And Reconciliation
 
-Status: requires remediation.
+Status: paper-ready with baseline recovery evidence.
 
 ## Positive Findings
 
@@ -11,13 +11,13 @@ Status: requires remediation.
 - Paper path simulates spread/slippage and supports partial fill/recovery simulations.
 - Live selected LIMIT orders now dispatch through limit adapter methods instead of being silently converted to market orders.
 - Live selected TWAP orders now reject fail-closed until live child-order dispatch and recovery tests exist.
+- Baseline recovery coordinator tests cover persisted reservation replay, ambiguous submit quarantine/attach, partial fill replay, and fill-to-position idempotency.
 
 ## Gaps
 
 - Live liquidity currently uses candle-derived liquidity snapshots, which must be labeled approximation unless order book data is used.
-- Need explicit quarantine behavior for ambiguous exchange submit timeout and partial fill reconciliation.
-- Need expanded E2E restart/replay matrix for live-style recovery scenarios.
+- Need live exchange outage drills for submit timeout, rate limits, child-order reconciliation, and operator quarantine workflow.
 
 ## Classification
 
-`PAPER_READY`, with live trading still blocked until recovery evidence and live liquidity proof are complete.
+`PAPER_READY`, with live trading still blocked until live exchange drill evidence and live liquidity proof are complete.

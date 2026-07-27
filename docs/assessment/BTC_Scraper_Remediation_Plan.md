@@ -17,7 +17,7 @@ Immediate P0 acceptance gate for future live work:
 1. Restore test environment.
    - Status: `DONE`.
    - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements.txt` or `requirements-lock.txt`.
-   - Evidence: `.venv/bin/python -m pytest` passes with `713 passed, 118 warnings, 5 subtests passed`.
+   - Evidence: `.venv/bin/python -m pytest` passes with `726 passed, 118 warnings, 5 subtests passed`.
 
 2. Fix script compile blocker.
    - Status: `DONE`.
@@ -43,10 +43,12 @@ Immediate P0 acceptance gate for future live work:
    - Writable runtime roots are redirected by pytest to `/tmp/btc-scraper-tests/<run-id>/`.
    - Required test metadata is attached to runtime evidence where supported: `environment=test`, `evidence_eligible=false`, `paper_run_id=<run-id>`.
    - Acceptance: full pytest passes with an artifact guard that fails if repo runtime roots are modified.
-   - Evidence: `.venv/bin/python -m pytest` passes with `713 passed, 118 warnings, 5 subtests passed` and no runtime artifact isolation violations.
+   - Evidence: `.venv/bin/python -m pytest` passes with `726 passed, 118 warnings, 5 subtests passed` and no runtime artifact isolation violations.
 
 6. Prove restart/replay idempotency.
+   - Status: `DONE` for baseline recovery matrix.
    - Acceptance: scenarios after prediction, decision, reservation, fill, and close are replayed without duplicate orders or conflicting outcomes.
+   - Evidence: `tests/recovery/` passes with 13 tests covering persisted restart/replay boundaries and multi-restart idempotency.
 
 ## P2 - Quality / Observability
 
@@ -82,9 +84,9 @@ Immediate P0 acceptance gate for future live work:
 ## Execution Order
 
 ```text
-1. Runtime/replay evidence expansion
-2. Feature point-in-time fixtures
-3. Collector fixtures and stale handling
+1. Feature point-in-time fixtures
+2. Collector fixtures and stale handling
+3. Failure taxonomy for broad fallback paths
 4. Broader data/log lifecycle taxonomy beyond test isolation
 5. UI/Telegram operational hardening
 ```

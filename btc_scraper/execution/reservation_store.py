@@ -219,6 +219,39 @@ class ReservationStore:
                 )
             return self.get_reservation(reservation_id)
 
+    def attach_order(
+        self,
+        reservation_id: str,
+        *,
+        client_order_id: Optional[str] = None,
+        exchange_order_id: Optional[str] = None,
+    ) -> Optional[ReservationRecord]:
+        """Attach known exchange/client order IDs without marking fill committed."""
+        with self._lock:
+            current = self.get_reservation(reservation_id)
+            if current is None:
+                return None
+            desired_client_order_id = client_order_id or current.client_order_id
+            desired_exchange_order_id = exchange_order_id or current.exchange_order_id
+            if (
+                desired_client_order_id == current.client_order_id
+                and desired_exchange_order_id == current.exchange_order_id
+            ):
+                return current
+            now = datetime.now(timezone.utc).isoformat()
+            with self._get_conn() as conn:
+                conn.execute(
+                    """
+                    UPDATE reservations
+                    SET exchange_order_id = COALESCE(?, exchange_order_id),
+                        client_order_id = COALESCE(?, client_order_id),
+                        updated_at = ?
+                    WHERE reservation_id = ?
+                    """,
+                    (exchange_order_id, client_order_id, now, reservation_id),
+                )
+            return self.get_reservation(reservation_id)
+
     def release(self, reservation_id: str) -> Optional[ReservationRecord]:
         """Release the reservation if the order was rejected or failed."""
         with self._lock:
@@ -268,6 +301,24 @@ class ReservationStore:
                 if row:
                     return self._row_to_record(row)
         return None
+
+    def get_by_idempotency_key(self, idempotency_key: str) -> Optional[ReservationRecord]:
+        with self._lock:
+            with self._get_conn() as conn:
+                row = conn.execute(
+                    "SELECT * FROM reservations WHERE idempotency_key = ?",
+                    (idempotency_key,),
+                ).fetchone()
+        return self._row_to_record(row) if row else None
+
+    def get_by_entry_decision_id(self, entry_decision_id: str) -> Optional[ReservationRecord]:
+        with self._lock:
+            with self._get_conn() as conn:
+                row = conn.execute(
+                    "SELECT * FROM reservations WHERE entry_decision_id = ? ORDER BY created_at LIMIT 1",
+                    (entry_decision_id,),
+                ).fetchone()
+        return self._row_to_record(row) if row else None
 
     def get_active_notional_and_slots(self, exclude_reservation_id: Optional[str] = None) -> Tuple[float, int]:
         """Get the total reserved notional and position slots for active

@@ -189,6 +189,13 @@ class RuntimeEvidenceStore:
                 existing = db.execute("SELECT payload_sha256 FROM outcome_links WHERE outcome_id=?", (outcome_id,)).fetchone()
                 if existing and existing[0] != digest:
                     raise ValueError("non-idempotent duplicate outcome link")
+                latest_revision = db.execute(
+                    "SELECT MAX(CAST(json_extract(payload, '$.outcome_revision') AS INTEGER)) "
+                    "FROM outcome_links WHERE json_extract(payload, '$.position_id')=?",
+                    (position_id,),
+                ).fetchone()[0]
+                if latest_revision is not None and int(latest_revision) > outcome_revision:
+                    raise ValueError("stale lower outcome revision")
                 logical_duplicate = db.execute(
                     "SELECT outcome_id, payload_sha256 FROM outcome_links "
                     "WHERE json_extract(payload, '$.position_id')=? "
@@ -202,9 +209,33 @@ class RuntimeEvidenceStore:
                     (outcome_id, prediction_id, payload, digest, datetime.now(timezone.utc).isoformat()),
                 )
         except ValueError as exc:
-            if "non-idempotent" in str(exc) or "conflicting outcome" in str(exc):
+            if "non-idempotent" in str(exc) or "conflicting outcome" in str(exc) or "stale lower" in str(exc):
                 self._record_incident("duplicate_conflicting_payload", "outcome_links", outcome_id, str(exc))
             raise
+
+    def get_prediction(self, prediction_id: str) -> dict[str, Any] | None:
+        with self._connect() as db:
+            row = db.execute("SELECT payload FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def get_feature_snapshot(self, prediction_id: str) -> dict[str, Any] | None:
+        with self._connect() as db:
+            row = db.execute("SELECT payload FROM feature_snapshots WHERE prediction_id=?", (prediction_id,)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def get_final_decision_for_prediction(self, prediction_id: str) -> dict[str, Any] | None:
+        with self._connect() as db:
+            row = db.execute("SELECT payload FROM final_decisions WHERE prediction_id=?", (prediction_id,)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def count_rows(self, table_name: str) -> int:
+        if table_name not in {"predictions", "feature_snapshots", "final_decisions", "outcome_links", "audit_events", "evidence_quarantine"}:
+            raise ValueError(f"unsupported table: {table_name}")
+        with self._connect() as db:
+            return int(db.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0])
+
+    def quarantine_record(self, table_name: str, record_id: str, reason: str) -> None:
+        self._record_incident(reason, table_name, record_id, reason)
 
     def _record_incident(self, incident_type: str, table_name: str, record_id: str, details: str) -> None:
         with self.transaction() as db:
