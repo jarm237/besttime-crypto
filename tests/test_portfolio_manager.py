@@ -100,3 +100,30 @@ def test_portfolio_manager_allocate_weights():
     assert "ETH" in alloc_3
     assert alloc_3["BTC"] <= 0.30
     assert alloc_3["ETH"] <= 0.30
+
+
+def test_portfolio_manager_handles_none_runtime_fields():
+    pm = portfolio_manager.PortfolioManager(method="MVO", max_weight=0.30)
+    signals = [
+        {"coin": "BTC", "action": "BUY", "kelly_fraction": None, "close": None, "atr": None, "meta_confidence": None},
+        {"coin": "ETH", "action": "SELL", "kelly_fraction": 0.20, "close": 3000.0, "atr": 90.0, "meta_confidence": 0.70},
+    ]
+    candles_dict = {
+        "BTC": [{"close": None}, {"close": 50000.0}, {"close": 50100.0}],
+        "ETH": [{"close": 3000.0}, {"close": None}, {"close": 2990.0}],
+    }
+
+    allocation = pm.allocate_weights(signals, candles_dict)
+
+    assert set(allocation) == {"BTC", "ETH"}
+    assert 0.0 <= allocation["BTC"] <= 0.30
+    assert 0.0 <= allocation["ETH"] <= 0.30
+
+
+def test_single_signal_with_none_kelly_uses_safe_default():
+    pm = portfolio_manager.PortfolioManager(method="MVO", max_weight=0.30)
+    allocation = pm.allocate_weights(
+        [{"coin": "BTC", "action": "BUY", "kelly_fraction": None}],
+        {},
+    )
+    assert allocation == {"BTC": 0.25}

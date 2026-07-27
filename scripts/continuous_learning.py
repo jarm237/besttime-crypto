@@ -15,7 +15,7 @@ FIXES:
 - generate_labeled_trades() đã fix leakage trong train_april_model.py.
 """
 
-import sys, os, time, csv, requests, json
+import sys, os, time, csv, requests, json, hashlib
 from datetime import datetime, timedelta, timezone
 import numpy as np
 
@@ -42,6 +42,8 @@ INTERVALS = {
 DATA_DIR     = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 LOGS_DIR     = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
 MODEL_PATH   = os.path.join(LOGS_DIR, "adaptive_model.joblib")
+METADATA_PATH = os.path.join(LOGS_DIR, "adaptive_model.metadata.json")
+ADAPTIVE_SCHEMA_VERSION = "adaptive-rf-v2"
 BINANCE_BASE = "https://api.binance.com"
 
 TRAIN_RATIO = 0.70
@@ -130,6 +132,54 @@ def should_promote_model(
         reasons.append("cv_holdout_gap_too_large")
 
     return len(reasons) == 0, reasons
+
+
+def _sha256_file(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _write_json_atomic(path: str, payload: dict) -> None:
+    tmp_path = f"{path}.{os.getpid()}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp_path, path)
+
+
+def _build_adaptive_metadata(
+    *,
+    version: str,
+    digest: str,
+    selected_features: list[str],
+    n_samples: int,
+    cv_auc: float,
+    holdout_auc: float | None,
+    calibration_method: str,
+    calibration_error: str,
+) -> dict:
+    return {
+        "model_name": "adaptive_rf",
+        "model_version": version,
+        "artifact_sha256": digest,
+        "trained_at": datetime.now(timezone.utc).isoformat(),
+        "training_dataset_id": "continuous_learning_30d",
+        "feature_schema_version": ADAPTIVE_SCHEMA_VERSION,
+        "feature_count": len(selected_features),
+        "features": selected_features,
+        "n_samples": n_samples,
+        "cv_auc": cv_auc,
+        "holdout_auc": holdout_auc,
+        "calibration_method": calibration_method,
+        "calibration_error": calibration_error,
+        "status": "production",
+        "runtime_contract": "sklearn-joblib-v1",
+    }
 
 
 
@@ -379,11 +429,45 @@ def run_continuous_learning():
     )
 
     if promote:
-        # Save to production
-        joblib.dump({"model": best_model, "features": selected_features}, MODEL_PATH)
-        msg_lines.append(f"\n✅ Đã lưu đè mô hình PRODUCTION thành công.")
-        msg_lines.append(f"Schema: Đã chọn {len(selected_features)}/{len(feature_names)} features")
-    else:
+        try:
+            from btc_scraper.ml_engine.artifact_resolver import ROOT
+            from btc_scraper.ml_engine.model_registry import ModelRegistry
+
+            registry = ModelRegistry()
+            registry.assert_production_registration_allowed()
+            version = datetime.now(timezone.utc).strftime("%Y.%m.%d.%H%M%S")
+            tmp_model_path = f"{MODEL_PATH}.{os.getpid()}.tmp"
+            joblib.dump({"model": best_model, "features": selected_features}, tmp_model_path)
+            os.replace(tmp_model_path, MODEL_PATH)
+            digest = _sha256_file(MODEL_PATH)
+            metadata = _build_adaptive_metadata(
+                version=version,
+                digest=digest,
+                selected_features=selected_features,
+                n_samples=len(y),
+                cv_auc=cv_auc,
+                holdout_auc=holdout_auc,
+                calibration_method=best_method,
+                calibration_error=calib_error_display,
+            )
+            _write_json_atomic(METADATA_PATH, metadata)
+            registry.register({
+                "model_name": "adaptive_rf",
+                "version": version,
+                "status": "production",
+                "artifact_path": str(os.path.relpath(MODEL_PATH, ROOT)),
+                "sha256": digest,
+                "schema_version": ADAPTIVE_SCHEMA_VERSION,
+                "metrics": metadata,
+            })
+            msg_lines.append(f"\n✅ Đã lưu đè mô hình PRODUCTION thành công.")
+            msg_lines.append(f"Schema: Đã chọn {len(selected_features)}/{len(feature_names)} features")
+            msg_lines.append(f"Artifact SHA-256: <code>{digest[:12]}</code>")
+        except Exception as exc:
+            promote = False
+            reasons.append(f"registry_governance_blocked:{exc}")
+
+    if not promote:
         # Save to challenger
         challenger_dir = os.path.join(LOGS_DIR, "challenger")
         os.makedirs(challenger_dir, exist_ok=True)

@@ -7,6 +7,17 @@ import pandas as pd
 from scipy.optimize import minimize
 from typing import Literal
 
+
+def _safe_float(value, default: float) -> float:
+    try:
+        if value is None:
+            return default
+        result = float(value)
+        return result if np.isfinite(result) else default
+    except (TypeError, ValueError):
+        return default
+
+
 def compute_returns_df(candles_dict: dict[str, list[dict]], limit: int = 100) -> pd.DataFrame:
     """
     Tính toán DataFrame tỷ suất lợi nhuận (returns) từ danh sách nến của các coin.
@@ -16,7 +27,13 @@ def compute_returns_df(candles_dict: dict[str, list[dict]], limit: int = 100) ->
         if not candles or len(candles) < 2 or "error" in candles[0]:
             continue
         # Lấy giá đóng cửa của 'limit' nến gần nhất
-        closes = [float(c["close"]) for c in candles[-limit:]]
+        closes = [
+            close
+            for close in (_safe_float(c.get("close"), np.nan) for c in candles[-limit:])
+            if np.isfinite(close) and close > 0
+        ]
+        if len(closes) < 2:
+            continue
         # Tính tỷ suất lợi nhuận
         rets = np.diff(closes) / closes[:-1]
         returns_data[coin] = rets
@@ -140,7 +157,7 @@ class PortfolioManager:
             # Fallback nếu chỉ có 1 tín hiệu: sử dụng max_weight hoặc tỷ lệ Kelly mặc định
             coin = active_signals[0]["coin"]
             # Lấy kelly_fraction làm điểm xuất phát, giới hạn bởi max_weight
-            kelly = active_signals[0].get("kelly_fraction", 0.25)
+            kelly = _safe_float(active_signals[0].get("kelly_fraction"), 0.25)
             return {coin: min(self.max_weight, float(kelly))}
 
         active_coins = [s["coin"] for s in active_signals]
@@ -157,20 +174,23 @@ class PortfolioManager:
         df_active = returns_df[active_coins]
         
         # Tính covariance matrix, nhân với 1e4 để tránh số quá nhỏ ảnh hưởng tới solver
-        cov_matrix = df_active.cov().values * 1e4
+        if len(df_active) < 2:
+            cov_matrix = np.zeros((len(active_coins), len(active_coins)))
+        else:
+            cov_matrix = np.nan_to_num(df_active.cov().values * 1e4, nan=0.0, posinf=0.0, neginf=0.0)
         # Add small regularization to diagonal to ensure positive-definiteness
         cov_matrix += np.eye(len(active_coins)) * 1e-6
 
         # 2. Xây dựng vector expected returns dựa trên model confidence & volatility (ATR)
         expected_returns = []
         for s in active_signals:
-            meta_prob = float(s.get("meta_confidence", 0.5))
+            meta_prob = _safe_float(s.get("meta_confidence"), 0.5)
             # net probability advantage
             prob_factor = 2.0 * meta_prob - 1.0
             
             # Ước lượng expected move dựa trên ATR%
-            close = float(s.get("close", 1.0))
-            atr = float(s.get("atr", 0.0))
+            close = _safe_float(s.get("close"), 1.0)
+            atr = _safe_float(s.get("atr"), 0.0)
             atr_pct = (atr / close * 100) if close > 0 else 0.0
             
             # Expected return = Net advantage * ATR%

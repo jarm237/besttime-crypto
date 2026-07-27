@@ -91,6 +91,10 @@ class ModelRegistry:
         if health.get("status") != "healthy":
             raise RegistryConflictError("promotion_blocked_by_runtime_evidence_health")
 
+    def assert_production_registration_allowed(self) -> None:
+        self._assert_promotion_unfrozen()
+        self._assert_runtime_evidence_healthy()
+
     def register(self, record: dict[str, Any]) -> dict[str, Any]:
         name, version, status = record.get("model_name"), record.get("version"), record.get("status", "candidate")
         if not name or not version or status not in VALID_STATUSES:
@@ -105,8 +109,7 @@ class ModelRegistry:
             result.setdefault("sha256", sha256_file(artifact))
         result.setdefault("registered_at", datetime.now(timezone.utc).isoformat())
         if status == "production":
-            self._assert_promotion_unfrozen()
-            self._assert_runtime_evidence_healthy()
+            self.assert_production_registration_allowed()
         with self._locked(exclusive=True):
             data = self._read()
             if any(r.get("model_name") == name and r.get("version") == version for r in data["records"]):
