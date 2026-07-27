@@ -22,6 +22,11 @@ def rl_exit_mode() -> str:
     return mode if mode in VALID_MODES else "shadow"
 
 
+def rl_exit_allows_shadow_artifact() -> bool:
+    legacy_shadow_flag = os.getenv("RL_EXIT_SHADOW_MODE", "false").strip().lower() in {"1", "true", "yes", "on"}
+    return legacy_shadow_flag or rl_exit_mode() in {"shadow", "advisory"}
+
+
 def guard_rl_action(action: int | None, *, meta_probability: float | None = None, mode: str | None = None) -> GuardedRLAction:
     selected_mode = mode or rl_exit_mode()
     if action not in ACTION_LABELS:

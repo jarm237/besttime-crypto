@@ -247,7 +247,8 @@ class RLExitAgent(BaseAgent):
         try:
             from sb3_contrib import RecurrentPPO
             from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
-            allowed = ("production", "shadow") if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true" else ("production",)
+            from btc_scraper.trading.rl_action_guard import rl_exit_allows_shadow_artifact
+            allowed = ("production", "shadow") if rl_exit_allows_shadow_artifact() else ("production",)
             loaded = get_governed_artifact_loader().load_production(
                 "rl_exit", "rl-exit-obs-v2", allowed_statuses=allowed, model_class=RecurrentPPO,
             )

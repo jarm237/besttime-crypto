@@ -1,8 +1,23 @@
 from btc_scraper.ml_engine.model_registry import ModelRegistry
+from btc_scraper.ml_engine.model_registry import default_registry_path
 from btc_scraper.ml_engine.model_registry import RegistryConflictError
 from btc_scraper.ml_engine.artifact_resolver import sha256_file
 from concurrent.futures import ThreadPoolExecutor
 import pytest
+
+
+def test_default_registry_path_is_canonical_and_not_runtime_scoped(tmp_path, monkeypatch):
+    monkeypatch.setattr("btc_scraper.ml_engine.model_registry.ROOT", tmp_path)
+    monkeypatch.setenv("BTC_RUNTIME_ROOT", str(tmp_path / "runtime" / "paper" / "local-paper"))
+    monkeypatch.delenv("BTC_MODEL_REGISTRY_PATH", raising=False)
+    assert default_registry_path() == tmp_path / "logs" / "model_registry.json"
+    assert ModelRegistry().path == tmp_path / "logs" / "model_registry.json"
+
+
+def test_default_registry_path_allows_explicit_override(tmp_path, monkeypatch):
+    monkeypatch.setattr("btc_scraper.ml_engine.model_registry.ROOT", tmp_path)
+    monkeypatch.setenv("BTC_MODEL_REGISTRY_PATH", "state/custom_registry.json")
+    assert default_registry_path() == tmp_path / "state" / "custom_registry.json"
 
 
 def test_registry_promotes_one_version_and_allows_rollback(tmp_path, monkeypatch):

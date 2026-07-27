@@ -1,0 +1,23 @@
+[
+  {
+    "checked_at": "2026-07-27T08:01:57.003754+00:00",
+    "payload_timestamp": "2026-07-27T08:01:46.070490+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T08:02:07.851874+00:00",
+    "payload_timestamp": "2026-07-27T08:01:59.961519+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T08:02:10.306349+00:00",
+    "payload_timestamp": "2026-07-27T08:01:59.961519+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  }
+]

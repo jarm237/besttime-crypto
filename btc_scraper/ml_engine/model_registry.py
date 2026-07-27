@@ -11,9 +11,8 @@ from pathlib import Path
 from typing import Any
 
 from .artifact_resolver import ROOT, sha256_file
-from btc_scraper.core.paths import build_logs_path, get_runtime_paths
+from btc_scraper.core.paths import get_runtime_paths
 
-REGISTRY_PATH = build_logs_path("model_registry.json")
 VALID_STATUSES = {"candidate", "shadow", "production", "archive", "rejected", "disabled"}
 
 
@@ -21,9 +20,17 @@ class RegistryConflictError(RuntimeError):
     pass
 
 
+def default_registry_path() -> Path:
+    raw = os.getenv("BTC_MODEL_REGISTRY_PATH")
+    if raw:
+        path = Path(raw).expanduser()
+        return path if path.is_absolute() else ROOT / path
+    return ROOT / "logs" / "model_registry.json"
+
+
 class ModelRegistry:
-    def __init__(self, path: Path | str = REGISTRY_PATH, promotion_guard_path: Path | str | None = None) -> None:
-        self.path = Path(path)
+    def __init__(self, path: Path | str | None = None, promotion_guard_path: Path | str | None = None) -> None:
+        self.path = Path(path) if path is not None else default_registry_path()
         self.lock_path = self.path.with_suffix(self.path.suffix + ".lock")
         self.promotion_guard_path = Path(promotion_guard_path) if promotion_guard_path is not None else ROOT / "config" / "ml_engine_readiness.json"
 

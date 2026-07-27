@@ -288,12 +288,13 @@ def get_ppo_model(device: str = "auto"):
         try:
             from sb3_contrib import RecurrentPPO
             from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
+            from btc_scraper.trading.rl_action_guard import rl_exit_allows_shadow_artifact
             if device == "auto":
                 device = _get_default_device()
             elif device == "cuda" and not torch.cuda.is_available():
                 print("[RL Exit Agent] CUDA requested but not available. Falling back to CPU.")
                 device = "cpu"
-            allowed = ("production", "shadow") if os.getenv("RL_EXIT_SHADOW_MODE", "false").lower() == "true" else ("production",)
+            allowed = ("production", "shadow") if rl_exit_allows_shadow_artifact() else ("production",)
             loaded = get_governed_artifact_loader().load_production(
                 "rl_exit", "rl-exit-obs-v2", allowed_statuses=allowed,
                 model_class=RecurrentPPO, device=device,
