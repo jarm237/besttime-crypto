@@ -509,5 +509,610 @@
     "is_healthy": true,
     "issue_count": 0,
     "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T15:46:34.208903+00:00",
+    "payload_timestamp": "2026-07-27T15:46:23.444713+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T15:46:44.265246+00:00",
+    "payload_timestamp": "2026-07-27T15:46:36.711340+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T15:46:53.404995+00:00",
+    "payload_timestamp": "2026-07-27T15:46:36.711340+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:01:14.470021+00:00",
+    "payload_timestamp": "2026-07-27T15:46:36.711340+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:01:56.986417+00:00",
+    "payload_timestamp": "2026-07-27T16:01:47.086251+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:16:12.420887+00:00",
+    "payload_timestamp": "2026-07-27T16:01:47.086251+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:17:10.755383+00:00",
+    "payload_timestamp": "2026-07-27T16:16:59.859028+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:31:12.439472+00:00",
+    "payload_timestamp": "2026-07-27T16:16:59.859028+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:32:23.112312+00:00",
+    "payload_timestamp": "2026-07-27T16:32:13.930198+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:46:11.417002+00:00",
+    "payload_timestamp": "2026-07-27T16:32:13.930198+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T16:47:35.609245+00:00",
+    "payload_timestamp": "2026-07-27T16:47:25.986925+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:01:13.530016+00:00",
+    "payload_timestamp": "2026-07-27T16:47:25.986925+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:02:49.077163+00:00",
+    "payload_timestamp": "2026-07-27T17:02:38.586981+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:16:13.303043+00:00",
+    "payload_timestamp": "2026-07-27T17:02:38.586981+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:18:00.436199+00:00",
+    "payload_timestamp": "2026-07-27T17:17:51.870989+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:31:11.461525+00:00",
+    "payload_timestamp": "2026-07-27T17:17:51.870989+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:33:13.122482+00:00",
+    "payload_timestamp": "2026-07-27T17:33:03.299808+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:46:09.300029+00:00",
+    "payload_timestamp": "2026-07-27T17:33:03.299808+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T17:48:27.458306+00:00",
+    "payload_timestamp": "2026-07-27T17:48:16.005339+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:01:10.015629+00:00",
+    "payload_timestamp": "2026-07-27T17:48:16.005339+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:03:41.263237+00:00",
+    "payload_timestamp": "2026-07-27T18:03:30.488310+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:16:10.832707+00:00",
+    "payload_timestamp": "2026-07-27T18:03:30.488310+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:18:54.267187+00:00",
+    "payload_timestamp": "2026-07-27T18:18:44.162362+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:31:08.989036+00:00",
+    "payload_timestamp": "2026-07-27T18:18:44.162362+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:34:05.956582+00:00",
+    "payload_timestamp": "2026-07-27T18:33:57.202334+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:46:09.099959+00:00",
+    "payload_timestamp": "2026-07-27T18:33:57.202334+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T18:49:18.753947+00:00",
+    "payload_timestamp": "2026-07-27T18:49:08.879935+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:01:10.016901+00:00",
+    "payload_timestamp": "2026-07-27T18:49:08.879935+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:04:31.964143+00:00",
+    "payload_timestamp": "2026-07-27T19:04:21.688578+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:16:08.183439+00:00",
+    "payload_timestamp": "2026-07-27T19:04:21.688578+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:19:44.475292+00:00",
+    "payload_timestamp": "2026-07-27T19:19:34.907822+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:31:08.183779+00:00",
+    "payload_timestamp": "2026-07-27T19:19:34.907822+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:34:59.313920+00:00",
+    "payload_timestamp": "2026-07-27T19:34:47.506464+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:46:08.046228+00:00",
+    "payload_timestamp": "2026-07-27T19:34:47.506464+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T19:50:12.584718+00:00",
+    "payload_timestamp": "2026-07-27T19:50:02.245849+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:01:10.478142+00:00",
+    "payload_timestamp": "2026-07-27T19:50:02.245849+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:05:25.457196+00:00",
+    "payload_timestamp": "2026-07-27T20:05:15.604673+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:16:10.994869+00:00",
+    "payload_timestamp": "2026-07-27T20:05:15.604673+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:20:38.185704+00:00",
+    "payload_timestamp": "2026-07-27T20:20:28.503696+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:31:09.685762+00:00",
+    "payload_timestamp": "2026-07-27T20:20:28.503696+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:35:50.188709+00:00",
+    "payload_timestamp": "2026-07-27T20:35:41.098984+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:46:08.155677+00:00",
+    "payload_timestamp": "2026-07-27T20:35:41.098984+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T20:51:01.629965+00:00",
+    "payload_timestamp": "2026-07-27T20:50:53.212211+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:01:09.274717+00:00",
+    "payload_timestamp": "2026-07-27T20:50:53.212211+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:06:13.275615+00:00",
+    "payload_timestamp": "2026-07-27T21:06:04.552885+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:16:08.238035+00:00",
+    "payload_timestamp": "2026-07-27T21:06:04.552885+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:21:24.239652+00:00",
+    "payload_timestamp": "2026-07-27T21:21:16.180232+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:31:08.204992+00:00",
+    "payload_timestamp": "2026-07-27T21:21:16.180232+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:36:35.581933+00:00",
+    "payload_timestamp": "2026-07-27T21:36:27.463010+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:46:07.992632+00:00",
+    "payload_timestamp": "2026-07-27T21:36:27.463010+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T21:51:47.256307+00:00",
+    "payload_timestamp": "2026-07-27T21:51:38.614778+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:01:09.904908+00:00",
+    "payload_timestamp": "2026-07-27T21:51:38.614778+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:06:57.793940+00:00",
+    "payload_timestamp": "2026-07-27T22:06:50.182333+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:16:11.055522+00:00",
+    "payload_timestamp": "2026-07-27T22:06:50.182333+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:22:10.292866+00:00",
+    "payload_timestamp": "2026-07-27T22:22:00.732634+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:31:11.257699+00:00",
+    "payload_timestamp": "2026-07-27T22:22:00.732634+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:37:21.253114+00:00",
+    "payload_timestamp": "2026-07-27T22:37:13.228944+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:46:10.242621+00:00",
+    "payload_timestamp": "2026-07-27T22:37:13.228944+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T22:52:32.613827+00:00",
+    "payload_timestamp": "2026-07-27T22:52:24.278101+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:01:10.343540+00:00",
+    "payload_timestamp": "2026-07-27T22:52:24.278101+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:07:44.702299+00:00",
+    "payload_timestamp": "2026-07-27T23:07:35.640880+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:16:09.421923+00:00",
+    "payload_timestamp": "2026-07-27T23:07:35.640880+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:22:56.205749+00:00",
+    "payload_timestamp": "2026-07-27T23:22:47.738182+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:31:10.754979+00:00",
+    "payload_timestamp": "2026-07-27T23:22:47.738182+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:38:08.348672+00:00",
+    "payload_timestamp": "2026-07-27T23:37:59.202022+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:46:07.901662+00:00",
+    "payload_timestamp": "2026-07-27T23:37:59.202022+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-27T23:53:19.382660+00:00",
+    "payload_timestamp": "2026-07-27T23:53:11.282359+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T00:01:09.900122+00:00",
+    "payload_timestamp": "2026-07-27T23:53:11.282359+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T00:08:32.995006+00:00",
+    "payload_timestamp": "2026-07-28T00:08:22.316349+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T00:16:09.105178+00:00",
+    "payload_timestamp": "2026-07-28T00:08:22.316349+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T00:23:45.335134+00:00",
+    "payload_timestamp": "2026-07-28T00:23:35.937721+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T00:56:44.353715+00:00",
+    "payload_timestamp": "2026-07-28T00:23:35.937721+00:00",
+    "is_healthy": false,
+    "issue_count": 1,
+    "issues": [
+      {
+        "field": "timestamp",
+        "issue_type": "stale",
+        "detail": "Payload is 1988s old (max 900s)."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-28T00:56:55.099714+00:00",
+    "payload_timestamp": "2026-07-28T00:23:35.937721+00:00",
+    "is_healthy": false,
+    "issue_count": 1,
+    "issues": [
+      {
+        "field": "timestamp",
+        "issue_type": "stale",
+        "detail": "Payload is 1999s old (max 900s)."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-28T00:57:07.398716+00:00",
+    "payload_timestamp": "2026-07-28T00:23:35.937721+00:00",
+    "is_healthy": false,
+    "issue_count": 1,
+    "issues": [
+      {
+        "field": "timestamp",
+        "issue_type": "stale",
+        "detail": "Payload is 2011s old (max 900s)."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-28T01:01:09.473780+00:00",
+    "payload_timestamp": "2026-07-28T00:23:35.937721+00:00",
+    "is_healthy": false,
+    "issue_count": 1,
+    "issues": [
+      {
+        "field": "timestamp",
+        "issue_type": "stale",
+        "detail": "Payload is 2254s old (max 900s)."
+      }
+    ]
+  },
+  {
+    "checked_at": "2026-07-28T01:07:25.092681+00:00",
+    "payload_timestamp": "2026-07-28T01:07:14.064842+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T01:16:09.229970+00:00",
+    "payload_timestamp": "2026-07-28T01:07:14.064842+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T01:22:39.461983+00:00",
+    "payload_timestamp": "2026-07-28T01:22:29.174911+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T01:31:11.013145+00:00",
+    "payload_timestamp": "2026-07-28T01:22:29.174911+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T01:37:56.278676+00:00",
+    "payload_timestamp": "2026-07-28T01:37:43.671105+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T01:46:09.764876+00:00",
+    "payload_timestamp": "2026-07-28T01:37:43.671105+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T01:53:11.960904+00:00",
+    "payload_timestamp": "2026-07-28T01:53:00.172265+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-28T02:01:09.797838+00:00",
+    "payload_timestamp": "2026-07-28T01:53:00.172265+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
   }
 ]

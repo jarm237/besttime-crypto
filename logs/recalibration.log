@@ -78,3 +78,5 @@
 2026-07-25T19:00:19.208270 - Auto-commit succeeded for /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260725T190009Z.joblib
 2026-07-26T19:00:11.165195 - Recalibration run saved: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260726T190011Z.json best=sigmoid error=7.0
 2026-07-26T19:00:16.507641 - Auto-commit succeeded for /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260726T190008Z.joblib
+2026-07-27T19:00:14.016990 - Recalibration run saved: /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/recalibration_20260727T190014Z.json best=sigmoid error=7.0
+2026-07-27T19:00:19.332645 - Auto-commit succeeded for /home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260727T190011Z.joblib
