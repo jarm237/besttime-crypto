@@ -38,10 +38,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from btc_scraper.collectors.parsebot_key_rotation import (
+    ParsebotCredential,
     ParsebotKeyManager,
     get_parsebot_key_manager,
     is_parsebot_key_exhaustion_error,
     load_parsebot_api_keys,
+    load_parsebot_credentials,
 )
 from btc_scraper.core.paths import build_logs_path
 
@@ -401,16 +403,21 @@ class ParsebotFarsideETFCollector:
     def __init__(self, api_keys: list[str] | None = None) -> None:
         self.enabled = os.getenv("PARSEBOT_ENABLED", "false").strip().lower() == "true"
         self.base_url = (os.getenv("PARSEBOT_BASE_URL") or "").strip().rstrip("/")
-        self.api_keys = (
-            list(dict.fromkeys(key.strip() for key in api_keys if key.strip()))
-            if api_keys is not None
-            else load_parsebot_api_keys()
-        )
+        if api_keys is not None:
+            self.api_keys = list(dict.fromkeys(key.strip() for key in api_keys if key.strip()))
+            self.credentials = [
+                ParsebotCredential(api_key=api_key, base_url=self.base_url)
+                for api_key in self.api_keys
+                if self.base_url
+            ]
+        else:
+            self.api_keys = load_parsebot_api_keys()
+            self.credentials = load_parsebot_credentials()
         self.api_key = self.api_keys[0] if self.api_keys else ""
         self._key_manager = (
-            ParsebotKeyManager(self.api_keys)
+            ParsebotKeyManager(self.credentials)
             if api_keys is not None
-            else get_parsebot_key_manager(self.api_keys)
+            else get_parsebot_key_manager(self.credentials)
         )
         self.timeout = int(os.getenv("PARSEBOT_TIMEOUT_SECONDS", "20"))
         self.max_retries = int(os.getenv("PARSEBOT_MAX_RETRIES", "2"))
@@ -422,8 +429,8 @@ class ParsebotFarsideETFCollector:
             "Accept": "application/json",
         }
 
-    def _build_url(self, endpoint: str) -> str:
-        return f"{self.base_url}/{endpoint}"
+    def _build_url(self, endpoint: str, base_url: str | None = None) -> str:
+        return f"{(base_url or self.base_url).rstrip('/')}/{endpoint}"
 
     def _result(
         self,
@@ -465,14 +472,14 @@ class ParsebotFarsideETFCollector:
             _logger.debug("parsebot_farside disabled for %s/%s", symbol, mode)
             return result
 
-        if not self.base_url or not self.api_keys:
+        if not self.credentials:
             result = self._result(
                 symbol,
                 mode,
                 "disabled",
                 None,
                 0.0,
-                "Missing PARSEBOT_BASE_URL or PARSEBOT_API_KEY(_1..5)",
+                "Missing Parse.bot API key/base URL pair (_1..5 or legacy)",
             )
             _logger.warning("parsebot_farside: missing config for %s/%s", symbol, mode)
             return result
@@ -491,7 +498,6 @@ class ParsebotFarsideETFCollector:
             _logger.info("parsebot_farside: unsupported symbol/mode %s/%s", symbol, mode)
             return result
 
-        url = self._build_url(endpoint)
         last_error: Optional[str] = None
 
         try:
@@ -504,9 +510,11 @@ class ParsebotFarsideETFCollector:
         http_attempt = 0
         transient_retries = 0
         while self._key_manager.available:
-            api_key = self._key_manager.next_key()
-            if api_key is None:
+            credential = self._key_manager.next_credential()
+            if credential is None:
                 break
+            api_key = credential.api_key
+            url = self._build_url(endpoint, credential.base_url)
             key_label = f"...{api_key[-6:]}"
             allowed, request_count, request_limit = _reserve_parsebot_request(api_key=api_key)
             if not allowed:

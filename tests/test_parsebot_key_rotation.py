@@ -13,9 +13,11 @@ from btc_scraper.collectors.parsebot_farside_collector import (
     _reserve_parsebot_request,
 )
 from btc_scraper.collectors.parsebot_key_rotation import (
+    ParsebotCredential,
     ParsebotKeyManager,
     is_parsebot_key_exhaustion_error,
     load_parsebot_api_keys,
+    load_parsebot_credentials,
 )
 
 
@@ -42,6 +44,24 @@ def test_load_parsebot_keys_prefers_numbered_keys_and_deduplicates(monkeypatch):
     assert load_parsebot_api_keys() == ["key-1", "key-2", "legacy"]
 
 
+def test_load_parsebot_credentials_pairs_numbered_urls_and_legacy_fallback(monkeypatch):
+    monkeypatch.setenv("PARSEBOT_API_KEY_1", "key-1")
+    monkeypatch.setenv("PARSEBOT_BASE_URL_1", "https://parsebot.test/scraper/one/")
+    monkeypatch.setenv("PARSEBOT_API_KEY_2", "key-2")
+    monkeypatch.delenv("PARSEBOT_BASE_URL_2", raising=False)
+    monkeypatch.setenv("PARSEBOT_API_KEY", "legacy")
+    monkeypatch.setenv("PARSEBOT_BASE_URL", "https://parsebot.test/scraper/legacy/")
+    for index in range(3, 6):
+        monkeypatch.delenv(f"PARSEBOT_API_KEY_{index}", raising=False)
+        monkeypatch.delenv(f"PARSEBOT_BASE_URL_{index}", raising=False)
+
+    assert load_parsebot_credentials() == [
+        ParsebotCredential("key-1", "https://parsebot.test/scraper/one"),
+        ParsebotCredential("key-2", "https://parsebot.test/scraper/legacy"),
+        ParsebotCredential("legacy", "https://parsebot.test/scraper/legacy"),
+    ]
+
+
 def test_key_manager_round_robin_exhaustion_and_daily_reset():
     clock = [datetime(2026, 7, 29, 10, 0)]
     manager = ParsebotKeyManager(["key-1", "key-2"], now=lambda: clock[0])
@@ -57,6 +77,23 @@ def test_key_manager_round_robin_exhaustion_and_daily_reset():
     clock[0] += timedelta(days=1)
     assert manager.available is True
     assert manager.next_key() == "key-1"
+
+
+def test_key_manager_rotates_key_and_base_url_as_one_credential():
+    manager = ParsebotKeyManager(
+        [
+            ParsebotCredential("key-1", "https://parsebot.test/scraper/one"),
+            ParsebotCredential("key-2", "https://parsebot.test/scraper/two"),
+        ]
+    )
+
+    assert manager.next_credential() == ParsebotCredential(
+        "key-1", "https://parsebot.test/scraper/one"
+    )
+    manager.mark_exhausted("key-1")
+    assert manager.next_credential() == ParsebotCredential(
+        "key-2", "https://parsebot.test/scraper/two"
+    )
 
 
 def test_key_exhaustion_detection_matches_gemini_signals():
@@ -87,6 +124,46 @@ def test_collector_rotates_immediately_after_429(monkeypatch):
     result = collector.fetch("BTC", "recent")
 
     assert result["status"] == "ok"
+    assert [call.kwargs["headers"]["X-API-Key"] for call in get_mock.call_args_list] == [
+        "key-1",
+        "key-2",
+    ]
+
+
+def test_collector_rotates_matching_base_url_after_429(monkeypatch):
+    monkeypatch.setenv("PARSEBOT_ENABLED", "true")
+    monkeypatch.setenv("PARSEBOT_API_KEY_1", "key-1")
+    monkeypatch.setenv("PARSEBOT_BASE_URL_1", "https://parsebot.test/scraper/one")
+    monkeypatch.setenv("PARSEBOT_API_KEY_2", "key-2")
+    monkeypatch.setenv("PARSEBOT_BASE_URL_2", "https://parsebot.test/scraper/two/")
+    monkeypatch.delenv("PARSEBOT_API_KEY", raising=False)
+    monkeypatch.delenv("PARSEBOT_BASE_URL", raising=False)
+    for index in range(3, 6):
+        monkeypatch.delenv(f"PARSEBOT_API_KEY_{index}", raising=False)
+        monkeypatch.delenv(f"PARSEBOT_BASE_URL_{index}", raising=False)
+
+    collector = ParsebotFarsideETFCollector()
+    get_mock = MagicMock(
+        side_effect=[
+            _response(status_code=429),
+            _response(payload={"total_flow": 123.0}),
+        ]
+    )
+    monkeypatch.setattr(requests, "get", get_mock)
+    monkeypatch.setattr(
+        "btc_scraper.collectors.parsebot_farside_collector._reserve_parsebot_request",
+        lambda **kwargs: (True, 1, 180),
+    )
+    monkeypatch.setattr(
+        "btc_scraper.collectors.parsebot_farside_collector._save_cache",
+        lambda result: None,
+    )
+
+    assert collector.fetch("BTC", "recent")["status"] == "ok"
+    assert [call.args[0] for call in get_mock.call_args_list] == [
+        "https://parsebot.test/scraper/one/get_bitcoin_etf_flows_recent",
+        "https://parsebot.test/scraper/two/get_bitcoin_etf_flows_recent",
+    ]
     assert [call.kwargs["headers"]["X-API-Key"] for call in get_mock.call_args_list] == [
         "key-1",
         "key-2",
@@ -165,8 +242,14 @@ def test_monthly_request_guard_tracks_each_key_without_storing_secrets(monkeypat
 
 def test_provider_chain_parsebot_provider_rotates_after_429(monkeypatch):
     monkeypatch.setenv("PARSEBOT_API_KEY_1", "provider-key-1")
+    monkeypatch.setenv("PARSEBOT_BASE_URL_1", "https://parsebot.test/scraper/one")
     monkeypatch.setenv("PARSEBOT_API_KEY_2", "provider-key-2")
+    monkeypatch.setenv("PARSEBOT_BASE_URL_2", "https://parsebot.test/scraper/two")
     monkeypatch.delenv("PARSEBOT_API_KEY", raising=False)
+    monkeypatch.delenv("PARSEBOT_BASE_URL", raising=False)
+    for index in range(3, 6):
+        monkeypatch.delenv(f"PARSEBOT_API_KEY_{index}", raising=False)
+        monkeypatch.delenv(f"PARSEBOT_BASE_URL_{index}", raising=False)
     provider = ParseBotFarsideProvider()
     get_mock = MagicMock(
         side_effect=[
@@ -190,4 +273,8 @@ def test_provider_chain_parsebot_provider_rotates_after_429(monkeypatch):
     assert [call.kwargs["headers"]["X-API-Key"] for call in get_mock.call_args_list] == [
         "provider-key-1",
         "provider-key-2",
+    ]
+    assert [call.args[0] for call in get_mock.call_args_list] == [
+        "https://parsebot.test/scraper/one/get_bitcoin_etf_flows_recent",
+        "https://parsebot.test/scraper/two/get_bitcoin_etf_flows_recent",
     ]

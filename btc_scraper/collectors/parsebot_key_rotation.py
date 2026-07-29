@@ -1,10 +1,19 @@
-"""Round-robin API-key rotation for Parse.bot collectors."""
+"""Round-robin credential-pair rotation for Parse.bot collectors."""
 from __future__ import annotations
 
 import os
 import threading
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable, Iterable
+
+
+@dataclass(frozen=True)
+class ParsebotCredential:
+    """A Parse.bot API key and the scraper base URL issued with that key."""
+
+    api_key: str
+    base_url: str
 
 
 def load_parsebot_api_keys() -> list[str]:
@@ -16,6 +25,36 @@ def load_parsebot_api_keys() -> list[str]:
     return list(dict.fromkeys(key.strip() for key in raw_keys if key and key.strip()))
 
 
+def load_parsebot_credentials() -> list[ParsebotCredential]:
+    """Load key/base-URL pairs, retaining the legacy URL as a fallback.
+
+    Parse.bot scraper URLs are subscription-specific. Numbered credentials use
+    ``PARSEBOT_API_KEY_N`` with ``PARSEBOT_BASE_URL_N``. For backward
+    compatibility, a missing numbered URL falls back to
+    ``PARSEBOT_BASE_URL``. The legacy key always pairs with the legacy URL.
+    """
+    fallback_url = (os.getenv("PARSEBOT_BASE_URL") or "").strip().rstrip("/")
+    raw_pairs = [
+        (
+            os.getenv(f"PARSEBOT_API_KEY_{index}"),
+            os.getenv(f"PARSEBOT_BASE_URL_{index}") or fallback_url,
+        )
+        for index in range(1, 6)
+    ]
+    raw_pairs.append((os.getenv("PARSEBOT_API_KEY"), fallback_url))
+
+    credentials: list[ParsebotCredential] = []
+    seen_keys: set[str] = set()
+    for raw_key, raw_url in raw_pairs:
+        api_key = (raw_key or "").strip()
+        base_url = (raw_url or "").strip().rstrip("/")
+        if not api_key or not base_url or api_key in seen_keys:
+            continue
+        seen_keys.add(api_key)
+        credentials.append(ParsebotCredential(api_key=api_key, base_url=base_url))
+    return credentials
+
+
 def is_parsebot_key_exhaustion_error(exc: Exception) -> bool:
     """Recognize the quota signals handled by the Gemini-style rotation."""
     status_code = getattr(getattr(exc, "response", None), "status_code", None)
@@ -24,15 +63,36 @@ def is_parsebot_key_exhaustion_error(exc: Exception) -> bool:
 
 
 class ParsebotKeyManager:
-    """Thread-safe round-robin manager with Gemini-compatible 429 handling."""
+    """Thread-safe credential-pair manager with Gemini-compatible 429 handling."""
 
     def __init__(
         self,
-        keys: Iterable[str],
+        keys: Iterable[str | ParsebotCredential],
         *,
+        base_url: str = "",
         now: Callable[[], datetime] | None = None,
     ) -> None:
-        self._keys = list(dict.fromkeys(key.strip() for key in keys if key.strip()))
+        normalized: list[ParsebotCredential] = []
+        seen_keys: set[str] = set()
+        fallback_url = base_url.strip().rstrip("/")
+        for item in keys:
+            if isinstance(item, ParsebotCredential):
+                credential = ParsebotCredential(
+                    api_key=item.api_key.strip(),
+                    base_url=item.base_url.strip().rstrip("/"),
+                )
+            else:
+                credential = ParsebotCredential(
+                    api_key=item.strip(),
+                    base_url=fallback_url,
+                )
+            if not credential.api_key or credential.api_key in seen_keys:
+                continue
+            seen_keys.add(credential.api_key)
+            normalized.append(credential)
+
+        self._credentials = normalized
+        self._keys = [credential.api_key for credential in normalized]
         self._index = 0
         self._exhausted: set[str] = set()
         self._paused_until: datetime | None = None
@@ -55,15 +115,19 @@ class ParsebotKeyManager:
             return self._paused_until.isoformat() if self._paused_until else ""
 
     def next_key(self) -> str | None:
+        credential = self.next_credential()
+        return credential.api_key if credential is not None else None
+
+    def next_credential(self) -> ParsebotCredential | None:
         with self._lock:
             self._reset_after_pause_locked()
-            if not self._keys or len(self._exhausted) >= len(self._keys):
+            if not self._credentials or len(self._exhausted) >= len(self._credentials):
                 return None
-            for _ in range(len(self._keys)):
-                key = self._keys[self._index % len(self._keys)]
-                self._index = (self._index + 1) % len(self._keys)
-                if key not in self._exhausted:
-                    return key
+            for _ in range(len(self._credentials)):
+                credential = self._credentials[self._index % len(self._credentials)]
+                self._index = (self._index + 1) % len(self._credentials)
+                if credential.api_key not in self._exhausted:
+                    return credential
             return None
 
     def mark_exhausted(self, key: str) -> None:
@@ -91,15 +155,23 @@ class ParsebotKeyManager:
 
 _SHARED_MANAGER_LOCK = threading.Lock()
 _SHARED_MANAGER: ParsebotKeyManager | None = None
-_SHARED_KEYS: tuple[str, ...] = ()
+_SHARED_CREDENTIALS: tuple[ParsebotCredential, ...] = ()
 
 
-def get_parsebot_key_manager(keys: Iterable[str] | None = None) -> ParsebotKeyManager:
-    """Return one process-wide manager, rebuilding it when configured keys change."""
-    global _SHARED_KEYS, _SHARED_MANAGER
-    resolved = tuple(keys if keys is not None else load_parsebot_api_keys())
+def get_parsebot_key_manager(
+    keys: Iterable[str | ParsebotCredential] | None = None,
+    *,
+    base_url: str = "",
+) -> ParsebotKeyManager:
+    """Return one process-wide manager, rebuilding when key/URL pairs change."""
+    global _SHARED_CREDENTIALS, _SHARED_MANAGER
+    if keys is None:
+        resolved = tuple(load_parsebot_credentials())
+    else:
+        temporary = ParsebotKeyManager(keys, base_url=base_url)
+        resolved = tuple(temporary._credentials)
     with _SHARED_MANAGER_LOCK:
-        if _SHARED_MANAGER is None or resolved != _SHARED_KEYS:
-            _SHARED_KEYS = resolved
+        if _SHARED_MANAGER is None or resolved != _SHARED_CREDENTIALS:
+            _SHARED_CREDENTIALS = resolved
             _SHARED_MANAGER = ParsebotKeyManager(resolved)
         return _SHARED_MANAGER

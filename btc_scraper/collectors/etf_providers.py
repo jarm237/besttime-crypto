@@ -18,10 +18,12 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from btc_scraper.collectors.parsebot_key_rotation import (
+    ParsebotCredential,
     ParsebotKeyManager,
     get_parsebot_key_manager,
     is_parsebot_key_exhaustion_error,
     load_parsebot_api_keys,
+    load_parsebot_credentials,
 )
 
 _logger = logging.getLogger(__name__)
@@ -77,16 +79,23 @@ class ParseBotFarsideProvider(ETFProvider):
 
     def __init__(self, api_key: Optional[str] = None, timeout: float = 10.0) -> None:
         import os
-        self.api_keys = [api_key.strip()] if api_key and api_key.strip() else load_parsebot_api_keys()
-        self.api_key = self.api_keys[0] if self.api_keys else None
-        self._key_manager = (
-            ParsebotKeyManager(self.api_keys)
-            if api_key
-            else get_parsebot_key_manager(self.api_keys)
-        )
-        self.timeout = timeout
         base = os.getenv("PARSEBOT_BASE_URL", "https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e")
         self.base_url = base.strip().rstrip("/")
+        if api_key and api_key.strip():
+            self.api_keys = [api_key.strip()]
+            self.credentials = [
+                ParsebotCredential(api_key=api_key.strip(), base_url=self.base_url)
+            ]
+        else:
+            self.api_keys = load_parsebot_api_keys()
+            self.credentials = load_parsebot_credentials()
+        self.api_key = self.api_keys[0] if self.api_keys else None
+        self._key_manager = (
+            ParsebotKeyManager(self.credentials)
+            if api_key
+            else get_parsebot_key_manager(self.credentials)
+        )
+        self.timeout = timeout
 
     def fetch(self) -> Optional[ETFFlowResult]:
         """Fetch BTC ETF flow from Parse.bot Farside API."""
@@ -94,17 +103,18 @@ class ParseBotFarsideProvider(ETFProvider):
             _logger.warning("%s: requests library not available", self.name)
             return None
 
-        if not self.api_keys:
-            _logger.warning("%s: API key not configured", self.name)
+        if not self.credentials:
+            _logger.warning("%s: API key/base URL pair not configured", self.name)
             return None
 
         import os
         endpoint = os.getenv("PARSEBOT_ENDPOINT_BTC_RECENT", "get_bitcoin_etf_flows_recent")
-        url = f"{self.base_url}/{endpoint}"
         while self._key_manager.available:
-            api_key = self._key_manager.next_key()
-            if api_key is None:
+            credential = self._key_manager.next_credential()
+            if credential is None:
                 break
+            api_key = credential.api_key
+            url = f"{credential.base_url}/{endpoint}"
             key_label = f"...{api_key[-6:]}"
             from btc_scraper.collectors.parsebot_farside_collector import _reserve_parsebot_request
 
