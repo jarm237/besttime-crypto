@@ -1,6 +1,7 @@
 # BTC Scraper Assessment Index
 
-Date: 2026-07-27
+Initial assessment: 2026-07-27
+Latest remediation evidence: 2026-07-29
 
 Main artifacts:
 
@@ -24,5 +25,4 @@ Detailed notes:
 - `10_ui_and_telegram.md`
 - `11_final_remediation_plan.md`
 
-This assessment is the initial static/inventory baseline. It should be extended after the full test environment is restored and E2E paper/replay evidence can be regenerated.
-
+This directory started as the static/inventory baseline and now also contains remediation evidence. The test environment, deterministic paper/replay coverage, clean-environment install, and isolated guard-enabled full-suite proof have been regenerated. Production deployment restart/rehearsal and exchange-integrated evidence remain separate open items.

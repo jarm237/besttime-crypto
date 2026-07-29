@@ -36,16 +36,25 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from btc_scraper.core.paths import build_logs_path
+
 _logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_CACHE_DIR = _REPO_ROOT / "logs" / "etf_flow_cache"
-_REQUEST_USAGE_PATH = _REPO_ROOT / "logs" / "parsebot_request_usage.json"
 _REQUEST_USAGE_LOCK = threading.Lock()
+
+
+def _request_usage_path() -> Path:
+    configured = os.getenv("PARSEBOT_REQUEST_USAGE_PATH")
+    return Path(configured).expanduser() if configured else build_logs_path("parsebot_request_usage.json")
+
+
+def _cache_dir() -> Path:
+    configured = os.getenv("PARSEBOT_CACHE_DIR")
+    return Path(configured).expanduser() if configured else build_logs_path("etf_flow_cache")
 
 
 def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int, int]:
@@ -60,7 +69,7 @@ def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int
     except ValueError:
         limit = 180
 
-    usage_path = Path(os.getenv("PARSEBOT_REQUEST_USAGE_PATH", str(_REQUEST_USAGE_PATH)))
+    usage_path = _request_usage_path()
     month = (now or datetime.now(timezone.utc)).strftime("%Y-%m")
     usage_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -188,8 +197,9 @@ def compute_etf_flow_score(total_flow_usd_m: float) -> float:
 
 def _cache_path(symbol: str, mode: str) -> Path:
     """Trả về đường dẫn tới file cache JSON cho (symbol, mode)."""
-    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    return _CACHE_DIR / f"{symbol.upper()}_{mode.lower()}.json"
+    cache_dir = _cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir / f"{symbol.upper()}_{mode.lower()}.json"
 
 
 def _save_fetch_log_to_db(result: Dict[str, Any]) -> None:

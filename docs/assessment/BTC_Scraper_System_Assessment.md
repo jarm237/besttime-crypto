@@ -1,6 +1,7 @@
 # BTC Scraper System Assessment
 
-Date: 2026-07-27
+Initial assessment: 2026-07-27
+Evidence updated: 2026-07-29
 
 Scope: initial system assessment based on repository inventory, static code reading, import/config scan, and compile/test evidence from the current local environment. This is not a completed production certification; it is the baseline artifact for the full review plan.
 
@@ -12,14 +13,14 @@ The repository already contains several production-shaped controls: fail-closed 
 
 The main blockers are not absence of safety concepts. The first remediation wave has removed the immediate test/compile/contract/dispatch blockers; remaining risk is concentrated in operational proof depth and state lifecycle:
 
-- Full local test assertions now pass: `747 passed, 118 warnings, 5 subtests passed`.
+- The current suite collects 754 tests and completes with exit 0 in a fresh Python 3.12 environment installed from `requirements-lock.txt`.
 - Full compile now passes with `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts`.
 - `prediction_created` now requires production lineage fields including `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
 - Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until live adapter integration is rehearsed against child-order recovery.
 - Test runtime artifacts are now isolated under `/tmp/btc-scraper-tests/<run-id>/` with environment metadata and a pytest guard that blocks repo runtime-root mutation.
 - Restart/replay recovery tests now cover the baseline crash-boundary matrix from persisted prediction through outcome revision conflict and repeated multi-restart replay.
 - Live exchange outage baseline tests now cover submit timeout, rate-limit backoff, outage taxonomy, child-order persistence, cancel/replace ambiguity, WS/REST disagreement, and operator quarantine workflow through deterministic fake adapters.
-- Runtime ownership now provides deployment-scoped roots, identity metadata, per-deployment process locks, stale-lock audit, hash-based guard reporting, and hardened lock-bypass policy. A pre-existing `main.py` process should be restarted on these owned roots before claiming clean full-suite guard evidence.
+- Runtime ownership now provides deployment-scoped roots, identity metadata, per-deployment process locks, stale-lock audit, hash-based guard reporting, and hardened lock-bypass policy. Parse.bot ETF cache/quota writers now use the owned log root. The guard-enabled full suite passes in an isolated source snapshot; the running production process must be restarted to load the fix before an in-place rehearsal is claimed.
 - Persistent historical data lifecycle is still broad across legacy `data/`, `logs/`, `btc_scraper/data`, `btc_scraper/logs`, `models/`, and `checkpoints_gpu`, and needs a full taxonomy for raw/processed/runtime/paper/backtest/model/quarantine state.
 - There are many broad `except Exception` fallback paths; some are intentional resilience, but they need classification into fail-closed, degrade, quarantine, or continue.
 

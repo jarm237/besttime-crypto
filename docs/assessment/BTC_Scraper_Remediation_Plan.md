@@ -1,6 +1,7 @@
 # BTC Scraper Remediation Plan
 
-Date: 2026-07-27
+Initial assessment: 2026-07-27
+Evidence updated: 2026-07-29
 
 ## P0 - Safety / Correctness Blockers
 
@@ -16,8 +17,8 @@ Immediate P0 acceptance gate for future live work:
 
 1. Restore test environment.
    - Status: `DONE`.
-   - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements.txt` or `requirements-lock.txt`.
-   - Evidence: full pytest assertions pass with `747 passed, 118 warnings, 5 subtests passed`.
+   - Acceptance: `python3 -m pytest` runs in a clean venv from `requirements-lock.txt`.
+   - Evidence: `requirements-lock.txt` contains all 29 direct requirements and 130 locked packages; a fresh Python 3.12 venv installs the lock, passes `pip check`, collects 754 tests, and completes the full assertion suite with exit 0.
 
 2. Fix script compile blocker.
    - Status: `DONE`.
@@ -39,11 +40,11 @@ Immediate P0 acceptance gate for future live work:
    - Evidence: selected LIMIT dispatches through limit adapter; selected TWAP rejects fail-closed until live TWAP child-order recovery has E2E coverage.
 
 5. Isolate test/runtime artifacts.
-   - Status: `DONE` for test runtime isolation.
+   - Status: `DONE` for code and isolated test proof; production process rollout/rehearsal remains pending.
    - Writable runtime roots are redirected by pytest to `/tmp/btc-scraper-tests/<run-id>/`.
    - Required test metadata is attached to runtime evidence where supported: `environment=test`, `evidence_eligible=false`, `paper_run_id=<run-id>`.
    - Acceptance: full pytest passes with an artifact guard that fails if repo runtime roots are modified.
-   - Evidence: full pytest assertions pass with `747 passed, 118 warnings, 5 subtests passed`; guard-enabled targeted writer suites pass, while guard-enabled full runs require no concurrent runtime writer process in the repo.
+   - Evidence: Parse.bot ETF cache and request quota state now resolve through the owned log root, with regression coverage in `tests/test_paths_and_macro_freshness.py`. A source snapshot isolated from the running production process collects 754 tests and completes the full suite with the guard enabled and exit 0. The current production process still has the pre-fix module loaded and must be restarted before the same in-place proof is claimed.
 
 6. Prove restart/replay idempotency.
    - Status: `DONE` for baseline recovery matrix.
@@ -53,12 +54,12 @@ Immediate P0 acceptance gate for future live work:
 7. Prove live exchange outage behavior.
    - Status: `DONE` for deterministic adapter baseline; live exchange/testnet drill still required before production.
    - Acceptance: submit timeout, rate limit, REST/WS outage, child-order replay, cancel/replace ambiguity, WS/REST disagreement, and operator quarantine are covered without duplicate logical orders or silent state mutation.
-   - Evidence: `tests/live_outage/` passes with 13 tests and full pytest assertions pass with 745 tests.
+   - Evidence: `tests/live_outage/` passes with 13 tests and the current 754-test full assertion suite completes with exit 0.
 
 8. Add runtime ownership and process isolation.
-   - Status: `DONE` for code/test baseline; clean full-suite guard proof still requires stopping or restarting the pre-existing repo-root `main.py` process.
+   - Status: `DONE` for code/test baseline and isolated full-suite guard proof; in-place production rehearsal remains pending.
    - Acceptance: every runtime has environment/deployment/runtime identity, default roots are deployment-scoped, reservation/evidence stores do not share SQLite by default, same-deployment second process is refused, stale locks are audited, lock bypass is forbidden in live and critical-degraded elsewhere, and the runtime guard reports hashes plus suspected owner metadata.
-   - Evidence: `tests/test_runtime_ownership.py` passes and full pytest assertions pass with 745 tests.
+   - Evidence: `tests/test_runtime_ownership.py` passes; the current 754-test suite completes with exit 0 in a fresh dependency environment and with the artifact guard enabled in an isolated source snapshot.
 
 ## P2 - Quality / Observability
 
@@ -99,7 +100,7 @@ Immediate P0 acceptance gate for future live work:
 3. Failure taxonomy for broad fallback paths
 4. Broader data/log lifecycle taxonomy beyond runtime ownership
 5. Runtime migration preflight before/after proof with `scripts/runtime_migration_preflight.py`
-6. Clean guard-enabled full-suite run after restarting legacy runtime process on owned roots
+6. Restart the running production process to load the Parse.bot owned-path fix, then repeat the in-place guard-enabled full-suite run
 7. Real exchange/testnet outage drill and operator runbook rehearsal
 8. UI/Telegram operational hardening
 ```

@@ -3858,7 +3858,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785261064",
@@ -3883,7 +3886,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785261364",
@@ -3908,7 +3914,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785261673",
@@ -3933,7 +3942,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785261964",
@@ -3958,7 +3970,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785262264",
@@ -3983,7 +3998,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785262574",
@@ -4008,7 +4026,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785262864",
@@ -4033,7 +4054,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785263164",
@@ -4058,7 +4082,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785263475",
@@ -4083,7 +4110,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785263763",
@@ -4108,7 +4138,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785264063",
@@ -4133,7 +4166,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.4683,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785264372",
@@ -4158,7 +4194,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785264663",
@@ -4183,7 +4222,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785264963",
@@ -4208,7 +4250,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785265272",
@@ -4233,7 +4278,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.5283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785265564",
@@ -4258,7 +4306,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785265864",
@@ -4283,7 +4334,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785266173",
@@ -4308,7 +4362,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6327,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785266464",
@@ -4333,7 +4390,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785266764",
@@ -4358,7 +4418,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785267072",
@@ -4383,7 +4446,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785267364",
@@ -4408,7 +4474,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785267663",
@@ -4433,7 +4502,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785267972",
@@ -4458,7 +4530,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785268264",
@@ -4483,7 +4558,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785268563",
@@ -4508,7 +4586,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785268874",
@@ -4533,7 +4614,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785269164",
@@ -4558,7 +4642,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5455,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785269464",
@@ -4583,7 +4670,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785269773",
@@ -4608,7 +4698,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785270064",
@@ -4633,7 +4726,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785270364",
@@ -4658,7 +4754,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785270672",
@@ -4683,7 +4782,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785270963",
@@ -4708,7 +4810,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785271263",
@@ -4733,7 +4838,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785271573",
@@ -4758,7 +4866,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6327,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785271864",
@@ -4783,7 +4894,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785272164",
@@ -4808,7 +4922,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785272471",
@@ -4833,7 +4950,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785272763",
@@ -4858,7 +4978,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785273064",
@@ -4883,7 +5006,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785273376",
@@ -4908,7 +5034,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5385,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785273664",
@@ -4933,7 +5062,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785273964",
@@ -4958,7 +5090,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785274271",
@@ -4983,7 +5118,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785274564",
@@ -5008,7 +5146,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785274864",
@@ -5033,7 +5174,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785275179",
@@ -5058,7 +5202,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785275463",
@@ -5083,7 +5230,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785275763",
@@ -5108,7 +5258,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5385,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785276075",
@@ -5133,7 +5286,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785276363",
@@ -5158,7 +5314,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785276666",
@@ -5183,7 +5342,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785276972",
@@ -5208,7 +5370,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785277264",
@@ -5233,7 +5398,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785277563",
@@ -5258,7 +5426,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785277872",
@@ -5283,7 +5454,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785278163",
@@ -5308,7 +5482,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785278463",
@@ -5333,7 +5510,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785278773",
@@ -5358,7 +5538,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785279064",
@@ -5383,7 +5566,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785279363",
@@ -5408,7 +5594,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785279671",
@@ -5433,7 +5622,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785279964",
@@ -5458,7 +5650,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785280263",
@@ -5483,7 +5678,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785280576",
@@ -5508,7 +5706,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785280578",
@@ -5547,7 +5748,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785280866",
@@ -5586,7 +5790,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785281166",
@@ -5625,7 +5832,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785281477",
@@ -5650,7 +5860,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785281764",
@@ -5675,7 +5888,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785281767",
@@ -5700,7 +5916,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785282064",
@@ -5725,7 +5944,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785282067",
@@ -5750,7 +5972,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785282374",
@@ -5775,7 +6000,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785282376",
@@ -5800,7 +6028,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785282664",
@@ -5825,7 +6056,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785282666",
@@ -5850,7 +6084,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785282964",
@@ -5875,7 +6112,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785282967",
@@ -5900,7 +6140,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785283275",
@@ -5925,7 +6168,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785283277",
@@ -5950,7 +6196,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785283563",
@@ -5975,7 +6224,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5283,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "BTCUSDT_RL_1785283566",
@@ -6000,7 +6252,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785283863",
@@ -6025,7 +6280,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785283866",
@@ -6036,7 +6294,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785284174",
@@ -6061,7 +6322,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5455,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785284177",
@@ -6072,7 +6336,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785284464",
@@ -6097,7 +6364,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.487,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785284466",
@@ -6108,7 +6378,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.5636,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785284764",
@@ -6133,7 +6406,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785284766",
@@ -6144,7 +6420,10 @@
     "action_label": "PARTIAL_CLOSE_50",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286722",
@@ -6169,7 +6448,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286724",
@@ -6180,7 +6462,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286727",
@@ -6205,7 +6490,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286730",
@@ -6216,7 +6504,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286733",
@@ -6241,7 +6532,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286736",
@@ -6252,7 +6546,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286739",
@@ -6277,7 +6574,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286741",
@@ -6288,7 +6588,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286753",
@@ -6313,7 +6616,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286756",
@@ -6324,7 +6630,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286772",
@@ -6349,7 +6658,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286775",
@@ -6360,7 +6672,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286791",
@@ -6385,7 +6700,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286794",
@@ -6396,7 +6714,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785286873",
@@ -6421,7 +6742,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785286875",
@@ -6432,7 +6756,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.6283,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785287164",
@@ -6457,7 +6784,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785287166",
@@ -6468,7 +6798,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.5614,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785287464",
@@ -6493,7 +6826,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3017,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785287467",
@@ -6504,7 +6840,10 @@
     "action_label": "MOVE_SL_TO_BE",
     "meta_prob": 0.487,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785287775",
@@ -6529,7 +6868,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785287778",
@@ -6540,7 +6882,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785288063",
@@ -6565,7 +6910,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785288066",
@@ -6576,7 +6924,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785288363",
@@ -6601,7 +6952,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785288366",
@@ -6612,7 +6966,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4929,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785288673",
@@ -6637,7 +6994,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785288676",
@@ -6648,7 +7008,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.5636,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "TRUMPUSDT_RL_1785288963",
@@ -6673,7 +7036,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785288965",
@@ -6684,7 +7050,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4798,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "ZECUSDT_RL_1785289265",
@@ -6695,7 +7064,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785289265",
@@ -6706,7 +7078,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "ZECUSDT_RL_1785289577",
@@ -6717,7 +7092,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785289578",
@@ -6728,7 +7106,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.4683,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "ZECUSDT_RL_1785289864",
@@ -6739,7 +7120,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785289865",
@@ -6750,7 +7134,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "ZECUSDT_RL_1785290163",
@@ -6761,7 +7148,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785290164",
@@ -6772,7 +7162,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "ZECUSDT_RL_1785290475",
@@ -6783,7 +7176,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785290476",
@@ -6794,7 +7190,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
   },
   {
     "prediction_id": "ZECUSDT_RL_1785290766",
@@ -6805,7 +7204,10 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
   },
   {
     "prediction_id": "ETHUSDT_RL_1785290767",
@@ -6816,6 +7218,1087 @@
     "action_label": "HOLD",
     "meta_prob": 0.3731,
     "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
-    "note": "RL Exit shadow recommendation"
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785291063",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785291063.7038255,
+    "timestamp_str": "2026-07-29 09:11:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785291064",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785291064.6347969,
+    "timestamp_str": "2026-07-29 09:11:04",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785291377",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785291377.7607982,
+    "timestamp_str": "2026-07-29 09:16:17",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785291378",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785291378.6167312,
+    "timestamp_str": "2026-07-29 09:16:18",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.4683,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785291664",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785291664.900063,
+    "timestamp_str": "2026-07-29 09:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785291665",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785291665.7290468,
+    "timestamp_str": "2026-07-29 09:21:05",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785291964",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785291964.2174754,
+    "timestamp_str": "2026-07-29 09:26:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785291965",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785291965.2316585,
+    "timestamp_str": "2026-07-29 09:26:05",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.487,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785292277",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785292277.0452385,
+    "timestamp_str": "2026-07-29 09:31:17",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.6283,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785292278",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785292278.0624578,
+    "timestamp_str": "2026-07-29 09:31:18",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.4929,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785292563",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785292563.9666576,
+    "timestamp_str": "2026-07-29 09:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785292564",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785292564.9026437,
+    "timestamp_str": "2026-07-29 09:36:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785292864",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785292864.378194,
+    "timestamp_str": "2026-07-29 09:41:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785292865",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785292865.2520585,
+    "timestamp_str": "2026-07-29 09:41:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785293177",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785293177.673826,
+    "timestamp_str": "2026-07-29 09:46:17",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785293178",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785293178.5860243,
+    "timestamp_str": "2026-07-29 09:46:18",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785293464",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785293464.7741647,
+    "timestamp_str": "2026-07-29 09:51:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785293465",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785293465.74107,
+    "timestamp_str": "2026-07-29 09:51:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785293764",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785293764.6346207,
+    "timestamp_str": "2026-07-29 09:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785293765",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785293765.4973555,
+    "timestamp_str": "2026-07-29 09:56:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785294075",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785294075.484941,
+    "timestamp_str": "2026-07-29 10:01:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785294076",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785294076.3467028,
+    "timestamp_str": "2026-07-29 10:01:16",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785294364",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785294364.8391263,
+    "timestamp_str": "2026-07-29 10:06:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785294665",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785294665.6030164,
+    "timestamp_str": "2026-07-29 10:11:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785294974",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785294974.616648,
+    "timestamp_str": "2026-07-29 10:16:14",
+    "rl_action": 5,
+    "action_label": "TRAILING_SL_ATR",
+    "meta_prob": 0.4683,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785294975",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785294975.6465185,
+    "timestamp_str": "2026-07-29 10:16:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4426,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785295264",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785295264.4580984,
+    "timestamp_str": "2026-07-29 10:21:04",
+    "rl_action": 5,
+    "action_label": "TRAILING_SL_ATR",
+    "meta_prob": 0.3731,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785295265",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785295265.4409459,
+    "timestamp_str": "2026-07-29 10:21:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785295564",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785295564.0364087,
+    "timestamp_str": "2026-07-29 10:26:04",
+    "rl_action": 5,
+    "action_label": "TRAILING_SL_ATR",
+    "meta_prob": 0.3731,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785295564",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785295564.874094,
+    "timestamp_str": "2026-07-29 10:26:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "ZECUSDT_RL_1785295876",
+    "symbol": "ZECUSDT",
+    "timestamp": 1785295876.9725487,
+    "timestamp_str": "2026-07-29 10:31:16",
+    "rl_action": 5,
+    "action_label": "TRAILING_SL_ATR",
+    "meta_prob": 0.4683,
+    "position_id": "42009397-bb1e-4b6a-8a39-a6ca38b3fe5b",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.5616,
+    "closed_at": "2026-07-29 10:31:21"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785295877",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785295877.8951411,
+    "timestamp_str": "2026-07-29 10:31:17",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785295878",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785295878.8207242,
+    "timestamp_str": "2026-07-29 10:31:18",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785296163",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785296163.4298108,
+    "timestamp_str": "2026-07-29 10:36:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785296165",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785296165.0428762,
+    "timestamp_str": "2026-07-29 10:36:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5283,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785296464",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785296464.0388253,
+    "timestamp_str": "2026-07-29 10:41:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785296465",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785296465.425516,
+    "timestamp_str": "2026-07-29 10:41:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785296773",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785296773.4160204,
+    "timestamp_str": "2026-07-29 10:46:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785296774",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785296774.8866804,
+    "timestamp_str": "2026-07-29 10:46:14",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785297063",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785297063.5302844,
+    "timestamp_str": "2026-07-29 10:51:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785297065",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785297065.1421793,
+    "timestamp_str": "2026-07-29 10:51:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785297363",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785297363.162802,
+    "timestamp_str": "2026-07-29 10:56:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785297364",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785297364.498376,
+    "timestamp_str": "2026-07-29 10:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785297676",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785297676.2571585,
+    "timestamp_str": "2026-07-29 11:01:16",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785297677",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785297677.8040943,
+    "timestamp_str": "2026-07-29 11:01:17",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785297964",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785297964.2337897,
+    "timestamp_str": "2026-07-29 11:06:04",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785297965",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785297965.8295243,
+    "timestamp_str": "2026-07-29 11:06:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785298263",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785298263.8507025,
+    "timestamp_str": "2026-07-29 11:11:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785298265",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785298265.3468869,
+    "timestamp_str": "2026-07-29 11:11:05",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "ETHUSDT_RL_1785298573",
+    "symbol": "ETHUSDT",
+    "timestamp": 1785298573.950562,
+    "timestamp_str": "2026-07-29 11:16:13",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.3731,
+    "position_id": "f6f11fc6-e416-4f23-854f-b002723787f2",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "WIN",
+    "actual_pnl_pct": 1.075,
+    "closed_at": "2026-07-29 11:16:18"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785298575",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785298575.4218576,
+    "timestamp_str": "2026-07-29 11:16:15",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785298864",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785298864.7504733,
+    "timestamp_str": "2026-07-29 11:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785299164",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785299164.1338139,
+    "timestamp_str": "2026-07-29 11:26:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785299474",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785299474.7763252,
+    "timestamp_str": "2026-07-29 11:31:14",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785299763",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785299763.9388504,
+    "timestamp_str": "2026-07-29 11:36:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785300064",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785300064.8968496,
+    "timestamp_str": "2026-07-29 11:41:04",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.487,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785300376",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785300376.9142153,
+    "timestamp_str": "2026-07-29 11:46:16",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785300663",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785300663.630906,
+    "timestamp_str": "2026-07-29 11:51:03",
+    "rl_action": 1,
+    "action_label": "PARTIAL_CLOSE_50",
+    "meta_prob": 0.5385,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785301274",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785301274.5588312,
+    "timestamp_str": "2026-07-29 12:01:14",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.5636,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785301563",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785301563.7057967,
+    "timestamp_str": "2026-07-29 12:06:03",
+    "rl_action": 2,
+    "action_label": "MOVE_SL_TO_BE",
+    "meta_prob": 0.4929,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785301864",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785301864.2500525,
+    "timestamp_str": "2026-07-29 12:11:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785302172",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785302172.4061298,
+    "timestamp_str": "2026-07-29 12:16:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785302464",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785302464.4178398,
+    "timestamp_str": "2026-07-29 12:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785302763",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785302763.9930391,
+    "timestamp_str": "2026-07-29 12:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785303073",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785303073.477116,
+    "timestamp_str": "2026-07-29 12:31:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785303364",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785303364.2682376,
+    "timestamp_str": "2026-07-29 12:36:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785303663",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785303663.9188645,
+    "timestamp_str": "2026-07-29 12:41:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785303972",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785303972.426648,
+    "timestamp_str": "2026-07-29 12:46:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785304263",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785304263.8227766,
+    "timestamp_str": "2026-07-29 12:51:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785304564",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785304564.259091,
+    "timestamp_str": "2026-07-29 12:56:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785304872",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785304872.2126179,
+    "timestamp_str": "2026-07-29 13:01:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4929,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785305164",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785305164.058539,
+    "timestamp_str": "2026-07-29 13:06:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785305464",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785305464.525293,
+    "timestamp_str": "2026-07-29 13:11:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4798,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785305773",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785305773.2679,
+    "timestamp_str": "2026-07-29 13:16:13",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.487,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785306064",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785306064.021729,
+    "timestamp_str": "2026-07-29 13:21:04",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.4683,
+    "position_id": "358d7b8f-004b-44d6-a1e6-291ebf805618",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.6275,
+    "closed_at": "2026-07-29 13:21:07"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785306363",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785306363.5952804,
+    "timestamp_str": "2026-07-29 13:26:03",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3731,
+    "position_id": "e7405a9a-9fee-45be-923a-039b24761ba7",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8185,
+    "closed_at": "2026-07-29 13:31:57"
+  },
+  {
+    "prediction_id": "BTCUSDT_RL_1785306672",
+    "symbol": "BTCUSDT",
+    "timestamp": 1785306672.476363,
+    "timestamp_str": "2026-07-29 13:31:12",
+    "rl_action": 0,
+    "action_label": "HOLD",
+    "meta_prob": 0.3017,
+    "position_id": "e7405a9a-9fee-45be-923a-039b24761ba7",
+    "note": "RL Exit shadow recommendation",
+    "actual_result": "LOSS",
+    "actual_pnl_pct": -0.8185,
+    "closed_at": "2026-07-29 13:31:57"
   }
 ]

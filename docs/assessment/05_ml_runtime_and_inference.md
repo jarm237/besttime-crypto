@@ -19,7 +19,7 @@ Status: production-ready candidate for runtime evidence; system production remai
 
 - Need production-cycle evidence that every live runtime cycle has at most one production prediction and exactly one final decision when actionable.
 - Need exchange-integrated outage evidence beyond deterministic fake-adapter drills.
-- Need a clean guard-enabled full-suite run after the legacy repo-root runtime process is restarted on owned roots.
+- Isolated guard-enabled full-suite proof passes; repeat it in place after the production process is restarted with the Parse.bot owned-path fix.
 
 ## Classification
 

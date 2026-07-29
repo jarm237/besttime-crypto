@@ -19,7 +19,7 @@ Status: production-ready candidate for local execution/recovery mechanics; live 
 
 - Live liquidity currently uses candle-derived liquidity snapshots, which must be labeled approximation unless order book data is used.
 - Need exchange-integrated outage rehearsal beyond deterministic fake adapters before enabling live TWAP or loosening live-entry gates.
-- Need the existing repo-root `main.py` process restarted on owned runtime roots before clean full-suite guard evidence is claimed.
+- Isolated guard-enabled full-suite proof passes; the running production process still needs a graceful restart before equivalent in-place evidence is claimed.
 
 ## Classification
 

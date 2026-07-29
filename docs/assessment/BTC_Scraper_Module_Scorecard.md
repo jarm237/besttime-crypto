@@ -1,6 +1,7 @@
 # BTC Scraper Module Scorecard
 
-Date: 2026-07-27
+Initial assessment: 2026-07-27
+Evidence updated: 2026-07-29
 
 Scale: 0-50 across correctness, contract clarity, lineage, failure safety, idempotency/recovery, test coverage, observability, runtime evidence, maintainability, and production readiness.
 
@@ -46,6 +47,6 @@ Hard blockers override numeric score.
 | Priority | Blocker | Evidence | Acceptance criteria |
 |---|---|---|---|
 | P2 | Live exchange restart/replay still needs real venue drill proof | Baseline persisted recovery matrix and deterministic live outage drills pass locally, but testnet/real exchange adapter behavior is not yet rehearsed end-to-end | Exchange-integrated drill covers API timeout, child order recovery, rate limits, and operator quarantine workflow with production adapters disabled from real funds. |
-| P2 | Clean full-suite guard evidence still requires runtime process restart | Runtime ownership is implemented, but a pre-existing `main.py` process can still write legacy repo roots until restarted on owned roots | Stop/restart legacy runtime with deployment-scoped root, then run guard-enabled `.venv/bin/python -m pytest` successfully. |
+| P2 | In-place production guard rehearsal still requires process restart | Parse.bot cache/quota writers are fixed and the isolated guard-enabled full suite passes, but the running production process still has the pre-fix module loaded | Gracefully restart the production runtime, verify the four legacy files remain unchanged, then repeat guard-enabled `.venv/bin/python -m pytest`. |
 | P2 | Persistent historical state lifecycle remains broad | New runtime writes are owned, but legacy model, data, logs, synthetic and paper artifacts still coexist under broad production directories | Data lifecycle taxonomy separates raw/processed/feature/model/runtime/paper/backtest/quarantine state and promotion-gate inputs. |
 | P2 | Many broad fallback paths need taxonomy | Static scan found extensive `except Exception` and fallback handling | Each path is tagged continue/degrade/fallback/block/quarantine/shutdown. |

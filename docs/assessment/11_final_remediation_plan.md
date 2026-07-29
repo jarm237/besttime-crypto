@@ -9,11 +9,12 @@ This file points to the consolidated remediation plan for the initial assessment
 ## Recommended Waves
 
 ```text
-Wave 1: test environment, compile blocker, prediction contract, execution dispatch, test artifact isolation - DONE
+Wave 1: test environment, compile blocker, prediction contract, execution dispatch - DONE
+Wave 1b: test artifact isolation - DONE for code and isolated guard-enabled full-suite proof; production process restart/rehearsal pending
 Wave 2: ML runtime restart/replay matrix - DONE for baseline persisted recovery
 Wave 3: deterministic live exchange outage drills - DONE for fake-adapter baseline
 Wave 4: runtime ownership and process isolation - DONE for code/test baseline
-Wave 5: clean guard-enabled full-suite run after legacy runtime restart
+Wave 5: restart the running production process with the Parse.bot owned-path fix and repeat the in-place guard rehearsal
 Wave 6: feature and collector point-in-time/replay evidence
 Wave 7: production/paper data-log lifecycle taxonomy beyond owned runtime roots
 Wave 8: exchange-integrated outage rehearsal and UI/Telegram operations
