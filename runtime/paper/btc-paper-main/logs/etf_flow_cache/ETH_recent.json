@@ -1,0 +1,11 @@
+{
+  "source": "parsebot_farside",
+  "endpoint": "get_ethereum_etf_flows_recent",
+  "symbol": "ETH",
+  "mode": "recent",
+  "status": "failed",
+  "value": null,
+  "data_quality": 0.0,
+  "fetched_at": "2026-07-29T08:53:43.341718+00:00",
+  "error": "404 Client Error: Not Found for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_ethereum_etf_flows_recent"
+}

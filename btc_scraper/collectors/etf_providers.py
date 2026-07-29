@@ -17,6 +17,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
+from btc_scraper.collectors.parsebot_key_rotation import (
+    ParsebotKeyManager,
+    get_parsebot_key_manager,
+    is_parsebot_key_exhaustion_error,
+    load_parsebot_api_keys,
+)
+
 _logger = logging.getLogger(__name__)
 
 try:
@@ -70,7 +77,13 @@ class ParseBotFarsideProvider(ETFProvider):
 
     def __init__(self, api_key: Optional[str] = None, timeout: float = 10.0) -> None:
         import os
-        self.api_key = api_key or os.getenv("PARSEBOT_API_KEY")
+        self.api_keys = [api_key.strip()] if api_key and api_key.strip() else load_parsebot_api_keys()
+        self.api_key = self.api_keys[0] if self.api_keys else None
+        self._key_manager = (
+            ParsebotKeyManager(self.api_keys)
+            if api_key
+            else get_parsebot_key_manager(self.api_keys)
+        )
         self.timeout = timeout
         base = os.getenv("PARSEBOT_BASE_URL", "https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e")
         self.base_url = base.strip().rstrip("/")
@@ -81,70 +94,106 @@ class ParseBotFarsideProvider(ETFProvider):
             _logger.warning("%s: requests library not available", self.name)
             return None
 
-        if not self.api_key:
+        if not self.api_keys:
             _logger.warning("%s: API key not configured", self.name)
             return None
 
         import os
         endpoint = os.getenv("PARSEBOT_ENDPOINT_BTC_RECENT", "get_bitcoin_etf_flows_recent")
         url = f"{self.base_url}/{endpoint}"
-        headers = {
-            "X-API-Key": self.api_key,
-            "Accept": "application/json",
-        }
+        while self._key_manager.available:
+            api_key = self._key_manager.next_key()
+            if api_key is None:
+                break
+            key_label = f"...{api_key[-6:]}"
+            from btc_scraper.collectors.parsebot_farside_collector import _reserve_parsebot_request
 
-        try:
-            response = requests.get(url, headers=headers, timeout=self.timeout)
-            response.raise_for_status()
-            data = response.json()
+            allowed, request_count, request_limit = _reserve_parsebot_request(api_key=api_key)
+            if not allowed:
+                self._key_manager.mark_exhausted(api_key)
+                _logger.warning(
+                    "%s: key %s monthly guard exhausted (%d/%d); rotating",
+                    self.name,
+                    key_label,
+                    request_count,
+                    request_limit,
+                )
+                continue
+            headers = {
+                "X-API-Key": api_key,
+                "Accept": "application/json",
+            }
 
-            records = []
-            if isinstance(data, list):
-                records = data
-            elif isinstance(data, dict):
-                if isinstance(data.get("data"), list):
-                    records = data["data"]
+            try:
+                response = requests.get(url, headers=headers, timeout=self.timeout)
+                response.raise_for_status()
+                data = response.json()
+                self._key_manager.reset_key(api_key)
+
+                records = []
+                if isinstance(data, list):
+                    records = data
+                elif isinstance(data, dict):
+                    if isinstance(data.get("data"), list):
+                        records = data["data"]
+                    else:
+                        records = [data]
+
+                if records:
+                    latest = records[-1]
+                    if isinstance(latest, dict):
+                        flow_val = None
+                        for key in ("total_flow", "total_flow_usd_m", "net_flow", "flow", "total", "net"):
+                            v = latest.get(key)
+                            if v is not None:
+                                try:
+                                    flow_val = float(v)
+                                    break
+                                except (TypeError, ValueError):
+                                    continue
+
+                        if flow_val is not None:
+                            return ETFFlowResult(
+                                provider_name=self.name,
+                                etf_flow=flow_val,
+                                etf_flow_confidence=0.65,
+                                etf_flow_source="parsebot_farside",
+                                etf_flow_scope="us_spot_btc_etf",
+                                success=True,
+                            )
+
+                _logger.debug("%s: No valid ETF flow data in response", self.name)
+                return None
+
+            except requests.exceptions.Timeout:
+                _logger.warning("%s: Request timed out after %.1fs", self.name, self.timeout)
+                return None
+            except requests.exceptions.HTTPError as exc:
+                status_code = getattr(exc.response, "status_code", None)
+                if is_parsebot_key_exhaustion_error(exc):
+                    self._key_manager.mark_exhausted(api_key)
+                    _logger.warning("%s: key %s exhausted; rotating", self.name, key_label)
+                    continue
+                if status_code == 404:
+                    _logger.debug("%s: Endpoint not found (404)", self.name)
                 else:
-                    records = [data]
+                    _logger.warning("%s: HTTP error %s", self.name, status_code or "unknown")
+                return None
+            except Exception as exc:
+                if is_parsebot_key_exhaustion_error(exc):
+                    self._key_manager.mark_exhausted(api_key)
+                    _logger.warning("%s: key %s exhausted; rotating", self.name, key_label)
+                    continue
+                _logger.warning("%s: Failed to fetch: %s", self.name, exc)
+                return None
 
-            if records:
-                latest = records[-1]
-                if isinstance(latest, dict):
-                    flow_val = None
-                    for key in ("total_flow", "total_flow_usd_m", "net_flow", "flow", "total", "net"):
-                        v = latest.get(key)
-                        if v is not None:
-                            try:
-                                flow_val = float(v)
-                                break
-                            except (TypeError, ValueError):
-                                continue
-
-                    if flow_val is not None:
-                        return ETFFlowResult(
-                            provider_name=self.name,
-                            etf_flow=flow_val,
-                            etf_flow_confidence=0.65,
-                            etf_flow_source="parsebot_farside",
-                            etf_flow_scope="us_spot_btc_etf",
-                            success=True,
-                        )
-
-            _logger.debug("%s: No valid ETF flow data in response", self.name)
-            return None
-
-        except requests.exceptions.Timeout:
-            _logger.warning("%s: Request timed out after %.1fs", self.name, self.timeout)
-            return None
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
-                _logger.debug("%s: Endpoint not found (404)", self.name)
-            else:
-                _logger.warning("%s: HTTP error %d", self.name, e.response.status_code)
-            return None
-        except Exception as e:
-            _logger.warning("%s: Failed to fetch: %s", self.name, e)
-            return None
+        _logger.warning(
+            "%s: all %d API keys exhausted; paused until %s",
+            self.name,
+            self._key_manager.key_count,
+            self._key_manager.pause_info,
+        )
+        return None
 
 
 class FarsideHtmlProvider(ETFProvider):

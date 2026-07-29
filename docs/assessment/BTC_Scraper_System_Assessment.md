@@ -13,7 +13,7 @@ The repository already contains several production-shaped controls: fail-closed 
 
 The main blockers are not absence of safety concepts. The first remediation wave has removed the immediate test/compile/contract/dispatch blockers; remaining risk is concentrated in operational proof depth and state lifecycle:
 
-- The current suite collects 754 tests and completes with exit 0 in a fresh Python 3.12 environment installed from `requirements-lock.txt`.
+- A fresh Python 3.12 environment installed from `requirements-lock.txt` passed the 754-test remediation checkpoint. After adding ten Parse.bot key-rotation/scheduling tests, the current 764-test assertion suite completes with exit 0.
 - Full compile now passes with `.venv/bin/python -m compileall -q btc_scraper main.py main_live.py api scripts`.
 - `prediction_created` now requires production lineage fields including `artifact_sha256`, `feature_snapshot_id`, `symbol`, `timeframe`, `side`, `predicted_at`, and `valid_until`.
 - Live LIMIT dispatch now calls limit adapter methods; live TWAP is disabled fail-closed until live adapter integration is rehearsed against child-order recovery.

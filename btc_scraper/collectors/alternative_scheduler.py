@@ -18,6 +18,7 @@ Usage (embedded):
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import time
 from datetime import datetime, timezone
@@ -31,6 +32,61 @@ from btc_scraper.collectors.alternative_data import (
 )
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_PARSEBOT_RECENT_CRON = "0 9,11,13,15,17,19 * * 2-6"
+DEFAULT_PARSEBOT_ALL_CRON = "30 9 * * 6"
+DEFAULT_PARSEBOT_FUND_CRON = "0 10 * * 0"
+
+
+def _parse_cron_field(raw: str, minimum: int, maximum: int) -> set[int]:
+    values: set[int] = set()
+    for part in raw.split(","):
+        part = part.strip()
+        if part == "*":
+            values.update(range(minimum, maximum + 1))
+        elif part.startswith("*/"):
+            step = int(part[2:])
+            if step <= 0:
+                raise ValueError("cron step must be positive")
+            values.update(range(minimum, maximum + 1, step))
+        elif "-" in part:
+            start_raw, end_raw = part.split("-", 1)
+            start, end = int(start_raw), int(end_raw)
+            if start > end:
+                raise ValueError("cron range start must not exceed end")
+            values.update(range(start, end + 1))
+        else:
+            values.add(int(part))
+    if not values or min(values) < minimum or max(values) > maximum:
+        raise ValueError(f"cron field must be within {minimum}..{maximum}")
+    return values
+
+
+def _latest_due_cron_slot(expression: str, now: datetime) -> str | None:
+    """Return the latest configured slot today that is due at ``now``."""
+    fields = expression.split()
+    if len(fields) != 5:
+        raise ValueError("cron expression must contain five fields")
+    minute_raw, hour_raw, day_raw, month_raw, weekday_raw = fields
+    minutes = _parse_cron_field(minute_raw, 0, 59)
+    hours = _parse_cron_field(hour_raw, 0, 23)
+    days = _parse_cron_field(day_raw, 1, 31)
+    months = _parse_cron_field(month_raw, 1, 12)
+    weekdays = {value % 7 for value in _parse_cron_field(weekday_raw, 0, 7)}
+    cron_weekday = (now.weekday() + 1) % 7  # cron: Sunday=0
+
+    if now.day not in days or now.month not in months or cron_weekday not in weekdays:
+        return None
+
+    candidates = [
+        now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        for hour in hours
+        for minute in minutes
+        if (hour, minute) <= (now.hour, now.minute)
+    ]
+    if not candidates:
+        return None
+    return max(candidates).isoformat()
 
 
 class AlternativeDataScheduler:
@@ -83,9 +139,9 @@ class AlternativeDataScheduler:
         self.last_error: Optional[Exception] = None
 
         # Parse.bot schedule tracking
-        self._last_recent_run_day: Optional[str] = None
-        self._last_all_run_day: Optional[str] = None
-        self._last_fund_run_day: Optional[str] = None
+        self._last_recent_run_slot: Optional[str] = None
+        self._last_all_run_slot: Optional[str] = None
+        self._last_fund_run_slot: Optional[str] = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -155,7 +211,6 @@ class AlternativeDataScheduler:
         self.last_run_at = datetime.now(timezone.utc)
 
         # Trigger scheduled Parse.bot fetch jobs if enabled (Phase D Gap)
-        import os
         parsebot_enabled = os.getenv("PARSEBOT_ENABLED", "false").strip().lower() == "true"
         if parsebot_enabled:
             try:
@@ -207,11 +262,11 @@ class AlternativeDataScheduler:
     def _run_scheduled_parsebot_jobs(self, now_tz: datetime) -> None:
         """Run the low-frequency Parse.bot jobs due at ``now_tz``.
 
-        One recent run on each US-market publication day plus weekly all/fund
-        refreshes costs at most 84 base requests in any calendar month for the
-        default symbol lists (69 recent + 10 all + 5 fund). With one retry per
-        failed request, the worst case is 168 requests, below the 200/month
-        Parse.bot allowance.
+        With five keys, the default recent schedule runs six times per
+        publication day. At the maximum 23 Tue-Sat days in a month, recent,
+        weekly all-history, and fund jobs consume at most 429 base requests.
+        With one retry for every request, 858 attempts remain below the
+        five-key operational guard of 900 attempts.
         """
         from scripts.fetch_parsebot_etf_jobs import (
             fetch_parsebot_etf_all_job,
@@ -219,29 +274,41 @@ class AlternativeDataScheduler:
             fetch_parsebot_fund_info_job,
         )
 
-        day_str = now_tz.strftime("%Y-%m-%d")
-        weekday = now_tz.weekday()  # 0=Mon, ..., 5=Sat, 6=Sun
+        schedules = (
+            (
+                "recent",
+                os.getenv("PARSEBOT_ETF_RECENT_CRON", DEFAULT_PARSEBOT_RECENT_CRON),
+                fetch_parsebot_etf_recent_job,
+                "_last_recent_run_slot",
+            ),
+            (
+                "all historical",
+                os.getenv("PARSEBOT_ETF_ALL_CRON", DEFAULT_PARSEBOT_ALL_CRON),
+                fetch_parsebot_etf_all_job,
+                "_last_all_run_slot",
+            ),
+            (
+                "fund info",
+                os.getenv("PARSEBOT_FUND_INFO_CRON", DEFAULT_PARSEBOT_FUND_CRON),
+                fetch_parsebot_fund_info_job,
+                "_last_fund_run_slot",
+            ),
+        )
 
-        # Recent: 09:00 Tue-Sat (three requests per run).
-        if weekday in (1, 2, 3, 4, 5) and now_tz.hour >= 9:
-            if self._last_recent_run_day != day_str:
-                logger.info("Scheduler triggering recent Parse.bot ETF job for day %s", day_str)
-                fetch_parsebot_etf_recent_job()
-                self._last_recent_run_day = day_str
-
-        # Full history: 09:30 Saturday (two requests per run).
-        if weekday == 5 and (now_tz.hour, now_tz.minute) >= (9, 30):
-            if self._last_all_run_day != day_str:
-                logger.info("Scheduler triggering all historical Parse.bot ETF job for day %s", day_str)
-                fetch_parsebot_etf_all_job()
-                self._last_all_run_day = day_str
-
-        # Fund metadata: 10:00 Sunday (one request per run).
-        if weekday == 6 and now_tz.hour >= 10:
-            if self._last_fund_run_day != day_str:
-                logger.info("Scheduler triggering Parse.bot fund info job for day %s", day_str)
-                fetch_parsebot_fund_info_job()
-                self._last_fund_run_day = day_str
+        for name, expression, job, state_attr in schedules:
+            try:
+                due_slot = _latest_due_cron_slot(expression, now_tz)
+            except (TypeError, ValueError) as exc:
+                logger.error("Invalid Parse.bot %s cron %r: %s", name, expression, exc)
+                continue
+            if due_slot is not None and getattr(self, state_attr) != due_slot:
+                logger.info(
+                    "Scheduler triggering %s Parse.bot job for slot %s",
+                    name,
+                    due_slot,
+                )
+                job()
+                setattr(self, state_attr, due_slot)
 
 
 class SchedulerRegistry:

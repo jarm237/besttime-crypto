@@ -22,7 +22,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 class TestAlternativeDataScheduler:
-    def test_parsebot_schedule_runs_once_per_due_day(self):
+    def test_parsebot_schedule_runs_once_per_due_slot(self):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 
         sched = AlternativeDataScheduler()
@@ -39,6 +39,41 @@ class TestAlternativeDataScheduler:
         recent.assert_called_once_with()
         all_history.assert_not_called()
         fund.assert_not_called()
+
+    def test_parsebot_recent_schedule_runs_six_slots_per_publication_day(self):
+        from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
+
+        sched = AlternativeDataScheduler()
+        tuesday = datetime(2026, 7, 21, tzinfo=timezone.utc)
+
+        with (
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_recent_job") as recent,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_all_job"),
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_fund_info_job"),
+        ):
+            for hour in (9, 11, 13, 15, 17, 19):
+                sched._run_scheduled_parsebot_jobs(tuesday.replace(hour=hour))
+                sched._run_scheduled_parsebot_jobs(tuesday.replace(hour=hour, minute=15))
+
+        assert recent.call_count == 6
+
+    def test_parsebot_schedule_honors_environment_cron_override(self):
+        from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
+
+        sched = AlternativeDataScheduler()
+        monday = datetime(2026, 7, 20, tzinfo=timezone.utc)
+
+        with (
+            patch.dict("os.environ", {"PARSEBOT_ETF_RECENT_CRON": "30 8 * * 1"}),
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_recent_job") as recent,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_all_job"),
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_fund_info_job"),
+        ):
+            sched._run_scheduled_parsebot_jobs(monday.replace(hour=8, minute=29))
+            sched._run_scheduled_parsebot_jobs(monday.replace(hour=8, minute=30))
+            sched._run_scheduled_parsebot_jobs(monday.replace(hour=8, minute=45))
+
+        recent.assert_called_once_with()
 
     def test_parsebot_weekly_jobs_only_run_on_weekend(self):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
@@ -171,8 +206,11 @@ def test_parsebot_monthly_request_guard_persists_and_resets(tmp_path):
         assert _reserve_parsebot_request(august) == (True, 1, 2)
 
     assert json.loads(usage_path.read_text(encoding="utf-8")) == {
+        "counts": {
+            "c49fea7425fa": 1,
+        },
         "month": "2026-08",
-        "count": 1,
+        "total_count": 1,
     }
 
 

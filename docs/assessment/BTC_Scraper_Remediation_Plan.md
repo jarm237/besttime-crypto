@@ -54,12 +54,12 @@ Immediate P0 acceptance gate for future live work:
 7. Prove live exchange outage behavior.
    - Status: `DONE` for deterministic adapter baseline; live exchange/testnet drill still required before production.
    - Acceptance: submit timeout, rate limit, REST/WS outage, child-order replay, cancel/replace ambiguity, WS/REST disagreement, and operator quarantine are covered without duplicate logical orders or silent state mutation.
-   - Evidence: `tests/live_outage/` passes with 13 tests and the current 754-test full assertion suite completes with exit 0.
+   - Evidence: `tests/live_outage/` passes with 13 tests and the current 764-test full assertion suite completes with exit 0.
 
 8. Add runtime ownership and process isolation.
    - Status: `DONE` for code/test baseline and isolated full-suite guard proof; in-place production rehearsal remains pending.
    - Acceptance: every runtime has environment/deployment/runtime identity, default roots are deployment-scoped, reservation/evidence stores do not share SQLite by default, same-deployment second process is refused, stale locks are audited, lock bypass is forbidden in live and critical-degraded elsewhere, and the runtime guard reports hashes plus suspected owner metadata.
-   - Evidence: `tests/test_runtime_ownership.py` passes; the current 754-test suite completes with exit 0 in a fresh dependency environment and with the artifact guard enabled in an isolated source snapshot.
+   - Evidence: `tests/test_runtime_ownership.py` passes; the clean-environment and isolated guard checkpoint passed at 754 tests, and the current 764-test assertion suite completes with exit 0 after adding Parse.bot rotation and configurable multi-slot scheduling coverage.
 
 ## P2 - Quality / Observability
 

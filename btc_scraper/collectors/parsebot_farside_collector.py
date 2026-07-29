@@ -27,6 +27,7 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -36,6 +37,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from btc_scraper.collectors.parsebot_key_rotation import (
+    ParsebotKeyManager,
+    get_parsebot_key_manager,
+    is_parsebot_key_exhaustion_error,
+    load_parsebot_api_keys,
+)
 from btc_scraper.core.paths import build_logs_path
 
 _logger = logging.getLogger(__name__)
@@ -57,7 +64,11 @@ def _cache_dir() -> Path:
     return Path(configured).expanduser() if configured else build_logs_path("etf_flow_cache")
 
 
-def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int, int]:
+def _reserve_parsebot_request(
+    now: Optional[datetime] = None,
+    *,
+    api_key: str | None = None,
+) -> tuple[bool, int, int]:
     """Atomically reserve one request from the configured monthly allowance.
 
     Usage is persisted so scheduler restarts and manual CLI jobs share the same
@@ -71,6 +82,7 @@ def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int
 
     usage_path = _request_usage_path()
     month = (now or datetime.now(timezone.utc)).strftime("%Y-%m")
+    key_id = hashlib.sha256((api_key or "legacy").encode("utf-8")).hexdigest()[:12]
     usage_path.parent.mkdir(parents=True, exist_ok=True)
 
     with _REQUEST_USAGE_LOCK:
@@ -85,7 +97,15 @@ def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int
             raw = handle.read().strip()
             try:
                 state = json.loads(raw) if raw else {}
-                count = int(state.get("count", 0)) if state.get("month") == month else 0
+                counts: dict[str, int] = {}
+                if state.get("month") == month:
+                    raw_counts = state.get("counts")
+                    if isinstance(raw_counts, dict):
+                        counts = {str(key): int(value) for key, value in raw_counts.items()}
+                    elif "count" in state:
+                        # Migrate the legacy single counter without losing quota usage.
+                        counts[key_id] = int(state.get("count", 0))
+                count = counts.get(key_id, 0)
             except (TypeError, ValueError, json.JSONDecodeError):
                 _logger.error("Invalid Parse.bot request usage file; refusing API request: %s", usage_path)
                 return False, limit, limit
@@ -94,9 +114,18 @@ def _reserve_parsebot_request(now: Optional[datetime] = None) -> tuple[bool, int
                 return False, count, limit
 
             count += 1
+            counts[key_id] = count
             handle.seek(0)
             handle.truncate()
-            json.dump({"month": month, "count": count}, handle)
+            json.dump(
+                {
+                    "month": month,
+                    "counts": counts,
+                    "total_count": sum(counts.values()),
+                },
+                handle,
+                sort_keys=True,
+            )
             handle.flush()
             os.fsync(handle.fileno())
             return True, count, limit
@@ -369,18 +398,27 @@ class ParsebotFarsideETFCollector:
     Không bao giờ gọi phương thức này trong trading scan 15 phút.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, api_keys: list[str] | None = None) -> None:
         self.enabled = os.getenv("PARSEBOT_ENABLED", "false").strip().lower() == "true"
         self.base_url = (os.getenv("PARSEBOT_BASE_URL") or "").strip().rstrip("/")
-        self.api_key = (os.getenv("PARSEBOT_API_KEY") or "").strip()
+        self.api_keys = (
+            list(dict.fromkeys(key.strip() for key in api_keys if key.strip()))
+            if api_keys is not None
+            else load_parsebot_api_keys()
+        )
+        self.api_key = self.api_keys[0] if self.api_keys else ""
+        self._key_manager = (
+            ParsebotKeyManager(self.api_keys)
+            if api_keys is not None
+            else get_parsebot_key_manager(self.api_keys)
+        )
         self.timeout = int(os.getenv("PARSEBOT_TIMEOUT_SECONDS", "20"))
         self.max_retries = int(os.getenv("PARSEBOT_MAX_RETRIES", "2"))
         self.retry_delay = int(os.getenv("PARSEBOT_RETRY_DELAY_SECONDS", "5"))
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self, api_key: str | None = None) -> Dict[str, str]:
         return {
-            # "Authorization": f"Bearer {self.api_key}",
-            "X-API-Key": self.api_key,
+            "X-API-Key": api_key or self.api_key,
             "Accept": "application/json",
         }
 
@@ -427,8 +465,15 @@ class ParsebotFarsideETFCollector:
             _logger.debug("parsebot_farside disabled for %s/%s", symbol, mode)
             return result
 
-        if not self.base_url or not self.api_key:
-            result = self._result(symbol, mode, "disabled", None, 0.0, "Missing PARSEBOT_BASE_URL or PARSEBOT_API_KEY")
+        if not self.base_url or not self.api_keys:
+            result = self._result(
+                symbol,
+                mode,
+                "disabled",
+                None,
+                0.0,
+                "Missing PARSEBOT_BASE_URL or PARSEBOT_API_KEY(_1..5)",
+            )
             _logger.warning("parsebot_farside: missing config for %s/%s", symbol, mode)
             return result
 
@@ -456,43 +501,85 @@ class ParsebotFarsideETFCollector:
             _save_cache(result)
             return result
 
-        for attempt in range(self.max_retries + 1):
-            allowed, request_count, request_limit = _reserve_parsebot_request()
+        http_attempt = 0
+        transient_retries = 0
+        while self._key_manager.available:
+            api_key = self._key_manager.next_key()
+            if api_key is None:
+                break
+            key_label = f"...{api_key[-6:]}"
+            allowed, request_count, request_limit = _reserve_parsebot_request(api_key=api_key)
             if not allowed:
-                result = self._result(
-                    symbol,
-                    mode,
-                    "quota_exhausted",
-                    None,
-                    0.0,
-                    f"Parse.bot monthly request limit reached ({request_count}/{request_limit})",
-                    endpoint,
+                self._key_manager.mark_exhausted(api_key)
+                _logger.warning(
+                    "parsebot_farside key %s monthly guard exhausted (%d/%d); rotating",
+                    key_label,
+                    request_count,
+                    request_limit,
                 )
-                _save_cache(result)
-                _logger.warning("parsebot_farside monthly quota exhausted (%d/%d)", request_count, request_limit)
-                return result
+                continue
 
+            http_attempt += 1
             try:
-                response = _requests.get(url, headers=self._headers(), timeout=self.timeout)
+                response = _requests.get(
+                    url,
+                    headers=self._headers(api_key),
+                    timeout=self.timeout,
+                )
                 response.raise_for_status()
                 data = response.json()
 
+                self._key_manager.reset_key(api_key)
                 result = self._result(symbol, mode, "ok", data, 1.0, None, endpoint)
                 _save_cache(result)
                 _logger.info(
-                    "parsebot_farside %s.%s.ok (attempt=%d)",
-                    symbol, mode, attempt + 1,
+                    "parsebot_farside %s.%s.ok (attempt=%d, key=%s)",
+                    symbol,
+                    mode,
+                    http_attempt,
+                    key_label,
                 )
                 return result
 
             except Exception as exc:
                 last_error = str(exc)
+                if is_parsebot_key_exhaustion_error(exc):
+                    self._key_manager.mark_exhausted(api_key)
+                    _logger.warning(
+                        "parsebot_farside key %s exhausted by API; rotating to next key",
+                        key_label,
+                    )
+                    continue
+
                 _logger.warning(
-                    "parsebot_farside %s.%s attempt %d/%d failed: %s",
-                    symbol, mode, attempt + 1, self.max_retries + 1, last_error,
+                    "parsebot_farside %s.%s attempt %d failed with key %s: %s",
+                    symbol,
+                    mode,
+                    http_attempt,
+                    key_label,
+                    last_error,
                 )
-                if attempt < self.max_retries:
-                    time.sleep(self.retry_delay)
+                if transient_retries >= self.max_retries:
+                    break
+                transient_retries += 1
+                time.sleep(self.retry_delay)
+
+        if not self._key_manager.available:
+            result = self._result(
+                symbol,
+                mode,
+                "quota_exhausted",
+                None,
+                0.0,
+                (
+                    f"All {self._key_manager.key_count} Parse.bot API keys are exhausted; "
+                    f"paused until {self._key_manager.pause_info}"
+                ),
+                endpoint,
+            )
+            _save_cache(result)
+            _logger.error("parsebot_farside all configured API keys are exhausted")
+            return result
 
         result = self._result(symbol, mode, "failed", None, 0.0, last_error, endpoint)
         _save_cache(result)

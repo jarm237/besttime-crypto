@@ -1,0 +1,30 @@
+[
+  {
+    "checked_at": "2026-07-29T08:54:00.871325+00:00",
+    "payload_timestamp": "2026-07-29T08:53:50.949134+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-29T08:54:10.599757+00:00",
+    "payload_timestamp": "2026-07-29T08:54:02.793628+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-29T08:54:16.000786+00:00",
+    "payload_timestamp": "2026-07-29T08:54:02.793628+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  {
+    "checked_at": "2026-07-29T09:01:09.620955+00:00",
+    "payload_timestamp": "2026-07-29T08:54:02.793628+00:00",
+    "is_healthy": true,
+    "issue_count": 0,
+    "issues": []
+  }
+]

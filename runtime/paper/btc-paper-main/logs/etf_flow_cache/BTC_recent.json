@@ -1,0 +1,11 @@
+{
+  "source": "parsebot_farside",
+  "endpoint": "get_bitcoin_etf_flows_recent",
+  "symbol": "BTC",
+  "mode": "recent",
+  "status": "failed",
+  "value": null,
+  "data_quality": 0.0,
+  "fetched_at": "2026-07-29T08:53:36.685951+00:00",
+  "error": "404 Client Error: Not Found for url: https://api.parse.bot/scraper/e9735bc0-4fc2-4b16-b510-66b77907c48e/get_bitcoin_etf_flows_recent"
+}

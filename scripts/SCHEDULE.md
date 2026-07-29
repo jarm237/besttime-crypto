@@ -83,19 +83,29 @@ ETF flow data is daily data and must **not** be fetched inside every 15-minute s
 
 | Job | Cron | Time (VN) | Symbols |
 |:---|:---|:---|:---|
-| `fetch_parsebot_etf_recent` | `0 9 * * 2-6` | 09:00 Tue–Sat | BTC, ETH, SOL |
+| `fetch_parsebot_etf_recent` | `0 9,11,13,15,17,19 * * 2-6` | Every 2 hours, 09:00–19:00 Tue–Sat | BTC, ETH, SOL |
 | `fetch_parsebot_etf_all` | `30 9 * * 6` | 09:30 Saturday | BTC, ETH |
 | `fetch_parsebot_fund_info` | `0 10 * * 0` | 10:00 Sunday | FUND |
 
-With the default symbol lists this schedule uses at most 84 base requests in a
-calendar month (69 recent + 10 full-history + 5 fund-info). Keep
-`PARSEBOT_MAX_RETRIES=1`; even if every request retries once, usage is capped at
-168 requests, leaving headroom below the 180-request operational guard and the
-200-request monthly allowance.
-Every HTTP attempt is also counted in `logs/parsebot_request_usage.json`. Once
-`PARSEBOT_MONTHLY_REQUEST_LIMIT` (default `180`) is reached, the collector stops
-before sending another request; this counter also covers retries and manual CLI
-runs.
+With the default symbol lists and a maximum 23 Tue–Sat publication days, this
+schedule uses at most 429 base requests per month: 414 recent requests, 10
+full-history requests, and 5 fund-info requests. Keep
+`PARSEBOT_MAX_RETRIES=1`; even if every request retries once, the maximum is 858
+attempts. Round-robin distribution keeps this below the combined five-key
+operational guard of 900 attempts (`5 × 180`), leaving 42 attempts of headroom.
+
+Configure `PARSEBOT_API_KEY_1` through `PARSEBOT_API_KEY_5` for round-robin
+rotation. `PARSEBOT_API_KEY` remains the legacy fallback and is appended after
+the numbered keys. A successful request advances the round-robin cursor. HTTP
+429 or `RESOURCE_EXHAUSTED` marks only that key exhausted and immediately tries
+the next key. When all keys are exhausted, requests pause until 00:05 the next
+day, matching the Gemini key behavior.
+
+Every HTTP attempt is counted per key in the deployment-owned
+`logs/parsebot_request_usage.json`. The file stores only a SHA-256 key
+fingerprint. Once `PARSEBOT_MONTHLY_REQUEST_LIMIT` is reached for one key, the
+collector rotates without sending another request with that key; retries and
+manual CLI runs use the same counter.
 
 ### Manual CLI trigger (dry-run)
 
@@ -113,7 +123,10 @@ runs.
 
 ```env
 PARSEBOT_ENABLED=true
-PARSEBOT_API_KEY=<your_key>
+PARSEBOT_API_KEY_1=<primary_key>
+PARSEBOT_API_KEY_2=<secondary_key>
+# Legacy fallback:
+PARSEBOT_API_KEY=<your_existing_key>
 PARSEBOT_BASE_URL=<your_endpoint_from_dashboard>
 ETF_FLOW_TIMEZONE=Asia/Ho_Chi_Minh
 ETF_FLOW_ALLOW_DEFAULT_FAKE_DATA=false

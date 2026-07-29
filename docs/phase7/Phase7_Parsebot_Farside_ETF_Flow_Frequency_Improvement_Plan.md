@@ -1,5 +1,12 @@
 # Phase 7 — Parse.bot Farside ETF Flow Frequency Improvement Plan
 
+> **Runtime update (2026-07-29):** Với 5 API key và per-key guard 180,
+> lịch `recent` đang dùng là `0 9,11,13,15,17,19 * * 2-6` theo múi giờ
+> `Asia/Ho_Chi_Minh`. Scheduler hiện đọc trực tiếp các biến
+> `PARSEBOT_*_CRON`. Lịch này có tối đa 429 request gốc hoặc 858 attempts khi
+> mọi request retry một lần, dưới tổng guard 900. Các cron cũ phía dưới được
+> giữ lại như lịch sử thiết kế và không còn là cấu hình runtime chuẩn.
+
 ## 1. Mục tiêu
 
 Hiện tại hệ thống Phase 7 Alternative Data có thể gặp các lỗi dạng:

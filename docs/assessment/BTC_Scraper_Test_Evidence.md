@@ -7,12 +7,12 @@ Source under test:
 
 ```text
 base_commit=2e5770e1c7ab6da0c8d9556aa17e00a4eeb3edf5
-code_test_lock_patch_sha256=bcbc855bd575df07484e2d75ac0fd059c8d89a13ec0a348d580e911c1334f30f
+working_tree_patch_sha256=8e18aca711d374ab22ba4736dfb69239e8b3f2ff18e0d9073a1bad9c2c8d5709
 ```
 
-The patch hash covers `btc_scraper/collectors/parsebot_farside_collector.py`,
-`tests/test_paths_and_macro_freshness.py`, and `requirements-lock.txt`. Record
-the final commit SHA here after the remediation is committed.
+The patch hash covers the current product code, tests, dependency lock,
+`.env.example`, and scheduling documentation changes relative to the base
+commit. Record the final commit SHA here after the remediation is committed.
 
 ## Current Baseline
 
@@ -71,6 +71,31 @@ Result:
 pytest collection: 754 tests
 full assertion suite plus runtime artifact guard: PASS (exit 0)
 ```
+
+## Parse.bot Key Rotation Verification
+
+The subsequent Parse.bot rotation and schedule changes add ten tests. The
+current suite collects 764 tests and completes with exit 0:
+
+```bash
+.venv/bin/python -m pytest tests/test_parsebot_key_rotation.py -q
+.venv/bin/python -m pytest tests/test_phase7_sprint7.py -m "not network" -q
+BTC_DISABLE_TEST_RUNTIME_GUARD=1 .venv/bin/python -m pytest -q
+```
+
+Result:
+
+```text
+Parse.bot rotation/quota tests: 8 passed
+Phase 7 non-network tests: 30 passed
+Parse.bot cron slot tests: 4 passed
+current full-suite collection: 764 tests
+current full assertion suite: PASS (exit 0)
+```
+
+The guard remains disabled for this in-place run only because the running
+production process has not been restarted to load the owned-path remediation.
+The latest isolated guard-enabled checkpoint remains the 754-test pass above.
 
 ## Remediation Evidence
 
