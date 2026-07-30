@@ -282,6 +282,57 @@ class TestFinalRiskGate:
         assert len(rows) == 1
         assert rows[0][0] == result["prediction_id"] == "pred-1"
 
+    def test_provider_replay_reuses_persisted_final_decision(self, monkeypatch, tmp_path):
+        from btc_scraper.ml_engine import runtime_evidence_store as evidence_module
+
+        store = evidence_module.RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+        store.write_prediction_evidence(
+            {"prediction_id": "pred-1", "value": .8},
+            {"prediction_id": "pred-1", "features": [1]},
+        )
+        monkeypatch.setattr(evidence_module, "_STORE", store)
+
+        class Report:
+            def to_dict(self):
+                return {
+                    "adjusted_score": .9,
+                    "risk_level": "LOW",
+                    "stop_processing": False,
+                }
+
+        class Provider:
+            name = "test"
+
+            def should_apply_context(self, _state):
+                return True
+
+            def generate_context_report(self, _score, _state):
+                return Report()
+
+        engine = MetaDecisionEngine()
+        analysis = {
+            "signal_id": "sig-1",
+            "signal": "BUY",
+            "_meta_prediction": {
+                "probability": .8,
+                "expected_return": .2,
+                "prediction_id": "pred-1",
+                "model_version": "v",
+                "artifact_sha256": "sha",
+            },
+        }
+        first = engine.decide_with_provider(analysis, Provider(), object())
+        replay = engine.decide_with_provider(
+            {**analysis, "fear_greed": 5},
+            Provider(),
+            object(),
+        )
+
+        assert replay["decision_id"] == first["decision_id"]
+        assert store.count_rows("final_decisions") == 1
+        assert store.shadow_evidence_rows()["quarantine"] == []
+        assert store.health()["status"] == "healthy"
+
 
 # ---------------------------------------------------------------------------
 # decide() without model

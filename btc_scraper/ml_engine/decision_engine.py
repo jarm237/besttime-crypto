@@ -207,8 +207,26 @@ class MetaDecisionEngine:
             from .operational_health import record_degradation
             record_degradation("prediction_audit", "prediction_audit_write_failure_total", exc)
 
+    @staticmethod
+    def _existing_final_decision(payload: Dict) -> Optional[Dict]:
+        meta = payload.get("_meta_prediction")
+        prediction_id = (
+            meta.get("prediction_id")
+            if isinstance(meta, dict)
+            else payload.get("prediction_id")
+        )
+        if not prediction_id:
+            return None
+        from .runtime_evidence_store import get_runtime_evidence_store
+        return get_runtime_evidence_store().get_final_decision_for_prediction(
+            str(prediction_id)
+        )
+
     def decide(self, analysis_info: Dict, *, persist_final: bool = True) -> Dict:
         meta = analysis_info.get("_meta_prediction")
+        existing = self._existing_final_decision(analysis_info)
+        if existing is not None:
+            return existing
         if not isinstance(meta, dict):
             meta = predict_meta_confidence(analysis_info)
         if not isinstance(meta, dict) or meta.get("probability") is None:
@@ -380,6 +398,9 @@ class MetaDecisionEngine:
             Enhanced decision dict with context adjustments
         """
         base_decision = self.decide(analysis_info, persist_final=False)
+        existing = self._existing_final_decision(base_decision)
+        if existing is not None:
+            return existing
         return self.apply_context(base_decision, context_report or {}, analysis_info=analysis_info)
 
     def decide_with_provider(
@@ -406,6 +427,9 @@ class MetaDecisionEngine:
         """
         # Get base decision
         base_decision = self.decide(analysis_info, persist_final=False)
+        existing = self._existing_final_decision(base_decision)
+        if existing is not None:
+            return existing
         if base_decision.get("error") or base_decision.get("posterior_probability") is None:
             return base_decision
 
