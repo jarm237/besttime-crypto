@@ -84,7 +84,8 @@ class ModelRegistry:
     @staticmethod
     def _assert_runtime_evidence_healthy() -> None:
         evidence_path = get_runtime_paths().runtime_evidence_path
-        if not evidence_path.exists():
+        partition_pattern = f"{evidence_path.stem}_????-??-??{evidence_path.suffix}"
+        if not evidence_path.exists() and not any(evidence_path.parent.glob(partition_pattern)):
             return
         from .runtime_evidence_store import RuntimeEvidenceStore
         health = RuntimeEvidenceStore(evidence_path).health()

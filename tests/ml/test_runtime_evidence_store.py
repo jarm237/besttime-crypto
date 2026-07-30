@@ -1,4 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+import sqlite3
 
 import pytest
 
@@ -114,3 +116,86 @@ def test_health_reports_foreign_key_violations_and_orphans(tmp_path):
     assert health["status"] == "degraded"
     assert health["orphan_outcomes"] == 1
     assert health["foreign_key_violations"] == 1
+
+
+def test_writes_roll_over_to_daily_utc_partitions_and_reads_across_them(tmp_path):
+    current = [datetime(2026, 7, 29, 23, 59, tzinfo=timezone.utc)]
+    base_path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(base_path, clock=lambda: current[0])
+
+    store.write_prediction_evidence(*_payload(1))
+    store.append_audit_event({"event_type": "day-one"})
+    current[0] = datetime(2026, 7, 30, 0, 1, tzinfo=timezone.utc)
+    store.write_prediction_evidence(*_payload(2))
+    store.append_audit_event({"event_type": "day-two"})
+
+    first_path = tmp_path / "runtime_evidence_2026-07-29.sqlite"
+    second_path = tmp_path / "runtime_evidence_2026-07-30.sqlite"
+    assert first_path.exists()
+    assert second_path.exists()
+    assert not base_path.exists()
+    assert store.get_prediction("p-1")["prediction_id"] == "p-1"
+    assert store.get_feature_snapshot("p-2")["prediction_id"] == "p-2"
+    assert store.count_rows("predictions") == 2
+    assert {row["event_type"] for row in store.shadow_evidence_rows()["audit_events"]} == {
+        "day-one", "day-two",
+    }
+
+
+def test_decisions_and_outcomes_follow_prediction_partition_after_rollover(tmp_path):
+    current = [datetime(2026, 7, 29, 23, 59, tzinfo=timezone.utc)]
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite", clock=lambda: current[0])
+    store.write_prediction_evidence(*_payload(1))
+    prediction_path = store.current_path
+
+    current[0] = datetime(2026, 7, 30, 0, 1, tzinfo=timezone.utc)
+    store.append_final_decision({"decision_id": "d-1", "prediction_id": "p-1", "action": "HOLD"})
+    store.append_outcome_link({
+        "outcome_id": "o-1",
+        "prediction_id": "p-1",
+        "position_id": "pos-1",
+        "outcome_revision": 1,
+    })
+
+    with store._connect(prediction_path) as db:
+        assert db.execute("SELECT COUNT(*) FROM final_decisions").fetchone()[0] == 1
+        assert db.execute("SELECT COUNT(*) FROM outcome_links").fetchone()[0] == 1
+    with store._connect() as db:
+        assert db.execute("SELECT COUNT(*) FROM final_decisions").fetchone()[0] == 0
+        assert db.execute("SELECT COUNT(*) FROM outcome_links").fetchone()[0] == 0
+    assert store.get_final_decision_for_prediction("p-1")["decision_id"] == "d-1"
+    assert store.latest_outcomes()[0]["outcome_id"] == "o-1"
+    assert store.health()["status"] == "healthy"
+
+
+def test_legacy_undated_database_remains_readable_with_new_partitions(tmp_path):
+    day_one = datetime(2026, 7, 29, tzinfo=timezone.utc)
+    base_path = tmp_path / "runtime_evidence.sqlite"
+    old_store = RuntimeEvidenceStore(base_path, clock=lambda: day_one)
+    old_store.write_prediction_evidence(*_payload(1))
+    old_partition = old_store.current_path
+    with old_store._connect() as source, sqlite3.connect(base_path) as destination:
+        source.backup(destination)
+    old_partition.unlink()
+
+    day_two = datetime(2026, 7, 30, tzinfo=timezone.utc)
+    store = RuntimeEvidenceStore(base_path, clock=lambda: day_two)
+    store.write_prediction_evidence(*_payload(2))
+
+    assert store.get_prediction("p-1")["prediction_id"] == "p-1"
+    assert store.get_prediction("p-2")["prediction_id"] == "p-2"
+    assert store.count_rows("predictions") == 2
+    assert store.health()["status"] == "healthy"
+
+
+def test_matching_legacy_and_partition_records_are_deduplicated(tmp_path):
+    now = datetime(2026, 7, 30, tzinfo=timezone.utc)
+    base_path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(base_path, clock=lambda: now)
+    store.write_prediction_evidence(*_payload(1))
+    with store._connect() as source, sqlite3.connect(base_path) as destination:
+        source.backup(destination)
+
+    assert store.count_rows("predictions") == 1
+    assert len(store.shadow_evidence_rows()["predictions"]) == 1
+    assert store.health()["status"] == "healthy"

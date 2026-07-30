@@ -171,12 +171,14 @@ def _store_signature(store: RuntimeEvidenceStore) -> tuple[Any, ...]:
         SHADOW_READINESS_RULE_VERSION,
         asdict(ShadowThresholds()),
     ]
-    for path in (store.path, store.path.with_name(store.path.name + "-wal")):
-        try:
-            stat = path.stat()
-            signature.append((stat.st_mtime_ns, stat.st_size))
-        except FileNotFoundError:
-            signature.append((0, 0))
+    for database_path in store.partition_paths():
+        signature.append(database_path.name)
+        for path in (database_path, database_path.with_name(database_path.name + "-wal")):
+            try:
+                stat = path.stat()
+                signature.append((stat.st_mtime_ns, stat.st_size))
+            except FileNotFoundError:
+                signature.append((0, 0))
     return tuple(signature)
 
 

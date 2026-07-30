@@ -174,14 +174,10 @@ def backfill_position(
         print(f"  {coin} {direction} @ {entry_time_iso[:16]} → {closed_at_iso[:16]} | {result} {pnl_pct:+.3f}%")
 
     # Check đã tồn tại
-    with store._connect() as db:
-        existing = db.execute(
-            "SELECT outcome_id FROM outcome_links WHERE json_extract(payload, '$.position_id')=?",
-            (position_id,),
-        ).fetchone()
+    existing = store.get_latest_outcome_for_position(position_id)
     if existing:
         if verbose:
-            print(f"    → Đã tồn tại ({existing[0]}), bỏ qua.")
+            print(f"    → Đã tồn tại ({existing['outcome_id']}), bỏ qua.")
         return {"status": "already_exists", "position_id": position_id}
 
     if dry_run:
