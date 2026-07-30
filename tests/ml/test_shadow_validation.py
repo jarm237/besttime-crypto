@@ -139,6 +139,7 @@ def test_complete_production_prediction_is_eligible():
         "artifact_sha256": "artifact-v3",
         "feature_schema_version": "schema-v3",
         "feature_hash": "hash-v3",
+        "epoch_id": "epoch-v3",
         "symbol": "BTCUSDT",
         "evidence_eligible": True,
     }

@@ -57,6 +57,7 @@ def evaluate_shadow_validation(
     current_time = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     health = store.health()
     rows = store.shadow_evidence_rows()
+    active_epoch = store.get_active_evidence_epoch()
     snapshots = {
         str(row.get("prediction_id") or ""): row
         for row in rows["feature_snapshots"]
@@ -66,7 +67,11 @@ def evaluate_shadow_validation(
     predictions: dict[str, dict[str, Any]] = {}
     for row in rows["predictions"]:
         prediction_id = str(row.get("prediction_id") or "")
-        reasons = _prediction_exclusion_reasons(row, snapshots.get(prediction_id))
+        reasons = _prediction_exclusion_reasons(
+            row,
+            snapshots.get(prediction_id),
+            expected_epoch_id=active_epoch.epoch_id if active_epoch else None,
+        )
         if reasons:
             exclusion_counts.update(reasons)
             if len(exclusion_examples) < 20:
@@ -176,6 +181,7 @@ def evaluate_shadow_validation(
         "source": "runtime_evidence.sqlite",
         "evidence_schema_version": RUNTIME_EVIDENCE_SCHEMA_VERSION,
         "readiness_rule_version": SHADOW_READINESS_RULE_VERSION,
+        "active_epoch_id": active_epoch.epoch_id if active_epoch else None,
         "thresholds": asdict(limits),
         "checks": checks,
         "failed_checks": [name for name, passed in checks.items() if not passed],
@@ -281,6 +287,7 @@ def _prediction_exclusion_reasons(
     snapshot: Mapping[str, Any] | None,
     *,
     check_snapshot: bool = True,
+    expected_epoch_id: str | None = None,
 ) -> list[str]:
     """Return stable, auditable reasons why a prediction cannot enter the gate."""
     reasons: list[str] = []
@@ -308,6 +315,10 @@ def _prediction_exclusion_reasons(
         reasons.append("non_production_traffic")
     if row.get("evidence_eligible") is False:
         reasons.append("runtime_marked_ineligible")
+    if row.get("evidence_eligible") is True and not row.get("epoch_id"):
+        reasons.append("missing_lineage:epoch_id")
+    if expected_epoch_id and str(row.get("epoch_id") or "") != expected_epoch_id:
+        reasons.append("non_active_epoch")
     if check_snapshot:
         if snapshot is None:
             reasons.append("missing_feature_snapshot")
@@ -327,6 +338,7 @@ def _linked_lineage_mismatch_reasons(
         "feature_schema_version": ("feature_schema_version",),
         "model_version": ("model_version",),
         "deployment_id": ("deployment_id",),
+        "epoch_id": ("epoch_id",),
     }
     for canonical, keys in aliases.items():
         expected = str(prediction.get(canonical) or "")

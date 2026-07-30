@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping
 
 from .artifact_resolver import ROOT
+from .evidence_epoch import (
+    EVIDENCE_POLICY_VERSION,
+    RISK_POLICY_VERSION,
+    EvidenceEpoch,
+)
 from btc_scraper.core.paths import (
     get_runtime_paths,
     runtime_deployment_id,
@@ -22,7 +27,7 @@ from btc_scraper.core.paths import (
 )
 
 RUNTIME_EVIDENCE_SCHEMA_VERSION = 4
-GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 1
+GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 2
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "signal_id",
@@ -155,6 +160,22 @@ class RuntimeEvidenceStore:
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS evidence_epochs (
+                    epoch_id TEXT PRIMARY KEY,
+                    deployment_id TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    code_commit_sha TEXT NOT NULL,
+                    model_version TEXT NOT NULL,
+                    artifact_sha256 TEXT NOT NULL,
+                    feature_schema_version TEXT NOT NULL,
+                    evidence_policy_version TEXT NOT NULL,
+                    risk_policy_version TEXT NOT NULL,
+                    runtime_schema_version INTEGER NOT NULL,
+                    status TEXT NOT NULL CHECK(status IN ('DRAFT','ACTIVE','SEALED','INVALIDATED')),
+                    updated_at TEXT NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_one_active_evidence_epoch
+                    ON evidence_epochs(status) WHERE status='ACTIVE';
             """)
             db.execute(f"PRAGMA user_version={GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION}")
 
@@ -260,6 +281,131 @@ class RuntimeEvidenceStore:
                         "WHERE idempotency_key=?",
                         (candidates[0], str(idempotency_key)),
                     )
+
+    @staticmethod
+    def _epoch_from_row(row: tuple[Any, ...]) -> EvidenceEpoch:
+        return EvidenceEpoch(
+            epoch_id=str(row[0]),
+            deployment_id=str(row[1]),
+            started_at=str(row[2]),
+            code_commit_sha=str(row[3]),
+            model_version=str(row[4]),
+            artifact_sha256=str(row[5]),
+            feature_schema_version=str(row[6]),
+            evidence_policy_version=str(row[7]),
+            risk_policy_version=str(row[8]),
+            runtime_schema_version=int(row[9]),
+            status=str(row[10]),
+        )
+
+    def create_evidence_epoch(
+        self,
+        epoch: EvidenceEpoch | Mapping[str, Any],
+    ) -> EvidenceEpoch:
+        value = epoch if isinstance(epoch, EvidenceEpoch) else EvidenceEpoch.from_mapping(epoch)
+        value.validate()
+        with self._global_transaction() as db:
+            db.execute(
+                "INSERT INTO evidence_epochs VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    value.epoch_id, value.deployment_id, value.started_at,
+                    value.code_commit_sha, value.model_version,
+                    value.artifact_sha256, value.feature_schema_version,
+                    value.evidence_policy_version, value.risk_policy_version,
+                    value.runtime_schema_version, value.status,
+                    self._now().isoformat(),
+                ),
+            )
+        return value
+
+    def get_evidence_epoch(self, epoch_id: str) -> EvidenceEpoch | None:
+        with self._global_connect() as db:
+            row = db.execute(
+                "SELECT epoch_id,deployment_id,started_at,code_commit_sha,"
+                "model_version,artifact_sha256,feature_schema_version,"
+                "evidence_policy_version,risk_policy_version,"
+                "runtime_schema_version,status FROM evidence_epochs "
+                "WHERE epoch_id=?",
+                (str(epoch_id),),
+            ).fetchone()
+        return self._epoch_from_row(row) if row else None
+
+    def get_active_evidence_epoch(self) -> EvidenceEpoch | None:
+        with self._global_connect() as db:
+            row = db.execute(
+                "SELECT epoch_id,deployment_id,started_at,code_commit_sha,"
+                "model_version,artifact_sha256,feature_schema_version,"
+                "evidence_policy_version,risk_policy_version,"
+                "runtime_schema_version,status FROM evidence_epochs "
+                "WHERE status='ACTIVE'"
+            ).fetchone()
+        return self._epoch_from_row(row) if row else None
+
+    def transition_evidence_epoch(
+        self,
+        epoch_id: str,
+        status: str,
+    ) -> EvidenceEpoch:
+        target = str(status).upper()
+        allowed = {
+            ("DRAFT", "ACTIVE"),
+            ("DRAFT", "INVALIDATED"),
+            ("ACTIVE", "SEALED"),
+            ("ACTIVE", "INVALIDATED"),
+        }
+        with self._global_transaction() as db:
+            row = db.execute(
+                "SELECT status FROM evidence_epochs WHERE epoch_id=?",
+                (str(epoch_id),),
+            ).fetchone()
+            if row is None:
+                raise ValueError("unknown evidence epoch")
+            current = str(row[0])
+            if (current, target) not in allowed:
+                raise ValueError(f"invalid evidence epoch transition: {current}->{target}")
+            db.execute(
+                "UPDATE evidence_epochs SET status=?,updated_at=? WHERE epoch_id=?",
+                (target, self._now().isoformat(), str(epoch_id)),
+            )
+        result = self.get_evidence_epoch(str(epoch_id))
+        assert result is not None
+        result.validate()
+        return result
+
+    def _validate_active_epoch_for_prediction(
+        self,
+        prediction: Mapping[str, Any],
+    ) -> EvidenceEpoch | None:
+        if prediction.get("evidence_eligible") is not True:
+            return None
+        epoch = self.get_active_evidence_epoch()
+        if epoch is None:
+            raise RuntimeError("eligible evidence requires an ACTIVE epoch")
+        epoch.validate()
+        expected = {
+            "deployment_id": epoch.deployment_id,
+            "model_version": epoch.model_version,
+            "artifact_sha256": epoch.artifact_sha256,
+            "feature_schema_version": epoch.feature_schema_version,
+            "git_commit": epoch.code_commit_sha,
+        }
+        mismatches = [
+            field for field, value in expected.items()
+            if str(prediction.get(field) or "") != str(value)
+        ]
+        if prediction.get("epoch_id") and str(prediction["epoch_id"]) != epoch.epoch_id:
+            mismatches.append("epoch_id")
+        if epoch.evidence_policy_version != EVIDENCE_POLICY_VERSION:
+            mismatches.append("evidence_policy_version")
+        if epoch.risk_policy_version != RISK_POLICY_VERSION:
+            mismatches.append("risk_policy_version")
+        if epoch.runtime_schema_version != RUNTIME_EVIDENCE_SCHEMA_VERSION:
+            mismatches.append("runtime_schema_version")
+        if mismatches:
+            raise RuntimeError(
+                "active evidence epoch mismatch:" + ",".join(sorted(set(mismatches)))
+            )
+        return epoch
 
     def _initialize_path(self, path: Path) -> None:
         with self._connect_path(path) as db:
@@ -527,6 +673,10 @@ class RuntimeEvidenceStore:
     ) -> dict[str, Any]:
         prediction = self._with_runtime_metadata(prediction)
         snapshot = self._with_runtime_metadata(snapshot)
+        epoch = self._validate_active_epoch_for_prediction(prediction)
+        if epoch is not None:
+            prediction = {**prediction, "epoch_id": epoch.epoch_id}
+            snapshot = {**snapshot, "epoch_id": epoch.epoch_id}
         prediction_id = str(prediction["prediction_id"])
         if str(snapshot.get("prediction_id")) != prediction_id:
             raise ValueError("prediction/snapshot identity mismatch")
