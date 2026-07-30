@@ -1,8 +1,0 @@
-{
-  "timestamp": "2026-06-21T09:40:33.950623",
-  "baseline_net": null,
-  "adjusted_net": null,
-  "adjusted_prob": 0.7390000000000001,
-  "baseline_log": "logs\\backtest_trades_baseline_20260621T093931.csv",
-  "adjusted_log": "logs\\backtest_trades_calib_adjust_20260621T093931.csv"
-}

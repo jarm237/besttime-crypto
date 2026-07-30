@@ -10,3 +10,13 @@ venv/
 /logs/runtime_evidence.sqlite*
 
 /data/fresh_training_data_2023_2026/*
+
+# Runtime state is mutable evidence, not source code. Existing tracked copies
+# are removed from the Git index while remaining on disk for the running bot.
+/runtime/
+/logs/
+
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.jsonl
