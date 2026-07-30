@@ -21,7 +21,19 @@ from btc_scraper.core.paths import (
     runtime_owner_metadata,
 )
 
-RUNTIME_EVIDENCE_SCHEMA_VERSION = 2
+RUNTIME_EVIDENCE_SCHEMA_VERSION = 3
+REQUIRED_PREDICTION_LINEAGE_FIELDS = (
+    "signal_id",
+    "prediction_id",
+    "deployment_id",
+    "symbol",
+    "decision_context",
+    "caller_context",
+    "model_version",
+    "artifact_sha256",
+    "feature_schema_version",
+    "feature_hash",
+)
 
 
 def _canonical(payload: Mapping[str, Any]) -> str:
@@ -111,6 +123,10 @@ class RuntimeEvidenceStore:
                     prediction_id TEXT PRIMARY KEY, payload TEXT NOT NULL,
                     payload_sha256 TEXT NOT NULL, written_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS prediction_idempotency (
+                    idempotency_key TEXT PRIMARY KEY,
+                    prediction_id TEXT NOT NULL UNIQUE REFERENCES predictions(prediction_id)
+                );
                 CREATE TABLE IF NOT EXISTS feature_snapshots (
                     prediction_id TEXT PRIMARY KEY REFERENCES predictions(prediction_id),
                     payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL
@@ -138,6 +154,7 @@ class RuntimeEvidenceStore:
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_final_decision_prediction
                     ON final_decisions(prediction_id) WHERE prediction_id IS NOT NULL;
+                DROP INDEX IF EXISTS uq_prediction_idempotency_key;
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_outcome_position_revision
                     ON outcome_links(
                         json_extract(payload, '$.position_id'),
@@ -172,7 +189,24 @@ class RuntimeEvidenceStore:
             with self._connect(path) as db:
                 yield from db.execute(f"SELECT {columns} FROM {table}").fetchall()
 
-    def write_prediction_evidence(self, prediction: Mapping[str, Any], snapshot: Mapping[str, Any]) -> None:
+    def get_prediction_by_idempotency_key(self, idempotency_key: str) -> dict[str, Any] | None:
+        for path in self.partition_paths():
+            with self._connect(path) as db:
+                row = db.execute(
+                    "SELECT p.payload FROM prediction_idempotency i "
+                    "JOIN predictions p ON p.prediction_id=i.prediction_id "
+                    "WHERE i.idempotency_key=?",
+                    (str(idempotency_key),),
+                ).fetchone()
+            if row:
+                return json.loads(row[0])
+        return None
+
+    def write_prediction_evidence(
+        self,
+        prediction: Mapping[str, Any],
+        snapshot: Mapping[str, Any],
+    ) -> dict[str, Any]:
         prediction = self._with_runtime_metadata(prediction)
         snapshot = self._with_runtime_metadata(snapshot)
         prediction_id = str(prediction["prediction_id"])
@@ -186,6 +220,16 @@ class RuntimeEvidenceStore:
                 existing = db.execute("SELECT payload_sha256 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone()
                 digest = payload_sha256(prediction)
                 if existing and existing[0] != digest:
+                    stored = db.execute(
+                        "SELECT payload FROM predictions WHERE prediction_id=?",
+                        (prediction_id,),
+                    ).fetchone()
+                    stored_payload = json.loads(stored[0]) if stored else {}
+                    if (
+                        prediction.get("idempotency_key")
+                        and stored_payload.get("idempotency_key") == prediction.get("idempotency_key")
+                    ):
+                        return stored_payload
                     raise ValueError("non-idempotent duplicate prediction")
                 existing_snapshot = db.execute(
                     "SELECT payload_sha256 FROM feature_snapshots WHERE prediction_id=?", (prediction_id,)
@@ -201,6 +245,19 @@ class RuntimeEvidenceStore:
                     "INSERT OR IGNORE INTO feature_snapshots VALUES (?, ?, ?)",
                     (prediction_id, snap_json, snapshot_digest),
                 )
+                idempotency_key = str(prediction.get("idempotency_key") or "")
+                if idempotency_key:
+                    db.execute(
+                        "INSERT OR IGNORE INTO prediction_idempotency VALUES (?, ?)",
+                        (idempotency_key, prediction_id),
+                    )
+                    owner = db.execute(
+                        "SELECT prediction_id FROM prediction_idempotency WHERE idempotency_key=?",
+                        (idempotency_key,),
+                    ).fetchone()
+                    if owner and str(owner[0]) != prediction_id:
+                        raise ValueError("non-idempotent duplicate prediction")
+                return dict(prediction)
         except ValueError as exc:
             if "non-idempotent" in str(exc):
                 self._record_incident("duplicate_conflicting_payload", "predictions", prediction_id, str(exc))
@@ -390,15 +447,25 @@ class RuntimeEvidenceStore:
         """Return only the highest valid amendment revision for each position."""
         latest: dict[str, tuple[int, dict[str, Any]]] = {}
         seen_outcome_ids: set[str] = set()
+        quarantined_outcome_ids = {
+            str(record_id)
+            for table_name, record_id in self._all_rows(
+                "evidence_quarantine", "table_name, record_id",
+            )
+            if str(table_name) == "outcome_links"
+        }
         rows = sorted(
             self._all_rows("outcome_links", "outcome_id, payload, written_at"),
             key=lambda row: (str(row[2]), str(row[0])),
         )
         for outcome_id, raw_payload, _ in rows:
-            if str(outcome_id) in seen_outcome_ids:
+            if str(outcome_id) in seen_outcome_ids or str(outcome_id) in quarantined_outcome_ids:
                 continue
             seen_outcome_ids.add(str(outcome_id))
-            payload = json.loads(raw_payload)
+            try:
+                payload = json.loads(raw_payload)
+            except (TypeError, json.JSONDecodeError):
+                continue
             position_id = str(payload.get("position_id") or "")
             revision = int(payload.get("outcome_revision") or 0)
             current = latest.get(position_id)
@@ -409,14 +476,24 @@ class RuntimeEvidenceStore:
     def get_latest_outcome_for_position(self, position_id: str) -> dict[str, Any] | None:
         latest: tuple[int, dict[str, Any]] | None = None
         seen_outcome_ids: set[str] = set()
+        quarantined_outcome_ids = {
+            str(record_id)
+            for table_name, record_id in self._all_rows(
+                "evidence_quarantine", "table_name, record_id",
+            )
+            if str(table_name) == "outcome_links"
+        }
         for outcome_id, raw_payload in self._all_rows(
             "outcome_links",
             "outcome_id, payload",
         ):
-            if str(outcome_id) in seen_outcome_ids:
+            if str(outcome_id) in seen_outcome_ids or str(outcome_id) in quarantined_outcome_ids:
                 continue
             seen_outcome_ids.add(str(outcome_id))
-            payload = json.loads(raw_payload)
+            try:
+                payload = json.loads(raw_payload)
+            except (TypeError, json.JSONDecodeError):
+                continue
             if str(payload.get("position_id") or "") != str(position_id):
                 continue
             revision = int(payload.get("outcome_revision") or 0)
@@ -427,27 +504,92 @@ class RuntimeEvidenceStore:
     def shadow_evidence_rows(self) -> dict[str, list[dict[str, Any]]]:
         """Read canonical JSON payloads used by the derived shadow gate."""
         result: dict[str, list[dict[str, Any]]] = {}
+        quarantined = {
+            (str(table), str(record_id))
+            for table, record_id in self._all_rows(
+                "evidence_quarantine",
+                "table_name, record_id",
+            )
+        }
         identity_columns = {
             "predictions": "prediction_id",
+            "feature_snapshots": "prediction_id",
             "final_decisions": "decision_id",
             "audit_events": "event_type || ':' || payload_sha256 || ':' || written_at",
         }
         for table, identity in identity_columns.items():
             unique: dict[str, dict[str, Any]] = {}
             for record_id, payload in self._all_rows(table, f"{identity}, payload"):
+                if (table, str(record_id)) in quarantined:
+                    continue
                 unique.setdefault(str(record_id), json.loads(payload))
             result[table] = list(unique.values())
         result["outcomes"] = self.latest_outcomes()
+        result["quarantine"] = [
+            {
+                "table_name": str(table),
+                "record_id": str(record_id),
+                "reason": str(reason),
+                "detected_at": str(detected_at),
+            }
+            for table, record_id, reason, detected_at in self._all_rows(
+                "evidence_quarantine",
+                "table_name, record_id, reason, detected_at",
+            )
+        ]
         return result
 
     def health(self) -> dict[str, Any]:
         corrupt_payloads = self.verify_and_quarantine()
+        raw_prediction_rows = list(self._all_rows("predictions", "prediction_id, payload"))
+        prediction_payloads: dict[str, dict[str, Any]] = {}
+        prediction_payload_variants: dict[str, set[str]] = {}
+        idempotency_owners: dict[str, set[str]] = {}
+        invalid_lineage_predictions: set[str] = set()
+        unknown_symbol_predictions: set[str] = set()
+        for prediction_id, raw_payload in raw_prediction_rows:
+            prediction_id = str(prediction_id)
+            prediction_payload_variants.setdefault(prediction_id, set()).add(str(raw_payload))
+            try:
+                payload = json.loads(str(raw_payload))
+            except (TypeError, json.JSONDecodeError):
+                continue
+            prediction_payloads.setdefault(prediction_id, payload)
+            if payload.get("event_type") != "prediction_created":
+                continue
+            if any(not payload.get(field) for field in REQUIRED_PREDICTION_LINEAGE_FIELDS):
+                invalid_lineage_predictions.add(prediction_id)
+            if str(payload.get("symbol") or "").upper() == "UNKNOWN":
+                unknown_symbol_predictions.add(prediction_id)
+            idempotency_key = str(payload.get("idempotency_key") or "")
+            if idempotency_key:
+                idempotency_owners.setdefault(idempotency_key, set()).add(prediction_id)
+
         prediction_ids = {str(row[0]) for row in self._all_rows("predictions", "prediction_id")}
         snapshot_ids = {str(row[0]) for row in self._all_rows("feature_snapshots", "prediction_id")}
+        raw_decision_rows = list(self._all_rows(
+            "final_decisions",
+            "decision_id, prediction_id, payload, written_at",
+        ))
         decisions = {
             (str(decision_id), str(prediction_id or ""))
-            for decision_id, prediction_id in self._all_rows("final_decisions", "decision_id, prediction_id")
+            for decision_id, prediction_id, _, _ in raw_decision_rows
         }
+        decision_written_at = {
+            str(prediction_id or ""): str(written_at)
+            for _, prediction_id, _, written_at in raw_decision_rows
+            if prediction_id
+        }
+        decision_payloads: dict[str, dict[str, Any]] = {}
+        for _, prediction_id, raw_payload, _ in raw_decision_rows:
+            if not prediction_id:
+                continue
+            try:
+                decision_payloads.setdefault(
+                    str(prediction_id), json.loads(str(raw_payload)),
+                )
+            except (TypeError, json.JSONDecodeError):
+                continue
         outcomes = {
             (str(outcome_id), str(prediction_id or ""))
             for outcome_id, prediction_id in self._all_rows("outcome_links", "outcome_id, prediction_id")
@@ -463,7 +605,43 @@ class RuntimeEvidenceStore:
         duplicate_decision_predictions = sum(
             len(decision_ids) > 1 for decision_ids in decisions_by_prediction.values()
         )
+        duplicate_prediction_ids = sum(
+            len(payloads) > 1 for payloads in prediction_payload_variants.values()
+        )
+        duplicate_idempotency_keys = sum(len(owners) > 1 for owners in idempotency_owners.values())
+        duplicate_predictions = duplicate_prediction_ids + duplicate_idempotency_keys
         orphan_outcomes = sum(prediction_id not in prediction_ids for _, prediction_id in outcomes)
+        latest_outcome_prediction_ids = {
+            str(row.get("prediction_id") or "") for row in self.latest_outcomes()
+        }
+        trade_prediction_ids: set[str] = set()
+        for _, prediction_id in decisions:
+            decision = decision_payloads.get(prediction_id)
+            if str((decision or {}).get("action") or "").upper() in {
+                "BUY", "SELL", "TRADE", "AUTHORIZED", "SUBMITTED", "FILLED",
+            }:
+                trade_prediction_ids.add(prediction_id)
+        stale_trade_prediction_ids: set[str] = set()
+        for prediction_id in trade_prediction_ids - latest_outcome_prediction_ids:
+            try:
+                written_at = datetime.fromisoformat(
+                    decision_written_at[prediction_id].replace("Z", "+00:00")
+                )
+                written_at = (
+                    written_at.replace(tzinfo=timezone.utc)
+                    if written_at.tzinfo is None else written_at.astimezone(timezone.utc)
+                )
+                if (self._now() - written_at).total_seconds() >= 86400:
+                    stale_trade_prediction_ids.add(prediction_id)
+            except (KeyError, ValueError):
+                stale_trade_prediction_ids.add(prediction_id)
+        missing_outcomes = len(stale_trade_prediction_ids)
+        production_prediction_count = sum(
+            payload.get("event_type") == "prediction_created"
+            for payload in prediction_payloads.values()
+        )
+        invalid_lineage_count = len(invalid_lineage_predictions)
+        unknown_symbol_count = len(unknown_symbol_predictions)
         unresolved_incidents = len({
             (str(kind), str(record_id), str(details), str(detected_at))
             for kind, record_id, details, detected_at, resolved_at in self._all_rows(
@@ -489,13 +667,48 @@ class RuntimeEvidenceStore:
             and decisions_without_prediction == 0 and duplicate_decision_predictions == 0
             and foreign_key_violations == 0 and corrupt_payloads == 0
             and unresolved_incidents == 0 and quarantined_records == 0
+            and invalid_lineage_count == 0 and unknown_symbol_count == 0
+            and duplicate_predictions == 0
+            and missing_outcomes == 0
+        )
+        critical = (
+            integrity != "ok"
+            or foreign_key_violations > 0
+            or duplicate_predictions > 0
+            or orphan_decisions > 0
+            or decisions_without_prediction > 0
         )
         return {
             "status": "healthy" if healthy else "degraded",
+            "severity": "HEALTHY" if healthy else ("UNHEALTHY" if critical else "DEGRADED"),
             "integrity": integrity, "orphan_snapshots": orphan_snapshots, "missing_snapshots": missing_snapshots,
             "orphan_decisions": orphan_decisions, "orphan_outcomes": orphan_outcomes,
             "decisions_without_prediction": decisions_without_prediction,
             "duplicate_decision_predictions": duplicate_decision_predictions,
+            "invalid_lineage_count": invalid_lineage_count,
+            "invalid_lineage_rate": (
+                invalid_lineage_count / production_prediction_count
+                if production_prediction_count else 0.0
+            ),
+            "unknown_symbol_count": unknown_symbol_count,
+            "unknown_symbol_rate": (
+                unknown_symbol_count / production_prediction_count
+                if production_prediction_count else 0.0
+            ),
+            "duplicate_predictions": duplicate_predictions,
+            "duplicate_prediction_rate": (
+                duplicate_predictions / production_prediction_count
+                if production_prediction_count else 0.0
+            ),
+            "orphan_decision_rate": (
+                (orphan_decisions + decisions_without_prediction) / len(decisions)
+                if decisions else 0.0
+            ),
+            "missing_outcomes": missing_outcomes,
+            "missing_outcome_rate": (
+                missing_outcomes / len(trade_prediction_ids)
+                if trade_prediction_ids else 0.0
+            ),
             "foreign_key_violations": foreign_key_violations,
             "unresolved_incidents": unresolved_incidents,
             "quarantined_records": quarantined_records,
@@ -519,6 +732,28 @@ class RuntimeEvidenceStore:
                                 "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
                                 (table, str(record_id), "payload_sha256_mismatch", self._now().isoformat()),
                             )
+                            continue
+                        if table == "predictions":
+                            try:
+                                prediction = json.loads(str(payload))
+                            except (TypeError, json.JSONDecodeError):
+                                continue
+                            if prediction.get("event_type") != "prediction_created":
+                                continue
+                            invalid = (
+                                any(not prediction.get(field) for field in REQUIRED_PREDICTION_LINEAGE_FIELDS)
+                                or str(prediction.get("symbol")).upper() == "UNKNOWN"
+                            )
+                            if invalid:
+                                db.execute(
+                                    "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
+                                    (
+                                        table,
+                                        str(record_id),
+                                        "invalid_prediction_lineage",
+                                        self._now().isoformat(),
+                                    ),
+                                )
         return len(corrupt)
 
 

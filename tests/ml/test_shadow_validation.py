@@ -4,6 +4,8 @@ from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 from btc_scraper.ml_engine.shadow_validation import (
     SHADOW_READINESS_RULE_VERSION,
     ShadowThresholds,
+    _eligible_entry_prediction,
+    _prediction_exclusion_reasons,
     _store_signature,
     evaluate_shadow_validation,
 )
@@ -79,6 +81,71 @@ def test_shadow_gate_fails_closed_without_outcomes(tmp_path):
     assert result["passed"] is False
     assert "closed_paper_trades" in result["failed_checks"]
     assert "artifact_lineage_coverage" in result["failed_checks"]
+
+
+def test_ui_and_exit_predictions_are_not_entry_shadow_evidence():
+    base = {
+        "event_type": "prediction_created",
+        "prediction_id": "p-context",
+        "caller_context": "agent_orchestrator",
+    }
+    assert _eligible_entry_prediction({**base, "decision_context": "entry"}) is True
+    assert _eligible_entry_prediction({
+        **base,
+        "decision_context": "ui_preview",
+        "caller_context": "ui_dashboard",
+    }) is False
+    assert _eligible_entry_prediction({
+        **base,
+        "decision_context": "exit_recheck",
+        "caller_context": "position_tracker",
+    }) is False
+
+
+def test_prediction_exclusion_reasons_are_explicit():
+    reasons = _prediction_exclusion_reasons({
+        "event_type": "prediction_created",
+        "prediction_id": "p-invalid",
+        "signal_id": "s-invalid",
+        "deployment_id": "deployment",
+        "caller_context": "ui_dashboard",
+        "decision_context": "ui_preview",
+        "model_version": "v3",
+        "artifact_sha256": "artifact",
+        "feature_schema_version": "schema",
+        "feature_hash": "hash-a",
+        "symbol": "UNKNOWN",
+        "evidence_eligible": False,
+    }, {
+        "prediction_id": "p-invalid",
+        "feature_hash": "hash-b",
+    })
+    assert "unknown_symbol" in reasons
+    assert "non_entry_decision_context" in reasons
+    assert "non_production_traffic" in reasons
+    assert "runtime_marked_ineligible" in reasons
+    assert "feature_hash_mismatch" in reasons
+
+
+def test_complete_production_prediction_is_eligible():
+    prediction = {
+        "event_type": "prediction_created",
+        "prediction_id": "p-valid",
+        "signal_id": "s-valid",
+        "deployment_id": "paper-shadow-v1",
+        "caller_context": "agent_orchestrator",
+        "decision_context": "entry",
+        "model_version": "meta-v3",
+        "artifact_sha256": "artifact-v3",
+        "feature_schema_version": "schema-v3",
+        "feature_hash": "hash-v3",
+        "symbol": "BTCUSDT",
+        "evidence_eligible": True,
+    }
+    assert _prediction_exclusion_reasons(
+        prediction,
+        {"prediction_id": "p-valid", "feature_hash": "hash-v3"},
+    ) == []
 
 
 def test_test_or_unscoped_paper_outcomes_never_count(tmp_path):

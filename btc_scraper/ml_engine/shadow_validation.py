@@ -8,13 +8,14 @@ from threading import Lock
 from typing import Any, Iterable, Mapping
 
 from .runtime_evidence_store import (
+    REQUIRED_PREDICTION_LINEAGE_FIELDS,
     RUNTIME_EVIDENCE_SCHEMA_VERSION,
     RuntimeEvidenceStore,
     get_runtime_evidence_store,
 )
 from .operational_health import health_snapshot
 
-SHADOW_READINESS_RULE_VERSION = "shadow-readiness-v2"
+SHADOW_READINESS_RULE_VERSION = "shadow-readiness-v3"
 
 
 @dataclass(frozen=True)
@@ -54,11 +55,65 @@ def evaluate_shadow_validation(
     store = store or get_runtime_evidence_store()
     limits = thresholds or ShadowThresholds()
     current_time = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
-    rows = store.shadow_evidence_rows()
     health = store.health()
-    predictions = {str(row.get("prediction_id")): row for row in rows["predictions"]}
+    rows = store.shadow_evidence_rows()
+    snapshots = {
+        str(row.get("prediction_id") or ""): row
+        for row in rows["feature_snapshots"]
+    }
+    exclusion_counts: Counter[str] = Counter()
+    exclusion_examples: list[dict[str, Any]] = []
+    predictions: dict[str, dict[str, Any]] = {}
+    for row in rows["predictions"]:
+        prediction_id = str(row.get("prediction_id") or "")
+        reasons = _prediction_exclusion_reasons(row, snapshots.get(prediction_id))
+        if reasons:
+            exclusion_counts.update(reasons)
+            if len(exclusion_examples) < 20:
+                exclusion_examples.append({
+                    "record_type": "prediction",
+                    "record_id": prediction_id,
+                    "reasons": reasons,
+                })
+            continue
+        predictions[prediction_id] = row
+    for row in rows.get("quarantine", []):
+        reason = f"quarantined:{row.get('reason') or 'unknown'}"
+        exclusion_counts[reason] += 1
+        if len(exclusion_examples) < 20:
+            exclusion_examples.append({
+                "record_type": row.get("table_name"),
+                "record_id": row.get("record_id"),
+                "reasons": [reason],
+            })
+
     decisions = {str(row.get("prediction_id")): row for row in rows["final_decisions"] if row.get("prediction_id")}
-    outcomes = [row for row in rows["outcomes"] if _eligible_paper_outcome(row)]
+    outcomes: list[dict[str, Any]] = []
+    for row in rows["outcomes"]:
+        prediction_id = str(row.get("prediction_id") or "")
+        reasons: list[str] = []
+        if not _eligible_paper_outcome(row):
+            reasons.append("ineligible_outcome_provenance")
+        if prediction_id not in predictions:
+            reasons.append("prediction_not_eligible")
+        elif prediction_id not in decisions:
+            reasons.append("missing_final_decision")
+        else:
+            reasons.extend(_linked_lineage_mismatch_reasons(
+                predictions[prediction_id],
+                decisions[prediction_id],
+                row,
+            ))
+        if reasons:
+            exclusion_counts.update(reasons)
+            if len(exclusion_examples) < 20:
+                exclusion_examples.append({
+                    "record_type": "outcome",
+                    "record_id": str(row.get("outcome_id") or ""),
+                    "reasons": reasons,
+                })
+            continue
+        outcomes.append(row)
 
     timestamps = [_timestamp(row) for row in outcomes]
     timestamps = [value for value in timestamps if value is not None and value <= current_time]
@@ -108,6 +163,12 @@ def evaluate_shadow_validation(
         "evidence_integrity": health["status"] == "healthy",
         "artifact_lineage_coverage": lineage_coverage == 1.0,
         "decision_linkage_coverage": decision_coverage == 1.0,
+        "eligible_unknown_symbols": health["unknown_symbol_count"] == 0,
+        "duplicate_eligible_predictions": health["duplicate_predictions"] == 0,
+        "orphan_final_decisions": (
+            health["orphan_decisions"] == 0
+            and health["decisions_without_prediction"] == 0
+        ),
     }
     return {
         "passed": all(checks.values()),
@@ -129,6 +190,10 @@ def evaluate_shadow_validation(
             "artifact_lineage_coverage": lineage_coverage,
             "decision_linkage_coverage": decision_coverage,
             "evidence_health": health,
+            "eligible_prediction_count": len(predictions),
+            "excluded_record_count": sum(exclusion_counts.values()),
+            "exclusion_reasons": dict(sorted(exclusion_counts.items())),
+            "exclusion_examples": exclusion_examples,
             "calibration_drift": _calibration_drift(outcomes, predictions),
             "decision_distribution": dict(Counter(
                 str(decisions[str(row.get("prediction_id"))].get("action") or "UNKNOWN")
@@ -196,6 +261,80 @@ def _eligible_paper_outcome(row: Mapping[str, Any]) -> bool:
         "execution_mode", "trade_origin", "fill_source", "order_channel",
     ))
     return row.get("is_paper") is True or "paper" in mode
+
+
+def _eligible_entry_prediction(row: Mapping[str, Any]) -> bool:
+    """Compatibility helper for callers that only need context filtering."""
+    if row.get("event_type") != "prediction_created":
+        return True
+    if str(row.get("decision_context") or "").lower() not in {"entry", "shadow_entry"}:
+        return False
+    caller = str(row.get("caller_context") or "").lower()
+    return caller not in {
+        "ui_dashboard", "position_tracker", "backtest",
+        "offline_evaluation", "test", "e2e",
+    }
+
+
+def _prediction_exclusion_reasons(
+    row: Mapping[str, Any],
+    snapshot: Mapping[str, Any] | None,
+    *,
+    check_snapshot: bool = True,
+) -> list[str]:
+    """Return stable, auditable reasons why a prediction cannot enter the gate."""
+    reasons: list[str] = []
+    # Legacy rows remain readable for migration/backward compatibility but a
+    # production envelope is always evaluated strictly.
+    if row.get("event_type") != "prediction_created":
+        return reasons
+    missing = [field for field in REQUIRED_PREDICTION_LINEAGE_FIELDS if not row.get(field)]
+    reasons.extend(f"missing_lineage:{field}" for field in missing)
+    if str(row.get("symbol") or "").upper() == "UNKNOWN":
+        reasons.append("unknown_symbol")
+    if str(row.get("decision_context") or "").lower() not in {"entry", "shadow_entry"}:
+        reasons.append("non_entry_decision_context")
+    provenance = " ".join(str(row.get(key) or "").lower() for key in (
+        "caller_context", "environment", "created_by", "source_test_name",
+        "order_channel", "paper_run_id",
+    ))
+    caller_context = str(row.get("caller_context") or "").lower()
+    if caller_context in {"test", "e2e", "backtest", "offline_evaluation"}:
+        reasons.append("non_production_traffic")
+    if any(marker in provenance for marker in (
+        "ui_dashboard", "position_tracker", "backtest", "offline",
+        "pytest", "test_", "_test", "e2e", "fixture",
+    )):
+        reasons.append("non_production_traffic")
+    if row.get("evidence_eligible") is False:
+        reasons.append("runtime_marked_ineligible")
+    if check_snapshot:
+        if snapshot is None:
+            reasons.append("missing_feature_snapshot")
+        elif str(snapshot.get("feature_hash") or "") != str(row.get("feature_hash") or ""):
+            reasons.append("feature_hash_mismatch")
+    return list(dict.fromkeys(reasons))
+
+
+def _linked_lineage_mismatch_reasons(
+    prediction: Mapping[str, Any],
+    decision: Mapping[str, Any],
+    outcome: Mapping[str, Any],
+) -> list[str]:
+    reasons: list[str] = []
+    aliases = {
+        "artifact_sha256": ("artifact_sha256", "model_artifact_sha256"),
+        "feature_schema_version": ("feature_schema_version",),
+        "model_version": ("model_version",),
+        "deployment_id": ("deployment_id",),
+    }
+    for canonical, keys in aliases.items():
+        expected = str(prediction.get(canonical) or "")
+        for record_name, record in (("decision", decision), ("outcome", outcome)):
+            actual = next((str(record.get(key)) for key in keys if record.get(key)), "")
+            if actual and expected and actual != expected:
+                reasons.append(f"{record_name}_{canonical}_mismatch")
+    return reasons
 
 
 def _timestamp(row: Mapping[str, Any]) -> datetime | None:

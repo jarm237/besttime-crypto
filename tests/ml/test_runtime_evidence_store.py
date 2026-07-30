@@ -104,6 +104,51 @@ def test_corrupt_payload_is_quarantined_and_health_degrades(tmp_path):
     assert health["quarantined_corrupt_payloads"] == 1
 
 
+def test_invalid_production_lineage_is_quarantined_and_excluded_from_shadow(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    prediction, snapshot = _payload(1)
+    prediction.update({
+        "event_type": "prediction_created",
+        "signal_id": None,
+        "deployment_id": "deployment-test",
+        "caller_context": "agent_orchestrator",
+        "decision_context": "entry",
+        "model_version": "meta-test",
+        "artifact_sha256": "artifact-test",
+        "feature_schema_version": "schema-test",
+        "symbol": "UNKNOWN",
+    })
+    store.write_prediction_evidence(prediction, snapshot)
+
+    assert store.health()["status"] == "degraded"
+    assert store.shadow_evidence_rows()["predictions"] == []
+
+
+def test_health_exposes_required_evidence_rates(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    prediction, snapshot = _payload(1)
+    prediction.update({
+        "event_type": "prediction_created",
+        "signal_id": "signal-1",
+        "deployment_id": "paper-shadow-v1",
+        "caller_context": "agent_orchestrator",
+        "decision_context": "entry",
+        "model_version": "meta-v3",
+        "artifact_sha256": "artifact-v3",
+        "feature_schema_version": "schema-v3",
+        "symbol": "BTCUSDT",
+    })
+    store.write_prediction_evidence(prediction, snapshot)
+
+    health = store.health()
+    assert health["severity"] == "HEALTHY"
+    assert health["invalid_lineage_rate"] == 0.0
+    assert health["duplicate_prediction_rate"] == 0.0
+    assert health["orphan_decision_rate"] == 0.0
+    assert health["missing_outcome_rate"] == 0.0
+    assert health["unknown_symbol_rate"] == 0.0
+
+
 def test_health_reports_foreign_key_violations_and_orphans(tmp_path):
     store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
     with store._connect() as db:
