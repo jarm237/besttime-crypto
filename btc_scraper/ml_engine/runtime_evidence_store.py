@@ -21,7 +21,9 @@ from btc_scraper.core.paths import (
     runtime_owner_metadata,
 )
 
-RUNTIME_EVIDENCE_SCHEMA_VERSION = 3
+RUNTIME_EVIDENCE_SCHEMA_VERSION = 4
+GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 1
+GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "signal_id",
     "prediction_id",
@@ -44,6 +46,18 @@ def payload_sha256(payload: Mapping[str, Any]) -> str:
     return hashlib.sha256(_canonical(payload).encode("utf-8")).hexdigest()
 
 
+def idempotency_payload_sha256(payload: Mapping[str, Any]) -> str:
+    """Hash stable inference semantics, excluding per-process/write metadata."""
+    volatile = {
+        "prediction_id", "event_id", "event_time", "ingest_time", "timestamp",
+        "predicted_at", "valid_until", "latency_ms", "process_id", "hostname",
+        "started_at", "runtime_id",
+    }
+    return payload_sha256({
+        key: value for key, value in payload.items() if key not in volatile
+    })
+
+
 class RuntimeEvidenceStore:
     def __init__(
         self,
@@ -58,9 +72,13 @@ class RuntimeEvidenceStore:
         backward compatibility.
         """
         self.path = Path(path) if path is not None else get_runtime_paths().runtime_evidence_path
+        self.global_index_path = self.path.parent / "global_evidence_index.sqlite"
         self._clock = clock or (lambda: datetime.now(timezone.utc))
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize_path(self.current_path)
+        self._initialize_global_index()
+        self._backfill_global_index()
+        self._reconcile_global_index_locations()
 
     def _now(self) -> datetime:
         value = self._clock()
@@ -115,6 +133,133 @@ class RuntimeEvidenceStore:
         target = path or self.current_path
         self._initialize_path(target)
         return self._connect_path(target)
+
+    def _global_connect(self) -> sqlite3.Connection:
+        return self._connect_path(self.global_index_path)
+
+    def _initialize_global_index(self) -> None:
+        with self._global_connect() as db:
+            db.executescript("""
+                CREATE TABLE IF NOT EXISTS prediction_global_idempotency (
+                    idempotency_key TEXT PRIMARY KEY,
+                    prediction_id TEXT NOT NULL UNIQUE,
+                    partition_date TEXT NOT NULL,
+                    state TEXT NOT NULL CHECK(state IN ('RESERVED','COMMITTED','ABORTED')),
+                    payload_hash TEXT NOT NULL,
+                    reserved_at TEXT NOT NULL,
+                    committed_at TEXT,
+                    owner_id TEXT,
+                    error_reason TEXT
+                );
+                CREATE TABLE IF NOT EXISTS global_index_metadata (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                );
+            """)
+            db.execute(f"PRAGMA user_version={GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION}")
+
+    @contextmanager
+    def _global_transaction(self) -> Iterator[sqlite3.Connection]:
+        db = self._global_connect()
+        try:
+            db.execute("BEGIN IMMEDIATE")
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _partition_date_for_path(self, path: Path) -> str:
+        if path == self.path:
+            return "legacy"
+        prefix = f"{self.path.stem}_"
+        return path.stem.removeprefix(prefix)
+
+    def _path_for_partition_date(self, partition_date: str) -> Path:
+        return self.path if partition_date == "legacy" else self.partition_path(partition_date)
+
+    def _backfill_global_index(self) -> None:
+        """Register schema-v3/legacy predictions without changing partition data."""
+        with self._global_connect() as db:
+            marker = db.execute(
+                "SELECT value FROM global_index_metadata WHERE key='legacy_backfill_v1'"
+            ).fetchone()
+        if marker:
+            return
+        registrations: list[tuple[str, str, str, str]] = []
+        for path in sorted(self.partition_paths(), key=lambda item: item.name):
+            with self._connect(path) as db:
+                rows = db.execute("SELECT prediction_id, payload FROM predictions").fetchall()
+            for prediction_id, raw_payload in rows:
+                try:
+                    prediction = json.loads(str(raw_payload))
+                except (TypeError, json.JSONDecodeError):
+                    continue
+                prediction_id = str(prediction_id)
+                requested_key = str(
+                    prediction.get("idempotency_key")
+                    or f"prediction_id:{prediction_id}"
+                )
+                registrations.append((
+                    requested_key,
+                    prediction_id,
+                    self._partition_date_for_path(path),
+                    idempotency_payload_sha256(prediction),
+                ))
+        with self._global_transaction() as db:
+            for requested_key, prediction_id, partition_date, payload_hash in registrations:
+                owner = db.execute(
+                    "SELECT prediction_id FROM prediction_global_idempotency "
+                    "WHERE idempotency_key=?",
+                    (requested_key,),
+                ).fetchone()
+                key = (
+                    requested_key
+                    if owner is None or str(owner[0]) == prediction_id
+                    else f"legacy_conflict:{prediction_id}"
+                )
+                db.execute(
+                    "INSERT OR IGNORE INTO prediction_global_idempotency "
+                    "VALUES (?,?,?,?,?,?,?,?,?)",
+                    (
+                        key, prediction_id, partition_date, "COMMITTED",
+                        payload_hash, self._now().isoformat(),
+                        self._now().isoformat(), "legacy-backfill",
+                        None if key == requested_key else "legacy_duplicate_idempotency_key",
+                    ),
+                )
+            db.execute(
+                "INSERT OR REPLACE INTO global_index_metadata VALUES "
+                "('legacy_backfill_v1', ?)",
+                (self._now().isoformat(),),
+            )
+
+    def _reconcile_global_index_locations(self) -> None:
+        """Repair catalog locations after a legacy DB copy/partition migration."""
+        locations: dict[str, list[str]] = {}
+        for path in self.partition_paths():
+            with self._connect(path) as db:
+                prediction_ids = db.execute(
+                    "SELECT prediction_id FROM predictions"
+                ).fetchall()
+            partition_date = self._partition_date_for_path(path)
+            for (prediction_id,) in prediction_ids:
+                locations.setdefault(str(prediction_id), []).append(partition_date)
+        with self._global_transaction() as db:
+            rows = db.execute(
+                "SELECT idempotency_key,prediction_id,partition_date "
+                "FROM prediction_global_idempotency WHERE state='COMMITTED'"
+            ).fetchall()
+            for idempotency_key, prediction_id, partition_date in rows:
+                candidates = locations.get(str(prediction_id), [])
+                if str(partition_date) not in candidates and len(candidates) == 1:
+                    db.execute(
+                        "UPDATE prediction_global_idempotency SET partition_date=? "
+                        "WHERE idempotency_key=?",
+                        (candidates[0], str(idempotency_key)),
+                    )
 
     def _initialize_path(self, path: Path) -> None:
         with self._connect_path(path) as db:
@@ -189,18 +334,191 @@ class RuntimeEvidenceStore:
             with self._connect(path) as db:
                 yield from db.execute(f"SELECT {columns} FROM {table}").fetchall()
 
-    def get_prediction_by_idempotency_key(self, idempotency_key: str) -> dict[str, Any] | None:
-        for path in self.partition_paths():
-            with self._connect(path) as db:
-                row = db.execute(
-                    "SELECT p.payload FROM prediction_idempotency i "
-                    "JOIN predictions p ON p.prediction_id=i.prediction_id "
-                    "WHERE i.idempotency_key=?",
-                    (str(idempotency_key),),
-                ).fetchone()
+    @staticmethod
+    def _global_row(row: tuple[Any, ...]) -> dict[str, Any]:
+        keys = (
+            "idempotency_key", "prediction_id", "partition_date", "state",
+            "payload_hash", "reserved_at", "committed_at", "owner_id",
+            "error_reason",
+        )
+        return dict(zip(keys, row))
+
+    def _get_global_reservation(self, idempotency_key: str) -> dict[str, Any] | None:
+        with self._global_connect() as db:
+            row = db.execute(
+                "SELECT idempotency_key,prediction_id,partition_date,state,"
+                "payload_hash,reserved_at,committed_at,owner_id,error_reason "
+                "FROM prediction_global_idempotency WHERE idempotency_key=?",
+                (str(idempotency_key),),
+            ).fetchone()
+        return self._global_row(row) if row else None
+
+    def _reserve_global_prediction(
+        self,
+        *,
+        idempotency_key: str,
+        prediction_id: str,
+        payload_hash: str,
+    ) -> dict[str, Any]:
+        now = self._now().isoformat()
+        partition_date = self._now().date().isoformat()
+        conflict = False
+        reservation: dict[str, Any] | None = None
+        with self._global_transaction() as db:
+            row = db.execute(
+                "SELECT idempotency_key,prediction_id,partition_date,state,"
+                "payload_hash,reserved_at,committed_at,owner_id,error_reason "
+                "FROM prediction_global_idempotency WHERE idempotency_key=?",
+                (idempotency_key,),
+            ).fetchone()
             if row:
-                return json.loads(row[0])
-        return None
+                reservation = self._global_row(row)
+                if reservation["payload_hash"] != payload_hash:
+                    db.execute(
+                        "UPDATE prediction_global_idempotency SET error_reason=? "
+                        "WHERE idempotency_key=?",
+                        ("conflicting_payload_hash", idempotency_key),
+                    )
+                    conflict = True
+                elif reservation["state"] == "ABORTED":
+                    db.execute(
+                        "UPDATE prediction_global_idempotency SET state='RESERVED',"
+                        "reserved_at=?,committed_at=NULL,owner_id=?,error_reason=NULL "
+                        "WHERE idempotency_key=?",
+                        (now, str(runtime_owner_metadata()["process_id"]), idempotency_key),
+                    )
+                    reservation.update({
+                        "state": "RESERVED",
+                        "reserved_at": now,
+                        "committed_at": None,
+                        "error_reason": None,
+                    })
+            else:
+                db.execute(
+                    "INSERT INTO prediction_global_idempotency VALUES (?,?,?,?,?,?,?,?,?)",
+                    (
+                        idempotency_key, prediction_id, partition_date, "RESERVED",
+                        payload_hash, now, None,
+                        str(runtime_owner_metadata()["process_id"]), None,
+                    ),
+                )
+        if conflict:
+            raise ValueError("non-idempotent duplicate prediction")
+        if reservation is not None:
+            return reservation
+        return {
+            "idempotency_key": idempotency_key,
+            "prediction_id": prediction_id,
+            "partition_date": partition_date,
+            "state": "RESERVED",
+            "payload_hash": payload_hash,
+            "reserved_at": now,
+            "committed_at": None,
+            "owner_id": str(runtime_owner_metadata()["process_id"]),
+            "error_reason": None,
+        }
+
+    def _mark_global_committed(self, idempotency_key: str) -> None:
+        with self._global_transaction() as db:
+            updated = db.execute(
+                "UPDATE prediction_global_idempotency SET state='COMMITTED',"
+                "committed_at=?,error_reason=NULL "
+                "WHERE idempotency_key=? AND state='RESERVED'",
+                (self._now().isoformat(), idempotency_key),
+            ).rowcount
+            if updated == 0:
+                row = db.execute(
+                    "SELECT state FROM prediction_global_idempotency "
+                    "WHERE idempotency_key=?",
+                    (idempotency_key,),
+                ).fetchone()
+                if row is None or str(row[0]) != "COMMITTED":
+                    raise RuntimeError("global idempotency commit lost reservation")
+
+    def _mark_global_aborted(self, idempotency_key: str, reason: str) -> None:
+        with self._global_transaction() as db:
+            db.execute(
+                "UPDATE prediction_global_idempotency SET state='ABORTED',"
+                "error_reason=? WHERE idempotency_key=? AND state='RESERVED'",
+                (reason, idempotency_key),
+            )
+
+    def _prediction_from_reservation(
+        self,
+        reservation: Mapping[str, Any],
+    ) -> dict[str, Any] | None:
+        path = self._path_for_partition_date(str(reservation["partition_date"]))
+        if not path.exists():
+            return None
+        with self._connect(path) as db:
+            row = db.execute(
+                "SELECT payload FROM predictions WHERE prediction_id=?",
+                (str(reservation["prediction_id"]),),
+            ).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def get_prediction_by_idempotency_key(self, idempotency_key: str) -> dict[str, Any] | None:
+        reservation = self._get_global_reservation(str(idempotency_key))
+        if reservation is None or reservation["state"] == "ABORTED":
+            return None
+        prediction = self._prediction_from_reservation(reservation)
+        if prediction is None:
+            if reservation["state"] == "COMMITTED":
+                raise RuntimeError("global committed prediction is missing")
+            return None
+        if idempotency_payload_sha256(prediction) != reservation["payload_hash"]:
+            raise RuntimeError("global prediction payload hash mismatch")
+        if reservation["state"] == "RESERVED":
+            self._mark_global_committed(str(idempotency_key))
+        return prediction
+
+    def recover_global_reservations(
+        self,
+        *,
+        stale_after_seconds: float = GLOBAL_RESERVATION_STALE_SECONDS,
+    ) -> dict[str, int]:
+        with self._global_connect() as db:
+            rows = db.execute(
+                "SELECT idempotency_key,prediction_id,partition_date,state,"
+                "payload_hash,reserved_at,committed_at,owner_id,error_reason "
+                "FROM prediction_global_idempotency WHERE state='RESERVED'"
+            ).fetchall()
+        recovered = aborted = pending = 0
+        for raw_row in rows:
+            reservation = self._global_row(raw_row)
+            prediction = self._prediction_from_reservation(reservation)
+            if prediction is not None:
+                if idempotency_payload_sha256(prediction) != reservation["payload_hash"]:
+                    self._mark_global_aborted(
+                        str(reservation["idempotency_key"]),
+                        "recovery_payload_hash_mismatch",
+                    )
+                    aborted += 1
+                    continue
+                self._mark_global_committed(str(reservation["idempotency_key"]))
+                recovered += 1
+                continue
+            try:
+                reserved_at = datetime.fromisoformat(
+                    str(reservation["reserved_at"]).replace("Z", "+00:00")
+                )
+                reserved_at = (
+                    reserved_at.replace(tzinfo=timezone.utc)
+                    if reserved_at.tzinfo is None
+                    else reserved_at.astimezone(timezone.utc)
+                )
+                age = (self._now() - reserved_at).total_seconds()
+            except ValueError:
+                age = stale_after_seconds
+            if age >= stale_after_seconds:
+                self._mark_global_aborted(
+                    str(reservation["idempotency_key"]),
+                    "stale_reservation_without_prediction",
+                )
+                aborted += 1
+            else:
+                pending += 1
+        return {"recovered": recovered, "aborted": aborted, "pending": pending}
 
     def write_prediction_evidence(
         self,
@@ -212,9 +530,39 @@ class RuntimeEvidenceStore:
         prediction_id = str(prediction["prediction_id"])
         if str(snapshot.get("prediction_id")) != prediction_id:
             raise ValueError("prediction/snapshot identity mismatch")
+        idempotency_key = str(
+            prediction.get("idempotency_key")
+            or f"prediction_id:{prediction_id}"
+        )
+        semantic_hash = idempotency_payload_sha256(prediction)
+        try:
+            reservation = self._reserve_global_prediction(
+                idempotency_key=idempotency_key,
+                prediction_id=prediction_id,
+                payload_hash=semantic_hash,
+            )
+        except ValueError as exc:
+            self._record_incident(
+                "duplicate_conflicting_payload",
+                "predictions",
+                prediction_id,
+                str(exc),
+            )
+            raise
+
+        prediction_id = str(reservation["prediction_id"])
+        prediction = {**prediction, "prediction_id": prediction_id}
+        snapshot = {**snapshot, "prediction_id": prediction_id}
+        stored_payload = self._prediction_from_reservation(reservation)
+        if stored_payload is not None:
+            if idempotency_payload_sha256(stored_payload) != semantic_hash:
+                raise ValueError("non-idempotent duplicate prediction")
+            self._mark_global_committed(idempotency_key)
+            return stored_payload
+
         pred_json, snap_json = _canonical(prediction), _canonical(snapshot)
         written_at = self._now().isoformat()
-        target_path = self._find_partition("predictions", "prediction_id", prediction_id) or self.current_path
+        target_path = self._path_for_partition_date(str(reservation["partition_date"]))
         try:
             with self.transaction(target_path) as db:
                 existing = db.execute("SELECT payload_sha256 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone()
@@ -225,18 +573,25 @@ class RuntimeEvidenceStore:
                         (prediction_id,),
                     ).fetchone()
                     stored_payload = json.loads(stored[0]) if stored else {}
-                    if (
-                        prediction.get("idempotency_key")
-                        and stored_payload.get("idempotency_key") == prediction.get("idempotency_key")
-                    ):
-                        return stored_payload
-                    raise ValueError("non-idempotent duplicate prediction")
+                    if idempotency_payload_sha256(stored_payload) != semantic_hash:
+                        raise ValueError("non-idempotent duplicate prediction")
                 existing_snapshot = db.execute(
                     "SELECT payload_sha256 FROM feature_snapshots WHERE prediction_id=?", (prediction_id,)
                 ).fetchone()
                 snapshot_digest = payload_sha256(snapshot)
                 if existing_snapshot and existing_snapshot[0] != snapshot_digest:
-                    raise ValueError("non-idempotent duplicate feature snapshot")
+                    stored_snapshot = db.execute(
+                        "SELECT payload FROM feature_snapshots WHERE prediction_id=?",
+                        (prediction_id,),
+                    ).fetchone()
+                    stored_snapshot_payload = (
+                        json.loads(stored_snapshot[0]) if stored_snapshot else {}
+                    )
+                    if (
+                        idempotency_payload_sha256(stored_snapshot_payload)
+                        != idempotency_payload_sha256(snapshot)
+                    ):
+                        raise ValueError("non-idempotent duplicate feature snapshot")
                 db.execute(
                     "INSERT OR IGNORE INTO predictions VALUES (?, ?, ?, ?)",
                     (prediction_id, pred_json, digest, written_at),
@@ -245,23 +600,28 @@ class RuntimeEvidenceStore:
                     "INSERT OR IGNORE INTO feature_snapshots VALUES (?, ?, ?)",
                     (prediction_id, snap_json, snapshot_digest),
                 )
-                idempotency_key = str(prediction.get("idempotency_key") or "")
-                if idempotency_key:
+                partition_key = str(prediction.get("idempotency_key") or "")
+                if partition_key:
                     db.execute(
                         "INSERT OR IGNORE INTO prediction_idempotency VALUES (?, ?)",
-                        (idempotency_key, prediction_id),
+                        (partition_key, prediction_id),
                     )
                     owner = db.execute(
                         "SELECT prediction_id FROM prediction_idempotency WHERE idempotency_key=?",
-                        (idempotency_key,),
+                        (partition_key,),
                     ).fetchone()
                     if owner and str(owner[0]) != prediction_id:
                         raise ValueError("non-idempotent duplicate prediction")
-                return dict(prediction)
-        except ValueError as exc:
+        except Exception as exc:
+            self._mark_global_aborted(
+                idempotency_key,
+                f"partition_write_failed:{type(exc).__name__}",
+            )
             if "non-idempotent" in str(exc):
                 self._record_incident("duplicate_conflicting_payload", "predictions", prediction_id, str(exc))
             raise
+        self._mark_global_committed(idempotency_key)
+        return dict(prediction)
 
     def append_final_decision(self, decision: Mapping[str, Any]) -> None:
         decision = self._with_runtime_metadata(decision)
@@ -541,15 +901,29 @@ class RuntimeEvidenceStore:
 
     def health(self) -> dict[str, Any]:
         corrupt_payloads = self.verify_and_quarantine()
-        raw_prediction_rows = list(self._all_rows("predictions", "prediction_id, payload"))
+        raw_prediction_rows: list[tuple[Any, Any, str]] = []
+        for prediction_path in self.partition_paths():
+            with self._connect(prediction_path) as prediction_db:
+                raw_prediction_rows.extend(
+                    (
+                        prediction_id,
+                        payload,
+                        self._partition_date_for_path(prediction_path),
+                    )
+                    for prediction_id, payload in prediction_db.execute(
+                        "SELECT prediction_id, payload FROM predictions"
+                    ).fetchall()
+                )
         prediction_payloads: dict[str, dict[str, Any]] = {}
         prediction_payload_variants: dict[str, set[str]] = {}
+        prediction_locations: dict[str, set[str]] = {}
         idempotency_owners: dict[str, set[str]] = {}
         invalid_lineage_predictions: set[str] = set()
         unknown_symbol_predictions: set[str] = set()
-        for prediction_id, raw_payload in raw_prediction_rows:
+        for prediction_id, raw_payload, partition_date in raw_prediction_rows:
             prediction_id = str(prediction_id)
             prediction_payload_variants.setdefault(prediction_id, set()).add(str(raw_payload))
+            prediction_locations.setdefault(prediction_id, set()).add(partition_date)
             try:
                 payload = json.loads(str(raw_payload))
             except (TypeError, json.JSONDecodeError):
@@ -566,6 +940,40 @@ class RuntimeEvidenceStore:
                 idempotency_owners.setdefault(idempotency_key, set()).add(prediction_id)
 
         prediction_ids = {str(row[0]) for row in self._all_rows("predictions", "prediction_id")}
+        with self._global_connect() as global_db:
+            global_rows = global_db.execute(
+                "SELECT idempotency_key,prediction_id,partition_date,state,"
+                "payload_hash,reserved_at,committed_at,owner_id,error_reason "
+                "FROM prediction_global_idempotency"
+            ).fetchall()
+            global_integrity = str(
+                global_db.execute("PRAGMA integrity_check").fetchone()[0]
+            )
+        global_reservations = [self._global_row(row) for row in global_rows]
+        committed_global_prediction_ids = {
+            str(row["prediction_id"])
+            for row in global_reservations
+            if row["state"] == "COMMITTED"
+        }
+        committed_without_prediction = sum(
+            str(row["prediction_id"]) not in prediction_locations
+            or str(row["partition_date"])
+            not in prediction_locations[str(row["prediction_id"])]
+            for row in global_reservations
+            if row["state"] == "COMMITTED"
+        )
+        predictions_without_global_commit = len(
+            prediction_ids - committed_global_prediction_ids
+        )
+        pending_global_reservations = sum(
+            row["state"] == "RESERVED" for row in global_reservations
+        )
+        aborted_global_reservations = sum(
+            row["state"] == "ABORTED" for row in global_reservations
+        )
+        global_error_reservations = sum(
+            bool(row["error_reason"]) for row in global_reservations
+        )
         snapshot_ids = {str(row[0]) for row in self._all_rows("feature_snapshots", "prediction_id")}
         raw_decision_rows = list(self._all_rows(
             "final_decisions",
@@ -670,18 +1078,33 @@ class RuntimeEvidenceStore:
             and invalid_lineage_count == 0 and unknown_symbol_count == 0
             and duplicate_predictions == 0
             and missing_outcomes == 0
+            and global_integrity == "ok"
+            and committed_without_prediction == 0
+            and predictions_without_global_commit == 0
+            and pending_global_reservations == 0
+            and aborted_global_reservations == 0
+            and global_error_reservations == 0
         )
         critical = (
             integrity != "ok"
+            or global_integrity != "ok"
             or foreign_key_violations > 0
             or duplicate_predictions > 0
             or orphan_decisions > 0
             or decisions_without_prediction > 0
+            or committed_without_prediction > 0
+            or predictions_without_global_commit > 0
         )
         return {
             "status": "healthy" if healthy else "degraded",
             "severity": "HEALTHY" if healthy else ("UNHEALTHY" if critical else "DEGRADED"),
             "integrity": integrity, "orphan_snapshots": orphan_snapshots, "missing_snapshots": missing_snapshots,
+            "global_index_integrity": global_integrity,
+            "global_committed_without_prediction": committed_without_prediction,
+            "predictions_without_global_commit": predictions_without_global_commit,
+            "pending_global_reservations": pending_global_reservations,
+            "aborted_global_reservations": aborted_global_reservations,
+            "global_error_reservations": global_error_reservations,
             "orphan_decisions": orphan_decisions, "orphan_outcomes": orphan_outcomes,
             "decisions_without_prediction": decisions_without_prediction,
             "duplicate_decision_predictions": duplicate_decision_predictions,
