@@ -41,6 +41,33 @@ def test_max_single_order_notional():
     assert "order_too_large" in dec3.reason
 
 
+def test_corrupt_persisted_risk_state_blocks_entry_but_allows_exit(tmp_path, monkeypatch):
+    state_file = tmp_path / "risk_state.json"
+    state_file.write_text("{corrupt", encoding="utf-8")
+    monkeypatch.setattr("btc_scraper.execution.hard_risk_limits.STATE_PATH", state_file)
+    limits = HardRiskLimits(stage=1)
+
+    entry = limits.evaluate(OrderIntent.ENTRY, 10.0, open_positions_count=0)
+    exit_decision = limits.evaluate(OrderIntent.EXIT, 10.0, open_positions_count=1)
+
+    assert entry.allowed is False
+    assert "BLOCK_ENTRY:risk_state_load_failed" in entry.reason
+    assert exit_decision.allowed is True
+
+
+def test_daily_loss_exception_blocks_entry(monkeypatch):
+    limits = HardRiskLimits(stage=1)
+    monkeypatch.setattr(
+        limits,
+        "_calendar_equity_loss",
+        lambda: (_ for _ in ()).throw(RuntimeError("daily loss failed")),
+    )
+
+    decision = limits.evaluate(OrderIntent.ENTRY, 10.0, open_positions_count=0)
+    assert decision.allowed is False
+    assert "BLOCK_ENTRY:daily_loss_calculation_failed" in decision.reason
+
+
 def test_max_position_notional():
     # Stage 1 max_position_usdt is 20.0
     # Set max_single_order_usdt higher to test max_position_usdt without order_too_large.

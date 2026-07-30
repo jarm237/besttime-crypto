@@ -16,6 +16,7 @@ Intent types:
 from __future__ import annotations
 
 import json
+import math
 import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
@@ -128,6 +129,8 @@ class HardRiskLimits:
 
         # Current unrealized PnL (updated externally)
         self._unrealized_pnl: float = 0.0
+        self._state_status: str = "HEALTHY"
+        self._state_failure_reason: str | None = None
 
         self._load_state()
 
@@ -140,8 +143,9 @@ class HardRiskLimits:
                 d = raw.get("day", {})
                 self._day = _DayAccumulator(**{k: v for k, v in d.items() if k in _DayAccumulator.__dataclass_fields__})
                 self._rolling = [_RollingEntry(**e) for e in raw.get("rolling", [])]
-        except Exception:
-            pass
+        except Exception as exc:
+            self._state_status = "UNAVAILABLE"
+            self._state_failure_reason = f"risk_state_load_failed:{type(exc).__name__}"
 
     def _save_state(self) -> None:
         try:
@@ -155,8 +159,9 @@ class HardRiskLimits:
             tmp = STATE_PATH.with_suffix(".tmp")
             tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
             tmp.replace(STATE_PATH)
-        except Exception:
-            pass
+        except Exception as exc:
+            self._state_status = "UNAVAILABLE"
+            self._state_failure_reason = f"risk_state_save_failed:{type(exc).__name__}"
 
     # ── Day reset ─────────────────────────────────────────────────────────────
 
@@ -164,7 +169,8 @@ class HardRiskLimits:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         if self._day.calendar_date != today:
             self._day = _DayAccumulator(calendar_date=today)
-            self._save_state()
+            if self._state_status == "HEALTHY":
+                self._save_state()
 
     # ── Rolling window maintenance ────────────────────────────────────────────
 
@@ -245,9 +251,42 @@ class HardRiskLimits:
                 return RiskDecision(allowed=True, reason="exit_intent_allowed")
 
             # ── From here on: ENTRY and ADD_POSITION only ──────────────────
+            if self._state_status != "HEALTHY":
+                return RiskDecision(
+                    allowed=False,
+                    reason=f"BLOCK_ENTRY:{self._state_failure_reason or 'risk_state_unavailable'}",
+                    severity="CRITICAL",
+                )
+            try:
+                numeric_inputs = (
+                    float(order_notional_usdt),
+                    float(open_positions_count),
+                    float(portfolio_equity_usdt),
+                )
+            except (TypeError, ValueError):
+                numeric_inputs = (math.nan,)
+            if any(not math.isfinite(value) or value < 0 for value in numeric_inputs):
+                return RiskDecision(
+                    allowed=False,
+                    reason="BLOCK_ENTRY:invalid_risk_input",
+                    severity="CRITICAL",
+                )
 
             # 1. Calendar-day equity loss check
-            cal_loss = self._calendar_equity_loss()
+            try:
+                cal_loss = float(self._calendar_equity_loss())
+            except Exception as exc:
+                return RiskDecision(
+                    allowed=False,
+                    reason=f"BLOCK_ENTRY:daily_loss_calculation_failed:{type(exc).__name__}",
+                    severity="CRITICAL",
+                )
+            if not math.isfinite(cal_loss):
+                return RiskDecision(
+                    allowed=False,
+                    reason="BLOCK_ENTRY:invalid_daily_loss",
+                    severity="CRITICAL",
+                )
             if cal_loss <= -self._limits.max_daily_loss_usdt:
                 return RiskDecision(
                     allowed=False,
@@ -256,7 +295,20 @@ class HardRiskLimits:
                 )
 
             # 2. Rolling 24h equity loss check
-            rolling_loss = self._rolling_24h_loss()
+            try:
+                rolling_loss = float(self._rolling_24h_loss())
+            except Exception as exc:
+                return RiskDecision(
+                    allowed=False,
+                    reason=f"BLOCK_ENTRY:rolling_loss_calculation_failed:{type(exc).__name__}",
+                    severity="CRITICAL",
+                )
+            if not math.isfinite(rolling_loss):
+                return RiskDecision(
+                    allowed=False,
+                    reason="BLOCK_ENTRY:invalid_rolling_loss",
+                    severity="CRITICAL",
+                )
             if rolling_loss <= -self._limits.max_rolling_24h_loss_usdt:
                 return RiskDecision(
                     allowed=False,
@@ -318,5 +370,7 @@ class HardRiskLimits:
                 "calendar_equity_loss": round(self._calendar_equity_loss(), 4),
                 "rolling_24h_loss": round(self._rolling_24h_loss(), 4),
                 "unrealized_pnl": round(self._unrealized_pnl, 4),
+                "risk_state_status": self._state_status,
+                "risk_state_failure_reason": self._state_failure_reason,
                 "limits": asdict(self._limits),
             }

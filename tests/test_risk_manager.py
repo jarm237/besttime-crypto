@@ -40,3 +40,40 @@ def test_calculate_risk_metrics_with_trades():
     # peak is 1100, current is 950. Drawdown = (1100-950)/1100 * 100 = 13.64%
     assert metrics_2["drawdown_pct"] == pytest.approx(13.64, abs=0.01)
     assert metrics_2["blocked"] is True
+
+
+def test_risk_database_failure_blocks_entry(monkeypatch):
+    class BrokenCollection:
+        def find(self, *args, **kwargs):
+            raise TimeoutError("risk database locked")
+
+    monkeypatch.setattr(risk_manager, "closed_positions_col", BrokenCollection())
+    metrics = risk_manager.calculate_risk_metrics()
+
+    assert metrics["status"] == "UNAVAILABLE"
+    assert metrics["blocked"] is True
+    assert metrics["risk_multiplier"] == 0.0
+    assert metrics["block_action"] == "BLOCK_ENTRY"
+    assert "risk_database_unavailable" in metrics["failure_reason"]
+
+
+@pytest.mark.parametrize("invalid_pnl", [float("nan"), float("inf"), "not-a-number"])
+def test_invalid_risk_values_block_entry(invalid_pnl):
+    metrics = risk_manager.calculate_risk_metrics(
+        trades_cache=[{"result": "LOSS", "pnl_usd_actual": invalid_pnl}],
+    )
+    assert metrics["status"] == "UNAVAILABLE"
+    assert metrics["blocked"] is True
+    assert metrics["risk_multiplier"] == 0.0
+
+
+def test_stale_drawdown_data_blocks_entry():
+    metrics = risk_manager.calculate_risk_metrics(
+        trades_cache=[],
+        data_observed_at="2026-01-01T00:00:00+00:00",
+        max_data_age_seconds=60,
+        now=risk_manager.datetime(2026, 1, 1, 0, 2, tzinfo=risk_manager.timezone.utc),
+    )
+    assert metrics["status"] == "UNAVAILABLE"
+    assert metrics["failure_reason"] == "drawdown_data_stale"
+    assert metrics["blocked"] is True
