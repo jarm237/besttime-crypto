@@ -272,9 +272,13 @@ class EntryDecision:
     # Traceability metadata
     decision_id: str = field(default_factory=_generate_decision_id)
     signal_id: Optional[str] = None
+    prediction_id: Optional[str] = None
     model_version: Optional[str] = None
     artifact_hash: Optional[str] = None
     feature_schema_version: Optional[str] = None
+    deployment_id: Optional[str] = None
+    decision_context: Optional[str] = None
+    caller_context: Optional[str] = None
     decision_timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
@@ -297,9 +301,14 @@ class EntryDecision:
             "authorization_reason": self.authorization_reason.value if self.authorization_reason else None,
             "decision_id": self.decision_id,
             "signal_id": self.signal_id,
+            "prediction_id": self.prediction_id,
             "model_version": self.model_version,
             "artifact_hash": self.artifact_hash,
+            "model_artifact_sha256": self.artifact_hash,
             "feature_schema_version": self.feature_schema_version,
+            "deployment_id": self.deployment_id,
+            "decision_context": self.decision_context,
+            "caller_context": self.caller_context,
             "decision_timestamp": self.decision_timestamp,
             "meta_probability_semantics": self.meta_probability_semantics,
         }

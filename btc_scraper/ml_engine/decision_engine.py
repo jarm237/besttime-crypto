@@ -208,7 +208,9 @@ class MetaDecisionEngine:
             record_degradation("prediction_audit", "prediction_audit_write_failure_total", exc)
 
     def decide(self, analysis_info: Dict, *, persist_final: bool = True) -> Dict:
-        meta = predict_meta_confidence(analysis_info)
+        meta = analysis_info.get("_meta_prediction")
+        if not isinstance(meta, dict):
+            meta = predict_meta_confidence(analysis_info)
         if not isinstance(meta, dict) or meta.get("probability") is None:
             return {
                 "error": meta.get("error", "no_model"),
@@ -254,6 +256,13 @@ class MetaDecisionEngine:
         if abs(expected_return) < self.min_ev_pct:
             action = "IGNORE"
 
+        risk_status = str(analysis_info.get("risk_status") or "HEALTHY").upper()
+        risk_failure_reason = analysis_info.get("risk_failure_reason")
+        risk_blocked = bool(analysis_info.get("risk_blocked", False))
+        if risk_blocked or risk_status == "UNAVAILABLE":
+            action = "BLOCK_ENTRY"
+            risk_failure_reason = risk_failure_reason or "risk_data_unavailable"
+
         reason = [
             f"meta_prob={meta_prob:.3f}",
             f"sentiment={sentiment_prob:.3f}",
@@ -263,6 +272,8 @@ class MetaDecisionEngine:
             f"posterior={posterior:.3f}",
             f"ev={expected_return:.4f}",
         ]
+        if risk_blocked or risk_status == "UNAVAILABLE":
+            reason.append(f"risk_failure={risk_failure_reason}")
 
         final_decision = {
             "action": action,
@@ -288,6 +299,15 @@ class MetaDecisionEngine:
             "prediction_id": meta.get("prediction_id"),
             "model_version": meta.get("model_version"),
             "artifact_sha256": meta.get("artifact_sha256"),
+            "model_artifact_sha256": meta.get("artifact_sha256"),
+            "feature_schema_version": meta.get("feature_schema_version"),
+            "deployment_id": meta.get("deployment_id"),
+            "decision_context": meta.get("decision_context"),
+            "caller_context": meta.get("caller_context"),
+            "feature_hash": meta.get("feature_hash"),
+            "risk_status": risk_status,
+            "risk_failure_reason": risk_failure_reason,
+            "risk_blocked": risk_blocked or risk_status == "UNAVAILABLE",
             "decision_id": str(uuid.uuid4()),
             "context_snapshot_id": None,
             **regime_effect_metadata(self.regime_decision_effect_enabled),

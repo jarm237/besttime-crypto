@@ -442,6 +442,9 @@ def add_position(
     model_version: str | None = None,
     artifact_sha256: str | None = None,
     feature_schema_version: str | None = None,
+    deployment_id: str | None = None,
+    decision_context: str | None = None,
+    caller_context: str | None = None,
     manual_decision_basis: str | None = None,
     order_creator: str | None = None,
     order_channel: str | None = None,
@@ -523,7 +526,11 @@ def add_position(
         "lifecycle_schema_version": lifecycle_schema_version,
         "model_version": model_version,
         "artifact_sha256": artifact_sha256,
+        "model_artifact_sha256": artifact_sha256,
         "feature_schema_version": feature_schema_version,
+        "deployment_id": deployment_id,
+        "decision_context": decision_context,
+        "caller_context": caller_context,
         "direction": direction.upper(),
         "entry_price": float(entry_price),
         "invested_usdt": float(invested_usdt),
@@ -752,7 +759,14 @@ def close_position(
             "net_pnl_pct": closed_data.get("net_pnl_pct"),
             "model_version": closed_data.get("model_version"),
             "artifact_sha256": closed_data.get("artifact_sha256"),
+            "model_artifact_sha256": (
+                closed_data.get("model_artifact_sha256")
+                or closed_data.get("artifact_sha256")
+            ),
             "feature_schema_version": closed_data.get("feature_schema_version"),
+            "deployment_id": closed_data.get("deployment_id"),
+            "decision_context": closed_data.get("decision_context"),
+            "caller_context": closed_data.get("caller_context"),
             "trade_origin": closed_data.get("trade_origin"),
             "execution_mode": closed_data.get("execution_mode"),
             "fill_source": closed_data.get("fill_source"),
@@ -1102,6 +1116,12 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
         try:
             from btc_scraper.ml_engine.meta_model import predict_meta_confidence
             eval_info = dict(ana)
+            eval_info["signal_id"] = (
+                f"exit-recheck:{p.get('id')}:{ana.get('time') or ana.get('timestamp') or avg_step}"
+            )
+            eval_info["decision_context"] = "exit_recheck"
+            eval_info["caller_context"] = "position_tracker"
+            eval_info["coin"] = coin
             if direction == "LONG":
                 eval_info["signal"] = "BUY"
                 eval_info["signal_score"] = {

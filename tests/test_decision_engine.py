@@ -212,6 +212,26 @@ class TestFinalRiskGate:
         assert action is DecisionAction.BLOCK_ENTRY
         assert "high_context_entry_block" in reasons
 
+    def test_unavailable_account_risk_is_persistable_in_final_decision(self):
+        engine = MetaDecisionEngine()
+        result = engine.decide({
+            "signal": "BUY",
+            "risk_status": "UNAVAILABLE",
+            "risk_blocked": True,
+            "risk_failure_reason": "equity_unavailable",
+            "_meta_prediction": {
+                "probability": 0.9,
+                "expected_return": 1.0,
+                "prediction_id": "p-risk",
+                "signal_id": "s-risk",
+            },
+        }, persist_final=False)
+
+        assert result["action"] == "BLOCK_ENTRY"
+        assert result["risk_status"] == "UNAVAILABLE"
+        assert result["risk_failure_reason"] == "equity_unavailable"
+        assert "risk_failure=equity_unavailable" in result["reason"]
+
     def test_apply_context_cannot_overwrite_critical_stop(self):
         engine = MetaDecisionEngine()
         base = {"action": "BUY", "posterior_probability": .9, "expected_return": .2, "reason": "base"}

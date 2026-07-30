@@ -105,6 +105,7 @@ class SignalGeneratorAgent(BaseAgent):
         )
         from btc_scraper.ml_engine.signal_score import evaluate_signal_score
         from btc_scraper.ml_engine.causal_context_bridge import enhance_signal_with_causal_context
+        from btc_scraper.ml_engine.inference_coordinator import get_inference_coordinator
 
         # Load once per cycle. This object is attached only after every decision
         # operation has completed and is never copied into signals_info.
@@ -120,9 +121,31 @@ class SignalGeneratorAgent(BaseAgent):
             coin = key.split(":")[0]
             ana.setdefault("coin", coin)
             ana.setdefault("symbol", f"{coin}USDT")
-            # Chấm điểm và dự báo xác suất thắng
-            sig_score = evaluate_signal_score(ana)
+            ana.setdefault("timeframe", "15m")
+            meta_prediction = None
+            try:
+                meta_prediction = get_inference_coordinator().predict_once(
+                    ana,
+                    symbol=coin,
+                    timeframe=str(ana["timeframe"]),
+                    decision_context="entry",
+                    caller_context="agent_orchestrator",
+                )
+            except Exception as exc:
+                from btc_scraper.ml_engine.operational_health import record_degradation
+                record_degradation("ml_inference", "ml_inference_failure_total", exc)
+            sig_score = evaluate_signal_score(
+                ana,
+                meta_prediction=meta_prediction.to_dict() if meta_prediction else None,
+            )
             ana["signal_score"] = sig_score
+            for field in (
+                "signal_id", "prediction_id", "model_version", "artifact_sha256",
+                "model_artifact_sha256", "feature_schema_version", "deployment_id",
+                "decision_context", "caller_context", "feature_hash",
+            ):
+                if sig_score.get(field) is not None:
+                    ana[field] = sig_score[field]
 
             # Phase C: Tích hợp Causal Context (alpha=0.0 = safe mode, chỉ rules)
             try:
@@ -186,13 +209,16 @@ class RiskManagerAgent(BaseAgent):
         context["risk_metrics"] = risk_metrics
         
         # Nếu bị block do drawdown vượt mức, hạ cấp tất cả tín hiệu về NEUTRAL
-        if risk_metrics.get("blocked", False):
-            console.print(f"[bold red][RiskManager] HỆ THỐNG GIAO DỊCH BỊ KHÓA do Drawdown vượt 10%! (Drawdown hiện tại: {risk_metrics.get('drawdown_pct'):.2f}%)[/bold red]")
+        if risk_metrics.get("blocked", True):
+            failure_reason = risk_metrics.get("failure_reason") or f"drawdown={risk_metrics.get('drawdown_pct')}%"
+            console.print(f"[bold red][RiskManager] BLOCK_ENTRY: {failure_reason}[/bold red]")
             for s in context["signals_info"]:
                 s["action"] = "NEUTRAL"
+                s["risk_status"] = risk_metrics.get("status", "UNAVAILABLE")
+                s["risk_failure_reason"] = failure_reason
                 
         # Áp dụng risk multiplier nếu gặp chuỗi thua
-        risk_mult = risk_metrics.get("risk_multiplier", 1.0)
+        risk_mult = risk_metrics.get("risk_multiplier", 0.0)
         if risk_mult < 1.0:
             console.print(f"[bold yellow][RiskManager] Áp dụng Risk Multiplier {risk_mult} do chuỗi thua liên tiếp ({risk_metrics.get('consecutive_losses')} lệnh)[/bold yellow]")
             for s in context["signals_info"]:

@@ -17,7 +17,7 @@ def test_signal_generator_attaches_reference_only_after_decision(monkeypatch):
         lambda: hostile_reference,
     )
 
-    def fake_score(analysis):
+    def fake_score(analysis, *, meta_prediction=None):
         assert "alternative_data_reference" not in analysis
         return {
             "action": "BUY",
@@ -62,7 +62,7 @@ def test_reference_load_failure_does_not_block_signal_generation(monkeypatch):
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.signal_score.evaluate_signal_score",
-        lambda analysis: {
+        lambda analysis, **kwargs: {
             "action": "SELL",
             "meta_confidence": 0.7,
             "kelly_fraction": 0.05,

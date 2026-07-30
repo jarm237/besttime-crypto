@@ -51,7 +51,8 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
                       timeframe: str | None = None, side: str | None = None,
                       feature_snapshot_id: str | None = None, valid_until: str | None = None,
                       calibration_method: str | None = None, fallback_used: bool = False,
-                      signal_id: str | None = None, position_id: str | None = None,
+                      signal_id: str | None = None, caller_context: str = "runtime",
+                      position_id: str | None = None,
                       order_id: str | None = None, fill_id: str | None = None,
                       extra: dict[str, Any] | None = None, log_dir: Path | None = None,
                       evidence_store: RuntimeEvidenceStore | None = None) -> dict[str, Any]:
@@ -61,14 +62,28 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
     f_hash = feature_hash(features)
     snapshot_id = feature_snapshot_id or f"fs-{f_hash[:16]}"
     side_value = side or _infer_side((extra or {}).get("signal"))
+    idempotency_key = (
+        f"{signal_id}:{model_version}:{decision_context}"
+        if signal_id else None
+    )
+    store = evidence_store or get_runtime_evidence_store()
+    if idempotency_key:
+        existing = store.get_prediction_by_idempotency_key(idempotency_key)
+        if existing is not None:
+            return existing
+    prediction_id = (
+        str(uuid.uuid5(uuid.NAMESPACE_URL, f"ml-prediction:{idempotency_key}"))
+        if idempotency_key else str(uuid.uuid4())
+    )
     entry: dict[str, Any] = {
         "event_type": "prediction_created", "schema_version": "prediction-created-v1",
         "event_id": str(uuid.uuid4()), "event_time": now.isoformat(), "ingest_time": now.isoformat(),
-        "producer": "prediction_logger", "prediction_id": str(uuid.uuid4()),
+        "producer": "prediction_logger", "prediction_id": prediction_id,
         "timestamp": now.isoformat(), "predicted_at": now.isoformat(), "valid_until": expires_at,
         "symbol": symbol, "timeframe": timeframe,
         "decision_context": decision_context, "model_name": model_name, "model_version": model_version,
-        "artifact_sha256": artifact_sha256, "feature_schema_version": feature_schema_version,
+        "artifact_sha256": artifact_sha256, "model_artifact_sha256": artifact_sha256,
+        "feature_schema_version": feature_schema_version,
         "feature_snapshot_id": snapshot_id, "feature_hash": f_hash, "side": side_value,
         "calibration_method": calibration_method,
         "raw_probability": raw_prediction, "calibrated_probability": calibrated_prediction,
@@ -77,7 +92,8 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
         "runtime_id": runtime_id(), "evidence_eligible": runtime_evidence_eligible(),
         "paper_run_id": runtime_paper_run_id(),
         "fallback_used": bool(fallback_used), "git_commit": _git_commit(),
-        "deployment_id": __import__("os").getenv("DEPLOYMENT_ID"), "signal_id": signal_id,
+        "signal_id": signal_id, "caller_context": caller_context,
+        "idempotency_key": idempotency_key,
         "position_id": position_id, "order_id": order_id, "fill_id": fill_id,
     }
     owner = runtime_owner_metadata()
@@ -98,7 +114,9 @@ def append_prediction(*, model_name: str, model_version: str, artifact_sha256: s
     snapshot.setdefault("process_id", owner["process_id"])
     snapshot.setdefault("hostname", owner["hostname"])
     snapshot.setdefault("started_at", owner["started_at"])
-    (evidence_store or get_runtime_evidence_store()).write_prediction_evidence(entry, snapshot)
+    persisted = store.write_prediction_evidence(entry, snapshot)
+    if persisted.get("event_id") != entry["event_id"]:
+        return persisted
 
     # JSONL remains a compatibility mirror; SQLite above is the source of truth.
     destination = Path(log_dir) if log_dir is not None else build_prediction_audit_path()

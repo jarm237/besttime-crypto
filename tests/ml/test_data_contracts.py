@@ -71,6 +71,8 @@ def test_prediction_logger_emits_contract_valid_event(tmp_path):
         symbol="BTC",
         timeframe="15m",
         side="BUY",
+        signal_id="sig-contract-1",
+        caller_context="contract_test",
         log_dir=tmp_path,
     )
     assert validate_runtime_event(entry).ok
@@ -111,6 +113,9 @@ def test_prediction_contract_rejects_missing_production_lineage():
         "timeframe",
         "side",
         "valid_until",
+        "signal_id",
+        "caller_context",
+        "deployment_id",
     }.issubset(fields)
 
 
@@ -128,6 +133,8 @@ def test_prediction_logger_rejects_schema_override(tmp_path):
             symbol="BTC",
             timeframe="15m",
             side="BUY",
+            signal_id="sig-schema-override",
+            caller_context="contract_test",
             extra={"schema_version": "prediction-created-v2"},
             log_dir=tmp_path,
         )
@@ -147,5 +154,7 @@ def test_prediction_logger_rejects_missing_artifact_hash(tmp_path):
             symbol="BTC",
             timeframe="15m",
             side="BUY",
+            signal_id="sig-missing-hash",
+            caller_context="contract_test",
             log_dir=tmp_path,
         )

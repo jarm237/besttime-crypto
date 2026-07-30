@@ -45,6 +45,7 @@ from __future__ import annotations
 import json
 import os
 import time
+import uuid
 import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -503,6 +504,29 @@ class AutoTrader:
         raw_signal = str(analysis.get("signal", ""))
         raw_signal_upper = raw_signal.upper()
         tp_sl = analysis.get("tp_sl") or {}
+        causal_decision = analysis.get("causal_decision") or {}
+        lineage = {
+            "decision_id": (
+                causal_decision.get("decision_id")
+                or analysis.get("entry_decision_id")
+                or f"ed-{uuid.uuid4().hex[:12]}"
+            ),
+            "signal_id": analysis.get("signal_id") or sig_score.get("signal_id"),
+            "prediction_id": analysis.get("prediction_id") or sig_score.get("prediction_id"),
+            "model_version": analysis.get("model_version") or sig_score.get("model_version"),
+            "artifact_hash": (
+                analysis.get("artifact_sha256")
+                or sig_score.get("artifact_sha256")
+                or sig_score.get("model_artifact_sha256")
+            ),
+            "feature_schema_version": (
+                analysis.get("feature_schema_version")
+                or sig_score.get("feature_schema_version")
+            ),
+            "deployment_id": analysis.get("deployment_id") or sig_score.get("deployment_id"),
+            "decision_context": analysis.get("decision_context") or sig_score.get("decision_context"),
+            "caller_context": analysis.get("caller_context") or sig_score.get("caller_context"),
+        }
 
         score = sig_score.get("score", 50)
         try:
@@ -548,6 +572,7 @@ class AutoTrader:
                 sizing=None,
                 signal_eligible=False,
                 eligibility_reason=reason,
+                **lineage,
             )
 
         # 1. Coin whitelist
@@ -732,6 +757,7 @@ class AutoTrader:
             sizing=None,
             signal_eligible=True,
             eligibility_reason=None,
+            **lineage,
         )
 
     def should_trade(
@@ -845,8 +871,36 @@ class AutoTrader:
                         tf_ana.setdefault("coin", coin)
                         tf_ana.setdefault("symbol", f"{coin}USDT")
                         try:
-                            sig_score = evaluate_signal_score(tf_ana)
+                            from btc_scraper.ml_engine.inference_coordinator import get_inference_coordinator
+                            from btc_scraper.ml_engine.causal_context_bridge import enhance_signal_with_causal_context
+                            tf_ana.setdefault("timeframe", tf)
+                            meta_prediction = get_inference_coordinator().predict_once(
+                                tf_ana,
+                                symbol=coin,
+                                timeframe=tf,
+                                decision_context="entry",
+                                caller_context="auto_trader_mtf",
+                            )
+                            sig_score = evaluate_signal_score(
+                                tf_ana,
+                                meta_prediction=meta_prediction.to_dict(),
+                            )
                             tf_ana["signal_score"] = sig_score
+                            tf_ana.update({
+                                field: sig_score[field]
+                                for field in (
+                                    "signal_id", "prediction_id", "model_version",
+                                    "artifact_sha256", "feature_schema_version",
+                                    "deployment_id", "decision_context", "caller_context",
+                                )
+                                if sig_score.get(field) is not None
+                            })
+                            causal = enhance_signal_with_causal_context(
+                                tf_ana,
+                                {**tf_ana, **sig_score},
+                            )
+                            if causal:
+                                tf_ana["causal_decision"] = causal
                         except Exception:
                             # fallback: leave as-is
                             pass
@@ -1090,6 +1144,12 @@ class AutoTrader:
                 "id": ana.get("signal_id") or str(int(time.time())),
                 "prediction_id": ana.get("prediction_id"),
                 "signal_id": ana.get("signal_id") or ana.get("id"),
+                "model_version": decision.model_version,
+                "model_artifact_sha256": decision.artifact_hash,
+                "feature_schema_version": decision.feature_schema_version,
+                "deployment_id": decision.deployment_id,
+                "decision_context": decision.decision_context,
+                "caller_context": decision.caller_context,
                 "entry_decision_id": decision.decision_id,
                 "decision_id": decision.decision_id,
                 "idempotency_key": ana.get("idempotency_key"),
@@ -1160,6 +1220,9 @@ class AutoTrader:
                     model_version=decision.model_version,
                     artifact_sha256=decision.artifact_hash,
                     feature_schema_version=decision.feature_schema_version,
+                    deployment_id=decision.deployment_id,
+                    decision_context=decision.decision_context,
+                    caller_context=decision.caller_context,
                     regime_snapshot=ana.get("regime_snapshot") or sig_score.get("regime_snapshot"),
                 )
             except Exception:

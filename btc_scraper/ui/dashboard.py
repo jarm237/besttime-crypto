@@ -148,6 +148,10 @@ async def meta_model_predict(request: Request):
         return JSONResponse({"error": "invalid_json", "message": str(e)}, status_code=400)
     try:
         from btc_scraper.ml_engine.meta_model import predict_meta_confidence
+        import uuid
+        body.setdefault("signal_id", f"ui-{uuid.uuid4().hex}")
+        body["decision_context"] = "ui_preview"
+        body["caller_context"] = "ui_dashboard"
         res = predict_meta_confidence(body)
         return res
     except Exception as e:

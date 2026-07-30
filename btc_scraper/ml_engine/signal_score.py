@@ -38,12 +38,15 @@ def _get_cached_risk_metrics() -> dict:
         _RISK_METRICS_CACHE_TS = now
     except Exception:
         _RISK_METRICS_CACHE = {
-            "consecutive_losses": 0,
-            "drawdown_pct": 0.0,
-            "risk_multiplier": 1.0,
-            "blocked": False,
-            "peak_equity": 5000.0,
-            "current_equity": 5000.0,
+            "status": "UNAVAILABLE",
+            "failure_reason": "risk_manager_exception",
+            "consecutive_losses": None,
+            "drawdown_pct": None,
+            "risk_multiplier": 0.0,
+            "blocked": True,
+            "block_action": "BLOCK_ENTRY",
+            "peak_equity": None,
+            "current_equity": None,
         }
     return _RISK_METRICS_CACHE
 
@@ -561,7 +564,14 @@ def compute_kelly_fraction(p: float, b: float) -> float:
         return 0.0
 
 
-def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None) -> Dict:
+def score_signal(
+    sig_text: str,
+    data: Dict,
+    context: Dict,
+    htf_trend: str = None,
+    *,
+    meta_prediction: Dict | None = None,
+) -> Dict:
     """Return a signal object: {action, score, confidence, position_size}
 
     - Keep backward compatibility: consumers can still use original text in `signal`.
@@ -669,30 +679,23 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     kelly_multiplier = opt_params.get("kelly_multiplier", 1.0)
 
     risk_metrics = _get_cached_risk_metrics()
-    risk_multiplier = risk_metrics.get("risk_multiplier", 1.0)
-    risk_blocked = risk_metrics.get("blocked", False)
+    risk_multiplier = risk_metrics.get("risk_multiplier", 0.0)
+    risk_blocked = risk_metrics.get("blocked", True)
+    risk_status = str(risk_metrics.get("status") or ("HEALTHY" if not risk_blocked else "UNAVAILABLE")).upper()
+    risk_failure_reason = risk_metrics.get("failure_reason")
 
     try:
-        # allow disabling Kelly via environment for comparison runs
         if disable_ml:
             raise RuntimeError('ml_disabled')
-        if not _use_kelly():
-            raise RuntimeError('kelly_disabled')
-        from btc_scraper.ml_engine.meta_model import predict_meta_confidence
-        from btc_scraper.ml_engine.feature_extractor import build_meta_features
-
-        # Gắn score hiện tại vào merged để feature_extractor có thể đọc
-        merged['score'] = score
-        merged['signal'] = sig_text
-        # HTF trend cho mtf_alignment feature
-        if htf_trend:
-            merged['htf_trend'] = htf_trend
-        elif 'htf_trend' not in merged:
-            merged['htf_trend'] = merged.get('trend_label', '')
-
-        meta = predict_meta_confidence(merged)
+        if meta_prediction is None:
+            raise RuntimeError("inference_owner_required")
+        meta = dict(meta_prediction)
         if isinstance(meta, dict) and meta.get('probability') is not None:
             meta_prob = float(meta['probability'])
+            meta_expected_return = meta.get("expected_return")
+            meta_expected_drawdown = meta.get("expected_drawdown")
+            meta_expected_hold_time = meta.get("expected_hold_time")
+            meta_decision = meta
             
             # Apply optimized signal probability cutoff
             if meta_prob < signal_cutoff:
@@ -702,7 +705,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
             # Tính Kelly sizing dựa trên meta_prob
             strategy = (data.get('strategy') or data.get('subtype')) if isinstance(data, dict) else None
             b_est = _estimate_b(strategy or '', regime or '')
-            kelly_raw = compute_kelly_fraction(meta_prob, b_est)
+            kelly_raw = compute_kelly_fraction(meta_prob, b_est) if _use_kelly() else 0.0
             
             # Apply dynamic sizing scale and risk reduction
             kelly_raw = kelly_raw * kelly_multiplier * risk_multiplier
@@ -726,7 +729,7 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
 
         # (Hard-reject gating was moved below to run outside the ML try/except)
     except Exception as e:
-        if str(e) not in ('ml_disabled', 'kelly_disabled'):
+        if str(e) not in ('ml_disabled', 'inference_owner_required'):
             import traceback
             traceback.print_exc()
         meta_prob = None
@@ -751,7 +754,10 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     # Apply Drawdown Risk management block
     if risk_blocked:
         action = "NEUTRAL"
-        reason += f" | Risk Block: drawdown {risk_metrics.get('drawdown_pct')}% exceeds limit"
+        risk_reason = risk_failure_reason or (
+            f"drawdown_{risk_metrics.get('drawdown_pct')}pct_exceeds_limit"
+        )
+        reason += f" | Risk Block: {risk_reason}"
     # ─────────────────────────────────────────────────────────────────────────────
 
     # ── Sprint 3: Meta Signal Filter ─────────────────────────────────────────────
@@ -938,14 +944,29 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         "raw_text": sig_text,
         "gated": gated,
         "meta_confidence": meta_prob,
+        "meta_probability": meta_prob,
         "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,
         "meta_expected_return": meta_expected_return,
         "meta_expected_drawdown": meta_expected_drawdown,
         "meta_expected_hold_time": meta_expected_hold_time,
         "meta_decision": meta_decision,
+        "signal_id": meta_decision.get("signal_id"),
+        "prediction_id": meta_decision.get("prediction_id"),
+        "model_version": meta_decision.get("model_version"),
+        "artifact_sha256": meta_decision.get("artifact_sha256"),
+        "model_artifact_sha256": meta_decision.get("artifact_sha256"),
+        "feature_schema_version": meta_decision.get("feature_schema_version"),
+        "deployment_id": meta_decision.get("deployment_id"),
+        "decision_context": meta_decision.get("decision_context"),
+        "caller_context": meta_decision.get("caller_context"),
+        "feature_hash": meta_decision.get("feature_hash"),
         "kelly_fraction": kelly,
         "b_estimate": b_est,
         "meta_error": meta_err,
+        "risk_status": risk_status,
+        "risk_failure_reason": risk_failure_reason,
+        "risk_blocked": bool(risk_blocked),
+        "risk_multiplier": float(risk_multiplier),
         "position_sizing_method": sizing_method,
         "volatility_multiplier": round(vol_mult, 4) if vol_mult is not None else 1.0,
         "std_dev_pct": round(std_dev_pct, 4) if std_dev_pct is not None else None,
@@ -959,12 +980,18 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
     }
 
 
-def evaluate_signal_score(ana: Dict) -> Dict:
+def evaluate_signal_score(ana: Dict, *, meta_prediction: Dict | None = None) -> Dict:
     """Evaluate or re-evaluate signal score for an analysis dict."""
     sig_text = ana.get("signal", "")
     htf_trend = ana.get("htf_trend", None)
     # Use the analysis dict itself as both data and context, as it contains all indicator metrics.
-    return score_signal(sig_text, ana, ana, htf_trend=htf_trend)
+    return score_signal(
+        sig_text,
+        ana,
+        ana,
+        htf_trend=htf_trend,
+        meta_prediction=meta_prediction,
+    )
 
 
 def extract_signal_fields(info: Dict) -> Dict:

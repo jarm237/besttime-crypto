@@ -138,14 +138,32 @@ def enhance_signal_with_causal_context(
         Enhanced decision dict hoặc dict rỗng nếu bị lỗi (graceful degradation).
     """
     try:
-        provider = get_hybrid_provider(alpha=alpha)
         engine   = get_decision_engine()
-        state    = build_world_state_from_ana(ana)
-
-        if provider is None or engine is None or state is None:
+        if engine is None:
             return {}
-
         decision_input = strip_alternative_reference(analysis_info)
+        meta_prediction = {
+            "probability": decision_input.get("meta_probability") or decision_input.get("meta_confidence"),
+            "prediction_id": decision_input.get("prediction_id"),
+            "signal_id": decision_input.get("signal_id"),
+            "model_version": decision_input.get("model_version"),
+            "artifact_sha256": decision_input.get("artifact_sha256") or decision_input.get("model_artifact_sha256"),
+            "feature_schema_version": decision_input.get("feature_schema_version"),
+            "deployment_id": decision_input.get("deployment_id"),
+            "decision_context": decision_input.get("decision_context"),
+            "caller_context": decision_input.get("caller_context"),
+            "feature_hash": decision_input.get("feature_hash"),
+            "expected_return": decision_input.get("meta_expected_return"),
+            "expected_drawdown": decision_input.get("meta_expected_drawdown"),
+            "expected_hold_time": decision_input.get("meta_expected_hold_time"),
+        }
+        if not meta_prediction["prediction_id"] or meta_prediction["probability"] is None:
+            return {}
+        decision_input["_meta_prediction"] = meta_prediction
+        provider = get_hybrid_provider(alpha=alpha)
+        state = build_world_state_from_ana(ana)
+        if provider is None or state is None:
+            return engine.decide(decision_input)
         enhanced = engine.decide_with_provider(decision_input, provider, state)
         return enhanced or {}
 

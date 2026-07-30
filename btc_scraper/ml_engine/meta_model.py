@@ -12,6 +12,7 @@ import sys
 import json
 import os
 import warnings
+import uuid
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -1177,21 +1178,27 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 else "SELL" if any(token in signal_upper for token in ("SELL", "SHORT", "BEARISH"))
                 else "NO_TRADE"
             )
+            signal_id = analysis_info.get("signal_id") or analysis_info.get("id")
+            if not signal_id:
+                signal_id = f"adhoc-{uuid.uuid4().hex}"
             prediction_event = append_prediction(
                 model_name="meta_model", model_version=MODEL_VERSION,
                 artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
                 raw_prediction=prob, calibrated_prediction=prob, features=row,
-                decision_context="entry", symbol=_resolve_prediction_symbol(analysis_info),
+                decision_context=analysis_info.get("decision_context") or "unclassified",
+                symbol=_resolve_prediction_symbol(analysis_info),
                 timeframe=analysis_info.get("timeframe") or analysis_info.get("interval") or "15m",
                 side=prediction_side,
                 calibration_method=(artifact.metadata or {}).get("calibration_method", "isotonic"),
                 fallback_used=False,
-                signal_id=analysis_info.get("signal_id") or analysis_info.get("id"),
+                signal_id=signal_id,
+                caller_context=analysis_info.get("caller_context") or "direct_runtime",
                 position_id=analysis_info.get("position_id"), order_id=analysis_info.get("order_id"),
                 fill_id=analysis_info.get("fill_id"),
                 extra={
                     "signal": analysis_info.get("signal"),
                     "sizing_probability": sizing_probability,
+                    **ev_metrics,
                     "regime_snapshot": analysis_info.get("regime_snapshot"),
                     "regime_config_sha256": (
                         (analysis_info.get("regime_snapshot") or {}).get("config_sha256")
@@ -1217,6 +1224,13 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             "prediction_id": prediction_event.get("prediction_id"),
             "model_version": MODEL_VERSION,
             "artifact_sha256": artifact.sha256 if 'artifact' in locals() else None,
+            "model_artifact_sha256": artifact.sha256 if 'artifact' in locals() else None,
+            "feature_schema_version": "meta-v3.1-43f",
+            "feature_hash": prediction_event.get("feature_hash"),
+            "deployment_id": prediction_event.get("deployment_id"),
+            "signal_id": prediction_event.get("signal_id"),
+            "decision_context": prediction_event.get("decision_context"),
+            "caller_context": prediction_event.get("caller_context"),
             "regime_snapshot": analysis_info.get("regime_snapshot"),
             **ev_metrics,
         }

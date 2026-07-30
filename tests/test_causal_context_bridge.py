@@ -162,6 +162,16 @@ class TestEnhanceSignal:
             ana=buy_ana,
             analysis_info={
                 **buy_ana,
+                "meta_probability": 0.75,
+                "prediction_id": "pred-causal-1",
+                "signal_id": "signal-causal-1",
+                "model_version": "meta-test",
+                "artifact_sha256": "artifact-test",
+                "feature_schema_version": "meta-test-schema",
+                "deployment_id": "test-deployment",
+                "decision_context": "entry",
+                "caller_context": "test",
+                "feature_hash": "feature-test",
                 "alternative_data_reference": {
                     "mode": "reference_only",
                     "values": {"risk_on_score": -1.0},
