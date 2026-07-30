@@ -37,6 +37,14 @@ class ReservationRecord:
     created_at: str
     expires_at: str
     updated_at: str
+    signal_id: Optional[str] = None
+    prediction_id: Optional[str] = None
+    model_version: Optional[str] = None
+    model_artifact_sha256: Optional[str] = None
+    feature_schema_version: Optional[str] = None
+    deployment_id: Optional[str] = None
+    decision_context: Optional[str] = None
+    caller_context: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -54,6 +62,14 @@ class ReservationRecord:
             "created_at": self.created_at,
             "expires_at": self.expires_at,
             "updated_at": self.updated_at,
+            "signal_id": self.signal_id,
+            "prediction_id": self.prediction_id,
+            "model_version": self.model_version,
+            "model_artifact_sha256": self.model_artifact_sha256,
+            "feature_schema_version": self.feature_schema_version,
+            "deployment_id": self.deployment_id,
+            "decision_context": self.decision_context,
+            "caller_context": self.caller_context,
         }
 
 
@@ -92,6 +108,24 @@ class ReservationStore:
                         updated_at TEXT NOT NULL
                     )
                 """)
+                existing_columns = {
+                    str(row["name"])
+                    for row in conn.execute("PRAGMA table_info(reservations)").fetchall()
+                }
+                for column in (
+                    "signal_id", "prediction_id", "model_version",
+                    "model_artifact_sha256", "feature_schema_version",
+                    "deployment_id", "decision_context", "caller_context",
+                ):
+                    if column not in existing_columns:
+                        try:
+                            conn.execute(f"ALTER TABLE reservations ADD COLUMN {column} TEXT")
+                        except sqlite3.OperationalError as exc:
+                            # Multiple recovery workers may migrate the same
+                            # database concurrently. A peer winning this race
+                            # is success, not a startup failure.
+                            if "duplicate column name" not in str(exc).lower():
+                                raise
                 # Indices for fast lookups
                 conn.execute(
                     "CREATE INDEX IF NOT EXISTS idx_res_status ON reservations(status)"
@@ -111,6 +145,14 @@ class ReservationStore:
         reserved_notional: float,
         reserved_position_slots: int = 1,
         ttl_seconds: int = 60,
+        signal_id: str | None = None,
+        prediction_id: str | None = None,
+        model_version: str | None = None,
+        model_artifact_sha256: str | None = None,
+        feature_schema_version: str | None = None,
+        deployment_id: str | None = None,
+        decision_context: str | None = None,
+        caller_context: str | None = None,
     ) -> Tuple[ReservationRecord, bool]:
         """Atomically reserve a slot and notional.
 
@@ -130,8 +172,10 @@ class ReservationStore:
                         INSERT INTO reservations (
                             reservation_id, idempotency_key, entry_decision_id, symbol, side,
                             reserved_notional, filled_notional, reserved_position_slots, status,
-                            exchange_order_id, client_order_id, created_at, expires_at, updated_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, 0.0, ?, ?, NULL, NULL, ?, ?, ?)
+                            exchange_order_id, client_order_id, created_at, expires_at, updated_at,
+                            signal_id, prediction_id, model_version, model_artifact_sha256,
+                            feature_schema_version, deployment_id, decision_context, caller_context
+                        ) VALUES (?, ?, ?, ?, ?, ?, 0.0, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             reservation_id,
@@ -145,6 +189,14 @@ class ReservationStore:
                             now,
                             expires,
                             now,
+                            signal_id,
+                            prediction_id,
+                            model_version,
+                            model_artifact_sha256,
+                            feature_schema_version,
+                            deployment_id,
+                            decision_context,
+                            caller_context,
                         ),
                     )
                 record = self.get_reservation(reservation_id)
@@ -368,4 +420,12 @@ class ReservationStore:
             created_at=row["created_at"],
             expires_at=row["expires_at"],
             updated_at=row["updated_at"],
+            signal_id=row["signal_id"],
+            prediction_id=row["prediction_id"],
+            model_version=row["model_version"],
+            model_artifact_sha256=row["model_artifact_sha256"],
+            feature_schema_version=row["feature_schema_version"],
+            deployment_id=row["deployment_id"],
+            decision_context=row["decision_context"],
+            caller_context=row["caller_context"],
         )

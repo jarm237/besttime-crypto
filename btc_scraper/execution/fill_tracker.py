@@ -65,6 +65,11 @@ class ExecutionRecord:
     signal_id: str = ""
     prediction_id: str = ""
     entry_decision_id: str = ""
+    model_version: str = ""
+    model_artifact_sha256: str = ""
+    feature_schema_version: str = ""
+    decision_context: str = ""
+    caller_context: str = ""
     reservation_id: str = ""
     idempotency_key: str = ""
     client_order_id: str = ""
@@ -300,7 +305,8 @@ class FillTracker:
     @staticmethod
     def _apply_runtime_metadata(record: ExecutionRecord) -> None:
         record.environment = runtime_environment()
-        record.deployment_id = runtime_deployment_id()
+        if not record.deployment_id:
+            record.deployment_id = runtime_deployment_id()
         record.runtime_id = runtime_id()
         owner = runtime_owner_metadata()
         record.process_id = int(owner["process_id"])

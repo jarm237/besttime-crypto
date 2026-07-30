@@ -161,6 +161,60 @@ async def test_released_idempotency_key_requires_reconciliation(mock_adapter, tm
 
 
 @pytest.mark.anyio
+async def test_equity_unavailable_blocks_entry(mock_adapter, tmp_path, guard_setup):
+    mock_adapter.get_usdt_balance.side_effect = TimeoutError("balance timeout")
+    engine = ExecutionEngine(
+        fills_dir=str(tmp_path / "fills"),
+        log_dir=str(tmp_path / "logs"),
+        reports_dir=str(tmp_path / "reports"),
+        exchange_adapter=mock_adapter,
+        live_guard=guard_setup,
+    )
+    engine._reservation_store = ReservationStore(db_path=tmp_path / "reservations.db")
+
+    result = await engine.submit_live(
+        {"id": "sig-equity", "coin": "BTC", "signal": "BUY", "intent": OrderIntent.ENTRY},
+        {"close": 10000.0, "high": 10010.0, "low": 9990.0, "open": 10000.0, "volume": 1.0},
+        notional_usdt=10.0,
+    )
+
+    assert result.status == OrderStatus.REJECTED
+    assert result.guard_action == "REJECT"
+    assert "BLOCK_ENTRY:risk_data_unavailable:equity_unavailable" in result.reason
+    mock_adapter.create_market_buy.assert_not_awaited()
+    mock_adapter.create_limit_buy.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_position_state_failure_blocks_entry(
+    monkeypatch, mock_adapter, tmp_path, guard_setup,
+):
+    monkeypatch.setattr(
+        "btc_scraper.trading.exposure_manager.exposure_manager.get_open_positions",
+        MagicMock(side_effect=RuntimeError("position database locked")),
+    )
+    engine = ExecutionEngine(
+        fills_dir=str(tmp_path / "fills"),
+        log_dir=str(tmp_path / "logs"),
+        reports_dir=str(tmp_path / "reports"),
+        exchange_adapter=mock_adapter,
+        live_guard=guard_setup,
+    )
+    engine._reservation_store = ReservationStore(db_path=tmp_path / "reservations.db")
+
+    result = await engine.submit_live(
+        {"id": "sig-position", "coin": "BTC", "signal": "BUY", "intent": OrderIntent.ENTRY},
+        {"close": 10000.0, "high": 10010.0, "low": 9990.0, "open": 10000.0, "volume": 1.0},
+        notional_usdt=10.0,
+    )
+
+    assert result.status == OrderStatus.REJECTED
+    assert "BLOCK_ENTRY:risk_data_unavailable:position_state_unavailable" in result.reason
+    mock_adapter.create_market_buy.assert_not_awaited()
+    mock_adapter.create_limit_buy.assert_not_awaited()
+
+
+@pytest.mark.anyio
 async def test_concurrency_race_condition_blocks_stage_1(mock_adapter, tmp_path, guard_setup):
     # Under Stage 1 rollout, max_open_positions is 1.
     # Concurrent entry submissions must not both pass! The second one must be blocked

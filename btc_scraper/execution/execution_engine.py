@@ -16,6 +16,7 @@ from __future__ import annotations
 import uuid
 import time
 import logging
+import math
 import os
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
@@ -148,6 +149,12 @@ class ExecutionEngine:
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
             prediction_id=signal.get("prediction_id", ""),
             entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            model_version=signal.get("model_version", ""),
+            model_artifact_sha256=signal.get("model_artifact_sha256", ""),
+            feature_schema_version=signal.get("feature_schema_version", ""),
+            deployment_id=signal.get("deployment_id", ""),
+            decision_context=signal.get("decision_context", ""),
+            caller_context=signal.get("caller_context", ""),
             reservation_id=signal.get("reservation_id", ""),
             idempotency_key=signal.get("idempotency_key", ""),
             client_order_id=signal.get("client_order_id", ""),
@@ -178,6 +185,14 @@ class ExecutionEngine:
                 symbol=symbol,
                 side=side.lower(),
                 reserved_notional=notional_usdt,
+                signal_id=record.signal_id,
+                prediction_id=record.prediction_id,
+                model_version=record.model_version,
+                model_artifact_sha256=record.model_artifact_sha256,
+                feature_schema_version=record.feature_schema_version,
+                deployment_id=record.deployment_id,
+                decision_context=record.decision_context,
+                caller_context=record.caller_context,
             )
             record.reservation_id = rec_res.reservation_id
             record.idempotency_key = rec_res.idempotency_key
@@ -412,6 +427,12 @@ class ExecutionEngine:
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
             prediction_id=signal.get("prediction_id", ""),
             entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            model_version=signal.get("model_version", ""),
+            model_artifact_sha256=signal.get("model_artifact_sha256", ""),
+            feature_schema_version=signal.get("feature_schema_version", ""),
+            deployment_id=signal.get("deployment_id", ""),
+            decision_context=signal.get("decision_context", ""),
+            caller_context=signal.get("caller_context", ""),
             reservation_id=signal.get("reservation_id", ""),
             idempotency_key=signal.get("idempotency_key", ""),
             client_order_id=signal.get("client_order_id", ""),
@@ -454,19 +475,30 @@ class ExecutionEngine:
         import json
 
         async with self._execution_lock:
+            intent = signal.get("intent", OrderIntent.ENTRY)
+            intent_value = str(getattr(intent, "value", intent)).upper()
+            is_entry = intent_value in {
+                str(getattr(OrderIntent.ENTRY, "value", OrderIntent.ENTRY)).upper(),
+                str(getattr(OrderIntent.ADD_POSITION, "value", OrderIntent.ADD_POSITION)).upper(),
+            }
+            risk_state_failures: list[str] = []
             open_positions_count = 0
             try:
                 from btc_scraper.trading.exposure_manager import exposure_manager
                 open_positions = exposure_manager.get_open_positions()
+                if open_positions is None:
+                    raise ValueError("position state returned None")
                 open_positions_count = len(open_positions)
-            except Exception:
-                pass
+            except Exception as exc:
+                risk_state_failures.append(f"position_state_unavailable:{type(exc).__name__}")
 
             portfolio_equity_usdt = 0.0
             try:
-                portfolio_equity_usdt = await self._adapter.get_usdt_balance()
-            except Exception:
-                pass
+                portfolio_equity_usdt = float(await self._adapter.get_usdt_balance())
+                if not math.isfinite(portfolio_equity_usdt) or portfolio_equity_usdt <= 0:
+                    raise ValueError("invalid portfolio equity")
+            except Exception as exc:
+                risk_state_failures.append(f"equity_unavailable:{type(exc).__name__}")
 
             current_stage = 1
             try:
@@ -477,10 +509,13 @@ class ExecutionEngine:
             except Exception:
                 pass
 
-            intent = signal.get("intent", OrderIntent.ENTRY)
+            if is_entry and risk_state_failures:
+                reason = "BLOCK_ENTRY:risk_data_unavailable:" + ",".join(risk_state_failures)
+                logger.error("[ExecutionEngine] %s", reason)
+                record.guard_action = "REJECT"
+                return self._tracker.reject(record, reason=reason)
 
             # ── SQLite Atomic Reservation Gate ──
-            is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
             reservation_id = None
 
             if is_entry:
@@ -493,10 +528,18 @@ class ExecutionEngine:
                 rec_res, created_new = self._reservation_store.reserve(
                     reservation_id=reservation_id,
                     idempotency_key=idempotency_key,
-                    entry_decision_id=signal.get("decision_id") or record.signal_id,
+                    entry_decision_id=record.entry_decision_id or record.signal_id,
                     symbol=symbol,
                     side=side.lower(),
                     reserved_notional=notional_usdt,
+                    signal_id=record.signal_id,
+                    prediction_id=record.prediction_id,
+                    model_version=record.model_version,
+                    model_artifact_sha256=record.model_artifact_sha256,
+                    feature_schema_version=record.feature_schema_version,
+                    deployment_id=record.deployment_id,
+                    decision_context=record.decision_context,
+                    caller_context=record.caller_context,
                 )
                 reservation_id = rec_res.reservation_id
                 idempotency_key = rec_res.idempotency_key
