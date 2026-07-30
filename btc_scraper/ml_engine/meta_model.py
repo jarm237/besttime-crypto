@@ -1189,7 +1189,16 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 signal_id=analysis_info.get("signal_id") or analysis_info.get("id"),
                 position_id=analysis_info.get("position_id"), order_id=analysis_info.get("order_id"),
                 fill_id=analysis_info.get("fill_id"),
-                extra={"signal": analysis_info.get("signal"), "sizing_probability": sizing_probability},
+                extra={
+                    "signal": analysis_info.get("signal"),
+                    "sizing_probability": sizing_probability,
+                    "regime_snapshot": analysis_info.get("regime_snapshot"),
+                    "regime_config_sha256": (
+                        (analysis_info.get("regime_snapshot") or {}).get("config_sha256")
+                        if isinstance(analysis_info.get("regime_snapshot"), dict)
+                        else None
+                    ),
+                },
             )
         except Exception as exc:
             import logging
@@ -1208,6 +1217,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             "prediction_id": prediction_event.get("prediction_id"),
             "model_version": MODEL_VERSION,
             "artifact_sha256": artifact.sha256 if 'artifact' in locals() else None,
+            "regime_snapshot": analysis_info.get("regime_snapshot"),
             **ev_metrics,
         }
     except Exception as e:

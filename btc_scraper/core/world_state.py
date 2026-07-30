@@ -35,6 +35,18 @@ class LiquidityRegime(Enum):
     EXTREME = "extreme"
 
 
+def risk_appetite_from_signal(signal: Any) -> MarketRegime:
+    """Map explicit trade actions without defaulting neutral/missing to risk-off."""
+    text = str(signal or "").strip().upper()
+    if text == "BUY" or text.startswith("BUY ("):
+        return MarketRegime.RISK_ON
+    if text == "SELL" or text.startswith("SELL ("):
+        return MarketRegime.RISK_OFF
+    if text:
+        return MarketRegime.TRANSITIONING
+    return MarketRegime.UNKNOWN
+
+
 @dataclass
 class MacroLayer:
     """Macro economic indicators."""
@@ -138,6 +150,8 @@ class WorldState:
     timestamp: datetime
     regime: MarketRegime = MarketRegime.UNKNOWN
     liquidity_regime: LiquidityRegime = LiquidityRegime.NORMAL
+    # Technical detector output is deliberately separate from macro risk appetite.
+    technical_regime: Optional[Dict[str, Any]] = None
     
     macro: MacroLayer = field(default_factory=MacroLayer)
     liquidity: LiquidityLayer = field(default_factory=LiquidityLayer)
@@ -160,6 +174,7 @@ class WorldState:
             "timestamp": self.timestamp.isoformat(),
             "regime": self.regime.value,
             "liquidity_regime": self.liquidity_regime.value,
+            "technical_regime": self.technical_regime,
             "macro": asdict(self.macro),
             "liquidity": asdict(self.liquidity),
             "crypto": asdict(self.crypto),
@@ -233,6 +248,7 @@ class WorldState:
             timestamp=timestamp,
             regime=regime,
             liquidity_regime=liquidity_regime,
+            technical_regime=data.get("technical_regime"),
             macro=macro,
             liquidity=liquidity,
             crypto=crypto,

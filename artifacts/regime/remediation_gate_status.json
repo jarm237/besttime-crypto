@@ -1,0 +1,65 @@
+{
+  "as_of": "2026-07-30",
+  "overall_status": "NOT_READY_FOR_PRODUCTION_ENFORCEMENT",
+  "runtime_mode_required": "observe",
+  "tests": {
+    "regression_tests_passed": 114,
+    "remediation_tests_passed": 42,
+    "diff_check": "PASS"
+  },
+  "evidence": {
+    "historical_rows": 2570232,
+    "historical_source_files": 21,
+    "historical_source_combined_sha256": "1074112ecb2dcc1060bb397aab9ee07ad5399d4ee7b2bc3910bc995e24c97d2a",
+    "before_transition_frequency": 0.100088,
+    "after_transition_frequency": 0.064332,
+    "before_average_duration_bars": 9.9912,
+    "after_average_duration_bars": 15.5443,
+    "feature_rows": 24070,
+    "feature_unknown_rows": 3443,
+    "feature_regime_confidence_missing_rows": 24070,
+    "tuner_split_counts": {
+      "train": 9,
+      "validation": 2,
+      "holdout": 3
+    },
+    "tuner_timestamp_coverage_complete": false,
+    "tuner_result": "INSUFFICIENT_EVIDENCE"
+  },
+  "gates": {
+    "A_code_safety": {
+      "status": "PASS",
+      "reason": "Effects default off; shadow cannot execute; enforcement requires promotion approval and exactly one effect; bear/ATR/ADX/exact mapping tests pass."
+    },
+    "B_contract_readiness": {
+      "status": "PASS",
+      "reason": "Canonical snapshot, legacy mapping, config resolver/hash, shadow-safe config degradation, immutable entry snapshot and separated world state are implemented."
+    },
+    "C_evidence_readiness": {
+      "status": "PARTIAL",
+      "reason": "New lineage code is complete, but rebuilt legacy evidence has 100% missing detector confidence and is not native post-remediation evidence."
+    },
+    "D_research_readiness": {
+      "status": "PARTIAL",
+      "reason": "Feature leakage, backtest units/policies and walk-forward tuner are remediated; eligible timestamped holdout evidence is insufficient."
+    },
+    "E_shadow_readiness": {
+      "status": "BLOCKED",
+      "reason": "No control/shadow parity window, sufficient native outcomes or approved promotion artifact exists."
+    },
+    "F_production_enforcement": {
+      "status": "BLOCKED",
+      "reason": "Risk-reduction rollout, rollback drill and separate approvals for decision, sizing and TP/SL have not occurred."
+    }
+  },
+  "promotion_decision": {
+    "approved": false,
+    "decision": "REJECT_ENFORCEMENT_KEEP_OBSERVE",
+    "required_next_evidence": [
+      "Collect native post-remediation prediction, decision, entry and outcome lineage.",
+      "Run non-executing control/shadow parity window on identical cutoffs.",
+      "Produce timestamp-complete holdout metrics with transaction cost and slippage assumptions.",
+      "Approve risk-reduction-only rollout and verify rollback before any risk-increasing effect."
+    ]
+  }
+}

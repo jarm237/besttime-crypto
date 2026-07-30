@@ -44,7 +44,16 @@ def classify_signal(sig: str) -> tuple[str, str]:
     return f"{strength}_{direction}", sub
 
 
-def simulate_outcome(results, sig_idx: int, direction: str, sl: float, tp1: float, tp2: float, hold: int) -> tuple[str, float]:
+def simulate_outcome(
+    results,
+    sig_idx: int,
+    direction: str,
+    sl: float,
+    tp1: float,
+    tp2: float,
+    hold: int,
+    same_candle_policy: str = "CONSERVATIVE_SL_FIRST",
+) -> tuple[str, float]:
     n = len(results)
     entry = results[sig_idx]["close"]
     if entry <= 0:
@@ -58,23 +67,39 @@ def simulate_outcome(results, sig_idx: int, direction: str, sl: float, tp1: floa
         l = results[j].get("low", results[j]["close"])
 
         if direction == "LONG":
-            if sl > 0 and l <= sl:
+            sl_hit = sl > 0 and l <= sl
+            tp2_hit = tp2 > 0 and h >= tp2
+            tp1_hit = tp1 > 0 and h >= tp1
+            if sl_hit and (tp1_hit or tp2_hit):
+                if same_candle_policy == "AMBIGUOUS_EXCLUDE":
+                    return "AMBIGUOUS", 0.0
+                if same_candle_policy == "OPTIMISTIC_TP_FIRST":
+                    sl_hit = False
+            if sl_hit:
                 outcome, hit_price = "SL", sl
                 break
-            if tp2 > 0 and h >= tp2:
+            if tp2_hit:
                 outcome, hit_price = "TP2", tp2
                 break
-            if tp1 > 0 and h >= tp1:
+            if tp1_hit:
                 outcome, hit_price = "TP1", tp1
                 break
         else:
-            if sl > 0 and h >= sl:
+            sl_hit = sl > 0 and h >= sl
+            tp2_hit = tp2 > 0 and l <= tp2
+            tp1_hit = tp1 > 0 and l <= tp1
+            if sl_hit and (tp1_hit or tp2_hit):
+                if same_candle_policy == "AMBIGUOUS_EXCLUDE":
+                    return "AMBIGUOUS", 0.0
+                if same_candle_policy == "OPTIMISTIC_TP_FIRST":
+                    sl_hit = False
+            if sl_hit:
                 outcome, hit_price = "SL", sl
                 break
-            if tp2 > 0 and l <= tp2:
+            if tp2_hit:
                 outcome, hit_price = "TP2", tp2
                 break
-            if tp1 > 0 and l <= tp1:
+            if tp1_hit:
                 outcome, hit_price = "TP1", tp1
                 break
 
@@ -89,8 +114,15 @@ COINS = ["BTC", "ETH", "BNB", "SOL", "XRP", "NEAR", "XLM", "AVAX", "DOGE"]
 HOLD = 4  # number of candles to hold
 
 
-def run_regime_backtest(out_path: str = "btc_scraper/regime_stats.json"):
-    stats = defaultdict(lambda: defaultdict(lambda: {"total": 0, "wins": 0, "pnl_sum": 0.0}))
+def run_regime_backtest(
+    out_path: str = "btc_scraper/regime/regime_stats.json",
+    same_candle_policy: str = "CONSERVATIVE_SL_FIRST",
+):
+    stats = defaultdict(
+        lambda: defaultdict(
+            lambda: {"total": 0, "economic_wins": 0, "target_hit_wins": 0, "pnl_sum": 0.0}
+        )
+    )
 
     for coin in COINS:
         try:
@@ -119,14 +151,20 @@ def run_regime_backtest(out_path: str = "btc_scraper/regime_stats.json"):
             tp2 = r.get("tp_sl", {}).get("tp2", 0.0)
             direction = "LONG" if "BUY" in sig.upper() else "SHORT"
 
-            outcome, pnl = simulate_outcome(results, i, direction, sl, tp1, tp2, HOLD)
+            outcome, pnl = simulate_outcome(
+                results, i, direction, sl, tp1, tp2, HOLD, same_candle_policy=same_candle_policy
+            )
+            if outcome == "AMBIGUOUS":
+                continue
 
             regime = r.get("regime") or r.get("market_regime") or "UNKNOWN"
             key = sub
             stats[key][regime]["total"] += 1
             stats[key][regime]["pnl_sum"] += float(pnl or 0.0)
-            if outcome in ("TP1", "TP2") and pnl > 0:
-                stats[key][regime]["wins"] += 1
+            if pnl > 0:
+                stats[key][regime]["economic_wins"] += 1
+            if outcome in ("TP1", "TP2"):
+                stats[key][regime]["target_hit_wins"] += 1
 
     # convert to detailed metrics and write JSON + CSV
     out = {}
@@ -135,16 +173,22 @@ def run_regime_backtest(out_path: str = "btc_scraper/regime_stats.json"):
         out[strat] = {}
         for regime, vals in by_reg.items():
             total = vals.get("total", 0)
-            wins = vals.get("wins", 0)
+            wins = vals.get("economic_wins", 0)
+            target_hit_wins = vals.get("target_hit_wins", 0)
             losses = total - wins
             avg_pnl = round((vals.get("pnl_sum", 0.0) / total), 4) if total > 0 else None
             wr = round(wins / total, 4) if total > 0 else None
             out[strat][regime] = {
                 "total": total,
                 "wins": wins,
+                "economic_wins": wins,
+                "target_hit_wins": target_hit_wins,
                 "losses": losses,
                 "win_rate": wr,
+                "economic_win_rate": wr,
+                "target_hit_rate": round(target_hit_wins / total, 4) if total > 0 else None,
                 "avg_pnl": avg_pnl,
+                "same_candle_policy": same_candle_policy,
             }
             rows.append((strat, regime, total, wins, losses, wr, avg_pnl))
 

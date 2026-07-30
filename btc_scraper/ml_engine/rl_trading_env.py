@@ -16,6 +16,7 @@ import math
 import pickle
 from datetime import datetime
 import numpy as np
+from btc_scraper.regime.contract import model_regime_bucket
 import gymnasium as gym
 from gymnasium import spaces
 from typing import Dict, Tuple, Any, List
@@ -765,28 +766,7 @@ class TradeExitEnv(gym.Env):
         return obs
         
     def _map_regime(self, raw_regime: str) -> str:
-        r = str(raw_regime).upper()
-        if "STRONG_TREND" in r:
-            return "STRONG_TREND"
-        if "WEAK_TREND" in r:
-            return "WEAK_TREND"
-        if "COMPRESSION" in r:
-            return "COMPRESSION"
-        if "BREAKOUT" in r:
-            return "BREAKOUT"
-        if "MEAN_REVERSION" in r:
-            return "MEAN_REVERSION"
-        if "PANIC_SELL" in r:
-            return "PANIC_SELL"
-        if "PUMP_RISK" in r:
-            return "PUMP_RISK"
-        if "LOW_LIQUIDITY" in r:
-            return "LOW_LIQUIDITY"
-        if "RANGING" in r:
-            return "MEAN_REVERSION"
-        if "HIGH_VOLATILITY" in r:
-            return "PANIC_SELL"
-        return "STRONG_TREND"
+        return model_regime_bucket(raw_regime)
         
     def render(self, mode="human"):
         pass

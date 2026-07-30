@@ -11,11 +11,22 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from pathlib import Path
 import json
+from btc_scraper.core.paths import build_logs_path
+from btc_scraper.regime.config import (
+    atomic_write_regime_config,
+    compute_regime_config_sha256,
+    load_regime_config,
+    regime_decision_weight_enabled,
+    regime_enforcement_mode,
+    regime_position_sizing_enabled,
+    regime_tp_sl_enabled,
+    resolve_regime_config_path,
+)
 
 app = FastAPI(title="Market Regime Dashboard")
 
-REGIME_PATH = Path(__file__).parent.parent / "logs" / "market_regime_latest.json"
-REGIME_CONFIG = Path(__file__).parent / "regime_config.json"
+REGIME_PATH = build_logs_path("market_regime_latest.json")
+REGIME_CONFIG = resolve_regime_config_path()
 LABEL_QUALITY_PATH = Path(__file__).resolve().parents[2] / "data" / "feature_store" / "labels" / "label_quality_report.json"
 
 
@@ -40,7 +51,28 @@ def _load_latest():
 
 @app.get("/regime", response_class=JSONResponse)
 def get_regime():
-    return _load_latest()
+    data = _load_latest()
+    try:
+        config = load_regime_config()
+        snapshot = data.get("regime_snapshot") if isinstance(data, dict) else None
+        data.update({
+            "mode": regime_enforcement_mode(),
+            "detector_health": (
+                "DEGRADED_WARMUP"
+                if isinstance(snapshot, dict) and not snapshot.get("warmup_complete", False)
+                else "HEALTHY"
+            ),
+            "config_health": "HEALTHY",
+            "config_sha256": compute_regime_config_sha256(config),
+            "taxonomy_version": config["taxonomy_version"],
+            "detector_version": config["detector_version"],
+            "decision_effect_enabled": regime_decision_weight_enabled(),
+            "sizing_effect_enabled": regime_position_sizing_enabled(),
+            "tp_sl_effect_enabled": regime_tp_sl_enabled(),
+        })
+    except Exception as exc:
+        data.update({"config_health": "DEGRADED_CONFIG_MISSING", "config_error": str(exc)})
+    return data
 
 
 @app.get("/multipliers", response_class=JSONResponse)
@@ -57,7 +89,7 @@ def get_multipliers():
 
 @app.get("/tuning", response_class=JSONResponse)
 def get_tuning():
-    tuning_path = Path(__file__).parent.parent / "logs" / "multiplier_tuning.json"
+    tuning_path = build_logs_path("multiplier_tuning.json")
     if not tuning_path.exists():
         return {"message": "no_tuning"}
     try:
@@ -124,8 +156,8 @@ async def meta_model_predict(request: Request):
 
 @app.post("/multipliers/apply_suggestion", response_class=JSONResponse)
 def apply_suggestion():
-    tuning_path = Path(__file__).parent.parent / "logs" / "multiplier_tuning.json"
-    cfg_path = Path(__file__).with_name("regime_config.json")
+    tuning_path = build_logs_path("multiplier_tuning.json")
+    cfg_path = resolve_regime_config_path()
     if not tuning_path.exists():
         return JSONResponse({"error": "no_tuning_file"}, status_code=400)
     try:
@@ -147,19 +179,15 @@ def apply_suggestion():
         return JSONResponse({"error": "no_suggestion_in_tuning"}, status_code=400)
 
     # load existing cfg
-    cfg = {}
     try:
-        if cfg_path.exists():
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                cfg = json.load(f)
-    except Exception:
-        cfg = {}
+        cfg = load_regime_config(path=cfg_path)
+    except Exception as exc:
+        return JSONResponse({"error": f"config_unavailable: {exc}"}, status_code=503)
 
     cfg["position_size_multipliers"] = suggested
     try:
-        with open(cfg_path, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2)
-        return {"ok": True}
+        written, config_hash = atomic_write_regime_config(cfg, path=cfg_path)
+        return {"ok": True, "path": str(written), "config_sha256": config_hash, "restart_required": True}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -169,17 +197,10 @@ async def put_multipliers(request: Request):
     try:
         body = await request.json()
         # merge into existing config file
-        cfg = {}
-        if REGIME_CONFIG.exists():
-            try:
-                with open(REGIME_CONFIG, "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
-            except Exception:
-                cfg = {}
+        cfg = load_regime_config(path=REGIME_CONFIG)
         cfg["position_size_multipliers"] = body
-        with open(REGIME_CONFIG, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2)
-        return {"ok": True}
+        written, config_hash = atomic_write_regime_config(cfg, path=REGIME_CONFIG)
+        return {"ok": True, "path": str(written), "config_sha256": config_hash, "restart_required": True}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 

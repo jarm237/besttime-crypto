@@ -75,6 +75,16 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
     except Exception:
         signal_score = {}
 
+    regime_snapshot = (
+        closed_data.get("entry_regime_snapshot")
+        or closed_data.get("regime_snapshot")
+        or (signal_score.get("regime_snapshot") if isinstance(signal_score, dict) else None)
+    )
+    regime_id = (
+        regime_snapshot.get("regime_id")
+        if isinstance(regime_snapshot, dict)
+        else closed_data.get("regime")
+    )
     rec = {
         "coin": closed_data.get("coin"),
         "id": closed_data.get("id"),
@@ -94,8 +104,10 @@ def log_trade_outcome(closed_data: Dict[str, Any]) -> None:
         "exit_time": closed_data.get("exit_time"),
         "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
         "signal_score": signal_score,
-        # support regime analysis: try to pick regime from closed_data or inner signal_score
-        "regime": (closed_data.get("regime") or signal_score.get("regime") if isinstance(signal_score, dict) else None),
+        "regime": regime_id or "UNKNOWN",
+        "regime_snapshot": regime_snapshot,
+        "entry_regime_snapshot": regime_snapshot,
+        "regime_lineage_status": closed_data.get("entry_regime_lineage_status", "EXPLICIT_UNKNOWN"),
     }
     rec["traceability_scope"] = (
         "runtime_linked"

@@ -13,6 +13,13 @@ import json
 from datetime import datetime, timezone, timedelta
 
 from btc_scraper.core.paths import build_logs_path
+from btc_scraper.regime.config import (
+    compute_regime_config_sha256,
+    load_runtime_regime_config,
+    regime_effect_metadata,
+    regime_position_sizing_enabled,
+)
+from btc_scraper.regime.contract import coerce_regime_snapshot
 
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
@@ -406,32 +413,17 @@ def _load_regime_multipliers():
     global _REGIME_MULTIPLIERS
     if _REGIME_MULTIPLIERS is not None:
         return _REGIME_MULTIPLIERS
-    # default multipliers
-    default = {
-        "TRENDING_BULL": 1.0,
-        "TRENDING_BEAR": 0.8,
-        "RANGING": 0.5,
-        "HIGH_VOLATILITY": 0.3,
-    }
+    default = {}
     try:
-        import json
-        cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
-        if not os.path.exists(cfg_path):
-            cfg_path = os.path.join(os.path.dirname(__file__), "..", "btc_scraper", "regime_config.json")
-        if os.path.exists(cfg_path):
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                cfg = json.load(f)
-            pm = cfg.get("position_size_multipliers") or {}
-            # merge with defaults
-            merged = default.copy()
-            merged.update(pm.get("default", {}))
-            per = pm.get("per_strategy", {})
-            _REGIME_MULTIPLIERS = {"default": merged, "per_strategy": per}
-            return _REGIME_MULTIPLIERS
-    except Exception:
-        pass
-    _REGIME_MULTIPLIERS = {"default": default, "per_strategy": {}}
-    return _REGIME_MULTIPLIERS
+        cfg = load_runtime_regime_config()
+        pm = cfg.get("position_size_multipliers") or {}
+        _REGIME_MULTIPLIERS = {
+            "default": dict(pm.get("default", {})),
+            "per_strategy": dict(pm.get("per_strategy", {})),
+        }
+        return _REGIME_MULTIPLIERS
+    except Exception as exc:
+        raise RuntimeError(f"REGIME_CONFIG_UNAVAILABLE: {exc}") from exc
 
 
 _KELLY_PARAMS_CACHE = None
@@ -446,23 +438,13 @@ def _load_kelly_params():
         return _KELLY_PARAMS_CACHE
         
     defaults = {"max_fraction": 0.5, "decay_rate": 0.0, "min_fraction": 0.0}
-    try:
-        cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
-        if not os.path.exists(cfg_path):
-            cfg_path = os.path.join(os.path.dirname(__file__), "..", "btc_scraper", "regime_config.json")
-        if os.path.exists(cfg_path):
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                cfg = json.load(f)
-            k = cfg.get("kelly") or {}
-            _KELLY_PARAMS_CACHE = {
-                "max_fraction": float(k.get("max_fraction", defaults["max_fraction"])),
-                "decay_rate": float(k.get("decay_rate", defaults["decay_rate"])),
-                "min_fraction": float(k.get("min_fraction", defaults["min_fraction"])),
-            }
-            return _KELLY_PARAMS_CACHE
-    except Exception:
-        pass
-    _KELLY_PARAMS_CACHE = defaults
+    cfg = load_runtime_regime_config()
+    k = cfg.get("kelly") or {}
+    _KELLY_PARAMS_CACHE = {
+        "max_fraction": float(k.get("max_fraction", defaults["max_fraction"])),
+        "decay_rate": float(k.get("decay_rate", defaults["decay_rate"])),
+        "min_fraction": float(k.get("min_fraction", defaults["min_fraction"])),
+    }
     return _KELLY_PARAMS_CACHE
 
 
@@ -490,26 +472,16 @@ def _load_position_sizing_params():
         "min_vol_mult": 0.25,
         "max_vol_mult": 1.5
     }
-    try:
-        cfg_path = os.path.join(os.path.dirname(__file__), "regime_config.json")
-        if not os.path.exists(cfg_path):
-            cfg_path = os.path.join(os.path.dirname(__file__), "..", "btc_scraper", "regime_config.json")
-        if os.path.exists(cfg_path):
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                cfg = json.load(f)
-            ps = cfg.get("position_sizing") or {}
-            method = env_method.lower() if env_method else ps.get("method", "kelly").lower()
-            _POSITION_SIZING_PARAMS_CACHE = {
-                "method": method,
-                "target_std_dev_pct": float(ps.get("target_std_dev_pct", defaults["target_std_dev_pct"])),
-                "target_atr_pct": float(ps.get("target_atr_pct", defaults["target_atr_pct"])),
-                "min_vol_mult": float(ps.get("min_vol_mult", defaults["min_vol_mult"])),
-                "max_vol_mult": float(ps.get("max_vol_mult", defaults["max_vol_mult"])),
-            }
-            return _POSITION_SIZING_PARAMS_CACHE
-    except Exception:
-        pass
-    _POSITION_SIZING_PARAMS_CACHE = defaults
+    cfg = load_runtime_regime_config()
+    ps = cfg.get("position_sizing") or {}
+    method = env_method.lower() if env_method else ps.get("method", "kelly").lower()
+    _POSITION_SIZING_PARAMS_CACHE = {
+        "method": method,
+        "target_std_dev_pct": float(ps.get("target_std_dev_pct", defaults["target_std_dev_pct"])),
+        "target_atr_pct": float(ps.get("target_atr_pct", defaults["target_atr_pct"])),
+        "min_vol_mult": float(ps.get("min_vol_mult", defaults["min_vol_mult"])),
+        "max_vol_mult": float(ps.get("max_vol_mult", defaults["max_vol_mult"])),
+    }
     return _POSITION_SIZING_PARAMS_CACHE
 
 
@@ -548,7 +520,7 @@ def _estimate_b(strategy: str, regime: str) -> float:
     if _ESTIMATE_B_CACHE is None:
         _ESTIMATE_B_CACHE = {}
         try:
-            p = Path(__file__).parent.parent / "logs" / "regime_strategy_matrix.csv"
+            p = build_logs_path("regime_strategy_matrix.csv")
             if p.exists():
                 import csv
                 with open(p, mode="r", encoding="utf-8") as f:
@@ -672,6 +644,14 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         regime = context.get("regime") or data.get("regime") or context.get("market_regime")
     except Exception:
         regime = None
+    regime_cfg = load_runtime_regime_config()
+    regime_config_sha256 = compute_regime_config_sha256(regime_cfg)
+    regime_snapshot = coerce_regime_snapshot(
+        merged.get("regime_snapshot") if isinstance(merged, dict) else None,
+        fallback_regime=regime,
+        fallback_confidence=_safe_float(merged.get("regime_confidence"), default=0.0),
+        config_sha256=regime_config_sha256,
+    ).to_dict()
 
     # ── Meta Model Confidence + Kelly Position Sizing ──────────────────────────
     meta_prob = None
@@ -893,8 +873,9 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         except Exception:
             pass
 
-    # Regime-specific position sizing multiplier (loadable from regime_config.json)
-
+    proposed_regime_multiplier = 1.0
+    applied_regime_multiplier = 1.0
+    regime_sizing_effect_enabled = regime_position_sizing_enabled()
     if regime:
         cfg = _load_regime_multipliers()
         # try per-strategy override
@@ -911,9 +892,12 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         if mult is None:
             mult = cfg.get("default", {}).get(regime, 1.0)
         try:
-            pos_size = round(max(0.25, min(1.0, pos_size * float(mult))), 2)
+            proposed_regime_multiplier = float(mult)
+            applied_regime_multiplier = proposed_regime_multiplier if regime_sizing_effect_enabled else 1.0
+            pos_size = round(max(0.25, min(1.0, pos_size * applied_regime_multiplier)), 2)
         except Exception:
-            pass
+            proposed_regime_multiplier = 1.0
+            applied_regime_multiplier = 1.0
 
     # ── Display fields (human-readable) ─────────────────────────────────────────
     display_score, display_label = map_score_to_display(int(score), action)
@@ -965,6 +949,13 @@ def score_signal(sig_text: str, data: Dict, context: Dict, htf_trend: str = None
         "position_sizing_method": sizing_method,
         "volatility_multiplier": round(vol_mult, 4) if vol_mult is not None else 1.0,
         "std_dev_pct": round(std_dev_pct, 4) if std_dev_pct is not None else None,
+        "regime": regime_snapshot["regime_id"],
+        "regime_confidence": regime_snapshot["confidence"],
+        "regime_snapshot": regime_snapshot,
+        "regime_config_sha256": regime_config_sha256,
+        "proposed_regime_multiplier": round(float(proposed_regime_multiplier), 4),
+        "applied_regime_multiplier": round(float(applied_regime_multiplier), 4),
+        **regime_effect_metadata(regime_sizing_effect_enabled),
     }
 
 

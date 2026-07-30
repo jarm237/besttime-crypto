@@ -64,25 +64,15 @@ def _det_uuid(seed: str) -> str:
     return str(uuid.UUID(bytes=hashlib.md5(seed.encode()).digest()))
 
 
-def _infer_regime(pos: dict) -> str:
-    """Phân loại regime từ volatility và PnL:
-    - PANIC: loss lớn nhanh (>1.5% trong <3h hoặc >2% tổng) hoặc coins volatile cao
-    - TREND: LONG position thắng hoặc momentum rõ ràng
-    - RANGE: SHORT trong market sideways
-    """
-    pnl_pct = float(pos.get("pnl_pct") or 0.0)
-    hold_hours = float(pos.get("hold_hours") or 0.0)
-    direction = str(pos.get("direction") or "LONG").upper()
-    coin = str(pos.get("coin") or "").upper()
-    volatile_coins = {"ZEC", "XAUT", "WLD", "XPL", "TRB"}
-    abs_pnl = abs(pnl_pct)
-    if (abs_pnl > 1.5 and hold_hours < 3.0) or abs_pnl > 2.0 or (coin in volatile_coins and abs_pnl > 0.5):
-        return "PANIC"
-    if direction == "LONG" and pnl_pct > 0:
-        return "TREND"
-    if direction == "SHORT":
-        return "RANGE"
-    return "TREND"
+def _entry_regime_evidence(pos: dict) -> tuple[str, dict | None, str]:
+    """Use only entry-time evidence; never infer regime from outcome or future PnL."""
+    snapshot = pos.get("entry_regime_snapshot") or pos.get("regime_snapshot")
+    if isinstance(snapshot, dict) and snapshot.get("regime_id"):
+        return str(snapshot["regime_id"]), snapshot, "POINT_IN_TIME_BACKFILL"
+    explicit = pos.get("entry_regime") or pos.get("regime")
+    if explicit:
+        return str(explicit), None, "POINT_IN_TIME_BACKFILL"
+    return "UNKNOWN", None, "UNUSABLE"
 
 
 def _infer_result_and_pnl(pos: dict) -> tuple[str, float]:
@@ -148,7 +138,7 @@ def backfill_position(
             break
 
     result, pnl_pct = _infer_result_and_pnl(pos)
-    regime = _infer_regime(pos)
+    regime, regime_snapshot, evidence_origin = _entry_regime_evidence(pos)
 
     # Lấy thêm thông tin từ fill nếu có
     entry_price = float(pos.get("entry_price") or 0.0)
@@ -209,14 +199,18 @@ def backfill_position(
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
         "feature_hash": _det_uuid(f"backfill-fhash-{position_id}"),
         "calibration_method": "isotonic",
-        "raw_prediction": 0.55 if result == "WIN" else 0.45,
-        "calibrated_prediction": 0.55 if result == "WIN" else 0.45,
+        # Historical outcome must never be used to fabricate an entry prediction.
+        "raw_prediction": 0.5,
+        "calibrated_prediction": 0.5,
         "fallback_used": False,
         "git_commit": None,
         "deployment_id": "backfill",
         "signal_id": signal_id or None,
         "latency_ms": 5.0,
         "backfill_generated": True,
+        "evidence_origin": evidence_origin,
+        "runtime_calibration_eligible": False,
+        "regime_snapshot": regime_snapshot,
     }
     snapshot_payload = {
         "prediction_id": prediction_id,
@@ -241,6 +235,9 @@ def backfill_position(
         "artifact_sha256": ARTIFACT_SHA256,
         "signal_id": signal_id or None,
         "backfill_generated": True,
+        "evidence_origin": evidence_origin,
+        "runtime_calibration_eligible": False,
+        "regime_snapshot": regime_snapshot,
     }
     try:
         store.append_final_decision(decision_payload)
@@ -270,6 +267,10 @@ def backfill_position(
         "hold_hours": hold_hours,
         "regime": regime,
         "market_regime": regime,
+        "entry_regime_snapshot": regime_snapshot,
+        "evidence_origin": evidence_origin,
+        "runtime_calibration_eligible": False,
+        "original_regime_missing": evidence_origin == "UNUSABLE",
         "is_paper": True,
         "is_manual": False,
         "is_test_record": False,

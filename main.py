@@ -281,7 +281,12 @@ async def _run_causal_runtime_pass(
 ) -> dict:
     """Execute the causal runtime analysis pass using pre-initialized causal components."""
     try:
-        from btc_scraper.core.world_state import WorldState, get_world_state_manager, MarketRegime, LiquidityRegime
+        from btc_scraper.core.world_state import (
+            WorldState,
+            get_world_state_manager,
+            LiquidityRegime,
+            risk_appetite_from_signal,
+        )
         from btc_scraper.ml_engine.world_model_predictor import WorldModelPredictor
         from btc_scraper.ml_engine.causal_anomaly_detector import CausalAnomalyDetector
         from btc_scraper.ml_engine.agents.macro_agent import MacroAgent
@@ -296,7 +301,8 @@ async def _run_causal_runtime_pass(
         state = state_payload or {}
         macro_state = load_macro_state()
         world_state = WorldState(timestamp=__import__('datetime').datetime.now(__import__('datetime').timezone.utc))
-        world_state.regime = MarketRegime.RISK_ON if state.get("signal") == "bullish" else MarketRegime.RISK_OFF
+        world_state.regime = risk_appetite_from_signal(state.get("signal"))
+        world_state.technical_regime = state.get("technical_regime")
         world_state.liquidity_regime = LiquidityRegime.NORMAL
         world_state.macro.DXY = float(state.get("macro", {}).get("DXY", macro_state.get("DXY", 100.0)))
         world_state.macro.RealYield = float(state.get("macro", {}).get("RealYield", 0.0))
@@ -388,6 +394,7 @@ async def fetch_and_display():
         macro_state = load_macro_state()
         causal_payload = {
             "signal": btc_ana.get("signal", "neutral"),
+            "technical_regime": btc_ana.get("regime_snapshot"),
             "macro": {
                 "DXY": float(macro_state.get("DXY", 100.0)),
                 "RealYield": 0.0,

@@ -1,0 +1,1231 @@
+{
+  "generated_at": "2026-07-30T02:41:16.113512+00:00",
+  "mode": "before",
+  "classifier": "legacy_v1_frozen",
+  "config": {
+    "adx_threshold": 45.94,
+    "strong_adx_threshold": 35.0,
+    "atr_pct_threshold": 0.844
+  },
+  "config_sha256": null,
+  "source_root": "data/fresh_training_data_2023_2026",
+  "global": {
+    "rows": 2570232,
+    "counts": {
+      "COMPRESSION": 1456665,
+      "RANGING": 886925,
+      "STRONG_TREND": 72217,
+      "STRONG_TREND_BEAR": 75054,
+      "STRONG_TREND_BULL": 79371
+    },
+    "percentages": {
+      "COMPRESSION": 56.6745,
+      "RANGING": 34.5076,
+      "STRONG_TREND": 2.8097,
+      "STRONG_TREND_BEAR": 2.9201,
+      "STRONG_TREND_BULL": 3.0881
+    },
+    "null_rate": 0.0,
+    "unknown_rate": 0.0,
+    "transition_frequency": 0.100088,
+    "average_regime_duration_bars": 9.9912,
+    "flips_per_hour": 0.400351,
+    "atr_percent_quantiles": {
+      "0.25": 0.280714,
+      "0.5": 0.391603,
+      "0.75": 0.655804,
+      "0.9": 1.096417,
+      "0.99": 1.703207
+    },
+    "adx_quantiles": {
+      "0.25": 13.411701,
+      "0.5": 18.421774,
+      "0.75": 25.589265,
+      "0.9": 33.92915,
+      "0.99": 50.811
+    },
+    "confidence_quantiles": {
+      "0.25": 0.4,
+      "0.5": 0.45,
+      "0.75": 0.45,
+      "0.9": 0.45,
+      "0.99": 0.9
+    }
+  },
+  "by_coin_timeframe": {
+    "AEVO:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69635,
+        "RANGING": 42377,
+        "STRONG_TREND": 3054,
+        "STRONG_TREND_BEAR": 3706,
+        "STRONG_TREND_BULL": 3620
+      },
+      "percentages": {
+        "COMPRESSION": 56.8951,
+        "RANGING": 34.624,
+        "STRONG_TREND": 2.4953,
+        "STRONG_TREND_BEAR": 3.028,
+        "STRONG_TREND_BULL": 2.9577
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.092817,
+      "average_regime_duration_bars": 10.773,
+      "flips_per_hour": 0.371266,
+      "atr_percent_quantiles": {
+        "0.25": 0.236617,
+        "0.5": 0.260833,
+        "0.75": 0.286361,
+        "0.9": 0.310656,
+        "0.99": 0.355329
+      },
+      "adx_quantiles": {
+        "0.25": 13.415124,
+        "0.5": 18.344486,
+        "0.75": 25.488565,
+        "0.9": 33.666381,
+        "0.99": 50.848285
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "AR:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69392,
+        "RANGING": 41711,
+        "STRONG_TREND": 3392,
+        "STRONG_TREND_BEAR": 4051,
+        "STRONG_TREND_BULL": 3846
+      },
+      "percentages": {
+        "COMPRESSION": 56.6965,
+        "RANGING": 34.0798,
+        "STRONG_TREND": 2.7714,
+        "STRONG_TREND_BEAR": 3.3099,
+        "STRONG_TREND_BULL": 3.1424
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.099011,
+      "average_regime_duration_bars": 10.0992,
+      "flips_per_hour": 0.396039,
+      "atr_percent_quantiles": {
+        "0.25": 0.290363,
+        "0.5": 0.320284,
+        "0.75": 0.352063,
+        "0.9": 0.382534,
+        "0.99": 0.439873
+      },
+      "adx_quantiles": {
+        "0.25": 13.421598,
+        "0.5": 18.447009,
+        "0.75": 25.651094,
+        "0.9": 34.290015,
+        "0.99": 51.363219
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "AVAX:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68296,
+        "RANGING": 43259,
+        "STRONG_TREND": 3536,
+        "STRONG_TREND_BEAR": 3519,
+        "STRONG_TREND_BULL": 3782
+      },
+      "percentages": {
+        "COMPRESSION": 55.801,
+        "RANGING": 35.3446,
+        "STRONG_TREND": 2.8891,
+        "STRONG_TREND_BEAR": 2.8752,
+        "STRONG_TREND_BULL": 3.0901
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.100538,
+      "average_regime_duration_bars": 9.9457,
+      "flips_per_hour": 0.40215,
+      "atr_percent_quantiles": {
+        "0.25": 0.444149,
+        "0.5": 0.490585,
+        "0.75": 0.540329,
+        "0.9": 0.58739,
+        "0.99": 0.674982
+      },
+      "adx_quantiles": {
+        "0.25": 13.473226,
+        "0.5": 18.590433,
+        "0.75": 25.794447,
+        "0.9": 34.02411,
+        "0.99": 50.714159
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "BNB:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 70182,
+        "RANGING": 41328,
+        "STRONG_TREND": 3633,
+        "STRONG_TREND_BEAR": 3644,
+        "STRONG_TREND_BULL": 3605
+      },
+      "percentages": {
+        "COMPRESSION": 57.342,
+        "RANGING": 33.7669,
+        "STRONG_TREND": 2.9683,
+        "STRONG_TREND_BEAR": 2.9773,
+        "STRONG_TREND_BULL": 2.9455
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.101748,
+      "average_regime_duration_bars": 9.8275,
+      "flips_per_hour": 0.406987,
+      "atr_percent_quantiles": {
+        "0.25": 0.467475,
+        "0.5": 0.515839,
+        "0.75": 0.566126,
+        "0.9": 0.615656,
+        "0.99": 0.706063
+      },
+      "adx_quantiles": {
+        "0.25": 13.397266,
+        "0.5": 18.291187,
+        "0.75": 25.444042,
+        "0.9": 33.995435,
+        "0.99": 51.000135
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "BTC:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68872,
+        "RANGING": 42580,
+        "STRONG_TREND": 3504,
+        "STRONG_TREND_BEAR": 3529,
+        "STRONG_TREND_BULL": 3907
+      },
+      "percentages": {
+        "COMPRESSION": 56.2717,
+        "RANGING": 34.7899,
+        "STRONG_TREND": 2.8629,
+        "STRONG_TREND_BEAR": 2.8834,
+        "STRONG_TREND_BULL": 3.1922
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.100988,
+      "average_regime_duration_bars": 9.9015,
+      "flips_per_hour": 0.403948,
+      "atr_percent_quantiles": {
+        "0.25": 0.391063,
+        "0.5": 0.432291,
+        "0.75": 0.476192,
+        "0.9": 0.517521,
+        "0.99": 0.593655
+      },
+      "adx_quantiles": {
+        "0.25": 13.514224,
+        "0.5": 18.530443,
+        "0.75": 25.685813,
+        "0.9": 34.024794,
+        "0.99": 50.583739
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "DOGE:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68343,
+        "RANGING": 43482,
+        "STRONG_TREND": 3554,
+        "STRONG_TREND_BEAR": 3224,
+        "STRONG_TREND_BULL": 3789
+      },
+      "percentages": {
+        "COMPRESSION": 55.8394,
+        "RANGING": 35.5268,
+        "STRONG_TREND": 2.9038,
+        "STRONG_TREND_BEAR": 2.6342,
+        "STRONG_TREND_BULL": 3.0958
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.104354,
+      "average_regime_duration_bars": 9.5821,
+      "flips_per_hour": 0.417413,
+      "atr_percent_quantiles": {
+        "0.25": 0.591765,
+        "0.5": 0.665693,
+        "0.75": 0.748168,
+        "0.9": 0.827064,
+        "0.99": 0.966629
+      },
+      "adx_quantiles": {
+        "0.25": 13.547768,
+        "0.5": 18.582705,
+        "0.75": 25.80032,
+        "0.9": 33.849645,
+        "0.99": 50.388889
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "ENA:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69593,
+        "RANGING": 42463,
+        "STRONG_TREND": 3232,
+        "STRONG_TREND_BEAR": 3526,
+        "STRONG_TREND_BULL": 3578
+      },
+      "percentages": {
+        "COMPRESSION": 56.8607,
+        "RANGING": 34.6943,
+        "STRONG_TREND": 2.6407,
+        "STRONG_TREND_BEAR": 2.8809,
+        "STRONG_TREND_BULL": 2.9234
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.096135,
+      "average_regime_duration_bars": 10.4013,
+      "flips_per_hour": 0.384535,
+      "atr_percent_quantiles": {
+        "0.25": 0.275486,
+        "0.5": 0.303604,
+        "0.75": 0.333522,
+        "0.9": 0.362393,
+        "0.99": 0.41594
+      },
+      "adx_quantiles": {
+        "0.25": 13.434882,
+        "0.5": 18.371391,
+        "0.75": 25.426405,
+        "0.9": 33.519566,
+        "0.99": 50.415048
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "ETH:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69860,
+        "RANGING": 42336,
+        "STRONG_TREND": 3461,
+        "STRONG_TREND_BEAR": 3518,
+        "STRONG_TREND_BULL": 3217
+      },
+      "percentages": {
+        "COMPRESSION": 57.0789,
+        "RANGING": 34.5905,
+        "STRONG_TREND": 2.8278,
+        "STRONG_TREND_BEAR": 2.8744,
+        "STRONG_TREND_BULL": 2.6284
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.100424,
+      "average_regime_duration_bars": 9.957,
+      "flips_per_hour": 0.401693,
+      "atr_percent_quantiles": {
+        "0.25": 0.596768,
+        "0.5": 0.65912,
+        "0.75": 0.725513,
+        "0.9": 0.789204,
+        "0.99": 0.907812
+      },
+      "adx_quantiles": {
+        "0.25": 13.338777,
+        "0.5": 18.358725,
+        "0.75": 25.448498,
+        "0.9": 33.44517,
+        "0.99": 49.839806
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "IOTA:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69025,
+        "RANGING": 42597,
+        "STRONG_TREND": 3582,
+        "STRONG_TREND_BEAR": 3429,
+        "STRONG_TREND_BULL": 3759
+      },
+      "percentages": {
+        "COMPRESSION": 56.3967,
+        "RANGING": 34.8037,
+        "STRONG_TREND": 2.9267,
+        "STRONG_TREND_BEAR": 2.8017,
+        "STRONG_TREND_BULL": 3.0713
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.102646,
+      "average_regime_duration_bars": 9.7415,
+      "flips_per_hour": 0.410582,
+      "atr_percent_quantiles": {
+        "0.25": 0.528333,
+        "0.5": 0.583409,
+        "0.75": 0.642921,
+        "0.9": 0.700804,
+        "0.99": 0.807773
+      },
+      "adx_quantiles": {
+        "0.25": 13.456423,
+        "0.5": 18.444486,
+        "0.75": 25.636664,
+        "0.9": 33.901431,
+        "0.99": 50.195411
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "NEAR:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68245,
+        "RANGING": 43111,
+        "STRONG_TREND": 3861,
+        "STRONG_TREND_BEAR": 3514,
+        "STRONG_TREND_BULL": 3661
+      },
+      "percentages": {
+        "COMPRESSION": 55.7594,
+        "RANGING": 35.2237,
+        "STRONG_TREND": 3.1546,
+        "STRONG_TREND_BEAR": 2.8711,
+        "STRONG_TREND_BULL": 2.9912
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.109281,
+      "average_regime_duration_bars": 9.1501,
+      "flips_per_hour": 0.43712,
+      "atr_percent_quantiles": {
+        "0.25": 1.130661,
+        "0.5": 1.255711,
+        "0.75": 1.392372,
+        "0.9": 1.526846,
+        "0.99": 1.786437
+      },
+      "adx_quantiles": {
+        "0.25": 13.496383,
+        "0.5": 18.626102,
+        "0.75": 25.813183,
+        "0.9": 34.089116,
+        "0.99": 50.441966
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "SOL:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69329,
+        "RANGING": 42546,
+        "STRONG_TREND": 3658,
+        "STRONG_TREND_BEAR": 3315,
+        "STRONG_TREND_BULL": 3544
+      },
+      "percentages": {
+        "COMPRESSION": 56.645,
+        "RANGING": 34.7621,
+        "STRONG_TREND": 2.9888,
+        "STRONG_TREND_BEAR": 2.7085,
+        "STRONG_TREND_BULL": 2.8956
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.105294,
+      "average_regime_duration_bars": 9.4966,
+      "flips_per_hour": 0.421171,
+      "atr_percent_quantiles": {
+        "0.25": 0.929278,
+        "0.5": 1.037708,
+        "0.75": 1.158327,
+        "0.9": 1.273645,
+        "0.99": 1.49683
+      },
+      "adx_quantiles": {
+        "0.25": 13.451305,
+        "0.5": 18.44129,
+        "0.75": 25.571387,
+        "0.9": 33.723243,
+        "0.99": 51.091246
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "SOPH:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68372,
+        "RANGING": 42487,
+        "STRONG_TREND": 3272,
+        "STRONG_TREND_BEAR": 3803,
+        "STRONG_TREND_BULL": 4458
+      },
+      "percentages": {
+        "COMPRESSION": 55.8631,
+        "RANGING": 34.7139,
+        "STRONG_TREND": 2.6734,
+        "STRONG_TREND_BEAR": 3.1072,
+        "STRONG_TREND_BULL": 3.6424
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.095701,
+      "average_regime_duration_bars": 10.4484,
+      "flips_per_hour": 0.382803,
+      "atr_percent_quantiles": {
+        "0.25": 0.200277,
+        "0.5": 0.221623,
+        "0.75": 0.245114,
+        "0.9": 0.267887,
+        "0.99": 0.310938
+      },
+      "adx_quantiles": {
+        "0.25": 13.442559,
+        "0.5": 18.591596,
+        "0.75": 25.933164,
+        "0.9": 34.498951,
+        "0.99": 51.18859
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "TAO:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 70063,
+        "RANGING": 41419,
+        "STRONG_TREND": 3306,
+        "STRONG_TREND_BEAR": 3682,
+        "STRONG_TREND_BULL": 3922
+      },
+      "percentages": {
+        "COMPRESSION": 57.2448,
+        "RANGING": 33.8413,
+        "STRONG_TREND": 2.7012,
+        "STRONG_TREND_BEAR": 3.0084,
+        "STRONG_TREND_BULL": 3.2045
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.097025,
+      "average_regime_duration_bars": 10.3058,
+      "flips_per_hour": 0.388097,
+      "atr_percent_quantiles": {
+        "0.25": 0.251152,
+        "0.5": 0.276823,
+        "0.75": 0.304258,
+        "0.9": 0.329844,
+        "0.99": 0.377363
+      },
+      "adx_quantiles": {
+        "0.25": 13.303388,
+        "0.5": 18.321129,
+        "0.75": 25.4629,
+        "0.9": 34.014459,
+        "0.99": 50.735542
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "TRB:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 70344,
+        "RANGING": 41725,
+        "STRONG_TREND": 3363,
+        "STRONG_TREND_BEAR": 3436,
+        "STRONG_TREND_BULL": 3524
+      },
+      "percentages": {
+        "COMPRESSION": 57.4743,
+        "RANGING": 34.0913,
+        "STRONG_TREND": 2.7477,
+        "STRONG_TREND_BEAR": 2.8074,
+        "STRONG_TREND_BULL": 2.8793
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.097499,
+      "average_regime_duration_bars": 10.2557,
+      "flips_per_hour": 0.389993,
+      "atr_percent_quantiles": {
+        "0.25": 0.338881,
+        "0.5": 0.373524,
+        "0.75": 0.411147,
+        "0.9": 0.446754,
+        "0.99": 0.515903
+      },
+      "adx_quantiles": {
+        "0.25": 13.342362,
+        "0.5": 18.283277,
+        "0.75": 25.3528,
+        "0.9": 33.575826,
+        "0.99": 50.266993
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "TRUMP:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 70207,
+        "RANGING": 41659,
+        "STRONG_TREND": 2990,
+        "STRONG_TREND_BEAR": 3719,
+        "STRONG_TREND_BULL": 3817
+      },
+      "percentages": {
+        "COMPRESSION": 57.3624,
+        "RANGING": 34.0374,
+        "STRONG_TREND": 2.443,
+        "STRONG_TREND_BEAR": 3.0386,
+        "STRONG_TREND_BULL": 3.1187
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.093022,
+      "average_regime_duration_bars": 10.7493,
+      "flips_per_hour": 0.372083,
+      "atr_percent_quantiles": {
+        "0.25": 0.221731,
+        "0.5": 0.244918,
+        "0.75": 0.269679,
+        "0.9": 0.293065,
+        "0.99": 0.336449
+      },
+      "adx_quantiles": {
+        "0.25": 13.356375,
+        "0.5": 18.265722,
+        "0.75": 25.383104,
+        "0.9": 33.693965,
+        "0.99": 51.374973
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "TRX:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69497,
+        "RANGING": 42183,
+        "STRONG_TREND": 3779,
+        "STRONG_TREND_BEAR": 3273,
+        "STRONG_TREND_BULL": 3660
+      },
+      "percentages": {
+        "COMPRESSION": 56.7823,
+        "RANGING": 34.4655,
+        "STRONG_TREND": 3.0876,
+        "STRONG_TREND_BEAR": 2.6742,
+        "STRONG_TREND_BULL": 2.9904
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.106454,
+      "average_regime_duration_bars": 9.3931,
+      "flips_per_hour": 0.425812,
+      "atr_percent_quantiles": {
+        "0.25": 1.237535,
+        "0.5": 1.42595,
+        "0.75": 1.634694,
+        "0.9": 1.836612,
+        "0.99": 2.213651
+      },
+      "adx_quantiles": {
+        "0.25": 13.362442,
+        "0.5": 18.400702,
+        "0.75": 25.452913,
+        "0.9": 33.842461,
+        "0.99": 51.05441
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "WLD:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68659,
+        "RANGING": 43045,
+        "STRONG_TREND": 3268,
+        "STRONG_TREND_BEAR": 3516,
+        "STRONG_TREND_BULL": 3904
+      },
+      "percentages": {
+        "COMPRESSION": 56.0976,
+        "RANGING": 35.1698,
+        "STRONG_TREND": 2.6701,
+        "STRONG_TREND_BEAR": 2.8727,
+        "STRONG_TREND_BULL": 3.1898
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.096568,
+      "average_regime_duration_bars": 10.3547,
+      "flips_per_hour": 0.386267,
+      "atr_percent_quantiles": {
+        "0.25": 0.252591,
+        "0.5": 0.27909,
+        "0.75": 0.306592,
+        "0.9": 0.333259,
+        "0.99": 0.381909
+      },
+      "adx_quantiles": {
+        "0.25": 13.467101,
+        "0.5": 18.535416,
+        "0.75": 25.599151,
+        "0.9": 33.818425,
+        "0.99": 51.304545
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "XLM:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 69588,
+        "RANGING": 41438,
+        "STRONG_TREND": 3597,
+        "STRONG_TREND_BEAR": 3549,
+        "STRONG_TREND_BULL": 4220
+      },
+      "percentages": {
+        "COMPRESSION": 56.8567,
+        "RANGING": 33.8568,
+        "STRONG_TREND": 2.9389,
+        "STRONG_TREND_BEAR": 2.8997,
+        "STRONG_TREND_BULL": 3.4479
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.102393,
+      "average_regime_duration_bars": 9.7656,
+      "flips_per_hour": 0.409569,
+      "atr_percent_quantiles": {
+        "0.25": 0.320657,
+        "0.5": 0.35668,
+        "0.75": 0.396799,
+        "0.9": 0.436825,
+        "0.99": 0.511508
+      },
+      "adx_quantiles": {
+        "0.25": 13.35403,
+        "0.5": 18.389223,
+        "0.75": 25.768648,
+        "0.9": 34.363165,
+        "0.99": 51.804485
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "XPL:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 70791,
+        "RANGING": 41239,
+        "STRONG_TREND": 2924,
+        "STRONG_TREND_BEAR": 3708,
+        "STRONG_TREND_BULL": 3730
+      },
+      "percentages": {
+        "COMPRESSION": 57.8396,
+        "RANGING": 33.6942,
+        "STRONG_TREND": 2.389,
+        "STRONG_TREND_BEAR": 3.0296,
+        "STRONG_TREND_BULL": 3.0476
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.090881,
+      "average_regime_duration_bars": 11.0025,
+      "flips_per_hour": 0.36352,
+      "atr_percent_quantiles": {
+        "0.25": 0.200159,
+        "0.5": 0.220568,
+        "0.75": 0.242796,
+        "0.9": 0.264057,
+        "0.99": 0.30238
+      },
+      "adx_quantiles": {
+        "0.25": 13.252424,
+        "0.5": 18.161407,
+        "0.75": 25.208307,
+        "0.9": 33.553589,
+        "0.99": 50.206127
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "XRP:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 68285,
+        "RANGING": 42403,
+        "STRONG_TREND": 3627,
+        "STRONG_TREND_BEAR": 3797,
+        "STRONG_TREND_BULL": 4280
+      },
+      "percentages": {
+        "COMPRESSION": 55.792,
+        "RANGING": 34.6452,
+        "STRONG_TREND": 2.9634,
+        "STRONG_TREND_BEAR": 3.1023,
+        "STRONG_TREND_BULL": 3.497
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.1029,
+      "average_regime_duration_bars": 9.7175,
+      "flips_per_hour": 0.411596,
+      "atr_percent_quantiles": {
+        "0.25": 0.291782,
+        "0.5": 0.323955,
+        "0.75": 0.358879,
+        "0.9": 0.391314,
+        "0.99": 0.450518
+      },
+      "adx_quantiles": {
+        "0.25": 13.419393,
+        "0.5": 18.608776,
+        "0.75": 26.052186,
+        "0.9": 34.618637,
+        "0.99": 51.859991
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    },
+    "ZEC:15m": {
+      "rows": 122392,
+      "counts": {
+        "COMPRESSION": 70087,
+        "RANGING": 41537,
+        "STRONG_TREND": 3624,
+        "STRONG_TREND_BEAR": 3596,
+        "STRONG_TREND_BULL": 3548
+      },
+      "percentages": {
+        "COMPRESSION": 57.2644,
+        "RANGING": 33.9377,
+        "STRONG_TREND": 2.961,
+        "STRONG_TREND_BEAR": 2.9381,
+        "STRONG_TREND_BULL": 2.8989
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.106103,
+      "average_regime_duration_bars": 9.4242,
+      "flips_per_hour": 0.424407,
+      "atr_percent_quantiles": {
+        "0.25": 0.753081,
+        "0.5": 0.833928,
+        "0.75": 0.918984,
+        "0.9": 1.001688,
+        "0.99": 1.154284
+      },
+      "adx_quantiles": {
+        "0.25": 13.412163,
+        "0.5": 18.292834,
+        "0.75": 25.401022,
+        "0.9": 33.887717,
+        "0.99": 50.40197
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      },
+      "timeframe": "15m"
+    }
+  },
+  "rolling_windows": {
+    "7d": {
+      "rows": 14133,
+      "counts": {
+        "COMPRESSION": 8390,
+        "RANGING": 4502,
+        "STRONG_TREND": 374,
+        "STRONG_TREND_BEAR": 367,
+        "STRONG_TREND_BULL": 500
+      },
+      "percentages": {
+        "COMPRESSION": 59.3646,
+        "RANGING": 31.8545,
+        "STRONG_TREND": 2.6463,
+        "STRONG_TREND_BEAR": 2.5968,
+        "STRONG_TREND_BULL": 3.5378
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.097085,
+      "average_regime_duration_bars": 10.2935,
+      "flips_per_hour": 0.388311,
+      "atr_percent_quantiles": {
+        "0.25": 0.270524,
+        "0.5": 0.370162,
+        "0.75": 0.62039,
+        "0.9": 0.96954,
+        "0.99": 1.330104
+      },
+      "adx_quantiles": {
+        "0.25": 12.919493,
+        "0.5": 17.699322,
+        "0.75": 25.167529,
+        "0.9": 33.956004,
+        "0.99": 50.546751
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      }
+    },
+    "30d": {
+      "rows": 60501,
+      "counts": {
+        "COMPRESSION": 34315,
+        "RANGING": 20880,
+        "STRONG_TREND": 1719,
+        "STRONG_TREND_BEAR": 1775,
+        "STRONG_TREND_BULL": 1812
+      },
+      "percentages": {
+        "COMPRESSION": 56.7181,
+        "RANGING": 34.5118,
+        "STRONG_TREND": 2.8413,
+        "STRONG_TREND_BEAR": 2.9338,
+        "STRONG_TREND_BULL": 2.995
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.099736,
+      "average_regime_duration_bars": 10.025,
+      "flips_per_hour": 0.398936,
+      "atr_percent_quantiles": {
+        "0.25": 0.271754,
+        "0.5": 0.373421,
+        "0.75": 0.610579,
+        "0.9": 0.96664,
+        "0.99": 1.369174
+      },
+      "adx_quantiles": {
+        "0.25": 13.30562,
+        "0.5": 18.360727,
+        "0.75": 25.553085,
+        "0.9": 33.910113,
+        "0.99": 50.646811
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      }
+    },
+    "90d": {
+      "rows": 181461,
+      "counts": {
+        "COMPRESSION": 102188,
+        "RANGING": 62538,
+        "STRONG_TREND": 5375,
+        "STRONG_TREND_BEAR": 5481,
+        "STRONG_TREND_BULL": 5879
+      },
+      "percentages": {
+        "COMPRESSION": 56.314,
+        "RANGING": 34.4636,
+        "STRONG_TREND": 2.9621,
+        "STRONG_TREND_BEAR": 3.0205,
+        "STRONG_TREND_BULL": 3.2398
+      },
+      "null_rate": 0.0,
+      "unknown_rate": 0.0,
+      "transition_frequency": 0.102111,
+      "average_regime_duration_bars": 9.7928,
+      "flips_per_hour": 0.40844,
+      "atr_percent_quantiles": {
+        "0.25": 0.272624,
+        "0.5": 0.374943,
+        "0.75": 0.615915,
+        "0.9": 0.979467,
+        "0.99": 1.383733
+      },
+      "adx_quantiles": {
+        "0.25": 13.441731,
+        "0.5": 18.488715,
+        "0.75": 25.694725,
+        "0.9": 34.288499,
+        "0.99": 51.608093
+      },
+      "confidence_quantiles": {
+        "0.25": 0.4,
+        "0.5": 0.45,
+        "0.75": 0.45,
+        "0.9": 0.45,
+        "0.99": 0.9
+      }
+    }
+  },
+  "production_snapshot": {
+    "path": "runtime/production/local-production/data/latest_signals.json",
+    "counts": {
+      "COMPRESSION": 13,
+      "RANGING": 9
+    },
+    "rows": 22
+  },
+  "source_manifest": {
+    "file_count": 21,
+    "combined_sha256": "1074112ecb2dcc1060bb397aab9ee07ad5399d4ee7b2bc3910bc995e24c97d2a",
+    "files": [
+      {
+        "path": "data/fresh_training_data_2023_2026/AEVO/AEVO_15m.csv",
+        "size_bytes": 7410814,
+        "sha256": "c832c0a4841f78f2768f8c62d550ec29ccca08034ac29601cfcd1be11da964d6"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/AR/AR_15m.csv",
+        "size_bytes": 7410364,
+        "sha256": "bf776474d8dfb58f540f40017b76329eb0a49ed2b81e09301c2f1cd99d4fe070"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/AVAX/AVAX_15m.csv",
+        "size_bytes": 7410219,
+        "sha256": "e8ef8e7746506b11b1095e5d8bdc73013eb896e31ca668fbc06f2fee37a1dd6b"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/BNB/BNB_15m.csv",
+        "size_bytes": 7410542,
+        "sha256": "8cee9dd83b6337ce0a4a3dc02bb9bbde2cff53effd23adefabd561ec8549c742"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/BTC/BTC_15m.csv",
+        "size_bytes": 7410243,
+        "sha256": "bfe6ed88a67b39e2a000d593aee4ab066c6326671188bffc5d905437c62ab506"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/DOGE/DOGE_15m.csv",
+        "size_bytes": 7410200,
+        "sha256": "d086f903ba948a1bb0ee07d442b77a6bfc2e1776b25f2915c9ae4fdd939d06ea"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/ENA/ENA_15m.csv",
+        "size_bytes": 7410209,
+        "sha256": "8e0c671b4617b1752bdc661fe8db8118ced5a0c9914ce74d8a811bcc8518013f"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/ETH/ETH_15m.csv",
+        "size_bytes": 7410792,
+        "sha256": "2f9245699d99af9ccc060c5ec616e0ffdcb6b33fab7e50e84fb785de8d71d194"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/IOTA/IOTA_15m.csv",
+        "size_bytes": 7410427,
+        "sha256": "504b3aecdfb138c31f9488c3a10dad1290362910f78463719efe470ba9ecb449"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/NEAR/NEAR_15m.csv",
+        "size_bytes": 7410627,
+        "sha256": "6af6520d8418d197e210c9a8d0d6cfcb081ce08754db2ebbc6e90c22a0fb446e"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/SOL/SOL_15m.csv",
+        "size_bytes": 7410370,
+        "sha256": "9ea9be31ffe39543c9aee66b4334ee1be8f2d95434646712a183dda0abf49c1a"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/SOPH/SOPH_15m.csv",
+        "size_bytes": 7410543,
+        "sha256": "099d076e5aab22b42ca1d0291d9e0719d54ea9f343f8e1b4965245aadc65acf0"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/TAO/TAO_15m.csv",
+        "size_bytes": 7410621,
+        "sha256": "a2538f7eb7b552d902a0fec64303f68b9cbd08c5221a225676ee0058b6b4f4b2"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/TRB/TRB_15m.csv",
+        "size_bytes": 7410293,
+        "sha256": "860989b296615f76bf1661d9775704e176b32605d2995738600b48aa9ec1d1bf"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/TRUMP/TRUMP_15m.csv",
+        "size_bytes": 7410064,
+        "sha256": "ce93455496b0f4540a526dd7e561f432a7041f4d207e30a3a2723b8d21656d1a"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/TRX/TRX_15m.csv",
+        "size_bytes": 7410298,
+        "sha256": "386c1aba55188814e2dd87cee9d986a4896eb19b427ee33a625de1c864a61817"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/WLD/WLD_15m.csv",
+        "size_bytes": 7410654,
+        "sha256": "9092787cac5b8df82329607a9ba5a080fd3185d126853e9e6c3c1660494f0f3f"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/XLM/XLM_15m.csv",
+        "size_bytes": 7410157,
+        "sha256": "7dd9de85581139cf64ee88ca17db1b8a0bad034d225ae617170655cf337fd1ab"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/XPL/XPL_15m.csv",
+        "size_bytes": 7410297,
+        "sha256": "d505523c3d8ea1f563480fc5b58546751fd33e295fda6ebf8f40f9589f6b2a74"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/XRP/XRP_15m.csv",
+        "size_bytes": 7410067,
+        "sha256": "d3bd1b11bd9d79a3e6ecab3a2a538f7cf5f4f7403328d59f6d5e97345f7caf35"
+      },
+      {
+        "path": "data/fresh_training_data_2023_2026/ZEC/ZEC_15m.csv",
+        "size_bytes": 7410344,
+        "sha256": "cdd4285e3d4a86cf5cfe3c4ca7e669b23baa00c45a3e8f8890c1bb251d500bcd"
+      }
+    ]
+  }
+}

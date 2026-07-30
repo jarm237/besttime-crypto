@@ -8,7 +8,9 @@ from btc_scraper.core.sentiment import (
 )
 from btc_scraper.core.filters import atr_shock_filter
 from btc_scraper.ml_engine.signal_score import score_signal
-from btc_scraper.regime.market_regime import regime_from_values
+from btc_scraper.regime.market_regime import regime_from_values, stabilize_regime_sequence
+from btc_scraper.regime.config import load_runtime_regime_config, regime_enforcement_mode, regime_tp_sl_enabled
+from btc_scraper.regime.contract import snapshot_from_legacy
 from .indicators import *
 from .structure import (
     _calculate_obv, _calculate_cmf, _calculate_mfi, _calculate_slope,
@@ -49,6 +51,60 @@ def signal_action(signal: str | None) -> SignalAction:
     if label == "SELL" or label.startswith(("SELL (", "WEAK SELL", "STRONG SELL")):
         return SignalAction.SELL
     return SignalAction.NEUTRAL
+
+
+def _stabilize_candle_regimes(candles: list[dict]) -> None:
+    """Apply the detector's warm-up and duration contract to a candle sequence."""
+    if not candles:
+        return
+    cfg = load_runtime_regime_config()
+    minimum_bars = int(cfg.get("minimum_bars", 200))
+    raw_labels = [str(candle.get("regime") or "UNKNOWN") for candle in candles]
+    candidates = [
+        raw_label if index >= minimum_bars - 1 else "UNKNOWN"
+        for index, raw_label in enumerate(raw_labels)
+    ]
+    stable = stabilize_regime_sequence(candidates, int(cfg.get("minimum_duration_bars", 3)))
+    for index, (candle, stable_label) in enumerate(zip(candles, stable)):
+        raw_label = raw_labels[index]
+        raw_confidence = float(candle.get("regime_confidence") or 0.0)
+        warmup_complete = index >= minimum_bars - 1
+        if not warmup_complete:
+            confidence = 0.0
+            confidence_method = "unavailable"
+        elif stable_label != raw_label:
+            prior = next(
+                (
+                    candles[prior_index]
+                    for prior_index in range(index - 1, -1, -1)
+                    if str(candles[prior_index].get("regime") or "UNKNOWN") == stable_label
+                ),
+                None,
+            )
+            confidence = round(float((prior or {}).get("regime_confidence") or 0.0) * 0.9, 3)
+            confidence_method = "threshold_distance_v1_hysteresis_decay"
+        else:
+            confidence = raw_confidence
+            snapshot = candle.get("regime_snapshot") or {}
+            confidence_method = str(snapshot.get("confidence_method") or "threshold_distance_v1")
+        previous_snapshot = candle.get("regime_snapshot") or {}
+        candle["raw_regime"] = raw_label
+        candle["regime"] = stable_label
+        candle["regime_confidence"] = confidence
+        candle["regime_hysteresis_applied"] = stable_label != raw_label
+        candle["regime_snapshot"] = snapshot_from_legacy(
+            stable_label,
+            confidence=confidence,
+            observed_at=previous_snapshot.get("observed_at") or candle.get("time"),
+            input_end_time=previous_snapshot.get("input_end_time") or candle.get("time"),
+            source_timeframe=str(previous_snapshot.get("source_timeframe") or "unknown"),
+            config_sha256=str(previous_snapshot.get("config_sha256") or cfg.get("config_sha256") or "unavailable"),
+            detector_version=str(previous_snapshot.get("detector_version") or cfg["detector_version"]),
+            taxonomy_version=str(previous_snapshot.get("taxonomy_version") or cfg["taxonomy_version"]),
+            warmup_complete=warmup_complete,
+            confidence_method=confidence_method,
+            reason="INSUFFICIENT_HISTORY" if not warmup_complete else previous_snapshot.get("reason"),
+        ).to_dict()
 
 def _calculate_position_size(
     base_confidence: float,
@@ -128,23 +184,26 @@ def calculate_tp_sl(
     atr_tp_mult = opt_params.get("atr_tp_mult", atr_tp_mult)
     atr_sl_mult = opt_params.get("atr_sl_mult", atr_sl_mult)
 
-    tp_scale = 1.0
-    sl_scale = 1.0
+    proposed_tp_scale = 1.0
+    proposed_sl_scale = 1.0
     
     if regime:
         regime_tp_override = opt_params.get("regime_tp_scale", {}).get(regime)
         regime_sl_override = opt_params.get("regime_sl_scale", {}).get(regime)
         
         if regime_tp_override is not None:
-            tp_scale = float(regime_tp_override)
+            proposed_tp_scale = float(regime_tp_override)
         else:
-            tp_scale = REGIME_MULTIPLIERS_MAP.get(regime, {}).get("tp_scale", 1.0)
+            proposed_tp_scale = REGIME_MULTIPLIERS_MAP.get(regime, {}).get("tp_scale", 1.0)
             
         if regime_sl_override is not None:
-            sl_scale = float(regime_sl_override)
+            proposed_sl_scale = float(regime_sl_override)
         else:
-            sl_scale = REGIME_MULTIPLIERS_MAP.get(regime, {}).get("sl_scale", 1.0)
+            proposed_sl_scale = REGIME_MULTIPLIERS_MAP.get(regime, {}).get("sl_scale", 1.0)
 
+    effect_enabled = regime_tp_sl_enabled()
+    tp_scale = proposed_tp_scale if effect_enabled else 1.0
+    sl_scale = proposed_sl_scale if effect_enabled else 1.0
     atr_tp_mult = atr_tp_mult * tp_scale
     atr_sl_mult = atr_sl_mult * sl_scale
 
@@ -215,6 +274,12 @@ def calculate_tp_sl(
         "rr1":   rr1,
         "rr2":   rr2,
         "method": method,
+        "proposed_regime_tp_scale": round(float(proposed_tp_scale), 4),
+        "proposed_regime_sl_scale": round(float(proposed_sl_scale), 4),
+        "applied_regime_tp_scale": round(float(tp_scale), 4),
+        "applied_regime_sl_scale": round(float(sl_scale), 4),
+        "regime_effect_mode": regime_enforcement_mode(),
+        "regime_effect_reason": None if effect_enabled else "REGIME_OBSERVE_ONLY",
     }
 
 
@@ -327,6 +392,7 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
         )
         c["regime"] = regime_info.get("regime")
         c["regime_confidence"] = regime_info.get("confidence")
+        c["regime_snapshot"] = regime_info.get("regime_snapshot")
         c["obv"] = obv_list[i]
         c["cmf"] = cmf_list[i]
         c["mfi"] = mfi_list[i]
@@ -384,6 +450,8 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
         c["volatility_regime_pump_risk"] = 1.0 if (c["volume_percentile"] >= 90.0 and c["atr_percentile"] >= 70.0 and c["adx"] >= 25.0) else 0.0
         c["vol_sma20"] = current_vol_sma
         c["chandelier"] = chandelier_list[i]
+
+    _stabilize_candle_regimes(candles)
 
     def _evaluate_candle_signal(t: int):
         current_rsi = rsi_list[t]
@@ -615,6 +683,7 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
                 "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
                 "regime": c.get("regime"),
                 "regime_confidence": c.get("regime_confidence"),
+                "regime_snapshot": c.get("regime_snapshot"),
                 "trend_following_allowed": trend_following_allowed,
                 "trend_label": trend_label,
                 "volume": current_volume,
@@ -955,6 +1024,9 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
         )
         candles[i]["regime"] = regime_info.get("regime")
         candles[i]["regime_confidence"] = regime_info.get("confidence")
+        candles[i]["regime_snapshot"] = regime_info.get("regime_snapshot")
+
+    _stabilize_candle_regimes(candles)
 
     results = []
 
@@ -1184,9 +1256,11 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
                     sig = "NEUTRAL (BEARISH-CAUTION)"
                     reason = f"EMA9<EMA21 nhung tren SMA200 — co the chi la dieu chinh ngan han{chandelier_tag}"
 
-        # Determine regime using current indicators (TRENDING_BULL, TRENDING_BEAR, RANGING, HIGH_VOLATILITY)
-        atr_pct_val = (current_atr / current_close * 100) if current_close and current_atr else 0.0
-        regime_info = regime_from_values(current_close, current_sma200, current_ema21, current_sma50, current_adx, atr_pct_val)
+        regime_info = {
+            "regime": candles[i].get("regime"),
+            "confidence": candles[i].get("regime_confidence"),
+            "regime_snapshot": candles[i].get("regime_snapshot"),
+        }
 
         tp_sl_dict = calculate_tp_sl(
             close       = current_close,
@@ -1228,6 +1302,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
             "regime": regime_info.get("regime"),
             "regime_confidence": regime_info.get("confidence"),
+            "regime_snapshot": regime_info.get("regime_snapshot"),
             "trend_following_allowed": trend_following_allowed,
             "vol_spike": vol_spike,
             "chandelier": chandelier_state,
@@ -1283,6 +1358,7 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             "market_regime": "TRENDING" if trend_following_allowed else "SIDEWAY",
             "regime": regime_info.get("regime"),
             "regime_confidence": regime_info.get("confidence"),
+            "regime_snapshot": regime_info.get("regime_snapshot"),
             "trend_following_allowed": trend_following_allowed,
             "confidence": 0.50,
             "position_size": 0.0 if signal_action(sig) is SignalAction.NEUTRAL else 1.0,

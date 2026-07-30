@@ -1,0 +1,15 @@
+{
+  "artifact_version": "regime_features_v2",
+  "created_at": "2026-07-30T02:53:32.409111+00:00",
+  "input_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/adaptive_signals_v2.json",
+  "input_sha256": "77f1a3c8b406843d9ad58ab2777c8d1446c879f9ade9fc59533e451bf299b19a",
+  "input_rows": 24070,
+  "output_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/data/feature_store/regime/v2/regime_features_v2.parquet",
+  "output_sha256": "5ef9f158b34b1b51353d50c11baad7dc585999036a3f8b1ac5b8f4d745e1e091",
+  "output_rows": 24070,
+  "store_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/production/local-production/data/feature_store/regime/regime_features_v2.parquet",
+  "regime_config_sha256": "fc036414c3548d51cc2b1d302552538644154d44fa74a2d97d3b7681d4ed280b",
+  "taxonomy_version": "2.0",
+  "mapping_version": "2.0",
+  "promotion_status": "RESEARCH_ONLY"
+}

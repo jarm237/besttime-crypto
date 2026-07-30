@@ -3,6 +3,16 @@ from typing import Dict, Optional, TYPE_CHECKING
 import uuid
 
 from .meta_model import predict_meta_confidence
+from btc_scraper.regime.config import (
+    regime_decision_weight_enabled,
+    regime_effect_metadata,
+)
+from btc_scraper.regime.contract import (
+    RegimeDirection,
+    RegimeFamily,
+    RegimeSnapshot,
+    map_legacy_regime,
+)
 
 if TYPE_CHECKING:
     from .context_engine import ContextReport
@@ -14,6 +24,18 @@ DEFAULT_EVIDENCE_WEIGHTS = {
     "sentiment": 0.15,
     "regime": 0.15,
     "volatility": 0.15,
+}
+
+REGIME_DIRECTION_SUPPORT = {
+    (RegimeFamily.TREND, RegimeDirection.BULL): {"BUY": 0.9, "SELL": 0.1},
+    (RegimeFamily.TREND, RegimeDirection.BEAR): {"BUY": 0.1, "SELL": 0.9},
+    (RegimeFamily.BREAKOUT, RegimeDirection.BULL): {"BUY": 0.9, "SELL": 0.1},
+    (RegimeFamily.BREAKOUT, RegimeDirection.BEAR): {"BUY": 0.1, "SELL": 0.9},
+    (RegimeFamily.RANGE, RegimeDirection.NEUTRAL): {"BUY": 0.5, "SELL": 0.5},
+    (RegimeFamily.COMPRESSION, RegimeDirection.NEUTRAL): {"BUY": 0.5, "SELL": 0.5},
+    # Explicit risk policy: panic/pump never strongly encourage a fresh entry.
+    (RegimeFamily.EXTREME, RegimeDirection.BEAR): {"BUY": 0.05, "SELL": 0.75},
+    (RegimeFamily.EXTREME, RegimeDirection.BULL): {"BUY": 0.1, "SELL": 0.6},
 }
 
 
@@ -65,7 +87,11 @@ class MetaDecisionEngine:
         hold_threshold: float = 0.45,
         min_ev_pct: float = 0.05,
     ):
-        self.weights = weights if weights is not None else DEFAULT_EVIDENCE_WEIGHTS.copy()
+        self.proposed_weights = (weights if weights is not None else DEFAULT_EVIDENCE_WEIGHTS).copy()
+        self.weights = self.proposed_weights.copy()
+        self.regime_decision_effect_enabled = regime_decision_weight_enabled()
+        if not self.regime_decision_effect_enabled:
+            self.weights["regime"] = 0.0
         self.buy_threshold = buy_threshold
         self.sell_threshold = sell_threshold
         self.hold_threshold = hold_threshold
@@ -108,15 +134,25 @@ class MetaDecisionEngine:
         return 0.5
 
     def _regime_support(self, info: Dict) -> float:
-        regime = str(info.get("regime") or info.get("market_regime") or "").upper()
         direction = self._signal_direction(info)
-        if "TRENDING_BULL" in regime or "STRONG_TREND" in regime:
-            return 0.9 if direction == "BUY" else 0.1
-        if "TRENDING_BEAR" in regime or "BEAR" in regime:
-            return 0.1 if direction == "BUY" else 0.9
-        if "RANGING" in regime or "COMPRESSION" in regime:
+        if direction not in {"BUY", "SELL"}:
             return 0.5
-        return 0.5
+        raw_snapshot = info.get("regime_snapshot")
+        try:
+            if isinstance(raw_snapshot, RegimeSnapshot):
+                family = raw_snapshot.family
+                regime_direction = raw_snapshot.direction
+            elif isinstance(raw_snapshot, dict) and raw_snapshot.get("taxonomy_version"):
+                snapshot = RegimeSnapshot.from_dict(raw_snapshot)
+                family = snapshot.family
+                regime_direction = snapshot.direction
+            else:
+                _, mapped = map_legacy_regime(info.get("regime") or info.get("market_regime"))
+                family = mapped.family
+                regime_direction = mapped.direction
+        except (TypeError, ValueError):
+            return 0.5
+        return REGIME_DIRECTION_SUPPORT.get((family, regime_direction), {}).get(direction, 0.5)
 
     def _volatility_support(self, info: Dict) -> float:
         atr_pct = info.get("atr_pct") or info.get("atr")
@@ -190,9 +226,10 @@ class MetaDecisionEngine:
 
         meta_prob = float(meta["probability"])
         sentiment_prob = self._sentiment_support(analysis_info)
-        regime_prob = self._regime_support(analysis_info)
+        proposed_regime_prob = self._regime_support(analysis_info)
+        applied_regime_prob = proposed_regime_prob if self.regime_decision_effect_enabled else 0.5
         volatility_prob = self._volatility_support(analysis_info)
-        posterior = self.compute_posterior(meta_prob, sentiment_prob, regime_prob, volatility_prob)
+        posterior = self.compute_posterior(meta_prob, sentiment_prob, applied_regime_prob, volatility_prob)
 
         expected_return = meta.get("expected_return")
         if expected_return is None:
@@ -220,7 +257,8 @@ class MetaDecisionEngine:
         reason = [
             f"meta_prob={meta_prob:.3f}",
             f"sentiment={sentiment_prob:.3f}",
-            f"regime={regime_prob:.3f}",
+            f"regime_proposed={proposed_regime_prob:.3f}",
+            f"regime_applied={applied_regime_prob:.3f}",
             f"volatility={volatility_prob:.3f}",
             f"posterior={posterior:.3f}",
             f"ev={expected_return:.4f}",
@@ -231,7 +269,12 @@ class MetaDecisionEngine:
             "posterior_probability": posterior,
             "meta_probability": meta_prob,
             "sentiment_support": sentiment_prob,
-            "regime_support": regime_prob,
+            "regime_support": applied_regime_prob,
+            "proposed_regime_support": proposed_regime_prob,
+            "applied_regime_support": applied_regime_prob,
+            "proposed_regime_weight": float(self.proposed_weights.get("regime", 0.0)),
+            "applied_regime_weight": float(self.weights.get("regime", 0.0)),
+            "regime_snapshot": analysis_info.get("regime_snapshot"),
             "volatility_support": volatility_prob,
             "expected_return": expected_return,
             "expected_drawdown": meta.get("expected_drawdown"),
@@ -247,6 +290,7 @@ class MetaDecisionEngine:
             "artifact_sha256": meta.get("artifact_sha256"),
             "decision_id": str(uuid.uuid4()),
             "context_snapshot_id": None,
+            **regime_effect_metadata(self.regime_decision_effect_enabled),
         }
         if persist_final:
             self._persist_final_decision(final_decision)

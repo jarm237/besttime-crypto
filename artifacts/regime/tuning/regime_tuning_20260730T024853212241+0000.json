@@ -1,0 +1,42 @@
+{
+  "artifact_schema_version": "regime-tuning-v2",
+  "created_at": "2026-07-30T02:48:53.212241+00:00",
+  "approval_status": "RESEARCH_ONLY",
+  "promotion_gate_passed": false,
+  "taxonomy_version": "2.0",
+  "detector_version": "2.0.0",
+  "config_sha256": "fc036414c3548d51cc2b1d302552538644154d44fa74a2d97d3b7681d4ed280b",
+  "tuner_config": {
+    "min_samples_per_regime": 30,
+    "train_fraction": 0.6,
+    "validation_fraction": 0.2,
+    "embargo_rows": 1,
+    "candidates": [
+      0.8,
+      0.9,
+      1.0,
+      1.05,
+      1.1
+    ],
+    "transaction_cost_pct": 0.02,
+    "drawdown_penalty": 0.5,
+    "turnover_penalty": 0.1,
+    "instability_penalty": 0.5,
+    "shrinkage_penalty": 0.1,
+    "bootstrap_samples": 500,
+    "random_seed": 42
+  },
+  "split_counts": {
+    "train": 9,
+    "validation": 2,
+    "holdout": 3
+  },
+  "timestamp_coverage_complete": false,
+  "proposals": {
+    "UNKNOWN": {
+      "selected_multiplier": 1.0,
+      "status": "INSUFFICIENT_EVIDENCE",
+      "reason": "UNKNOWN_REGIME_NOT_TUNABLE"
+    }
+  }
+}

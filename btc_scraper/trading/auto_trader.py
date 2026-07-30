@@ -1160,6 +1160,7 @@ class AutoTrader:
                     model_version=decision.model_version,
                     artifact_sha256=decision.artifact_hash,
                     feature_schema_version=decision.feature_schema_version,
+                    regime_snapshot=ana.get("regime_snapshot") or sig_score.get("regime_snapshot"),
                 )
             except Exception:
                 pass

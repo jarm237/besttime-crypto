@@ -2,11 +2,20 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Any
 
+VALID_SAME_CANDLE_POLICIES = {
+    "CONSERVATIVE_SL_FIRST",
+    "OPTIMISTIC_TP_FIRST",
+    "AMBIGUOUS_EXCLUDE",
+    "LOWER_TIMEFRAME_REPLAY",
+}
+
+
 @dataclass
 class BacktestConfig:
     initial_capital: float = 10000.0
     timeframe: str = "15m"
     coins: List[str] = field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "SOLUSDT"])
+    same_candle_policy: str = "CONSERVATIVE_SL_FIRST"
     
     # Cost model
     fee_model: Dict[str, Any] = field(default_factory=lambda: {
@@ -50,6 +59,11 @@ class BacktestConfig:
         "randomize_spread": True
     })
 
+    def __post_init__(self) -> None:
+        self.same_candle_policy = str(self.same_candle_policy).upper()
+        if self.same_candle_policy not in VALID_SAME_CANDLE_POLICIES:
+            raise ValueError(f"Unsupported same_candle_policy: {self.same_candle_policy}")
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
@@ -63,6 +77,11 @@ class BacktestConfig:
             config.timeframe = str(data["timeframe"])
         if "coins" in data:
             config.coins = list(data["coins"])
+        if "same_candle_policy" in data:
+            policy = str(data["same_candle_policy"]).upper()
+            if policy not in VALID_SAME_CANDLE_POLICIES:
+                raise ValueError(f"Unsupported same_candle_policy: {policy}")
+            config.same_candle_policy = policy
         if "fee_model" in data:
             config.fee_model.update(data["fee_model"])
         if "slippage_model" in data:

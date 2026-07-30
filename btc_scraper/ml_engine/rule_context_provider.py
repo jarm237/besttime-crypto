@@ -64,6 +64,10 @@ def _world_state_to_context_dict(world_state: WorldState) -> Dict[str, Any]:
 
     # Market regime string (used in some rule conditions)
     ctx["market_regime"] = world_state.regime.value.upper()
+    if isinstance(world_state.technical_regime, dict):
+        ctx["technical_regime_family"] = world_state.technical_regime.get("family", "UNKNOWN")
+        ctx["technical_regime_direction"] = world_state.technical_regime.get("direction", "UNKNOWN")
+        ctx["technical_regime_volatility"] = world_state.technical_regime.get("volatility", "UNKNOWN")
 
     # Custom indicators pass-through (allows callers to inject ad-hoc features)
     for k, v in world_state.custom_indicators.items():

@@ -16,6 +16,16 @@ from btc_scraper.backtesting.attribution import AttributionAnalyzer
 from btc_scraper.backtesting.report_builder import ReportBuilder
 from btc_scraper.analysis.core import calculate_tp_sl
 
+
+def atr_percent_to_price_distance(price: float, atr_percent: float) -> float:
+    """Convert percent units (0.84 == 0.84%) to an absolute price distance."""
+    price_value = float(price)
+    percent_value = float(atr_percent)
+    if price_value <= 0 or percent_value < 0:
+        raise ValueError("price must be > 0 and atr_percent must be >= 0")
+    return price_value * percent_value / 100.0
+
+
 class BacktestEngine:
     """
     Event-driven historical backtester modeling transaction costs, spread, slippage, and latency.
@@ -124,6 +134,24 @@ class BacktestEngine:
                 close = candle["close"]
                 
                 pos["hold_bars"] += 1
+
+                long_position = pos["type"] == "LONG"
+                sl_triggered = low <= pos["sl"] if long_position else high >= pos["sl"]
+                tp_triggered = (
+                    high >= min(pos["tp1"], pos["tp2"])
+                    if long_position
+                    else low <= max(pos["tp1"], pos["tp2"])
+                )
+                if sl_triggered and tp_triggered:
+                    policy = str(self.config.same_candle_policy).upper()
+                    if policy == "LOWER_TIMEFRAME_REPLAY":
+                        raise ValueError("LOWER_TIMEFRAME_REPLAY requires lower-timeframe candle input")
+                    if policy == "AMBIGUOUS_EXCLUDE":
+                        pos.setdefault("ambiguous_bars_excluded", 0)
+                        pos["ambiguous_bars_excluded"] += 1
+                        continue
+                    if policy == "OPTIMISTIC_TP_FIRST":
+                        sl_triggered = False
                 
                 # Check Stop Loss (SL)
                 sl_hit = False
@@ -131,12 +159,12 @@ class BacktestEngine:
                 exit_reason = ""
                 
                 if pos["type"] == "LONG":
-                    if low <= pos["sl"]:
+                    if sl_triggered:
                         sl_hit = True
                         exit_price = pos["sl"]
                         exit_reason = "SL"
                 else:  # SHORT
-                    if high >= pos["sl"]:
+                    if sl_triggered:
                         sl_hit = True
                         exit_price = pos["sl"]
                         exit_reason = "SL"
@@ -276,9 +304,10 @@ class BacktestEngine:
                 )
                 
                 # Apply slippage
-                atr_pct = sig.get("atr_pct", 0.02)
+                atr_percent = float(sig.get("atr_percent", sig.get("atr_pct", 2.0)) or 0.0)
+                atr_fraction = atr_percent / 100.0
                 slippage_bps = self.slippage_model.calculate_slippage_bps(
-                    atr_pct=atr_pct,
+                    atr_pct=atr_fraction,
                     order_size_pct_adv=0.001,  # Assume typical micro order size
                     spread_bps=spread_bps
                 )
@@ -289,9 +318,11 @@ class BacktestEngine:
                 )
                 
                 # Calculate SL & TP
-                atr = atr_pct * execution_price
-                support = sig.get("distance_support_pct", 0.02) * execution_price
-                resistance = sig.get("distance_resistance_pct", 0.02) * execution_price
+                atr = atr_percent_to_price_distance(execution_price, atr_percent)
+                support_distance = max(0.0, float(sig.get("distance_support_pct", 2.0) or 0.0)) / 100.0
+                resistance_distance = max(0.0, float(sig.get("distance_resistance_pct", 2.0) or 0.0)) / 100.0
+                support = execution_price * (1.0 - support_distance)
+                resistance = execution_price * (1.0 + resistance_distance)
                 bb_upper = execution_price * 1.05
                 bb_middle = execution_price
                 bb_lower = execution_price * 0.95
@@ -348,6 +379,10 @@ class BacktestEngine:
                     "slippage_bps": slippage_bps,
                     "latency_ms": latency_val,
                     "regime": sig.get("regime", "Ranging"),
+                    "regime_snapshot": sig.get("regime_snapshot"),
+                    "atr_percent": atr_percent,
+                    "atr_price_distance": atr,
+                    "same_candle_policy": self.config.same_candle_policy,
                     "causal_risk_level": sig.get("causal_risk_level", "MEDIUM"),
                     "meta_confidence_bucket": "HIGH" if sig.get("signal_score", 50.0) >= 70 else "MEDIUM"
                 }
@@ -506,6 +541,11 @@ class BacktestEngine:
             "slippage_bps": pos["slippage_bps"],
             "latency_ms": pos["latency_ms"],
             "regime": pos["regime"],
+            "regime_snapshot": pos.get("regime_snapshot"),
+            "same_candle_policy": pos.get("same_candle_policy"),
+            "economic_win": total_pnl > 0,
+            "target_hit_win": exit_reason in {"TP1", "TP2"},
+            "timeout_profitable": exit_reason == "TIMEOUT" and total_pnl > 0,
             "causal_risk_level": pos["causal_risk_level"],
             "meta_confidence_bucket": pos["meta_confidence_bucket"]
         })

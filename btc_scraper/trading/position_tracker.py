@@ -25,6 +25,9 @@ else:
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
 from btc_scraper.core.paths import build_logs_path
+from btc_scraper.regime.config import compute_regime_config_sha256, load_runtime_regime_config
+from btc_scraper.regime.contract import coerce_regime_snapshot
+from btc_scraper.regime.contract import model_regime_bucket
 
 TRADE_ORIGIN_PAPER = "paper_mode"
 TRADE_ORIGIN_MANUAL = "manual"
@@ -371,30 +374,7 @@ def _build_rl_observation(
     ]
     raw_regime = str(ana.get("regime", "STRONG_TREND"))
     
-    # Map raw regime
-    r = raw_regime.upper()
-    if "STRONG_TREND" in r:
-        mapped = "STRONG_TREND"
-    elif "WEAK_TREND" in r:
-        mapped = "WEAK_TREND"
-    elif "COMPRESSION" in r:
-        mapped = "COMPRESSION"
-    elif "BREAKOUT" in r:
-        mapped = "BREAKOUT"
-    elif "MEAN_REVERSION" in r:
-        mapped = "MEAN_REVERSION"
-    elif "PANIC_SELL" in r:
-        mapped = "PANIC_SELL"
-    elif "PUMP_RISK" in r:
-        mapped = "PUMP_RISK"
-    elif "LOW_LIQUIDITY" in r:
-        mapped = "LOW_LIQUIDITY"
-    elif "RANGING" in r:
-        mapped = "MEAN_REVERSION"
-    elif "HIGH_VOLATILITY" in r:
-        mapped = "PANIC_SELL"
-    else:
-        mapped = "STRONG_TREND"
+    mapped = model_regime_bucket(raw_regime)
         
     regime_idx = regime_names.index(mapped) if mapped in regime_names else 0
     obs[5 + regime_idx] = 1.0
@@ -465,6 +445,7 @@ def add_position(
     manual_decision_basis: str | None = None,
     order_creator: str | None = None,
     order_channel: str | None = None,
+    regime_snapshot: dict | None = None,
 ) -> dict:
     """
     Thêm vị thế mới vào danh sách theo dõi.
@@ -478,11 +459,30 @@ def add_position(
     Returns:
         dict vị thế vừa tạo
     """
+    signal_score = signal_score or {}
+    supplied_snapshot = regime_snapshot or (
+        signal_score.get("regime_snapshot") if isinstance(signal_score, dict) else None
+    )
+    regime_config_hash = compute_regime_config_sha256(load_runtime_regime_config())
+    entry_snapshot = coerce_regime_snapshot(
+        supplied_snapshot,
+        fallback_regime=signal_score.get("regime") if isinstance(signal_score, dict) else "UNKNOWN",
+        fallback_confidence=(
+            signal_score.get("regime_confidence", 0.0) if isinstance(signal_score, dict) else 0.0
+        ),
+        config_sha256=regime_config_hash,
+    ).to_dict()
+
     if position_id:
         try:
             existing = positions_col.find_one({"id": position_id}, {"_id": 0})
             if existing:
+                existing_snapshot = existing.get("entry_regime_snapshot")
+                if supplied_snapshot and existing_snapshot and existing_snapshot != entry_snapshot:
+                    raise ValueError("CONFLICTING_REGIME_SNAPSHOT_QUARANTINED")
                 return existing
+        except ValueError:
+            raise
         except Exception:
             pass
 
@@ -527,8 +527,18 @@ def add_position(
         "direction": direction.upper(),
         "entry_price": float(entry_price),
         "invested_usdt": float(invested_usdt),
-        "entry_signal_score": signal_score or {},
+        "entry_signal_score": signal_score,
         "entry_confidence": confidence,
+        "entry_regime_snapshot": entry_snapshot,
+        "entry_regime_family": entry_snapshot["family"],
+        "entry_regime_direction": entry_snapshot["direction"],
+        "entry_regime_volatility": entry_snapshot["volatility"],
+        "entry_regime_confidence": entry_snapshot["confidence"],
+        "entry_regime_observed_at": entry_snapshot["observed_at"],
+        "entry_regime_detector_version": entry_snapshot["detector_version"],
+        "entry_regime_taxonomy_version": entry_snapshot["taxonomy_version"],
+        "entry_regime_config_sha256": entry_snapshot["config_sha256"],
+        "entry_regime_lineage_status": "NATIVE_RUNTIME" if supplied_snapshot else "EXPLICIT_UNKNOWN",
         "entry_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "status": "open",
         "note": note,

@@ -5,19 +5,16 @@ in each record. Writes a backup and updates file in-place.
 import json
 import os
 from pathlib import Path
+from btc_scraper.core.paths import build_logs_path
+from btc_scraper.regime.config import compute_regime_config_sha256, load_regime_config
 
 BASE = os.path.dirname(__file__)
-LOG = os.path.join(BASE, "..", "logs", "adaptive_signals.json")
-BACKUP = os.path.join(BASE, "..", "logs", "adaptive_signals_backup.json")
-CFG = os.path.join(os.path.dirname(__file__), "regime_config.json")
+LOG = str(build_logs_path("adaptive_signals.json"))
+BACKUP = str(build_logs_path("adaptive_signals_backup.json"))
 
 
 def load_cfg():
-    try:
-        with open(CFG, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {"adx_threshold": 25.0, "atr_pct_threshold": 4.0, "confidence": {"base": 0.2, "adx_weight": 0.5, "trend_weight": 0.3, "max": 0.98}}
+    return load_regime_config()
 
 
 def determine_regime_from_record(r, cfg):
@@ -113,6 +110,10 @@ def main():
         info = determine_regime_from_record(r, cfg)
         r["regime"] = info.get("regime")
         r["regime_confidence"] = info.get("confidence")
+        r["backfilled"] = True
+        r["evidence_origin"] = "POINT_IN_TIME_BACKFILL"
+        r["backfill_config_sha256"] = compute_regime_config_sha256(cfg)
+        r["original_regime_missing"] = True
         updated.append(r)
 
     # backup

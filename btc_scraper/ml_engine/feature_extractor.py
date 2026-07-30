@@ -13,6 +13,26 @@ from typing import Dict, List, Tuple, Any
 import math
 
 from btc_scraper.core.fear_greed import first_not_none
+from btc_scraper.regime.contract import (
+    RegimeDirection,
+    RegimeFamily,
+    RegimeSnapshot,
+    VolatilityState,
+    map_legacy_regime,
+    model_regime_bucket,
+)
+
+
+def _regime_components(info: Dict) -> tuple[str, RegimeFamily, RegimeDirection, VolatilityState]:
+    raw_snapshot = info.get("regime_snapshot")
+    if isinstance(raw_snapshot, dict) and raw_snapshot.get("taxonomy_version"):
+        try:
+            snapshot = RegimeSnapshot.from_dict(raw_snapshot)
+            return snapshot.regime_id, snapshot.family, snapshot.direction, snapshot.volatility
+        except (TypeError, ValueError):
+            pass
+    label, mapped = map_legacy_regime(info.get("regime") or info.get("market_regime"))
+    return label, mapped.family, mapped.direction, mapped.volatility
 
 # ─── CANONICAL FEATURE SCHEMA ──────────────────────────────────────────────────
 # Base features cố định cho Meta Model.
@@ -264,16 +284,18 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     f["mtf_alignment"] = _MTF_ALIGN_MAP.get(str(htf).upper(), 0.0)
 
     # 11-14. Regime one-hot
-    regime_raw = (
-        info.get("regime")
-        or info.get("market_regime")
-        or ""
-    )
-    regime = str(regime_raw).upper().strip()
-    f["regime_trending_bull"]   = 1.0 if ("BULL" in regime and "TREND" in regime) or "TRENDING_BULL" in regime else 0.0
-    f["regime_trending_bear"]   = 1.0 if ("BEAR" in regime and "TREND" in regime) or "TRENDING_BEAR" in regime else 0.0
-    f["regime_ranging"]         = 1.0 if "RANGING" in regime else 0.0
-    f["regime_high_volatility"] = 1.0 if "HIGH_VOLATILITY" in regime or "HIGH_VOL" in regime else 0.0
+    _, regime_family, regime_direction, regime_volatility = _regime_components(info)
+    f["regime_trending_bull"] = 1.0 if (
+        regime_family is RegimeFamily.TREND and regime_direction is RegimeDirection.BULL
+    ) else 0.0
+    f["regime_trending_bear"] = 1.0 if (
+        regime_family is RegimeFamily.TREND and regime_direction is RegimeDirection.BEAR
+    ) else 0.0
+    f["regime_ranging"] = 1.0 if regime_family is RegimeFamily.RANGE else 0.0
+    f["regime_high_volatility"] = 1.0 if regime_volatility in {
+        VolatilityState.HIGH,
+        VolatilityState.EXTREME,
+    } else 0.0
 
     # Đảm bảo tất cả FEATURE_SCHEMA keys có mặt và là float
     for k in FEATURE_SCHEMA:
@@ -338,20 +360,17 @@ def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float
         "tf_1d_bull": info.get("tf_1d_bull"),
     }
 
-    regime_raw = str(
-        info.get("regime")
-        or info.get("market_regime")
-        or ""
-    ).upper()
+    regime_label, _, _, _ = _regime_components(info)
+    regime_bucket = model_regime_bucket(regime_label, default="")
     extra_keys.update({
-        "regime_strong_trend": 1.0 if "STRONG_TREND" in regime_raw else 0.0,
-        "regime_weak_trend": 1.0 if "WEAK_TREND" in regime_raw else 0.0,
-        "regime_compression": 1.0 if "COMPRESSION" in regime_raw else 0.0,
-        "regime_breakout": 1.0 if "BREAKOUT" in regime_raw else 0.0,
-        "regime_mean_reversion": 1.0 if "MEAN_REVERSION" in regime_raw else 0.0,
-        "regime_panic_sell": 1.0 if "PANIC_SELL" in regime_raw else 0.0,
-        "regime_low_liquidity": 1.0 if "LOW_LIQUIDITY" in regime_raw else 0.0,
-        "regime_pump_risk": 1.0 if "PUMP_RISK" in regime_raw else 0.0,
+        "regime_strong_trend": 1.0 if regime_bucket == "STRONG_TREND" else 0.0,
+        "regime_weak_trend": 1.0 if regime_bucket == "WEAK_TREND" else 0.0,
+        "regime_compression": 1.0 if regime_bucket == "COMPRESSION" else 0.0,
+        "regime_breakout": 1.0 if regime_bucket == "BREAKOUT" else 0.0,
+        "regime_mean_reversion": 1.0 if regime_bucket == "MEAN_REVERSION" else 0.0,
+        "regime_panic_sell": 1.0 if regime_bucket == "PANIC_SELL" else 0.0,
+        "regime_low_liquidity": 1.0 if regime_bucket == "LOW_LIQUIDITY" else 0.0,
+        "regime_pump_risk": 1.0 if regime_bucket == "PUMP_RISK" else 0.0,
     })
 
     for k, v in extra_keys.items():
