@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-26T19:00:03.855067",
+  "timestamp": "2026-07-29T19:00:04.288753",
   "n_total": 24070,
   "split": {
     "train": 16849,
@@ -237,7 +237,7 @@
         }
       }
     },
-    "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260726T190008Z.joblib"
+    "model_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/logs/meta_model_calibrated_periodic_20260729T190008Z.joblib"
   },
-  "elapsed_s": 8.195443391799927
+  "elapsed_s": 8.15630555152893
 }
