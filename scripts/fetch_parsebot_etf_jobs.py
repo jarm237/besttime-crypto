@@ -9,6 +9,7 @@ import sys
 import argparse
 import logging
 from pathlib import Path
+from typing import Iterable
 
 # Add project root to sys.path
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -30,9 +31,37 @@ logging.basicConfig(
 )
 logger = logging.getLogger("fetch_parsebot_etf_jobs")
 
-def fetch_parsebot_etf_recent_job(dry_run=False):
+def _job_symbols(
+    symbols: Iterable[str] | None,
+    *,
+    env_name: str,
+    default: str,
+) -> list[str]:
+    configured = (
+        default.split(",")
+        if symbols is None
+        else [str(symbol) for symbol in symbols]
+    )
+    if symbols is None:
+        configured = os.getenv(env_name, default).split(",")
+    return [
+        symbol.strip().upper()
+        for symbol in configured
+        if symbol.strip()
+    ]
+
+
+def fetch_parsebot_etf_recent_job(
+    dry_run=False,
+    *,
+    symbols: Iterable[str] | None = None,
+):
     logger.info("Starting job: fetch_parsebot_etf_recent")
-    symbols = [s.strip() for s in os.getenv("SUPPORTED_ETF_RECENT_SYMBOLS", "BTC,ETH,SOL").split(",") if s.strip()]
+    symbols = _job_symbols(
+        symbols,
+        env_name="SUPPORTED_ETF_RECENT_SYMBOLS",
+        default="BTC,ETH,SOL",
+    )
     
     if dry_run:
         logger.info(f"[DRY-RUN] Would fetch recent ETF flows for symbols: {symbols}")
@@ -44,9 +73,17 @@ def fetch_parsebot_etf_recent_job(dry_run=False):
         result = collector.fetch(symbol=symbol, mode="recent")
         logger.info(f"Fetch completed for {symbol}. Status: {result.get('status')}, Error: {result.get('error')}")
 
-def fetch_parsebot_etf_all_job(dry_run=False):
+def fetch_parsebot_etf_all_job(
+    dry_run=False,
+    *,
+    symbols: Iterable[str] | None = None,
+):
     logger.info("Starting job: fetch_parsebot_etf_all")
-    symbols = [s.strip() for s in os.getenv("SUPPORTED_ETF_ALL_SYMBOLS", "BTC,ETH").split(",") if s.strip()]
+    symbols = _job_symbols(
+        symbols,
+        env_name="SUPPORTED_ETF_ALL_SYMBOLS",
+        default="BTC,ETH",
+    )
     
     if dry_run:
         logger.info(f"[DRY-RUN] Would fetch all historical ETF flows for symbols: {symbols}")

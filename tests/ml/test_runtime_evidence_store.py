@@ -7,9 +7,11 @@ import sqlite3
 import pytest
 
 from btc_scraper.ml_engine.runtime_evidence_store import (
+    GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION,
     RUNTIME_EVIDENCE_SCHEMA_VERSION,
     RuntimeEvidenceStore,
     idempotency_payload_sha256,
+    payload_sha256,
 )
 
 
@@ -52,6 +54,40 @@ def test_database_schema_version_is_explicit(tmp_path):
         assert db.execute("PRAGMA user_version").fetchone()[0] == RUNTIME_EVIDENCE_SCHEMA_VERSION
 
 
+def test_global_epoch_schema_migrates_universe_columns(tmp_path):
+    global_path = tmp_path / "global_evidence_index.sqlite"
+    with sqlite3.connect(global_path) as db:
+        db.execute("""
+            CREATE TABLE evidence_epochs (
+                epoch_id TEXT PRIMARY KEY,
+                deployment_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                code_commit_sha TEXT NOT NULL,
+                model_version TEXT NOT NULL,
+                artifact_sha256 TEXT NOT NULL,
+                feature_schema_version TEXT NOT NULL,
+                evidence_policy_version TEXT NOT NULL,
+                risk_policy_version TEXT NOT NULL,
+                runtime_schema_version INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    with store._global_connect() as db:
+        columns = {
+            row[1] for row in db.execute(
+                "PRAGMA table_info(evidence_epochs)"
+            ).fetchall()
+        }
+        version = db.execute("PRAGMA user_version").fetchone()[0]
+    assert {
+        "analysis_universe", "analysis_universe_hash", "activated_at",
+    } <= columns
+    assert version == GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION
+
+
 def test_prediction_and_snapshot_are_atomic_and_idempotent(tmp_path):
     store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
     prediction, snapshot = _payload(1)
@@ -69,6 +105,44 @@ def test_non_idempotent_duplicate_is_rejected(tmp_path):
     health = store.health()
     assert health["status"] == "degraded"
     assert health["unresolved_incidents"] == 1
+
+
+def test_health_is_unhealthy_for_eligible_universe_mismatch(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    prediction, snapshot = _payload(1)
+    store.write_prediction_evidence(prediction, snapshot)
+    path = store._find_partition("predictions", "prediction_id", "p-1")
+    assert path is not None
+    persisted = store.get_prediction("p-1")
+    assert persisted is not None
+    with store.transaction(path) as db:
+        payload = {
+            **persisted,
+            "event_type": "prediction_created",
+            "evidence_eligible": True,
+            "analysis_universe": ["BTC"],
+            "analysis_universe_hash": "wrong",
+            "signal_id": "signal-1",
+            "deployment_id": "test",
+            "symbol": "BTCUSDT",
+            "decision_context": "entry",
+            "caller_context": "test",
+            "model_version": "model",
+            "artifact_sha256": "artifact",
+            "feature_schema_version": "schema",
+        }
+        db.execute(
+            "UPDATE predictions SET payload=?,payload_sha256=? "
+            "WHERE prediction_id='p-1'",
+            (
+                __import__("json").dumps(payload, sort_keys=True),
+                payload_sha256(payload),
+            ),
+        )
+    health = store.health()
+    assert health["status"] == "degraded"
+    assert health["severity"] == "UNHEALTHY"
+    assert health["universe_mismatch_count"] == 1
 
 
 def test_concurrent_evidence_writes_preserve_all_rows(tmp_path):

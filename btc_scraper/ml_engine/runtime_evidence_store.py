@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping
 
 from .artifact_resolver import ROOT
+from btc_scraper.core.config import analysis_universe_hash, get_runtime_universe
 from .evidence_epoch import (
     EVIDENCE_POLICY_VERSION,
     RISK_POLICY_VERSION,
@@ -26,8 +27,8 @@ from btc_scraper.core.paths import (
     runtime_owner_metadata,
 )
 
-RUNTIME_EVIDENCE_SCHEMA_VERSION = 4
-GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 2
+RUNTIME_EVIDENCE_SCHEMA_VERSION = 6
+GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 4
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "signal_id",
@@ -40,6 +41,8 @@ REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "artifact_sha256",
     "feature_schema_version",
     "feature_hash",
+    "analysis_universe",
+    "analysis_universe_hash",
 )
 
 
@@ -164,10 +167,13 @@ class RuntimeEvidenceStore:
                     epoch_id TEXT PRIMARY KEY,
                     deployment_id TEXT NOT NULL,
                     started_at TEXT NOT NULL,
+                    activated_at TEXT,
                     code_commit_sha TEXT NOT NULL,
                     model_version TEXT NOT NULL,
                     artifact_sha256 TEXT NOT NULL,
                     feature_schema_version TEXT NOT NULL,
+                    analysis_universe TEXT NOT NULL,
+                    analysis_universe_hash TEXT NOT NULL,
                     evidence_policy_version TEXT NOT NULL,
                     risk_policy_version TEXT NOT NULL,
                     runtime_schema_version INTEGER NOT NULL,
@@ -177,6 +183,24 @@ class RuntimeEvidenceStore:
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_one_active_evidence_epoch
                     ON evidence_epochs(status) WHERE status='ACTIVE';
             """)
+            columns = {
+                str(row[1])
+                for row in db.execute("PRAGMA table_info(evidence_epochs)").fetchall()
+            }
+            if "analysis_universe" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN analysis_universe "
+                    "TEXT NOT NULL DEFAULT '[]'"
+                )
+            if "analysis_universe_hash" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN analysis_universe_hash "
+                    "TEXT NOT NULL DEFAULT ''"
+                )
+            if "activated_at" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN activated_at TEXT"
+                )
             db.execute(f"PRAGMA user_version={GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION}")
 
     @contextmanager
@@ -288,14 +312,17 @@ class RuntimeEvidenceStore:
             epoch_id=str(row[0]),
             deployment_id=str(row[1]),
             started_at=str(row[2]),
-            code_commit_sha=str(row[3]),
-            model_version=str(row[4]),
-            artifact_sha256=str(row[5]),
-            feature_schema_version=str(row[6]),
-            evidence_policy_version=str(row[7]),
-            risk_policy_version=str(row[8]),
-            runtime_schema_version=int(row[9]),
-            status=str(row[10]),
+            activated_at=str(row[3]) if row[3] is not None else None,
+            code_commit_sha=str(row[4]),
+            model_version=str(row[5]),
+            artifact_sha256=str(row[6]),
+            feature_schema_version=str(row[7]),
+            analysis_universe=tuple(json.loads(str(row[8]))),
+            analysis_universe_hash=str(row[9]),
+            evidence_policy_version=str(row[10]),
+            risk_policy_version=str(row[11]),
+            runtime_schema_version=int(row[12]),
+            status=str(row[13]),
         )
 
     def create_evidence_epoch(
@@ -306,11 +333,19 @@ class RuntimeEvidenceStore:
         value.validate()
         with self._global_transaction() as db:
             db.execute(
-                "INSERT INTO evidence_epochs VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO evidence_epochs("
+                "epoch_id,deployment_id,started_at,activated_at,code_commit_sha,model_version,"
+                "artifact_sha256,feature_schema_version,analysis_universe,"
+                "analysis_universe_hash,evidence_policy_version,risk_policy_version,"
+                "runtime_schema_version,status,updated_at"
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     value.epoch_id, value.deployment_id, value.started_at,
+                    value.activated_at,
                     value.code_commit_sha, value.model_version,
                     value.artifact_sha256, value.feature_schema_version,
+                    json.dumps(list(value.analysis_universe), separators=(",", ":")),
+                    value.analysis_universe_hash,
                     value.evidence_policy_version, value.risk_policy_version,
                     value.runtime_schema_version, value.status,
                     self._now().isoformat(),
@@ -321,8 +356,9 @@ class RuntimeEvidenceStore:
     def get_evidence_epoch(self, epoch_id: str) -> EvidenceEpoch | None:
         with self._global_connect() as db:
             row = db.execute(
-                "SELECT epoch_id,deployment_id,started_at,code_commit_sha,"
+                "SELECT epoch_id,deployment_id,started_at,activated_at,code_commit_sha,"
                 "model_version,artifact_sha256,feature_schema_version,"
+                "analysis_universe,analysis_universe_hash,"
                 "evidence_policy_version,risk_policy_version,"
                 "runtime_schema_version,status FROM evidence_epochs "
                 "WHERE epoch_id=?",
@@ -333,8 +369,9 @@ class RuntimeEvidenceStore:
     def get_active_evidence_epoch(self) -> EvidenceEpoch | None:
         with self._global_connect() as db:
             row = db.execute(
-                "SELECT epoch_id,deployment_id,started_at,code_commit_sha,"
+                "SELECT epoch_id,deployment_id,started_at,activated_at,code_commit_sha,"
                 "model_version,artifact_sha256,feature_schema_version,"
+                "analysis_universe,analysis_universe_hash,"
                 "evidence_policy_version,risk_policy_version,"
                 "runtime_schema_version,status FROM evidence_epochs "
                 "WHERE status='ACTIVE'"
@@ -363,14 +400,49 @@ class RuntimeEvidenceStore:
             current = str(row[0])
             if (current, target) not in allowed:
                 raise ValueError(f"invalid evidence epoch transition: {current}->{target}")
-            db.execute(
-                "UPDATE evidence_epochs SET status=?,updated_at=? WHERE epoch_id=?",
-                (target, self._now().isoformat(), str(epoch_id)),
-            )
+            if target == "ACTIVE":
+                epoch = self.get_evidence_epoch(str(epoch_id))
+                assert epoch is not None
+                self.validate_runtime_epoch(epoch)
+            transitioned_at = self._now().isoformat()
+            if target == "ACTIVE":
+                db.execute(
+                    "UPDATE evidence_epochs SET status=?,activated_at=?,updated_at=? "
+                    "WHERE epoch_id=?",
+                    (target, transitioned_at, transitioned_at, str(epoch_id)),
+                )
+            else:
+                db.execute(
+                    "UPDATE evidence_epochs SET status=?,updated_at=? WHERE epoch_id=?",
+                    (target, transitioned_at, str(epoch_id)),
+                )
         result = self.get_evidence_epoch(str(epoch_id))
         assert result is not None
         result.validate()
         return result
+
+    @staticmethod
+    def validate_runtime_epoch(epoch: EvidenceEpoch) -> None:
+        universe = get_runtime_universe()
+        mismatches = []
+        if epoch.analysis_universe != universe.analysis_symbols:
+            mismatches.append("analysis_universe")
+        if epoch.analysis_universe_hash != universe.analysis_hash:
+            mismatches.append("analysis_universe_hash")
+        if mismatches:
+            raise RuntimeError(
+                "active evidence epoch mismatch:" + ",".join(mismatches)
+            )
+
+    def assert_runtime_epoch_ready(self, *, require_active: bool) -> EvidenceEpoch | None:
+        epoch = self.get_active_evidence_epoch()
+        if epoch is None:
+            if require_active:
+                raise RuntimeError("eligible evidence requires an ACTIVE epoch")
+            return None
+        epoch.validate()
+        self.validate_runtime_epoch(epoch)
+        return epoch
 
     def _validate_active_epoch_for_prediction(
         self,
@@ -382,12 +454,15 @@ class RuntimeEvidenceStore:
         if epoch is None:
             raise RuntimeError("eligible evidence requires an ACTIVE epoch")
         epoch.validate()
+        self.validate_runtime_epoch(epoch)
+        runtime_universe = get_runtime_universe()
         expected = {
             "deployment_id": epoch.deployment_id,
             "model_version": epoch.model_version,
             "artifact_sha256": epoch.artifact_sha256,
             "feature_schema_version": epoch.feature_schema_version,
             "git_commit": epoch.code_commit_sha,
+            "analysis_universe_hash": epoch.analysis_universe_hash,
         }
         mismatches = [
             field for field, value in expected.items()
@@ -395,12 +470,42 @@ class RuntimeEvidenceStore:
         ]
         if prediction.get("epoch_id") and str(prediction["epoch_id"]) != epoch.epoch_id:
             mismatches.append("epoch_id")
+        symbol = str(prediction.get("symbol") or "").strip().upper()
+        base_symbol = symbol[:-4] if symbol.endswith("USDT") else symbol
+        if base_symbol not in runtime_universe.analysis_symbols:
+            mismatches.append("symbol_outside_analysis_universe")
         if epoch.evidence_policy_version != EVIDENCE_POLICY_VERSION:
             mismatches.append("evidence_policy_version")
         if epoch.risk_policy_version != RISK_POLICY_VERSION:
             mismatches.append("risk_policy_version")
         if epoch.runtime_schema_version != RUNTIME_EVIDENCE_SCHEMA_VERSION:
             mismatches.append("runtime_schema_version")
+        try:
+            predicted_at = datetime.fromisoformat(
+                str(
+                    prediction.get("predicted_at")
+                    or prediction.get("event_time")
+                    or prediction.get("timestamp")
+                    or ""
+                ).replace("Z", "+00:00")
+            )
+            activated_at = datetime.fromisoformat(
+                str(epoch.activated_at or "").replace("Z", "+00:00")
+            )
+            predicted_at = (
+                predicted_at.replace(tzinfo=timezone.utc)
+                if predicted_at.tzinfo is None
+                else predicted_at.astimezone(timezone.utc)
+            )
+            activated_at = (
+                activated_at.replace(tzinfo=timezone.utc)
+                if activated_at.tzinfo is None
+                else activated_at.astimezone(timezone.utc)
+            )
+            if predicted_at < activated_at:
+                mismatches.append("prediction_before_epoch_activation")
+        except ValueError:
+            mismatches.append("prediction_activation_timestamp")
         if mismatches:
             raise RuntimeError(
                 "active evidence epoch mismatch:" + ",".join(sorted(set(mismatches)))
@@ -942,11 +1047,14 @@ class RuntimeEvidenceStore:
     @staticmethod
     def _with_runtime_metadata(payload: Mapping[str, Any]) -> dict[str, Any]:
         result = dict(payload)
+        universe = get_runtime_universe()
         result.setdefault("environment", runtime_environment())
         result.setdefault("deployment_id", runtime_deployment_id())
         result.setdefault("runtime_id", runtime_id())
         result.setdefault("evidence_eligible", runtime_evidence_eligible())
         result.setdefault("paper_run_id", runtime_paper_run_id())
+        result["analysis_universe"] = list(universe.analysis_symbols)
+        result["analysis_universe_hash"] = universe.analysis_hash
         owner = runtime_owner_metadata()
         result.setdefault("process_id", owner["process_id"])
         result.setdefault("hostname", owner["hostname"])
@@ -1070,6 +1178,7 @@ class RuntimeEvidenceStore:
         idempotency_owners: dict[str, set[str]] = {}
         invalid_lineage_predictions: set[str] = set()
         unknown_symbol_predictions: set[str] = set()
+        universe_mismatch_predictions: set[str] = set()
         for prediction_id, raw_payload, partition_date in raw_prediction_rows:
             prediction_id = str(prediction_id)
             prediction_payload_variants.setdefault(prediction_id, set()).add(str(raw_payload))
@@ -1085,6 +1194,20 @@ class RuntimeEvidenceStore:
                 invalid_lineage_predictions.add(prediction_id)
             if str(payload.get("symbol") or "").upper() == "UNKNOWN":
                 unknown_symbol_predictions.add(prediction_id)
+            universe = tuple(
+                str(symbol).strip().upper()
+                for symbol in (payload.get("analysis_universe") or ())
+            )
+            symbol = str(payload.get("symbol") or "").strip().upper()
+            base_symbol = symbol[:-4] if symbol.endswith("USDT") else symbol
+            if (
+                not universe
+                or len(set(universe)) != len(universe)
+                or payload.get("analysis_universe_hash")
+                != analysis_universe_hash(universe)
+                or base_symbol not in universe
+            ):
+                universe_mismatch_predictions.add(prediction_id)
             idempotency_key = str(payload.get("idempotency_key") or "")
             if idempotency_key:
                 idempotency_owners.setdefault(idempotency_key, set()).add(prediction_id)
@@ -1200,6 +1323,7 @@ class RuntimeEvidenceStore:
         )
         invalid_lineage_count = len(invalid_lineage_predictions)
         unknown_symbol_count = len(unknown_symbol_predictions)
+        universe_mismatch_count = len(universe_mismatch_predictions)
         unresolved_incidents = len({
             (str(kind), str(record_id), str(details), str(detected_at))
             for kind, record_id, details, detected_at, resolved_at in self._all_rows(
@@ -1226,6 +1350,7 @@ class RuntimeEvidenceStore:
             and foreign_key_violations == 0 and corrupt_payloads == 0
             and unresolved_incidents == 0 and quarantined_records == 0
             and invalid_lineage_count == 0 and unknown_symbol_count == 0
+            and universe_mismatch_count == 0
             and duplicate_predictions == 0
             and missing_outcomes == 0
             and global_integrity == "ok"
@@ -1244,6 +1369,7 @@ class RuntimeEvidenceStore:
             or decisions_without_prediction > 0
             or committed_without_prediction > 0
             or predictions_without_global_commit > 0
+            or universe_mismatch_count > 0
         )
         return {
             "status": "healthy" if healthy else "degraded",
@@ -1268,6 +1394,7 @@ class RuntimeEvidenceStore:
                 unknown_symbol_count / production_prediction_count
                 if production_prediction_count else 0.0
             ),
+            "universe_mismatch_count": universe_mismatch_count,
             "duplicate_predictions": duplicate_predictions,
             "duplicate_prediction_rate": (
                 duplicate_predictions / production_prediction_count

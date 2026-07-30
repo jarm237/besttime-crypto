@@ -40,6 +40,23 @@ class TestAlternativeDataScheduler:
         all_history.assert_not_called()
         fund.assert_not_called()
 
+    def test_parsebot_jobs_are_scoped_to_runtime_analysis_universe(self):
+        from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
+
+        sched = AlternativeDataScheduler(
+            analysis_symbols=("BTC", "ETH", "BNB"),
+        )
+        tuesday_9am = datetime(2026, 7, 21, 9, 0, tzinfo=timezone.utc)
+
+        with (
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_recent_job") as recent,
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_etf_all_job"),
+            patch("scripts.fetch_parsebot_etf_jobs.fetch_parsebot_fund_info_job"),
+        ):
+            sched._run_scheduled_parsebot_jobs(tuesday_9am)
+
+        recent.assert_called_once_with(symbols=("BTC", "ETH"))
+
     def test_parsebot_recent_schedule_runs_six_slots_per_publication_day(self):
         from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 

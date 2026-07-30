@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
+from btc_scraper.core.config import analysis_universe_hash
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 from btc_scraper.ml_engine.shadow_validation import (
     SHADOW_READINESS_RULE_VERSION,
@@ -128,6 +129,7 @@ def test_prediction_exclusion_reasons_are_explicit():
 
 
 def test_complete_production_prediction_is_eligible():
+    universe = ("BTC", "ETH", "BNB")
     prediction = {
         "event_type": "prediction_created",
         "prediction_id": "p-valid",
@@ -142,6 +144,8 @@ def test_complete_production_prediction_is_eligible():
         "epoch_id": "epoch-v3",
         "symbol": "BTCUSDT",
         "evidence_eligible": True,
+        "analysis_universe": list(universe),
+        "analysis_universe_hash": analysis_universe_hash(universe),
     }
     assert _prediction_exclusion_reasons(
         prediction,

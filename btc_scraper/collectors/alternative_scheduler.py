@@ -22,7 +22,7 @@ import os
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from btc_scraper.collectors.alternative_data import (
     AlternativeDataCollector,
@@ -106,6 +106,7 @@ class AlternativeDataScheduler:
         on_failure: Optional[Callable[[Exception], None]] = None,
         retries: int = 2,
         delay_seconds: float = 1.0,
+        analysis_symbols: Iterable[str] | None = None,
     ) -> None:
         """
         Args:
@@ -117,6 +118,7 @@ class AlternativeDataScheduler:
             on_failure: Optional callback invoked with the exception on failure.
             retries: Per-collection attempt retries.
             delay_seconds: Delay between retry attempts.
+            analysis_symbols: Optional runtime cohort used to scope symbol jobs.
         """
         self.interval_seconds = max(1.0, interval_seconds)
         self.output_path = output_path
@@ -126,6 +128,11 @@ class AlternativeDataScheduler:
         self.on_failure = on_failure
         self.retries = retries
         self.delay_seconds = delay_seconds
+        self.analysis_symbols = (
+            tuple(str(symbol).strip().upper() for symbol in analysis_symbols)
+            if analysis_symbols is not None
+            else None
+        )
 
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
@@ -307,7 +314,19 @@ class AlternativeDataScheduler:
                     name,
                     due_slot,
                 )
-                job()
+                if self.analysis_symbols is not None and name != "fund info":
+                    supported = (
+                        {"BTC", "ETH", "SOL"}
+                        if name == "recent"
+                        else {"BTC", "ETH"}
+                    )
+                    job(symbols=tuple(
+                        symbol
+                        for symbol in self.analysis_symbols
+                        if symbol in supported
+                    ))
+                else:
+                    job()
                 setattr(self, state_attr, due_slot)
 
 

@@ -11,7 +11,7 @@ from typing import Literal
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from btc_scraper.trading import position_tracker
-from btc_scraper.core.config import COINS
+from btc_scraper.core.config import get_analysis_universe
 from btc_scraper.core.operational_resilience import service_health
 from btc_scraper.core.paths import build_data_path, build_logs_path
 
@@ -705,8 +705,8 @@ def get_backtest_report(run_id: str):
 
 @app.get("/api/config")
 def get_config():
-    """Lấy danh sách cấu hình, bao gồm danh sách COINS."""
-    return {"coins": COINS}
+    """Lấy danh sách symbol trong analysis universe hiện tại."""
+    return {"coins": list(get_analysis_universe())}
 
 @app.get("/metrics")
 def get_metrics():

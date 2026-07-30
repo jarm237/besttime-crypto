@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPT_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_REPO_ROOT))
+
+from btc_scraper.core.config import analysis_universe_hash, parse_runtime_symbols
 from btc_scraper.ml_engine.evidence_epoch import EvidenceEpoch
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 
@@ -25,6 +31,11 @@ def _parser() -> argparse.ArgumentParser:
     create.add_argument("--artifact-sha256", required=True)
     create.add_argument("--feature-schema-version", required=True)
     create.add_argument(
+        "--analysis-universe",
+        required=True,
+        help="Comma-separated base symbols, for example BTC,ETH,BNB",
+    )
+    create.add_argument(
         "--started-at",
         default=None,
         help="ISO-8601 UTC timestamp; defaults to now",
@@ -39,6 +50,10 @@ def main() -> int:
     args = _parser().parse_args()
     store = RuntimeEvidenceStore(args.evidence_path)
     if args.command == "create":
+        analysis_universe = parse_runtime_symbols(
+            args.analysis_universe,
+            field_name="--analysis-universe",
+        )
         result = store.create_evidence_epoch(EvidenceEpoch(
             epoch_id=args.epoch_id,
             deployment_id=args.deployment_id,
@@ -47,6 +62,8 @@ def main() -> int:
             model_version=args.model_version,
             artifact_sha256=args.artifact_sha256,
             feature_schema_version=args.feature_schema_version,
+            analysis_universe=analysis_universe,
+            analysis_universe_hash=analysis_universe_hash(analysis_universe),
         ))
     elif args.command == "status":
         result = store.get_active_evidence_epoch()

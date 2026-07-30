@@ -5,11 +5,11 @@ Multi-Agent AI Platform — Định nghĩa các Agent chuyên biệt và Orchest
 import os
 import time
 import copy
-from typing import Dict, Any, List
+from typing import Dict, Any, Iterable, List
 from rich.console import Console
 
 from btc_scraper.analysis import analyze_market
-from btc_scraper.core.config import COINS
+from btc_scraper.core.config import get_analysis_universe
 from btc_scraper.trading.portfolio_manager import PortfolioManager
 from btc_scraper.trading import position_tracker
 
@@ -32,8 +32,11 @@ class MarketAnalystAgent(BaseAgent):
     """
     MarketAnalystAgent: Cào dữ liệu, tính chỉ báo, phát hiện regime thị trường và xu hướng đa khung thời gian.
     """
-    def __init__(self):
+    def __init__(self, analysis_symbols: Iterable[str] | None = None):
         super().__init__("MarketAnalyst")
+        self.analysis_symbols = tuple(
+            analysis_symbols if analysis_symbols is not None else get_analysis_universe()
+        )
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         raw_candles = context["raw_candles"]
@@ -41,7 +44,7 @@ class MarketAnalystAgent(BaseAgent):
 
         analysis_results = {}
         mtf_analysis_results = {}
-        for coin in COINS:
+        for coin in self.analysis_symbols:
             # 1. Phân tích nến 15m
             candles_15m = raw_candles.get(coin, [])
             if not candles_15m or "error" in candles_15m[0]:
@@ -356,8 +359,11 @@ class AgentOrchestrator:
     """
     AgentOrchestrator: Điều phối tuần tự tất cả các Agent trong Core Loop.
     """
-    def __init__(self):
-        self.market_analyst = MarketAnalystAgent()
+    def __init__(self, analysis_symbols: Iterable[str] | None = None):
+        self.analysis_symbols = tuple(
+            analysis_symbols if analysis_symbols is not None else get_analysis_universe()
+        )
+        self.market_analyst = MarketAnalystAgent(self.analysis_symbols)
         self.signal_generator = SignalGeneratorAgent()
         self.risk_manager = RiskManagerAgent()
         self.portfolio_manager = PortfolioManagerAgent()

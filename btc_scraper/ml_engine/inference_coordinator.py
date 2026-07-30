@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass
 from threading import Lock
 from typing import Any, Mapping
 
+from btc_scraper.core.config import get_analysis_universe
 from btc_scraper.core.paths import runtime_deployment_id
 
 
@@ -78,6 +79,11 @@ class InferenceCoordinator:
         from .meta_model import MODEL_VERSION, predict_meta_confidence
         from .runtime_evidence_store import get_runtime_evidence_store
 
+        normalized_symbol = str(symbol).upper().replace("/", "").removesuffix("USDT")
+        if normalized_symbol not in get_analysis_universe():
+            raise ValueError(
+                f"inference symbol outside BTC_ANALYSIS_UNIVERSE: {normalized_symbol}"
+            )
         signal_id = ensure_signal_id(
             analysis,
             symbol=symbol,
@@ -85,7 +91,7 @@ class InferenceCoordinator:
             decision_context=decision_context,
         )
         analysis.update({
-            "coin": str(symbol).upper().replace("/", "").removesuffix("USDT"),
+            "coin": normalized_symbol,
             "symbol": str(symbol).upper(),
             "timeframe": timeframe,
             "signal_id": signal_id,

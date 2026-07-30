@@ -38,7 +38,7 @@ Config (từ .env):
     AUTO_TRADE_MIN_TRADE_USDT=10          # Minimum (Binance min notional)
     AUTO_TRADE_MAX_DAILY=5                # Số lệnh tối đa/ngày
     AUTO_TRADE_CIRCUIT_BREAKER_N=5        # Dừng sau N lệnh thua liên tiếp
-    AUTO_TRADE_COINS=                     # Để trống = tất cả COINS
+    AUTO_TRADE_COINS=                     # Để trống = analysis universe
 """
 from __future__ import annotations
 
@@ -200,9 +200,9 @@ class AutoTrader:
 
     @property
     def allowed_coins(self) -> List[str]:
-        """List coins cho phép auto-trade. Để trống = tất cả."""
-        from btc_scraper.core.config import COINS
-        return _env_list("AUTO_TRADE_COINS", list(COINS))
+        """Execution universe; it must remain inside the analysis universe."""
+        from btc_scraper.core.config import get_runtime_universe
+        return list(get_runtime_universe().execution_symbols)
 
     @property
     def use_kelly(self) -> bool:

@@ -32,8 +32,13 @@ from btc_scraper.analysis import analyze_market
 from btc_scraper.ui.display import print_all
 from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations, start_telegram_listener
 from btc_scraper.ai_analyst import analyze_with_gemini
-from btc_scraper.core.config import COINS, FETCH_INTERVAL_MINUTES
-from btc_scraper.core.paths import build_data_path, build_logs_path, build_scripts_path
+from btc_scraper.core.config import FETCH_INTERVAL_MINUTES, get_runtime_universe
+from btc_scraper.core.paths import (
+    build_data_path,
+    build_logs_path,
+    build_scripts_path,
+    runtime_evidence_eligible,
+)
 from btc_scraper.core.runtime_ownership import RuntimeLock, audit_runtime_lock_bypass, runtime_lock_disabled
 from btc_scraper.core.fear_greed import resolve_fear_greed_value
 from btc_scraper.trading import position_tracker
@@ -47,6 +52,8 @@ from btc_scraper.collectors.alternative_data import load_alternative_data
 
 
 console = Console()
+RUNTIME_UNIVERSE = get_runtime_universe()
+ANALYSIS_SYMBOLS = RUNTIME_UNIVERSE.analysis_symbols
 
 
 def _resolve_analysis_fear_greed(analysis: dict) -> float:
@@ -56,6 +63,16 @@ def _resolve_analysis_fear_greed(analysis: dict) -> float:
         analysis.get("fear_greed"),
         default=50.0,
     )
+
+
+def _runtime_open_positions() -> list[dict]:
+    """Exclude legacy/shared positions outside this runtime's analysis cohort."""
+    allowed = set(ANALYSIS_SYMBOLS)
+    return [
+        position
+        for position in position_tracker.get_open_positions()
+        if str(position.get("coin") or "").strip().upper() in allowed
+    ]
 
 # ─── Auto-restart config ─────────────────────────────────────────────────────
 MAX_RETRIES = 5               # Số lần retry tối đa liên tiếp trước khi bỏ cuộc
@@ -149,7 +166,7 @@ async def check_and_execute_auto_closes(recs: list[dict]):
     """
     try:
         from btc_scraper.trading.auto_trader import auto_trader
-        open_positions = position_tracker.get_open_positions()
+        open_positions = _runtime_open_positions()
         for rec in recs:
             coin = rec["coin"]
             action = rec["recommendation"]
@@ -350,12 +367,12 @@ async def fetch_and_display():
 
     async with aiohttp.ClientSession() as session:
         tasks_15m = []
-        for coin in COINS:
+        for coin in ANALYSIS_SYMBOLS:
             tasks_15m.append(_get_candles_for_coin(coin, "15m", session))
             
         res_15m = await asyncio.gather(*tasks_15m)
         
-        for i, coin in enumerate(COINS):
+        for i, coin in enumerate(ANALYSIS_SYMBOLS):
             binance_candles = res_15m[i]
             results[coin] = {"Binance": binance_candles}
             raw_candles_dict[coin] = binance_candles
@@ -364,24 +381,24 @@ async def fetch_and_display():
         if not using_ws:
             console.print(f"[dim]  ↳ Đang lấy nến 1h / 4h / 1d (REST parallel)...[/dim]")
             tasks_mtf = []
-            for coin in COINS:
+            for coin in ANALYSIS_SYMBOLS:
                 for tf in ["1h", "4h", "1d"]:
                     tasks_mtf.append(_get_candles_for_coin(coin, tf, session))
             res_mtf = await asyncio.gather(*tasks_mtf)
             
             idx = 0
-            for coin in COINS:
+            for coin in ANALYSIS_SYMBOLS:
                 for tf in ["1h", "4h", "1d"]:
                     mtf_candles_dict[coin][tf] = res_mtf[idx]
                     idx += 1
         else:
-            for coin in COINS:
+            for coin in ANALYSIS_SYMBOLS:
                 for tf in ["1h", "4h", "1d"]:
                     mtf_candles_dict[coin][tf] = await _get_candles_for_coin(coin, tf, session)
 
     # Chạy hệ thống đa tác nhân điều phối (AgentOrchestrator)
     from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
-    orchestrator = AgentOrchestrator()
+    orchestrator = AgentOrchestrator(analysis_symbols=ANALYSIS_SYMBOLS)
     context = await orchestrator.run_cycle(raw_candles_dict, mtf_candles_dict)
 
     analysis = context["analysis"]
@@ -506,12 +523,12 @@ async def fetch_and_display():
     message_id = send_signals_alert(analysis, mtf_analysis)
 
     # 4. Đẩy phân tích đa khung thời gian và vị thế mở vào Queue cho Luồng AI xử lý ngầm
-    open_positions = position_tracker.get_open_positions()
+    open_positions = _runtime_open_positions()
     ai_queue.put((analysis, mtf_analysis, open_positions, message_id))
 
 async def fetch_and_analyze_open_positions_only():
     """Lấy dữ liệu và phân tích chỉ cho các coin đang có vị thế mở (quét khẩn cấp mỗi 5 phút). Không gọi AI."""
-    open_positions = position_tracker.get_open_positions()
+    open_positions = _runtime_open_positions()
     if not open_positions:
         return
         
@@ -662,7 +679,11 @@ async def async_main():
     args = parser.parse_args()
 
     console.print(f"\n[bold yellow]*** Multi-coin Trading Signals Scraper ***[/]")
-    console.print(f"[dim]Coins: {', '.join(COINS)} | Nguồn: Binance (WebSocket) + Bybit + OKX[/dim]\n")
+    console.print(
+        f"[dim]Analysis coins: {', '.join(ANALYSIS_SYMBOLS)} | "
+        f"Execution coins: {', '.join(RUNTIME_UNIVERSE.execution_symbols)} | "
+        "Nguồn: Binance (WebSocket) + Bybit + OKX[/dim]\n"
+    )
     console.print(
         f"[dim]Auto-restart: ON | Max retries: {MAX_RETRIES} | "
         f"Backoff: {BASE_BACKOFF}s-{MAX_BACKOFF}s[/dim]\n"
@@ -672,7 +693,7 @@ async def async_main():
     global _ws_manager, _CAUSAL_COMPONENTS
     try:
         _ws_manager = BinanceWebSocketManager(
-            coins=COINS,
+            coins=ANALYSIS_SYMBOLS,
             on_candle_close=None,  # event-driven callback tùy chọn (hiện không bắt buộc)
         )
         await _ws_manager.bootstrap_rest()   # Load 210 nến lịch sử qua REST
@@ -713,6 +734,7 @@ async def async_main():
         )
         _alt_data_scheduler = AlternativeDataScheduler(
             interval_seconds=max(60, FETCH_INTERVAL_MINUTES * 60),
+            analysis_symbols=ANALYSIS_SYMBOLS,
             on_success=lambda payload: _alt_health_monitor.record_collection("alternative_data", payload, success=True),
             on_failure=lambda exc: _alt_health_monitor.record_collection("alternative_data", {}, success=False),
         )
@@ -846,6 +868,12 @@ def main():
                 f"{lock_info['environment']}/{lock_info['deployment_id']} "
                 f"runtime_id={lock_info['runtime_id']}[/dim]"
             )
+        from btc_scraper.ml_engine.runtime_evidence_store import (
+            get_runtime_evidence_store,
+        )
+        get_runtime_evidence_store().assert_runtime_epoch_ready(
+            require_active=runtime_evidence_eligible()
+        )
         asyncio.run(async_main())
     except KeyboardInterrupt:
         console.print("\n[bold red]Đã dừng.[/bold red]")
