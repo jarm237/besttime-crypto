@@ -1197,6 +1197,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 fill_id=analysis_info.get("fill_id"),
                 extra={
                     "signal": analysis_info.get("signal"),
+                    "cycle_id": analysis_info.get("cycle_id"),
                     "sizing_probability": sizing_probability,
                     **ev_metrics,
                     "regime_snapshot": analysis_info.get("regime_snapshot"),
@@ -1228,6 +1229,8 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             "feature_schema_version": "meta-v3.1-43f",
             "feature_hash": prediction_event.get("feature_hash"),
             "deployment_id": prediction_event.get("deployment_id"),
+            "paper_run_id": prediction_event.get("paper_run_id"),
+            "cycle_id": prediction_event.get("cycle_id"),
             "signal_id": prediction_event.get("signal_id"),
             "decision_context": prediction_event.get("decision_context"),
             "caller_context": prediction_event.get("caller_context"),

@@ -68,7 +68,12 @@ from btc_scraper.trading.decision_types import (
     SizingDecision,
     EntryDecision,
 )
-from btc_scraper.core.paths import build_logs_path
+from btc_scraper.core.paths import (
+    build_logs_path,
+    runtime_deployment_id,
+    runtime_evidence_eligible,
+    runtime_paper_run_id,
+)
 
 AUTO_TRADE_LOG = build_logs_path("auto_trade_log.json")
 CIRCUIT_BREAKER_STATE = build_logs_path("auto_trade_circuit.json")
@@ -504,7 +509,28 @@ class AutoTrader:
         raw_signal = str(analysis.get("signal", ""))
         raw_signal_upper = raw_signal.upper()
         tp_sl = analysis.get("tp_sl") or {}
-        causal_decision = analysis.get("causal_decision") or {}
+        presented_final_decision = analysis.get("causal_decision") or {}
+        prediction_id = analysis.get("prediction_id") or sig_score.get("prediction_id")
+        persisted_final_decision: Dict[str, Any] | None = None
+        if runtime_evidence_eligible() and prediction_id:
+            try:
+                from btc_scraper.ml_engine.runtime_evidence_store import (
+                    get_runtime_evidence_store,
+                )
+
+                persisted_final_decision = (
+                    get_runtime_evidence_store()
+                    .get_final_decision_for_prediction(str(prediction_id))
+                )
+            except Exception:
+                persisted_final_decision = None
+        causal_decision = (
+            persisted_final_decision
+            if runtime_evidence_eligible()
+            else presented_final_decision
+        ) or {}
+        if persisted_final_decision is not None:
+            analysis["causal_decision"] = persisted_final_decision
         lineage = {
             "decision_id": (
                 causal_decision.get("decision_id")
@@ -524,6 +550,8 @@ class AutoTrader:
                 or sig_score.get("feature_schema_version")
             ),
             "deployment_id": analysis.get("deployment_id") or sig_score.get("deployment_id"),
+            "paper_run_id": analysis.get("paper_run_id") or sig_score.get("paper_run_id"),
+            "cycle_id": analysis.get("cycle_id") or sig_score.get("cycle_id"),
             "decision_context": analysis.get("decision_context") or sig_score.get("decision_context"),
             "caller_context": analysis.get("caller_context") or sig_score.get("caller_context"),
         }
@@ -574,6 +602,47 @@ class AutoTrader:
                 eligibility_reason=reason,
                 **lineage,
             )
+
+        # Eligible production evidence must be authorized by the one persisted
+        # terminal decision, never reconstructed from the technical signal.
+        if runtime_evidence_eligible():
+            if persisted_final_decision is None:
+                return _reject(EntryRejectionReason.MISSING_FINAL_DECISION)
+            if presented_final_decision and any(
+                str(presented_final_decision.get(field) or "")
+                != str(persisted_final_decision.get(field) or "")
+                for field in ("decision_id", "prediction_id", "action", "cycle_id")
+            ):
+                return _reject(
+                    EntryRejectionReason.FINAL_DECISION_LINEAGE_MISMATCH
+                )
+            final_action = str(causal_decision.get("action") or "").upper()
+            if bool(causal_decision.get("superseded")):
+                return _reject(EntryRejectionReason.FINAL_DECISION_SUPERSEDED)
+            if (
+                final_action not in {"BUY", "SELL"}
+                or str(causal_decision.get("terminal_status") or "").upper() != "TRADE"
+                or not bool(causal_decision.get("eligible"))
+            ):
+                return _reject(EntryRejectionReason.NON_EXECUTABLE_FINAL_DECISION)
+            if final_action != upstream_action.value:
+                return _reject(EntryRejectionReason.FINAL_DECISION_LINEAGE_MISMATCH)
+            expected_lineage = {
+                "prediction_id": lineage["prediction_id"],
+                "cycle_id": lineage["cycle_id"],
+                "deployment_id": runtime_deployment_id(),
+                "paper_run_id": runtime_paper_run_id(),
+            }
+            if (
+                not expected_lineage["cycle_id"]
+                or not expected_lineage["paper_run_id"]
+                or expected_lineage["paper_run_id"] != expected_lineage["deployment_id"]
+                or any(
+                    str(causal_decision.get(field) or "") != str(value or "")
+                    for field, value in expected_lineage.items()
+                )
+            ):
+                return _reject(EntryRejectionReason.FINAL_DECISION_LINEAGE_MISMATCH)
 
         # 1. Coin whitelist
         if coin.upper() not in [c.upper() for c in self.allowed_coins]:
@@ -870,6 +939,8 @@ class AutoTrader:
                         tf_ana["close"] = tf_ana.get("close") or tf_ana.get("close_price") or 0.0
                         tf_ana.setdefault("coin", coin)
                         tf_ana.setdefault("symbol", f"{coin}USDT")
+                        base_analysis = analysis.get(f"{coin}:Binance") or {}
+                        tf_ana.setdefault("cycle_id", base_analysis.get("cycle_id"))
                         try:
                             from btc_scraper.ml_engine.inference_coordinator import get_inference_coordinator
                             from btc_scraper.ml_engine.causal_context_bridge import enhance_signal_with_causal_context
@@ -937,6 +1008,7 @@ class AutoTrader:
 
         # 1. Evaluate canonical entry decision
         decision = self.build_entry_decision(ana, coin)
+        final_decision = ana.get("causal_decision") or {}
 
         if not decision.eligible:
             # Silently skip low-priority or expected non-trade signals
@@ -1148,10 +1220,21 @@ class AutoTrader:
                 "model_artifact_sha256": decision.artifact_hash,
                 "feature_schema_version": decision.feature_schema_version,
                 "deployment_id": decision.deployment_id,
+                "paper_run_id": decision.paper_run_id,
+                "cycle_id": decision.cycle_id,
                 "decision_context": decision.decision_context,
                 "caller_context": decision.caller_context,
                 "entry_decision_id": decision.decision_id,
                 "decision_id": decision.decision_id,
+                "final_decision_id": final_decision.get("decision_id"),
+                "final_decision_action": final_decision.get("action"),
+                "final_decision_prediction_id": final_decision.get("prediction_id"),
+                "final_decision_cycle_id": final_decision.get("cycle_id"),
+                "final_decision_deployment_id": final_decision.get("deployment_id"),
+                "final_decision_paper_run_id": final_decision.get("paper_run_id"),
+                "final_decision_eligible": final_decision.get("eligible"),
+                "final_decision_terminal_status": final_decision.get("terminal_status"),
+                "final_decision_superseded": final_decision.get("superseded", False),
                 "idempotency_key": ana.get("idempotency_key"),
                 "lifecycle_schema_version": ana.get("lifecycle_schema_version", "trade-lifecycle-v1"),
                 "entry_time": datetime.now().isoformat(),
@@ -1204,6 +1287,7 @@ class AutoTrader:
                     execution_mode=rec.execution_mode,
                     fill_source=rec.fill_source,
                     paper_run_id=rec.paper_run_id,
+                    cycle_id=rec.cycle_id,
                     created_by="auto_trader",
                     order_creator="system",
                     order_channel="paper_runner" if rec.execution_mode == "paper" else "live_runner",

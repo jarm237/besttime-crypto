@@ -425,6 +425,13 @@ class RuntimeEvidenceStore:
     def validate_runtime_epoch(epoch: EvidenceEpoch) -> None:
         universe = get_runtime_universe()
         mismatches = []
+        if runtime_deployment_id() != epoch.deployment_id:
+            mismatches.append("deployment_id")
+        if (
+            runtime_evidence_eligible()
+            and runtime_paper_run_id() != epoch.deployment_id
+        ):
+            mismatches.append("paper_run_id")
         if epoch.analysis_universe != universe.analysis_symbols:
             mismatches.append("analysis_universe")
         if epoch.analysis_universe_hash != universe.analysis_hash:

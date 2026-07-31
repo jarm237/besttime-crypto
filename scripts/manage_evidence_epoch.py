@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -73,6 +74,16 @@ def main() -> int:
             "seal": "SEALED",
             "invalidate": "INVALIDATED",
         }[args.command]
+        if target in {"ACTIVE", "SEALED"}:
+            epoch = store.get_evidence_epoch(args.epoch_id)
+            if epoch is None:
+                raise RuntimeError(f"evidence epoch not found: {args.epoch_id}")
+            universe = ",".join(epoch.analysis_universe)
+            os.environ["BTC_DEPLOYMENT_ID"] = epoch.deployment_id
+            os.environ["BTC_PAPER_RUN_ID"] = epoch.deployment_id
+            os.environ["BTC_ANALYSIS_UNIVERSE"] = universe
+            os.environ["AUTO_TRADE_COINS"] = universe
+            os.environ.setdefault("BTC_EVIDENCE_ELIGIBLE", "true")
         result = store.transition_evidence_epoch(args.epoch_id, target)
     print(json.dumps(result.to_dict() if result else None, indent=2, sort_keys=True))
     return 0

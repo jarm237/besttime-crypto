@@ -3,6 +3,10 @@ from typing import Dict, Optional, TYPE_CHECKING
 import uuid
 
 from .meta_model import predict_meta_confidence
+from btc_scraper.core.paths import (
+    runtime_evidence_eligible,
+    runtime_paper_run_id,
+)
 from btc_scraper.regime.config import (
     regime_decision_weight_enabled,
     regime_effect_metadata,
@@ -102,6 +106,24 @@ class MetaDecisionEngine:
             return max(0.0, min(1.0, float(value)))
         except Exception:
             return 0.5
+
+    @staticmethod
+    def _terminal_fields(action: str) -> dict:
+        normalized = str(action or "").upper()
+        if normalized in {"BUY", "SELL"}:
+            terminal_status = "TRADE"
+            eligible = True
+        elif normalized in {"BLOCK_ENTRY", "ALLOW_EXIT_ONLY", "ERROR"}:
+            terminal_status = "ERROR" if normalized == "ERROR" else "REJECTED"
+            eligible = False
+        else:
+            terminal_status = "HOLD"
+            eligible = False
+        return {
+            "terminal_status": terminal_status,
+            "eligible": eligible,
+            "superseded": False,
+        }
 
     def _signal_direction(self, info: Dict) -> str:
         text = str(info.get("signal") or info.get("action") or "").upper()
@@ -320,15 +342,21 @@ class MetaDecisionEngine:
             "model_artifact_sha256": meta.get("artifact_sha256"),
             "feature_schema_version": meta.get("feature_schema_version"),
             "deployment_id": meta.get("deployment_id"),
+            "paper_run_id": (
+                meta.get("paper_run_id") or runtime_paper_run_id()
+            ),
+            "cycle_id": meta.get("cycle_id"),
             "decision_context": meta.get("decision_context"),
             "caller_context": meta.get("caller_context"),
             "feature_hash": meta.get("feature_hash"),
             "risk_status": risk_status,
             "risk_failure_reason": risk_failure_reason,
             "risk_blocked": risk_blocked or risk_status == "UNAVAILABLE",
+            "evidence_eligible": runtime_evidence_eligible(),
             "decision_id": str(uuid.uuid4()),
             "context_snapshot_id": None,
             **regime_effect_metadata(self.regime_decision_effect_enabled),
+            **self._terminal_fields(action),
         }
         if persist_final:
             self._persist_final_decision(final_decision)
@@ -358,6 +386,12 @@ class MetaDecisionEngine:
             proposed_action = "IGNORE"
 
         final_action, risk_reasons = apply_final_risk_gate(proposed_action, risk_level, stop_processing)
+        if (
+            bool(base_decision.get("risk_blocked"))
+            or str(base_decision.get("risk_status") or "").upper() == "UNAVAILABLE"
+        ):
+            final_action = DecisionAction.BLOCK_ENTRY
+            risk_reasons = tuple(risk_reasons) + ("risk_failure_entry_block",)
         reason_parts = [base_decision.get("reason", "")]
         for adj in sorted(adjustments, key=lambda x: abs(x.get("impact", 0)), reverse=True)[:2]:
             reason_parts.append(f"[{adj.get('layer', 'context')}] {adj.get('reason', '')}")
@@ -378,6 +412,7 @@ class MetaDecisionEngine:
             "decision_id": base_decision.get("decision_id") or str(uuid.uuid4()),
             "signal_id": base_decision.get("signal_id") or (analysis_info or {}).get("signal_id") or (analysis_info or {}).get("id"),
             "reason": " | ".join(part for part in reason_parts if part),
+            **self._terminal_fields(final_action.value),
         }
         self._persist_final_decision(final_decision)
         return final_decision

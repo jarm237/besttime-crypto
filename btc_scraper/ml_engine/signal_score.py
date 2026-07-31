@@ -957,6 +957,8 @@ def score_signal(
         "model_artifact_sha256": meta_decision.get("artifact_sha256"),
         "feature_schema_version": meta_decision.get("feature_schema_version"),
         "deployment_id": meta_decision.get("deployment_id"),
+        "paper_run_id": meta_decision.get("paper_run_id"),
+        "cycle_id": meta_decision.get("cycle_id"),
         "decision_context": meta_decision.get("decision_context"),
         "caller_context": meta_decision.get("caller_context"),
         "feature_hash": meta_decision.get("feature_hash"),

@@ -33,7 +33,13 @@ from .exchange_adapter import WriteExchangeAdapter, make_write_adapter_from_env
 from btc_scraper.execution.reservation_store import ReservationStore
 from btc_scraper.trading.decision_types import ReservationStatus
 from btc_scraper.execution.hard_risk_limits import OrderIntent
-from btc_scraper.core.paths import build_execution_data_path, build_logs_path
+from btc_scraper.core.paths import (
+    build_execution_data_path,
+    build_logs_path,
+    runtime_deployment_id,
+    runtime_evidence_eligible,
+    runtime_paper_run_id,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +127,79 @@ class ExecutionEngine:
         signal_id = signal.get("id") or record.signal_id
         return f"{signal_id}:{symbol}:{side}:{strategy}:{bucket}"
 
+    @staticmethod
+    def _entry_authorization_failure(
+        signal: Dict[str, Any],
+        *,
+        side: str,
+        require_paper_lineage: bool,
+    ) -> str | None:
+        """Fail closed before reservation for eligible production entries."""
+        if not runtime_evidence_eligible():
+            return None
+        if (
+            not signal.get("final_decision_id")
+            or not signal.get("final_decision_prediction_id")
+            or not signal.get("prediction_id")
+        ):
+            return "MISSING_FINAL_DECISION"
+        final_action = str(signal.get("final_decision_action") or "").upper()
+        if (
+            final_action not in {"BUY", "SELL"}
+            or final_action != str(side).upper()
+            or str(signal.get("final_decision_terminal_status") or "").upper() != "TRADE"
+            or not bool(signal.get("final_decision_eligible"))
+            or bool(signal.get("final_decision_superseded"))
+        ):
+            return "EXECUTION_WITH_NON_EXECUTABLE_DECISION"
+        if (
+            str(signal.get("final_decision_prediction_id"))
+            != str(signal.get("prediction_id"))
+            or str(signal.get("final_decision_id"))
+            != str(signal.get("entry_decision_id") or signal.get("decision_id"))
+            or not str(signal.get("cycle_id") or "")
+            or str(signal.get("final_decision_cycle_id") or "")
+            != str(signal.get("cycle_id") or "")
+        ):
+            return "FINAL_DECISION_LINEAGE_MISMATCH"
+        deployment_id = runtime_deployment_id()
+        if str(signal.get("deployment_id") or "") != deployment_id:
+            return "FINAL_DECISION_LINEAGE_MISMATCH"
+        if (
+            str(signal.get("final_decision_deployment_id") or "")
+            != deployment_id
+        ):
+            return "FINAL_DECISION_LINEAGE_MISMATCH"
+        paper_run_id = runtime_paper_run_id()
+        if require_paper_lineage and (
+            not paper_run_id
+            or paper_run_id != deployment_id
+            or str(signal.get("paper_run_id") or "") != paper_run_id
+            or str(signal.get("final_decision_paper_run_id") or "")
+            != paper_run_id
+        ):
+            return "PAPER_RUN_LINEAGE_MISMATCH"
+        return None
+
+    @staticmethod
+    def _record_entry_quarantine(signal: Dict[str, Any], reason: str) -> None:
+        try:
+            from btc_scraper.ml_engine.runtime_evidence_store import (
+                get_runtime_evidence_store,
+            )
+
+            get_runtime_evidence_store().append_audit_event({
+                "event_type": "execution_quarantined",
+                "reason_code": reason,
+                "prediction_id": signal.get("prediction_id"),
+                "decision_id": signal.get("final_decision_id"),
+                "cycle_id": signal.get("cycle_id"),
+                "deployment_id": signal.get("deployment_id"),
+                "paper_run_id": signal.get("paper_run_id"),
+            })
+        except Exception:
+            logger.exception("Failed to persist execution quarantine")
+
     # ── Public API ─────────────────────────────────────────────────────────────
 
     def submit_paper(
@@ -160,6 +239,7 @@ class ExecutionEngine:
             client_order_id=signal.get("client_order_id", ""),
             exchange_order_id=signal.get("exchange_order_id", ""),
             position_id=signal.get("position_id", ""),
+            cycle_id=signal.get("cycle_id", ""),
             lifecycle_schema_version=signal.get("lifecycle_schema_version", "trade-lifecycle-v1"),
             coin=coin,
             side=side,
@@ -169,12 +249,22 @@ class ExecutionEngine:
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
             fill_source="real_paper",
             execution_mode="paper",
-            paper_run_id=os.getenv("PAPER_RUN_ID", "").strip(),
+            paper_run_id=(
+                signal.get("paper_run_id")
+                or runtime_paper_run_id()
+                or ""
+            ),
         )
 
         intent = signal.get("intent", OrderIntent.ENTRY)
         is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
         if is_entry:
+            authorization_failure = self._entry_authorization_failure(
+                signal, side=side, require_paper_lineage=True
+            )
+            if authorization_failure:
+                self._record_entry_quarantine(signal, authorization_failure)
+                return self._tracker.reject(record, authorization_failure)
             symbol = f"{coin}/USDT"
             reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
             idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
@@ -191,6 +281,8 @@ class ExecutionEngine:
                 model_artifact_sha256=record.model_artifact_sha256,
                 feature_schema_version=record.feature_schema_version,
                 deployment_id=record.deployment_id,
+                paper_run_id=record.paper_run_id,
+                cycle_id=record.cycle_id,
                 decision_context=record.decision_context,
                 caller_context=record.caller_context,
             )
@@ -438,6 +530,7 @@ class ExecutionEngine:
             client_order_id=signal.get("client_order_id", ""),
             exchange_order_id=signal.get("exchange_order_id", ""),
             position_id=signal.get("position_id", ""),
+            cycle_id=signal.get("cycle_id", ""),
             lifecycle_schema_version=signal.get("lifecycle_schema_version", "trade-lifecycle-v1"),
             coin=coin,
             side=side,
@@ -449,6 +542,12 @@ class ExecutionEngine:
             fill_source="live",
             execution_mode="live",
         )
+        authorization_failure = self._entry_authorization_failure(
+            signal, side=side, require_paper_lineage=False
+        )
+        if authorization_failure:
+            self._record_entry_quarantine(signal, authorization_failure)
+            return self._tracker.reject(record, authorization_failure)
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────
         snap = self._liquidity.analyze_from_candle(
@@ -538,6 +637,8 @@ class ExecutionEngine:
                     model_artifact_sha256=record.model_artifact_sha256,
                     feature_schema_version=record.feature_schema_version,
                     deployment_id=record.deployment_id,
+                    paper_run_id=record.paper_run_id,
+                    cycle_id=record.cycle_id,
                     decision_context=record.decision_context,
                     caller_context=record.caller_context,
                 )

@@ -64,6 +64,10 @@ class TestEntryRejectionReason:
         "CORRELATION_FILTER": "correlation_filter",
         "EXISTING_POSITION": "existing_position",
         "DAILY_LIMIT": "daily_limit",
+        "MISSING_FINAL_DECISION": "missing_final_decision",
+        "NON_EXECUTABLE_FINAL_DECISION": "non_executable_final_decision",
+        "FINAL_DECISION_LINEAGE_MISMATCH": "final_decision_lineage_mismatch",
+        "FINAL_DECISION_SUPERSEDED": "final_decision_superseded",
     }
 
     def test_all_values_stable(self):

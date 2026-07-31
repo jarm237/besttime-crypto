@@ -75,6 +75,7 @@ class ExecutionRecord:
     client_order_id: str = ""
     exchange_order_id: str = ""
     position_id: str = ""
+    cycle_id: str = ""
     lifecycle_schema_version: str = "trade-lifecycle-v1"
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 

@@ -24,7 +24,7 @@ else:
 
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
-from btc_scraper.core.paths import build_logs_path
+from btc_scraper.core.paths import build_logs_path, runtime_paper_run_id
 from btc_scraper.regime.config import compute_regime_config_sha256, load_runtime_regime_config
 from btc_scraper.regime.contract import coerce_regime_snapshot
 from btc_scraper.regime.contract import model_regime_bucket
@@ -427,6 +427,7 @@ def add_position(
     execution_mode: str | None = None,
     fill_source: str | None = None,
     paper_run_id: str | None = None,
+    cycle_id: str | None = None,
     created_by: str | None = None,
     source_test_name: str | None = None,
     prediction_id: str | None = None,
@@ -516,6 +517,7 @@ def add_position(
         "coin": coin,
         "id": position_id or str(uuid.uuid4()),
         "prediction_id": prediction_id,
+        "cycle_id": cycle_id,
         "signal_id": signal_id,
         "entry_decision_id": entry_decision_id,
         "reservation_id": reservation_id,
@@ -557,7 +559,7 @@ def add_position(
         "trade_origin": resolved_origin,
         "execution_mode": resolved_execution_mode,
         "fill_source": fill_source or ("real_paper" if resolved_origin == TRADE_ORIGIN_PAPER else None),
-        "paper_run_id": paper_run_id or os.getenv("PAPER_RUN_ID", "").strip(),
+        "paper_run_id": paper_run_id or runtime_paper_run_id() or "",
         "created_by": resolved_created_by,
         "order_creator": resolved_order_creator,
         "order_channel": resolved_order_channel,
@@ -752,6 +754,7 @@ def close_position(
             "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
             "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
             "prediction_id": closed_data.get("prediction_id"),
+            "cycle_id": closed_data.get("cycle_id"),
             "signal_id": closed_data.get("signal_id"),
             "position_id": closed_data.get("id"),
             "outcome_id": closed_data.get("outcome_id"),
@@ -964,6 +967,7 @@ def close_partial_position(
             "signal_raw": closed_data.get("last_signal") or closed_data.get("signal"),
             "signal_score": closed_data.get("entry_signal_score") or closed_data.get("signal_score") or {},
             "confidence": closed_data.get("entry_confidence") or closed_data.get("confidence"),
+            "cycle_id": closed_data.get("cycle_id"),
             "trade_origin": closed_data.get("trade_origin"),
             "execution_mode": closed_data.get("execution_mode"),
             "fill_source": closed_data.get("fill_source"),

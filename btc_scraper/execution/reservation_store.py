@@ -43,6 +43,8 @@ class ReservationRecord:
     model_artifact_sha256: Optional[str] = None
     feature_schema_version: Optional[str] = None
     deployment_id: Optional[str] = None
+    paper_run_id: Optional[str] = None
+    cycle_id: Optional[str] = None
     decision_context: Optional[str] = None
     caller_context: Optional[str] = None
 
@@ -68,6 +70,8 @@ class ReservationRecord:
             "model_artifact_sha256": self.model_artifact_sha256,
             "feature_schema_version": self.feature_schema_version,
             "deployment_id": self.deployment_id,
+            "paper_run_id": self.paper_run_id,
+            "cycle_id": self.cycle_id,
             "decision_context": self.decision_context,
             "caller_context": self.caller_context,
         }
@@ -115,7 +119,8 @@ class ReservationStore:
                 for column in (
                     "signal_id", "prediction_id", "model_version",
                     "model_artifact_sha256", "feature_schema_version",
-                    "deployment_id", "decision_context", "caller_context",
+                    "deployment_id", "paper_run_id", "cycle_id",
+                    "decision_context", "caller_context",
                 ):
                     if column not in existing_columns:
                         try:
@@ -151,6 +156,8 @@ class ReservationStore:
         model_artifact_sha256: str | None = None,
         feature_schema_version: str | None = None,
         deployment_id: str | None = None,
+        paper_run_id: str | None = None,
+        cycle_id: str | None = None,
         decision_context: str | None = None,
         caller_context: str | None = None,
     ) -> Tuple[ReservationRecord, bool]:
@@ -174,8 +181,9 @@ class ReservationStore:
                             reserved_notional, filled_notional, reserved_position_slots, status,
                             exchange_order_id, client_order_id, created_at, expires_at, updated_at,
                             signal_id, prediction_id, model_version, model_artifact_sha256,
-                            feature_schema_version, deployment_id, decision_context, caller_context
-                        ) VALUES (?, ?, ?, ?, ?, ?, 0.0, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            feature_schema_version, deployment_id, paper_run_id, cycle_id,
+                            decision_context, caller_context
+                        ) VALUES (?, ?, ?, ?, ?, ?, 0.0, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             reservation_id,
@@ -195,6 +203,8 @@ class ReservationStore:
                             model_artifact_sha256,
                             feature_schema_version,
                             deployment_id,
+                            paper_run_id,
+                            cycle_id,
                             decision_context,
                             caller_context,
                         ),
@@ -426,6 +436,8 @@ class ReservationStore:
             model_artifact_sha256=row["model_artifact_sha256"],
             feature_schema_version=row["feature_schema_version"],
             deployment_id=row["deployment_id"],
+            paper_run_id=row["paper_run_id"],
+            cycle_id=row["cycle_id"],
             decision_context=row["decision_context"],
             caller_context=row["caller_context"],
         )

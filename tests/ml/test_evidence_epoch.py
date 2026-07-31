@@ -16,6 +16,12 @@ from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
+@pytest.fixture(autouse=True)
+def _epoch_runtime_identity(monkeypatch):
+    monkeypatch.setenv("BTC_DEPLOYMENT_ID", "paper-shadow-20260730-01")
+    monkeypatch.setenv("BTC_PAPER_RUN_ID", "paper-shadow-20260730-01")
+
+
 def _epoch(epoch_id="epoch-canary-1", **overrides):
     values = {
         "epoch_id": epoch_id,

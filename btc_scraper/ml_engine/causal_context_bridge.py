@@ -150,6 +150,8 @@ def enhance_signal_with_causal_context(
             "artifact_sha256": decision_input.get("artifact_sha256") or decision_input.get("model_artifact_sha256"),
             "feature_schema_version": decision_input.get("feature_schema_version"),
             "deployment_id": decision_input.get("deployment_id"),
+            "paper_run_id": decision_input.get("paper_run_id"),
+            "cycle_id": decision_input.get("cycle_id"),
             "decision_context": decision_input.get("decision_context"),
             "caller_context": decision_input.get("caller_context"),
             "feature_hash": decision_input.get("feature_hash"),

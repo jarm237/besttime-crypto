@@ -5,6 +5,7 @@ Multi-Agent AI Platform — Định nghĩa các Agent chuyên biệt và Orchest
 import os
 import time
 import copy
+import uuid
 from typing import Dict, Any, Iterable, List
 from rich.console import Console
 
@@ -102,6 +103,9 @@ class SignalGeneratorAgent(BaseAgent):
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
+        cycle_id = str(
+            context.setdefault("cycle_id", f"cycle-{uuid.uuid4().hex}")
+        )
         from btc_scraper.collectors.alternative_reference import (
             build_alternative_reference,
             load_alternative_reference,
@@ -125,7 +129,9 @@ class SignalGeneratorAgent(BaseAgent):
             ana.setdefault("coin", coin)
             ana.setdefault("symbol", f"{coin}USDT")
             ana.setdefault("timeframe", "15m")
+            ana["cycle_id"] = cycle_id
             meta_prediction = None
+            terminal_error: Exception | None = None
             try:
                 meta_prediction = get_inference_coordinator().predict_once(
                     ana,
@@ -137,25 +143,45 @@ class SignalGeneratorAgent(BaseAgent):
             except Exception as exc:
                 from btc_scraper.ml_engine.operational_health import record_degradation
                 record_degradation("ml_inference", "ml_inference_failure_total", exc)
-            sig_score = evaluate_signal_score(
-                ana,
-                meta_prediction=meta_prediction.to_dict() if meta_prediction else None,
-            )
+            try:
+                sig_score = evaluate_signal_score(
+                    ana,
+                    meta_prediction=meta_prediction.to_dict() if meta_prediction else None,
+                )
+            except Exception as exc:
+                terminal_error = exc
+                meta_lineage = (
+                    meta_prediction.to_dict() if meta_prediction is not None else {}
+                )
+                sig_score = {
+                    **meta_lineage,
+                    "action": "NEUTRAL",
+                    "score": 50,
+                    "strength": 0,
+                    "risk_status": "UNAVAILABLE",
+                    "risk_blocked": True,
+                    "meta_error": type(exc).__name__,
+                }
             ana["signal_score"] = sig_score
             for field in (
                 "signal_id", "prediction_id", "model_version", "artifact_sha256",
                 "model_artifact_sha256", "feature_schema_version", "deployment_id",
-                "decision_context", "caller_context", "feature_hash",
+                "paper_run_id", "cycle_id", "decision_context", "caller_context",
+                "feature_hash",
             ):
                 if sig_score.get(field) is not None:
                     ana[field] = sig_score[field]
 
             # Phase C: Tích hợp Causal Context (alpha=0.0 = safe mode, chỉ rules)
+            causal_error: Exception | None = terminal_error
             try:
-                causal_enhanced = enhance_signal_with_causal_context(
-                    ana=ana,
-                    analysis_info={**ana, **sig_score},
-                    alpha=float(os.environ.get("CAUSAL_ALPHA", "0.0")),
+                causal_enhanced = (
+                    enhance_signal_with_causal_context(
+                        ana=ana,
+                        analysis_info={**ana, **sig_score},
+                        alpha=float(os.environ.get("CAUSAL_ALPHA", "0.0")),
+                    )
+                    if terminal_error is None else {}
                 )
                 if causal_enhanced and not causal_enhanced.get("error"):
                     ana["causal_decision"] = causal_enhanced
@@ -172,8 +198,62 @@ class SignalGeneratorAgent(BaseAgent):
                         sig_score["causal_warning"] = True
                         sig_score["causal_risk_level"] = risk_level
                         console.print(f"[yellow][CausalGate] {coin}: Elevated risk ({risk_level}) — warning only[/yellow]")
-            except Exception as _ce:
-                pass  # Graceful degradation: causal context không ảnh hưởng core flow
+            except Exception as exc:
+                causal_error = exc
+
+            # Every eligible prediction must end in exactly one terminal
+            # decision. A context failure is evidence, never a silent gap.
+            if sig_score.get("prediction_id") and not ana.get("causal_decision"):
+                from btc_scraper.core.paths import (
+                    runtime_evidence_eligible,
+                    runtime_paper_run_id,
+                )
+                from btc_scraper.ml_engine.runtime_evidence_store import (
+                    get_runtime_evidence_store,
+                )
+
+                evidence_store = get_runtime_evidence_store()
+                existing = evidence_store.get_final_decision_for_prediction(
+                    str(sig_score["prediction_id"])
+                )
+                if existing is not None:
+                    ana["causal_decision"] = existing
+                else:
+                    terminal_error = {
+                        "action": "ERROR",
+                        "terminal_status": "ERROR",
+                        "eligible": False,
+                        "superseded": False,
+                        "reason": "terminal_decision_unavailable",
+                        "error_type": (
+                            type(causal_error).__name__
+                            if causal_error is not None else "EmptyDecision"
+                        ),
+                        "decision_id": f"fd-error-{uuid.uuid4().hex}",
+                        "prediction_id": sig_score.get("prediction_id"),
+                        "signal_id": sig_score.get("signal_id"),
+                        "cycle_id": cycle_id,
+                        "deployment_id": sig_score.get("deployment_id"),
+                        "paper_run_id": (
+                            sig_score.get("paper_run_id")
+                            or runtime_paper_run_id()
+                        ),
+                        "model_version": sig_score.get("model_version"),
+                        "artifact_sha256": sig_score.get("artifact_sha256"),
+                        "model_artifact_sha256": sig_score.get("artifact_sha256"),
+                        "feature_schema_version": sig_score.get(
+                            "feature_schema_version"
+                        ),
+                        "decision_context": sig_score.get("decision_context"),
+                        "caller_context": sig_score.get("caller_context"),
+                        "risk_status": str(
+                            sig_score.get("risk_status") or "UNAVAILABLE"
+                        ).upper(),
+                        "risk_blocked": True,
+                        "evidence_eligible": runtime_evidence_eligible(),
+                    }
+                    evidence_store.append_final_decision(terminal_error)
+                    ana["causal_decision"] = terminal_error
 
             # Display/audit context only. Keep this assignment after scoring and
             # causal evaluation so Alternative Data cannot affect real signals.
@@ -381,7 +461,8 @@ class AgentOrchestrator:
         context = {
             "raw_candles": raw_candles_dict,
             "mtf_candles": mtf_candles_dict,
-            "timestamp": time.time()
+            "timestamp": time.time(),
+            "cycle_id": f"cycle-{uuid.uuid4().hex}",
         }
         
         # Thực thi tuần tự chuỗi Agent

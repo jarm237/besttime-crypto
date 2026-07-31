@@ -107,7 +107,7 @@ def test_real_entry_components_propagate_prediction_to_outcome(monkeypatch, tmp_
     monkeypatch.setenv("BTC_DEPLOYMENT_ID", "lineage-test")
     monkeypatch.setenv("BTC_LOG_DIR", str(tmp_path / "logs"))
     monkeypatch.setenv("BTC_DATA_DIR", str(tmp_path / "data"))
-    monkeypatch.setenv("PAPER_RUN_ID", "paper-lineage")
+    monkeypatch.setenv("BTC_PAPER_RUN_ID", "paper-lineage")
     monkeypatch.setenv("AUTO_TRADE_DRY_RUN", "true")
     monkeypatch.setenv("AUTO_TRADE_COINS", "BTC")
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.60")
@@ -256,6 +256,7 @@ def test_coordinator_replay_reuses_one_prediction(monkeypatch, tmp_path):
     analysis = {
         "coin": "BTC",
         "signal": "BUY",
+        "cycle_id": "cycle-replay",
         "timeframe": "15m",
         "history": [{"time": "2026-07-30T03:00:00+00:00"}],
     }

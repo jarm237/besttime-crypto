@@ -49,6 +49,10 @@ class EntryRejectionReason(str, Enum):
     CORRELATION_FILTER = "correlation_filter"
     EXISTING_POSITION = "existing_position"
     DAILY_LIMIT = "daily_limit"
+    MISSING_FINAL_DECISION = "missing_final_decision"
+    NON_EXECUTABLE_FINAL_DECISION = "non_executable_final_decision"
+    FINAL_DECISION_LINEAGE_MISMATCH = "final_decision_lineage_mismatch"
+    FINAL_DECISION_SUPERSEDED = "final_decision_superseded"
 
 
 class AuthorizationReason(str, Enum):
@@ -277,6 +281,8 @@ class EntryDecision:
     artifact_hash: Optional[str] = None
     feature_schema_version: Optional[str] = None
     deployment_id: Optional[str] = None
+    paper_run_id: Optional[str] = None
+    cycle_id: Optional[str] = None
     decision_context: Optional[str] = None
     caller_context: Optional[str] = None
     decision_timestamp: str = field(
@@ -307,6 +313,8 @@ class EntryDecision:
             "model_artifact_sha256": self.artifact_hash,
             "feature_schema_version": self.feature_schema_version,
             "deployment_id": self.deployment_id,
+            "paper_run_id": self.paper_run_id,
+            "cycle_id": self.cycle_id,
             "decision_context": self.decision_context,
             "caller_context": self.caller_context,
             "decision_timestamp": self.decision_timestamp,

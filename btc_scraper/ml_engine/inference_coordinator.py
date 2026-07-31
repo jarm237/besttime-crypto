@@ -7,7 +7,7 @@ from threading import Lock
 from typing import Any, Mapping
 
 from btc_scraper.core.config import get_analysis_universe
-from btc_scraper.core.paths import runtime_deployment_id
+from btc_scraper.core.paths import runtime_deployment_id, runtime_paper_run_id
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,8 @@ class MetaPrediction:
     artifact_sha256: str
     feature_schema_version: str
     deployment_id: str
+    paper_run_id: str
+    cycle_id: str
     feature_hash: str
     expected_return: float | None = None
     expected_drawdown: float | None = None
@@ -98,6 +100,9 @@ class InferenceCoordinator:
             "decision_context": decision_context,
             "caller_context": caller_context,
         })
+        cycle_id = str(analysis.get("cycle_id") or "")
+        if not cycle_id:
+            raise ValueError("entry inference requires cycle_id")
         idempotency_key = f"{signal_id}:{MODEL_VERSION}:{decision_context}"
         with _INFERENCE_LOCK:
             existing = get_runtime_evidence_store().get_prediction_by_idempotency_key(
@@ -111,6 +116,8 @@ class InferenceCoordinator:
                     "artifact_sha256": existing.get("artifact_sha256"),
                     "feature_schema_version": existing.get("feature_schema_version"),
                     "deployment_id": existing.get("deployment_id"),
+                    "paper_run_id": existing.get("paper_run_id"),
+                    "cycle_id": existing.get("cycle_id"),
                     "feature_hash": existing.get("feature_hash"),
                     "expected_return": existing.get("expected_return"),
                     "expected_drawdown": existing.get("expected_drawdown"),
@@ -123,9 +130,14 @@ class InferenceCoordinator:
                 result = predict_meta_confidence(analysis)
         if result.get("probability") is None:
             raise RuntimeError(str(result.get("error") or "meta_prediction_unavailable"))
+        if not result.get("paper_run_id"):
+            result["paper_run_id"] = runtime_paper_run_id()
+        if not result.get("cycle_id"):
+            result["cycle_id"] = cycle_id
         required = (
             "prediction_id", "model_version", "artifact_sha256",
-            "feature_schema_version", "deployment_id", "feature_hash",
+            "feature_schema_version", "deployment_id", "paper_run_id",
+            "cycle_id", "feature_hash",
         )
         missing = [field for field in required if not result.get(field)]
         if missing:
@@ -141,6 +153,8 @@ class InferenceCoordinator:
             artifact_sha256=str(result["artifact_sha256"]),
             feature_schema_version=str(result["feature_schema_version"]),
             deployment_id=str(result["deployment_id"]),
+            paper_run_id=str(result.get("paper_run_id") or runtime_paper_run_id() or ""),
+            cycle_id=str(result.get("cycle_id") or cycle_id),
             feature_hash=str(result["feature_hash"]),
             expected_return=result.get("expected_return"),
             expected_drawdown=result.get("expected_drawdown"),
