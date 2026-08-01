@@ -518,9 +518,12 @@ class AutoTrader:
                     get_runtime_evidence_store,
                 )
 
+                store = get_runtime_evidence_store()
+                getter = getattr(store, "get_committed_final_decision", None)
                 persisted_final_decision = (
-                    get_runtime_evidence_store()
-                    .get_final_decision_for_prediction(str(prediction_id))
+                    getter(str(prediction_id))
+                    if getter is not None
+                    else store.get_final_decision_for_prediction(str(prediction_id))
                 )
             except Exception:
                 persisted_final_decision = None
@@ -552,6 +555,7 @@ class AutoTrader:
             "deployment_id": analysis.get("deployment_id") or sig_score.get("deployment_id"),
             "paper_run_id": analysis.get("paper_run_id") or sig_score.get("paper_run_id"),
             "cycle_id": analysis.get("cycle_id") or sig_score.get("cycle_id"),
+            "decision_sha256": causal_decision.get("decision_sha256"),
             "decision_context": analysis.get("decision_context") or sig_score.get("decision_context"),
             "caller_context": analysis.get("caller_context") or sig_score.get("caller_context"),
         }
@@ -625,8 +629,12 @@ class AutoTrader:
                 or not bool(causal_decision.get("eligible"))
             ):
                 return _reject(EntryRejectionReason.NON_EXECUTABLE_FINAL_DECISION)
-            if final_action != upstream_action.value:
+            if not causal_decision.get("decision_sha256"):
                 return _reject(EntryRejectionReason.FINAL_DECISION_LINEAGE_MISMATCH)
+            # The committed final decision is the only executable action.
+            # Display labels and pre-final technical signals remain explanatory
+            # metadata and may not reconstruct or override this action.
+            upstream_action = TradeAction(final_action)
             expected_lineage = {
                 "prediction_id": lineage["prediction_id"],
                 "cycle_id": lineage["cycle_id"],
@@ -667,6 +675,19 @@ class AutoTrader:
 
         # ── Stage: ELIGIBILITY ────────────────────────────────────────────
         meta_prob = self._resolve_meta_probability(sig_score)
+        if runtime_evidence_eligible() and persisted_final_decision is not None:
+            try:
+                meta_prob = float(
+                    persisted_final_decision.get("execution_probability")
+                    if persisted_final_decision.get("execution_probability") is not None
+                    else (
+                        1.0 - float(persisted_final_decision.get("meta_probability"))
+                        if upstream_action == TradeAction.SELL
+                        else float(persisted_final_decision.get("meta_probability"))
+                    )
+                )
+            except (TypeError, ValueError):
+                meta_prob = None
 
         # 5. Meta probability threshold (rejects if None or below threshold)
         if meta_prob is None or meta_prob < self.meta_threshold:
@@ -1235,6 +1256,8 @@ class AutoTrader:
                 "final_decision_eligible": final_decision.get("eligible"),
                 "final_decision_terminal_status": final_decision.get("terminal_status"),
                 "final_decision_superseded": final_decision.get("superseded", False),
+                "canonical_action": decision.action.value,
+                "decision_sha256": decision.decision_sha256,
                 "idempotency_key": ana.get("idempotency_key"),
                 "lifecycle_schema_version": ana.get("lifecycle_schema_version", "trade-lifecycle-v1"),
                 "entry_time": datetime.now().isoformat(),

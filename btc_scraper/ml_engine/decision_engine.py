@@ -133,6 +133,17 @@ class MetaDecisionEngine:
             return "BUY"
         return "NEUTRAL"
 
+    @staticmethod
+    def _entry_action(info: Dict) -> str:
+        """Return the structured pre-final action, never a display label."""
+        action = str(info.get("action") or "").upper()
+        return action if action in {"BUY", "SELL"} else "NEUTRAL"
+
+    @staticmethod
+    def _execution_probability(action: str, meta_probability: float) -> float:
+        probability = max(0.0, min(1.0, float(meta_probability)))
+        return 1.0 - probability if str(action).upper() == "SELL" else probability
+
     def _sentiment_support(self, info: Dict) -> float:
         fg = info.get("fear_greed")
         try:
@@ -303,6 +314,13 @@ class MetaDecisionEngine:
             action = "BLOCK_ENTRY"
             risk_failure_reason = risk_failure_reason or "risk_data_unavailable"
 
+        # A meta/context layer may filter a structured entry action, but it may
+        # not manufacture a physical BUY/SELL from a neutral pre-final intent.
+        # Display text is deliberately not consulted here.
+        if action in {"BUY", "SELL"} and self._entry_action(analysis_info) != action:
+            action = "HOLD"
+            risk_failure_reason = "canonical_action_not_supported_by_entry_signal"
+
         reason = [
             f"meta_prob={meta_prob:.3f}",
             f"sentiment={sentiment_prob:.3f}",
@@ -319,6 +337,7 @@ class MetaDecisionEngine:
             "action": action,
             "posterior_probability": posterior,
             "meta_probability": meta_prob,
+            "execution_probability": self._execution_probability(action, meta_prob),
             "sentiment_support": sentiment_prob,
             "regime_support": applied_regime_prob,
             "proposed_regime_support": proposed_regime_prob,
@@ -392,6 +411,14 @@ class MetaDecisionEngine:
         ):
             final_action = DecisionAction.BLOCK_ENTRY
             risk_reasons = tuple(risk_reasons) + ("risk_failure_entry_block",)
+        if (
+            final_action.value in {"BUY", "SELL"}
+            and self._entry_action(analysis_info or {}) != final_action.value
+        ):
+            final_action = DecisionAction.HOLD
+            risk_reasons = tuple(risk_reasons) + (
+                "canonical_action_not_supported_by_entry_signal",
+            )
         reason_parts = [base_decision.get("reason", "")]
         for adj in sorted(adjustments, key=lambda x: abs(x.get("impact", 0)), reverse=True)[:2]:
             reason_parts.append(f"[{adj.get('layer', 'context')}] {adj.get('reason', '')}")
@@ -401,6 +428,10 @@ class MetaDecisionEngine:
         final_decision = {
             **base_decision,
             "action": final_action.value,
+            "execution_probability": self._execution_probability(
+                final_action.value,
+                float(base_decision.get("meta_probability") or 0.5),
+            ),
             "posterior_probability": original_posterior,
             "adjusted_posterior": adjusted_posterior,
             "context_adjustment": adjusted_posterior - original_posterior,

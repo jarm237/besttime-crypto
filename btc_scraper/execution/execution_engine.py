@@ -144,8 +144,39 @@ class ExecutionEngine:
         ):
             return "MISSING_FINAL_DECISION"
         final_action = str(signal.get("final_decision_action") or "").upper()
+        decision_sha256 = str(signal.get("decision_sha256") or "")
+        if not decision_sha256:
+            return "MISSING_FINAL_DECISION"
+        try:
+            from btc_scraper.ml_engine.runtime_evidence_store import (
+                get_runtime_evidence_store,
+            )
+
+            committed = get_runtime_evidence_store().get_committed_final_decision(
+                str(signal.get("prediction_id"))
+            )
+        except Exception:
+            committed = None
+        if committed is None:
+            return "MISSING_FINAL_DECISION"
+        committed_action = str(committed.get("action") or "").upper()
+        committed_fields = {
+            "decision_id": signal.get("final_decision_id"),
+            "prediction_id": signal.get("prediction_id"),
+            "cycle_id": signal.get("cycle_id"),
+            "deployment_id": signal.get("deployment_id"),
+            "paper_run_id": signal.get("paper_run_id"),
+            "action": signal.get("canonical_action") or final_action,
+            "decision_sha256": decision_sha256,
+        }
+        if any(
+            str(committed.get(field) or "") != str(value or "")
+            for field, value in committed_fields.items()
+        ):
+            return "FINAL_DECISION_LINEAGE_MISMATCH"
         if (
             final_action not in {"BUY", "SELL"}
+            or committed_action != final_action
             or final_action != str(side).upper()
             or str(signal.get("final_decision_terminal_status") or "").upper() != "TRADE"
             or not bool(signal.get("final_decision_eligible"))
@@ -214,7 +245,11 @@ class ExecutionEngine:
         Uses synthetic liquidity from the candle.
         """
         coin = signal.get("coin", "BTC")
-        side = self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))
+        side = (
+            str(signal.get("canonical_action") or signal.get("final_decision_action") or "").upper()
+            if runtime_evidence_eligible()
+            else self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))
+        )
         decision_price = float(candle.get("close", 0.0))
 
         # Notional sizing: use caller-provided size when available, otherwise
@@ -500,7 +535,11 @@ class ExecutionEngine:
             return self.submit_paper(signal, candle, notional_usdt=notional_usdt, urgency=urgency)
 
         coin = signal.get("coin", "BTC")
-        side = self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))
+        side = (
+            str(signal.get("canonical_action") or signal.get("final_decision_action") or "").upper()
+            if runtime_evidence_eligible()
+            else self._signal_to_side(signal.get("signal_raw", signal.get("signal", "")))
+        )
         symbol = f"{coin}/USDT"
 
         # Get current market price from exchange

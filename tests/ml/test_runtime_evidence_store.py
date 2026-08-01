@@ -211,6 +211,23 @@ def test_corrupt_payload_is_quarantined_and_health_degrades(tmp_path):
     assert health["quarantined_corrupt_payloads"] == 1
 
 
+def test_read_only_health_detects_corruption_without_quarantine_write(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    store.write_prediction_evidence(*_payload(1))
+    with store._connect() as db:
+        db.execute("UPDATE predictions SET payload='tampered' WHERE prediction_id='p-1'")
+    before = {
+        "audit": store.count_rows("audit_events"),
+        "quarantine": store.count_rows("evidence_quarantine"),
+    }
+
+    health = store.health(quarantine_corrupt=False)
+
+    assert health["quarantined_corrupt_payloads"] == 1
+    assert store.count_rows("audit_events") == before["audit"]
+    assert store.count_rows("evidence_quarantine") == before["quarantine"]
+
+
 def test_invalid_production_lineage_is_quarantined_and_excluded_from_shadow(tmp_path):
     store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
     prediction, snapshot = _payload(1)
@@ -254,6 +271,27 @@ def test_health_exposes_required_evidence_rates(tmp_path):
     assert health["orphan_decision_rate"] == 0.0
     assert health["missing_outcome_rate"] == 0.0
     assert health["unknown_symbol_rate"] == 0.0
+
+
+def test_unexecuted_trade_decision_is_not_missing_outcome(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "evidence.sqlite")
+    store.write_prediction_evidence(*_payload(1))
+    store.append_final_decision({
+        "decision_id": "d-trade",
+        "prediction_id": "p-1",
+        "action": "SELL",
+        "terminal_status": "TRADE",
+        "eligible": True,
+    })
+
+    committed = store.get_committed_final_decision("p-1")
+    health = store.health()
+
+    assert committed is not None
+    assert committed["decision_sha256"]
+    assert health["missing_outcomes"] == 0
+    assert health["closed_positions_missing_outcome"] == 0
+    assert health["trade_decisions_without_outcome"] == 1
 
 
 def test_health_reports_foreign_key_violations_and_orphans(tmp_path):

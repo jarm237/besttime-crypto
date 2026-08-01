@@ -212,6 +212,38 @@ class TestFinalRiskGate:
         assert action is DecisionAction.BLOCK_ENTRY
         assert "high_context_entry_block" in reasons
 
+    def test_neutral_structured_action_cannot_become_trade(self):
+        engine = MetaDecisionEngine()
+        result = engine.decide({
+            "signal": "NEUTRAL (BEARISH)",
+            "action": "NEUTRAL",
+            "_meta_prediction": {
+                "probability": 0.2,
+                "expected_return": -0.1,
+                "prediction_id": None,
+            },
+        }, persist_final=False)
+
+        assert result["action"] == "HOLD"
+        assert result["terminal_status"] == "HOLD"
+        assert result["eligible"] is False
+
+    def test_structured_sell_has_side_adjusted_execution_probability(self):
+        engine = MetaDecisionEngine()
+        result = engine.decide({
+            "signal": "NEUTRAL (BEARISH)",
+            "action": "SELL",
+            "_meta_prediction": {
+                "probability": 0.2,
+                "expected_return": -0.1,
+                "prediction_id": None,
+            },
+        }, persist_final=False)
+
+        assert result["action"] == "SELL"
+        assert result["terminal_status"] == "TRADE"
+        assert result["execution_probability"] == pytest.approx(0.8)
+
     def test_unavailable_account_risk_is_persistable_in_final_decision(self):
         engine = MetaDecisionEngine()
         result = engine.decide({

@@ -283,6 +283,7 @@ class EntryDecision:
     deployment_id: Optional[str] = None
     paper_run_id: Optional[str] = None
     cycle_id: Optional[str] = None
+    decision_sha256: Optional[str] = None
     decision_context: Optional[str] = None
     caller_context: Optional[str] = None
     decision_timestamp: str = field(
@@ -315,6 +316,7 @@ class EntryDecision:
             "deployment_id": self.deployment_id,
             "paper_run_id": self.paper_run_id,
             "cycle_id": self.cycle_id,
+            "decision_sha256": self.decision_sha256,
             "decision_context": self.decision_context,
             "caller_context": self.caller_context,
             "decision_timestamp": self.decision_timestamp,

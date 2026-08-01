@@ -100,6 +100,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Evaluate current state without starting main.py.",
     )
+    parser.add_argument(
+        "--record-check-result",
+        action="store_true",
+        help="Explicitly persist a failed check result; off by default.",
+    )
     return parser
 
 
@@ -245,8 +250,9 @@ def _validate_static_invariants(
     risk: Mapping[str, Any],
     runtime_root: Path,
     terminal_decision_grace: float,
+    read_only: bool = False,
 ) -> dict[str, Any]:
-    health = store.health()
+    health = store.health(quarantine_corrupt=not read_only)
     if health.get("status") != "healthy" or health.get("severity") != "HEALTHY":
         raise CanaryInvariantError(f"evidence_health:{json.dumps(health, sort_keys=True)}")
     if str(risk.get("status")) != "HEALTHY" or bool(risk.get("blocked")):
@@ -295,6 +301,57 @@ def _validate_static_invariants(
             f"missing_final_decision:{stale_missing_decisions}"
         )
 
+    trade_decisions = {
+        str(row.get("prediction_id")): row
+        for row in rows["final_decisions"]
+        if (
+            row.get("prediction_id")
+            and str(row.get("action") or "").upper() in {"BUY", "SELL"}
+            and str(row.get("terminal_status") or "").upper() == "TRADE"
+            and bool(row.get("eligible"))
+        )
+    }
+    accepted_trade_ids = {
+        str(row.get("prediction_id"))
+        for row in reservations
+        if row.get("prediction_id")
+    }
+    rejected_trade_ids = {
+        str(row.get("prediction_id"))
+        for row in rows.get("audit_events", [])
+        if (
+            str(row.get("event_type") or "") == "execution_quarantined"
+            and row.get("prediction_id")
+        )
+    }
+    prediction_times = {
+        str(row.get("prediction_id")): _iso(
+            row.get("timestamp") or row.get("predicted_at")
+        )
+        for row in eligible_predictions
+        if row.get("prediction_id")
+    }
+    unexecuted_trade_ids = set(trade_decisions) - accepted_trade_ids
+    stale_unexecuted_trade_ids = sorted(
+        prediction_id
+        for prediction_id in unexecuted_trade_ids
+        if (
+            prediction_id not in prediction_times
+            or (now - prediction_times[prediction_id]).total_seconds()
+            >= terminal_decision_grace
+        )
+    )
+    if stale_unexecuted_trade_ids:
+        raise CanaryInvariantError(
+            "trade_execution_acceptance_gate:"
+            + json.dumps({
+                "trade_decisions": len(trade_decisions),
+                "execution_accepted": len(accepted_trade_ids & set(trade_decisions)),
+                "execution_rejected": len(rejected_trade_ids & set(trade_decisions)),
+                "unexecuted_trade_decisions": stale_unexecuted_trade_ids,
+            }, sort_keys=True)
+        )
+
     decisions_by_prediction = {
         str(row.get("prediction_id")): row
         for row in rows["final_decisions"]
@@ -305,6 +362,31 @@ def _validate_static_invariants(
         for row in rows["outcomes"]
         if row.get("prediction_id")
     }
+    stale_closed_without_outcome: list[str] = []
+    for closed in mongo_closed:
+        prediction_id = str(closed.get("prediction_id") or "")
+        if not prediction_id or prediction_id in outcomes_by_prediction:
+            continue
+        closed_at = (
+            closed.get("closed_at")
+            or closed.get("exit_time")
+            or closed.get("close_time")
+        )
+        try:
+            is_stale = (
+                closed_at is None
+                or (now - _iso(closed_at, naive_is_local=True)).total_seconds()
+                >= terminal_decision_grace
+            )
+        except (TypeError, ValueError):
+            is_stale = True
+        if is_stale:
+            stale_closed_without_outcome.append(prediction_id)
+    if stale_closed_without_outcome:
+        raise CanaryInvariantError(
+            "closed_position_outcome_gate:"
+            + json.dumps(sorted(stale_closed_without_outcome))
+        )
     for closed in mongo_closed:
         prediction_id = str(closed.get("prediction_id") or "")
         if not prediction_id:
@@ -400,6 +482,11 @@ def _validate_static_invariants(
         "risk": dict(risk),
         "eligible_predictions": len(eligible_predictions),
         "eligible_symbols": dict(Counter(str(row.get("symbol")) for row in eligible_predictions)),
+        "trade_decisions": len(trade_decisions),
+        "execution_accepted": len(accepted_trade_ids & set(trade_decisions)),
+        "execution_rejected": len(rejected_trade_ids & set(trade_decisions)),
+        "unexecuted_trade_decisions": len(unexecuted_trade_ids),
+        "closed_positions_missing_outcome": 0,
     }
 
 
@@ -581,6 +668,7 @@ def _evaluate(
     mongo_database: Any,
     max_outcome_delay: float,
     terminal_decision_grace: float,
+    read_only: bool = False,
 ) -> dict[str, Any]:
     rows = store.shadow_evidence_rows()
     reservations, fills = _runtime_files(runtime_root)
@@ -608,6 +696,7 @@ def _evaluate(
         risk=risk,
         runtime_root=runtime_root,
         terminal_decision_grace=terminal_decision_grace,
+        read_only=read_only,
     )
     candidate = _candidate_for_closed_trade(
         rows=rows,
@@ -713,8 +802,40 @@ def _print_state(phase: str, state: Mapping[str, Any]) -> None:
         "risk_status": state["risk"].get("status"),
         "evidence_health": state["health"].get("severity"),
         "candidate": state["candidate"],
+        "trade_decisions": state.get("trade_decisions", 0),
+        "execution_accepted": state.get("execution_accepted", 0),
+        "execution_rejected": state.get("execution_rejected", 0),
+        "unexecuted_trade_decisions": state.get("unexecuted_trade_decisions", 0),
     }
     print(f"[runner] {json.dumps(payload, sort_keys=True)}", flush=True)
+
+
+def _record_seal_blocked(
+    store: RuntimeEvidenceStore,
+    epoch: Any,
+    *,
+    epoch_id: str,
+    deployment_id: str,
+    reason: str,
+) -> None:
+    """Persist a blocked result only with registry-derived epoch lineage."""
+    if epoch is None:
+        raise RuntimeError("epoch lineage unavailable")
+    store.append_audit_event({
+        "event_type": "seal_blocked",
+        "epoch_id": epoch_id,
+        "deployment_id": deployment_id,
+        "reason": reason,
+        "reason_code": "EPOCH_NOT_SEALABLE",
+        "runner_state": "SEAL_BLOCKED",
+        "paper_run_id": epoch.deployment_id,
+        "model_version": epoch.model_version,
+        "artifact_sha256": epoch.artifact_sha256,
+        "feature_schema_version": epoch.feature_schema_version,
+        "analysis_universe": list(epoch.analysis_universe),
+        "analysis_universe_hash": epoch.analysis_universe_hash,
+        "activated_at": epoch.activated_at,
+    })
 
 
 def main() -> int:
@@ -755,6 +876,7 @@ def main() -> int:
             mongo_database=database,
             max_outcome_delay=args.outcome_link_max_delay_seconds,
             terminal_decision_grace=args.terminal_decision_grace_seconds,
+            read_only=args.check_only,
         )
         _print_state("preflight", initial)
         if args.check_only:
@@ -849,14 +971,14 @@ def main() -> int:
         return 0
     except CanaryInvariantError as exc:
         try:
-            store.append_audit_event({
-                "event_type": "seal_blocked",
-                "epoch_id": args.epoch_id,
-                "deployment_id": args.deployment_id,
-                "reason": str(exc),
-                "reason_code": "EPOCH_NOT_SEALABLE",
-                "runner_state": "SEAL_BLOCKED",
-            })
+            if not args.check_only or args.record_check_result:
+                _record_seal_blocked(
+                    store,
+                    store.get_evidence_epoch(args.epoch_id),
+                    epoch_id=args.epoch_id,
+                    deployment_id=args.deployment_id,
+                    reason=str(exc),
+                )
         except Exception:
             pass
         print(f"[runner] SEAL_BLOCKED {exc}", file=sys.stderr, flush=True)

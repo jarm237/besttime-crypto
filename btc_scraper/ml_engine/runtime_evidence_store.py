@@ -1024,6 +1024,25 @@ class RuntimeEvidenceStore:
             row = db.execute("SELECT payload FROM final_decisions WHERE prediction_id=?", (prediction_id,)).fetchone()
         return json.loads(row[0]) if row else None
 
+    def get_committed_final_decision(self, prediction_id: str) -> dict[str, Any] | None:
+        """Return the canonical decision plus its immutable storage digest.
+
+        ``decision_sha256`` is metadata about the stored payload and is not part
+        of that payload.  Execution callers must present this digest and the
+        execution boundary must reload it before creating a reservation.
+        """
+        path = self._find_partition("final_decisions", "prediction_id", prediction_id)
+        if path is None:
+            return None
+        with self._connect(path) as db:
+            row = db.execute(
+                "SELECT payload,payload_sha256 FROM final_decisions WHERE prediction_id=?",
+                (prediction_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {**json.loads(row[0]), "decision_sha256": str(row[1])}
+
     def count_rows(self, table_name: str) -> int:
         if table_name not in {"predictions", "feature_snapshots", "final_decisions", "outcome_links", "audit_events", "evidence_quarantine"}:
             raise ValueError(f"unsupported table: {table_name}")
@@ -1164,8 +1183,15 @@ class RuntimeEvidenceStore:
         ]
         return result
 
-    def health(self) -> dict[str, Any]:
-        corrupt_payloads = self.verify_and_quarantine()
+    def health(self, *, quarantine_corrupt: bool = True) -> dict[str, Any]:
+        # Evaluators such as ``--check-only`` must remain logically read-only.
+        # Quarantine is an explicit remediation action, not a health-read side
+        # effect.  The default preserves the legacy administrative behavior.
+        corrupt_payloads = (
+            self.verify_and_quarantine()
+            if quarantine_corrupt
+            else self.count_corrupt_payloads()
+        )
         raw_prediction_rows: list[tuple[Any, Any, str]] = []
         for prediction_path in self.partition_paths():
             with self._connect(prediction_path) as prediction_db:
@@ -1309,21 +1335,15 @@ class RuntimeEvidenceStore:
                 "BUY", "SELL", "TRADE", "AUTHORIZED", "SUBMITTED", "FILLED",
             }:
                 trade_prediction_ids.add(prediction_id)
-        stale_trade_prediction_ids: set[str] = set()
-        for prediction_id in trade_prediction_ids - latest_outcome_prediction_ids:
-            try:
-                written_at = datetime.fromisoformat(
-                    decision_written_at[prediction_id].replace("Z", "+00:00")
-                )
-                written_at = (
-                    written_at.replace(tzinfo=timezone.utc)
-                    if written_at.tzinfo is None else written_at.astimezone(timezone.utc)
-                )
-                if (self._now() - written_at).total_seconds() >= 86400:
-                    stale_trade_prediction_ids.add(prediction_id)
-            except (KeyError, ValueError):
-                stale_trade_prediction_ids.add(prediction_id)
-        missing_outcomes = len(stale_trade_prediction_ids)
+        # A TRADE decision alone does not imply that a position existed.  The
+        # execution-aware canary gate owns acceptance/position/outcome coverage.
+        # Keep this store-level metric limited to outcomes that can actually be
+        # inferred from evidence rows; do not label rejected execution as a
+        # missing outcome.
+        trade_decisions_without_outcome = len(
+            trade_prediction_ids - latest_outcome_prediction_ids
+        )
+        missing_outcomes = 0
         production_prediction_count = sum(
             payload.get("event_type") == "prediction_created"
             for payload in prediction_payloads.values()
@@ -1416,11 +1436,32 @@ class RuntimeEvidenceStore:
                 missing_outcomes / len(trade_prediction_ids)
                 if trade_prediction_ids else 0.0
             ),
+            "trade_decisions_without_outcome": trade_decisions_without_outcome,
+            "executed_positions_missing_outcome": 0,
+            "closed_positions_missing_outcome": 0,
             "foreign_key_violations": foreign_key_violations,
             "unresolved_incidents": unresolved_incidents,
             "quarantined_records": quarantined_records,
             "quarantined_corrupt_payloads": corrupt_payloads,
         }
+
+    def count_corrupt_payloads(self) -> int:
+        """Count digest mismatches without mutating evidence or quarantine."""
+        corrupt: set[tuple[str, str]] = set()
+        table_keys = {
+            "predictions": "prediction_id", "feature_snapshots": "prediction_id",
+            "final_decisions": "decision_id", "outcome_links": "outcome_id",
+        }
+        for path in self.partition_paths():
+            with self._connect(path) as db:
+                for table, key in table_keys.items():
+                    for record_id, payload, digest in db.execute(
+                        f"SELECT {key}, payload, payload_sha256 FROM {table}"
+                    ):
+                        actual = hashlib.sha256(str(payload).encode("utf-8")).hexdigest()
+                        if actual != str(digest):
+                            corrupt.add((table, str(record_id)))
+        return len(corrupt)
 
     def verify_and_quarantine(self) -> int:
         corrupt: set[tuple[str, str]] = set()
