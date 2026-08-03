@@ -19,6 +19,7 @@ import threading
 import asyncio
 import aiohttp
 import subprocess
+from datetime import datetime
 
 # Buoc stdout sang UTF-8 de hien thi tieng Viet va ky tu dac biet
 if hasattr(sys.stdout, "reconfigure"):
@@ -37,9 +38,21 @@ from btc_scraper.core.paths import (
     build_data_path,
     build_logs_path,
     build_scripts_path,
+    get_runtime_paths,
     runtime_evidence_eligible,
 )
-from btc_scraper.core.runtime_ownership import RuntimeLock, audit_runtime_lock_bypass, runtime_lock_disabled
+from btc_scraper.core.runtime_ownership import (
+    RuntimeLock,
+    RuntimeLockError,
+    audit_runtime_lock_bypass,
+    runtime_lock_disabled,
+)
+from btc_scraper.core.runtime_pause import (
+    ExternalDependencyUnavailable,
+    RuntimePauseController,
+    RuntimePausePolicy,
+    external_reason_for_exception,
+)
 from btc_scraper.core.fear_greed import resolve_fear_greed_value
 from btc_scraper.trading import position_tracker
 from btc_scraper.core.candle_store import candle_store
@@ -88,6 +101,7 @@ shutdown_event = threading.Event()
 shutdown_event_async = None  # Will be initialized in async_main
 managed_processes: list[subprocess.Popen] = []
 runtime_lock: RuntimeLock | None = None
+runtime_pause_controller: RuntimePauseController | None = None
 
 
 def _track_process(proc: subprocess.Popen) -> None:
@@ -396,6 +410,20 @@ async def fetch_and_display():
                 for tf in ["1h", "4h", "1d"]:
                     mtf_candles_dict[coin][tf] = await _get_candles_for_coin(coin, tf, session)
 
+    unavailable = []
+    for coin, candles in raw_candles_dict.items():
+        if not candles or (isinstance(candles[0], dict) and candles[0].get("error")):
+            unavailable.append(f"{coin}:15m")
+    for coin, timeframes in mtf_candles_dict.items():
+        for timeframe, candles in timeframes.items():
+            if not candles or (isinstance(candles[0], dict) and candles[0].get("error")):
+                unavailable.append(f"{coin}:{timeframe}")
+    if unavailable:
+        raise ExternalDependencyUnavailable(
+            "RUNTIME_PAUSED_MARKET_PROVIDER_UNAVAILABLE",
+            "missing_or_invalid_candles=" + ",".join(unavailable),
+        )
+
     # Chạy hệ thống đa tác nhân điều phối (AgentOrchestrator)
     from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
     orchestrator = AgentOrchestrator(analysis_symbols=ANALYSIS_SYMBOLS)
@@ -595,12 +623,20 @@ async def fetch_and_display_with_retry():
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
             if attempt > MAX_RETRIES:
-                console.print(
-                    f"\n[bold red][{timestamp}] Lỗi sau {MAX_RETRIES} lần thử. "
-                    f"Bỏ qua chu kỳ này và đợi lần chạy tiếp theo.[/bold red]\n"
-                    f"[red]Chi tiết: {exc}[/red]\n"
-                )
-                return  # Không retry thêm, chờ scheduler gọi lại sau
+                reason_code = external_reason_for_exception(exc)
+                if reason_code:
+                    if runtime_pause_controller is None:
+                        raise RuntimeError("runtime pause controller is not initialized") from exc
+                    runtime_pause_controller.pause(
+                        reason_code,
+                        detail=f"{type(exc).__name__}:{exc}",
+                    )
+                    console.print(
+                        f"\n[bold yellow][{timestamp}] Runtime PAUSED: {reason_code}. "
+                        "Epoch evidence được giữ nguyên.[/bold yellow]\n"
+                    )
+                    return
+                raise
 
             console.print(
                 f"\n[bold yellow][{timestamp}] Lỗi lần {attempt}/{MAX_RETRIES}: {exc}[/bold yellow]\n"
@@ -619,6 +655,59 @@ async def run_scheduler():
     telegram_scan_task = None
     while not shutdown_event_async.is_set():
         try:
+            if runtime_pause_controller is None:
+                raise RuntimeError("runtime pause controller is not initialized")
+            clock_gap = runtime_pause_controller.heartbeat()
+            if (
+                clock_gap
+                > runtime_pause_controller.policy.maximum_clock_gap_before_recovery_seconds
+            ):
+                if runtime_lock is None:
+                    raise RuntimeLockError("clock gap recovery requires an owned runtime lock")
+                runtime_lock.reacquire_after_clock_gap()
+            if runtime_pause_controller.is_paused:
+                healthy = False
+                detail = ""
+                try:
+                    if runtime_lock is not None:
+                        runtime_lock.assert_current_owner()
+                    from btc_scraper.core.db import client as mongo_client
+                    from btc_scraper.ml_engine.runtime_evidence_store import (
+                        get_runtime_evidence_store,
+                    )
+                    get_runtime_evidence_store().assert_runtime_epoch_ready(
+                        require_active=runtime_evidence_eligible()
+                    )
+                    await asyncio.to_thread(mongo_client.admin.command, "ping")
+                    timeout = aiohttp.ClientTimeout(total=5.0)
+                    async with aiohttp.ClientSession(timeout=timeout) as session:
+                        async with session.get("https://api.binance.com/api/v3/time") as response:
+                            response.raise_for_status()
+                    healthy = True
+                    detail = "epoch_lease_mongodb_market_provider_healthy"
+                except Exception as exc:
+                    detail = f"{type(exc).__name__}:{exc}"
+                    if external_reason_for_exception(exc) is None:
+                        runtime_pause_controller.fail_internal(detail)
+                        raise
+                recovered = runtime_pause_controller.observe_recovery_probe(
+                    healthy, detail=detail
+                )
+                if recovered:
+                    missed = 0
+                    now = datetime.now()
+                    for job in schedule.get_jobs():
+                        if job.next_run is not None and job.next_run <= now:
+                            missed += 1
+                            job._schedule_next_run()
+                    runtime_pause_controller.record_missed_cycles(missed)
+                    console.print(
+                        "[bold green]Runtime recovery complete; CURRENT_SESSION_ONLY, "
+                        f"skipped_missed_cycles={missed}.[/bold green]"
+                    )
+                    continue
+                await asyncio.sleep(runtime_pause_controller.recovery_probe_delay())
+                continue
             # Xử lý các lệnh từ Telegram gửi xuống
             try:
                 while not telegram_command_queue.empty():
@@ -644,6 +733,12 @@ async def run_scheduler():
             raise
         except KeyboardInterrupt:
             raise  # Truyền lên để main() xử lý
+        except RuntimeLockError as exc:
+            if runtime_pause_controller is not None:
+                runtime_pause_controller.fail_internal(
+                    f"runtime_ownership_failure:{exc}"
+                )
+            raise
         except Exception as exc:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             console.print(
@@ -822,7 +917,8 @@ async def async_main():
     worker.start()
 
     # Lấy dữ liệu ngay lập tức (cũng có retry)
-    await fetch_and_display_with_retry()
+    if runtime_pause_controller is None or not runtime_pause_controller.is_paused:
+        await fetch_and_display_with_retry()
 
     if args.once:
         # Nếu chỉ chạy 1 lần, đợi hàng đợi AI hoàn thành trước khi thoát
@@ -851,7 +947,7 @@ async def async_main():
 
 
 def main():
-    global runtime_lock
+    global runtime_lock, runtime_pause_controller
     try:
         if runtime_lock_disabled():
             bypass = audit_runtime_lock_bypass()
@@ -871,9 +967,18 @@ def main():
         from btc_scraper.ml_engine.runtime_evidence_store import (
             get_runtime_evidence_store,
         )
-        get_runtime_evidence_store().assert_runtime_epoch_ready(
+        epoch = get_runtime_evidence_store().assert_runtime_epoch_ready(
             require_active=runtime_evidence_eligible()
         )
+        policy = RuntimePausePolicy.from_mapping(
+            epoch.runtime_pause_policy if epoch is not None else None
+        )
+        runtime_pause_controller = RuntimePauseController(
+            get_runtime_paths().state_root,
+            policy=policy,
+        )
+        if runtime_pause_controller.runtime_state == "STARTING":
+            runtime_pause_controller.mark_running()
         asyncio.run(async_main())
     except KeyboardInterrupt:
         console.print("\n[bold red]Đã dừng.[/bold red]")

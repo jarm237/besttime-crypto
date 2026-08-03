@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from btc_scraper.ml_engine.multi_agent import SignalGeneratorAgent
 
 
@@ -15,6 +17,13 @@ def test_signal_generator_attaches_reference_only_after_decision(monkeypatch):
     monkeypatch.setattr(
         "btc_scraper.collectors.alternative_reference.load_alternative_reference",
         lambda: hostile_reference,
+    )
+    prediction = SimpleNamespace(to_dict=lambda: {"probability": 0.8})
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.inference_coordinator.get_inference_coordinator",
+        lambda: SimpleNamespace(
+            predict_once=lambda *_args, **_kwargs: prediction
+        ),
     )
 
     def fake_score(analysis, *, meta_prediction=None):
@@ -59,6 +68,13 @@ def test_reference_load_failure_does_not_block_signal_generation(monkeypatch):
     monkeypatch.setattr(
         "btc_scraper.collectors.alternative_reference.load_alternative_reference",
         lambda: (_ for _ in ()).throw(RuntimeError("broken snapshot")),
+    )
+    prediction = SimpleNamespace(to_dict=lambda: {"probability": 0.7})
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.inference_coordinator.get_inference_coordinator",
+        lambda: SimpleNamespace(
+            predict_once=lambda *_args, **_kwargs: prediction
+        ),
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.signal_score.evaluate_signal_score",

@@ -143,6 +143,11 @@ class SignalGeneratorAgent(BaseAgent):
             except Exception as exc:
                 from btc_scraper.ml_engine.operational_health import record_degradation
                 record_degradation("ml_inference", "ml_inference_failure_total", exc)
+                # A cycle without its governed Meta prediction is incomplete.
+                # Do not convert it into a technical-only alert followed by
+                # ``missing_final_decision``; let the runtime pause/fail-closed
+                # policy classify the original failure.
+                raise
             try:
                 sig_score = evaluate_signal_score(
                     ana,

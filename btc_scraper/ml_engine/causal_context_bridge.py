@@ -142,8 +142,26 @@ def enhance_signal_with_causal_context(
         if engine is None:
             return {}
         decision_input = strip_alternative_reference(analysis_info)
+        proposed_action = str(decision_input.get("action") or "").upper()
+        model_probability_up = decision_input.get("model_probability_up")
+        if model_probability_up is None:
+            side_probability = (
+                decision_input.get("meta_probability")
+                if decision_input.get("meta_probability") is not None
+                else decision_input.get("meta_confidence")
+            )
+            if side_probability is not None:
+                model_probability_up = (
+                    1.0 - float(side_probability)
+                    if proposed_action == "SELL"
+                    else float(side_probability)
+                )
         meta_prediction = {
-            "probability": decision_input.get("meta_probability") or decision_input.get("meta_confidence"),
+            "probability": model_probability_up,
+            "model_probability_up": model_probability_up,
+            "probability_semantics": "P(up)",
+            "execution_probability": decision_input.get("meta_probability"),
+            "execution_probability_semantics": "P(win_given_proposed_trade)",
             "prediction_id": decision_input.get("prediction_id"),
             "signal_id": decision_input.get("signal_id"),
             "model_version": decision_input.get("model_version"),

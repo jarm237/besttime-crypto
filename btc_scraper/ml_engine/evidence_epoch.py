@@ -1,16 +1,20 @@
 """Persistent evidence epoch contract for controlled paper-shadow cohorts."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
 from btc_scraper.core.config import SUPPORTED_SYMBOLS, analysis_universe_hash
+from btc_scraper.core.runtime_pause import RuntimePausePolicy
 
 
 EVIDENCE_POLICY_VERSION = "evidence-v4"
 RISK_POLICY_VERSION = "risk-fail-closed-v1"
-EPOCH_STATUSES = {"DRAFT", "ACTIVE", "SEALED", "INVALIDATED"}
+EPOCH_STATUSES = {
+    "DRAFT", "ACTIVE", "SEAL_BLOCKED", "SEAL_READY", "SEALED",
+    "INVALIDATED", "QUARANTINED",
+}
 
 
 @dataclass(frozen=True)
@@ -29,12 +33,18 @@ class EvidenceEpoch:
     risk_policy_version: str = RISK_POLICY_VERSION
     runtime_schema_version: int = 6
     status: str = "DRAFT"
+    runtime_pause_policy: dict[str, Any] = field(
+        default_factory=lambda: RuntimePausePolicy().to_dict()
+    )
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "EvidenceEpoch":
         payload = dict(value)
         payload.setdefault("started_at", datetime.now(timezone.utc).isoformat())
         payload["analysis_universe"] = tuple(payload.get("analysis_universe") or ())
+        payload["runtime_pause_policy"] = RuntimePausePolicy.from_mapping(
+            payload.get("runtime_pause_policy")
+        ).to_dict()
         return cls(**payload)
 
     def validate(self) -> None:
@@ -49,6 +59,7 @@ class EvidenceEpoch:
             raise ValueError(f"evidence epoch missing fields: {','.join(missing)}")
         if self.status not in EPOCH_STATUSES:
             raise ValueError(f"invalid evidence epoch status: {self.status}")
+        RuntimePausePolicy.from_mapping(self.runtime_pause_policy)
         if self.evidence_policy_version != EVIDENCE_POLICY_VERSION:
             raise ValueError("evidence policy version mismatch")
         if self.risk_policy_version != RISK_POLICY_VERSION:
@@ -68,8 +79,8 @@ class EvidenceEpoch:
             raise ValueError("evidence epoch analysis universe hash mismatch")
         if self.status == "DRAFT" and self.activated_at is not None:
             raise ValueError("draft evidence epoch cannot have activated_at")
-        if self.status in {"ACTIVE", "SEALED"} and not self.activated_at:
-            raise ValueError("active evidence epoch requires activated_at")
+        if self.status != "DRAFT" and not self.activated_at:
+            raise ValueError("activated evidence epoch requires activated_at")
         if int(self.runtime_schema_version) < 6:
             raise ValueError("runtime schema version mismatch")
 

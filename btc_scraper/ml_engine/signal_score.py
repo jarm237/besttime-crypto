@@ -665,6 +665,7 @@ def score_signal(
 
     # ── Meta Model Confidence + Kelly Position Sizing ──────────────────────────
     meta_prob = None
+    model_probability_up = None
     meta_expected_return = None
     meta_expected_drawdown = None
     meta_expected_hold_time = None
@@ -691,11 +692,23 @@ def score_signal(
             raise RuntimeError("inference_owner_required")
         meta = dict(meta_prediction)
         if isinstance(meta, dict) and meta.get('probability') is not None:
-            meta_prob = float(meta['probability'])
+            model_probability_up = max(0.0, min(1.0, float(meta['probability'])))
+            meta_prob = (
+                1.0 - model_probability_up
+                if action == "SELL"
+                else model_probability_up
+            )
             meta_expected_return = meta.get("expected_return")
             meta_expected_drawdown = meta.get("expected_drawdown")
             meta_expected_hold_time = meta.get("expected_hold_time")
-            meta_decision = meta
+            meta_decision = {
+                **meta,
+                "model_probability_up": model_probability_up,
+                "probability_semantics": "P(up)",
+                "execution_probability": meta_prob,
+                "execution_probability_semantics": "P(win_given_proposed_trade)",
+                "proposed_action": action,
+            }
             
             # Apply optimized signal probability cutoff
             if meta_prob < signal_cutoff:
@@ -918,6 +931,7 @@ def score_signal(
             "action": action,
             "score": int(score),
             "meta_prob": meta_prob,
+            "model_probability_up": model_probability_up,
             "meta_expected_return": meta_expected_return,
             "meta_expected_drawdown": meta_expected_drawdown,
             "meta_expected_hold_time": meta_expected_hold_time,
@@ -945,6 +959,9 @@ def score_signal(
         "gated": gated,
         "meta_confidence": meta_prob,
         "meta_probability": meta_prob,
+        "meta_probability_semantics": "P(win_given_proposed_trade)",
+        "model_probability_up": model_probability_up,
+        "model_probability_semantics": "P(up)",
         "meta_confidence_pct": int(round(meta_prob * 100)) if meta_prob is not None else None,
         "meta_expected_return": meta_expected_return,
         "meta_expected_drawdown": meta_expected_drawdown,

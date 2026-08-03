@@ -97,6 +97,27 @@ def test_runtime_lock_blocks_same_deployment_and_recovers_stale_lock(monkeypatch
     assert "stale_lock_recovered" in audit
 
 
+def test_clock_gap_reacquire_invalidates_old_lease_revision(monkeypatch, tmp_path):
+    _clear_path_overrides(monkeypatch)
+    monkeypatch.setenv("BTC_RUNTIME_ENVIRONMENT", "paper")
+    monkeypatch.setenv("BTC_DEPLOYMENT_ID", "clock-gap")
+    monkeypatch.setenv("BTC_RUNTIME_ID", "runtime-clock-gap")
+    monkeypatch.setenv(
+        "BTC_RUNTIME_ROOT", str(tmp_path / "runtime" / "paper" / "clock-gap")
+    )
+    lock = RuntimeLock()
+    acquired = lock.acquire()
+
+    reacquired = lock.reacquire_after_clock_gap()
+
+    assert reacquired["ownership_revision"] != acquired["ownership_revision"]
+    assert reacquired["previous_ownership_revision"] == acquired["ownership_revision"]
+    assert lock.assert_current_owner()["ownership_revision"] == reacquired[
+        "ownership_revision"
+    ]
+    assert lock.release() is True
+
+
 def test_subprocess_deployments_are_isolated_and_same_deployment_conflicts(tmp_path):
     base_env = os.environ.copy()
     for key in OWNERSHIP_ENV_KEYS:

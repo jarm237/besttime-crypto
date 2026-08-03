@@ -28,7 +28,7 @@ from btc_scraper.core.paths import (
 )
 
 RUNTIME_EVIDENCE_SCHEMA_VERSION = 6
-GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 4
+GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 5
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "signal_id",
@@ -177,11 +177,16 @@ class RuntimeEvidenceStore:
                     evidence_policy_version TEXT NOT NULL,
                     risk_policy_version TEXT NOT NULL,
                     runtime_schema_version INTEGER NOT NULL,
-                    status TEXT NOT NULL CHECK(status IN ('DRAFT','ACTIVE','SEALED','INVALIDATED')),
+                    status TEXT NOT NULL CHECK(status IN (
+                        'DRAFT','ACTIVE','SEAL_BLOCKED','SEAL_READY','SEALED',
+                        'INVALIDATED','QUARANTINED'
+                    )),
+                    runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
                     updated_at TEXT NOT NULL
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_one_active_evidence_epoch
-                    ON evidence_epochs(status) WHERE status='ACTIVE';
+                    ON evidence_epochs((1))
+                    WHERE status IN ('ACTIVE','SEAL_BLOCKED','SEAL_READY');
             """)
             columns = {
                 str(row[1])
@@ -201,6 +206,57 @@ class RuntimeEvidenceStore:
                 db.execute(
                     "ALTER TABLE evidence_epochs ADD COLUMN activated_at TEXT"
                 )
+            if "runtime_pause_policy" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN runtime_pause_policy "
+                    "TEXT NOT NULL DEFAULT '{}'"
+                )
+            table_sql = str(db.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='evidence_epochs'"
+            ).fetchone()[0])
+            if "SEAL_READY" not in table_sql or "QUARANTINED" not in table_sql:
+                db.execute("DROP INDEX IF EXISTS uq_one_active_evidence_epoch")
+                db.execute("ALTER TABLE evidence_epochs RENAME TO evidence_epochs_legacy")
+                db.executescript("""
+                    CREATE TABLE evidence_epochs (
+                        epoch_id TEXT PRIMARY KEY,
+                        deployment_id TEXT NOT NULL,
+                        started_at TEXT NOT NULL,
+                        activated_at TEXT,
+                        code_commit_sha TEXT NOT NULL,
+                        model_version TEXT NOT NULL,
+                        artifact_sha256 TEXT NOT NULL,
+                        feature_schema_version TEXT NOT NULL,
+                        analysis_universe TEXT NOT NULL,
+                        analysis_universe_hash TEXT NOT NULL,
+                        evidence_policy_version TEXT NOT NULL,
+                        risk_policy_version TEXT NOT NULL,
+                        runtime_schema_version INTEGER NOT NULL,
+                        status TEXT NOT NULL CHECK(status IN (
+                            'DRAFT','ACTIVE','SEAL_BLOCKED','SEAL_READY','SEALED',
+                            'INVALIDATED','QUARANTINED'
+                        )),
+                        runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
+                        updated_at TEXT NOT NULL
+                    );
+                    INSERT INTO evidence_epochs(
+                        epoch_id,deployment_id,started_at,activated_at,code_commit_sha,
+                        model_version,artifact_sha256,feature_schema_version,
+                        analysis_universe,analysis_universe_hash,evidence_policy_version,
+                        risk_policy_version,runtime_schema_version,status,
+                        runtime_pause_policy,updated_at
+                    ) SELECT
+                        epoch_id,deployment_id,started_at,activated_at,code_commit_sha,
+                        model_version,artifact_sha256,feature_schema_version,
+                        analysis_universe,analysis_universe_hash,evidence_policy_version,
+                        risk_policy_version,runtime_schema_version,status,
+                        runtime_pause_policy,updated_at
+                    FROM evidence_epochs_legacy;
+                    DROP TABLE evidence_epochs_legacy;
+                    CREATE UNIQUE INDEX uq_one_active_evidence_epoch
+                        ON evidence_epochs((1))
+                        WHERE status IN ('ACTIVE','SEAL_BLOCKED','SEAL_READY');
+                """)
             db.execute(f"PRAGMA user_version={GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION}")
 
     @contextmanager
@@ -323,6 +379,7 @@ class RuntimeEvidenceStore:
             risk_policy_version=str(row[11]),
             runtime_schema_version=int(row[12]),
             status=str(row[13]),
+            runtime_pause_policy=json.loads(str(row[14]) or "{}"),
         )
 
     def create_evidence_epoch(
@@ -337,8 +394,8 @@ class RuntimeEvidenceStore:
                 "epoch_id,deployment_id,started_at,activated_at,code_commit_sha,model_version,"
                 "artifact_sha256,feature_schema_version,analysis_universe,"
                 "analysis_universe_hash,evidence_policy_version,risk_policy_version,"
-                "runtime_schema_version,status,updated_at"
-                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "runtime_schema_version,status,runtime_pause_policy,updated_at"
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     value.epoch_id, value.deployment_id, value.started_at,
                     value.activated_at,
@@ -348,6 +405,7 @@ class RuntimeEvidenceStore:
                     value.analysis_universe_hash,
                     value.evidence_policy_version, value.risk_policy_version,
                     value.runtime_schema_version, value.status,
+                    json.dumps(value.runtime_pause_policy, separators=(",", ":"), sort_keys=True),
                     self._now().isoformat(),
                 ),
             )
@@ -360,7 +418,7 @@ class RuntimeEvidenceStore:
                 "model_version,artifact_sha256,feature_schema_version,"
                 "analysis_universe,analysis_universe_hash,"
                 "evidence_policy_version,risk_policy_version,"
-                "runtime_schema_version,status FROM evidence_epochs "
+                "runtime_schema_version,status,runtime_pause_policy FROM evidence_epochs "
                 "WHERE epoch_id=?",
                 (str(epoch_id),),
             ).fetchone()
@@ -373,7 +431,7 @@ class RuntimeEvidenceStore:
                 "model_version,artifact_sha256,feature_schema_version,"
                 "analysis_universe,analysis_universe_hash,"
                 "evidence_policy_version,risk_policy_version,"
-                "runtime_schema_version,status FROM evidence_epochs "
+                "runtime_schema_version,status,runtime_pause_policy FROM evidence_epochs "
                 "WHERE status='ACTIVE'"
             ).fetchone()
         return self._epoch_from_row(row) if row else None
@@ -387,8 +445,19 @@ class RuntimeEvidenceStore:
         allowed = {
             ("DRAFT", "ACTIVE"),
             ("DRAFT", "INVALIDATED"),
-            ("ACTIVE", "SEALED"),
+            ("DRAFT", "QUARANTINED"),
+            ("ACTIVE", "SEAL_BLOCKED"),
+            ("ACTIVE", "SEAL_READY"),
+            ("SEAL_BLOCKED", "ACTIVE"),
+            ("SEAL_BLOCKED", "SEAL_READY"),
+            ("SEAL_READY", "ACTIVE"),
+            ("SEAL_READY", "SEALED"),
             ("ACTIVE", "INVALIDATED"),
+            ("ACTIVE", "QUARANTINED"),
+            ("SEAL_BLOCKED", "INVALIDATED"),
+            ("SEAL_BLOCKED", "QUARANTINED"),
+            ("SEAL_READY", "INVALIDATED"),
+            ("SEAL_READY", "QUARANTINED"),
         }
         with self._global_transaction() as db:
             row = db.execute(

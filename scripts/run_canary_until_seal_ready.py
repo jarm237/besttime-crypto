@@ -40,6 +40,12 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from btc_scraper.core.config import MONGODB_URI  # noqa: E402
+from btc_scraper.core.runtime_pause import (  # noqa: E402
+    ExternalDependencyUnavailable,
+    RuntimePauseController,
+    RuntimePausePolicy,
+)
+from btc_scraper.ml_engine.artifact_resolver import ArtifactResolver  # noqa: E402
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore  # noqa: E402
 
 
@@ -54,6 +60,10 @@ LINEAGE_FIELDS = {
 
 class CanaryInvariantError(RuntimeError):
     """Raised when continuing the canary would make its cohort unsafe."""
+
+
+class CanaryInterrupted(RuntimeError):
+    """Raised internally when the supervisor receives a stop signal."""
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -251,6 +261,7 @@ def _validate_static_invariants(
     runtime_root: Path,
     terminal_decision_grace: float,
     read_only: bool = False,
+    pause_controller: RuntimePauseController | None = None,
 ) -> dict[str, Any]:
     health = store.health(quarantine_corrupt=not read_only)
     if health.get("status") != "healthy" or health.get("severity") != "HEALTHY":
@@ -286,14 +297,20 @@ def _validate_static_invariants(
         if row.get("prediction_id")
     }
     now = datetime.now(timezone.utc)
+    def effective_age(timestamp: Any, *, naive_is_local: bool = False) -> float:
+        started = _iso(timestamp, naive_is_local=naive_is_local)
+        elapsed = (now - started).total_seconds()
+        if pause_controller is not None:
+            elapsed -= pause_controller.excluded_seconds_between(started, now)
+        return max(0.0, elapsed)
+
     stale_missing_decisions = [
         str(row.get("prediction_id"))
         for row in eligible_predictions
         if (
             str(row.get("prediction_id")) not in decision_prediction_ids
-            and (
-                now - _iso(row.get("timestamp") or row.get("predicted_at"))
-            ).total_seconds() >= terminal_decision_grace
+            and effective_age(row.get("timestamp") or row.get("predicted_at"))
+            >= terminal_decision_grace
         )
     ]
     if stale_missing_decisions:
@@ -337,8 +354,7 @@ def _validate_static_invariants(
         for prediction_id in unexecuted_trade_ids
         if (
             prediction_id not in prediction_times
-            or (now - prediction_times[prediction_id]).total_seconds()
-            >= terminal_decision_grace
+            or effective_age(prediction_times[prediction_id]) >= terminal_decision_grace
         )
     )
     if stale_unexecuted_trade_ids:
@@ -375,7 +391,7 @@ def _validate_static_invariants(
         try:
             is_stale = (
                 closed_at is None
-                or (now - _iso(closed_at, naive_is_local=True)).total_seconds()
+                or effective_age(closed_at, naive_is_local=True)
                 >= terminal_decision_grace
             )
         except (TypeError, ValueError):
@@ -669,6 +685,7 @@ def _evaluate(
     max_outcome_delay: float,
     terminal_decision_grace: float,
     read_only: bool = False,
+    pause_controller: RuntimePauseController | None = None,
 ) -> dict[str, Any]:
     rows = store.shadow_evidence_rows()
     reservations, fills = _runtime_files(runtime_root)
@@ -682,8 +699,9 @@ def _evaluate(
         )
         risk = _risk_metrics(mongo_database)
     except PyMongoError as exc:
-        raise CanaryInvariantError(
-            f"risk_database_unavailable:{type(exc).__name__}"
+        raise ExternalDependencyUnavailable(
+            "RUNTIME_PAUSED_MONGODB_UNAVAILABLE",
+            f"{type(exc).__name__}:{exc}",
         ) from exc
     summary = _validate_static_invariants(
         store=store,
@@ -697,6 +715,7 @@ def _evaluate(
         runtime_root=runtime_root,
         terminal_decision_grace=terminal_decision_grace,
         read_only=read_only,
+        pause_controller=pause_controller,
     )
     candidate = _candidate_for_closed_trade(
         rows=rows,
@@ -786,6 +805,17 @@ def _assert_epoch_and_code(store: RuntimeEvidenceStore, epoch_id: str, deploymen
     ).stdout.strip()
     if head != epoch.code_commit_sha:
         raise CanaryInvariantError(f"code_commit_mismatch:{head}:{epoch.code_commit_sha}")
+    resolver = ArtifactResolver()
+    matching_artifact = False
+    for model_name in resolver.config:
+        resolved = resolver.resolve(model_name, require_metadata=True)
+        if resolved.healthy and str(resolved.sha256 or "") == epoch.artifact_sha256:
+            matching_artifact = True
+            break
+    if not matching_artifact:
+        raise CanaryInvariantError(
+            f"model_artifact_hash_mismatch:{epoch.artifact_sha256}"
+        )
     return epoch
 
 
@@ -852,6 +882,7 @@ def main() -> int:
     store = RuntimeEvidenceStore(evidence_path)
     child: subprocess.Popen[Any] | None = None
     mongo: MongoClient | None = None
+    pause_controller: RuntimePauseController | None = None
     interrupted = False
 
     def request_stop(signum: int, _frame: Any) -> None:
@@ -868,37 +899,87 @@ def main() -> int:
         mongo = _mongo_client(args.mongo_timeout_ms)
         database = mongo["besttime_crypto"]
 
-        initial = _evaluate(
-            store=store,
-            epoch=epoch,
-            deployment_id=args.deployment_id,
-            runtime_root=runtime_root,
-            mongo_database=database,
-            max_outcome_delay=args.outcome_link_max_delay_seconds,
-            terminal_decision_grace=args.terminal_decision_grace_seconds,
-            read_only=args.check_only,
+        pause_controller = RuntimePauseController(
+            runtime_root / "state" / "canary_runner",
+            policy=RuntimePausePolicy.from_mapping(
+                getattr(epoch, "runtime_pause_policy", None)
+            ),
         )
+
+        def evaluate_with_recovery(*, read_only: bool = False) -> dict[str, Any]:
+            nonlocal child, epoch
+            while not interrupted:
+                clock_gap = pause_controller.heartbeat()
+                if (
+                    clock_gap
+                    > pause_controller.policy.maximum_clock_gap_before_recovery_seconds
+                ):
+                    _stop_child(child, args.child_stop_timeout_seconds)
+                    child = None
+                try:
+                    epoch = _assert_epoch_and_code(
+                        store, args.epoch_id, args.deployment_id
+                    )
+                    state = _evaluate(
+                        store=store,
+                        epoch=epoch,
+                        deployment_id=args.deployment_id,
+                        runtime_root=runtime_root,
+                        mongo_database=database,
+                        max_outcome_delay=args.outcome_link_max_delay_seconds,
+                        terminal_decision_grace=args.terminal_decision_grace_seconds,
+                        read_only=read_only,
+                        pause_controller=pause_controller,
+                    )
+                except ExternalDependencyUnavailable as exc:
+                    pause_controller.pause(
+                        exc.reason_code,
+                        detail=exc.detail,
+                        context={
+                            "epoch_id": args.epoch_id,
+                            "deployment_id": args.deployment_id,
+                        },
+                    )
+                    _stop_child(child, args.child_stop_timeout_seconds)
+                    child = None
+                    print(
+                        f"[runner] PAUSED_EXTERNAL {exc}; epoch remains ACTIVE",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    if read_only:
+                        raise
+                    time.sleep(pause_controller.recovery_probe_delay())
+                    continue
+                if pause_controller.runtime_state == "STARTING":
+                    pause_controller.mark_running()
+                elif pause_controller.is_paused:
+                    if not pause_controller.observe_recovery_probe(
+                        True,
+                        detail="epoch_artifact_evidence_mongodb_preflight_healthy",
+                    ):
+                        time.sleep(pause_controller.recovery_probe_delay())
+                        continue
+                    if child is None and not read_only:
+                        child = _start_child(environment)
+                return state
+            raise CanaryInterrupted
+
+        initial = evaluate_with_recovery(read_only=args.check_only)
         _print_state("preflight", initial)
         if args.check_only:
             return 0 if initial["candidate"] else 1
 
-        child = _start_child(environment)
+        if child is None:
+            child = _start_child(environment)
         phase = "waiting_for_closed_trade"
         last_signature: tuple[Any, ...] | None = None
         candidate: dict[str, Any] | None = None
         while not interrupted:
+            state = evaluate_with_recovery()
             if child.poll() is not None:
                 print(f"[runner] child exited unexpectedly rc={child.returncode}", file=sys.stderr)
                 return 1
-            state = _evaluate(
-                store=store,
-                epoch=epoch,
-                deployment_id=args.deployment_id,
-                runtime_root=runtime_root,
-                mongo_database=database,
-                max_outcome_delay=args.outcome_link_max_delay_seconds,
-                terminal_decision_grace=args.terminal_decision_grace_seconds,
-            )
             signature = (
                 state["predictions"], state["decisions"], state["outcomes"],
                 state["reservations"], state["paper_fills"],
@@ -922,18 +1003,10 @@ def main() -> int:
         phase = "restart_stability"
         stable_until = time.monotonic() + args.restart_observation_seconds
         while not interrupted and time.monotonic() < stable_until:
+            state = evaluate_with_recovery()
             if child.poll() is not None:
                 print(f"[runner] restart child exited unexpectedly rc={child.returncode}", file=sys.stderr)
                 return 1
-            state = _evaluate(
-                store=store,
-                epoch=epoch,
-                deployment_id=args.deployment_id,
-                runtime_root=runtime_root,
-                mongo_database=database,
-                max_outcome_delay=args.outcome_link_max_delay_seconds,
-                terminal_decision_grace=args.terminal_decision_grace_seconds,
-            )
             current = state.get("candidate")
             if not current or any(
                 current.get(field) != candidate.get(field)
@@ -953,15 +1026,7 @@ def main() -> int:
 
         if interrupted:
             return 130
-        final_state = _evaluate(
-            store=store,
-            epoch=epoch,
-            deployment_id=args.deployment_id,
-            runtime_root=runtime_root,
-            mongo_database=database,
-            max_outcome_delay=args.outcome_link_max_delay_seconds,
-            terminal_decision_grace=args.terminal_decision_grace_seconds,
-        )
+        final_state = evaluate_with_recovery()
         _print_state("seal_ready", final_state)
         print(
             "[runner] SEAL_READY "
@@ -969,6 +1034,15 @@ def main() -> int:
             flush=True,
         )
         return 0
+    except CanaryInterrupted:
+        return 130
+    except ExternalDependencyUnavailable as exc:
+        print(
+            f"[runner] PAUSED_EXTERNAL {exc}; epoch remains ACTIVE",
+            file=sys.stderr,
+            flush=True,
+        )
+        return 3
     except CanaryInvariantError as exc:
         try:
             if not args.check_only or args.record_check_result:

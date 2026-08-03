@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -53,6 +54,7 @@ class RuntimeLock:
         self.lock_path = self.paths.runtime_lock_path
         self.audit_path = self.paths.state_root / "runtime_lock_events.jsonl"
         self._acquired = False
+        self._ownership_revision: str | None = None
 
     def acquire(self) -> dict[str, Any]:
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -71,12 +73,53 @@ class RuntimeLock:
         payload = {
             **runtime_owner_metadata(),
             "acquired_at": _now(),
+            "ownership_revision": uuid.uuid4().hex,
             "lock_path": str(self.lock_path),
         }
         _atomic_write_json(self.lock_path, payload)
         self._audit("runtime_lock_acquired", {"lock": payload})
         self._acquired = True
+        self._ownership_revision = str(payload["ownership_revision"])
         return payload
+
+    def reacquire_after_clock_gap(self) -> dict[str, Any]:
+        """Invalidate the pre-suspend revision and prove ownership again."""
+        current = self._read_lock()
+        expected_revision = self._ownership_revision
+        if not current or not self._acquired or not expected_revision:
+            raise RuntimeLockError("cannot reacquire an unowned runtime lease")
+        owner_matches = (
+            str(current.get("runtime_id")) == self.paths.runtime_id
+            and int(current.get("process_id") or -1) == os.getpid()
+            and str(current.get("ownership_revision") or "") == expected_revision
+        )
+        if not owner_matches:
+            self._acquired = False
+            self._ownership_revision = None
+            self._audit("runtime_lock_reacquire_rejected", {"effective_lock": current})
+            raise RuntimeLockError("runtime ownership changed during clock gap")
+        renewed = {
+            **current,
+            "ownership_revision": uuid.uuid4().hex,
+            "reacquired_at": _now(),
+            "previous_ownership_revision": expected_revision,
+        }
+        _atomic_write_json(self.lock_path, renewed)
+        self._ownership_revision = str(renewed["ownership_revision"])
+        self._audit("runtime_lock_reacquired_after_clock_gap", {"lock": renewed})
+        return renewed
+
+    def assert_current_owner(self) -> dict[str, Any]:
+        current = self._read_lock()
+        if (
+            not current
+            or not self._acquired
+            or str(current.get("runtime_id")) != self.paths.runtime_id
+            or int(current.get("process_id") or -1) != os.getpid()
+            or str(current.get("ownership_revision") or "") != self._ownership_revision
+        ):
+            raise RuntimeLockError("runtime process no longer owns the effective lease")
+        return current
 
     def release(self) -> bool:
         current = self._read_lock()
@@ -87,9 +130,16 @@ class RuntimeLock:
             raise RuntimeLockError(
                 f"cannot release lock owned by runtime_id={current.get('runtime_id')}"
             )
+        if str(current.get("ownership_revision") or "") != str(
+            self._ownership_revision or ""
+        ):
+            self._acquired = False
+            self._ownership_revision = None
+            raise RuntimeLockError("cannot release a superseded runtime lease")
         self.lock_path.unlink(missing_ok=True)
         self._audit("runtime_lock_released", {"runtime_id": self.paths.runtime_id})
         self._acquired = False
+        self._ownership_revision = None
         return True
 
     def __enter__(self) -> "RuntimeLock":

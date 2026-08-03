@@ -129,6 +129,7 @@ def test_sealed_epoch_cannot_receive_new_evidence(tmp_path):
     store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
     store.create_evidence_epoch(_epoch())
     store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+    store.transition_evidence_epoch("epoch-canary-1", "SEAL_READY")
     store.transition_evidence_epoch("epoch-canary-1", "SEALED")
 
     with pytest.raises(RuntimeError, match="ACTIVE epoch"):
@@ -144,8 +145,28 @@ def test_epoch_state_machine_and_single_active_epoch(tmp_path):
         store.transition_evidence_epoch("epoch-b", "ACTIVE")
     with pytest.raises(ValueError, match="invalid evidence epoch transition"):
         store.transition_evidence_epoch("epoch-a", "DRAFT")
+    assert store.transition_evidence_epoch("epoch-a", "SEAL_BLOCKED").status == "SEAL_BLOCKED"
+    with pytest.raises(Exception):
+        store.transition_evidence_epoch("epoch-b", "ACTIVE")
+    assert store.transition_evidence_epoch("epoch-a", "SEAL_READY").status == "SEAL_READY"
     assert store.transition_evidence_epoch("epoch-a", "SEALED").status == "SEALED"
     assert store.transition_evidence_epoch("epoch-b", "ACTIVE").status == "ACTIVE"
+
+
+def test_external_pause_policy_is_pinned_without_changing_epoch_state(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    created = store.create_evidence_epoch(_epoch())
+    assert created.runtime_pause_policy["policy_version"] == "runtime-pause-v1"
+    active = store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+
+    restarted = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    persisted = restarted.get_evidence_epoch(active.epoch_id)
+
+    assert persisted is not None
+    assert persisted.status == "ACTIVE"
+    assert "RUNTIME_PAUSED_MONGODB_UNAVAILABLE" in persisted.runtime_pause_policy[
+        "pausable_reason_codes"
+    ]
 
 
 def test_epoch_policy_versions_fail_closed(tmp_path):

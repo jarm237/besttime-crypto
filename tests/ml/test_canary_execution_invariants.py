@@ -453,6 +453,35 @@ def test_signal_generator_writes_one_terminal_error_decision(monkeypatch):
     assert context["analysis"]["BNB:Binance"]["causal_decision"]["prediction_id"] == PREDICTION
 
 
+def test_signal_generator_does_not_emit_signal_without_meta_prediction(monkeypatch):
+    class BrokenCoordinator:
+        def predict_once(self, *_args, **_kwargs):
+            raise RuntimeError("meta_prediction_unavailable")
+
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.inference_coordinator.get_inference_coordinator",
+        lambda: BrokenCoordinator(),
+    )
+    monkeypatch.setattr(
+        "btc_scraper.collectors.alternative_reference.load_alternative_reference",
+        lambda: {},
+    )
+    context = {
+        "analysis": {
+            "BTC:15m": {
+                "signal": "STRONG SELL (Confirmed Reversal)",
+                "close": 63_212.0,
+            }
+        }
+    }
+
+    with pytest.raises(RuntimeError, match="meta_prediction_unavailable"):
+        SignalGeneratorAgent().run(context)
+
+    assert "signals_info" not in context
+    assert "signal_score" not in context["analysis"]["BTC:15m"]
+
+
 def test_runner_blocks_stale_prediction_without_terminal_decision(tmp_path):
     runner_path = Path(__file__).resolve().parents[2] / "scripts" / "run_canary_until_seal_ready.py"
     spec = importlib.util.spec_from_file_location("canary_runner", runner_path)
@@ -646,3 +675,46 @@ def test_seal_blocked_audit_uses_epoch_lineage_and_missing_lineage_fails(tmp_pat
             reason="blocked",
         )
     assert len(appended) == 1
+
+
+def test_runner_treats_mongodb_timeout_as_external_pause_without_writes(tmp_path):
+    runner_path = Path(__file__).resolve().parents[2] / "scripts" / "run_canary_until_seal_ready.py"
+    spec = importlib.util.spec_from_file_location("canary_runner_mongo_pause", runner_path)
+    assert spec and spec.loader
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+
+    class Store:
+        @staticmethod
+        def shadow_evidence_rows():
+            return {
+                "predictions": [],
+                "final_decisions": [],
+                "outcomes": [],
+                "audit_events": [],
+            }
+
+    class Admin:
+        @staticmethod
+        def command(_name):
+            raise runner.PyMongoError("temporary MongoDB timeout")
+
+    class Client:
+        admin = Admin()
+
+    class Database:
+        client = Client()
+
+    with pytest.raises(
+        runner.ExternalDependencyUnavailable,
+        match="RUNTIME_PAUSED_MONGODB_UNAVAILABLE",
+    ):
+        runner._evaluate(
+            store=Store(),
+            epoch=SimpleNamespace(),
+            deployment_id=DEPLOYMENT,
+            runtime_root=tmp_path,
+            mongo_database=Database(),
+            max_outcome_delay=60.0,
+            terminal_decision_grace=120.0,
+        )

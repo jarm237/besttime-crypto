@@ -277,12 +277,31 @@ class MetaDecisionEngine:
                 "artifact_sha256": None,
             }
 
-        meta_prob = float(meta["probability"])
+        proposed_side = self._entry_action(analysis_info)
+        signal_side = proposed_side if proposed_side in {"BUY", "SELL"} else self._signal_direction(analysis_info)
+        probability_semantics = str(meta.get("probability_semantics") or "P(up)")
+        if meta.get("model_probability_up") is not None:
+            model_probability_up = self._clamp01(meta["model_probability_up"])
+        elif probability_semantics == "P(win_given_proposed_trade)":
+            side_value = self._clamp01(meta["probability"])
+            model_probability_up = 1.0 - side_value if signal_side == "SELL" else side_value
+        else:
+            model_probability_up = self._clamp01(meta["probability"])
+        meta_prob = (
+            self._clamp01(meta.get("execution_probability"))
+            if meta.get("execution_probability") is not None
+            else self._execution_probability(signal_side, model_probability_up)
+        )
         sentiment_prob = self._sentiment_support(analysis_info)
         proposed_regime_prob = self._regime_support(analysis_info)
         applied_regime_prob = proposed_regime_prob if self.regime_decision_effect_enabled else 0.5
         volatility_prob = self._volatility_support(analysis_info)
-        posterior = self.compute_posterior(meta_prob, sentiment_prob, applied_regime_prob, volatility_prob)
+        side_probability = self.compute_posterior(
+            meta_prob, sentiment_prob, applied_regime_prob, volatility_prob
+        )
+        posterior = (
+            1.0 - side_probability if signal_side == "SELL" else side_probability
+        )
 
         expected_return = meta.get("expected_return")
         if expected_return is None:
@@ -322,12 +341,15 @@ class MetaDecisionEngine:
             risk_failure_reason = "canonical_action_not_supported_by_entry_signal"
 
         reason = [
+            f"model_probability_up={model_probability_up:.3f}",
+            f"meta_side_probability={meta_prob:.3f}",
             f"meta_prob={meta_prob:.3f}",
             f"sentiment={sentiment_prob:.3f}",
             f"regime_proposed={proposed_regime_prob:.3f}",
             f"regime_applied={applied_regime_prob:.3f}",
             f"volatility={volatility_prob:.3f}",
             f"posterior={posterior:.3f}",
+            f"side_probability={side_probability:.3f}",
             f"ev={expected_return:.4f}",
         ]
         if risk_blocked or risk_status == "UNAVAILABLE":
@@ -336,8 +358,16 @@ class MetaDecisionEngine:
         final_decision = {
             "action": action,
             "posterior_probability": posterior,
+            "posterior_probability_semantics": "P(up)",
+            "side_probability": side_probability,
+            "side_probability_semantics": "P(win_given_proposed_trade)",
             "meta_probability": meta_prob,
-            "execution_probability": self._execution_probability(action, meta_prob),
+            "meta_probability_semantics": "P(win_given_proposed_trade)",
+            "model_probability_up": model_probability_up,
+            "model_probability_semantics": "P(up)",
+            "execution_probability": meta_prob,
+            "execution_probability_semantics": "P(win_given_proposed_trade)",
+            "decision_contract_version": "side-probability-v2",
             "sentiment_support": sentiment_prob,
             "regime_support": applied_regime_prob,
             "proposed_regime_support": proposed_regime_prob,
@@ -425,13 +455,23 @@ class MetaDecisionEngine:
         reason_parts.extend(risk_reasons)
         context_snapshot_id = context_report.get("context_snapshot_id") or str(uuid.uuid4())
 
+        meta_probability = float(base_decision.get("meta_probability") or 0.5)
+        if base_decision.get("meta_probability_semantics") != "P(win_given_proposed_trade)":
+            meta_probability = self._execution_probability(
+                final_action.value, meta_probability
+            )
+        adjusted_side_probability = (
+            1.0 - adjusted_posterior
+            if final_action.value == "SELL"
+            else adjusted_posterior
+        )
         final_decision = {
             **base_decision,
             "action": final_action.value,
-            "execution_probability": self._execution_probability(
-                final_action.value,
-                float(base_decision.get("meta_probability") or 0.5),
-            ),
+            "execution_probability": meta_probability,
+            "execution_probability_semantics": "P(win_given_proposed_trade)",
+            "side_probability": adjusted_side_probability,
+            "side_probability_semantics": "P(win_given_proposed_trade)",
             "posterior_probability": original_posterior,
             "adjusted_posterior": adjusted_posterior,
             "context_adjustment": adjusted_posterior - original_posterior,

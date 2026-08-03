@@ -41,7 +41,10 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="ISO-8601 UTC timestamp; defaults to now",
     )
-    for command in ("activate", "seal", "invalidate"):
+    for command in (
+        "activate", "block-seal", "ready-to-seal", "seal", "quarantine",
+        "invalidate",
+    ):
         transition = subparsers.add_parser(command)
         transition.add_argument("epoch_id")
     return parser
@@ -71,7 +74,10 @@ def main() -> int:
     else:
         target = {
             "activate": "ACTIVE",
+            "block-seal": "SEAL_BLOCKED",
+            "ready-to-seal": "SEAL_READY",
             "seal": "SEALED",
+            "quarantine": "QUARANTINED",
             "invalidate": "INVALIDATED",
         }[args.command]
         if target in {"ACTIVE", "SEALED"}:

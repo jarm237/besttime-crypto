@@ -244,6 +244,30 @@ class TestFinalRiskGate:
         assert result["terminal_status"] == "TRADE"
         assert result["execution_probability"] == pytest.approx(0.8)
 
+    def test_bearish_support_combines_in_side_space_for_sell(self):
+        engine = MetaDecisionEngine()
+        result = engine.decide({
+            "signal": "STRONG SELL",
+            "action": "SELL",
+            "fear_greed": 20,
+            "sentiment_momentum": -0.8,
+            "regime": "bear",
+            "atr_pct": 1.0,
+            "_meta_prediction": {
+                "probability": 0.2,
+                "probability_semantics": "P(up)",
+                "expected_return": -0.1,
+                "prediction_id": None,
+            },
+        }, persist_final=False)
+
+        assert result["action"] == "SELL"
+        assert result["model_probability_up"] == pytest.approx(0.2)
+        assert result["meta_probability"] == pytest.approx(0.8)
+        assert result["side_probability"] >= 0.65
+        assert result["posterior_probability"] <= 0.35
+        assert result["decision_contract_version"] == "side-probability-v2"
+
     def test_unavailable_account_risk_is_persistable_in_final_decision(self):
         engine = MetaDecisionEngine()
         result = engine.decide({
