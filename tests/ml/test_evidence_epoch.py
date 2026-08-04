@@ -1,3 +1,6 @@
+import hashlib
+import json
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 import subprocess
@@ -151,6 +154,198 @@ def test_epoch_state_machine_and_single_active_epoch(tmp_path):
     assert store.transition_evidence_epoch("epoch-a", "SEAL_READY").status == "SEAL_READY"
     assert store.transition_evidence_epoch("epoch-a", "SEALED").status == "SEALED"
     assert store.transition_evidence_epoch("epoch-b", "ACTIVE").status == "ACTIVE"
+
+
+def test_invalidate_active_epoch_records_audit_event(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+
+    result = store.invalidate_evidence_epoch(
+        "epoch-canary-1",
+        reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+        reason_detail="Deployment, paper-run and runtime namespace were reused.",
+        contributing_reasons=[
+            "ACTIVATION_BEFORE_PREFLIGHT",
+            "UNIVERSE_EXPANDED_OUTSIDE_APPROVED_CANARY",
+            "PINNED_RUNTIME_NOT_USED_FOR_ACTIVATION",
+            "PAPER_RUN_ID_REUSED",
+        ],
+    )
+
+    assert result.status == "INVALIDATED"
+    assert store.get_evidence_epoch("epoch-canary-1").status == "INVALIDATED"
+    assert store.count_rows("audit_events") == 1
+    payload = store.shadow_evidence_rows()["audit_events"][0]
+    assert payload["epoch_id"] == "epoch-canary-1"
+    assert payload["reason_code"] == "DEPLOYMENT_RUNTIME_NAMESPACE_REUSED"
+    assert payload["retroactive_audit"] is True
+
+
+def test_invalidate_missing_reason_is_rejected(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+
+    with pytest.raises(ValueError, match="reason_code is required for invalidate"):
+        store.invalidate_evidence_epoch(
+            "epoch-canary-1",
+            reason_code="",
+            reason_detail="Deployment, paper-run and runtime namespace were reused.",
+        )
+
+    with pytest.raises(ValueError, match="reason_detail is required for invalidate"):
+        store.invalidate_evidence_epoch(
+            "epoch-canary-1",
+            reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+            reason_detail="",
+        )
+
+
+def test_repeated_invalidation_with_same_reason_is_idempotent(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+
+    first = store.invalidate_evidence_epoch(
+        "epoch-canary-1",
+        reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+        reason_detail="Deployment, paper-run and runtime namespace were reused.",
+    )
+    second = store.invalidate_evidence_epoch(
+        "epoch-canary-1",
+        reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+        reason_detail="Deployment, paper-run and runtime namespace were reused.",
+    )
+
+    assert first.epoch_id == second.epoch_id
+    assert store.count_rows("audit_events") == 1
+
+
+def test_invalidate_already_invalidated_without_audit_appends_retroactive_audit(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+    with store._global_connect() as db:
+        db.execute(
+            "UPDATE evidence_epochs SET status='INVALIDATED', updated_at=? WHERE epoch_id=?",
+            (datetime(2026, 8, 4, 16, 34, 43, 194035, tzinfo=timezone.utc).isoformat(), "epoch-canary-1"),
+        )
+        db.commit()
+
+    result = store.invalidate_evidence_epoch(
+        "epoch-canary-1",
+        reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+        reason_detail="Deployment, paper-run and runtime namespace were reused.",
+        contributing_reasons=[
+            "ACTIVATION_BEFORE_PREFLIGHT",
+            "UNIVERSE_EXPANDED_OUTSIDE_APPROVED_CANARY",
+            "PINNED_RUNTIME_NOT_USED_FOR_ACTIVATION",
+            "PAPER_RUN_ID_REUSED",
+        ],
+    )
+
+    assert result.status == "INVALIDATED"
+    assert store.get_evidence_epoch("epoch-canary-1").status == "INVALIDATED"
+    assert store.count_rows("audit_events") == 1
+    payload = store.shadow_evidence_rows()["audit_events"][0]
+    assert payload["epoch_id"] == "epoch-canary-1"
+    assert payload["reason_code"] == "DEPLOYMENT_RUNTIME_NAMESPACE_REUSED"
+    assert payload["retroactive_audit"] is True
+    assert payload["invalidated_at"] == "2026-08-04T16:34:43.194035+00:00"
+    assert payload["audit_recorded_at"] != payload["invalidated_at"]
+
+
+def test_invalidate_already_invalidated_with_matching_audit_is_noop(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+    with store._global_connect() as db:
+        db.execute(
+            "UPDATE evidence_epochs SET status='INVALIDATED', updated_at=? WHERE epoch_id=?",
+            (datetime(2026, 8, 4, 16, 34, 43, 194035, tzinfo=timezone.utc).isoformat(), "epoch-canary-1"),
+        )
+        db.commit()
+
+    first = store.invalidate_evidence_epoch(
+        "epoch-canary-1",
+        reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+        reason_detail="Deployment, paper-run and runtime namespace were reused.",
+    )
+    second = store.invalidate_evidence_epoch(
+        "epoch-canary-1",
+        reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+        reason_detail="Deployment, paper-run and runtime namespace were reused.",
+    )
+
+    assert first.epoch_id == second.epoch_id
+    assert store.count_rows("audit_events") == 1
+
+
+def test_invalidate_already_invalidated_with_conflicting_reason_is_rejected(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+    with store._global_connect() as db:
+        db.execute(
+            "UPDATE evidence_epochs SET status='INVALIDATED', updated_at=? WHERE epoch_id=?",
+            (datetime(2026, 8, 4, 16, 34, 43, 194035, tzinfo=timezone.utc).isoformat(), "epoch-canary-1"),
+        )
+        payload = {
+            "event_type": "EPOCH_INVALIDATION_AUDIT_RECORDED",
+            "epoch_id": "epoch-canary-1",
+            "reason_code": "DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+            "reason_detail": "Deployment, paper-run and runtime namespace were reused.",
+            "contributing_reasons": [],
+            "invalidated_at": "2026-08-04T16:34:43.194035+00:00",
+            "audit_recorded_at": "2026-08-04T16:40:00+00:00",
+            "retroactive_audit": True,
+        }
+        db.execute(
+            "INSERT INTO audit_events(event_type,payload,payload_sha256,written_at) VALUES (?,?,?,?)",
+            (
+                payload["event_type"],
+                json.dumps(payload, separators=(",", ":"), sort_keys=True),
+                hashlib.sha256(json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")).hexdigest(),
+                datetime(2026, 8, 4, 16, 40, tzinfo=timezone.utc).isoformat(),
+            ),
+        )
+        db.commit()
+
+    with pytest.raises(ValueError, match="already invalidated with a different reason"):
+        store.invalidate_evidence_epoch(
+            "epoch-canary-1",
+            reason_code="SOME_OTHER_REASON",
+            reason_detail="Different reason",
+        )
+
+
+def test_invalidate_unknown_epoch_is_rejected(tmp_path):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    with pytest.raises(ValueError, match="unknown evidence epoch"):
+        store.invalidate_evidence_epoch(
+            "missing-epoch",
+            reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+            reason_detail="Missing epoch",
+        )
+
+
+def test_invalidate_atomicity_rolls_back_on_audit_failure(tmp_path, monkeypatch):
+    store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
+    store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+
+    def fail_insert(db, event):
+        raise sqlite3.OperationalError("insert failed")
+
+    monkeypatch.setattr(store, "_insert_audit_event_db", fail_insert)
+    with pytest.raises(sqlite3.OperationalError, match="insert failed"):
+        store.invalidate_evidence_epoch(
+            "epoch-canary-1",
+            reason_code="DEPLOYMENT_RUNTIME_NAMESPACE_REUSED",
+            reason_detail="Deployment, paper-run and runtime namespace were reused.",
+        )
+    assert store.get_evidence_epoch("epoch-canary-1").status == "ACTIVE"
 
 
 def test_external_pause_policy_is_pinned_without_changing_epoch_state(tmp_path):

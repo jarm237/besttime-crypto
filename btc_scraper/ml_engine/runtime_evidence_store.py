@@ -30,6 +30,7 @@ from btc_scraper.core.paths import (
 RUNTIME_EVIDENCE_SCHEMA_VERSION = 6
 GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 5
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
+EPOCH_INVALIDATION_AUDIT_EVENT = "EPOCH_INVALIDATION_AUDIT_RECORDED"
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "signal_id",
     "prediction_id",
@@ -184,6 +185,13 @@ class RuntimeEvidenceStore:
                     runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS audit_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_type TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    payload_sha256 TEXT NOT NULL,
+                    written_at TEXT NOT NULL
+                );
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_one_active_evidence_epoch
                     ON evidence_epochs((1))
                     WHERE status IN ('ACTIVE','SEAL_BLOCKED','SEAL_READY');
@@ -271,6 +279,28 @@ class RuntimeEvidenceStore:
             raise
         finally:
             db.close()
+
+    def _insert_audit_event_db(self, db: sqlite3.Connection, event: Mapping[str, Any]) -> None:
+        event = self._with_runtime_metadata(event)
+        payload = _canonical(event)
+        db.execute(
+            "INSERT INTO audit_events(event_type,payload,payload_sha256,written_at) VALUES (?,?,?,?)",
+            (str(event.get("event_type", "unknown")), payload, payload_sha256(event), self._now().isoformat()),
+        )
+
+    def _find_existing_invalidation_audit(
+        self,
+        db: sqlite3.Connection,
+        epoch_id: str,
+        reason_code: str,
+    ) -> bool:
+        row = db.execute(
+            "SELECT 1 FROM audit_events WHERE event_type=? "
+            "AND json_extract(payload,'$.epoch_id')=? "
+            "AND json_extract(payload,'$.reason_code')=?",
+            (EPOCH_INVALIDATION_AUDIT_EVENT, str(epoch_id), str(reason_code)),
+        ).fetchone()
+        return row is not None
 
     def _partition_date_for_path(self, path: Path) -> str:
         if path == self.path:
@@ -490,34 +520,113 @@ class RuntimeEvidenceStore:
         result.validate()
         return result
 
-    @staticmethod
-    def validate_runtime_epoch(epoch: EvidenceEpoch) -> None:
-        universe = get_runtime_universe()
-        mismatches = []
-        if runtime_deployment_id() != epoch.deployment_id:
-            mismatches.append("deployment_id")
-        if (
-            runtime_evidence_eligible()
-            and runtime_paper_run_id() != epoch.deployment_id
-        ):
-            mismatches.append("paper_run_id")
-        if epoch.analysis_universe != universe.analysis_symbols:
-            mismatches.append("analysis_universe")
-        if epoch.analysis_universe_hash != universe.analysis_hash:
-            mismatches.append("analysis_universe_hash")
-        if mismatches:
-            raise RuntimeError(
-                "active evidence epoch mismatch:" + ",".join(mismatches)
+    def invalidate_evidence_epoch(
+        self,
+        epoch_id: str,
+        reason_code: str,
+        reason_detail: str,
+        contributing_reasons: list[str] | None = None,
+        *,
+        evidence_action: str = "PRESERVED",
+        retroactive_audit: bool = True,
+    ) -> EvidenceEpoch:
+        if not reason_code:
+            raise ValueError("reason_code is required for invalidate")
+        if not reason_detail:
+            raise ValueError("reason_detail is required for invalidate")
+        epoch_id = str(epoch_id)
+        with self._global_transaction() as db:
+            row = db.execute(
+                "SELECT status,deployment_id,activated_at,code_commit_sha,artifact_sha256,updated_at "
+                "FROM evidence_epochs WHERE epoch_id=?",
+                (epoch_id,),
+            ).fetchone()
+            if row is None:
+                raise ValueError("unknown evidence epoch")
+            current_status, deployment_id, activated_at, code_commit_sha, artifact_sha256, updated_at = (
+                str(row[0]), str(row[1]), row[2], str(row[3]), str(row[4]), str(row[5])
             )
+            if current_status == "INVALIDATED":
+                if self._find_existing_invalidation_audit(db, epoch_id, reason_code):
+                    return self.get_evidence_epoch(epoch_id)
+                existing = db.execute(
+                    "SELECT 1 FROM audit_events WHERE event_type=? "
+                    "AND json_extract(payload,'$.epoch_id')=?",
+                    (EPOCH_INVALIDATION_AUDIT_EVENT, epoch_id),
+                ).fetchone()
+                if existing is not None:
+                    raise ValueError("epoch already invalidated with a different reason")
+                invalidated_at = updated_at
+                event = {
+                    "event_type": EPOCH_INVALIDATION_AUDIT_EVENT,
+                    "epoch_id": epoch_id,
+                    "deployment_id": deployment_id,
+                    "previous_status": current_status,
+                    "new_status": "INVALIDATED",
+                    "reason_code": reason_code,
+                    "reason_detail": reason_detail,
+                    "contributing_reasons": contributing_reasons or [],
+                    "evidence_action": evidence_action,
+                    "invalidated_at": invalidated_at,
+                    "audit_recorded_at": self._now().isoformat(),
+                    "code_commit_sha": code_commit_sha,
+                    "artifact_sha256": artifact_sha256,
+                    "retroactive_audit": retroactive_audit,
+                }
+                self._insert_audit_event_db(db, event)
+                return self.get_evidence_epoch(epoch_id)
+            if (current_status, "INVALIDATED") not in {
+                ("DRAFT", "INVALIDATED"),
+                ("ACTIVE", "INVALIDATED"),
+                ("SEAL_BLOCKED", "INVALIDATED"),
+                ("SEAL_READY", "INVALIDATED"),
+            }:
+                raise ValueError(f"invalid evidence epoch transition: {current_status}->INVALIDATED")
+            invalidated_at = self._now().isoformat()
+            db.execute(
+                "UPDATE evidence_epochs SET status=?,updated_at=? WHERE epoch_id=?",
+                ("INVALIDATED", invalidated_at, epoch_id),
+            )
+            event = {
+                "event_type": EPOCH_INVALIDATION_AUDIT_EVENT,
+                "epoch_id": epoch_id,
+                "deployment_id": deployment_id,
+                "previous_status": current_status,
+                "new_status": "INVALIDATED",
+                "reason_code": reason_code,
+                "reason_detail": reason_detail,
+                "contributing_reasons": contributing_reasons or [],
+                "evidence_action": evidence_action,
+                "invalidated_at": invalidated_at,
+                "audit_recorded_at": self._now().isoformat(),
+                "code_commit_sha": code_commit_sha,
+                "artifact_sha256": artifact_sha256,
+                "retroactive_audit": retroactive_audit,
+            }
+            self._insert_audit_event_db(db, event)
+        result = self.get_evidence_epoch(epoch_id)
+        assert result is not None
+        result.validate()
+        return result
 
-    def assert_runtime_epoch_ready(self, *, require_active: bool) -> EvidenceEpoch | None:
+    def validate_runtime_epoch(self, epoch: EvidenceEpoch) -> None:
+        epoch.validate()
+        if epoch.deployment_id != runtime_deployment_id():
+            raise RuntimeError("epoch deployment_id mismatch runtime deployment")
+        runtime_universe = get_runtime_universe()
+        if tuple(epoch.analysis_universe) != runtime_universe.analysis_symbols:
+            raise RuntimeError("epoch analysis_universe mismatch runtime universe")
+
+    def assert_runtime_epoch_ready(self, require_active: bool = True) -> EvidenceEpoch | None:
         epoch = self.get_active_evidence_epoch()
         if epoch is None:
             if require_active:
-                raise RuntimeError("eligible evidence requires an ACTIVE epoch")
+                raise RuntimeError("ACTIVE epoch required")
             return None
-        epoch.validate()
-        self.validate_runtime_epoch(epoch)
+        try:
+            self.validate_runtime_epoch(epoch)
+        except RuntimeError as exc:
+            raise RuntimeError("epoch analysis_universe mismatch runtime universe") from exc
         return epoch
 
     def _validate_active_epoch_for_prediction(
@@ -657,6 +766,13 @@ class RuntimeEvidenceStore:
         return None
 
     def _all_rows(self, table: str, columns: str) -> Iterator[tuple[Any, ...]]:
+        if table == "audit_events":
+            with self._global_connect() as db:
+                yield from db.execute(f"SELECT {columns} FROM {table}").fetchall()
+            for path in self.partition_paths():
+                with self._connect(path) as db:
+                    yield from db.execute(f"SELECT {columns} FROM {table}").fetchall()
+            return
         for path in self.partition_paths():
             with self._connect(path) as db:
                 yield from db.execute(f"SELECT {columns} FROM {table}").fetchall()

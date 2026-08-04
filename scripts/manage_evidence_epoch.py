@@ -47,6 +47,23 @@ def _parser() -> argparse.ArgumentParser:
     ):
         transition = subparsers.add_parser(command)
         transition.add_argument("epoch_id")
+        if command == "invalidate":
+            transition.add_argument(
+                "--reason-code",
+                required=True,
+                help="Reason code for invalidation",
+            )
+            transition.add_argument(
+                "--reason-detail",
+                required=True,
+                help="Detailed reason for invalidation",
+            )
+            transition.add_argument(
+                "--contributing-reason",
+                action="append",
+                default=[],
+                help="Contributing reason codes; may be repeated",
+            )
     return parser
 
 
@@ -72,25 +89,32 @@ def main() -> int:
     elif args.command == "status":
         result = store.get_active_evidence_epoch()
     else:
-        target = {
-            "activate": "ACTIVE",
-            "block-seal": "SEAL_BLOCKED",
-            "ready-to-seal": "SEAL_READY",
-            "seal": "SEALED",
-            "quarantine": "QUARANTINED",
-            "invalidate": "INVALIDATED",
-        }[args.command]
-        if target in {"ACTIVE", "SEALED"}:
-            epoch = store.get_evidence_epoch(args.epoch_id)
-            if epoch is None:
-                raise RuntimeError(f"evidence epoch not found: {args.epoch_id}")
-            universe = ",".join(epoch.analysis_universe)
-            os.environ["BTC_DEPLOYMENT_ID"] = epoch.deployment_id
-            os.environ["BTC_PAPER_RUN_ID"] = epoch.deployment_id
-            os.environ["BTC_ANALYSIS_UNIVERSE"] = universe
-            os.environ["AUTO_TRADE_COINS"] = universe
-            os.environ.setdefault("BTC_EVIDENCE_ELIGIBLE", "true")
-        result = store.transition_evidence_epoch(args.epoch_id, target)
+        if args.command == "invalidate":
+            result = store.invalidate_evidence_epoch(
+                args.epoch_id,
+                reason_code=args.reason_code,
+                reason_detail=args.reason_detail,
+                contributing_reasons=args.contributing_reason,
+            )
+        else:
+            target = {
+                "activate": "ACTIVE",
+                "block-seal": "SEAL_BLOCKED",
+                "ready-to-seal": "SEAL_READY",
+                "seal": "SEALED",
+                "quarantine": "QUARANTINED",
+            }[args.command]
+            if target in {"ACTIVE", "SEALED"}:
+                epoch = store.get_evidence_epoch(args.epoch_id)
+                if epoch is None:
+                    raise RuntimeError(f"evidence epoch not found: {args.epoch_id}")
+                universe = ",".join(epoch.analysis_universe)
+                os.environ["BTC_DEPLOYMENT_ID"] = epoch.deployment_id
+                os.environ["BTC_PAPER_RUN_ID"] = epoch.deployment_id
+                os.environ["BTC_ANALYSIS_UNIVERSE"] = universe
+                os.environ["AUTO_TRADE_COINS"] = universe
+                os.environ.setdefault("BTC_EVIDENCE_ELIGIBLE", "true")
+            result = store.transition_evidence_epoch(args.epoch_id, target)
     print(json.dumps(result.to_dict() if result else None, indent=2, sort_keys=True))
     return 0
 
