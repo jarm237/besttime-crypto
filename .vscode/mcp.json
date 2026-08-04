@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "gitnexus": {
+      "type": "stdio",
+      "command": "gitnexus",
+      "args": ["mcp"],
+      "env": {
+        "GITNEXUS_MCP_READ_ONLY": "1",
+        "GITNEXUS_MCP_ALLOWED_REPOS": "${workspaceFolder}",
+        "GITNEXUS_MCP_DEFAULT_REPO": "${workspaceFolder}",
+        "GITNEXUS_MCP_DEFAULT_MAX_TOKENS": "12000"
+      }
+    }
+  }
+}
