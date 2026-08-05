@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,17 @@ from tests.ml.fixtures.production_lineage import (
     configure_smoke_runtime,
     install_evidence_store,
 )
+
+
+def test_configure_smoke_runtime_uses_non_production_smoke_namespace(monkeypatch, tmp_path):
+    runtime_root = configure_smoke_runtime(monkeypatch, tmp_path)
+
+    assert "runtime/production" not in str(runtime_root)
+    assert "runtime/smoke" in str(runtime_root)
+    assert runtime_root.name == "paper-canary-20260805-01-preflight"
+    assert os.getenv("BTC_DEPLOYMENT_ID") == "paper-canary-20260805-01-smoke"
+    assert os.getenv("BTC_PAPER_RUN_ID") == "paper-canary-20260805-01-smoke"
+    assert os.getenv("BTC_EVIDENCE_ELIGIBLE") == "false"
 
 
 def test_real_meta_model_artifact_loads_with_governed_loader(monkeypatch, tmp_path):
@@ -40,8 +52,8 @@ def test_non_evidence_inference_smoke_persists_prediction_lineage(monkeypatch, t
 
     assert prediction.prediction_id
     assert prediction.signal_id
-    assert prediction.deployment_id == "paper-smoke-001"
-    assert prediction.paper_run_id == "paper-smoke-001"
+    assert prediction.deployment_id == "paper-canary-20260805-01-smoke"
+    assert prediction.paper_run_id == "paper-canary-20260805-01-smoke"
     assert prediction.artifact_sha256 == loaded.artifact_sha256
     assert evidence_store.count_rows("predictions") == 1
     assert evidence_store.count_rows("feature_snapshots") == 1
@@ -50,8 +62,8 @@ def test_non_evidence_inference_smoke_persists_prediction_lineage(monkeypatch, t
     assert persisted is not None
     assert persisted["signal_id"] == prediction.signal_id
     assert persisted["prediction_id"] == prediction.prediction_id
-    assert persisted["deployment_id"] == "paper-smoke-001"
-    assert persisted["paper_run_id"] == "paper-smoke-001"
+    assert persisted["deployment_id"] == "paper-canary-20260805-01-smoke"
+    assert persisted["paper_run_id"] == "paper-canary-20260805-01-smoke"
     assert persisted["artifact_sha256"] == loaded.artifact_sha256
     assert persisted["evidence_eligible"] is False
     assert persisted["analysis_universe"] == ["BTC", "ETH", "BNB"]
@@ -78,8 +90,8 @@ def test_non_evidence_decision_contract_stays_sell_side_probability_v2(monkeypat
                 "artifact_sha256": "sha256-smoke-sell",
                 "model_version": "smoke-v1",
                 "feature_schema_version": "meta-v3.1-43f",
-                "deployment_id": "paper-smoke-001",
-                "paper_run_id": "paper-smoke-001",
+                "deployment_id": "paper-canary-20260805-01-smoke",
+                "paper_run_id": "paper-canary-20260805-01-smoke",
                 "cycle_id": "smoke-cycle-001",
                 "feature_hash": "feature-hash-smoke",
             },

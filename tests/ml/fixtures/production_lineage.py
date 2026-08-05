@@ -8,16 +8,16 @@ from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 
 
 def configure_smoke_runtime(monkeypatch, tmp_path: Path) -> Path:
-    """Point the runtime helpers at a fully isolated test-local namespace."""
-    runtime_root = tmp_path / "runtime" / "test" / "paper-smoke"
+    """Point the runtime helpers at a fully isolated smoke-local namespace."""
+    runtime_root = tmp_path / "runtime" / "smoke" / "paper-canary-20260805-01-preflight"
     env_map = {
-        "BTC_RUNTIME_ENVIRONMENT": "test",
-        "BTC_ENVIRONMENT": "test",
-        "BTC_DEPLOYMENT_ID": "paper-smoke-001",
-        "BTC_RUNTIME_ID": "paper-smoke-001",
+        "BTC_RUNTIME_ENVIRONMENT": "smoke",
+        "BTC_ENVIRONMENT": "smoke",
+        "BTC_DEPLOYMENT_ID": "paper-canary-20260805-01-smoke",
+        "BTC_RUNTIME_ID": "paper-canary-20260805-01-smoke",
         "BTC_RUNTIME_ROOT": str(runtime_root),
         "BTC_EVIDENCE_ELIGIBLE": "false",
-        "BTC_PAPER_RUN_ID": "paper-smoke-001",
+        "BTC_PAPER_RUN_ID": "paper-canary-20260805-01-smoke",
         "BTC_ANALYSIS_UNIVERSE": "BTC,ETH,BNB",
         "AUTO_TRADE_COINS": "BTC,ETH,BNB",
         "BTC_DATA_DIR": str(runtime_root / "data"),
