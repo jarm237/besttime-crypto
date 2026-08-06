@@ -463,6 +463,8 @@ class RuntimeEvidenceStore:
         payload = {
             "epoch_id": epoch.epoch_id,
             "deployment_id": epoch.deployment_id,
+            "started_at": epoch.started_at,
+            "activated_at": epoch.activated_at,
             "code_commit_sha": epoch.code_commit_sha,
             "model_version": epoch.model_version,
             "artifact_sha256": epoch.artifact_sha256,
@@ -473,6 +475,7 @@ class RuntimeEvidenceStore:
             "release_manifest_sha256": epoch.release_manifest_sha256,
             "status": epoch.status,
             "runtime_schema_version": epoch.runtime_schema_version,
+            "runtime_pause_policy": epoch.runtime_pause_policy,
         }
         return payload_sha256(payload)
 
@@ -485,7 +488,6 @@ class RuntimeEvidenceStore:
         normalized_manifest = self._normalize_release_manifest(value.release_manifest or {}, value)
         value = replace(
             value,
-            paper_run_id=str(value.paper_run_id or value.deployment_id).strip(),
             release_manifest=normalized_manifest,
             release_manifest_sha256=self._release_manifest_sha256(normalized_manifest),
         )

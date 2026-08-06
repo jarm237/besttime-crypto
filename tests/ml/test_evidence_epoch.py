@@ -287,6 +287,41 @@ def test_create_evidence_epoch_reuses_same_payload_and_rejects_conflicts(tmp_pat
         )
 
 
+def test_create_evidence_epoch_rejects_same_epoch_id_with_different_started_at(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(path)
+    manifest = {
+        "manifest_schema_version": "evidence-manifest-v1",
+        "release_sha": "91cf0e9",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": "BTC,ETH,BNB",
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
+    store.create_evidence_epoch(
+        _epoch(
+            code_commit_sha="91cf0e9",
+            started_at="2026-07-30T00:00:00+00:00",
+            analysis_universe=("BTC", "ETH", "BNB"),
+            release_manifest=manifest,
+        )
+    )
+    with pytest.raises(ValueError, match="conflict"):
+        store.create_evidence_epoch(
+            _epoch(
+                code_commit_sha="91cf0e9",
+                started_at="2026-07-30T00:01:00+00:00",
+                analysis_universe=("BTC", "ETH", "BNB"),
+                release_manifest=manifest,
+            )
+        )
+
+
 def test_existing_global_index_is_migrated_without_data_loss(tmp_path):
     path = tmp_path / "runtime_evidence.sqlite"
     global_index = path.parent / "global_evidence_index.sqlite"
@@ -329,6 +364,88 @@ def test_existing_global_index_is_migrated_without_data_loss(tmp_path):
     assert row.epoch_id == "legacy-epoch"
     assert row.paper_run_id == ""
     assert row.release_manifest is None
+
+
+def test_create_evidence_epoch_conflicts_with_legacy_epoch(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    global_index = path.parent / "global_evidence_index.sqlite"
+    with sqlite3.connect(global_index) as db:
+        db.executescript("""
+            CREATE TABLE evidence_epochs (
+                epoch_id TEXT PRIMARY KEY,
+                deployment_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                activated_at TEXT,
+                code_commit_sha TEXT NOT NULL,
+                model_version TEXT NOT NULL,
+                artifact_sha256 TEXT NOT NULL,
+                feature_schema_version TEXT NOT NULL,
+                analysis_universe TEXT NOT NULL,
+                analysis_universe_hash TEXT NOT NULL,
+                evidence_policy_version TEXT NOT NULL,
+                risk_policy_version TEXT NOT NULL,
+                runtime_schema_version INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
+                updated_at TEXT NOT NULL
+            );
+            INSERT INTO evidence_epochs (
+                epoch_id, deployment_id, started_at, activated_at, code_commit_sha,
+                model_version, artifact_sha256, feature_schema_version,
+                analysis_universe, analysis_universe_hash, evidence_policy_version,
+                risk_policy_version, runtime_schema_version, status,
+                runtime_pause_policy, updated_at
+            ) VALUES (
+                'legacy-epoch', 'legacy-deployment', '2026-01-01T00:00:00+00:00', NULL,
+                'legacy-commit', 'legacy-model', 'legacy-artifact', 'legacy-schema',
+                '[]', 'legacy-hash', 'evidence-v4', 'risk-fail-closed-v1', 6,
+                'DRAFT', '{}', '2026-01-01T00:00:00+00:00'
+            );
+        """)
+    store = RuntimeEvidenceStore(path)
+    with pytest.raises(ValueError, match="conflict"):
+        store.create_evidence_epoch(_epoch(epoch_id="legacy-epoch"))
+
+
+def test_legacy_epoch_cannot_be_activated(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    global_index = path.parent / "global_evidence_index.sqlite"
+    with sqlite3.connect(global_index) as db:
+        db.executescript("""
+            CREATE TABLE evidence_epochs (
+                epoch_id TEXT PRIMARY KEY,
+                deployment_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                activated_at TEXT,
+                code_commit_sha TEXT NOT NULL,
+                model_version TEXT NOT NULL,
+                artifact_sha256 TEXT NOT NULL,
+                feature_schema_version TEXT NOT NULL,
+                analysis_universe TEXT NOT NULL,
+                analysis_universe_hash TEXT NOT NULL,
+                evidence_policy_version TEXT NOT NULL,
+                risk_policy_version TEXT NOT NULL,
+                runtime_schema_version INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
+                updated_at TEXT NOT NULL
+            );
+            INSERT INTO evidence_epochs (
+                epoch_id, deployment_id, started_at, activated_at, code_commit_sha,
+                model_version, artifact_sha256, feature_schema_version,
+                analysis_universe, analysis_universe_hash, evidence_policy_version,
+                risk_policy_version, runtime_schema_version, status,
+                runtime_pause_policy, updated_at
+            ) VALUES (
+                'legacy-epoch', 'legacy-deployment', '2026-01-01T00:00:00+00:00', NULL,
+                'legacy-commit', 'legacy-model', 'legacy-artifact', 'legacy-schema',
+                '[]', 'legacy-hash', 'evidence-v4', 'risk-fail-closed-v1', 6,
+                'DRAFT', '{}', '2026-01-01T00:00:00+00:00'
+            );
+        """)
+    store = RuntimeEvidenceStore(path)
+    with pytest.raises(ValueError, match="evidence epoch"):
+        store.transition_evidence_epoch("legacy-epoch", "ACTIVE")
 
 
 def test_active_epoch_is_persisted_and_attached_to_evidence(tmp_path):
