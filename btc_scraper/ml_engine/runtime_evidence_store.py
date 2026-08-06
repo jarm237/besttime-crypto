@@ -647,20 +647,64 @@ class RuntimeEvidenceStore:
                 raise ValueError("unknown evidence epoch")
             current = str(row[0])
             if current == target:
-                return self.get_evidence_epoch(str(epoch_id))
+                # Re-load the epoch within the same transaction and validate integrity
+                row2 = db.execute(
+                    "SELECT epoch_id,deployment_id,started_at,activated_at,code_commit_sha,"
+                    "model_version,artifact_sha256,feature_schema_version,"
+                    "analysis_universe,analysis_universe_hash,"
+                    "evidence_policy_version,risk_policy_version,"
+                    "runtime_schema_version,status,paper_run_id,release_manifest,release_manifest_sha256,runtime_pause_policy "
+                    "FROM evidence_epochs WHERE epoch_id=?",
+                    (str(epoch_id),),
+                ).fetchone()
+                epoch_current = self._epoch_from_row(row2) if row2 else None
+                assert epoch_current is not None
+                # validate stored epoch integrity before returning
+                epoch_current.validate()
+                return epoch_current
             if (current, target) not in allowed:
                 raise ValueError(f"invalid evidence epoch transition: {current}->{target}")
             if target == "ACTIVE":
-                epoch = self.get_evidence_epoch(str(epoch_id))
+                # load epoch within transaction for validation and to build payload
+                row3 = db.execute(
+                    "SELECT epoch_id,deployment_id,started_at,activated_at,code_commit_sha,"
+                    "model_version,artifact_sha256,feature_schema_version,"
+                    "analysis_universe,analysis_universe_hash,"
+                    "evidence_policy_version,risk_policy_version,"
+                    "runtime_schema_version,status,paper_run_id,release_manifest,release_manifest_sha256,runtime_pause_policy "
+                    "FROM evidence_epochs WHERE epoch_id=?",
+                    (str(epoch_id),),
+                ).fetchone()
+                epoch = self._epoch_from_row(row3) if row3 else None
                 assert epoch is not None
                 self.validate_runtime_epoch(epoch)
             transitioned_at = self._now().isoformat()
             if target == "ACTIVE":
-                db.execute(
+                # Attempt atomic update only if currently DRAFT to avoid races
+                cur = db.execute(
                     "UPDATE evidence_epochs SET status=?,activated_at=?,updated_at=? "
-                    "WHERE epoch_id=?",
+                    "WHERE epoch_id=? AND status='DRAFT'",
                     (target, transitioned_at, transitioned_at, str(epoch_id)),
                 )
+                if cur.rowcount == 0:
+                    # Another transaction won the race — re-load and validate integrity
+                    row4 = db.execute(
+                        "SELECT epoch_id,deployment_id,started_at,activated_at,code_commit_sha,"
+                        "model_version,artifact_sha256,feature_schema_version,"
+                        "analysis_universe,analysis_universe_hash,"
+                        "evidence_policy_version,risk_policy_version,"
+                        "runtime_schema_version,status,paper_run_id,release_manifest,release_manifest_sha256,runtime_pause_policy "
+                        "FROM evidence_epochs WHERE epoch_id=?",
+                        (str(epoch_id),),
+                    ).fetchone()
+                    epoch_after = self._epoch_from_row(row4) if row4 else None
+                    if epoch_after is None:
+                        raise ValueError("evidence epoch disappeared during activation")
+                    if epoch_after.status == 'ACTIVE':
+                        # ensure stored ACTIVE epoch integrity
+                        epoch_after.validate()
+                        return epoch_after
+                    raise ValueError("failed to activate evidence epoch due to concurrent transition")
                 event = {
                     "event_type": EPOCH_ACTIVATION_AUDIT_EVENT,
                     "epoch_id": epoch.epoch_id,

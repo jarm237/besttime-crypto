@@ -801,6 +801,62 @@ def test_activation_replay_is_idempotent_and_does_not_duplicate_audit(tmp_path):
     assert audit_payload["activated_at"] == first.activated_at
 
 
+def test_concurrent_activation_creates_single_audit(tmp_path):
+    import threading
+
+    path = tmp_path / "runtime_evidence.sqlite"
+    store1 = RuntimeEvidenceStore(path)
+    store1.create_evidence_epoch(_epoch())
+
+    store2 = RuntimeEvidenceStore(path)
+
+    barrier = threading.Barrier(2)
+
+    def activate(store):
+        barrier.wait()
+        try:
+            store.transition_evidence_epoch("epoch-canary-1", "ACTIVE")
+        except Exception:
+            # allow one thread to lose the race
+            pass
+
+    t1 = threading.Thread(target=activate, args=(store1,))
+    t2 = threading.Thread(target=activate, args=(store2,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    # Only one ACTIVE epoch and one audit recorded
+    active = RuntimeEvidenceStore(path).get_active_evidence_epoch()
+    assert active is not None
+    assert active.status == "ACTIVE"
+    assert RuntimeEvidenceStore(path).count_rows("audit_events") == 1
+
+
+def test_activation_replay_detects_tampered_manifest_after_activation(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(path)
+    epoch = store.create_evidence_epoch(_epoch())
+    store.transition_evidence_epoch(epoch.epoch_id, "ACTIVE")
+
+    # Tamper the stored manifest in a separate transaction
+    with store._global_transaction() as db:
+        db.execute(
+            "UPDATE evidence_epochs SET release_manifest=? WHERE epoch_id=?",
+            (
+                json.dumps({**epoch.release_manifest, "artifact_sha256": "tampered"}),
+                epoch.epoch_id,
+            ),
+        )
+
+    # Replay activation should now fail integrity check and not add audit
+    before = store.count_rows("audit_events")
+    with pytest.raises(ValueError):
+        store.transition_evidence_epoch(epoch.epoch_id, "ACTIVE")
+    assert store.count_rows("audit_events") == before
+
+
 @pytest.mark.parametrize("field,value,match", [
     ("release_sha", "other-sha", "release_manifest release_sha mismatch"),
     ("artifact_sha256", "other-artifact", "release_manifest artifact_sha256 mismatch"),
