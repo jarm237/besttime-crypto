@@ -58,7 +58,8 @@ if command -v flock >/dev/null 2>&1; then
   fi
 fi
 
-"${GITNEXUS[@]}" analyze
+# Prevent GitNexus from mutating tracked repository files such as AGENTS.md and CLAUDE.md
+"${GITNEXUS[@]}" analyze --skip-agents-md --skip-skills
 "${GITNEXUS[@]}" status
 calculate_fingerprint > "$STATE_FILE"
 
