@@ -134,17 +134,18 @@ class EvidenceEpoch:
             raise ValueError("evidence epoch release_manifest decision_contract mismatch")
         if str(manifest.get("probability_semantics") or "") != "P(up)":
             raise ValueError("evidence epoch release_manifest probability_semantics mismatch")
-        if self.release_manifest_sha256:
-            expected_manifest_hash = hashlib.sha256(
-                json.dumps(
-                    dict(manifest),
-                    ensure_ascii=False,
-                    sort_keys=True,
-                    separators=(",", ":"),
-                ).encode("utf-8")
-            ).hexdigest()
-            if self.release_manifest_sha256 != expected_manifest_hash:
-                raise ValueError("evidence epoch release_manifest_sha256 mismatch")
+        if not str(self.release_manifest_sha256 or "").strip():
+            raise ValueError("evidence epoch release_manifest_sha256 is required")
+        expected_manifest_hash = hashlib.sha256(
+            json.dumps(
+                dict(manifest),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        if self.release_manifest_sha256 != expected_manifest_hash:
+            raise ValueError("evidence epoch release_manifest_sha256 mismatch")
         if int(self.runtime_schema_version) < 6:
             raise ValueError("runtime schema version mismatch")
 

@@ -33,6 +33,7 @@ RUNTIME_EVIDENCE_SCHEMA_VERSION = 6
 GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 6
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 EPOCH_INVALIDATION_AUDIT_EVENT = "EPOCH_INVALIDATION_AUDIT_RECORDED"
+EPOCH_ACTIVATION_AUDIT_EVENT = "EPOCH_ACTIVATION_RECORDED"
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
     "signal_id",
     "prediction_id",
@@ -325,6 +326,20 @@ class RuntimeEvidenceStore:
         ).fetchone()
         return row is not None
 
+    def _find_existing_activation_audit(
+        self,
+        db: sqlite3.Connection,
+        epoch_id: str,
+        new_status: str,
+    ) -> bool:
+        row = db.execute(
+            "SELECT 1 FROM audit_events WHERE event_type=? "
+            "AND json_extract(payload,'$.epoch_id')=? "
+            "AND json_extract(payload,'$.new_status')=?",
+            (EPOCH_ACTIVATION_AUDIT_EVENT, str(epoch_id), str(new_status)),
+        ).fetchone()
+        return row is not None
+
     def _partition_date_for_path(self, path: Path) -> str:
         if path == self.path:
             return "legacy"
@@ -463,7 +478,6 @@ class RuntimeEvidenceStore:
         payload = {
             "epoch_id": epoch.epoch_id,
             "deployment_id": epoch.deployment_id,
-            "started_at": epoch.started_at,
             "activated_at": epoch.activated_at,
             "code_commit_sha": epoch.code_commit_sha,
             "model_version": epoch.model_version,
@@ -479,13 +493,65 @@ class RuntimeEvidenceStore:
         }
         return payload_sha256(payload)
 
+    def _validate_release_manifest(self, manifest: Mapping[str, Any], epoch: EvidenceEpoch) -> None:
+        if not isinstance(manifest, Mapping):
+            raise ValueError("release_manifest must be a mapping")
+        required_manifest_fields = (
+            "manifest_schema_version",
+            "release_sha",
+            "artifact_sha256",
+            "metadata_sha256",
+            "registry_sha256",
+            "deployment_id",
+            "paper_run_id",
+            "feature_schema_version",
+            "analysis_universe",
+            "decision_contract",
+            "probability_semantics",
+        )
+        missing = [
+            field_name for field_name in required_manifest_fields
+            if not str(manifest.get(field_name) or "").strip()
+        ]
+        if missing:
+            raise ValueError("release_manifest missing fields: " + ",".join(missing))
+        if str(manifest.get("manifest_schema_version") or "") != RELEASE_MANIFEST_SCHEMA_VERSION:
+            raise ValueError("release_manifest manifest_schema_version mismatch")
+        if str(manifest.get("release_sha") or "") != str(epoch.code_commit_sha):
+            raise ValueError("release_manifest release_sha mismatch")
+        if str(manifest.get("artifact_sha256") or "") != str(epoch.artifact_sha256):
+            raise ValueError("release_manifest artifact_sha256 mismatch")
+        if str(manifest.get("deployment_id") or "") != str(epoch.deployment_id):
+            raise ValueError("release_manifest deployment_id mismatch")
+        if str(manifest.get("paper_run_id") or "") != str(epoch.paper_run_id or epoch.deployment_id).strip():
+            raise ValueError("release_manifest paper_run_id mismatch")
+        if str(manifest.get("feature_schema_version") or "") != str(epoch.feature_schema_version):
+            raise ValueError("release_manifest feature_schema_version mismatch")
+        analysis_universe = manifest.get("analysis_universe")
+        if isinstance(analysis_universe, list):
+            analysis_universe = ",".join(
+                str(symbol).strip().upper() for symbol in analysis_universe
+            )
+        if str(analysis_universe or "") != ",".join(str(symbol).strip().upper() for symbol in epoch.analysis_universe):
+            raise ValueError("release_manifest analysis_universe mismatch")
+        if str(manifest.get("decision_contract") or "") != "side-probability-v2":
+            raise ValueError("release_manifest decision_contract mismatch")
+        if str(manifest.get("probability_semantics") or "") != "P(up)":
+            raise ValueError("release_manifest probability_semantics mismatch")
+
     def create_evidence_epoch(
         self,
         epoch: EvidenceEpoch | Mapping[str, Any],
     ) -> EvidenceEpoch:
         value = epoch if isinstance(epoch, EvidenceEpoch) else EvidenceEpoch.from_mapping(epoch)
-        value.validate()
-        normalized_manifest = self._normalize_release_manifest(value.release_manifest or {}, value)
+        value = replace(
+            value,
+            paper_run_id=str(value.paper_run_id or "").strip(),
+        )
+        if value.release_manifest is None:
+            raise ValueError("release_manifest is required")
+        self._validate_release_manifest(value.release_manifest, value)
+        normalized_manifest = self._normalize_release_manifest(value.release_manifest, value)
         value = replace(
             value,
             release_manifest=normalized_manifest,
@@ -580,6 +646,8 @@ class RuntimeEvidenceStore:
             if row is None:
                 raise ValueError("unknown evidence epoch")
             current = str(row[0])
+            if current == target:
+                return self.get_evidence_epoch(str(epoch_id))
             if (current, target) not in allowed:
                 raise ValueError(f"invalid evidence epoch transition: {current}->{target}")
             if target == "ACTIVE":
@@ -593,6 +661,23 @@ class RuntimeEvidenceStore:
                     "WHERE epoch_id=?",
                     (target, transitioned_at, transitioned_at, str(epoch_id)),
                 )
+                event = {
+                    "event_type": EPOCH_ACTIVATION_AUDIT_EVENT,
+                    "epoch_id": epoch.epoch_id,
+                    "deployment_id": epoch.deployment_id,
+                    "previous_status": current,
+                    "new_status": target,
+                    "activated_at": transitioned_at,
+                    "code_commit_sha": epoch.code_commit_sha,
+                    "artifact_sha256": epoch.artifact_sha256,
+                    "feature_schema_version": epoch.feature_schema_version,
+                    "analysis_universe": ",".join(epoch.analysis_universe),
+                    "analysis_universe_hash": epoch.analysis_universe_hash,
+                    "paper_run_id": epoch.paper_run_id or epoch.deployment_id,
+                    "release_manifest_sha256": epoch.release_manifest_sha256,
+                }
+                if not self._find_existing_activation_audit(db, epoch.epoch_id, target):
+                    self._insert_audit_event_db(db, event)
             else:
                 db.execute(
                     "UPDATE evidence_epochs SET status=?,updated_at=? WHERE epoch_id=?",
