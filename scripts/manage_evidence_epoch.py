@@ -41,6 +41,22 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="ISO-8601 UTC timestamp; defaults to now",
     )
+    create.add_argument(
+        "--paper-run-id",
+        default=None,
+        help="Paper-run identity; defaults to deployment-id when omitted",
+    )
+    create.add_argument(
+        "--release-manifest",
+        default=None,
+        help="JSON object persisted as the authoritative release manifest",
+    )
+    create.add_argument(
+        "--release-manifest-file",
+        type=Path,
+        default=None,
+        help="Path to a JSON file containing the authoritative release manifest",
+    )
     for command in (
         "activate", "block-seal", "ready-to-seal", "seal", "quarantine",
         "invalidate",
@@ -75,6 +91,14 @@ def main() -> int:
             args.analysis_universe,
             field_name="--analysis-universe",
         )
+        release_manifest = None
+        if args.release_manifest_file is not None:
+            with args.release_manifest_file.open("r", encoding="utf-8") as handle:
+                release_manifest = json.load(handle)
+        elif args.release_manifest is not None:
+            release_manifest = json.loads(args.release_manifest)
+        if release_manifest is None:
+            raise ValueError("release manifest is required; supply --release-manifest or --release-manifest-file")
         result = store.create_evidence_epoch(EvidenceEpoch(
             epoch_id=args.epoch_id,
             deployment_id=args.deployment_id,
@@ -85,6 +109,8 @@ def main() -> int:
             feature_schema_version=args.feature_schema_version,
             analysis_universe=analysis_universe,
             analysis_universe_hash=analysis_universe_hash(analysis_universe),
+            paper_run_id=args.paper_run_id or args.deployment_id,
+            release_manifest=release_manifest,
         ))
     elif args.command == "status":
         result = store.get_active_evidence_epoch()
@@ -110,7 +136,7 @@ def main() -> int:
                     raise RuntimeError(f"evidence epoch not found: {args.epoch_id}")
                 universe = ",".join(epoch.analysis_universe)
                 os.environ["BTC_DEPLOYMENT_ID"] = epoch.deployment_id
-                os.environ["BTC_PAPER_RUN_ID"] = epoch.deployment_id
+                os.environ["BTC_PAPER_RUN_ID"] = epoch.paper_run_id or epoch.deployment_id
                 os.environ["BTC_ANALYSIS_UNIVERSE"] = universe
                 os.environ["AUTO_TRADE_COINS"] = universe
                 os.environ.setdefault("BTC_EVIDENCE_ELIGIBLE", "true")

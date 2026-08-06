@@ -26,6 +26,19 @@ def _epoch_runtime_identity(monkeypatch):
 
 
 def _epoch(epoch_id="epoch-canary-1", **overrides):
+    lookup_manifest = {
+        "manifest_schema_version": "evidence-manifest-v1",
+        "release_sha": "c42b802",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": ",".join(DEFAULT_ANALYSIS_UNIVERSE),
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
     values = {
         "epoch_id": epoch_id,
         "deployment_id": "paper-shadow-20260730-01",
@@ -35,11 +48,26 @@ def _epoch(epoch_id="epoch-canary-1", **overrides):
         "artifact_sha256": "artifact-v3",
         "feature_schema_version": "schema-v3",
         "analysis_universe": DEFAULT_ANALYSIS_UNIVERSE,
-        "analysis_universe_hash": analysis_universe_hash(
-            DEFAULT_ANALYSIS_UNIVERSE
-        ),
+        "paper_run_id": "paper-shadow-20260730-01",
+        "release_manifest": dict(lookup_manifest),
     }
     values.update(overrides)
+    values["analysis_universe"] = tuple(values.get("analysis_universe") or ())
+    values["analysis_universe_hash"] = overrides.get(
+        "analysis_universe_hash",
+        analysis_universe_hash(values["analysis_universe"]),
+    )
+    if "release_manifest" not in overrides:
+        release_manifest = dict(values["release_manifest"])
+        release_manifest["release_sha"] = str(values["code_commit_sha"])
+        release_manifest["artifact_sha256"] = str(values["artifact_sha256"])
+        release_manifest["deployment_id"] = str(values["deployment_id"])
+        release_manifest["paper_run_id"] = str(values["paper_run_id"])
+        release_manifest["feature_schema_version"] = str(values["feature_schema_version"])
+        release_manifest["analysis_universe"] = ",".join(
+            str(symbol).strip().upper() for symbol in values["analysis_universe"]
+        )
+        values["release_manifest"] = release_manifest
     return EvidenceEpoch(**values)
 
 
@@ -92,6 +120,215 @@ def test_epoch_cli_runs_directly_outside_repo_cwd(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert "--evidence-path" in result.stdout
+
+
+def test_create_evidence_epoch_persists_paper_run_id_and_release_manifest(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(path)
+    manifest = {
+        "manifest_schema_version": "evidence-manifest-v1",
+        "release_sha": "91cf0e9",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": "BTC,ETH,BNB",
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
+    epoch = store.create_evidence_epoch(
+        _epoch(
+            code_commit_sha="91cf0e9",
+            analysis_universe=("BTC", "ETH", "BNB"),
+            release_manifest=manifest,
+        )
+    )
+    loaded = store.get_evidence_epoch(epoch.epoch_id)
+    assert loaded is not None
+    assert loaded.paper_run_id == "paper-shadow-20260730-01"
+    assert loaded.release_manifest == {
+        "manifest_schema_version": "evidence-manifest-v1",
+        "release_sha": "91cf0e9",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": "BTC,ETH,BNB",
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
+    assert loaded.release_manifest_sha256 == hashlib.sha256(
+        json.dumps(loaded.release_manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("release_sha", "other-sha"),
+    ("artifact_sha256", "other-artifact"),
+    ("deployment_id", "other-deployment"),
+    ("paper_run_id", "other-paper-run"),
+    ("feature_schema_version", "other-schema"),
+    ("analysis_universe", "BTC"),
+])
+def test_create_evidence_epoch_rejects_mismatched_release_manifest(tmp_path, field, value):
+    path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(path)
+    manifest = {
+        "manifest_schema_version": "evidence-manifest-v1",
+        "release_sha": "91cf0e9",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": "BTC,ETH,BNB",
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
+    manifest[field] = value
+    with pytest.raises(ValueError, match="release_manifest"):
+        store.create_evidence_epoch(_epoch(paper_run_id="paper-shadow-20260730-01", release_manifest=manifest))
+
+
+def test_create_evidence_epoch_requires_manifest_schema_and_paper_run_id(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(path)
+    incomplete_manifest = {
+        "release_sha": "91cf0e9",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": "BTC,ETH,BNB",
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
+    with pytest.raises(ValueError, match="manifest_schema_version"):
+        store.create_evidence_epoch(
+            _epoch(
+                code_commit_sha="91cf0e9",
+                paper_run_id="paper-shadow-20260730-01",
+                release_manifest=incomplete_manifest,
+            )
+        )
+    with pytest.raises(ValueError, match="paper_run_id"):
+        store.create_evidence_epoch(
+            _epoch(
+                code_commit_sha="91cf0e9",
+                analysis_universe=("BTC", "ETH", "BNB"),
+                analysis_universe_hash=analysis_universe_hash(("BTC", "ETH", "BNB")),
+                paper_run_id="",
+                release_manifest={
+                    "manifest_schema_version": "evidence-manifest-v1",
+                    "release_sha": "91cf0e9",
+                    "artifact_sha256": "artifact-v3",
+                    "metadata_sha256": "meta-v3",
+                    "registry_sha256": "registry-v3",
+                    "deployment_id": "paper-shadow-20260730-01",
+                    "paper_run_id": "paper-shadow-20260730-01",
+                    "feature_schema_version": "schema-v3",
+                    "analysis_universe": "BTC,ETH,BNB",
+                    "decision_contract": "side-probability-v2",
+                    "probability_semantics": "P(up)",
+                },
+            )
+        )
+
+
+def test_create_evidence_epoch_reuses_same_payload_and_rejects_conflicts(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    store = RuntimeEvidenceStore(path)
+    manifest = {
+        "manifest_schema_version": "evidence-manifest-v1",
+        "release_sha": "91cf0e9",
+        "artifact_sha256": "artifact-v3",
+        "metadata_sha256": "meta-v3",
+        "registry_sha256": "registry-v3",
+        "deployment_id": "paper-shadow-20260730-01",
+        "paper_run_id": "paper-shadow-20260730-01",
+        "feature_schema_version": "schema-v3",
+        "analysis_universe": "BTC,ETH,BNB",
+        "decision_contract": "side-probability-v2",
+        "probability_semantics": "P(up)",
+    }
+    first = store.create_evidence_epoch(
+        _epoch(
+            code_commit_sha="91cf0e9",
+            analysis_universe=("BTC", "ETH", "BNB"),
+            release_manifest=manifest,
+        )
+    )
+    second = store.create_evidence_epoch(
+        _epoch(
+            code_commit_sha="91cf0e9",
+            analysis_universe=("BTC", "ETH", "BNB"),
+            release_manifest=manifest,
+        )
+    )
+    assert second.epoch_id == first.epoch_id
+
+    conflicting_manifest = dict(manifest)
+    conflicting_manifest["metadata_sha256"] = "other-metadata"
+    with pytest.raises(ValueError, match="conflict"):
+        store.create_evidence_epoch(
+            _epoch(
+                epoch_id="epoch-canary-1",
+                code_commit_sha="91cf0e9",
+                analysis_universe=("BTC", "ETH", "BNB"),
+                release_manifest=conflicting_manifest,
+            )
+        )
+
+
+def test_existing_global_index_is_migrated_without_data_loss(tmp_path):
+    path = tmp_path / "runtime_evidence.sqlite"
+    global_index = path.parent / "global_evidence_index.sqlite"
+    with sqlite3.connect(global_index) as db:
+        db.executescript("""
+            CREATE TABLE evidence_epochs (
+                epoch_id TEXT PRIMARY KEY,
+                deployment_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                activated_at TEXT,
+                code_commit_sha TEXT NOT NULL,
+                model_version TEXT NOT NULL,
+                artifact_sha256 TEXT NOT NULL,
+                feature_schema_version TEXT NOT NULL,
+                analysis_universe TEXT NOT NULL,
+                analysis_universe_hash TEXT NOT NULL,
+                evidence_policy_version TEXT NOT NULL,
+                risk_policy_version TEXT NOT NULL,
+                runtime_schema_version INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
+                updated_at TEXT NOT NULL
+            );
+            INSERT INTO evidence_epochs (
+                epoch_id, deployment_id, started_at, activated_at, code_commit_sha,
+                model_version, artifact_sha256, feature_schema_version,
+                analysis_universe, analysis_universe_hash, evidence_policy_version,
+                risk_policy_version, runtime_schema_version, status,
+                runtime_pause_policy, updated_at
+            ) VALUES (
+                'legacy-epoch', 'legacy-deployment', '2026-01-01T00:00:00+00:00', NULL,
+                'legacy-commit', 'legacy-model', 'legacy-artifact', 'legacy-schema',
+                '[]', 'legacy-hash', 'evidence-v4', 'risk-fail-closed-v1', 6,
+                'DRAFT', '{}', '2026-01-01T00:00:00+00:00'
+            );
+        """)
+    store = RuntimeEvidenceStore(path)
+    row = store.get_evidence_epoch("legacy-epoch")
+    assert row is not None
+    assert row.epoch_id == "legacy-epoch"
+    assert row.paper_run_id == ""
+    assert row.release_manifest is None
 
 
 def test_active_epoch_is_persisted_and_attached_to_evidence(tmp_path):

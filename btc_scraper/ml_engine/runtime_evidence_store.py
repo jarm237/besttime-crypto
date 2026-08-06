@@ -9,11 +9,13 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping
+from dataclasses import replace
 
 from .artifact_resolver import ROOT
 from btc_scraper.core.config import analysis_universe_hash, get_runtime_universe
 from .evidence_epoch import (
     EVIDENCE_POLICY_VERSION,
+    RELEASE_MANIFEST_SCHEMA_VERSION,
     RISK_POLICY_VERSION,
     EvidenceEpoch,
 )
@@ -28,7 +30,7 @@ from btc_scraper.core.paths import (
 )
 
 RUNTIME_EVIDENCE_SCHEMA_VERSION = 6
-GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 5
+GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 6
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 EPOCH_INVALIDATION_AUDIT_EVENT = "EPOCH_INVALIDATION_AUDIT_RECORDED"
 REQUIRED_PREDICTION_LINEAGE_FIELDS = (
@@ -182,6 +184,9 @@ class RuntimeEvidenceStore:
                         'DRAFT','ACTIVE','SEAL_BLOCKED','SEAL_READY','SEALED',
                         'INVALIDATED','QUARANTINED'
                     )),
+                    paper_run_id TEXT NOT NULL DEFAULT '',
+                    release_manifest TEXT,
+                    release_manifest_sha256 TEXT NOT NULL DEFAULT '',
                     runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
                     updated_at TEXT NOT NULL
                 );
@@ -219,6 +224,20 @@ class RuntimeEvidenceStore:
                     "ALTER TABLE evidence_epochs ADD COLUMN runtime_pause_policy "
                     "TEXT NOT NULL DEFAULT '{}'"
                 )
+            if "paper_run_id" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN paper_run_id "
+                    "TEXT NOT NULL DEFAULT ''"
+                )
+            if "release_manifest" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN release_manifest TEXT"
+                )
+            if "release_manifest_sha256" not in columns:
+                db.execute(
+                    "ALTER TABLE evidence_epochs ADD COLUMN release_manifest_sha256 "
+                    "TEXT NOT NULL DEFAULT ''"
+                )
             table_sql = str(db.execute(
                 "SELECT sql FROM sqlite_master WHERE type='table' AND name='evidence_epochs'"
             ).fetchone()[0])
@@ -244,6 +263,9 @@ class RuntimeEvidenceStore:
                             'DRAFT','ACTIVE','SEAL_BLOCKED','SEAL_READY','SEALED',
                             'INVALIDATED','QUARANTINED'
                         )),
+                        paper_run_id TEXT NOT NULL DEFAULT '',
+                        release_manifest TEXT,
+                        release_manifest_sha256 TEXT NOT NULL DEFAULT '',
                         runtime_pause_policy TEXT NOT NULL DEFAULT '{}',
                         updated_at TEXT NOT NULL
                     );
@@ -252,13 +274,14 @@ class RuntimeEvidenceStore:
                         model_version,artifact_sha256,feature_schema_version,
                         analysis_universe,analysis_universe_hash,evidence_policy_version,
                         risk_policy_version,runtime_schema_version,status,
+                        paper_run_id,release_manifest,release_manifest_sha256,
                         runtime_pause_policy,updated_at
                     ) SELECT
                         epoch_id,deployment_id,started_at,activated_at,code_commit_sha,
                         model_version,artifact_sha256,feature_schema_version,
                         analysis_universe,analysis_universe_hash,evidence_policy_version,
                         risk_policy_version,runtime_schema_version,status,
-                        runtime_pause_policy,updated_at
+                        '', NULL, '', runtime_pause_policy, updated_at
                     FROM evidence_epochs_legacy;
                     DROP TABLE evidence_epochs_legacy;
                     CREATE UNIQUE INDEX uq_one_active_evidence_epoch
@@ -394,6 +417,9 @@ class RuntimeEvidenceStore:
 
     @staticmethod
     def _epoch_from_row(row: tuple[Any, ...]) -> EvidenceEpoch:
+        release_manifest = None
+        if row[15] not in (None, ""):
+            release_manifest = json.loads(str(row[15]))
         return EvidenceEpoch(
             epoch_id=str(row[0]),
             deployment_id=str(row[1]),
@@ -409,8 +435,46 @@ class RuntimeEvidenceStore:
             risk_policy_version=str(row[11]),
             runtime_schema_version=int(row[12]),
             status=str(row[13]),
-            runtime_pause_policy=json.loads(str(row[14]) or "{}"),
+            paper_run_id=str(row[14] or ""),
+            release_manifest=release_manifest,
+            release_manifest_sha256=str(row[16] or ""),
+            runtime_pause_policy=json.loads(str(row[17]) or "{}"),
         )
+
+    def _normalize_release_manifest(self, manifest: Mapping[str, Any], epoch: EvidenceEpoch) -> dict[str, Any]:
+        normalized_manifest = dict(manifest)
+        normalized_manifest["manifest_schema_version"] = RELEASE_MANIFEST_SCHEMA_VERSION
+        normalized_manifest["release_sha"] = str(epoch.code_commit_sha)
+        normalized_manifest["artifact_sha256"] = str(epoch.artifact_sha256)
+        normalized_manifest["deployment_id"] = str(epoch.deployment_id)
+        normalized_manifest["paper_run_id"] = str(epoch.paper_run_id or epoch.deployment_id).strip()
+        normalized_manifest["feature_schema_version"] = str(epoch.feature_schema_version)
+        normalized_manifest["analysis_universe"] = ",".join(str(symbol).strip().upper() for symbol in epoch.analysis_universe)
+        normalized_manifest["decision_contract"] = "side-probability-v2"
+        normalized_manifest["probability_semantics"] = "P(up)"
+        return normalized_manifest
+
+    @staticmethod
+    def _release_manifest_sha256(manifest: Mapping[str, Any]) -> str:
+        canonical = json.dumps(dict(manifest), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def _epoch_payload_signature(self, epoch: EvidenceEpoch) -> str:
+        payload = {
+            "epoch_id": epoch.epoch_id,
+            "deployment_id": epoch.deployment_id,
+            "code_commit_sha": epoch.code_commit_sha,
+            "model_version": epoch.model_version,
+            "artifact_sha256": epoch.artifact_sha256,
+            "feature_schema_version": epoch.feature_schema_version,
+            "analysis_universe": tuple(epoch.analysis_universe),
+            "analysis_universe_hash": epoch.analysis_universe_hash,
+            "paper_run_id": epoch.paper_run_id or epoch.deployment_id,
+            "release_manifest_sha256": epoch.release_manifest_sha256,
+            "status": epoch.status,
+            "runtime_schema_version": epoch.runtime_schema_version,
+        }
+        return payload_sha256(payload)
 
     def create_evidence_epoch(
         self,
@@ -418,14 +482,27 @@ class RuntimeEvidenceStore:
     ) -> EvidenceEpoch:
         value = epoch if isinstance(epoch, EvidenceEpoch) else EvidenceEpoch.from_mapping(epoch)
         value.validate()
+        normalized_manifest = self._normalize_release_manifest(value.release_manifest or {}, value)
+        value = replace(
+            value,
+            paper_run_id=str(value.paper_run_id or value.deployment_id).strip(),
+            release_manifest=normalized_manifest,
+            release_manifest_sha256=self._release_manifest_sha256(normalized_manifest),
+        )
+        value.validate()
+        existing = self.get_evidence_epoch(value.epoch_id)
+        if existing is not None:
+            if self._epoch_payload_signature(existing) == self._epoch_payload_signature(value):
+                return existing
+            raise ValueError(f"evidence epoch conflict for {value.epoch_id}")
         with self._global_transaction() as db:
             db.execute(
                 "INSERT INTO evidence_epochs("
                 "epoch_id,deployment_id,started_at,activated_at,code_commit_sha,model_version,"
                 "artifact_sha256,feature_schema_version,analysis_universe,"
                 "analysis_universe_hash,evidence_policy_version,risk_policy_version,"
-                "runtime_schema_version,status,runtime_pause_policy,updated_at"
-                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "runtime_schema_version,status,paper_run_id,release_manifest,release_manifest_sha256,runtime_pause_policy,updated_at"
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     value.epoch_id, value.deployment_id, value.started_at,
                     value.activated_at,
@@ -435,6 +512,10 @@ class RuntimeEvidenceStore:
                     value.analysis_universe_hash,
                     value.evidence_policy_version, value.risk_policy_version,
                     value.runtime_schema_version, value.status,
+                    value.paper_run_id or value.deployment_id,
+                    json.dumps(value.release_manifest, separators=(",", ":"), sort_keys=True, default=str)
+                    if value.release_manifest is not None else None,
+                    value.release_manifest_sha256,
                     json.dumps(value.runtime_pause_policy, separators=(",", ":"), sort_keys=True),
                     self._now().isoformat(),
                 ),
@@ -448,8 +529,8 @@ class RuntimeEvidenceStore:
                 "model_version,artifact_sha256,feature_schema_version,"
                 "analysis_universe,analysis_universe_hash,"
                 "evidence_policy_version,risk_policy_version,"
-                "runtime_schema_version,status,runtime_pause_policy FROM evidence_epochs "
-                "WHERE epoch_id=?",
+                "runtime_schema_version,status,paper_run_id,release_manifest,release_manifest_sha256,runtime_pause_policy "
+                "FROM evidence_epochs WHERE epoch_id=?",
                 (str(epoch_id),),
             ).fetchone()
         return self._epoch_from_row(row) if row else None
@@ -461,8 +542,8 @@ class RuntimeEvidenceStore:
                 "model_version,artifact_sha256,feature_schema_version,"
                 "analysis_universe,analysis_universe_hash,"
                 "evidence_policy_version,risk_policy_version,"
-                "runtime_schema_version,status,runtime_pause_policy FROM evidence_epochs "
-                "WHERE status='ACTIVE'"
+                "runtime_schema_version,status,paper_run_id,release_manifest,release_manifest_sha256,runtime_pause_policy "
+                "FROM evidence_epochs WHERE status='ACTIVE'"
             ).fetchone()
         return self._epoch_from_row(row) if row else None
 
