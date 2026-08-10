@@ -66,6 +66,74 @@ class CanaryInterrupted(RuntimeError):
     """Raised internally when the supervisor receives a stop signal."""
 
 
+class ChildStartBudget:
+    def __init__(
+        self,
+        *,
+        limit: int | None,
+        consumed: int,
+        lifecycle_path: Path,
+        metadata: Mapping[str, Any],
+    ) -> None:
+        self.limit = limit
+        self.consumed = consumed
+        self.lifecycle_path = lifecycle_path
+        self.metadata = dict(metadata)
+
+    def event(self, event_type: str, payload: Mapping[str, Any] | None = None) -> None:
+        self.lifecycle_path.parent.mkdir(parents=True, exist_ok=True)
+        event = {
+            "event_type": event_type,
+            "written_at": datetime.now(timezone.utc).isoformat(),
+            "start_budget_limit": self.limit,
+            "start_budget_consumed": self.consumed,
+            **self.metadata,
+            **dict(payload or {}),
+        }
+        with self.lifecycle_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True, default=str) + "\n")
+
+    def assert_can_start(self, phase: str) -> None:
+        if self.limit is not None and self.consumed >= self.limit:
+            self.event("child_start_denied_budget_exhausted", {"phase": phase})
+            raise CanaryInvariantError("child_start_budget_exhausted")
+
+    def record_spawned(self, *, phase: str, child: subprocess.Popen[Any]) -> None:
+        self.consumed += 1
+        self.event(
+            "child_started",
+            {
+                "phase": phase,
+                "child_pid": child.pid,
+                "child_started_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+
+    def record_spawn_failed(self, *, phase: str, exc: BaseException) -> None:
+        self.event(
+            "child_spawn_failed_before_creation",
+            {
+                "phase": phase,
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+            },
+        )
+
+    def record_exit(self, *, phase: str, child: subprocess.Popen[Any]) -> None:
+        code = child.poll()
+        signal_value = -code if isinstance(code, int) and code < 0 else None
+        self.event(
+            "child_exited",
+            {
+                "phase": phase,
+                "child_pid": child.pid,
+                "child_exit_at": datetime.now(timezone.utc).isoformat(),
+                "child_exit_code": code,
+                "child_signal": signal_value,
+            },
+        )
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--epoch-id", required=True)
@@ -114,6 +182,12 @@ def _parser() -> argparse.ArgumentParser:
         "--record-check-result",
         action="store_true",
         help="Explicitly persist a failed check result; off by default.",
+    )
+    parser.add_argument(
+        "--child-start-budget",
+        type=int,
+        default=None,
+        help="Maximum successful child main.py starts allowed; unset keeps legacy behavior.",
     )
     return parser
 
@@ -758,23 +832,50 @@ def _child_environment(epoch: Any, deployment_id: str) -> dict[str, str]:
     return environment
 
 
-def _start_child(environment: Mapping[str, str]) -> subprocess.Popen[Any]:
+def _start_child(
+    environment: Mapping[str, str],
+    *,
+    budget: ChildStartBudget | None = None,
+    phase: str = "unspecified",
+) -> subprocess.Popen[Any]:
     print("[runner] starting main.py", flush=True)
-    return subprocess.Popen(
-        [sys.executable, str(REPO_ROOT / "main.py")],
-        cwd=REPO_ROOT,
-        env=dict(environment),
-        start_new_session=True,
-    )
+    if budget is not None:
+        budget.assert_can_start(phase)
+    try:
+        child = subprocess.Popen(
+            [sys.executable, str(REPO_ROOT / "main.py")],
+            cwd=REPO_ROOT,
+            env=dict(environment),
+            start_new_session=True,
+        )
+    except Exception as exc:
+        if budget is not None:
+            budget.record_spawn_failed(phase=phase, exc=exc)
+        raise
+    if budget is not None:
+        budget.record_spawned(phase=phase, child=child)
+    return child
 
 
-def _stop_child(child: subprocess.Popen[Any] | None, timeout: float) -> None:
+def _stop_child(
+    child: subprocess.Popen[Any] | None,
+    timeout: float,
+    *,
+    budget: ChildStartBudget | None = None,
+    phase: str = "unspecified",
+) -> None:
     if child is None or child.poll() is not None:
+        if child is not None and budget is not None:
+            budget.record_exit(phase=phase, child=child)
         return
     print(f"[runner] stopping child pid={child.pid}", flush=True)
+    if budget is not None:
+        budget.event("child_stop_requested", {"phase": phase, "child_pid": child.pid})
     try:
         os.killpg(child.pid, signal.SIGTERM)
         child.wait(timeout=timeout)
+        if budget is not None:
+            budget.record_exit(phase=phase, child=child)
     except ProcessLookupError:
         return
     except subprocess.TimeoutExpired:
@@ -784,6 +885,8 @@ def _stop_child(child: subprocess.Popen[Any] | None, timeout: float) -> None:
         except ProcessLookupError:
             pass
         child.wait(timeout=5)
+        if budget is not None:
+            budget.record_exit(phase=phase, child=child)
 
 
 def _assert_epoch_and_code(store: RuntimeEvidenceStore, epoch_id: str, deployment_id: str) -> Any:
@@ -883,6 +986,17 @@ def main() -> int:
     child: subprocess.Popen[Any] | None = None
     mongo: MongoClient | None = None
     pause_controller: RuntimePauseController | None = None
+    child_budget = ChildStartBudget(
+        limit=args.child_start_budget,
+        consumed=0,
+        lifecycle_path=runtime_root / "state" / "canary_runner" / "child_lifecycle.jsonl",
+        metadata={
+            "supervisor_pid": os.getpid(),
+            "epoch_id": args.epoch_id,
+            "deployment_id": args.deployment_id,
+            "paper_run_id": args.deployment_id,
+        },
+    )
     interrupted = False
 
     def request_stop(signum: int, _frame: Any) -> None:
@@ -914,7 +1028,12 @@ def main() -> int:
                     clock_gap
                     > pause_controller.policy.maximum_clock_gap_before_recovery_seconds
                 ):
-                    _stop_child(child, args.child_stop_timeout_seconds)
+                    _stop_child(
+                        child,
+                        args.child_stop_timeout_seconds,
+                        budget=child_budget,
+                        phase="clock_gap_recovery",
+                    )
                     child = None
                 try:
                     epoch = _assert_epoch_and_code(
@@ -940,7 +1059,12 @@ def main() -> int:
                             "deployment_id": args.deployment_id,
                         },
                     )
-                    _stop_child(child, args.child_stop_timeout_seconds)
+                    _stop_child(
+                        child,
+                        args.child_stop_timeout_seconds,
+                        budget=child_budget,
+                        phase="external_pause",
+                    )
                     child = None
                     print(
                         f"[runner] PAUSED_EXTERNAL {exc}; epoch remains ACTIVE",
@@ -961,7 +1085,11 @@ def main() -> int:
                         time.sleep(pause_controller.recovery_probe_delay())
                         continue
                     if child is None and not read_only:
-                        child = _start_child(environment)
+                        child = _start_child(
+                            environment,
+                            budget=child_budget,
+                            phase="recovery_restart",
+                        )
                 return state
             raise CanaryInterrupted
 
@@ -971,13 +1099,14 @@ def main() -> int:
             return 0 if initial["candidate"] else 1
 
         if child is None:
-            child = _start_child(environment)
+            child = _start_child(environment, budget=child_budget, phase="initial_start")
         phase = "waiting_for_closed_trade"
         last_signature: tuple[Any, ...] | None = None
         candidate: dict[str, Any] | None = None
         while not interrupted:
             state = evaluate_with_recovery()
             if child.poll() is not None:
+                child_budget.record_exit(phase=phase, child=child)
                 print(f"[runner] child exited unexpectedly rc={child.returncode}", file=sys.stderr)
                 return 1
             signature = (
@@ -998,13 +1127,23 @@ def main() -> int:
             return 130
         assert candidate is not None
 
-        _stop_child(child, args.child_stop_timeout_seconds)
-        child = _start_child(environment)
+        _stop_child(
+            child,
+            args.child_stop_timeout_seconds,
+            budget=child_budget,
+            phase="controlled_restart_stop",
+        )
+        child = _start_child(
+            environment,
+            budget=child_budget,
+            phase="controlled_restart",
+        )
         phase = "restart_stability"
         stable_until = time.monotonic() + args.restart_observation_seconds
         while not interrupted and time.monotonic() < stable_until:
             state = evaluate_with_recovery()
             if child.poll() is not None:
+                child_budget.record_exit(phase=phase, child=child)
                 print(f"[runner] restart child exited unexpectedly rc={child.returncode}", file=sys.stderr)
                 return 1
             current = state.get("candidate")
@@ -1061,7 +1200,12 @@ def main() -> int:
         print(f"[runner] FAILED {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
         return 1
     finally:
-        _stop_child(child, args.child_stop_timeout_seconds)
+        _stop_child(
+            child,
+            args.child_stop_timeout_seconds,
+            budget=child_budget,
+            phase="finally",
+        )
         if mongo is not None:
             mongo.close()
 

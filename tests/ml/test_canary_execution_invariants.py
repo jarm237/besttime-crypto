@@ -718,3 +718,110 @@ def test_runner_treats_mongodb_timeout_as_external_pause_without_writes(tmp_path
             max_outcome_delay=60.0,
             terminal_decision_grace=120.0,
         )
+
+
+def test_child_start_budget_consumes_on_success_and_denies_second_start(monkeypatch, tmp_path):
+    runner_path = Path(__file__).resolve().parents[2] / "scripts" / "run_canary_until_seal_ready.py"
+    spec = importlib.util.spec_from_file_location("canary_runner_budget", runner_path)
+    assert spec and spec.loader
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    calls = []
+
+    class FakePopen:
+        def __init__(self, *_args, **_kwargs):
+            self.pid = 12345
+            self.returncode = None
+            calls.append(self.pid)
+
+        def poll(self):
+            return self.returncode
+
+    budget = runner.ChildStartBudget(
+        limit=1,
+        consumed=0,
+        lifecycle_path=tmp_path / "child_lifecycle.jsonl",
+        metadata={
+            "supervisor_pid": 1,
+            "epoch_id": "epoch-budget",
+            "deployment_id": DEPLOYMENT,
+            "paper_run_id": DEPLOYMENT,
+        },
+    )
+    monkeypatch.setattr(runner.subprocess, "Popen", FakePopen)
+
+    child = runner._start_child({}, budget=budget, phase="initial_start")
+    assert child.pid == 12345
+    assert budget.consumed == 1
+    with pytest.raises(runner.CanaryInvariantError, match="child_start_budget_exhausted"):
+        runner._start_child({}, budget=budget, phase="controlled_restart")
+    assert calls == [12345]
+    lifecycle = (tmp_path / "child_lifecycle.jsonl").read_text(encoding="utf-8")
+    assert "child_started" in lifecycle
+    assert "child_start_denied_budget_exhausted" in lifecycle
+
+
+def test_child_start_budget_failed_popen_does_not_consume(monkeypatch, tmp_path):
+    runner_path = Path(__file__).resolve().parents[2] / "scripts" / "run_canary_until_seal_ready.py"
+    spec = importlib.util.spec_from_file_location("canary_runner_budget_fail", runner_path)
+    assert spec and spec.loader
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+
+    budget = runner.ChildStartBudget(
+        limit=1,
+        consumed=0,
+        lifecycle_path=tmp_path / "child_lifecycle.jsonl",
+        metadata={
+            "supervisor_pid": 1,
+            "epoch_id": "epoch-budget",
+            "deployment_id": DEPLOYMENT,
+            "paper_run_id": DEPLOYMENT,
+        },
+    )
+
+    def fail_popen(*_args, **_kwargs):
+        raise OSError("spawn failed")
+
+    monkeypatch.setattr(runner.subprocess, "Popen", fail_popen)
+
+    with pytest.raises(OSError, match="spawn failed"):
+        runner._start_child({}, budget=budget, phase="initial_start")
+    assert budget.consumed == 0
+    lifecycle = (tmp_path / "child_lifecycle.jsonl").read_text(encoding="utf-8")
+    assert "child_spawn_failed_before_creation" in lifecycle
+
+
+def test_child_exit_persists_exit_code_and_signal(tmp_path):
+    runner_path = Path(__file__).resolve().parents[2] / "scripts" / "run_canary_until_seal_ready.py"
+    spec = importlib.util.spec_from_file_location("canary_runner_budget_exit", runner_path)
+    assert spec and spec.loader
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+
+    class Child:
+        pid = 222
+        returncode = -15
+
+        @staticmethod
+        def poll():
+            return -15
+
+    budget = runner.ChildStartBudget(
+        limit=1,
+        consumed=1,
+        lifecycle_path=tmp_path / "child_lifecycle.jsonl",
+        metadata={
+            "supervisor_pid": 1,
+            "epoch_id": "epoch-budget",
+            "deployment_id": DEPLOYMENT,
+            "paper_run_id": DEPLOYMENT,
+        },
+    )
+
+    runner._stop_child(Child(), 0.1, budget=budget, phase="already_exited")
+
+    lifecycle = (tmp_path / "child_lifecycle.jsonl").read_text(encoding="utf-8")
+    assert "child_exited" in lifecycle
+    assert '"child_exit_code": -15' in lifecycle
+    assert '"child_signal": 15' in lifecycle
