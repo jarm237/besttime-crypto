@@ -1,0 +1,32 @@
+{
+  "as_of": "2026-08-13",
+  "classification_rule": "STABLE iff all exact subsets identical; UNSTABLE iff no consecutive exact subset repeats; MIXED otherwise. No fitted numeric threshold.",
+  "exact_subset_repeat_count": 4,
+  "exact_subset_repeat_rate": 0.8,
+  "mean_consecutive_subset_similarity": 0.9,
+  "min_consecutive_subset_similarity": 0.5,
+  "per_symbol": {
+    "BNBUSDT": {
+      "disabled_fold_count": 0,
+      "enabled_fold_count": 6
+    },
+    "BTCUSDT": {
+      "disabled_fold_count": 6,
+      "enabled_fold_count": 0
+    },
+    "ETHUSDT": {
+      "disabled_fold_count": 1,
+      "enabled_fold_count": 5
+    }
+  },
+  "report_id": "h13_1_symbol_selection_stability",
+  "source_f4_folds": 6,
+  "status": "PASS",
+  "subset_frequency": {
+    "BNBUSDT": 1,
+    "ETHUSDT,BNBUSDT": 5
+  },
+  "symbol_set_switch_count": 1,
+  "symbol_set_transition_count": 5,
+  "symbol_subset_selection_stability": "MIXED"
+}

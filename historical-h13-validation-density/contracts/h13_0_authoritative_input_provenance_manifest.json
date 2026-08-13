@@ -1,0 +1,133 @@
+{
+  "as_of": "2026-08-13",
+  "authoritative_input_source": "RELEASE_LOCAL_H10_FROZEN_ARTIFACTS",
+  "expected_h10_state": {
+    "FAIL": 1,
+    "INSUFFICIENT": 7,
+    "PASS": 1,
+    "PRIMARY_FOLDS": 9
+  },
+  "h10_artifacts_mutated": false,
+  "h10_release_commit": "8c7b119",
+  "h10_release_id": "d5-v5",
+  "integrity": {
+    "DUPLICATE_FOLD_ID": 0,
+    "H10_ARTIFACTS_MUTATED": "NO",
+    "H13_0_INPUT_PROVENANCE": "PASS",
+    "INPUT_ROWS": 7,
+    "LABEL_COUNT_MISMATCH": 0,
+    "MISSING_FOLD_ID": 0,
+    "POLICY_PAYLOAD_HASH_MISMATCH": 0,
+    "SELECTION_HASH_MISMATCH": 0,
+    "SOURCE_BYTES_MUTATED": "NO",
+    "SOURCE_INSUFFICIENT_FOLDS": 7,
+    "errors": []
+  },
+  "manifest_id": "h13_0_authoritative_input_provenance_manifest",
+  "observed_h10_state": {
+    "FAIL": 1,
+    "INSUFFICIENT": 7,
+    "PASS": 1,
+    "PRIMARY_FOLDS": 9
+  },
+  "release_local_root": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5",
+  "source_artifacts": [
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 9,
+      "sha256": "123d0e59dbe50546bbf158ad13da1026a2f055f4105db09207811bb63e394009",
+      "source_artifact_role": "FROZEN_RESEARCH_SELECTIONS",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_6_fold_research_selections.jsonl"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 9,
+      "sha256": "40c34745bc6d00b13f376c1b0b6ecad733660bc3e17a557969df7702e9a0dd85",
+      "source_artifact_role": "FROZEN_VALIDATION_INPUT",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_7_validation_input.jsonl"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 9,
+      "sha256": "a8afac7c35aa646be61ba98a4d87a2723636a8dc19327f3c1db21059fcf1b453",
+      "source_artifact_role": "FROZEN_VALIDATION_RESULTS",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_7_fold_validation_results.jsonl"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "json",
+      "record_count": null,
+      "sha256": "644e993cfb847c8d2dc3fbf3939047eb6030e831130b66e8beff2bc7fddd21a2",
+      "source_artifact_role": "FROZEN_VALIDATION_REPORT",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/reports/h10_7_frozen_fold_validation.json"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "json",
+      "record_count": null,
+      "sha256": "cc9cab3ae52a3fbe880e4682e0546c3a8addb33e4f4973739b9f9bffc568136f",
+      "source_artifact_role": "FROZEN_CROSS_FOLD_STABILITY",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/reports/h10_8_cross_fold_stability.json"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "json",
+      "record_count": null,
+      "sha256": "608654c1749ea2b9d701e5aca5b1faa314d485a1e81373dd4eb8c90ee70f887a",
+      "source_artifact_role": "FROZEN_SAMPLE_ADEQUACY",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/reports/h10_8_validation_sample_adequacy.json"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "json",
+      "record_count": null,
+      "sha256": "db7791fc1b188b8a4e743aa33e3f77d452a5c4142760425daf0002a4c40af500",
+      "source_artifact_role": "FROZEN_FAMILY_STABILITY",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/reports/h10_8_family_stability.json"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "json",
+      "record_count": null,
+      "sha256": "e4bed30a13cd1a7f60e70ea2a9307c61d6c3ad2407d2769950643349d9b30ee6",
+      "source_artifact_role": "FROZEN_H10_5_RULES",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/contracts/h10_policy_search_space_and_selection_contract_v1.json"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 105117,
+      "sha256": "b8acd78d888febd8e8faff450800a2bfc5dbaab6ff196f7b8cc1707c62ae2251",
+      "source_artifact_role": "FROZEN_HISTORICAL_ANALYSIS",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_historical_analysis_records.jsonl"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 946053,
+      "sha256": "c16ff049e91268390b441c622b262c20399a45f422ae4b41c0bbb32160535533",
+      "source_artifact_role": "FROZEN_FOLD_MEMBERSHIP",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_walk_forward_fold_membership.jsonl"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 278,
+      "sha256": "829943275a39b32e48af95e6f4073a6ab3614d663fc274227d5b764c53a4fa31",
+      "source_artifact_role": "FROZEN_POLICY_CANDIDATE_CATALOG",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_policy_candidate_catalog.jsonl"
+    },
+    {
+      "expected_h10_state": "FROZEN_RELEASE_LOCAL_H10_ARTIFACT",
+      "format": "jsonl",
+      "record_count": 125,
+      "sha256": "f90b1b933ebbd5304c474fe1f475178f16a4992b4772a4ac2edde86d90e9f7e8",
+      "source_artifact_role": "FROZEN_VALIDATION_CANONICAL_OUTCOMES",
+      "source_path": "/home/tran-huynh/.local/state/besttime-crypto/release/8c7b119/d5-v5/historical-h10-walk-forward/data/h10_7_validation_canonical_outcomes.jsonl"
+    }
+  ],
+  "source_bytes_mutated": false
+}

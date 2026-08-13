@@ -1,0 +1,97 @@
+{
+  "acceptance_contract": {
+    "H13_5_TIED_DESIGN_MEMBERSHIP_AND_REPLAY_INPUT_FREEZE": "PASS",
+    "HYPOTHETICAL_DECISIONS_FROZEN": "PASS",
+    "MARKET_REPLAY_V2_USED": "NO",
+    "MEMBERSHIP_SCHEDULE_FROZEN_BEFORE_REPLAY": "PASS",
+    "MF2_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "MF4_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_PARAMETER_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "POLICY_SEARCH": "CLOSED",
+    "POST_HOC_TIE_BREAK": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "REPLAY_INPUT_FROZEN": "PASS",
+    "SOURCE_H13_4": "PASS_WITH_LIMITS",
+    "SOURCE_TOP_TIER_DESIGNS": [
+      "MF2",
+      "MF4"
+    ],
+    "TOP_TIER_TIE_PRESERVED": "YES"
+  },
+  "as_of": "2026-08-13",
+  "contract_id": "h13_5_tied_design_membership_and_replay_input_contract_v1",
+  "designs": {
+    "MF2": {
+      "design_status": "CO_EQUAL_TOP_TIER",
+      "evidence_horizon": "2_MONTH_CONTIGUOUS",
+      "label": "SLOW_UPDATE_2M",
+      "membership_semantics": "SLOW_UPDATE_V1"
+    },
+    "MF4": {
+      "design_status": "CO_EQUAL_TOP_TIER",
+      "evidence_horizon": "2_MONTH_CONTIGUOUS",
+      "label": "FIXED_2M",
+      "membership_semantics": "FIXED"
+    }
+  },
+  "forbidden_in_h13_5": [
+    "choose_between_MF2_and_MF4",
+    "use_EV_or_PnL_to_break_tie",
+    "run_Market_Replay_V2",
+    "open_threshold_search",
+    "open_policy_parameter_search",
+    "select_new_policy_candidate"
+  ],
+  "hypothetical_decision_rule": {
+    "market_replay_v2_used": false,
+    "membership_rule": "symbol is present in the H13.5 frozen membership schedule for the design/block",
+    "posterior_rule": "side posterior is at least frozen posterior_confidence_threshold",
+    "quality_outcome_accessed": false,
+    "record_time_window": "H10 validation folds inside each frozen H13.5 block",
+    "regime_rule": "trend and volatility regimes are inside frozen policy allowed regimes",
+    "side_rule": "raw_direction equals frozen policy side",
+    "source": "H10 frozen historical analysis records",
+    "technical_rule": "technical_pass is true under CURRENT technical gates"
+  },
+  "objective": "Freeze co-equal MF2 and MF4 membership schedules, hypothetical decisions, and replay input before any Market Replay V2 outcome access.",
+  "phase": "H13.5_TIED_DESIGN_MEMBERSHIP_AND_REPLAY_INPUT_FREEZE",
+  "policy_identity": {
+    "allowed_trend_regimes": [
+      "UP",
+      "DOWN",
+      "RANGE"
+    ],
+    "allowed_volatility_regimes": [
+      "LOW",
+      "NORMAL",
+      "HIGH"
+    ],
+    "candidate_payload_hash": "52714f9a47dc62324561e1e7b017136a9ccf6b3bef1da3e47d162e1117c27254",
+    "policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+    "policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+    "posterior_confidence_threshold": 0.65,
+    "regime_eligibility_id": "ALL_REGIMES",
+    "side": "SELL",
+    "source": "H10 frozen candidate catalog; no candidate reselection performed",
+    "technical_gates": "CURRENT"
+  },
+  "post_hoc_tie_break": "FORBIDDEN",
+  "source_h13_4": "PASS_WITH_LIMITS",
+  "source_h13_4_design_output": "MULTI_FACTOR_DESIGN_ADEQUATE",
+  "source_hashes": {
+    "h10_7_validation_input_sha256": "40c34745bc6d00b13f376c1b0b6ecad733660bc3e17a557969df7702e9a0dd85",
+    "h10_historical_analysis_records_sha256": "b8acd78d888febd8e8faff450800a2bfc5dbaab6ff196f7b8cc1707c62ae2251",
+    "h10_policy_candidate_catalog_sha256": "829943275a39b32e48af95e6f4073a6ab3614d663fc274227d5b764c53a4fa31",
+    "h10_policy_contract_sha256": "e4bed30a13cd1a7f60e70ea2a9307c61d6c3ad2407d2769950643349d9b30ee6",
+    "h13_3_contract_sha256": "8b5e4d2a186870d19150d9004de3013c3113f07ff817aaab5c0220156bf05cb6",
+    "h13_4_block_studyability_sha256": "9d0f24dc4a35a5a45b64e972eb3c1b53891d8d8d7f20a7c3fa9f3e9501119462",
+    "h13_4_execution_report_sha256": "f22133b8f9c1d7fd1e459b07887d78bcbfab724d8cf29873aa821abfb5d7ffc1"
+  },
+  "source_top_tier_designs": [
+    "MF2",
+    "MF4"
+  ],
+  "top_tier_tie_preserved": true
+}

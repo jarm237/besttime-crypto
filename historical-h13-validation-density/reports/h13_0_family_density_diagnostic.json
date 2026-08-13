@@ -1,0 +1,387 @@
+{
+  "as_of": "2026-08-13",
+  "families": {
+    "F4_SYMBOL_SPECIFIC_ELIGIBILITY": {
+      "folds": [
+        {
+          "actual_sample": 4,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "SYMBOL_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 160,
+            "gate": "posterior_drop",
+            "share": 0.7079646017699115
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F03",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 20,
+            "LABEL_COMPLETE": 4,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 31,
+            "MODEL_VALID": 191,
+            "POSTERIOR_PASS": 31,
+            "PRE_REGIME_ELIGIBLE": 20,
+            "PRE_SYMBOL_ELIGIBLE": 31,
+            "RAW_DIRECTIONAL": 230,
+            "REGIME_ELIGIBLE": 20,
+            "SYMBOL_ELIGIBLE": 20,
+            "TECHNICAL_PASS": 191,
+            "VALIDATION_ANALYSES": 8928
+          },
+          "gate_losses": {
+            "label_completion_drop": 16,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 160,
+            "raw_directional_drop": 8698,
+            "regime_filter_drop": 0,
+            "symbol_filter_drop": 11,
+            "technical_drop": 39
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 4,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 20,
+          "post_symbol_candidate_count": 20,
+          "pre_regime_actionable_count": 20,
+          "pre_symbol_candidate_count": 31,
+          "primary_root_cause": "SYMBOL_SUBSET_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 11,
+          "selected_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+          "selected_policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+          "validation_end": "2026-01-31T23:59:59Z",
+          "validation_start": "2026-01-01T00:00:00Z"
+        },
+        {
+          "actual_sample": 9,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "SYMBOL_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 190,
+            "gate": "posterior_drop",
+            "share": 0.7723577235772358
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F04",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 25,
+            "LABEL_COMPLETE": 9,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 34,
+            "MODEL_VALID": 224,
+            "POSTERIOR_PASS": 34,
+            "PRE_REGIME_ELIGIBLE": 25,
+            "PRE_SYMBOL_ELIGIBLE": 34,
+            "RAW_DIRECTIONAL": 255,
+            "REGIME_ELIGIBLE": 25,
+            "SYMBOL_ELIGIBLE": 25,
+            "TECHNICAL_PASS": 224,
+            "VALIDATION_ANALYSES": 8064
+          },
+          "gate_losses": {
+            "label_completion_drop": 16,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 190,
+            "raw_directional_drop": 7809,
+            "regime_filter_drop": 0,
+            "symbol_filter_drop": 9,
+            "technical_drop": 31
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 9,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 25,
+          "post_symbol_candidate_count": 25,
+          "pre_regime_actionable_count": 25,
+          "pre_symbol_candidate_count": 34,
+          "primary_root_cause": "SYMBOL_SUBSET_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 6,
+          "selected_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+          "selected_policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+          "validation_end": "2026-02-28T23:59:59Z",
+          "validation_start": "2026-02-01T00:00:00Z"
+        },
+        {
+          "actual_sample": 8,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "SYMBOL_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 187,
+            "gate": "posterior_drop",
+            "share": 0.7137404580152672
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F05",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 23,
+            "LABEL_COMPLETE": 8,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 32,
+            "MODEL_VALID": 219,
+            "POSTERIOR_PASS": 32,
+            "PRE_REGIME_ELIGIBLE": 23,
+            "PRE_SYMBOL_ELIGIBLE": 32,
+            "RAW_DIRECTIONAL": 270,
+            "REGIME_ELIGIBLE": 23,
+            "SYMBOL_ELIGIBLE": 23,
+            "TECHNICAL_PASS": 219,
+            "VALIDATION_ANALYSES": 8928
+          },
+          "gate_losses": {
+            "label_completion_drop": 15,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 187,
+            "raw_directional_drop": 8658,
+            "regime_filter_drop": 0,
+            "symbol_filter_drop": 9,
+            "technical_drop": 51
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 8,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 23,
+          "post_symbol_candidate_count": 23,
+          "pre_regime_actionable_count": 23,
+          "pre_symbol_candidate_count": 32,
+          "primary_root_cause": "SYMBOL_SUBSET_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 7,
+          "selected_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+          "selected_policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+          "validation_end": "2026-03-31T23:59:59Z",
+          "validation_start": "2026-03-01T00:00:00Z"
+        },
+        {
+          "actual_sample": 4,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "SYMBOL_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 173,
+            "gate": "posterior_drop",
+            "share": 0.6431226765799256
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F06",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 30,
+            "LABEL_COMPLETE": 4,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 51,
+            "MODEL_VALID": 224,
+            "POSTERIOR_PASS": 51,
+            "PRE_REGIME_ELIGIBLE": 30,
+            "PRE_SYMBOL_ELIGIBLE": 51,
+            "RAW_DIRECTIONAL": 273,
+            "REGIME_ELIGIBLE": 30,
+            "SYMBOL_ELIGIBLE": 30,
+            "TECHNICAL_PASS": 224,
+            "VALIDATION_ANALYSES": 8640
+          },
+          "gate_losses": {
+            "label_completion_drop": 26,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 173,
+            "raw_directional_drop": 8367,
+            "regime_filter_drop": 0,
+            "symbol_filter_drop": 21,
+            "technical_drop": 49
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 4,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 30,
+          "post_symbol_candidate_count": 30,
+          "pre_regime_actionable_count": 30,
+          "pre_symbol_candidate_count": 51,
+          "primary_root_cause": "SYMBOL_SUBSET_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 11,
+          "selected_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+          "selected_policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+          "validation_end": "2026-04-30T23:59:59Z",
+          "validation_start": "2026-04-01T00:00:00Z"
+        },
+        {
+          "actual_sample": 10,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "SYMBOL_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 200,
+            "gate": "posterior_drop",
+            "share": 0.6711409395973155
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F07",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 37,
+            "LABEL_COMPLETE": 10,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 52,
+            "MODEL_VALID": 252,
+            "POSTERIOR_PASS": 52,
+            "PRE_REGIME_ELIGIBLE": 37,
+            "PRE_SYMBOL_ELIGIBLE": 52,
+            "RAW_DIRECTIONAL": 308,
+            "REGIME_ELIGIBLE": 37,
+            "SYMBOL_ELIGIBLE": 37,
+            "TECHNICAL_PASS": 252,
+            "VALIDATION_ANALYSES": 8928
+          },
+          "gate_losses": {
+            "label_completion_drop": 27,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 200,
+            "raw_directional_drop": 8620,
+            "regime_filter_drop": 0,
+            "symbol_filter_drop": 15,
+            "technical_drop": 56
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 10,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 37,
+          "post_symbol_candidate_count": 37,
+          "pre_regime_actionable_count": 37,
+          "pre_symbol_candidate_count": 52,
+          "primary_root_cause": "SYMBOL_SUBSET_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 5,
+          "selected_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+          "selected_policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+          "validation_end": "2026-05-31T23:59:59Z",
+          "validation_start": "2026-05-01T00:00:00Z"
+        },
+        {
+          "actual_sample": 2,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "SYMBOL_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 165,
+            "gate": "posterior_drop",
+            "share": 0.7366071428571429
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F08",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 6,
+            "LABEL_COMPLETE": 2,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 24,
+            "MODEL_VALID": 189,
+            "POSTERIOR_PASS": 24,
+            "PRE_REGIME_ELIGIBLE": 6,
+            "PRE_SYMBOL_ELIGIBLE": 24,
+            "RAW_DIRECTIONAL": 226,
+            "REGIME_ELIGIBLE": 6,
+            "SYMBOL_ELIGIBLE": 6,
+            "TECHNICAL_PASS": 189,
+            "VALIDATION_ANALYSES": 8640
+          },
+          "gate_losses": {
+            "label_completion_drop": 4,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 165,
+            "raw_directional_drop": 8414,
+            "regime_filter_drop": 0,
+            "symbol_filter_drop": 18,
+            "technical_drop": 37
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 2,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 6,
+          "post_symbol_candidate_count": 6,
+          "pre_regime_actionable_count": 6,
+          "pre_symbol_candidate_count": 24,
+          "primary_root_cause": "SYMBOL_SUBSET_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 13,
+          "selected_policy_candidate_id": "h10pc-ea5be34d3ef9963b13134dd4",
+          "selected_policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+          "validation_end": "2026-06-30T23:59:59Z",
+          "validation_start": "2026-06-01T00:00:00Z"
+        }
+      ],
+      "root_cause_distribution": {
+        "SYMBOL_SUBSET_TOO_NARROW": 6
+      },
+      "selected_folds": 6
+    },
+    "F5_REGIME_CONDITIONED_ELIGIBILITY": {
+      "folds": [
+        {
+          "actual_sample": 7,
+          "contributing_factors": [
+            "POSTERIOR_FILTER_SELECTIVITY",
+            "REGIME_FILTER_SELECTIVITY",
+            "LABEL_COMPLETION_LIMIT"
+          ],
+          "dominant_loss": {
+            "count": 220,
+            "gate": "posterior_drop",
+            "share": 0.672782874617737
+          },
+          "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F09",
+          "funnel_counts": {
+            "FINAL_COUNTERFACTUAL_ACTIONABLE_PRE_LABEL": 39,
+            "LABEL_COMPLETE": 7,
+            "META_PASS_OR_POLICY_META_ELIGIBLE": 47,
+            "MODEL_VALID": 267,
+            "POSTERIOR_PASS": 47,
+            "PRE_REGIME_ELIGIBLE": 47,
+            "PRE_SYMBOL_ELIGIBLE": 47,
+            "RAW_DIRECTIONAL": 334,
+            "REGIME_ELIGIBLE": 39,
+            "SYMBOL_ELIGIBLE": 47,
+            "TECHNICAL_PASS": 267,
+            "VALIDATION_ANALYSES": 8928
+          },
+          "gate_losses": {
+            "label_completion_drop": 32,
+            "meta_drop": 0,
+            "model_valid_drop": 0,
+            "posterior_drop": 220,
+            "raw_directional_drop": 8594,
+            "regime_filter_drop": 8,
+            "symbol_filter_drop": 0,
+            "technical_drop": 67
+          },
+          "h10_result_n_matches_label_complete": true,
+          "label_complete_count": 7,
+          "minimum_required_sample": 15,
+          "post_regime_actionable_count": 39,
+          "post_symbol_candidate_count": 47,
+          "pre_regime_actionable_count": 47,
+          "pre_symbol_candidate_count": 47,
+          "primary_root_cause": "REGIME_FILTER_TOO_NARROW",
+          "root_cause_source": "H10_8_VALIDATION_SAMPLE_ADEQUACY.sample_adequacy_reason",
+          "sample_shortfall": 8,
+          "selected_policy_candidate_id": "h10pc-2707b4a15f68a13e38d9709c",
+          "selected_policy_family": "F5_REGIME_CONDITIONED_ELIGIBILITY",
+          "validation_end": "2026-07-31T23:59:59Z",
+          "validation_start": "2026-07-01T00:00:00Z"
+        }
+      ],
+      "root_cause_distribution": {
+        "REGIME_FILTER_TOO_NARROW": 1
+      },
+      "selected_folds": 1
+    }
+  },
+  "report_id": "h13_0_family_density_diagnostic",
+  "status": "PASS"
+}

@@ -1,0 +1,112 @@
+{
+  "acceptance_contract": {
+    "CONTRACT_SHA256": "75067d3a0a10bbbf970fe31aac3da41d1cf3a5541970e6f34517570c067b0f0f",
+    "DESIGNS_FROZEN": 2,
+    "DESIGN_BLOCKS_FROZEN": 6,
+    "H13_5_TIED_DESIGN_MEMBERSHIP_AND_REPLAY_INPUT_FREEZE": "PASS",
+    "HYPOTHETICAL_DECISIONS_FROZEN": "PASS",
+    "HYPOTHETICAL_DECISIONS_FROZEN_COUNT": 296,
+    "MARKET_REPLAY_V2_USED": "NO",
+    "MEMBERSHIP_SCHEDULE_FROZEN_BEFORE_REPLAY": "PASS",
+    "MF2_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "MF2_MEMBERSHIP_SCHEDULE_HASH": "541f377d0e7c7863f607fa4af51f9e8b2c5a0600cc4acd239e6bd54287c90ae9",
+    "MF2_REPLAY_INPUT_HASH": "919dbb38c897c674ee105c67e43d5db19e09a183ff5b3107819555b1b2151da7",
+    "MF4_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "MF4_MEMBERSHIP_SCHEDULE_HASH": "3c5a7bfac8c5ae0247bb21f8731b8be357ed9c1c116fd80ce2a408dbf627afd3",
+    "MF4_REPLAY_INPUT_HASH": "b4fae1f255b0002078b17257385d2ae8bb9bb10d4ba4b0991347d929e7c8ea5d",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_PARAMETER_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "POLICY_SEARCH": "CLOSED",
+    "POST_HOC_TIE_BREAK": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "REPLAY_INPUT_FROZEN": "PASS",
+    "REPLAY_INPUT_ROWS": 296,
+    "SOURCE_H13_4": "PASS_WITH_LIMITS",
+    "SOURCE_TOP_TIER_DESIGNS": [
+      "MF2",
+      "MF4"
+    ],
+    "TOP_TIER_TIE_PRESERVED": "YES",
+    "UNIQUE_CANONICAL_EXECUTION_PATHS": 148
+  },
+  "artifacts": {
+    "contract": "historical-h13-validation-density/contracts/h13_5_tied_design_membership_and_replay_input_contract_v1.json",
+    "design_replay_input": "historical-h13-validation-density/data/h13_5_design_replay_input.jsonl",
+    "hypothetical_decisions": "historical-h13-validation-density/data/h13_5_hypothetical_decisions.jsonl",
+    "membership_schedules": "historical-h13-validation-density/data/h13_5_design_membership_schedules.jsonl",
+    "report_json": "historical-h13-validation-density/reports/h13_5_tied_design_membership_and_replay_input_freeze.json",
+    "report_md": "historical-h13-validation-density/reports/h13_5_tied_design_membership_and_replay_input_freeze.md"
+  },
+  "as_of": "2026-08-13",
+  "contract_path": "historical-h13-validation-density/contracts/h13_5_tied_design_membership_and_replay_input_contract_v1.json",
+  "contract_sha256": "75067d3a0a10bbbf970fe31aac3da41d1cf3a5541970e6f34517570c067b0f0f",
+  "decision_counts_by_block": {
+    "MF2": {
+      "MF2_B01": 45,
+      "MF2_B02": 53,
+      "MF2_B03": 50
+    },
+    "MF4": {
+      "MF4_B01": 45,
+      "MF4_B02": 53,
+      "MF4_B03": 50
+    }
+  },
+  "decision_counts_by_design": {
+    "MF2": 148,
+    "MF4": 148
+  },
+  "market_replay_v2_used": false,
+  "membership_schedule_hashes": {
+    "MF2": "541f377d0e7c7863f607fa4af51f9e8b2c5a0600cc4acd239e6bd54287c90ae9",
+    "MF4": "3c5a7bfac8c5ae0247bb21f8731b8be357ed9c1c116fd80ce2a408dbf627afd3"
+  },
+  "next_phase": "H13.6_MARKET_REPLAY_V2_AND_INDEPENDENT_QUALITY_GATES",
+  "phase": "H13.5_TIED_DESIGN_MEMBERSHIP_AND_REPLAY_INPUT_FREEZE",
+  "policy_identity": {
+    "allowed_trend_regimes": [
+      "UP",
+      "DOWN",
+      "RANGE"
+    ],
+    "allowed_volatility_regimes": [
+      "LOW",
+      "NORMAL",
+      "HIGH"
+    ],
+    "candidate_payload_hash": "52714f9a47dc62324561e1e7b017136a9ccf6b3bef1da3e47d162e1117c27254",
+    "policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+    "policy_family": "F4_SYMBOL_SPECIFIC_ELIGIBILITY",
+    "posterior_confidence_threshold": 0.65,
+    "regime_eligibility_id": "ALL_REGIMES",
+    "side": "SELL",
+    "source": "H10 frozen candidate catalog; no candidate reselection performed",
+    "technical_gates": "CURRENT"
+  },
+  "post_hoc_tie_break": 0,
+  "quality_outcome_accessed": false,
+  "replay_input_hashes": {
+    "MF2": "919dbb38c897c674ee105c67e43d5db19e09a183ff5b3107819555b1b2151da7",
+    "MF4": "b4fae1f255b0002078b17257385d2ae8bb9bb10d4ba4b0991347d929e7c8ea5d"
+  },
+  "report_id": "h13_5_tied_design_membership_and_replay_input_freeze_v1",
+  "source_h13_4": "PASS_WITH_LIMITS",
+  "source_h13_4_design_output": "MULTI_FACTOR_DESIGN_ADEQUATE",
+  "source_hashes": {
+    "h10_7_validation_input_sha256": "40c34745bc6d00b13f376c1b0b6ecad733660bc3e17a557969df7702e9a0dd85",
+    "h10_historical_analysis_records_sha256": "b8acd78d888febd8e8faff450800a2bfc5dbaab6ff196f7b8cc1707c62ae2251",
+    "h10_policy_candidate_catalog_sha256": "829943275a39b32e48af95e6f4073a6ab3614d663fc274227d5b764c53a4fa31",
+    "h10_policy_contract_sha256": "e4bed30a13cd1a7f60e70ea2a9307c61d6c3ad2407d2769950643349d9b30ee6",
+    "h13_3_contract_sha256": "8b5e4d2a186870d19150d9004de3013c3113f07ff817aaab5c0220156bf05cb6",
+    "h13_4_block_studyability_sha256": "9d0f24dc4a35a5a45b64e972eb3c1b53891d8d8d7f20a7c3fa9f3e9501119462",
+    "h13_4_execution_report_sha256": "f22133b8f9c1d7fd1e459b07887d78bcbfab724d8cf29873aa821abfb5d7ffc1"
+  },
+  "source_top_tier_designs": [
+    "MF2",
+    "MF4"
+  ],
+  "status": "PASS",
+  "top_tier_tie_preserved": true,
+  "unique_canonical_execution_paths": 148
+}

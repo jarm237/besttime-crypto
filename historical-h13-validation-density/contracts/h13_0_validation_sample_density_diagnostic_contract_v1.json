@@ -1,0 +1,118 @@
+{
+  "acceptance_contract": {
+    "H13_0_VALIDATION_SAMPLE_DENSITY_DIAGNOSTIC": "PASS",
+    "INPUT_PROVENANCE": "PASS",
+    "INSUFFICIENT_FOLDS_ACCOUNTED_FOR": 7,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "ROOT_CAUSE_ASSIGNED": 7,
+    "ROOT_CAUSE_UNIQUENESS": "PASS",
+    "SOURCE_INSUFFICIENT_FOLDS": 7
+  },
+  "as_of": "2026-08-13",
+  "authoritative_input_source": "RELEASE_LOCAL_H10_FROZEN_ARTIFACTS",
+  "authoritative_sources": {
+    "diagnostic_population": "INSUFFICIENT_ONLY",
+    "expected_status_counts": {
+      "FAIL": 1,
+      "INSUFFICIENT": 7,
+      "PASS": 1
+    },
+    "primary_folds": 9,
+    "required": [
+      "H10.7 canonical validation decision/replay accounting",
+      "H10.8 canonical validation result summary"
+    ]
+  },
+  "contract_id": "h13_0_validation_sample_density_diagnostic_contract_v1",
+  "funnel": [
+    "VALIDATION_ANALYSES",
+    "RAW_DIRECTIONAL",
+    "TECHNICAL_PASS",
+    "MODEL_VALID",
+    "POSTERIOR_PASS",
+    "META_PASS_OR_POLICY_META_ELIGIBLE",
+    "SYMBOL_ELIGIBLE",
+    "REGIME_ELIGIBLE",
+    "FINAL_COUNTERFACTUAL_ACTIONABLE",
+    "LABEL_COMPLETE"
+  ],
+  "guards": {
+    "H10_ARTIFACTS_MUTATED": false,
+    "H10_SELECTION_MUTATED": false,
+    "H10_VALIDATION_RESULT_MUTATED": false,
+    "MARKET_REPLAY_V2_RERUN": false,
+    "POLICY_SEARCH_STARTED": false,
+    "THRESHOLD_SEARCH_STARTED": false,
+    "VALIDATION_DESIGN_MUTATED": false
+  },
+  "input_provenance_manifest": "historical-h13-validation-density/contracts/h13_0_authoritative_input_provenance_manifest.json",
+  "input_record_schema": [
+    "fold_id",
+    "selected_policy_candidate_id",
+    "selected_policy_family",
+    "selected_policy_payload_hash",
+    "h10_6_research_selection_hash",
+    "validation_start",
+    "validation_end",
+    "validation_analysis_count",
+    "minimum_validation_sample",
+    "actual_validation_sample",
+    "sample_shortfall",
+    "side",
+    "symbol_eligibility",
+    "regime_eligibility"
+  ],
+  "loss_metrics": [
+    "raw_directional_drop",
+    "technical_drop",
+    "posterior_drop",
+    "meta_drop",
+    "symbol_filter_drop",
+    "regime_filter_drop",
+    "other_policy_drop"
+  ],
+  "per_fold_output_schema": [
+    "fold_id",
+    "selected_policy_candidate_id",
+    "selected_policy_family",
+    "validation_start",
+    "validation_end",
+    "funnel_counts",
+    "gate_losses",
+    "dominant_loss_share",
+    "primary_root_cause",
+    "contributing_factors"
+  ],
+  "phase": "H13.0_VALIDATION_SAMPLE_DENSITY_DIAGNOSTIC",
+  "quantitative_attribution_rule": {
+    "direct_gate_threshold": 0.5,
+    "fallback": "COMBINED_POLICY_SELECTIVITY",
+    "formula": "largest_gate_specific_loss / total_eligibility_loss",
+    "metric": "dominant_loss_share"
+  },
+  "root_cause_precedence": [
+    "ZERO_DIRECTIONAL_DENSITY",
+    "TECHNICAL_FILTER_TOO_SPARSE",
+    "POSTERIOR_FILTER_TOO_SPARSE",
+    "META_FILTER_TOO_SPARSE",
+    "SYMBOL_SUBSET_TOO_NARROW",
+    "REGIME_FILTER_TOO_NARROW",
+    "COMBINED_POLICY_SELECTIVITY",
+    "VALIDATION_WINDOW_TOO_SHORT",
+    "OTHER_EXPLICIT_CAUSE"
+  ],
+  "scope": {
+    "diagnostic_only": true,
+    "market_replay_v2_rerun": false,
+    "policy_search_started": false,
+    "production_change": "BLOCKED",
+    "threshold_search_started": false,
+    "validation_design_mutated": false
+  },
+  "validation_window_too_short_rule": {
+    "allowed_only_when": "policy density is stable and nonzero and no policy/filter gate is too selective",
+    "expected_duration_to_min_sample": "minimum_validation_sample / observed_actionable_rate",
+    "observed_actionable_rate": "actual_validation_sample / validation_duration_days",
+    "residual_only": true
+  }
+}

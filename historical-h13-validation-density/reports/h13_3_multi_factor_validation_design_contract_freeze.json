@@ -1,0 +1,32 @@
+{
+  "report_id": "h13_3_multi_factor_validation_design_contract_freeze",
+  "as_of": "2026-08-13",
+  "phase": "H13.3_MULTI_FACTOR_VALIDATION_DESIGN_CONTRACT_FREEZE",
+  "status": "PASS",
+  "source_h13_2_result": "MULTI_FACTOR_DESIGN_REQUIRED",
+  "design_space_frozen": "PASS",
+  "design_selection_rules_frozen": "PASS",
+  "symbol_membership_semantics_frozen": "PASS",
+  "evidence_horizon_semantics_frozen": "PASS",
+  "subset_regime_mixing_guard_frozen": "PASS",
+  "subset_regime_mixing_semantics_frozen": "PASS",
+  "frozen_design_cells_count": 5,
+  "design_cell_catalog": "historical-h13-validation-density/data/h13_3_design_cell_catalog.jsonl",
+  "reference_cells": [
+    "A1_DYNAMIC x B3_3_MONTH_CONTIGUOUS_REFERENCE"
+  ],
+  "candidate_design_cells": [
+    "A3_SLOW_UPDATE x B2_2_MONTH_CONTIGUOUS",
+    "A3_SLOW_UPDATE x B3_3_MONTH_CONTIGUOUS",
+    "A2_FIXED x B2_2_MONTH_CONTIGUOUS",
+    "A2_FIXED x B3_3_MONTH_CONTIGUOUS"
+  ],
+  "quality_metrics_used_for_design_selection": "NO",
+  "market_replay_v2_used": "NO",
+  "new_threshold_search": 0,
+  "new_policy_parameter_search": 0,
+  "new_policy_candidate": "NONE",
+  "policy_search": "CLOSED",
+  "production_change": "BLOCKED",
+  "next": "H13.4_MULTI_FACTOR_DESIGN_EXECUTION_STUDYABILITY"
+}

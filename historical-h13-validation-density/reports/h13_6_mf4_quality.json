@@ -1,0 +1,305 @@
+{
+  "by_block": {
+    "MF4_B01": {
+      "EV": -0.72872872104,
+      "STOP_LOSS_rate": 0.355555555556,
+      "TAKE_PROFIT_rate": 0.066666666667,
+      "TIMEOUT_EXIT_rate": 0.577777777778,
+      "exit_reason_counts": {
+        "STOP_LOSS": 16,
+        "TAKE_PROFIT": 3,
+        "TIMEOUT_EXIT": 26
+      },
+      "flat": 0,
+      "loss": 27,
+      "mean_MAE": -2.51881995475,
+      "mean_MFE": 1.524730883648,
+      "mean_net_pnl": -0.72872872104,
+      "median_net_pnl": -2.497799295775,
+      "n": 45,
+      "p95_MAE": 9.31109424089,
+      "profit_factor": 0.91043076414,
+      "quality_gate": "FAIL",
+      "win": 18,
+      "win_rate": 0.4
+    },
+    "MF4_B02": {
+      "EV": -2.361199107128,
+      "STOP_LOSS_rate": 0.320754716981,
+      "TAKE_PROFIT_rate": 0.037735849057,
+      "TIMEOUT_EXIT_rate": 0.641509433962,
+      "exit_reason_counts": {
+        "STOP_LOSS": 17,
+        "TAKE_PROFIT": 2,
+        "TIMEOUT_EXIT": 34
+      },
+      "flat": 0,
+      "loss": 32,
+      "mean_MAE": -1.721441710935,
+      "mean_MFE": 1.261916004337,
+      "mean_net_pnl": -2.361199107128,
+      "median_net_pnl": -4.961042123204,
+      "n": 53,
+      "p95_MAE": 3.034553628919,
+      "profit_factor": 0.717707567696,
+      "quality_gate": "FAIL",
+      "win": 21,
+      "win_rate": 0.396226415094
+    },
+    "MF4_B03": {
+      "EV": 4.002428697134,
+      "STOP_LOSS_rate": 0.14,
+      "TAKE_PROFIT_rate": 0.04,
+      "TIMEOUT_EXIT_rate": 0.82,
+      "exit_reason_counts": {
+        "STOP_LOSS": 7,
+        "TAKE_PROFIT": 2,
+        "TIMEOUT_EXIT": 41
+      },
+      "flat": 0,
+      "loss": 15,
+      "mean_MAE": -1.293935352923,
+      "mean_MFE": 1.538397693054,
+      "mean_net_pnl": 4.002428697134,
+      "median_net_pnl": 3.025118093089,
+      "n": 50,
+      "p95_MAE": 4.742371627123,
+      "profit_factor": 2.143546135395,
+      "quality_gate": "PASS",
+      "win": 35,
+      "win_rate": 0.7
+    }
+  },
+  "by_side": {
+    "SELL": {
+      "EV": 0.285034390082,
+      "STOP_LOSS_rate": 0.27027027027,
+      "TAKE_PROFIT_rate": 0.047297297297,
+      "TIMEOUT_EXIT_rate": 0.682432432432,
+      "exit_reason_counts": {
+        "STOP_LOSS": 40,
+        "TAKE_PROFIT": 7,
+        "TIMEOUT_EXIT": 101
+      },
+      "flat": 0,
+      "loss": 74,
+      "mean_MAE": -1.819459974929,
+      "mean_MFE": 1.435231909775,
+      "mean_net_pnl": 0.285034390082,
+      "median_net_pnl": -0.303090270168,
+      "n": 148,
+      "p95_MAE": 7.560582642047,
+      "profit_factor": 1.042852334953,
+      "win": 74,
+      "win_rate": 0.5
+    }
+  },
+  "by_symbol": {
+    "BNBUSDT": {
+      "EV": -0.742449225866,
+      "STOP_LOSS_rate": 0.253333333333,
+      "TAKE_PROFIT_rate": 0.013333333333,
+      "TIMEOUT_EXIT_rate": 0.733333333333,
+      "exit_reason_counts": {
+        "STOP_LOSS": 19,
+        "TAKE_PROFIT": 1,
+        "TIMEOUT_EXIT": 55
+      },
+      "flat": 0,
+      "loss": 39,
+      "mean_MAE": -1.503152951084,
+      "mean_MFE": 1.198169192351,
+      "mean_net_pnl": -0.742449225866,
+      "median_net_pnl": -0.926647907697,
+      "n": 75,
+      "p95_MAE": 4.324635596375,
+      "profit_factor": 0.883490747207,
+      "win": 36,
+      "win_rate": 0.48
+    },
+    "ETHUSDT": {
+      "EV": 1.340668242083,
+      "STOP_LOSS_rate": 0.287671232877,
+      "TAKE_PROFIT_rate": 0.082191780822,
+      "TIMEOUT_EXIT_rate": 0.630136986301,
+      "exit_reason_counts": {
+        "STOP_LOSS": 21,
+        "TAKE_PROFIT": 6,
+        "TIMEOUT_EXIT": 46
+      },
+      "flat": 0,
+      "loss": 35,
+      "mean_MAE": -2.144432944632,
+      "mean_MFE": 1.67878949617,
+      "mean_net_pnl": 1.340668242083,
+      "median_net_pnl": 0.470108250819,
+      "n": 73,
+      "p95_MAE": 9.219772896092,
+      "profit_factor": 1.193227326891,
+      "win": 38,
+      "win_rate": 0.520547945205
+    }
+  },
+  "by_trend_regime": {
+    "DOWN": {
+      "EV": 10.32030337192,
+      "STOP_LOSS_rate": 0.0,
+      "TAKE_PROFIT_rate": 0.333333333333,
+      "TIMEOUT_EXIT_rate": 0.666666666667,
+      "exit_reason_counts": {
+        "TAKE_PROFIT": 1,
+        "TIMEOUT_EXIT": 2
+      },
+      "flat": 0,
+      "loss": 1,
+      "mean_MAE": -1.012748583845,
+      "mean_MFE": 2.050663146784,
+      "mean_net_pnl": 10.32030337192,
+      "median_net_pnl": 1.845768279879,
+      "n": 3,
+      "p95_MAE": 1.616348898527,
+      "profit_factor": 3.844401796417,
+      "win": 2,
+      "win_rate": 0.666666666667
+    },
+    "RANGE": {
+      "EV": -3.480666443055,
+      "STOP_LOSS_rate": 0.309523809524,
+      "TAKE_PROFIT_rate": 0.047619047619,
+      "TIMEOUT_EXIT_rate": 0.642857142857,
+      "exit_reason_counts": {
+        "STOP_LOSS": 13,
+        "TAKE_PROFIT": 2,
+        "TIMEOUT_EXIT": 27
+      },
+      "flat": 0,
+      "loss": 25,
+      "mean_MAE": -2.006226636657,
+      "mean_MFE": 1.366678701453,
+      "mean_net_pnl": -3.480666443055,
+      "median_net_pnl": -3.710179913266,
+      "n": 42,
+      "p95_MAE": 5.749801052633,
+      "profit_factor": 0.553894150459,
+      "win": 17,
+      "win_rate": 0.404761904762
+    },
+    "UP": {
+      "EV": 1.528273497327,
+      "STOP_LOSS_rate": 0.26213592233,
+      "TAKE_PROFIT_rate": 0.038834951456,
+      "TIMEOUT_EXIT_rate": 0.699029126214,
+      "exit_reason_counts": {
+        "STOP_LOSS": 27,
+        "TAKE_PROFIT": 4,
+        "TIMEOUT_EXIT": 72
+      },
+      "flat": 0,
+      "loss": 48,
+      "mean_MAE": -1.766799143673,
+      "mean_MFE": 1.445260463547,
+      "mean_net_pnl": 1.528273497327,
+      "median_net_pnl": 1.064149324179,
+      "n": 103,
+      "p95_MAE": 7.585861779296,
+      "profit_factor": 1.24373006128,
+      "win": 55,
+      "win_rate": 0.533980582524
+    }
+  },
+  "by_volatility_regime": {
+    "HIGH": {
+      "EV": -1.236279250854,
+      "STOP_LOSS_rate": 0.30487804878,
+      "TAKE_PROFIT_rate": 0.036585365854,
+      "TIMEOUT_EXIT_rate": 0.658536585366,
+      "exit_reason_counts": {
+        "STOP_LOSS": 25,
+        "TAKE_PROFIT": 3,
+        "TIMEOUT_EXIT": 54
+      },
+      "flat": 0,
+      "loss": 42,
+      "mean_MAE": -1.787013861142,
+      "mean_MFE": 1.383067755934,
+      "mean_net_pnl": -1.236279250854,
+      "median_net_pnl": -1.121339557529,
+      "n": 82,
+      "p95_MAE": 5.953146232559,
+      "profit_factor": 0.829648765127,
+      "win": 40,
+      "win_rate": 0.487804878049
+    },
+    "LOW": {
+      "EV": 0.952063939628,
+      "STOP_LOSS_rate": 0.212121212121,
+      "TAKE_PROFIT_rate": 0.030303030303,
+      "TIMEOUT_EXIT_rate": 0.757575757576,
+      "exit_reason_counts": {
+        "STOP_LOSS": 7,
+        "TAKE_PROFIT": 1,
+        "TIMEOUT_EXIT": 25
+      },
+      "flat": 0,
+      "loss": 18,
+      "mean_MAE": -1.82895799533,
+      "mean_MFE": 1.310016843847,
+      "mean_net_pnl": 0.952063939628,
+      "median_net_pnl": -0.783784050241,
+      "n": 33,
+      "p95_MAE": 7.250601853101,
+      "profit_factor": 1.156831732781,
+      "win": 15,
+      "win_rate": 0.454545454545
+    },
+    "NORMAL": {
+      "EV": 3.398238736196,
+      "STOP_LOSS_rate": 0.242424242424,
+      "TAKE_PROFIT_rate": 0.090909090909,
+      "TIMEOUT_EXIT_rate": 0.666666666667,
+      "exit_reason_counts": {
+        "STOP_LOSS": 8,
+        "TAKE_PROFIT": 3,
+        "TIMEOUT_EXIT": 22
+      },
+      "flat": 0,
+      "loss": 14,
+      "mean_MAE": -1.89058563121,
+      "mean_MFE": 1.69006699434,
+      "mean_net_pnl": 3.398238736196,
+      "median_net_pnl": 3.180381546862,
+      "n": 33,
+      "p95_MAE": 9.219772896092,
+      "profit_factor": 1.593325304959,
+      "win": 19,
+      "win_rate": 0.575757575758
+    }
+  },
+  "design_id": "MF4",
+  "overall": {
+    "EV": 0.285034390082,
+    "STOP_LOSS_rate": 0.27027027027,
+    "TAKE_PROFIT_rate": 0.047297297297,
+    "TIMEOUT_EXIT_rate": 0.682432432432,
+    "exit_reason_counts": {
+      "STOP_LOSS": 40,
+      "TAKE_PROFIT": 7,
+      "TIMEOUT_EXIT": 101
+    },
+    "flat": 0,
+    "loss": 74,
+    "mean_MAE": -1.819459974929,
+    "mean_MFE": 1.435231909775,
+    "mean_net_pnl": 0.285034390082,
+    "median_net_pnl": -0.303090270168,
+    "n": 148,
+    "p95_MAE": 7.560582642047,
+    "profit_factor": 1.042852334953,
+    "win": 74,
+    "win_rate": 0.5
+  },
+  "post_hoc_tie_break": 0,
+  "quality_base": "INDEPENDENT_CANONICAL_OUTCOMES_AND_BLOCK_LEVEL_METRICS",
+  "quality_gate": "PASS_WITH_LIMITS",
+  "quality_stability": "MIXED"
+}

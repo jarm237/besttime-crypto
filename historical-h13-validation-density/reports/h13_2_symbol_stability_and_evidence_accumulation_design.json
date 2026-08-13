@@ -1,0 +1,28 @@
+{
+  "as_of": "2026-08-13",
+  "decision_boundary": "No policy research may reopen until a studyable validation design is frozen and, later, validated with a fresh holdout.",
+  "h10_artifacts_mutated": "NO",
+  "h13_1_artifacts_mutated": "NO",
+  "h13_2_design_cells_evaluated": 9,
+  "h13_2_design_output": "MULTI_FACTOR_DESIGN_REQUIRED",
+  "h13_2_execution_started": true,
+  "key_findings": [
+    "Monthly one-fold evidence remains insufficient on authoritative labeled samples for the dynamic H10-like F4 sequence.",
+    "Three-month contiguous accumulation makes the dynamic sequence sample-adequate on available labeled samples, but one 3-month block contains a symbol-subset switch.",
+    "Fixed and slow-update membership semantics improve stability by construction and show adequate pre-label density proxies, but lack complete labeled authority for counterfactual membership without replay.",
+    "The next lane should not be pure longer-window validation; it needs both membership stability semantics and evidence accumulation."
+  ],
+  "market_replay_v2_rerun": "NO",
+  "min_sample_requirement_mutated": "NO",
+  "new_policy_candidate": "NONE",
+  "new_policy_parameter_search": 0,
+  "new_threshold_search": 0,
+  "phase": "H13.2_SYMBOL_STABILITY_AND_EVIDENCE_ACCUMULATION_DESIGN_RESEARCH",
+  "policy_search": "CLOSED",
+  "primary_metrics_only_for_design_selection": true,
+  "production_change": "BLOCKED",
+  "quality_guards_mutated": "NO",
+  "quality_metrics_used_for_design_selection": false,
+  "report_id": "h13_2_symbol_stability_and_evidence_accumulation_design",
+  "status": "PASS_WITH_LIMITS"
+}

@@ -1,0 +1,71 @@
+{
+  "as_of": "2026-08-13",
+  "evidence": [
+    {
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F03",
+      "runner_up_EV": 5.968025603660389,
+      "runner_up_n": 32,
+      "runner_up_symbol_count": 2,
+      "selected_candidate_EV": 5.968025603660389,
+      "selected_candidate_n": 32,
+      "selected_narrower_higher_ev_than_runner_up": false,
+      "selected_symbol_count": 2
+    },
+    {
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F04",
+      "runner_up_EV": 5.81325891471189,
+      "runner_up_n": 36,
+      "runner_up_symbol_count": 2,
+      "selected_candidate_EV": 5.81325891471189,
+      "selected_candidate_n": 36,
+      "selected_narrower_higher_ev_than_runner_up": false,
+      "selected_symbol_count": 2
+    },
+    {
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F05",
+      "runner_up_EV": 3.597590380033956,
+      "runner_up_n": 45,
+      "runner_up_symbol_count": 2,
+      "selected_candidate_EV": 3.597590380033956,
+      "selected_candidate_n": 45,
+      "selected_narrower_higher_ev_than_runner_up": false,
+      "selected_symbol_count": 2
+    },
+    {
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F06",
+      "runner_up_EV": 1.8671693526710234,
+      "runner_up_n": 53,
+      "runner_up_symbol_count": 2,
+      "selected_candidate_EV": 1.8671693526710234,
+      "selected_candidate_n": 53,
+      "selected_narrower_higher_ev_than_runner_up": false,
+      "selected_symbol_count": 2
+    },
+    {
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F07",
+      "runner_up_EV": 1.702117522107978,
+      "runner_up_n": 57,
+      "runner_up_symbol_count": 2,
+      "selected_candidate_EV": 1.702117522107978,
+      "selected_candidate_n": 57,
+      "selected_narrower_higher_ev_than_runner_up": false,
+      "selected_symbol_count": 2
+    },
+    {
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F08",
+      "runner_up_EV": 4.235513556709013,
+      "runner_up_n": 31,
+      "runner_up_symbol_count": 1,
+      "selected_candidate_EV": 4.235513556709013,
+      "selected_candidate_n": 31,
+      "selected_narrower_higher_ev_than_runner_up": false,
+      "selected_symbol_count": 1
+    }
+  ],
+  "evidence_count": 6,
+  "h10_selection_rules_mutated": "NO",
+  "report_id": "h13_1_selection_objective_density_diagnostic",
+  "runner_up_promotion": "FORBIDDEN",
+  "selection_objective_density_blind_spot": "NOT_PRESENT",
+  "status": "PASS"
+}

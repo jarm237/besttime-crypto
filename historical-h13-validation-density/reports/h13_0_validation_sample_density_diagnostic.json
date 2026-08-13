@@ -1,0 +1,37 @@
+{
+  "as_of": "2026-08-13",
+  "authoritative_input_source": "RELEASE_LOCAL_H10_FROZEN_ARTIFACTS",
+  "decision_boundary": "H13.1 may be considered only from this diagnostic result; do not assume longer validation windows solve symbol/regime selectivity.",
+  "diagnostic_notes": [
+    "Actual validation sample is the frozen H10.7 labeled sample n.",
+    "Funnel counts are recomputed read-only from frozen H10 historical analysis and fold membership artifacts.",
+    "No market replay V2 rerun was performed."
+  ],
+  "h10_artifacts_mutated": false,
+  "h10_selection_mutated": false,
+  "h10_validation_result_mutated": false,
+  "h13_0_contract_frozen": true,
+  "h13_0_diagnostic_completed": true,
+  "h13_0_execution_started": true,
+  "h13_0_primary_finding": "SAMPLE_INSUFFICIENCY_DOMINATED_BY_SYMBOL_SUBSET_TOO_NARROW",
+  "h13_0_validation_sample_density_diagnostic": "PASS",
+  "input_provenance": "PASS",
+  "input_rows": 7,
+  "insufficient_folds_accounted_for": 7,
+  "market_replay_v2_rerun": false,
+  "phase": "H13.0_VALIDATION_SAMPLE_DENSITY_DIAGNOSTIC",
+  "policy_search_started": false,
+  "production_change": "BLOCKED",
+  "report_id": "h13_0_validation_sample_density_diagnostic",
+  "root_cause_assigned": 7,
+  "root_cause_distribution": {
+    "REGIME_FILTER_TOO_NARROW": 1,
+    "SYMBOL_SUBSET_TOO_NARROW": 6
+  },
+  "root_cause_uniqueness": "PASS",
+  "source_bytes_mutated": false,
+  "source_insufficient_folds": 7,
+  "status": "PASS",
+  "threshold_search_started": false,
+  "validation_design_mutated": false
+}

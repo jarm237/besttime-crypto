@@ -1,0 +1,133 @@
+{
+  "contract_id": "h13_3_multi_factor_validation_design_contract_freeze_v1",
+  "as_of": "2026-08-13",
+  "phase": "H13.3_MULTI_FACTOR_VALIDATION_DESIGN_CONTRACT_FREEZE",
+  "status": "PASS",
+  "research_question": "Which combination of symbol-membership persistence, evidence-accumulation horizon, and symbol-subset regime-mixing tolerance provides sufficient validation density and temporal validity without weakening H10 quality/sample requirements?",
+  "source_h13_2_result": "MULTI_FACTOR_DESIGN_REQUIRED",
+  "source_h13_2_status": "PASS_WITH_LIMITS",
+  "design_space_frozen": "PASS",
+  "symbol_membership_semantics_frozen": "PASS",
+  "evidence_horizon_semantics_frozen": "PASS",
+  "subset_regime_mixing_guard_frozen": "PASS",
+  "carried_forward_findings": {
+    "H13_1_PRIMARY_FINDING": "MIXED_SYMBOL_SUBSET_DRIFT_AND_SELECTIVITY_DENSITY_TRADEOFF",
+    "H13_2_DESIGN_OUTPUT": "MULTI_FACTOR_DESIGN_REQUIRED",
+    "LONGER_WINDOW_ONLY_LANE": "NOT_JUSTIFIED",
+    "SELECTION_OBJECTIVE_REDESIGN": "NOT_JUSTIFIED"
+  },
+  "symbol_membership_dimension": {
+    "A1_DYNAMIC": "Symbol subset may update every research fold.",
+    "A2_FIXED": "A frozen subset is held across the full design evaluation block.",
+    "A3_SLOW_UPDATE": "Symbol membership may update only at scheduled slow-update boundaries after an evidence window."
+  },
+  "slow_update_semantics_v1": {
+    "id": "SLOW_UPDATE_V1",
+    "membership_change_boundary": "start_of_new_3_month_evidence_block",
+    "membership_immutability": "membership remains immutable through the whole validation block",
+    "validation_feedback_rule": "validation outcomes cannot alter membership inside that block",
+    "replay_order_constraint": "freeze membership schedule before any Market Replay V2 lane"
+  },
+  "evidence_horizon_dimension": {
+    "B1_1_MONTH": "One-month contiguous validation block.",
+    "B2_2_MONTH_CONTIGUOUS": "Two-month contiguous validation block.",
+    "B3_3_MONTH_CONTIGUOUS": "Three-month contiguous validation block."
+  },
+  "frozen_design_cells": [
+    "A3_SLOW_UPDATE x B2_2_MONTH_CONTIGUOUS",
+    "A3_SLOW_UPDATE x B3_3_MONTH_CONTIGUOUS",
+    "A2_FIXED x B2_2_MONTH_CONTIGUOUS",
+    "A2_FIXED x B3_3_MONTH_CONTIGUOUS",
+    "A1_DYNAMIC x B3_3_MONTH_CONTIGUOUS_REFERENCE"
+  ],
+  "design_cell_roles": {
+    "A1_DYNAMIC x B3_3_MONTH_CONTIGUOUS_REFERENCE": "baseline_reference_not_default_candidate",
+    "A2_FIXED x B2_2_MONTH_CONTIGUOUS": "candidate_design_cell",
+    "A2_FIXED x B3_3_MONTH_CONTIGUOUS": "candidate_design_cell",
+    "A3_SLOW_UPDATE x B2_2_MONTH_CONTIGUOUS": "candidate_design_cell",
+    "A3_SLOW_UPDATE x B3_3_MONTH_CONTIGUOUS": "candidate_design_cell"
+  },
+  "design_cell_catalog": "historical-h13-validation-density/data/h13_3_design_cell_catalog.jsonl",
+  "excluded_design_cells": {
+    "A1_DYNAMIC x B1_1_MONTH": "EXCLUDED_BY_PRIOR_H13_2_DESIGN_FINDING",
+    "A1_DYNAMIC x B2_2_MONTH_CONTIGUOUS": "EXCLUDED_BY_PRIOR_H13_2_DESIGN_FINDING",
+    "A2_FIXED x B1_1_MONTH": "EXCLUDED_BY_PRIOR_H13_2_DESIGN_FINDING",
+    "A3_SLOW_UPDATE x B1_1_MONTH": "EXCLUDED_BY_PRIOR_H13_2_DESIGN_FINDING"
+  },
+  "subset_regime_mixing_metrics": [
+    "SYMBOL_SUBSET_REGIME_COUNT",
+    "SUBSET_SWITCH_COUNT",
+    "DOMINANT_SUBSET_SHARE",
+    "MEAN_SUBSET_JACCARD"
+  ],
+  "subset_regime_mixing_classes": [
+    "LOW",
+    "MODERATE",
+    "HIGH"
+  ],
+  "studyable_block_rule": {
+    "sample_adequate": true,
+    "subset_regime_mixing_within_frozen_tolerance": true,
+    "quality_metric_required": false
+  },
+  "subset_regime_mixing_tolerance": {
+    "frozen_before_h13_4_execution": true,
+    "may_not_be_changed_after_results": true,
+    "classification_values": [
+      "LOW",
+      "MODERATE",
+      "HIGH"
+    ]
+  },
+  "primary_metrics": [
+    "evaluable_block_rate",
+    "sample_adequacy",
+    "median_sample_count",
+    "minimum_sample_count",
+    "time_to_min_sample",
+    "symbol_subset_persistence",
+    "subset_switch_count",
+    "subset_regime_mixing",
+    "temporal_independence",
+    "usable_validation_blocks"
+  ],
+  "quality_metrics": "DESCRIPTIVE_ONLY",
+  "design_selection_hierarchy": [
+    "sample_adequacy",
+    "temporal_validity",
+    "subset_mixing_guard",
+    "number_of_usable_independent_blocks",
+    "lower_membership_churn",
+    "shorter_evidence_horizon"
+  ],
+  "market_replay_sequence_for_future_execution": [
+    "freeze_multi_factor_design",
+    "freeze_membership_schedule",
+    "freeze_hypothetical_decisions",
+    "then_market_replay_v2_if_needed"
+  ],
+  "allowed_next_outputs_after_execution": [
+    "MULTI_FACTOR_DESIGN_STUDYABLE",
+    "SLOW_UPDATE_CONTIGUOUS_DESIGN_PREFERRED",
+    "FIXED_SUBSET_CONTIGUOUS_DESIGN_PREFERRED",
+    "DYNAMIC_REFERENCE_ONLY_NOT_STUDYABLE",
+    "INSUFFICIENT_VALIDATION_DESIGN"
+  ],
+  "acceptance_contract": {
+    "H13_3_MULTI_FACTOR_VALIDATION_DESIGN_CONTRACT_FREEZE": "PASS",
+    "SOURCE_H13_2_RESULT": "MULTI_FACTOR_DESIGN_REQUIRED",
+    "DESIGN_SPACE_FROZEN": "PASS",
+    "SYMBOL_MEMBERSHIP_SEMANTICS_FROZEN": "PASS",
+    "EVIDENCE_HORIZON_SEMANTICS_FROZEN": "PASS",
+    "SUBSET_REGIME_MIXING_GUARD_FROZEN": "PASS",
+    "SUBSET_REGIME_MIXING_SEMANTICS_FROZEN": "PASS",
+    "DESIGN_SELECTION_RULES_FROZEN": "PASS",
+    "DESIGN_CELLS_FROZEN": 5,
+    "QUALITY_METRICS_USED_FOR_DESIGN_SELECTION": "NO",
+    "MARKET_REPLAY_V2_USED": "NO",
+    "NEW_THRESHOLD_SEARCH": 0,
+    "NEW_POLICY_PARAMETER_SEARCH": 0,
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "PRODUCTION_CHANGE": "BLOCKED"
+  }
+}

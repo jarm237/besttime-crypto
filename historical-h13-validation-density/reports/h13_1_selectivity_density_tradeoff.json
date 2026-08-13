@@ -1,0 +1,71 @@
+{
+  "as_of": "2026-08-13",
+  "comparable_evidence_count": 6,
+  "comparisons_are_diagnostic_only": true,
+  "evidence": [
+    {
+      "broader_research_EV": 3.067545104882494,
+      "broader_research_n": 52,
+      "broader_symbol_count": 3,
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F03",
+      "narrower_higher_ev_lower_n": true,
+      "selected_research_EV": 5.968025603660389,
+      "selected_research_n": 32,
+      "selected_symbol_count": 2
+    },
+    {
+      "broader_research_EV": 3.3260834757312345,
+      "broader_research_n": 57,
+      "broader_symbol_count": 3,
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F04",
+      "narrower_higher_ev_lower_n": true,
+      "selected_research_EV": 5.81325891471189,
+      "selected_research_n": 36,
+      "selected_symbol_count": 2
+    },
+    {
+      "broader_research_EV": 1.540591110908582,
+      "broader_research_n": 71,
+      "broader_symbol_count": 3,
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F05",
+      "narrower_higher_ev_lower_n": true,
+      "selected_research_EV": 3.597590380033956,
+      "selected_research_n": 45,
+      "selected_symbol_count": 2
+    },
+    {
+      "broader_research_EV": 0.5291243352594329,
+      "broader_research_n": 80,
+      "broader_symbol_count": 3,
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F06",
+      "narrower_higher_ev_lower_n": true,
+      "selected_research_EV": 1.8671693526710234,
+      "selected_research_n": 53,
+      "selected_symbol_count": 2
+    },
+    {
+      "broader_research_EV": 0.6469319696739341,
+      "broader_research_n": 88,
+      "broader_symbol_count": 3,
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F07",
+      "narrower_higher_ev_lower_n": true,
+      "selected_research_EV": 1.702117522107978,
+      "selected_research_n": 57,
+      "selected_symbol_count": 2
+    },
+    {
+      "broader_research_EV": 0.587484543941189,
+      "broader_research_n": 100,
+      "broader_symbol_count": 3,
+      "fold_id": "H10_WF_EXPANDING_MONTHLY_V1_F08",
+      "narrower_higher_ev_lower_n": true,
+      "selected_research_EV": 4.235513556709013,
+      "selected_research_n": 31,
+      "selected_symbol_count": 1
+    }
+  ],
+  "new_policy_candidate": "NONE",
+  "report_id": "h13_1_selectivity_density_tradeoff",
+  "selectivity_density_tradeoff": "PRESENT",
+  "status": "PASS"
+}

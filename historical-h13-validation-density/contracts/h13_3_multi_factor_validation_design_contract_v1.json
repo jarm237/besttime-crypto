@@ -1,0 +1,6 @@
+{
+  "canonical_contract": "historical-h13-validation-density/contracts/h13_3_multi_factor_validation_design_contract_freeze_v1.json",
+  "contract_id": "h13_3_multi_factor_validation_design_contract_v1",
+  "status": "ALIAS_TO_FREEZE_CONTRACT",
+  "note": "The canonical H13.3 freeze contract is h13_3_multi_factor_validation_design_contract_freeze_v1.json. This alias exists for artifact-name compatibility with the H13.3 requested layout."
+}

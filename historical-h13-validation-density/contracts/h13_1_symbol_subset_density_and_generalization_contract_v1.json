@@ -1,0 +1,95 @@
+{
+  "acceptance_contract": {
+    "H10_ARTIFACTS_MUTATED": "NO",
+    "H13_1_SYMBOL_SUBSET_DENSITY_AND_GENERALIZATION_RESEARCH": [
+      "PASS",
+      "PASS_WITH_LIMITS",
+      "INSUFFICIENT"
+    ],
+    "MIN_SAMPLE_RULE_MUTATED": "NO",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "REGIME_DENSITY_EVIDENCE": "LIMITED",
+    "SOURCE_F4_FOLDS_ACCOUNTED_FOR": 6,
+    "SOURCE_F4_INSUFFICIENT_FOLDS": 6,
+    "VALIDATION_DESIGN_MUTATED": "NO"
+  },
+  "allowed_outputs": [
+    "SYMBOL_SELECTION_INSTABILITY_DOMINATES",
+    "SYMBOL_SELECTIVITY_DENSITY_TRADEOFF_PRESENT",
+    "H10_SELECTION_OBJECTIVE_DENSITY_BLIND_SPOT_PRESENT",
+    "SYMBOL_SPECIFIC_POLICIES_REQUIRE_LONGER_EVIDENCE_ACCUMULATION",
+    "MIXED",
+    "INSUFFICIENT"
+  ],
+  "as_of": "2026-08-13",
+  "classifications": {
+    "REGIME_DENSITY_EVIDENCE": "LIMITED",
+    "SELECTION_OBJECTIVE_DENSITY_BLIND_SPOT": [
+      "PRESENT",
+      "NOT_PRESENT",
+      "INSUFFICIENT"
+    ],
+    "SELECTIVITY_DENSITY_TRADEOFF": [
+      "PRESENT",
+      "NOT_PRESENT",
+      "INSUFFICIENT"
+    ],
+    "SYMBOL_SUBSET_SELECTION_STABILITY": [
+      "STABLE",
+      "MIXED",
+      "UNSTABLE"
+    ]
+  },
+  "contract_id": "h13_1_symbol_subset_density_and_generalization_contract_v1",
+  "execution_classification_rules": {
+    "SELECTION_OBJECTIVE_DENSITY_BLIND_SPOT": "PRESENT iff at least 4 folds show selected candidate narrower and higher-EV than frozen runner-up; INSUFFICIENT iff fewer than 3 folds have runner-up evidence.",
+    "SELECTIVITY_DENSITY_TRADEOFF": "PRESENT iff at least 4 comparable folds show narrower selected subset has higher research EV and lower research n than an exact broader frozen-catalog parent; INSUFFICIENT iff fewer than 3 comparable folds.",
+    "SYMBOL_SUBSET_SELECTION_STABILITY": "STABLE iff all exact subsets identical; UNSTABLE iff no consecutive exact subset repeats; MIXED otherwise. No fitted numeric threshold."
+  },
+  "guardrails": {
+    "H10": "CLOSED_IMMUTABLE",
+    "H10_VALIDATION_RESULTS_MUTATED": "NO",
+    "MIN_VALIDATION_SAMPLE_MUTATED": "NO",
+    "NEW_META_SEARCH": 0,
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_SEARCH": 0,
+    "NEW_POSTERIOR_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "PRODUCTION_CHANGE": "BLOCKED"
+  },
+  "h13_1_primary_finding": "MIXED_SYMBOL_SUBSET_DRIFT_AND_SELECTIVITY_DENSITY_TRADEOFF",
+  "not_a_longer_window_lane": true,
+  "phase": "H13.1_SYMBOL_SUBSET_DENSITY_AND_GENERALIZATION_RESEARCH",
+  "required_analyses": [
+    "F4 fold symbol-density accounting",
+    "included vs excluded research cohort quality metrics",
+    "symbol-selection transition matrix",
+    "density counterfactual if symbol filter removed, diagnostic-only",
+    "quality vs density frontier",
+    "H10.5 selection objective density blind-spot diagnostic",
+    "secondary F5 regime density diagnostic"
+  ],
+  "required_f4_fields": [
+    "fold_id",
+    "selected_policy_candidate_id",
+    "enabled_symbols",
+    "disabled_symbols",
+    "enabled_symbol_count",
+    "pre_symbol_filter_actionable",
+    "post_symbol_filter_actionable",
+    "symbol_filter_removed_count",
+    "symbol_filter_removed_rate",
+    "validation_n",
+    "minimum_required_n",
+    "sample_shortfall"
+  ],
+  "research_question": "Do symbol-specific research selections preserve quality and adequate evidence density when their symbol-selection behavior is evaluated across time, without weakening H10 sample or quality requirements?",
+  "source": "H13.0 validation sample density diagnostic PASS result",
+  "source_f4_folds_accounted_for": 6,
+  "source_f4_insufficient_folds": 6,
+  "status": "OPEN_CONTRACT",
+  "status_after_execution": "PASS"
+}

@@ -1,0 +1,934 @@
+{
+  "as_of": "2026-08-13",
+  "blocks": [
+    {
+      "block_index": 1,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 20,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 116.24995659722222,
+      "time_to_min_sample_days_proxy": 23.249991319444444,
+      "validation_sample_count": 4
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F04"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 25,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 27.999988425925928,
+      "time_to_min_sample_days_actual": 46.66664737654321,
+      "time_to_min_sample_days_proxy": 16.799993055555557,
+      "validation_sample_count": 9
+    },
+    {
+      "block_index": 3,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F05"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 23,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 58.12497829861111,
+      "time_to_min_sample_days_proxy": 20.217383756038647,
+      "validation_sample_count": 8
+    },
+    {
+      "block_index": 4,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F06"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 30,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 29.999988425925928,
+      "time_to_min_sample_days_actual": 112.49995659722222,
+      "time_to_min_sample_days_proxy": 14.999994212962966,
+      "validation_sample_count": 4
+    },
+    {
+      "block_index": 5,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F07"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 37,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 46.49998263888889,
+      "time_to_min_sample_days_proxy": 12.567562875375376,
+      "validation_sample_count": 10
+    },
+    {
+      "block_index": 6,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 6,
+      "proxy_sample_adequate": false,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 29.999988425925928,
+      "time_to_min_sample_days_actual": 224.99991319444445,
+      "time_to_min_sample_days_proxy": 74.99997106481482,
+      "validation_sample_count": 2
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03",
+        "H10_WF_EXPANDING_MONTHLY_V1_F04"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 45,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 58.99998842592593,
+      "time_to_min_sample_days_actual": 68.07690972222223,
+      "time_to_min_sample_days_proxy": 19.666662808641977,
+      "validation_sample_count": 13
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F05",
+        "H10_WF_EXPANDING_MONTHLY_V1_F06"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 53,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 60.99998842592593,
+      "time_to_min_sample_days_actual": 76.24998553240741,
+      "time_to_min_sample_days_proxy": 17.264147667714884,
+      "validation_sample_count": 12
+    },
+    {
+      "block_index": 3,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F07",
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 43,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 1,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 60.99998842592593,
+      "time_to_min_sample_days_actual": 76.24998553240741,
+      "time_to_min_sample_days_proxy": 21.27906572997416,
+      "validation_sample_count": 12
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E3_3_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03",
+        "H10_WF_EXPANDING_MONTHLY_V1_F04",
+        "H10_WF_EXPANDING_MONTHLY_V1_F05"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 68,
+      "proxy_sample_adequate": true,
+      "sample_adequate": true,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 89.99998842592592,
+      "time_to_min_sample_days_actual": 64.28570601851851,
+      "time_to_min_sample_days_proxy": 19.85293862336601,
+      "validation_sample_count": 21
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D1_DYNAMIC_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E3_3_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F06",
+        "H10_WF_EXPANDING_MONTHLY_V1_F07",
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 73,
+      "proxy_sample_adequate": true,
+      "sample_adequate": true,
+      "subset_switch_count": 1,
+      "symbol_membership_design": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 90.99998842592592,
+      "time_to_min_sample_days_actual": 85.31248914930556,
+      "time_to_min_sample_days_proxy": 18.6986277587519,
+      "validation_sample_count": 16
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 20,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 116.24995659722222,
+      "time_to_min_sample_days_proxy": 23.249991319444444,
+      "validation_sample_count": 4
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F04"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 25,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 27.999988425925928,
+      "time_to_min_sample_days_actual": 46.66664737654321,
+      "time_to_min_sample_days_proxy": 16.799993055555557,
+      "validation_sample_count": 9
+    },
+    {
+      "block_index": 3,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F05"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 23,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 58.12497829861111,
+      "time_to_min_sample_days_proxy": 20.217383756038647,
+      "validation_sample_count": 8
+    },
+    {
+      "block_index": 4,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F06"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 30,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 29.999988425925928,
+      "time_to_min_sample_days_actual": 112.49995659722222,
+      "time_to_min_sample_days_proxy": 14.999994212962966,
+      "validation_sample_count": 4
+    },
+    {
+      "block_index": 5,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F07"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 37,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 46.49998263888889,
+      "time_to_min_sample_days_proxy": 12.567562875375376,
+      "validation_sample_count": 10
+    },
+    {
+      "block_index": 6,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": false,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 13,
+      "proxy_sample_adequate": false,
+      "sample_adequate": null,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 29.999988425925928,
+      "time_to_min_sample_days_actual": null,
+      "time_to_min_sample_days_proxy": 34.61537126068376,
+      "validation_sample_count": null
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03",
+        "H10_WF_EXPANDING_MONTHLY_V1_F04"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 45,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 58.99998842592593,
+      "time_to_min_sample_days_actual": 68.07690972222223,
+      "time_to_min_sample_days_proxy": 19.666662808641977,
+      "validation_sample_count": 13
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F05",
+        "H10_WF_EXPANDING_MONTHLY_V1_F06"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 53,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 60.99998842592593,
+      "time_to_min_sample_days_actual": 76.24998553240741,
+      "time_to_min_sample_days_proxy": 17.264147667714884,
+      "validation_sample_count": 12
+    },
+    {
+      "block_index": 3,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F07",
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": false,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 50,
+      "proxy_sample_adequate": true,
+      "sample_adequate": null,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 60.99998842592593,
+      "time_to_min_sample_days_actual": null,
+      "time_to_min_sample_days_proxy": 18.29999652777778,
+      "validation_sample_count": null
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E3_3_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03",
+        "H10_WF_EXPANDING_MONTHLY_V1_F04",
+        "H10_WF_EXPANDING_MONTHLY_V1_F05"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 68,
+      "proxy_sample_adequate": true,
+      "sample_adequate": true,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 89.99998842592592,
+      "time_to_min_sample_days_actual": 64.28570601851851,
+      "time_to_min_sample_days_proxy": 19.85293862336601,
+      "validation_sample_count": 21
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D2_FIXED_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E3_3_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F06",
+        "H10_WF_EXPANDING_MONTHLY_V1_F07",
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": false,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 80,
+      "proxy_sample_adequate": true,
+      "sample_adequate": null,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D2_FIXED_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 90.99998842592592,
+      "time_to_min_sample_days_actual": null,
+      "time_to_min_sample_days_proxy": 17.06249782986111,
+      "validation_sample_count": null
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 20,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 116.24995659722222,
+      "time_to_min_sample_days_proxy": 23.249991319444444,
+      "validation_sample_count": 4
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F04"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 25,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 27.999988425925928,
+      "time_to_min_sample_days_actual": 46.66664737654321,
+      "time_to_min_sample_days_proxy": 16.799993055555557,
+      "validation_sample_count": 9
+    },
+    {
+      "block_index": 3,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F05"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 23,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 58.12497829861111,
+      "time_to_min_sample_days_proxy": 20.217383756038647,
+      "validation_sample_count": 8
+    },
+    {
+      "block_index": 4,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F06"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 30,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 29.999988425925928,
+      "time_to_min_sample_days_actual": 112.49995659722222,
+      "time_to_min_sample_days_proxy": 14.999994212962966,
+      "validation_sample_count": 4
+    },
+    {
+      "block_index": 5,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F07"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 37,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 30.999988425925928,
+      "time_to_min_sample_days_actual": 46.49998263888889,
+      "time_to_min_sample_days_proxy": 12.567562875375376,
+      "validation_sample_count": 10
+    },
+    {
+      "block_index": 6,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+      "evidence_horizon": "E1_MONTHLY",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": false,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 13,
+      "proxy_sample_adequate": false,
+      "sample_adequate": null,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 29.999988425925928,
+      "time_to_min_sample_days_actual": null,
+      "time_to_min_sample_days_proxy": 34.61537126068376,
+      "validation_sample_count": null
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03",
+        "H10_WF_EXPANDING_MONTHLY_V1_F04"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 45,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 58.99998842592593,
+      "time_to_min_sample_days_actual": 68.07690972222223,
+      "time_to_min_sample_days_proxy": 19.666662808641977,
+      "validation_sample_count": 13
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F05",
+        "H10_WF_EXPANDING_MONTHLY_V1_F06"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 53,
+      "proxy_sample_adequate": true,
+      "sample_adequate": false,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 60.99998842592593,
+      "time_to_min_sample_days_actual": 76.24998553240741,
+      "time_to_min_sample_days_proxy": 17.264147667714884,
+      "validation_sample_count": 12
+    },
+    {
+      "block_index": 3,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E2_2_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F07",
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": false,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 50,
+      "proxy_sample_adequate": true,
+      "sample_adequate": null,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 60.99998842592593,
+      "time_to_min_sample_days_actual": null,
+      "time_to_min_sample_days_proxy": 18.29999652777778,
+      "validation_sample_count": null
+    },
+    {
+      "block_index": 1,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E3_3_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F03",
+        "H10_WF_EXPANDING_MONTHLY_V1_F04",
+        "H10_WF_EXPANDING_MONTHLY_V1_F05"
+      ],
+      "label_authoritative_for_block": true,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 68,
+      "proxy_sample_adequate": true,
+      "sample_adequate": true,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 89.99998842592592,
+      "time_to_min_sample_days_actual": 64.28570601851851,
+      "time_to_min_sample_days_proxy": 19.85293862336601,
+      "validation_sample_count": 21
+    },
+    {
+      "block_index": 2,
+      "design_cell": "D3_SLOW_UPDATE_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+      "evidence_horizon": "E3_3_MONTH_CONTIGUOUS",
+      "fold_ids": [
+        "H10_WF_EXPANDING_MONTHLY_V1_F06",
+        "H10_WF_EXPANDING_MONTHLY_V1_F07",
+        "H10_WF_EXPANDING_MONTHLY_V1_F08"
+      ],
+      "label_authoritative_for_block": false,
+      "minimum_required_sample": 15,
+      "prelabel_density_proxy_count": 80,
+      "proxy_sample_adequate": true,
+      "sample_adequate": null,
+      "subset_switch_count": 0,
+      "symbol_membership_design": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "symbol_subsets": [
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ],
+        [
+          "ETHUSDT",
+          "BNBUSDT"
+        ]
+      ],
+      "temporal_coverage_days": 90.99998842592592,
+      "time_to_min_sample_days_actual": null,
+      "time_to_min_sample_days_proxy": 17.06249782986111,
+      "validation_sample_count": null
+    }
+  ],
+  "report_id": "h13_2_design_block_metrics",
+  "status": "PASS_WITH_LIMITS"
+}

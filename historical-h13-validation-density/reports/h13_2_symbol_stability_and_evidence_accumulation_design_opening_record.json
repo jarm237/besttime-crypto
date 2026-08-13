@@ -1,0 +1,21 @@
+{
+  "report_id": "h13_2_symbol_stability_and_evidence_accumulation_design_opening_record",
+  "as_of": "2026-08-13",
+  "phase": "H13.2_SYMBOL_STABILITY_AND_EVIDENCE_ACCUMULATION_DESIGN_RESEARCH",
+  "status": "CONTRACT_FROZEN_NOT_RUN",
+  "source_h13_1_result": "PASS",
+  "source_h13_1_primary_finding": "MIXED_SYMBOL_SUBSET_DRIFT_AND_SELECTIVITY_DENSITY_TRADEOFF",
+  "primary_h13_finding": "SYMBOL_SPECIFIC_SELECTIVITY_IS_REAL_BUT_SYMBOL_MEMBERSHIP_IS_ONLY_PARTIALLY_STABLE_AND_CREATES_VALIDATION_DENSITY_LIMITS",
+  "next": "H13.2_SYMBOL_STABILITY_AND_EVIDENCE_ACCUMULATION_DESIGN_RESEARCH",
+  "longer_window_only_lane": "NOT_JUSTIFIED",
+  "selection_objective_redesign": "NOT_JUSTIFIED",
+  "policy_search": "CLOSED",
+  "production_change": "BLOCKED",
+  "design_dimensions": [
+    "SYMBOL_MEMBERSHIP_UPDATE_SEMANTICS",
+    "VALIDATION_EVIDENCE_ACCUMULATION_HORIZON"
+  ],
+  "design_cells_frozen_count": 9,
+  "execution_started": false,
+  "new_policy_candidate": "NONE"
+}

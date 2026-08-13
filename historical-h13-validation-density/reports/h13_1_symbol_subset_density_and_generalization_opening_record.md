@@ -1,0 +1,67 @@
+# H13.1 Symbol Subset Density And Generalization Research
+
+Status: `OPEN_CONTRACT_NOT_EXECUTED`
+
+## Basis
+
+```text
+H13_0_VALIDATION_SAMPLE_DENSITY_DIAGNOSTIC = PASS
+PRIMARY_FINDING = SAMPLE_INSUFFICIENCY_DOMINATED_BY_SYMBOL_SUBSET_TOO_NARROW
+SYMBOL_SUBSET_TOO_NARROW = 6
+REGIME_FILTER_TOO_NARROW = 1
+VALIDATION_WINDOW_TOO_SHORT = 0
+```
+
+H13.1 is opened as symbol-subset density and generalization research, not longer validation-window research.
+
+## Frozen Question
+
+```text
+Do symbol-specific research selections preserve quality and adequate evidence density when their symbol-selection behavior is evaluated across time, without weakening H10 sample or quality requirements?
+```
+
+## Guardrails
+
+```text
+H10 = CLOSED_IMMUTABLE
+MIN_VALIDATION_SAMPLE_MUTATED = NO
+H10_VALIDATION_RESULTS_MUTATED = NO
+NEW_THRESHOLD_SEARCH = 0
+NEW_META_SEARCH = 0
+NEW_POSTERIOR_SEARCH = 0
+NEW_POLICY_SEARCH = 0
+NEW_POLICY_CANDIDATE = NONE
+PRODUCTION_CHANGE = BLOCKED
+```
+
+## Source F4 Folds
+
+| Fold | Candidate | Enabled symbols | Disabled symbols | Pre-symbol | Post-symbol | Validation n / min | Shortfall |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: |
+| `H10_WF_EXPANDING_MONTHLY_V1_F03` | `h10pc-315f67d7b23225a31c5868e3` | `ETHUSDT,BNBUSDT` | `BTCUSDT` | 31 | 20 | 4 / 15 | 11 |
+| `H10_WF_EXPANDING_MONTHLY_V1_F04` | `h10pc-315f67d7b23225a31c5868e3` | `ETHUSDT,BNBUSDT` | `BTCUSDT` | 34 | 25 | 9 / 15 | 6 |
+| `H10_WF_EXPANDING_MONTHLY_V1_F05` | `h10pc-315f67d7b23225a31c5868e3` | `ETHUSDT,BNBUSDT` | `BTCUSDT` | 32 | 23 | 8 / 15 | 7 |
+| `H10_WF_EXPANDING_MONTHLY_V1_F06` | `h10pc-315f67d7b23225a31c5868e3` | `ETHUSDT,BNBUSDT` | `BTCUSDT` | 51 | 30 | 4 / 15 | 11 |
+| `H10_WF_EXPANDING_MONTHLY_V1_F07` | `h10pc-315f67d7b23225a31c5868e3` | `ETHUSDT,BNBUSDT` | `BTCUSDT` | 52 | 37 | 10 / 15 | 5 |
+| `H10_WF_EXPANDING_MONTHLY_V1_F08` | `h10pc-ea5be34d3ef9963b13134dd4` | `BNBUSDT` | `BTCUSDT,ETHUSDT` | 24 | 6 | 2 / 15 | 13 |
+
+## Acceptance Contract
+
+```text
+H13_1_SYMBOL_SUBSET_DENSITY_AND_GENERALIZATION_RESEARCH = PASS | PASS_WITH_LIMITS | INSUFFICIENT
+SOURCE_F4_INSUFFICIENT_FOLDS = 6
+SOURCE_F4_FOLDS_ACCOUNTED_FOR = 6
+SYMBOL_SUBSET_SELECTION_STABILITY = STABLE | MIXED | UNSTABLE
+SELECTIVITY_DENSITY_TRADEOFF = PRESENT | NOT_PRESENT | INSUFFICIENT
+SELECTION_OBJECTIVE_DENSITY_BLIND_SPOT = PRESENT | NOT_PRESENT | INSUFFICIENT
+REGIME_DENSITY_EVIDENCE = LIMITED
+H10_ARTIFACTS_MUTATED = NO
+MIN_SAMPLE_RULE_MUTATED = NO
+VALIDATION_DESIGN_MUTATED = NO
+NEW_THRESHOLD_SEARCH = 0
+NEW_POLICY_SEARCH = 0
+NEW_POLICY_CANDIDATE = NONE
+PRODUCTION_CHANGE = BLOCKED
+```
+
+H13.1 execution has not yet computed transition matrices, excluded-cohort quality, quality-density frontier, or H10.5 objective blind-spot classification.

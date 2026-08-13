@@ -1,0 +1,105 @@
+{
+  "contract_id": "h13_2_symbol_stability_and_evidence_accumulation_design_contract_v1",
+  "as_of": "2026-08-13",
+  "phase": "H13.2_SYMBOL_STABILITY_AND_EVIDENCE_ACCUMULATION_DESIGN_RESEARCH",
+  "status": "CONTRACT_FROZEN_NOT_RUN",
+  "research_question": "Can symbol-specific policy evidence be evaluated with a design that preserves temporal validity despite mixed symbol-subset drift and low sample density, without weakening H10 quality/sample requirements?",
+  "source_h13_1_result": "PASS",
+  "source_h13_1_primary_finding": "MIXED_SYMBOL_SUBSET_DRIFT_AND_SELECTIVITY_DENSITY_TRADEOFF",
+  "carried_forward_findings": {
+    "SYMBOL_SUBSET_SELECTION_STABILITY": "MIXED",
+    "SELECTIVITY_DENSITY_TRADEOFF": "PRESENT",
+    "SELECTION_OBJECTIVE_DENSITY_BLIND_SPOT": "NOT_PRESENT",
+    "REGIME_DENSITY_EVIDENCE": "LIMITED"
+  },
+  "design_dimensions": {
+    "DESIGN_DIMENSION_1": "SYMBOL_MEMBERSHIP_UPDATE_SEMANTICS",
+    "DESIGN_DIMENSION_2": "VALIDATION_EVIDENCE_ACCUMULATION_HORIZON"
+  },
+  "symbol_membership_update_semantics": [
+    {
+      "id": "D1_DYNAMIC_SYMBOL_SUBSET",
+      "description": "Symbol subset is reselected at each research fold, matching the H10 baseline semantics."
+    },
+    {
+      "id": "D2_FIXED_SYMBOL_SUBSET",
+      "description": "One frozen symbol subset is held across multiple validation periods."
+    },
+    {
+      "id": "D3_SLOW_UPDATE_SYMBOL_SUBSET",
+      "description": "Symbol membership may change only after a longer evidence window or scheduled boundary."
+    }
+  ],
+  "validation_evidence_accumulation_horizons": [
+    {
+      "id": "E1_MONTHLY",
+      "description": "H10 monthly validation baseline."
+    },
+    {
+      "id": "E2_2_MONTH_CONTIGUOUS",
+      "description": "Two-month contiguous validation block."
+    },
+    {
+      "id": "E3_3_MONTH_CONTIGUOUS",
+      "description": "Three-month contiguous validation block."
+    }
+  ],
+  "frozen_design_cells": [
+    "D1_DYNAMIC_SYMBOL_SUBSET x E1_MONTHLY",
+    "D1_DYNAMIC_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+    "D1_DYNAMIC_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+    "D2_FIXED_SYMBOL_SUBSET x E1_MONTHLY",
+    "D2_FIXED_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+    "D2_FIXED_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS",
+    "D3_SLOW_UPDATE_SYMBOL_SUBSET x E1_MONTHLY",
+    "D3_SLOW_UPDATE_SYMBOL_SUBSET x E2_2_MONTH_CONTIGUOUS",
+    "D3_SLOW_UPDATE_SYMBOL_SUBSET x E3_3_MONTH_CONTIGUOUS"
+  ],
+  "primary_design_metrics": [
+    "EVALUABLE_FOLD_RATE",
+    "median_validation_sample_count",
+    "minimum_validation_sample_count",
+    "time_to_min_sample",
+    "number_of_independent_validation_blocks",
+    "symbol_subset_stability",
+    "validation_temporal_coverage",
+    "subset_persistence_length"
+  ],
+  "secondary_descriptive_metrics": [
+    "EV",
+    "profit_factor",
+    "win_rate",
+    "MAE",
+    "MFE"
+  ],
+  "forbidden_selection_criteria": [
+    "choose_design_because_EV_looks_best",
+    "approve_specific_symbol_policy",
+    "approve_threshold_or_meta_setting"
+  ],
+  "allowed_outputs": [
+    "DYNAMIC_MONTHLY_DESIGN_REMAINS_PREFERRED",
+    "FIXED_SUBSET_EVIDENCE_DESIGN_PREFERRED",
+    "SLOW_UPDATE_SUBSET_DESIGN_PREFERRED",
+    "LONGER_EVIDENCE_ACCUMULATION_REQUIRED",
+    "SYMBOL_DRIFT_TOO_HIGH_FOR_LONG_HORIZON_VALIDATION",
+    "MULTI_FACTOR_DESIGN_REQUIRED",
+    "INSUFFICIENT_EVIDENCE"
+  ],
+  "guardrails": {
+    "H10": "CLOSED_IMMUTABLE",
+    "MIN_SAMPLE_REQUIREMENT_MUTATED": "NO",
+    "QUALITY_GUARDS_MUTATED": "NO",
+    "NEW_THRESHOLD_SEARCH": 0,
+    "NEW_POLICY_PARAMETER_SEARCH": 0,
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "H10_ARTIFACTS_MUTATED": "NO",
+    "H13_1_ARTIFACTS_MUTATED": "NO",
+    "POLICY_SEARCH": "CLOSED",
+    "PRODUCTION_CHANGE": "BLOCKED"
+  },
+  "policy_research_reopen_rule": {
+    "policy_research_may_reopen_only_after": "H13 identifies a validation design sufficient for studyability and freezes that design before reuse for policy research.",
+    "fresh_holdout_required_after_policy_research": true
+  }
+}

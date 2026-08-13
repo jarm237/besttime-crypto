@@ -1,0 +1,57 @@
+{
+  "as_of": "2026-08-13",
+  "contract_id": "h13_6_market_replay_and_quality_gate_contract_v1",
+  "design_comparison_mode": "INDEPENDENT_QUALITY_GATE",
+  "forbidden": [
+    "rank_MF2_vs_MF4_by_EV_or_PnL",
+    "change_quality_thresholds_after_replay",
+    "open_threshold_search",
+    "open_policy_search",
+    "select_new_policy_candidate",
+    "production_promotion"
+  ],
+  "market_replay_contract": "V2",
+  "market_replay_contract_hash": "02f6fa0252185b96d7676ce9f8713be807afd9426be2e6ad2766629b071d8c75",
+  "market_replay_contract_version": "market-replay-parity-v2",
+  "phase": "H13.6_MARKET_REPLAY_V2_AND_INDEPENDENT_QUALITY_GATES",
+  "pseudo_replication_guard": {
+    "design_memberships_are_not_independent_observations": true,
+    "global_independent_sample_base": "CANONICAL_OUTCOMES"
+  },
+  "quality_gate_freeze_before_outcome_access": true,
+  "quality_gate_version": "H13_6_V1",
+  "quality_ranking_between_mf2_mf4": "FORBIDDEN",
+  "quality_rules": {
+    "block_fail_rule": "n >= 15 AND (EV <= 0 OR profit_factor <= 1)",
+    "block_insufficient_rule": "n < 15",
+    "block_pass_rule": "n >= 15 AND EV > 0 AND profit_factor > 1",
+    "design_fail_rule": "pooled n >= required block sample base and pooled EV <= 0 or pooled profit_factor <= 1",
+    "design_insufficient_rule": "one or more blocks has n < 15",
+    "design_pass_rule": "all validation blocks PASS",
+    "design_pass_with_limits_rule": "pooled EV > 0 and pooled profit_factor > 1 but one or more blocks fail or are mixed",
+    "minimum_sample_per_block": 15,
+    "quality_stability_values": [
+      "STABLE_POSITIVE",
+      "MIXED",
+      "UNSTABLE",
+      "INSUFFICIENT"
+    ]
+  },
+  "replay_input_rows_expected": 296,
+  "source_h13_5": "PASS",
+  "source_hashes": {
+    "h10_policy_contract_sha256": "e4bed30a13cd1a7f60e70ea2a9307c61d6c3ad2407d2769950643349d9b30ee6",
+    "h10_replay_tail_market_sha256": "ade7d65f86da7830ca9af48a051d50493c71c61b010bd8875cc9f32c98ede1d4",
+    "h10_research_market_sha256": "5c1fa19e16f3dc6f46139bcb9c74ad5a04f7183c06df28e119445de78352a749",
+    "h10_validation_canonical_outcomes_sha256": "f90b1b933ebbd5304c474fe1f475178f16a4992b4772a4ac2edde86d90e9f7e8",
+    "h13_5_contract_sha256": "75067d3a0a10bbbf970fe31aac3da41d1cf3a5541970e6f34517570c067b0f0f",
+    "h13_5_design_replay_input_sha256": "f681d04b9de6b931940ef351fcb159feb921b5fac82ebc7af4d181c132521e7b",
+    "h13_5_hypothetical_decisions_sha256": "c9da3a1d39a101c24a78e8dbb5e586f902ef6323bc160147927061acafe3e9dc",
+    "h13_5_membership_schedules_sha256": "8807800f090bdb72100ce0e3c641b7ac2a5e3532b111b3c8c70978b50a42e8ba"
+  },
+  "source_top_tier_designs": [
+    "MF2",
+    "MF4"
+  ],
+  "unique_replay_keys_expected": 148
+}
