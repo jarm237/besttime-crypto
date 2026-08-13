@@ -1,6 +1,6 @@
 # H14 — Prospective Validation Design Discrimination
 
-Status: `H14.1_PROSPECTIVE_SHADOW_STREAM_INITIALIZED`
+Status: `H14.2_DECISION_DIVERGENCE_ACCUMULATION_OPEN`
 
 ## Lineage
 
@@ -95,6 +95,57 @@ PRODUCTION_CHANGE = BLOCKED
 
 H14.1 initializes empty prospective analysis and design-decision streams. Only records with `cycle_timestamp >= 2026-08-13T08:50:07Z` are admissible in later H14 accumulation phases. MF2 and MF4 share the same canonical prospective analysis base records; design-specific rows only encode frozen membership eligibility and shadow decisions.
 
+
+## H14.2 Prospective Decision Divergence Accumulation
+
+Artifacts:
+
+```text
+historical-h14-prospective-validation-design-discrimination/
+├── contracts/
+│   └── h14_2_prospective_decision_divergence_accumulation_contract_v1.json
+├── data/
+│   ├── h14_2_decision_divergence_accounting.jsonl
+│   └── h14_2_mf2_membership_transitions.jsonl
+└── reports/
+    ├── h14_2_prospective_decision_divergence_accumulation_opening.json
+    └── h14_2_prospective_decision_divergence_accumulation_opening.md
+```
+
+State:
+
+```text
+H14_2_PROSPECTIVE_DECISION_DIVERGENCE_ACCUMULATION_CONTRACT_FREEZE = PASS
+H14_2_STATUS = OPEN_ACCUMULATION_PENDING_PROSPECTIVE_RECORDS
+SOURCE_H14_1 = PASS
+PROSPECTIVE_START_BOUNDARY = FROZEN
+PRE_BOUNDARY_RECORDS_ACCEPTED = 0
+
+CANONICAL_ANALYSIS_STREAM_SCHEMA_FROZEN = PASS
+DESIGN_DECISION_SCHEMA_FROZEN = PASS
+DIVERGENCE_BUCKETS_FROZEN = PASS
+MEMBERSHIP_DIVERGENCE_METRICS_FROZEN = PASS
+MF2_UPDATE_AUDIT_SCHEMA_FROZEN = PASS
+
+CANONICAL_ANALYSIS_DUPLICATES = 0
+PRE_BOUNDARY_ANALYSIS = 0
+ANALYSIS_STREAM_ROWS = 0
+DECISION_STREAM_ROWS = 0
+DECISION_SET_OVERLAP_RATE = NOT_ESTIMABLE_ZERO_ACTIONABLE
+
+ORDER_CREATED = NO
+RESERVATION_CREATED = NO
+POSITION_CREATED = NO
+GOVERNED_EVIDENCE_WRITE = NO
+MARKET_REPLAY_V2_USED = NO
+PROSPECTIVE_QUALITY_EVALUATION_STARTED = NO
+QUALITY_OUTCOME_ACCESSED_FOR_SELECTION = NO
+POLICY_SEARCH = CLOSED
+PRODUCTION_CHANGE = BLOCKED
+```
+
+H14.2 accumulates post-boundary canonical analyses and compares MF2/MF4 shadow decisions only through density, overlap, membership divergence, and decision divergence. Quality/PnL remains unavailable until a later frozen mature cohort phase.
+
 ## Primary Question
 
 ```text
@@ -124,7 +175,7 @@ H14.1
 prospective shadow stream initialization = PASS
         |
 H14.2
-divergence and density assessment
+prospective decision divergence accumulation = OPEN
         |
 H14.3
 freeze mature prospective decision cohort
@@ -141,5 +192,5 @@ prospective design acceptance
 - H13 is immutable.
 - MF2/MF4 semantics are inherited from H13 and not mutated in H14.0.
 - No H13 historical outcome tie-break is allowed.
-- No policy search or threshold search opens in H14.0 or H14.1.
+- No policy search or threshold search opens in H14.0, H14.1, or H14.2.
 - No active canary or production behavior changes.

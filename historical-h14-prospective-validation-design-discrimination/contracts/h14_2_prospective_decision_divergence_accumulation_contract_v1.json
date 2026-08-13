@@ -1,0 +1,181 @@
+{
+  "acceptance_contract": {
+    "ANALYSIS_STREAM_ROWS": 0,
+    "CANONICAL_ANALYSIS_DUPLICATES": 0,
+    "CANONICAL_ANALYSIS_STREAM_SCHEMA_FROZEN": "PASS",
+    "DECISION_STREAM_ROWS": 0,
+    "DESIGN_DECISION_SCHEMA_FROZEN": "PASS",
+    "DIVERGENCE_BUCKETS_FROZEN": "PASS",
+    "GOVERNED_EVIDENCE_WRITE": "NO",
+    "H14_2_PROSPECTIVE_DECISION_DIVERGENCE_ACCUMULATION_CONTRACT_FREEZE": "PASS",
+    "H14_2_STATUS": "OPEN_ACCUMULATION_PENDING_PROSPECTIVE_RECORDS",
+    "MARKET_REPLAY_V2_USED": "NO",
+    "MEMBERSHIP_DIVERGENCE_METRICS_FROZEN": "PASS",
+    "MF2_EXECUTION": "NO",
+    "MF2_UPDATE_AUDIT_SCHEMA_FROZEN": "PASS",
+    "MF4_EXECUTION": "NO",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_THRESHOLD_SEARCH": 0,
+    "ORDER_CREATED": "NO",
+    "POLICY_SEARCH": "CLOSED",
+    "POSITION_CREATED": "NO",
+    "PRE_BOUNDARY_ANALYSIS": 0,
+    "PRE_BOUNDARY_RECORDS_ACCEPTED": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "PROSPECTIVE_QUALITY_EVALUATION_STARTED": "NO",
+    "PROSPECTIVE_START_BOUNDARY": "FROZEN",
+    "QUALITY_OUTCOMES_USED_FOR_MEMBERSHIP_UPDATE": 0,
+    "QUALITY_OUTCOME_ACCESSED_FOR_SELECTION": "NO",
+    "RESERVATION_CREATED": "NO",
+    "SOURCE_H14_1": "PASS"
+  },
+  "admissible_cycle_timestamp_rule": "cycle_timestamp >= 2026-08-13T08:50:07Z",
+  "as_of": "2026-08-13",
+  "canonical_analysis_ingest_mode": "APPEND_ONLY_SHARED_BASE_RECORD",
+  "canonical_analysis_record_schema": [
+    "prospective_analysis_id",
+    "symbol",
+    "cycle_timestamp",
+    "release_sha",
+    "model_version",
+    "artifact_sha256",
+    "feature_schema",
+    "feature_snapshot_hash",
+    "regime_snapshot_hash",
+    "raw_direction",
+    "signal_score",
+    "buy_posterior",
+    "sell_posterior",
+    "meta_confidence",
+    "current_policy_action",
+    "record_hash"
+  ],
+  "canonical_analysis_stream_path": "historical-h14-prospective-validation-design-discrimination/data/h14_1_prospective_analysis_stream.jsonl",
+  "canonical_analysis_uniqueness_key": [
+    "prospective_analysis_id",
+    "symbol",
+    "cycle_timestamp",
+    "release_sha",
+    "artifact_sha256",
+    "feature_snapshot_hash",
+    "regime_snapshot_hash"
+  ],
+  "contract_id": "h14_2_prospective_decision_divergence_accumulation_contract_v1",
+  "current_accounting_snapshot": {
+    "CANONICAL_ANALYSIS_DUPLICATES": 0,
+    "CANONICAL_PROSPECTIVE_ANALYSES": 0,
+    "DECISION_DIFFERENT": 0,
+    "DECISION_EQUAL": 0,
+    "DECISION_SET_OVERLAP_RATE": "NOT_ESTIMABLE_ZERO_ACTIONABLE",
+    "DIVERGENCE_ACCOUNTING_ROWS": 0,
+    "MEMBERSHIP_DIFFERENT": 0,
+    "MEMBERSHIP_EQUAL": 0,
+    "MF2_MEMBERSHIP_CHANGE_COUNT": 0,
+    "MF2_MEMBERSHIP_TRANSITIONS": 0,
+    "MF2_ONLY_ACTIONABLE": 0,
+    "MF2_UNSCHEDULED_MEMBERSHIP_CHANGES": 0,
+    "MF4_MEMBERSHIP_CHANGE_COUNT": 0,
+    "MF4_ONLY_ACTIONABLE": 0,
+    "NEITHER_ACTIONABLE": 0,
+    "PRE_BOUNDARY_ANALYSIS": 0,
+    "PROSPECTIVE_DESIGN_DECISIONS": 0,
+    "QUALITY_OUTCOMES_USED_FOR_MEMBERSHIP_UPDATE": 0,
+    "SHARED_ACTIONABLE": 0
+  },
+  "decision_set_overlap_rate": {
+    "formula": "SHARED_ACTIONABLE / (SHARED_ACTIONABLE + MF2_ONLY_ACTIONABLE + MF4_ONLY_ACTIONABLE)",
+    "zero_denominator_value": "NOT_ESTIMABLE_ZERO_ACTIONABLE"
+  },
+  "design_decision_mode": "TWO_DESIGN_ROWS_PER_CANONICAL_ANALYSIS",
+  "design_decision_record_schema": [
+    "design_id",
+    "prospective_analysis_id",
+    "cycle_timestamp",
+    "symbol",
+    "membership_schedule_hash",
+    "symbol_eligible",
+    "regime_eligible",
+    "shadow_action",
+    "shadow_side",
+    "decision_hash"
+  ],
+  "designs": [
+    "MF2",
+    "MF4"
+  ],
+  "divergence_accounting_identity": "SHARED_ACTIONABLE + MF2_ONLY_ACTIONABLE + MF4_ONLY_ACTIONABLE + NEITHER_ACTIONABLE = CANONICAL_PROSPECTIVE_ANALYSES",
+  "divergence_accounting_path": "historical-h14-prospective-validation-design-discrimination/data/h14_2_decision_divergence_accounting.jsonl",
+  "divergence_buckets": [
+    "SHARED_ACTIONABLE",
+    "MF2_ONLY_ACTIONABLE",
+    "MF4_ONLY_ACTIONABLE",
+    "NEITHER_ACTIONABLE"
+  ],
+  "execution_forbidden": {
+    "GOVERNED_EVIDENCE_WRITE": "NO",
+    "ORDER_CREATED": "NO",
+    "POSITION_CREATED": "NO",
+    "RESERVATION_CREATED": "NO"
+  },
+  "h14_prospective_start_timestamp": "2026-08-13T08:50:07Z",
+  "membership_divergence_metrics": [
+    "MEMBERSHIP_EQUAL",
+    "MEMBERSHIP_DIFFERENT",
+    "DECISION_EQUAL",
+    "DECISION_DIFFERENT",
+    "symbol_membership_overlap_rate",
+    "membership_divergence_count",
+    "MF2_membership_change_count",
+    "MF4_membership_change_count",
+    "MF2_only_symbol_cycles",
+    "MF4_only_symbol_cycles"
+  ],
+  "membership_schedules_path": "historical-h14-prospective-validation-design-discrimination/data/h14_1_design_membership_schedules.jsonl",
+  "membership_update_guards": {
+    "MF2_UNSCHEDULED_MEMBERSHIP_CHANGES": 0,
+    "MF4_MEMBERSHIP_CHANGE_COUNT": 0,
+    "QUALITY_OUTCOMES_USED_FOR_MEMBERSHIP_UPDATE": 0
+  },
+  "mf2_membership_transitions_path": "historical-h14-prospective-validation-design-discrimination/data/h14_2_mf2_membership_transitions.jsonl",
+  "mf2_slow_update_transition_schema": [
+    "old_subset",
+    "new_subset",
+    "effective_at",
+    "permitted_update_boundary",
+    "source_information_cutoff",
+    "old_schedule_hash",
+    "new_schedule_hash"
+  ],
+  "next_phase_after_accumulation": "H14.3_MATURE_PROSPECTIVE_DECISION_COHORT_ACCOUNTING",
+  "phase": "H14.2_PROSPECTIVE_DECISION_DIVERGENCE_ACCUMULATION",
+  "prospective_design_decisions_path": "historical-h14-prospective-validation-design-discrimination/data/h14_1_prospective_design_decisions.jsonl",
+  "quality_outcome_lane": {
+    "MARKET_REPLAY_V2_USED": "NO",
+    "PROSPECTIVE_QUALITY_EVALUATION_STARTED": "NO",
+    "QUALITY_OUTCOME_ACCESSED_FOR_SELECTION": "NO",
+    "WINNER_SELECTION_ALLOWED": "NO"
+  },
+  "scope": "prospective_decision_and_divergence_accumulation_only",
+  "source_h14_1_contract": "historical-h14-prospective-validation-design-discrimination/contracts/h14_1_prospective_shadow_stream_contract_v1.json",
+  "source_h14_1_status": "PASS",
+  "source_hashes": {
+    "h14_1_contract_sha256": "8ec5e4dbba394a0ecae487b2ca442f15b2b31c58204bb9ea9512c36203bcbdf4",
+    "h14_1_membership_schedules_sha256": "3c455a645b713a6695a5e25246927e365af468b897bf0171be697e0e392b21fa",
+    "h14_1_prospective_analysis_stream_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h14_1_prospective_design_decisions_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h14_1_report_sha256": "5b40cdc6302eaf4a7be3d83c144e0a6217dbdebb3f09f2aa8b339a045a0dbf0f"
+  },
+  "status": "CONTRACT_FROZEN_ACCUMULATION_OPEN",
+  "stop_conditions": {
+    "allowed": [
+      "data_integrity_failure",
+      "schema_contract_violation",
+      "source_artifact_hash_mismatch",
+      "release_identity_mismatch"
+    ],
+    "forbidden": [
+      "POOR_RECENT_PERFORMANCE"
+    ],
+    "h14_stop_reason_must_not_equal": "POOR_RECENT_PERFORMANCE"
+  }
+}
