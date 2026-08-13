@@ -1,0 +1,201 @@
+{
+  "acceptance_contract": {
+    "ACTIVE_CANARY_MUTATED": "NO",
+    "CANONICAL_ANALYSIS_SHARED_BY_BOTH_DESIGNS": "YES",
+    "H14_1_PROSPECTIVE_SHADOW_STREAM_INITIALIZATION": "PASS",
+    "H14_PROSPECTIVE_START_TIMESTAMP": "2026-08-13T08:50:07Z",
+    "H14_STOP_REASON_NOT_POOR_RECENT_PERFORMANCE": "PASS",
+    "MARKET_REPLAY_V2_USED": "NO",
+    "MF2_EXECUTION_ENABLED": "NO",
+    "MF2_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "MF4_EXECUTION_ENABLED": "NO",
+    "MF4_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_THRESHOLD_SEARCH": 0,
+    "POLICY_SEARCH": "CLOSED",
+    "PRE_BOUNDARY_RECORDS_ACCEPTED": 0,
+    "PRE_H14_CONTRACT_RECORDS_IN_PROSPECTIVE_STREAM": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "PROSPECTIVE_START_BOUNDARY_FROZEN": "PASS",
+    "QUALITY_OUTCOME_ACCESSED_FOR_SELECTION": "NO",
+    "SOURCE_H14_0_CONTRACT": "PASS"
+  },
+  "artifacts": {
+    "contract": "historical-h14-prospective-validation-design-discrimination/contracts/h14_1_prospective_shadow_stream_contract_v1.json",
+    "membership_schedules": "historical-h14-prospective-validation-design-discrimination/data/h14_1_design_membership_schedules.jsonl",
+    "prospective_analysis_stream": "historical-h14-prospective-validation-design-discrimination/data/h14_1_prospective_analysis_stream.jsonl",
+    "prospective_design_decisions": "historical-h14-prospective-validation-design-discrimination/data/h14_1_prospective_design_decisions.jsonl",
+    "report_json": "historical-h14-prospective-validation-design-discrimination/reports/h14_1_prospective_shadow_stream_initialization.json",
+    "report_md": "historical-h14-prospective-validation-design-discrimination/reports/h14_1_prospective_shadow_stream_initialization.md"
+  },
+  "as_of": "2026-08-13",
+  "canonical_prospective_base_record_schema": [
+    "prospective_analysis_id",
+    "symbol",
+    "cycle_timestamp",
+    "release_sha",
+    "model_version",
+    "artifact_sha256",
+    "feature_schema",
+    "feature_snapshot_hash",
+    "regime_snapshot_hash",
+    "raw_direction",
+    "signal_score",
+    "buy_posterior",
+    "sell_posterior",
+    "meta_confidence",
+    "current_policy_action"
+  ],
+  "contract_id": "h14_1_prospective_shadow_stream_contract_v1",
+  "designs": [
+    "MF2",
+    "MF4"
+  ],
+  "evidence_modes": {
+    "MF2": "PROSPECTIVE_SHADOW_PENDING_NEW_RECORDS",
+    "MF4": "PROSPECTIVE_SHADOW_PENDING_NEW_RECORDS"
+  },
+  "forbidden_selection_inputs": [
+    "EV",
+    "PnL",
+    "future_return",
+    "market_replay_outcome",
+    "poor_recent_performance"
+  ],
+  "h14_prospective_start_timestamp": "2026-08-13T08:50:07Z",
+  "membership_schedules": [
+    {
+      "current_symbol_subset": [
+        "ETHUSDT",
+        "BNBUSDT"
+      ],
+      "design_id": "MF2",
+      "design_label": "SLOW_UPDATE_2M",
+      "evidence_horizon": "2_MONTH_CONTIGUOUS",
+      "market_replay_v2_used_for_schedule": false,
+      "membership_change_outside_schedule": "FORBIDDEN_OUTSIDE_SCHEDULE_BOUNDARY",
+      "membership_semantics": "SLOW_UPDATE_V1",
+      "membership_source_evidence": {
+        "quality_outcome_accessed_for_schedule": false,
+        "source_blocks": [
+          "MF2_B01",
+          "MF2_B02",
+          "MF2_B03"
+        ],
+        "source_design": "MF2",
+        "source_h13_5_schedule_file": "historical-h13-validation-density/data/h13_5_design_membership_schedules.jsonl",
+        "source_h13_5_schedule_file_sha256": "8807800f090bdb72100ce0e3c641b7ac2a5e3532b111b3c8c70978b50a42e8ba",
+        "source_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+        "source_policy_payload_hash": "52714f9a47dc62324561e1e7b017136a9ccf6b3bef1da3e47d162e1117c27254",
+        "source_side": "SELL"
+      },
+      "next_permitted_update_boundary": "2026-10-13T08:50:07Z",
+      "next_permitted_update_boundary_rule": "membership may update only at the next frozen 2-month prospective boundary after H14.1; no outcome/quality feedback may influence the update",
+      "prospective_effective_from": "2026-08-13T08:50:07Z",
+      "prospective_membership_schedule_hash": "5b3ac18f565de82fce67105c1554972b8d234765e9c1a1e08996a79e6a1e6174",
+      "prospective_schedule_version": "H14_MF2_SLOW_UPDATE_2M_PROSPECTIVE_SCHEDULE_V1",
+      "quality_outcome_accessed_for_schedule": false,
+      "source_h13_5_membership_schedule_hash": "541f377d0e7c7863f607fa4af51f9e8b2c5a0600cc4acd239e6bd54287c90ae9",
+      "source_h14_0_membership_schedule_hash": "541f377d0e7c7863f607fa4af51f9e8b2c5a0600cc4acd239e6bd54287c90ae9"
+    },
+    {
+      "current_symbol_subset": [
+        "ETHUSDT",
+        "BNBUSDT"
+      ],
+      "design_id": "MF4",
+      "design_label": "FIXED_2M",
+      "evidence_horizon": "2_MONTH_CONTIGUOUS",
+      "market_replay_v2_used_for_schedule": false,
+      "membership_change_outside_schedule": "FORBIDDEN",
+      "membership_semantics": "FIXED",
+      "membership_source_evidence": {
+        "quality_outcome_accessed_for_schedule": false,
+        "source_blocks": [
+          "MF4_B01",
+          "MF4_B02",
+          "MF4_B03"
+        ],
+        "source_design": "MF4",
+        "source_h13_5_schedule_file": "historical-h13-validation-density/data/h13_5_design_membership_schedules.jsonl",
+        "source_h13_5_schedule_file_sha256": "8807800f090bdb72100ce0e3c641b7ac2a5e3532b111b3c8c70978b50a42e8ba",
+        "source_policy_candidate_id": "h10pc-315f67d7b23225a31c5868e3",
+        "source_policy_payload_hash": "52714f9a47dc62324561e1e7b017136a9ccf6b3bef1da3e47d162e1117c27254",
+        "source_side": "SELL"
+      },
+      "next_permitted_update_boundary": null,
+      "next_permitted_update_boundary_rule": "fixed membership is immutable for the H14 prospective discrimination lane unless a new governance contract version is opened",
+      "prospective_effective_from": "2026-08-13T08:50:07Z",
+      "prospective_membership_schedule_hash": "9af5d5d2968b8e2a083769cb7f61b7aa4a6e6d4048b24b4ce05862ec77e3d2be",
+      "prospective_schedule_version": "H14_MF4_FIXED_2M_PROSPECTIVE_SCHEDULE_V1",
+      "quality_outcome_accessed_for_schedule": false,
+      "source_h13_5_membership_schedule_hash": "3c5a7bfac8c5ae0247bb21f8731b8be357ed9c1c116fd80ce2a408dbf627afd3",
+      "source_h14_0_membership_schedule_hash": "3c5a7bfac8c5ae0247bb21f8731b8be357ed9c1c116fd80ce2a408dbf627afd3"
+    }
+  ],
+  "mode": "READ_ONLY_SHADOW_NON_EVIDENCE",
+  "next_phase": "H14.2_DECISION_DIVERGENCE_AND_DENSITY_ACCUMULATION",
+  "phase": "H14.1_PROSPECTIVE_SHADOW_STREAM_INITIALIZATION",
+  "phase_order": [
+    "H14.1 stream and membership freeze",
+    "H14.2 decision and divergence accumulation",
+    "H14.3 maturity and accounting gate",
+    "H14.4 quality replay or outcome evaluation after decision freeze",
+    "H14.5 final prospective design discrimination"
+  ],
+  "pre_boundary_records_accepted": 0,
+  "pre_h14_contract_records_in_prospective_stream": 0,
+  "primary_h14_1_metrics": [
+    "MF2_DECISION_COUNT",
+    "MF4_DECISION_COUNT",
+    "SHARED_DECISIONS",
+    "MF2_ONLY_DECISIONS",
+    "MF4_ONLY_DECISIONS",
+    "DECISION_SET_OVERLAP_RATE",
+    "symbol_membership_overlap",
+    "symbol_membership_divergence",
+    "sample_density",
+    "subset_churn"
+  ],
+  "prospective_design_membership_decision_schema": [
+    "design_id",
+    "prospective_analysis_id",
+    "membership_schedule_hash",
+    "symbol_eligible",
+    "regime_eligible",
+    "shadow_action",
+    "shadow_side",
+    "decision_payload_hash"
+  ],
+  "quality_comparability": {
+    "MF2": "NOT_AVAILABLE_IN_H14_1",
+    "MF4": "NOT_AVAILABLE_IN_H14_1"
+  },
+  "release_sha": "95b197e369a9",
+  "scope": "prospective_shadow_stream_initialization_only",
+  "source_h14_0_contract": "historical-h14-prospective-validation-design-discrimination/contracts/h14_0_prospective_validation_design_discrimination_contract_v1.json",
+  "source_h14_0_contract_status": "PASS",
+  "source_hashes": {
+    "h13_5_freeze_report_sha256": "a16775d49564c53f55654f159d5b87d36f980d714bd18c4fb72cbcfa097cc7aa",
+    "h13_5_membership_schedules_sha256": "8807800f090bdb72100ce0e3c641b7ac2a5e3532b111b3c8c70978b50a42e8ba",
+    "h14_0_contract_sha256": "f4fc3ca1482c08024901f35c5d760784cef91aaba45d8ecb69e850599a4e342c"
+  },
+  "status": "PASS",
+  "stop_conditions": {
+    "allowed": [
+      "data_integrity_failure",
+      "schema_contract_violation",
+      "source_artifact_hash_mismatch",
+      "release_identity_mismatch"
+    ],
+    "forbidden": [
+      "POOR_RECENT_PERFORMANCE"
+    ],
+    "h14_stop_reason_must_not_equal": "POOR_RECENT_PERFORMANCE"
+  },
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "acceptance_contract": {
+    "ACTIVE_CANARY_MUTATED": "NO",
+    "CANONICAL_ANALYSIS_SHARED_BY_BOTH_DESIGNS": "YES",
+    "H14_1_PROSPECTIVE_SHADOW_STREAM_INITIALIZATION": "PASS",
+    "H14_PROSPECTIVE_START_TIMESTAMP": "2026-08-13T08:50:07Z",
+    "H14_STOP_REASON_NOT_POOR_RECENT_PERFORMANCE": "PASS",
+    "MARKET_REPLAY_V2_USED": "NO",
+    "MF2_EXECUTION_ENABLED": "NO",
+    "MF2_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "MF4_EXECUTION_ENABLED": "NO",
+    "MF4_MEMBERSHIP_SCHEDULE_FROZEN": "PASS",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_THRESHOLD_SEARCH": 0,
+    "POLICY_SEARCH": "CLOSED",
+    "PRE_BOUNDARY_RECORDS_ACCEPTED": 0,
+    "PRE_H14_CONTRACT_RECORDS_IN_PROSPECTIVE_STREAM": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "PROSPECTIVE_START_BOUNDARY_FROZEN": "PASS",
+    "QUALITY_OUTCOME_ACCESSED_FOR_SELECTION": "NO",
+    "SOURCE_H14_0_CONTRACT": "PASS"
+  },
+  "artifact_hashes": {
+    "contract_sha256": "8ec5e4dbba394a0ecae487b2ca442f15b2b31c58204bb9ea9512c36203bcbdf4",
+    "membership_schedules_sha256": "3c455a645b713a6695a5e25246927e365af468b897bf0171be697e0e392b21fa",
+    "prospective_analysis_stream_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prospective_design_decisions_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "as_of": "2026-08-13",
+  "current_symbol_subsets": {
+    "MF2": [
+      "ETHUSDT",
+      "BNBUSDT"
+    ],
+    "MF4": [
+      "ETHUSDT",
+      "BNBUSDT"
+    ]
+  },
+  "designs_initialized": [
+    "MF2",
+    "MF4"
+  ],
+  "h14_prospective_start_timestamp": "2026-08-13T08:50:07Z",
+  "market_replay_v2_used": false,
+  "membership_schedule_hashes": {
+    "MF2": "5b3ac18f565de82fce67105c1554972b8d234765e9c1a1e08996a79e6a1e6174",
+    "MF4": "9af5d5d2968b8e2a083769cb7f61b7aa4a6e6d4048b24b4ce05862ec77e3d2be"
+  },
+  "next_phase": "H14.2_DECISION_DIVERGENCE_AND_DENSITY_ACCUMULATION",
+  "phase": "H14.1_PROSPECTIVE_SHADOW_STREAM_INITIALIZATION",
+  "policy_search": "CLOSED",
+  "production_change": "BLOCKED",
+  "quality_outcome_accessed_for_selection": false,
+  "report_id": "h14_1_prospective_shadow_stream_initialization_v1",
+  "source_h14_0_contract": "PASS",
+  "source_hashes": {
+    "h13_5_freeze_report_sha256": "a16775d49564c53f55654f159d5b87d36f980d714bd18c4fb72cbcfa097cc7aa",
+    "h13_5_membership_schedules_sha256": "8807800f090bdb72100ce0e3c641b7ac2a5e3532b111b3c8c70978b50a42e8ba",
+    "h14_0_contract_sha256": "f4fc3ca1482c08024901f35c5d760784cef91aaba45d8ecb69e850599a4e342c"
+  },
+  "status": "PASS",
+  "stream_rows": {
+    "h14_1_design_membership_schedules": 2,
+    "h14_1_prospective_analysis_stream": 0,
+    "h14_1_prospective_design_decisions": 0
+  }
+}

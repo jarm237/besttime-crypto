@@ -1,6 +1,6 @@
 # H14 — Prospective Validation Design Discrimination
 
-Status: `H14.0_CONTRACT_FROZEN_NOT_RUN`
+Status: `H14.1_PROSPECTIVE_SHADOW_STREAM_INITIALIZED`
 
 ## Lineage
 
@@ -53,6 +53,48 @@ ACTIVE_CANARY_MUTATED = NO
 PRODUCTION_CHANGE = BLOCKED
 ```
 
+
+## H14.1 Prospective Shadow Stream Initialization
+
+Artifacts:
+
+```text
+historical-h14-prospective-validation-design-discrimination/
+├── contracts/
+│   └── h14_1_prospective_shadow_stream_contract_v1.json
+├── data/
+│   ├── h14_1_design_membership_schedules.jsonl
+│   ├── h14_1_prospective_analysis_stream.jsonl
+│   └── h14_1_prospective_design_decisions.jsonl
+└── reports/
+    ├── h14_1_prospective_shadow_stream_initialization.json
+    └── h14_1_prospective_shadow_stream_initialization.md
+```
+
+State:
+
+```text
+H14_1_PROSPECTIVE_SHADOW_STREAM_INITIALIZATION = PASS
+H14_PROSPECTIVE_START_TIMESTAMP = 2026-08-13T08:50:07Z
+PRE_H14_CONTRACT_RECORDS_IN_PROSPECTIVE_STREAM = 0
+
+MF2_MEMBERSHIP_SCHEDULE_FROZEN = PASS
+MF4_MEMBERSHIP_SCHEDULE_FROZEN = PASS
+CANONICAL_ANALYSIS_SHARED_BY_BOTH_DESIGNS = YES
+
+MF2_EXECUTION_ENABLED = NO
+MF4_EXECUTION_ENABLED = NO
+QUALITY_OUTCOME_ACCESSED_FOR_SELECTION = NO
+POLICY_SEARCH = CLOSED
+NEW_THRESHOLD_SEARCH = 0
+NEW_POLICY_CANDIDATE = NONE
+ACTIVE_CANARY_MUTATED = NO
+H14_STOP_REASON_NOT_POOR_RECENT_PERFORMANCE = PASS
+PRODUCTION_CHANGE = BLOCKED
+```
+
+H14.1 initializes empty prospective analysis and design-decision streams. Only records with `cycle_timestamp >= 2026-08-13T08:50:07Z` are admissible in later H14 accumulation phases. MF2 and MF4 share the same canonical prospective analysis base records; design-specific rows only encode frozen membership eligibility and shadow decisions.
+
 ## Primary Question
 
 ```text
@@ -79,7 +121,7 @@ H14.0
 contract freeze = PASS
         |
 H14.1
-prospective shadow observation
+prospective shadow stream initialization = PASS
         |
 H14.2
 divergence and density assessment
@@ -99,5 +141,5 @@ prospective design acceptance
 - H13 is immutable.
 - MF2/MF4 semantics are inherited from H13 and not mutated in H14.0.
 - No H13 historical outcome tie-break is allowed.
-- No policy search or threshold search opens in H14.0.
+- No policy search or threshold search opens in H14.0 or H14.1.
 - No active canary or production behavior changes.

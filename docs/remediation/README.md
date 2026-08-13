@@ -42,6 +42,7 @@ Phase 6 — Live Production Readiness
 | 2026-08-13 | `../../historical-h13-validation-density/reports/h13_6_market_replay_v2_and_quality_gates.md` | H13.6 replayed 148 canonical paths once; MF2/MF4 both remain viable with mixed block-level quality |
 | 2026-08-13 | `../../historical-h13-validation-density/reports/h13_7_final_validation_design_acceptance.md` | H13.7 closed H13 with both MF2/MF4 viable with limits; no robust single validation design selected |
 | 2026-08-13 | `../../historical-h14-prospective-validation-design-discrimination/reports/h14_0_prospective_validation_design_discrimination_contract_freeze.md` | H14.0 froze prospective validation-design discrimination contract; no policy search or production change |
+| 2026-08-13 | `../../historical-h14-prospective-validation-design-discrimination/reports/h14_1_prospective_shadow_stream_initialization.md` | H14.1 initialized prospective MF2/MF4 shadow streams from a frozen post-H14.0 boundary; no replay, policy search, or production change |
 
 Trạng thái hiện tại:
 
@@ -122,8 +123,19 @@ H14.0 outcome access before decision freeze: FORBIDDEN
 H14.0 MF2 semantics mutated: NO
 H14.0 MF4 semantics mutated: NO
 H14.0 active canary mutated: NO
-Quality outcome accessed: YES
-Market Replay V2 rerun: YES
+H14.1 status: PASS
+H14.1 phase: H14.1_PROSPECTIVE_SHADOW_STREAM_INITIALIZATION
+H14.1 prospective start timestamp: 2026-08-13T08:50:07Z
+H14.1 MF2 membership schedule frozen: PASS
+H14.1 MF4 membership schedule frozen: PASS
+H14.1 pre-boundary records accepted: 0
+H14.1 canonical analysis shared by both designs: YES
+H14.1 quality outcome accessed for selection: NO
+H14.1 Market Replay V2 used: NO
+H14.1 production change: BLOCKED
+H14.1 next phase: H14.2_DECISION_DIVERGENCE_AND_DENSITY_ACCUMULATION
+H13 historical quality outcome accessed: YES
+H13.6 Market Replay V2 run: YES
 Longer-window-only lane: NOT_JUSTIFIED
 Selection objective redesign: NOT_JUSTIFIED
 Policy search: CLOSED
