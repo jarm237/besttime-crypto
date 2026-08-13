@@ -1,0 +1,93 @@
+{
+  "acceptance_contract": {
+    "BLOCK_QUALITY_STABILITY": "MIXED",
+    "H11_STATUS": "BLOCKED_NO_ROBUST_INPUT_CANDIDATE",
+    "H12_STATUS": "BLOCKED_NO_VALIDATED_POLICY_CANDIDATE",
+    "H13_7_FINAL_VALIDATION_DESIGN_ACCEPTANCE": "PASS_WITH_LIMITS",
+    "H13_7_OUTPUT": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS",
+    "MF2_STATUS": "VIABLE_WITH_LIMITS",
+    "MF4_STATUS": "VIABLE_WITH_LIMITS",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "NEXT": "H14_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION",
+    "POLICY_SEARCH": "CLOSED",
+    "POOLED_QUALITY": "POSITIVE",
+    "POST_HOC_TIE_BREAK": 0,
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "QUALITY_GATE_ACCEPTABLE": "YES",
+    "QUALITY_GENERALIZATION": "NOT_ESTABLISHED",
+    "ROBUST_VALIDATION_DESIGN": "NONE",
+    "SINGLE_VALIDATION_DESIGN_SELECTED": "NO",
+    "SOURCE_H13_4": "PASS_WITH_LIMITS",
+    "SOURCE_H13_6": "PASS_WITH_LIMITS",
+    "STUDYABILITY_ACCEPTABLE": "YES",
+    "TOP_TIER_TIE_PRESERVED": "YES"
+  },
+  "as_of": "2026-08-13",
+  "block_quality_summary": {
+    "design_quality_stability": {
+      "MF2": "MIXED",
+      "MF4": "MIXED"
+    },
+    "insufficient_blocks": 0,
+    "negative_quality_blocks": 4,
+    "positive_quality_blocks": 2
+  },
+  "evidence_summary": {
+    "h13_4": {
+      "output": "MULTI_FACTOR_DESIGN_ADEQUATE",
+      "status": "PASS_WITH_LIMITS",
+      "tie_resolution": "UNRESOLVED_BY_FROZEN_H13_3_HIERARCHY",
+      "top_studyability_tier": [
+        "MF2",
+        "MF4"
+      ]
+    },
+    "h13_5": {
+      "designs_frozen": 2,
+      "replay_input_rows": 296,
+      "source_top_tier_designs": [
+        "MF2",
+        "MF4"
+      ],
+      "status": "PASS",
+      "top_tier_tie_preserved": true,
+      "unique_canonical_execution_paths": 148
+    },
+    "h13_6": {
+      "canonical_outcomes": 148,
+      "design_memberships": 296,
+      "mf2_quality_gate": "PASS_WITH_LIMITS",
+      "mf2_quality_stability": "MIXED",
+      "mf4_quality_gate": "PASS_WITH_LIMITS",
+      "mf4_quality_stability": "MIXED",
+      "output": "BOTH_DESIGNS_REMAIN_VIABLE",
+      "post_hoc_tie_break": 0,
+      "pseudo_replication_guard": "PASS",
+      "status": "PASS_WITH_LIMITS"
+    }
+  },
+  "interpretation": {
+    "fresh_prospective_discrimination_required": true,
+    "historical_discriminator_between_mf2_mf4": "NOT_AVAILABLE",
+    "reason": "MF2 and MF4 share the same 148 canonical outcomes in H13.6, and both show mixed block-level quality.",
+    "viable_not_robust": "VIABLE != ROBUST != PRODUCTION_APPROVED"
+  },
+  "next_research_lane": {
+    "id": "H14_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION",
+    "policy_search": "CLOSED",
+    "production_change": "BLOCKED",
+    "question": "When MF2 and MF4 are frozen before new data arrives, do their membership schedules diverge materially, and which design accumulates adequate, temporally stable quality evidence prospectively?"
+  },
+  "output": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS",
+  "phase": "H13.7_FINAL_VALIDATION_DESIGN_ACCEPTANCE",
+  "report_id": "h13_7_final_validation_design_acceptance_v1",
+  "source_hashes": {
+    "h13_4_execution_report_sha256": "f22133b8f9c1d7fd1e459b07887d78bcbfab724d8cf29873aa821abfb5d7ffc1",
+    "h13_5_freeze_report_sha256": "a16775d49564c53f55654f159d5b87d36f980d714bd18c4fb72cbcfa097cc7aa",
+    "h13_6_block_stability_sha256": "ef1241b481dcce721e87ecd1e01e535ead2a43eaf20169f95ec4ef7f56a2074e",
+    "h13_6_quality_report_sha256": "0d3ae6c81000d038c2cf608c7af7ceb3b09205fb839ca2b6c7acb437fde95244"
+  },
+  "status": "PASS_WITH_LIMITS"
+}

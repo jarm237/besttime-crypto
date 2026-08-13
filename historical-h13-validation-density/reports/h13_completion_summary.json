@@ -1,0 +1,58 @@
+{
+  "H13_OUTPUT": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS",
+  "H13_STATUS": "COMPLETE_PASS_WITH_LIMITS",
+  "NEXT": "H14_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION",
+  "POLICY_SEARCH": "CLOSED",
+  "PRODUCTION_CHANGE": "BLOCKED",
+  "ROBUST_VALIDATION_DESIGN": "NONE",
+  "SINGLE_DESIGN_SELECTED": "NO",
+  "as_of": "2026-08-13",
+  "critical_distinctions": {
+    "PRODUCTION_APPROVED": "not established; production change remains blocked",
+    "ROBUST": "not established because block-level quality stability is mixed",
+    "VIABLE": "historically studyable and quality gate acceptable with limits"
+  },
+  "lineage": [
+    {
+      "finding": "symbol subset dominates sample insufficiency",
+      "phase": "H13.0",
+      "status": "PASS"
+    },
+    {
+      "finding": "mixed subset drift and selectivity-density tradeoff present",
+      "phase": "H13.1",
+      "status": "PASS"
+    },
+    {
+      "finding": "multi-factor design required",
+      "phase": "H13.2",
+      "status": "PASS_WITH_LIMITS"
+    },
+    {
+      "finding": "5-cell design contract frozen",
+      "phase": "H13.3",
+      "status": "PASS"
+    },
+    {
+      "finding": "MF2/MF4 studyability tie",
+      "phase": "H13.4",
+      "status": "PASS_WITH_LIMITS"
+    },
+    {
+      "finding": "both schedules and decisions frozen",
+      "phase": "H13.5",
+      "status": "PASS"
+    },
+    {
+      "finding": "both quality gates pass with limits and block stability is mixed",
+      "phase": "H13.6",
+      "status": "PASS_WITH_LIMITS"
+    },
+    {
+      "finding": "both remain viable with limits; no single robust design selected",
+      "phase": "H13.7",
+      "status": "PASS_WITH_LIMITS"
+    }
+  ],
+  "summary_id": "h13_completion_summary_v1"
+}

@@ -40,6 +40,8 @@ Phase 6 — Live Production Readiness
 | 2026-08-13 | `../../historical-h13-validation-density/reports/h13_4_multi_factor_validation_design_execution.md` | H13.4 executed 5 frozen multi-factor design cells; output is multi-factor design adequate at studyability level, with MF2/MF4 tied by frozen hierarchy |
 | 2026-08-13 | `../../historical-h13-validation-density/reports/h13_5_tied_design_membership_and_replay_input_freeze.md` | H13.5 preserved the MF2/MF4 tie and froze both membership schedules plus replay input before outcome access |
 | 2026-08-13 | `../../historical-h13-validation-density/reports/h13_6_market_replay_v2_and_quality_gates.md` | H13.6 replayed 148 canonical paths once; MF2/MF4 both remain viable with mixed block-level quality |
+| 2026-08-13 | `../../historical-h13-validation-density/reports/h13_7_final_validation_design_acceptance.md` | H13.7 closed H13 with both MF2/MF4 viable with limits; no robust single validation design selected |
+| 2026-08-13 | `../../historical-h14-prospective-validation-design-discrimination/reports/h14_0_prospective_validation_design_discrimination_contract_freeze.md` | H14.0 froze prospective validation-design discrimination contract; no policy search or production change |
 
 Trạng thái hiện tại:
 
@@ -100,6 +102,26 @@ H13.6 MF4 quality gate: PASS_WITH_LIMITS
 H13.6 MF2 quality stability: MIXED
 H13.6 MF4 quality stability: MIXED
 H13.6 post-hoc tie break: 0
+H13 status: COMPLETED_IMMUTABLE
+H13.7 status: PASS_WITH_LIMITS
+H13.7 phase: H13.7_FINAL_VALIDATION_DESIGN_ACCEPTANCE
+H13 output: BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS
+MF2 validation design: VIABLE_WITH_LIMITS
+MF4 validation design: VIABLE_WITH_LIMITS
+Studyability acceptable: YES
+Quality gate acceptable: YES
+Quality generalization: NOT_ESTABLISHED
+Robust validation design: NONE
+Single validation design selected: NO
+Next research lane: H14_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION
+H14 status: OPEN
+H14.0 status: PASS
+H14.0 phase: H14.0_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION_CONTRACT_FREEZE
+H14.0 prospective observation only: YES
+H14.0 outcome access before decision freeze: FORBIDDEN
+H14.0 MF2 semantics mutated: NO
+H14.0 MF4 semantics mutated: NO
+H14.0 active canary mutated: NO
 Quality outcome accessed: YES
 Market Replay V2 rerun: YES
 Longer-window-only lane: NOT_JUSTIFIED

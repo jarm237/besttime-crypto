@@ -1,0 +1,135 @@
+{
+  "acceptance_contract": {
+    "ACTIVE_CANARY_MUTATED": "NO",
+    "DESIGN_DIVERGENCE_METRICS_FROZEN": "PASS",
+    "H14_0_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION_CONTRACT_FREEZE": "PASS",
+    "MF2_SEMANTICS_MUTATED": "NO",
+    "MF4_SEMANTICS_MUTATED": "NO",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "OUTCOME_ACCESS_BEFORE_DECISION_FREEZE": "FORBIDDEN",
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "PROSPECTIVE_OBSERVATION_ONLY": "YES",
+    "QUALITY_REPLAY_ALLOWED_ONLY_AFTER_DECISION_FREEZE": "YES",
+    "SAMPLE_DENSITY_METRICS_FROZEN": "PASS",
+    "SOURCE_DESIGNS": [
+      "MF2",
+      "MF4"
+    ],
+    "SOURCE_H13_OUTPUT": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS"
+  },
+  "allowed_h14_outputs": [
+    "MF2_PROSPECTIVELY_PREFERRED",
+    "MF4_PROSPECTIVELY_PREFERRED",
+    "BOTH_DESIGNS_REMAIN_VIABLE",
+    "DESIGNS_OBSERVATIONALLY_EQUIVALENT",
+    "NO_STABLE_DESIGN",
+    "INSUFFICIENT_PROSPECTIVE_EVIDENCE"
+  ],
+  "as_of": "2026-08-13",
+  "contract_id": "h14_0_prospective_validation_design_discrimination_contract_v1",
+  "decision_buckets": [
+    "MF2_ONLY",
+    "MF4_ONLY",
+    "SHARED",
+    "NEITHER"
+  ],
+  "decision_identity_schema": [
+    "h14_observation_id",
+    "cycle_timestamp",
+    "symbol",
+    "mf2_membership",
+    "mf4_membership",
+    "mf2_eligible",
+    "mf4_eligible",
+    "mf2_shadow_action",
+    "mf4_shadow_action",
+    "mf2_decision_hash",
+    "mf4_decision_hash"
+  ],
+  "design_semantics": {
+    "MF2": {
+      "evidence_horizon": "2_MONTH_CONTIGUOUS",
+      "label": "SLOW_UPDATE_2M",
+      "membership_schedule_hash": "541f377d0e7c7863f607fa4af51f9e8b2c5a0600cc4acd239e6bd54287c90ae9",
+      "membership_semantics": "SLOW_UPDATE_V1",
+      "semantics_mutated": "NO",
+      "source": "H13.5 frozen design"
+    },
+    "MF4": {
+      "evidence_horizon": "2_MONTH_CONTIGUOUS",
+      "label": "FIXED_2M",
+      "membership_schedule_hash": "3c5a7bfac8c5ae0247bb21f8731b8be357ed9c1c116fd80ce2a408dbf627afd3",
+      "membership_semantics": "FIXED",
+      "semantics_mutated": "NO",
+      "source": "H13.5 frozen design"
+    }
+  },
+  "first_discrimination_gate": {
+    "classes": [
+      "MATERIAL",
+      "LOW",
+      "NONE",
+      "INSUFFICIENT_OBSERVATION"
+    ],
+    "question": "Do MF2 and MF4 actually diverge prospectively?",
+    "simplicity_tie_break_in_h14_0": "NOT_FROZEN",
+    "simplicity_tie_break_may_not_be_invented_after_results": true
+  },
+  "h13_historical_outcomes_reuse_for_tie_break": "FORBIDDEN",
+  "h13_immutable": true,
+  "phase": "H14.0_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION_CONTRACT_FREEZE",
+  "primary_design_discrimination_metrics": [
+    "DECISION_SET_OVERLAP_RATE",
+    "MF2_ONLY_COUNT",
+    "MF4_ONLY_COUNT",
+    "SHARED_COUNT",
+    "NEITHER_COUNT",
+    "SYMBOL_MEMBERSHIP_OVERLAP_RATE",
+    "MEMBERSHIP_SWITCH_COUNT",
+    "SAMPLE_DENSITY_MF2",
+    "SAMPLE_DENSITY_MF4",
+    "TIME_TO_MIN_SAMPLE"
+  ],
+  "prospective_observation_epoch": {
+    "active_canary_mutated": "NO",
+    "global_evidence_index_writes": "FORBIDDEN",
+    "h14_observation_epoch_id": "H14_PROSPECTIVE_OBSERVATION_EPOCH_V1_2026_08_13",
+    "mode": "READ_ONLY_SHADOW_NON_EVIDENCE",
+    "runtime_evidence_sqlite_writes": "FORBIDDEN",
+    "source_release": "8c7b119+3902212 lineage; H13 source outputs frozen",
+    "started_at": "NOT_STARTED",
+    "universe": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT"
+    ]
+  },
+  "quality_replay_gate": {
+    "allowed_only_after": [
+      "prospective_decisions_frozen",
+      "minimum_observation_coverage_reached",
+      "future_bars_mature"
+    ],
+    "continuous_outcome_feedback_to_membership_schedule": "FORBIDDEN",
+    "market_replay_contract": "V2",
+    "mf2_membership_mutation_after_outcome": 0,
+    "mf4_membership_mutation_after_outcome": 0
+  },
+  "research_question": "When MF2 and MF4 are frozen before new observations arrive, do their membership schedules and resulting shadow decision streams diverge enough to establish which validation design is more suitable prospectively?",
+  "scope": "prospective_design_discrimination_only",
+  "source_designs": [
+    "MF2",
+    "MF4"
+  ],
+  "source_h13_output": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS",
+  "source_h13_status": "COMPLETE_PASS_WITH_LIMITS",
+  "source_hashes": {
+    "h13_5_freeze_report_sha256": "a16775d49564c53f55654f159d5b87d36f980d714bd18c4fb72cbcfa097cc7aa",
+    "h13_6_quality_report_sha256": "0d3ae6c81000d038c2cf608c7af7ceb3b09205fb839ca2b6c7acb437fde95244",
+    "h13_7_final_acceptance_sha256": "fec3e8e1e79816da5c48c0876c95fe0ca5254b0771effcc8c42bfb48dffb73ca",
+    "h13_completion_summary_sha256": "3cf9cdc492013d1168fbff75fcb9ea2751399fefdae6aa7040433e94be538483"
+  },
+  "status": "PASS"
+}

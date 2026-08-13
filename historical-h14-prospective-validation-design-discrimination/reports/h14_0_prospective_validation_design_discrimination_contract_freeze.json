@@ -1,0 +1,42 @@
+{
+  "as_of": "2026-08-13",
+  "boundary": {
+    "ACTIVE_CANARY_MUTATED": "NO",
+    "DESIGN_DIVERGENCE_METRICS_FROZEN": "PASS",
+    "H14_0_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION_CONTRACT_FREEZE": "PASS",
+    "MF2_SEMANTICS_MUTATED": "NO",
+    "MF4_SEMANTICS_MUTATED": "NO",
+    "NEW_POLICY_CANDIDATE": "NONE",
+    "NEW_POLICY_SEARCH": 0,
+    "NEW_THRESHOLD_SEARCH": 0,
+    "OUTCOME_ACCESS_BEFORE_DECISION_FREEZE": "FORBIDDEN",
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "PROSPECTIVE_OBSERVATION_ONLY": "YES",
+    "QUALITY_REPLAY_ALLOWED_ONLY_AFTER_DECISION_FREEZE": "YES",
+    "SAMPLE_DENSITY_METRICS_FROZEN": "PASS",
+    "SOURCE_DESIGNS": [
+      "MF2",
+      "MF4"
+    ],
+    "SOURCE_H13_OUTPUT": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS"
+  },
+  "contract_path": "historical-h14-prospective-validation-design-discrimination/contracts/h14_0_prospective_validation_design_discrimination_contract_v1.json",
+  "contract_sha256": "f4fc3ca1482c08024901f35c5d760784cef91aaba45d8ecb69e850599a4e342c",
+  "next_phases": [
+    "H14.1_PROSPECTIVE_SHADOW_OBSERVATION",
+    "H14.2_DIVERGENCE_AND_DENSITY_ASSESSMENT",
+    "H14.3_FREEZE_MATURE_DECISION_COHORT",
+    "H14.4_MARKET_REPLAY_V2_AFTER_DECISION_FREEZE",
+    "H14.5_PROSPECTIVE_DESIGN_ACCEPTANCE"
+  ],
+  "phase": "H14.0_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION_CONTRACT_FREEZE",
+  "report_id": "h14_0_prospective_validation_design_discrimination_contract_freeze_v1",
+  "source_designs": [
+    "MF2",
+    "MF4"
+  ],
+  "source_h13_output": "BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS",
+  "source_h13_robust_validation_design": "NONE",
+  "source_h13_single_design_selected": "NO",
+  "status": "PASS"
+}

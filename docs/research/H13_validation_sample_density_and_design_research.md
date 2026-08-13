@@ -1,6 +1,6 @@
 # H13 — Validation Sample Density And Design Research
 
-Status: `H13.6_MARKET_REPLAY_V2_AND_INDEPENDENT_QUALITY_GATES_EXECUTED`
+Status: `COMPLETED_IMMUTABLE`
 
 ## Lineage Lock
 
@@ -673,6 +673,76 @@ block-level quality is mixed. For both MF2 and MF4, blocks B01 and B02 fail
 the frozen EV/PF quality gate, while B03 passes. H13.6 therefore preserves the
 MF2/MF4 tie for H13.7 and does not choose a design by EV/PnL ranking.
 
+## H13.7 Final Validation Design Acceptance
+
+Phase:
+
+```text
+H13.7_FINAL_VALIDATION_DESIGN_ACCEPTANCE
+```
+
+Artifacts:
+
+```text
+historical-h13-validation-density/
+└── reports/
+    ├── h13_7_final_validation_design_acceptance.json
+    ├── h13_7_final_validation_design_acceptance.md
+    └── h13_completion_summary.json
+```
+
+Final state:
+
+```text
+H13_7_FINAL_VALIDATION_DESIGN_ACCEPTANCE =
+PASS_WITH_LIMITS
+
+H13_OUTPUT =
+BOTH_DESIGNS_REMAIN_VIABLE_WITH_LIMITS
+
+MF2_VALIDATION_DESIGN = VIABLE_WITH_LIMITS
+MF4_VALIDATION_DESIGN = VIABLE_WITH_LIMITS
+
+STUDYABILITY_ACCEPTABLE = YES
+QUALITY_GATE_ACCEPTABLE = YES
+POOLED_QUALITY = POSITIVE
+BLOCK_QUALITY_STABILITY = MIXED
+QUALITY_GENERALIZATION = NOT_ESTABLISHED
+
+SINGLE_VALIDATION_DESIGN_SELECTED = NO
+ROBUST_VALIDATION_DESIGN = NONE
+
+TOP_TIER_TIE_PRESERVED = YES
+POST_HOC_TIE_BREAK = 0
+
+NEW_POLICY_SEARCH = 0
+NEW_THRESHOLD_SEARCH = 0
+NEW_POLICY_CANDIDATE = NONE
+
+POLICY_SEARCH = CLOSED
+H11 = BLOCKED_NO_ROBUST_INPUT_CANDIDATE
+H12 = BLOCKED_NO_VALIDATED_POLICY_CANDIDATE
+PRODUCTION_CHANGE = BLOCKED
+
+NEXT =
+H14_PROSPECTIVE_VALIDATION_DESIGN_DISCRIMINATION
+```
+
+H13 closes with two historically viable validation designs, both with limits.
+The historical evidence does not provide a valid discriminator between MF2 and
+MF4 because both designs share the same 148 canonical H13.6 outcomes. More
+analysis of that same outcome base cannot select a single design without
+introducing a post-hoc tie-break.
+
+The important distinction is:
+
+```text
+VIABLE != ROBUST != PRODUCTION_APPROVED
+```
+
+H13 establishes studyable historical designs, not a robust validation design,
+not a validated policy candidate, and not a production promotion path.
+
 ## Holdout And Reuse Rules
 
 H10 validation periods:
@@ -736,7 +806,10 @@ H13.6
 Market Replay V2 plus independent quality gates = PASS_WITH_LIMITS
         |
 H13.7
-final validation-design acceptance
+final validation-design acceptance = PASS_WITH_LIMITS
+        |
+H14
+prospective validation-design discrimination
 ```
 
 ## Governance Invariants
