@@ -1,0 +1,50 @@
+{
+  "as_of": "2026-08-13",
+  "file_sha256": {
+    "h14_1_analysis_stream": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h14_1_decision_stream": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h14_1_membership_schedules": "3c455a645b713a6695a5e25246927e365af468b897bf0171be697e0e392b21fa",
+    "h14_2_contract": "dfea45cbc607433712515664dbc457cc350b2b5c72fad3a42e666fec6730367a",
+    "h14_2_divergence_stream": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h14_2_mf2_transitions": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h14_observer_py": "cd3cabb49894bfd135854bc77389dcf535fbb2e5e413fa4c5b98875b5fcc0702",
+    "multi_agent_py": "22464455bc7574625b825c18f4f04a82722061740cb38832fa770b2bd4b7a370"
+  },
+  "h14_prospective_start_timestamp": "2026-08-13T08:50:07Z",
+  "implementation_id": "h14obs-91195f86d2046bb09c6e0904",
+  "phase": "H14.2_OBSERVER_RUNTIME_SAFETY_GATE",
+  "safety_gate": {
+    "CONCURRENT_APPEND_SERIALIZED": "PASS",
+    "DUPLICATE_ANALYSIS_ROWS": 0,
+    "DUPLICATE_DESIGN_ROWS": 0,
+    "GOVERNED_RUNTIME_MUTATION": 0,
+    "H14_2_CONTRACT": "FROZEN",
+    "H14_2_CONTROLLED_SMOKE": "PASS",
+    "H14_2_OBSERVER_IMPLEMENTED": "YES",
+    "H14_2_OBSERVER_RUNTIME_SAFETY_GATE": "PASS",
+    "H14_3": "NOT_READY",
+    "INCOMPLETE_ACCOUNTING_RECOVERABLE": "YES",
+    "OBSERVER_FAILURE_ISOLATED": "PASS",
+    "OBSERVER_INPUT_MUTATION": 0,
+    "OBSERVER_WRITE_FAILURE_DOES_NOT_FAIL_SIGNAL_GENERATION": "PASS",
+    "POLICY_SEARCH": "CLOSED",
+    "PRODUCTION_CHANGE": "BLOCKED",
+    "QUALITY": "SEALED",
+    "REAL_PROSPECTIVE_ACCUMULATION": "NOT_YET_OBSERVED"
+  },
+  "source_commit_sha": "81f5f15619bd",
+  "status": "PASS",
+  "stream_rows": {
+    "authoritative_analysis_rows": 0,
+    "authoritative_decision_rows": 0,
+    "authoritative_divergence_rows": 0,
+    "mf2_transition_rows": 0
+  },
+  "verification": {
+    "full_python_regression": ".venv/bin/pytest -q = PASS",
+    "git_diff_check": "PASS",
+    "py_compile": "PASS",
+    "targeted_observer_tests": ".venv/bin/pytest -q tests/ml/test_h14_observer.py = 8 passed",
+    "targeted_runtime_regression": ".venv/bin/pytest -q tests/ml/test_h14_observer.py tests/test_alternative_reference_integration.py tests/test_runtime_universe.py tests/ml/test_canary_execution_invariants.py tests/ml/test_production_lineage_path.py = 38 passed"
+  }
+}

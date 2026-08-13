@@ -263,6 +263,17 @@ class SignalGeneratorAgent(BaseAgent):
             # Display/audit context only. Keep this assignment after scoring and
             # causal evaluation so Alternative Data cannot affect real signals.
             ana["alternative_data_reference"] = copy.deepcopy(alternative_reference)
+
+            try:
+                from btc_scraper.ml_engine.h14_observer import (
+                    observe_h14_prospective_analysis,
+                )
+
+                observe_h14_prospective_analysis(ana)
+            except Exception as exc:
+                from btc_scraper.ml_engine.operational_health import record_degradation
+
+                record_degradation("h14_observer", "h14_observer_failure_total", exc)
             
             # Đọc cutoff và thông tin Kelly mặc định
             meta_conf = sig_score.get("meta_confidence", 0.5)

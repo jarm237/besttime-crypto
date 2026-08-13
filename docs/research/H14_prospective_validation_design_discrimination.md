@@ -146,6 +146,41 @@ PRODUCTION_CHANGE = BLOCKED
 
 H14.2 accumulates post-boundary canonical analyses and compares MF2/MF4 shadow decisions only through density, overlap, membership divergence, and decision divergence. Quality/PnL remains unavailable until a later frozen mature cohort phase.
 
+## H14.2 Observer Runtime Safety Gate
+
+Artifacts:
+
+```text
+historical-h14-prospective-validation-design-discrimination/
+└── reports/
+    ├── h14_2_observer_runtime_safety_gate.json
+    └── h14_2_observer_runtime_safety_gate.md
+```
+
+State:
+
+```text
+H14_2_OBSERVER_IMPLEMENTED = YES
+H14_2_CONTROLLED_SMOKE = PASS
+H14_2_OBSERVER_RUNTIME_SAFETY_GATE = PASS
+H14_2_OBSERVER_IMPLEMENTATION_ID = h14obs-91195f86d2046bb09c6e0904
+
+REAL_PROSPECTIVE_ACCUMULATION = NOT_YET_OBSERVED
+AUTHORITATIVE_ANALYSIS_ROWS = 0
+AUTHORITATIVE_DECISION_ROWS = 0
+
+OBSERVER_FAILURE_ISOLATED = PASS
+OBSERVER_INPUT_MUTATION = 0
+CONCURRENT_APPEND_SERIALIZED = PASS
+INCOMPLETE_ACCOUNTING_RECOVERABLE = YES
+GOVERNED_RUNTIME_MUTATION = 0
+
+H14.3 = NOT_READY
+QUALITY = SEALED
+POLICY_SEARCH = CLOSED
+PRODUCTION_CHANGE = BLOCKED
+```
+
 ## Primary Question
 
 ```text
