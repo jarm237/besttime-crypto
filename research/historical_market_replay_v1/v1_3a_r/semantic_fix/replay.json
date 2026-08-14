@@ -1,0 +1,537 @@
+{
+  "coins": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "current_policy_metrics": {
+    "breakdown_by_coin": {},
+    "breakdown_by_side": {},
+    "cycles": 8640,
+    "decision_counts": {
+      "BUY": 0,
+      "HOLD": 25920,
+      "SELL": 0
+    },
+    "execution_eligible": 0,
+    "metrics": {
+      "avg_loss": 0.0,
+      "avg_win": 0.0,
+      "ending_equity": 10000.0,
+      "expectancy_per_trade": 0.0,
+      "fees": 0,
+      "gross_pnl": 0,
+      "max_drawdown": 0.0,
+      "n_trades": 0,
+      "net_pnl": 0,
+      "profit_factor": 0.0,
+      "slippage_attribution": 0.0,
+      "spread_attribution": 0.0,
+      "win_rate": 0.0
+    },
+    "monthly_breakdown": {},
+    "predictions": 25920,
+    "regime_breakdown": {},
+    "signal_cycles": 8640,
+    "trade_counts": {
+      "closed": 0,
+      "open_at_end": 0,
+      "opened": 0
+    }
+  },
+  "engine_result_run_id": "15e6401a",
+  "evidence_status": "OOS_EFFICACY_SAMPLE",
+  "gates": {
+    "DETERMINISTIC_REPLAY": {
+      "comparisons": {
+        "decision_counts": true,
+        "metrics": true,
+        "production_policy_semantics": true,
+        "trade_counts": true
+      },
+      "status": "PASS"
+    },
+    "EXECUTION_ACCOUNTING": {
+      "cash_ledger": {
+        "ending_cash": 10000.0,
+        "residual": 0.0,
+        "status": "PASS"
+      },
+      "equity_reconciliation": {
+        "ending_equity": 10000.0,
+        "opening_balance": 10000.0,
+        "realized_net_pnl": 0.0,
+        "residual": 0.0,
+        "status": "PASS",
+        "unrealized_pnl": 0.0
+      },
+      "identity_residual": 0.0,
+      "position_ledger": {
+        "open_position_count": 0,
+        "open_positions": [],
+        "open_quantity": 0.0,
+        "status": "PASS"
+      },
+      "slippage_semantics": "Execution prices include slippage; attribution is reported but not debited again.",
+      "status": "PASS",
+      "tolerance": 1e-06,
+      "trade_reconciliation": {
+        "first_bad_trade": null,
+        "max_abs_residual": 0.0,
+        "status": "PASS",
+        "trades_checked": 0
+      }
+    },
+    "MODEL_TEMPORAL_VALIDITY": {
+      "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+      "calibration_cutoff": "2024-12-31T22:15:00+00:00",
+      "classification": "PROVEN_PRE_WINDOW",
+      "evaluation_earliest_allowed": "2024-12-31T22:15:00.000001+00:00",
+      "evaluation_start": "2025-01-01T00:00:00+00:00",
+      "metadata_path": "research artifact manifest",
+      "model_version": "v3.1-research-pre2025-f3e3eb68",
+      "reason": null,
+      "research_training_run_id": "hmr-v1.2b-771eb50c1814-7a7c7118e7bf-f3e3eb68",
+      "status": "PASS",
+      "training_cutoff": "2024-11-30T21:00:00+00:00"
+    },
+    "NO_LOOKAHEAD": {
+      "forbidden_fields_remaining": [],
+      "missing_closed_bar_count": 0,
+      "missing_closed_bars": [],
+      "signals_checked": 25920,
+      "status": "PASS",
+      "timeframe": "15m"
+    },
+    "PRODUCTION_POLICY_PATH_PARITY": {
+      "DECISION_CONTRACT": "PASS",
+      "FEATURE_PIPELINE_PATH": "PASS",
+      "FINAL_POLICY_GATE_PATH": "PASS",
+      "INFERENCE_COORDINATOR_PATH": "PASS",
+      "META_DECISION_PATH": "PASS",
+      "MODEL_ARTIFACT_PATH": "PASS",
+      "RISK_GATE_PATH": "PASS",
+      "artifact_sha256": [
+        "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756"
+      ],
+      "captures": {
+        "fallback_alternative_data": {
+          "alternative_policy": "production fallback",
+          "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+          "canonical_action": "HOLD",
+          "coin": "BTC",
+          "feature_hash": "dde11facf6d303946f0b6ebac2ab0c39e99fa1a6e273a555197d01b8617e792a",
+          "final_action": "HOLD",
+          "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.238 | side_probability=0.762 | ev=-0.9726 | canonical_action_not_supported_by_entry_signal",
+          "gates": {
+            "canonical_policy_directional": false,
+            "meta_threshold_passed": true,
+            "posterior_directional": false,
+            "risk_eligible": false,
+            "signal_score_threshold_passed": true,
+            "technical_directional": false
+          },
+          "meta_probability": 0.0273972602739726,
+          "posterior": 0.2383158742949235,
+          "raw_model_output": 0.0273972602739726,
+          "rejection_reason": "non_executable_final_decision",
+          "risk_status": "HEALTHY",
+          "signal_score_strength": 0,
+          "technical_action": "NEUTRAL",
+          "technical_score": 50,
+          "time": "2025-01-01 00:00:00",
+          "world_state_source": "replay"
+        },
+        "final_BUY": {
+          "status": "NOT_OBSERVED"
+        },
+        "final_HOLD": {
+          "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+          "canonical_action": "HOLD",
+          "coin": "BTC",
+          "feature_hash": "dde11facf6d303946f0b6ebac2ab0c39e99fa1a6e273a555197d01b8617e792a",
+          "final_action": "HOLD",
+          "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.238 | side_probability=0.762 | ev=-0.9726 | canonical_action_not_supported_by_entry_signal",
+          "gates": {
+            "canonical_policy_directional": false,
+            "meta_threshold_passed": true,
+            "posterior_directional": false,
+            "risk_eligible": false,
+            "signal_score_threshold_passed": true,
+            "technical_directional": false
+          },
+          "meta_probability": 0.0273972602739726,
+          "posterior": 0.2383158742949235,
+          "raw_model_output": 0.0273972602739726,
+          "rejection_reason": "non_executable_final_decision",
+          "risk_status": "HEALTHY",
+          "signal_score_strength": 0,
+          "technical_action": "NEUTRAL",
+          "technical_score": 50,
+          "time": "2025-01-01 00:00:00"
+        },
+        "final_SELL": {
+          "status": "NOT_OBSERVED"
+        },
+        "technical_BUY": {
+          "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+          "canonical_action": "HOLD",
+          "coin": "ETH",
+          "feature_hash": "3e2586954929aa8b89c493bb0f8ab0d146c3375c3dd78ed0de510f1fd730b519",
+          "final_action": "HOLD",
+          "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.900 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.8623 | canonical_action_not_supported_by_entry_signal",
+          "gates": {
+            "canonical_policy_directional": false,
+            "meta_threshold_passed": true,
+            "posterior_directional": false,
+            "risk_eligible": false,
+            "signal_score_threshold_passed": true,
+            "technical_directional": true
+          },
+          "meta_probability": 0.0,
+          "posterior": 0.24705882352941178,
+          "raw_model_output": 0.0,
+          "rejection_reason": "non_executable_final_decision",
+          "risk_status": "HEALTHY",
+          "signal_score_strength": 0,
+          "technical_action": "BUY",
+          "technical_score": 70,
+          "time": "2025-01-02 19:15:00"
+        },
+        "technical_HOLD": {
+          "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+          "canonical_action": "HOLD",
+          "coin": "BTC",
+          "feature_hash": "dde11facf6d303946f0b6ebac2ab0c39e99fa1a6e273a555197d01b8617e792a",
+          "final_action": "HOLD",
+          "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.238 | side_probability=0.762 | ev=-0.9726 | canonical_action_not_supported_by_entry_signal",
+          "gates": {
+            "canonical_policy_directional": false,
+            "meta_threshold_passed": true,
+            "posterior_directional": false,
+            "risk_eligible": false,
+            "signal_score_threshold_passed": true,
+            "technical_directional": false
+          },
+          "meta_probability": 0.0273972602739726,
+          "posterior": 0.2383158742949235,
+          "raw_model_output": 0.0273972602739726,
+          "rejection_reason": "non_executable_final_decision",
+          "risk_status": "HEALTHY",
+          "signal_score_strength": 0,
+          "technical_action": "NEUTRAL",
+          "technical_score": 50,
+          "time": "2025-01-01 00:00:00"
+        },
+        "technical_SELL": {
+          "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+          "canonical_action": "HOLD",
+          "coin": "BNB",
+          "feature_hash": "aaa68e3d5a7440b1e0f02e389ff7060e56cf1a9fbc7c13e3bd9779d120fa5ad1",
+          "final_action": "HOLD",
+          "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.124 | side_probability=0.876 | ev=-0.8584 | canonical_action_not_supported_by_entry_signal",
+          "gates": {
+            "canonical_policy_directional": false,
+            "meta_threshold_passed": true,
+            "posterior_directional": false,
+            "risk_eligible": false,
+            "signal_score_threshold_passed": true,
+            "technical_directional": true
+          },
+          "meta_probability": 0.0273972602739726,
+          "posterior": 0.1236099919419823,
+          "raw_model_output": 0.0273972602739726,
+          "rejection_reason": "non_executable_final_decision",
+          "risk_status": "HEALTHY",
+          "signal_score_strength": 0,
+          "technical_action": "SELL",
+          "technical_score": 38,
+          "time": "2025-01-01 05:45:00"
+        }
+      },
+      "contract_mismatch_count": 0,
+      "contract_mismatches": [],
+      "deterministic_semantic_replay": {
+        "first_hash": "0c100536bec4fbb12600a042310ef5314d1f4e8337017f3c0871b65461080c1f",
+        "fixture_count": 3,
+        "second_hash": "0c100536bec4fbb12600a042310ef5314d1f4e8337017f3c0871b65461080c1f",
+        "status": "PASS"
+      },
+      "error_count": 0,
+      "errors": [],
+      "funnel": {
+        "canonical_policy_directional": 0,
+        "entry_risk_eligible": 0,
+        "feature_vectors": 25920,
+        "final_actions": {
+          "BUY": 0,
+          "HOLD": 25920,
+          "SELL": 0
+        },
+        "inference_completed": 25920,
+        "market_observations": 25920,
+        "meta_threshold_passed": 25920,
+        "posterior_directional": 0,
+        "signal_score_threshold_passed": 25920,
+        "technical_directional": 1175
+      },
+      "input_mode": "HISTORICAL_MARKET_STATE_THROUGH_PRODUCTION_POLICY",
+      "observations_completed": 25920,
+      "observations_expected": 25920,
+      "semantic_hash": "b738bda7b8c3373d1624e71d9fa4c38c1992f9bbe16a907dad8144a2d34ac18b",
+      "status": "PASS"
+    },
+    "REPLAY_PARITY_SANITY": {
+      "actual_cycle_count": 8640,
+      "expected_cycle_count": 8640,
+      "production_policy_path": {
+        "DECISION_CONTRACT": "PASS",
+        "FEATURE_PIPELINE_PATH": "PASS",
+        "FINAL_POLICY_GATE_PATH": "PASS",
+        "INFERENCE_COORDINATOR_PATH": "PASS",
+        "META_DECISION_PATH": "PASS",
+        "MODEL_ARTIFACT_PATH": "PASS",
+        "RISK_GATE_PATH": "PASS",
+        "artifact_sha256": [
+          "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756"
+        ],
+        "captures": {
+          "fallback_alternative_data": {
+            "alternative_policy": "production fallback",
+            "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+            "canonical_action": "HOLD",
+            "coin": "BTC",
+            "feature_hash": "dde11facf6d303946f0b6ebac2ab0c39e99fa1a6e273a555197d01b8617e792a",
+            "final_action": "HOLD",
+            "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.238 | side_probability=0.762 | ev=-0.9726 | canonical_action_not_supported_by_entry_signal",
+            "gates": {
+              "canonical_policy_directional": false,
+              "meta_threshold_passed": true,
+              "posterior_directional": false,
+              "risk_eligible": false,
+              "signal_score_threshold_passed": true,
+              "technical_directional": false
+            },
+            "meta_probability": 0.0273972602739726,
+            "posterior": 0.2383158742949235,
+            "raw_model_output": 0.0273972602739726,
+            "rejection_reason": "non_executable_final_decision",
+            "risk_status": "HEALTHY",
+            "signal_score_strength": 0,
+            "technical_action": "NEUTRAL",
+            "technical_score": 50,
+            "time": "2025-01-01 00:00:00",
+            "world_state_source": "replay"
+          },
+          "final_BUY": {
+            "status": "NOT_OBSERVED"
+          },
+          "final_HOLD": {
+            "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+            "canonical_action": "HOLD",
+            "coin": "BTC",
+            "feature_hash": "dde11facf6d303946f0b6ebac2ab0c39e99fa1a6e273a555197d01b8617e792a",
+            "final_action": "HOLD",
+            "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.238 | side_probability=0.762 | ev=-0.9726 | canonical_action_not_supported_by_entry_signal",
+            "gates": {
+              "canonical_policy_directional": false,
+              "meta_threshold_passed": true,
+              "posterior_directional": false,
+              "risk_eligible": false,
+              "signal_score_threshold_passed": true,
+              "technical_directional": false
+            },
+            "meta_probability": 0.0273972602739726,
+            "posterior": 0.2383158742949235,
+            "raw_model_output": 0.0273972602739726,
+            "rejection_reason": "non_executable_final_decision",
+            "risk_status": "HEALTHY",
+            "signal_score_strength": 0,
+            "technical_action": "NEUTRAL",
+            "technical_score": 50,
+            "time": "2025-01-01 00:00:00"
+          },
+          "final_SELL": {
+            "status": "NOT_OBSERVED"
+          },
+          "technical_BUY": {
+            "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+            "canonical_action": "HOLD",
+            "coin": "ETH",
+            "feature_hash": "3e2586954929aa8b89c493bb0f8ab0d146c3375c3dd78ed0de510f1fd730b519",
+            "final_action": "HOLD",
+            "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.900 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.8623 | canonical_action_not_supported_by_entry_signal",
+            "gates": {
+              "canonical_policy_directional": false,
+              "meta_threshold_passed": true,
+              "posterior_directional": false,
+              "risk_eligible": false,
+              "signal_score_threshold_passed": true,
+              "technical_directional": true
+            },
+            "meta_probability": 0.0,
+            "posterior": 0.24705882352941178,
+            "raw_model_output": 0.0,
+            "rejection_reason": "non_executable_final_decision",
+            "risk_status": "HEALTHY",
+            "signal_score_strength": 0,
+            "technical_action": "BUY",
+            "technical_score": 70,
+            "time": "2025-01-02 19:15:00"
+          },
+          "technical_HOLD": {
+            "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+            "canonical_action": "HOLD",
+            "coin": "BTC",
+            "feature_hash": "dde11facf6d303946f0b6ebac2ab0c39e99fa1a6e273a555197d01b8617e792a",
+            "final_action": "HOLD",
+            "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.238 | side_probability=0.762 | ev=-0.9726 | canonical_action_not_supported_by_entry_signal",
+            "gates": {
+              "canonical_policy_directional": false,
+              "meta_threshold_passed": true,
+              "posterior_directional": false,
+              "risk_eligible": false,
+              "signal_score_threshold_passed": true,
+              "technical_directional": false
+            },
+            "meta_probability": 0.0273972602739726,
+            "posterior": 0.2383158742949235,
+            "raw_model_output": 0.0273972602739726,
+            "rejection_reason": "non_executable_final_decision",
+            "risk_status": "HEALTHY",
+            "signal_score_strength": 0,
+            "technical_action": "NEUTRAL",
+            "technical_score": 50,
+            "time": "2025-01-01 00:00:00"
+          },
+          "technical_SELL": {
+            "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+            "canonical_action": "HOLD",
+            "coin": "BNB",
+            "feature_hash": "aaa68e3d5a7440b1e0f02e389ff7060e56cf1a9fbc7c13e3bd9779d120fa5ad1",
+            "final_action": "HOLD",
+            "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.973 | meta_prob=0.973 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.124 | side_probability=0.876 | ev=-0.8584 | canonical_action_not_supported_by_entry_signal",
+            "gates": {
+              "canonical_policy_directional": false,
+              "meta_threshold_passed": true,
+              "posterior_directional": false,
+              "risk_eligible": false,
+              "signal_score_threshold_passed": true,
+              "technical_directional": true
+            },
+            "meta_probability": 0.0273972602739726,
+            "posterior": 0.1236099919419823,
+            "raw_model_output": 0.0273972602739726,
+            "rejection_reason": "non_executable_final_decision",
+            "risk_status": "HEALTHY",
+            "signal_score_strength": 0,
+            "technical_action": "SELL",
+            "technical_score": 38,
+            "time": "2025-01-01 05:45:00"
+          }
+        },
+        "contract_mismatch_count": 0,
+        "contract_mismatches": [],
+        "deterministic_semantic_replay": {
+          "first_hash": "0c100536bec4fbb12600a042310ef5314d1f4e8337017f3c0871b65461080c1f",
+          "fixture_count": 3,
+          "second_hash": "0c100536bec4fbb12600a042310ef5314d1f4e8337017f3c0871b65461080c1f",
+          "status": "PASS"
+        },
+        "error_count": 0,
+        "errors": [],
+        "funnel": {
+          "canonical_policy_directional": 0,
+          "entry_risk_eligible": 0,
+          "feature_vectors": 25920,
+          "final_actions": {
+            "BUY": 0,
+            "HOLD": 25920,
+            "SELL": 0
+          },
+          "inference_completed": 25920,
+          "market_observations": 25920,
+          "meta_threshold_passed": 25920,
+          "posterior_directional": 0,
+          "signal_score_threshold_passed": 25920,
+          "technical_directional": 1175
+        },
+        "input_mode": "HISTORICAL_MARKET_STATE_THROUGH_PRODUCTION_POLICY",
+        "observations_completed": 25920,
+        "observations_expected": 25920,
+        "semantic_hash": "b738bda7b8c3373d1624e71d9fa4c38c1992f9bbe16a907dad8144a2d34ac18b",
+        "status": "PASS"
+      },
+      "signal_cycle_count": 8640,
+      "status": "PASS",
+      "symbol_accounting": {
+        "BNB": {
+          "actual": 8640,
+          "expected": 8640,
+          "extra_count": 0,
+          "first_extra": [],
+          "first_missing": [],
+          "missing_count": 0,
+          "status": "PASS"
+        },
+        "BTC": {
+          "actual": 8640,
+          "expected": 8640,
+          "extra_count": 0,
+          "first_extra": [],
+          "first_missing": [],
+          "missing_count": 0,
+          "status": "PASS"
+        },
+        "ETH": {
+          "actual": 8640,
+          "expected": 8640,
+          "extra_count": 0,
+          "first_extra": [],
+          "first_missing": [],
+          "missing_count": 0,
+          "status": "PASS"
+        }
+      },
+      "timeframe": {
+        "actual": "15m",
+        "expected": "15m",
+        "status": "PASS"
+      }
+    }
+  },
+  "input": {
+    "data_dir": "data/fresh_training_data_2023_2026",
+    "policy_mode": "production",
+    "research_artifact_manifest": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/research/historical_market_replay_v1/research_artifact_pre2025/manifest.json",
+    "signals": "logs/adaptive_signals_v2.json"
+  },
+  "milestone": "HMR-V1.3 OOS EFFICACY SAMPLE",
+  "notes": [
+    "Decision window is unchanged; settlement bars only allow positions already open at end to close.",
+    "Production mode calls the canonical analysis, inference, decision, and entry-policy components in an isolated non-evidence runtime.",
+    "The research artifact evaluates the current architecture fitted only with pre-window information; it does not prove that this architecture or its hyperparameters were deployed in 2024.",
+    "A seven-day OOS sample is insufficient for a strategy efficacy conclusion.",
+    "Open Wave 2 only if STRICT_V1/RESEARCH_V1 deltas later show material alternative-data impact."
+  ],
+  "profile": {
+    "alternative_policy": "PIT-safe/reconstructed-safe data plus production fallback",
+    "evidence_tag": null,
+    "name": "STRICT_V1"
+  },
+  "research_profile_defined": {
+    "alternative_policy": "STRICT_V1 plus historical H1/H2 data tagged NON_PIT_VERIFIED",
+    "evidence_tag": "NON_PIT_VERIFIED",
+    "name": "RESEARCH_V1"
+  },
+  "sanitization": {
+    "future_outcome_fields_removed": 0,
+    "source": "production_policy_generated"
+  },
+  "window": {
+    "end": "2025-03-31T23:45:00+00:00",
+    "settlement_end": "2025-04-01T12:00:00+00:00",
+    "start": "2025-01-01T00:00:00+00:00",
+    "timeframe": "15m"
+  }
+}

@@ -1,0 +1,1277 @@
+{
+  "summary": {
+    "technical_buy_candidates": 45,
+    "rejected_raw_model": 45,
+    "rejected_calibration": 0,
+    "rejected_posterior": 0,
+    "rejected_meta": 0,
+    "rejected_policy": 0,
+    "rejected_risk": 0,
+    "final_buy": 0,
+    "buy_path_suppressed_by": [
+      "BUY_REJECT_MODEL"
+    ]
+  },
+  "records": [
+    {
+      "timestamp": "2025-01-02 19:15:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 70.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9762324283664476,
+        0.023767571633552323
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.900 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.8623 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-03 19:45:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8831449932878368,
+        0.11685500671216326
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.7106 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-05 19:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 69.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9815097366025279,
+        0.018490263397472107
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.13235294117647056,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.132 | side_probability=0.132 | ev=-1.0293 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-11 08:30:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 70.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.958372150564107,
+        0.04162784943589302
+      ],
+      "calibrated_probabilities": [
+        0.9858624418296376,
+        0.014137558170362472
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.14150077293376392,
+      "meta_score": 0.014137558170362472,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.014 | meta_side_probability=0.014 | meta_prob=0.014 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.142 | side_probability=0.142 | ev=-1.3079 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-13 14:00:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9893670011188754,
+        0.010632998881124517
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.1764705882352941,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.500 | posterior=0.176 | side_probability=0.176 | ev=-1.6975 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-17 01:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 67.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8957630384003952,
+        0.10423696159960488
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.7397 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-17 14:00:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 67.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9910155414100206,
+        0.008984458589979413
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.13235294117647056,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.132 | side_probability=0.132 | ev=-2.1882 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-19 14:00:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 67.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9722640178569376,
+        0.027735982143062374
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.0243 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-19 21:45:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9267203496233968,
+        0.07327965037660326
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.19419822723609992,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.500 | posterior=0.194 | side_probability=0.194 | ev=-1.5575 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-20 05:00:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 70.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9154490577340081,
+        0.08455094226599193
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.6802 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-20 19:45:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 64.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9888060673672615,
+        0.011193932632738464
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.2205882352941176,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.750 | posterior=0.221 | side_probability=0.221 | ev=-1.1072 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-22 01:15:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 69.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9741576382638811,
+        0.025842361736118896
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-2.1478 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-22 03:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 61.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8553444360497647,
+        0.14465556395023524
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.15008058017727638,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.900 | regime_applied=0.500 | volatility=0.250 | posterior=0.150 | side_probability=0.150 | ev=-1.0216 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-22 03:15:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 72.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9898980189559612,
+        0.010101981044038795
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.8377 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-22 11:45:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8946699004051373,
+        0.10533009959486278
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.19419822723609992,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.500 | posterior=0.194 | side_probability=0.194 | ev=-0.7026 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-22 12:15:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 69.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.7079685362421418,
+        0.29203146375785816
+      ],
+      "calibrated_probabilities": [
+        0.8333333333333334,
+        0.16666666666666666
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.35490196078431374,
+      "meta_score": 0.16666666666666666,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.167 | meta_side_probability=0.167 | meta_prob=0.167 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.355 | side_probability=0.355 | ev=-0.5927",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-01-29 23:15:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 64.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9655121406781118,
+        0.034487859321888276
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.2149 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-02 23:15:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 53.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8678082953433001,
+        0.13219170465669994
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.23831587429492343,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.750 | posterior=0.238 | side_probability=0.238 | ev=-1.1512 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-03 02:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 61.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9072454182037565,
+        0.09275458179624355
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.900 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.9827 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-05 08:30:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 65.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9912265024167317,
+        0.008773497583268307
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.1799 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-07 04:30:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9925685133056883,
+        0.007431486694311687
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.2205882352941176,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.750 | posterior=0.221 | side_probability=0.221 | ev=-1.0903 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-07 09:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 59.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.7394878889994627,
+        0.2605121110005372
+      ],
+      "calibrated_probabilities": [
+        0.9271680536657437,
+        0.07283194633425628
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.2941853770398129,
+      "meta_score": 0.07283194633425628,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.073 | meta_side_probability=0.073 | meta_prob=0.073 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.294 | side_probability=0.294 | ev=-0.9356 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-07 09:30:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9008566425446349,
+        0.09914335745536501
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.9078 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-09 23:30:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 61.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9786000877946226,
+        0.021399912205377444
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.2130 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-12 15:30:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9811645906216941,
+        0.018835409378305863
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.13235294117647056,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.132 | side_probability=0.132 | ev=-0.6040 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-12 17:45:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 73.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8263353842041069,
+        0.17366461579589312
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.15008058017727638,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.150 | side_probability=0.150 | ev=-0.5805 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-12 20:45:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 52.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9699622950952312,
+        0.03003770490476875
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.13235294117647056,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.132 | side_probability=0.132 | ev=-1.5792 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-17 15:15:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 56.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9839269038545674,
+        0.01607309614543265
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.1764705882352941,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.500 | posterior=0.176 | side_probability=0.176 | ev=-1.9783 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-23 11:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 74.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.7557286388942648,
+        0.24427136110573516
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.4796 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-23 16:30:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 67.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8068463969828608,
+        0.19315360301713924
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-1.3727 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-24 00:30:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 60.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9371630135414243,
+        0.0628369864585757
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.100 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-1.3288 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-24 09:30:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 70.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.8762840282090898,
+        0.12371597179091025
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.100 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-1.0343 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-02-24 10:15:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 71.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.6703205651347461,
+        0.32967943486525386
+      ],
+      "calibrated_probabilities": [
+        0.8333333333333334,
+        0.16666666666666666
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.35490196078431374,
+      "meta_score": 0.16666666666666666,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.167 | meta_side_probability=0.167 | meta_prob=0.167 | sentiment=0.500 | regime_proposed=0.100 | regime_applied=0.500 | volatility=0.900 | posterior=0.355 | side_probability=0.355 | ev=-0.5519",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-01 13:45:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 73.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9894742300149585,
+        0.010525769985041459
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.13235294117647056,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.132 | side_probability=0.132 | ev=-1.6266 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-03 00:15:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 54.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9566431294775352,
+        0.04335687052246479
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-1.3976 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-06 03:15:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 69.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9466374029877808,
+        0.053362597012219244
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.7469 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-10 11:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 54.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.6151030435449807,
+        0.3848969564550193
+      ],
+      "calibrated_probabilities": [
+        0.8333333333333334,
+        0.16666666666666666
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.35490196078431374,
+      "meta_score": 0.16666666666666666,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.167 | meta_side_probability=0.167 | meta_prob=0.167 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.355 | side_probability=0.355 | ev=-0.5898",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-10 16:00:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 73.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.7880763505165932,
+        0.2119236494834068
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-1.1211 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-11 09:00:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9915997587439601,
+        0.008400241256039933
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.13235294117647056,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.250 | posterior=0.132 | side_probability=0.132 | ev=-2.0666 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-15 14:00:00",
+      "symbol": "ETHUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 69.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9905650329775547,
+        0.009434967022445256
+      ],
+      "calibrated_probabilities": [
+        1.0,
+        0.0
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.24705882352941178,
+      "meta_score": 0.0,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.000 | meta_side_probability=0.000 | meta_prob=0.000 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.247 | side_probability=0.247 | ev=-1.1249 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-22 01:00:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.943966293179779,
+        0.056033706820221
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.23831587429492343,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.750 | posterior=0.238 | side_probability=0.238 | ev=-0.7090 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-22 03:45:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9057989963698057,
+        0.09420100363019429
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.19419822723609992,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.500 | posterior=0.194 | side_probability=0.194 | ev=-0.7425 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-23 15:30:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 68.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9201479853050953,
+        0.07985201469490463
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-1.3222 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-25 11:45:00",
+      "symbol": "BNBUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 71.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9564681787702476,
+        0.04353182122975244
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.15008058017727638,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.900 | regime_applied=0.500 | volatility=0.250 | posterior=0.150 | side_probability=0.150 | ev=-1.0056 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    },
+    {
+      "timestamp": "2025-03-28 18:15:00",
+      "symbol": "BTCUSDT",
+      "technical_reason": "technical_trigger",
+      "technical_score": 58.0,
+      "model_classes": [
+        0,
+        1
+      ],
+      "raw_probabilities": [
+        0.9525922732630887,
+        0.04740772673691127
+      ],
+      "calibrated_probabilities": [
+        0.9726027397260274,
+        0.0273972602739726
+      ],
+      "posterior_threshold": 0.65,
+      "posterior_result": 0.26478646253021754,
+      "meta_score": 0.0273972602739726,
+      "meta_threshold": 0.0,
+      "meta_result": true,
+      "signal_score": 0.0,
+      "canonical_result": "HOLD",
+      "risk_result": "non_executable_final_decision",
+      "final_decision_reason": "model_probability_up=0.027 | meta_side_probability=0.027 | meta_prob=0.027 | sentiment=0.500 | regime_proposed=0.500 | regime_applied=0.500 | volatility=0.900 | posterior=0.265 | side_probability=0.265 | ev=-0.8955 | canonical_action_not_supported_by_entry_signal",
+      "rejection_stage": "BUY_REJECT_MODEL"
+    }
+  ]
+}

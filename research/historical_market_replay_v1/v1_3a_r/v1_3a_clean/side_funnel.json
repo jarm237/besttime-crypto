@@ -1,0 +1,22 @@
+{
+  "BUY": {
+    "technical": 45,
+    "raw_model": 0,
+    "calibrated_model": 0,
+    "posterior": 0,
+    "meta": 0,
+    "canonical_policy": 0,
+    "risk": 0,
+    "executed": 0
+  },
+  "SELL": {
+    "technical": 1130,
+    "raw_model": 0,
+    "calibrated_model": 0,
+    "posterior": 0,
+    "meta": 0,
+    "canonical_policy": 0,
+    "risk": 0,
+    "executed": 0
+  }
+}

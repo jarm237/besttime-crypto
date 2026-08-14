@@ -1,0 +1,24 @@
+{
+  "phase": "HMR-V1.3A-R",
+  "step": "R8",
+  "title": "Calibration Strategy Decision",
+  "decision": "BRANCH_A_KEEP_ISOTONIC_AND_FROZEN_ARTIFACT",
+  "justification": "Isotonic calibration is mathematically correct under the current contract. The calibration collapse (capping probabilities at 16.67%) is a direct consequence of positive sample starvation (3 wins out of 409) in December 2024. Sigmoid calibration was tested via a scratch script and also fails to produce any probabilities above 14.70% because the raw ensemble probabilities themselves never exceed 41.51% (reflecting the 1.36% training base rate). Since phase boundary prohibits threshold optimization or tuning, changing calibration method does not change the trade execution count (it remains 0). Therefore, the cleanest approach is to retain the original research artifact and isotonic method, confirming that V1.3B is required to resolve threshold/base rate alignment.",
+  "experiment_results": {
+    "isotonic": {
+      "max_calibrated_prob": 0.1667,
+      "samples_above_buy_threshold": 0
+    },
+    "sigmoid": {
+      "max_calibrated_prob": 0.1470,
+      "samples_above_buy_threshold": 0
+    },
+    "raw_ensemble": {
+      "max_prob": 0.4151,
+      "samples_above_buy_threshold": 0
+    }
+  },
+  "gate": {
+    "CALIBRATION_STRATEGY_CONFIRMED": "PASS"
+  }
+}

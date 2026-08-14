@@ -1,0 +1,181 @@
+{
+  "summary": {
+    "calibration_win_rate": 0.007334963325183374,
+    "training_win_rate": 0.01358724724510538,
+    "calibration_wins": 3,
+    "calibration_total": 409,
+    "training_wins": 127,
+    "training_total": 9347,
+    "base_rate_ratio": 0.5398417496101496
+  },
+  "coin_breakdown": {
+    "BNB": {
+      "total": 122,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "BTC": {
+      "total": 145,
+      "wins": 3,
+      "win_rate": 0.020689655172413793
+    },
+    "ETH": {
+      "total": 142,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  },
+  "action_breakdown": {
+    "SELL": {
+      "total": 394,
+      "wins": 2,
+      "win_rate": 0.005076142131979695
+    },
+    "BUY": {
+      "total": 15,
+      "wins": 1,
+      "win_rate": 0.06666666666666667
+    }
+  },
+  "daily_breakdown": {
+    "2024-12-01": {
+      "total": 17,
+      "wins": 0
+    },
+    "2024-12-02": {
+      "total": 14,
+      "wins": 0
+    },
+    "2024-12-03": {
+      "total": 6,
+      "wins": 0
+    },
+    "2024-12-04": {
+      "total": 4,
+      "wins": 0
+    },
+    "2024-12-05": {
+      "total": 12,
+      "wins": 0
+    },
+    "2024-12-06": {
+      "total": 19,
+      "wins": 0
+    },
+    "2024-12-07": {
+      "total": 9,
+      "wins": 0
+    },
+    "2024-12-08": {
+      "total": 17,
+      "wins": 0
+    },
+    "2024-12-09": {
+      "total": 10,
+      "wins": 0
+    },
+    "2024-12-10": {
+      "total": 17,
+      "wins": 0
+    },
+    "2024-12-11": {
+      "total": 11,
+      "wins": 0
+    },
+    "2024-12-12": {
+      "total": 19,
+      "wins": 1
+    },
+    "2024-12-13": {
+      "total": 17,
+      "wins": 0
+    },
+    "2024-12-14": {
+      "total": 17,
+      "wins": 0
+    },
+    "2024-12-15": {
+      "total": 9,
+      "wins": 0
+    },
+    "2024-12-16": {
+      "total": 20,
+      "wins": 0
+    },
+    "2024-12-17": {
+      "total": 11,
+      "wins": 0
+    },
+    "2024-12-18": {
+      "total": 20,
+      "wins": 0
+    },
+    "2024-12-19": {
+      "total": 13,
+      "wins": 0
+    },
+    "2024-12-20": {
+      "total": 14,
+      "wins": 0
+    },
+    "2024-12-21": {
+      "total": 12,
+      "wins": 0
+    },
+    "2024-12-22": {
+      "total": 8,
+      "wins": 0
+    },
+    "2024-12-23": {
+      "total": 13,
+      "wins": 1
+    },
+    "2024-12-24": {
+      "total": 17,
+      "wins": 0
+    },
+    "2024-12-25": {
+      "total": 15,
+      "wins": 0
+    },
+    "2024-12-26": {
+      "total": 19,
+      "wins": 0
+    },
+    "2024-12-27": {
+      "total": 16,
+      "wins": 0
+    },
+    "2024-12-28": {
+      "total": 13,
+      "wins": 0
+    },
+    "2024-12-29": {
+      "total": 7,
+      "wins": 0
+    },
+    "2024-12-30": {
+      "total": 6,
+      "wins": 0
+    },
+    "2024-12-31": {
+      "total": 7,
+      "wins": 1
+    }
+  },
+  "classified_root_causes": [
+    "CALIBRATION_POSITIVE_STARVATION",
+    "CALIBRATION_SAMPLE_TOO_SMALL",
+    "TEMPORAL_DISTRIBUTION_SHIFT",
+    "SIDE_DISTRIBUTION_IMBALANCE"
+  ],
+  "classification_reasons": [
+    "Calibration dataset has critically few positive samples (wins < 10), which causes isotonic regression to flatten predictions to near-zero.",
+    "Calibration cohort size (409) is too small to perform stable probability calibration.",
+    "Win rate dropped by 46.0% in calibration period compared to training (0.73% vs 1.36%).",
+    "Extremely imbalanced technical signals in calibration set: 96.3% are SELL signals."
+  ],
+  "gate": {
+    "CALIBRATION_COLLAPSE_CAUSE": "KNOWN"
+  }
+}

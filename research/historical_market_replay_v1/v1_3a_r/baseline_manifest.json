@@ -1,0 +1,37 @@
+{
+  "evaluation_window": {
+    "start": "2025-01-01T00:00:00+00:00",
+    "end": "2025-03-31T23:45:00+00:00",
+    "settlement_end": "2025-04-01T12:00:00+00:00"
+  },
+  "research_artifact": {
+    "sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+    "model_version": "v3.1-research-pre2025-f3e3eb68"
+  },
+  "market_sequence": {
+    "coins": ["BTC", "ETH", "BNB"],
+    "timeframe": "15m"
+  },
+  "alternative_profile": "STRICT_V1",
+  "freeze_metrics": {
+    "technical_buy": 45,
+    "technical_sell": 1130,
+    "executed_buy": 0,
+    "executed_sell": 318,
+    "gross_pnl": -700.69,
+    "fees": 994.94,
+    "net_pnl": -1695.63,
+    "win_rate": 0.1415,
+    "profit_factor": 0.064,
+    "max_drawdown": 0.1731
+  },
+  "defect_evidence": {
+    "SIDE_MAPPING_SEMANTICS": "FAIL",
+    "model_target": "y=1 ⇔ WIN, y=0 ⇔ LOSS",
+    "predict_proba_col_1": "P(win | proposed trade)",
+    "sell_current_mapping": "meta_prob = 1.0 - P(win)"
+  },
+  "gate": {
+    "DEFECT_BASELINE_FROZEN": "PASS"
+  }
+}

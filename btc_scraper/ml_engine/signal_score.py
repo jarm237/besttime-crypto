@@ -692,19 +692,25 @@ def score_signal(
             raise RuntimeError("inference_owner_required")
         meta = dict(meta_prediction)
         if isinstance(meta, dict) and meta.get('probability') is not None:
-            model_probability_up = max(0.0, min(1.0, float(meta['probability'])))
-            meta_prob = (
-                1.0 - model_probability_up
-                if action == "SELL"
-                else model_probability_up
-            )
+            model_win_probability = max(0.0, min(1.0, float(meta['probability'])))
+            # CONTRACT: meta['probability'] = P(win | proposed_trade), side-agnostic.
+            # DO NOT invert for SELL. P(win) for a SELL trade already reflects the
+            # probability that the trade wins (i.e. price falls). The directional
+            # posterior flip is applied later in MetaDecisionEngine.decide() via
+            # side_probability → posterior = 1 - side_probability for SELL.
+            #
+            # The previous code did `1.0 - model_probability_up` for SELL, which
+            # mapped P(win) → P(loss), selecting the worst SELL candidates.
+            # This was an unambiguous defect. See R1 proof: probability_contract.md.
+            model_probability_up = model_win_probability  # legacy alias — do not use for new code
+            meta_prob = model_win_probability
             meta_expected_return = meta.get("expected_return")
             meta_expected_drawdown = meta.get("expected_drawdown")
             meta_expected_hold_time = meta.get("expected_hold_time")
             meta_decision = {
                 **meta,
                 "model_probability_up": model_probability_up,
-                "probability_semantics": "P(up)",
+                "probability_semantics": "P(win_given_proposed_trade)",
                 "execution_probability": meta_prob,
                 "execution_probability_semantics": "P(win_given_proposed_trade)",
                 "proposed_action": action,
@@ -737,6 +743,7 @@ def score_signal(
                 kelly = max(float(kparams.get('min_fraction', 0.0)), float(decayed))
             except Exception:
                 kelly = float(decayed)
+
         elif isinstance(meta, dict) and meta.get('error'):
             meta_err = meta['error']
 
