@@ -101,7 +101,7 @@ Root causes classified:
 - `TEMPORAL_DISTRIBUTION_SHIFT` — win rate dropped from 1.36% to 0.73%
 - `SIDE_DISTRIBUTION_IMBALANCE` — 96.3% SELL signals in calibration
 
-**Strategy Decision**: Branch A (Keep Isotonic, retain frozen artifact). Neither sigmoid nor isotonic can produce probabilities above 0.65 with this base rate.
+**Strategy Decision**: `NO_CALIBRATION_REPLACEMENT_IN_V1.3A-R` — with 3/409 positive samples, neither isotonic nor sigmoid produces meaningful calibration. This is not a validated endorsement of isotonic (`ISOTONIC_VALIDATED`); it is a deferral. Proper calibrator evaluation (Brier, log loss, reliability, resolution, temporal stability) requires a cohort with sufficient positive class representation and is deferred to V1.3C.
 
 ---
 
@@ -109,7 +109,9 @@ Root causes classified:
 
 - `buy_threshold = 0.65` and `sell_threshold = 0.35` introduced in commit `fa9669d` (Jun 28, 2026)
 - Hardcoded defaults, no dynamic configuration
-- Classification: `THRESHOLD_SEMANTICS_MATCH` — scale aligns with probability contract but is incompatible with collapsed calibration output
+- Classification: `THRESHOLD_CONTRACT = NOT_YET_VALIDATED`
+
+> **Note**: The asymmetric pair `0.65 / 0.35` was likely designed for `P(up)` semantics, where `SELL threshold = 1 - BUY threshold = 0.35` makes sense (selling when P(up) < 35%). Under the corrected `P(win | proposed_trade)` semantics, both BUY and SELL represent the same quantity (P(win) for that side's trade), and there is no obvious semantic justification for different thresholds per side without side-specific calibration evidence. This must be validated in V1.3B before any threshold optimization.
 
 ---
 
