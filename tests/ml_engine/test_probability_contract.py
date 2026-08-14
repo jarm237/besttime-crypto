@@ -23,7 +23,7 @@ def test_buy_preserves_win_probability():
 def test_sell_preserves_win_probability():
     meta = {
         "probability": 0.80,
-        "expected_return": -0.10,
+        "expected_return": 0.10,
         "expected_drawdown": 0.05,
         "expected_hold_time": 4.0,
         "prediction_id": "pred-123",
@@ -41,7 +41,7 @@ def test_sell_preserves_win_probability():
 def test_sell_does_not_invert_win_probability():
     meta = {
         "probability": 0.20,
-        "expected_return": -0.10,
+        "expected_return": 0.10,
         "expected_drawdown": 0.05,
         "expected_hold_time": 4.0,
         "prediction_id": "pred-123",

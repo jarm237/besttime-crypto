@@ -1,0 +1,13 @@
+{
+  "counts": {
+    "BAD_ENTRY": 224,
+    "COST_DESTROYED": 60,
+    "GOOD_CAPTURE": 45,
+    "EDGE_NOT_CAPTURED": 0
+  },
+  "averages": {
+    "MFE": 0.007507992483422553,
+    "MAE": -0.008163649876533537,
+    "mfe_realized_capture_ratio": -377.9356183843955
+  }
+}

@@ -314,7 +314,7 @@ class MetaDecisionEngine:
         action = "HOLD"
         if expected_return >= self.min_ev_pct and posterior >= self.buy_threshold:
             action = "BUY"
-        elif expected_return <= -self.min_ev_pct and posterior <= self.sell_threshold:
+        elif expected_return >= self.min_ev_pct and posterior <= self.sell_threshold:
             action = "SELL"
         elif posterior >= self.buy_threshold:
             action = "INCREASE"
@@ -323,7 +323,7 @@ class MetaDecisionEngine:
         elif self.hold_threshold <= posterior <= 1.0 - self.hold_threshold:
             action = "HOLD"
 
-        if abs(expected_return) < self.min_ev_pct:
+        if expected_return < self.min_ev_pct:
             action = "IGNORE"
 
         risk_status = str(analysis_info.get("risk_status") or "HEALTHY").upper()
@@ -428,10 +428,10 @@ class MetaDecisionEngine:
         if adjusted_posterior >= self.buy_threshold:
             proposed_action = "BUY" if expected_return >= self.min_ev_pct else "INCREASE"
         elif adjusted_posterior <= self.sell_threshold:
-            proposed_action = "SELL" if expected_return <= -self.min_ev_pct else "REDUCE"
+            proposed_action = "SELL" if expected_return >= self.min_ev_pct else "REDUCE"
         elif self.hold_threshold <= adjusted_posterior <= 1.0 - self.hold_threshold:
             proposed_action = "HOLD"
-        if abs(expected_return) < self.min_ev_pct:
+        if expected_return < self.min_ev_pct:
             proposed_action = "IGNORE"
 
         final_action, risk_reasons = apply_final_risk_gate(proposed_action, risk_level, stop_processing)

@@ -219,7 +219,7 @@ class TestFinalRiskGate:
             "action": "NEUTRAL",
             "_meta_prediction": {
                 "probability": 0.2,
-                "expected_return": -0.1,
+                "expected_return": 0.1,
                 "prediction_id": None,
             },
         }, persist_final=False)
@@ -235,7 +235,7 @@ class TestFinalRiskGate:
             "action": "SELL",
             "_meta_prediction": {
                 "probability": 0.2,
-                "expected_return": -0.1,
+                "expected_return": 0.1,
                 "prediction_id": None,
             },
         }, persist_final=False)
@@ -256,7 +256,7 @@ class TestFinalRiskGate:
             "_meta_prediction": {
                 "probability": 0.2,
                 "probability_semantics": "P(up)",
-                "expected_return": -0.1,
+                "expected_return": 0.1,
                 "prediction_id": None,
             },
         }, persist_final=False)
@@ -267,6 +267,73 @@ class TestFinalRiskGate:
         assert result["side_probability"] >= 0.65
         assert result["posterior_probability"] <= 0.35
         assert result["decision_contract_version"] == "side-probability-v2"
+
+
+class TestSideAgnosticExpectedValueContract:
+    def test_buy_eligible_with_positive_ev(self):
+        engine = MetaDecisionEngine(min_ev_pct=0.05)
+        # P(win) high + TP > SL -> positive EV -> BUY is eligible
+        result = engine.decide({
+            "signal": "BUY",
+            "action": "BUY",
+            "_meta_prediction": {
+                "probability": 0.8,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": 0.10,
+                "prediction_id": "pred-1",
+            }
+        }, persist_final=False)
+        assert result["action"] == "BUY"
+        assert result["eligible"] is True
+
+    def test_sell_eligible_with_positive_ev(self):
+        engine = MetaDecisionEngine(min_ev_pct=0.05)
+        # P(win) high + TP > SL -> positive EV -> SELL is eligible
+        result = engine.decide({
+            "signal": "SELL",
+            "action": "SELL",
+            "_meta_prediction": {
+                "probability": 0.8,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": 0.10,
+                "prediction_id": "pred-2",
+            }
+        }, persist_final=False)
+        assert result["action"] == "SELL"
+        assert result["eligible"] is True
+
+    def test_buy_ignored_with_negative_ev(self):
+        engine = MetaDecisionEngine(min_ev_pct=0.05)
+        # P(win) low -> negative EV -> BUY is ignored
+        result = engine.decide({
+            "signal": "BUY",
+            "action": "BUY",
+            "_meta_prediction": {
+                "probability": 0.2,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": -0.10,
+                "prediction_id": "pred-3",
+            }
+        }, persist_final=False)
+        assert result["action"] == "IGNORE"
+        assert result["eligible"] is False
+
+    def test_sell_ignored_with_negative_ev(self):
+        engine = MetaDecisionEngine(min_ev_pct=0.05)
+        # P(win) low -> negative EV -> SELL is ignored
+        result = engine.decide({
+            "signal": "SELL",
+            "action": "SELL",
+            "_meta_prediction": {
+                "probability": 0.2,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": -0.10,
+                "prediction_id": "pred-4",
+            }
+        }, persist_final=False)
+        assert result["action"] == "IGNORE"
+        assert result["eligible"] is False
+
 
     def test_unavailable_account_risk_is_persistable_in_final_decision(self):
         engine = MetaDecisionEngine()
