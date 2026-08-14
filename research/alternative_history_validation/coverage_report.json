@@ -1,0 +1,126 @@
+{
+  "generated_at": "2026-08-14T00:00:00+00:00",
+  "network_policy": "disabled",
+  "sources": [
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "daily",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "alternative_me"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "daily",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "fred"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "8h",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "binance_funding"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "current snapshot",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "binance_open_interest"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "current snapshot",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "binance_orderbook"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "daily",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "defillama_stablecoin"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "daily/hourly depending endpoint",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "defillama_tvl"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "hourly",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "deribit_dvol"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "minutes/current snapshot",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "deribit_iv_skew"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "daily",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "etf"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "hourly/daily",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "google_trends"
+    },
+    {
+      "continuity": "NOT_EVALUATED",
+      "earliest_usable_timestamp": "UNKNOWN",
+      "expected_cadence": "realtime",
+      "fallback_verified": "NOT_VERIFIED",
+      "maximum_gap": "UNKNOWN",
+      "missing_ratio": "UNKNOWN",
+      "retention_boundary": "UNKNOWN",
+      "source": "reddit"
+    }
+  ]
+}

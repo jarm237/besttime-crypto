@@ -1,0 +1,761 @@
+[
+  {
+    "cache_ttl": "ALTERNATIVE_ME_CACHE_TTL_SECONDS default 21600s",
+    "cadence": "daily",
+    "collector": "AlternativeMeCollector",
+    "derived_features": [
+      "fear_greed_score",
+      "risk_on_score"
+    ],
+    "endpoints": [
+      "https://api.alternative.me/fng/?limit=1"
+    ],
+    "fallback": "stale in-memory cache on error; unavailable without cache; env skip",
+    "feature_contracts": [
+      {
+        "confidence": 0.6,
+        "feature": "fear_greed_raw",
+        "max_age_seconds": 86400,
+        "maximum": 100,
+        "minimum": 0,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "alternative_me"
+      },
+      {
+        "confidence": 0.6,
+        "feature": "fear_greed_score",
+        "max_age_seconds": 86400,
+        "maximum": 1,
+        "minimum": -1,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "alternative_me"
+      }
+    ],
+    "feature_names": [
+      "fear_greed_raw",
+      "fear_greed_score"
+    ],
+    "historical_target": "12m+",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "normalize_fear_greed(raw_value), then normalize_alternative_payload derives fear_greed_score",
+    "production_features": [
+      "fear_greed_raw",
+      "fear_greed_score"
+    ],
+    "production_parity_notes": "Historical payload must use production normalize_fear_greed and aggregate normalizer.",
+    "production_source": "alternative_me",
+    "provider": "Alternative.me Fear & Greed",
+    "raw_fields_consumed": [
+      "value",
+      "value_classification",
+      "timestamp"
+    ],
+    "raw_input": "Fear & Greed observation: value, value_classification, timestamp",
+    "source_id": "alternative_me",
+    "timestamp_field": "timestamp -> fear_greed_observed_at",
+    "timestamp_semantics": [
+      "observed_at from provider timestamp",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "daily",
+    "collector": "FredCollector",
+    "derived_features": [
+      "macro_risk_score",
+      "macro_pressure",
+      "risk_on_score"
+    ],
+    "endpoints": [
+      "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10",
+      "https://query2.finance.yahoo.com/v8/finance/chart/^TNX?interval=1d&range=2d"
+    ],
+    "fallback": "Yahoo Finance current chart fallback when FRED key is demo or FRED fails",
+    "feature_contracts": [
+      {
+        "confidence": 0.9,
+        "feature": "us10y",
+        "max_age_seconds": 86400,
+        "maximum": 20,
+        "minimum": 0,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "fred"
+      }
+    ],
+    "feature_names": [
+      "us10y"
+    ],
+    "historical_target": "12m+",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "normalize_alternative_payload consumes us10y for macro_risk_score",
+    "production_features": [
+      "us10y"
+    ],
+    "production_parity_notes": "Do not treat final revised FRED observations as PIT without realtime_start/realtime_end audit.",
+    "production_source": "fred",
+    "provider": "FRED DGS10 with Yahoo ^TNX fallback",
+    "raw_fields_consumed": [
+      "observations[-1].value",
+      "Yahoo regularMarketPrice/close fallback"
+    ],
+    "raw_input": "macro observations for us10y; gold field currently defaults/overridden by Yahoo collector",
+    "source_id": "fred",
+    "timestamp_field": "FRED date / Yahoo chart timestamp; collector timestamp in wrapper",
+    "timestamp_semantics": [
+      "observation date",
+      "collector timestamp",
+      "FRED realtime vintage when configured"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "8h",
+    "collector": "BinanceCollector",
+    "derived_features": [
+      "funding_pressure",
+      "risk_on_score"
+    ],
+    "endpoints": [
+      "https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1"
+    ],
+    "fallback": "field-level missing/invalid statuses; env skip",
+    "feature_contracts": [
+      {
+        "confidence": 0.9,
+        "feature": "funding_rate",
+        "max_age_seconds": 900,
+        "maximum": 0.1,
+        "minimum": -0.1,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "binance"
+      }
+    ],
+    "feature_names": [
+      "funding_rate"
+    ],
+    "historical_target": "12m",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "normalize_alternative_payload derives funding_pressure from funding_rate",
+    "production_features": [
+      "funding_rate"
+    ],
+    "production_parity_notes": "Historical funding endpoint must preserve fundingTime and fundingRate semantics.",
+    "production_source": "binance",
+    "provider": "Binance USD-M Futures",
+    "raw_fields_consumed": [
+      "fundingRate",
+      "fundingTime"
+    ],
+    "raw_input": "BTCUSDT funding rate",
+    "source_id": "binance_funding",
+    "timestamp_field": "fundingTime",
+    "timestamp_semantics": [
+      "fundingTime",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "current snapshot",
+    "collector": "BinanceCollector",
+    "derived_features": [
+      "open_interest_pressure"
+    ],
+    "endpoints": [
+      "https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT"
+    ],
+    "fallback": "field-level invalid status for zero/missing OI; env skip",
+    "feature_contracts": [
+      {
+        "confidence": 0.9,
+        "feature": "open_interest",
+        "max_age_seconds": 900,
+        "maximum": null,
+        "minimum": 1e-12,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "binance"
+      }
+    ],
+    "feature_names": [
+      "open_interest"
+    ],
+    "historical_target": "determine",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "normalize_alternative_payload compares current and previous open_interest",
+    "production_features": [
+      "open_interest"
+    ],
+    "production_parity_notes": "Current endpoint schema differs from historical OI endpoints; parity must be proven separately.",
+    "production_source": "binance",
+    "provider": "Binance USD-M Futures",
+    "raw_fields_consumed": [
+      "openInterest"
+    ],
+    "raw_input": "current BTCUSDT open interest snapshot",
+    "source_id": "binance_open_interest",
+    "timestamp_field": "collector timestamp",
+    "timestamp_semantics": [
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "current snapshot",
+    "collector": "BinanceCollector",
+    "derived_features": [
+      "orderbook_imbalance"
+    ],
+    "endpoints": [
+      "https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=100"
+    ],
+    "fallback": "missing_or_empty_depth field status; env skip",
+    "feature_contracts": [
+      {
+        "confidence": 0.8,
+        "feature": "orderbook_imbalance",
+        "max_age_seconds": 900,
+        "maximum": 1,
+        "minimum": -1,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "binance"
+      }
+    ],
+    "feature_names": [
+      "orderbook_imbalance"
+    ],
+    "historical_target": "determine",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "production computes (bid volume - ask volume) / total volume before aggregate normalizer",
+    "production_features": [
+      "orderbook_imbalance"
+    ],
+    "production_parity_notes": "Order book cannot be replayed exactly without archived depth snapshots.",
+    "production_source": "binance",
+    "provider": "Binance USD-M Futures",
+    "raw_fields_consumed": [
+      "bids[][1]",
+      "asks[][1]"
+    ],
+    "raw_input": "top 100 bid/ask depth snapshot",
+    "source_id": "binance_orderbook",
+    "timestamp_field": "collector timestamp",
+    "timestamp_semantics": [
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 3
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "daily",
+    "collector": "DefiLlamaCollector",
+    "derived_features": [
+      "stablecoin_momentum",
+      "effective_stablecoin_momentum"
+    ],
+    "endpoints": [
+      "https://stablecoins.llama.fi/stablecoins",
+      "https://stablecoins.llama.fi/stablecoincharts/all"
+    ],
+    "fallback": "stablecoins endpoint then stablecoincharts",
+    "feature_contracts": [
+      {
+        "confidence": 0.7,
+        "feature": "stablecoin_supply",
+        "max_age_seconds": 3600,
+        "maximum": null,
+        "minimum": 1e-12,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "defillama"
+      },
+      {
+        "confidence": 0.7,
+        "feature": "stablecoin_supply_total",
+        "max_age_seconds": 3600,
+        "maximum": null,
+        "minimum": 1e-12,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "defillama"
+      }
+    ],
+    "feature_names": [
+      "stablecoin_supply",
+      "stablecoin_supply_total"
+    ],
+    "historical_target": "12m",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "production parser extracts/sums pegged USD and aggregate normalizer derives momentum",
+    "production_features": [
+      "stablecoin_supply",
+      "stablecoin_supply_total"
+    ],
+    "production_parity_notes": "Chart rows must not be summed across time; choose as-of row only.",
+    "production_source": "defillama",
+    "provider": "DefiLlama",
+    "raw_fields_consumed": [
+      "total",
+      "data.totalStablecoins",
+      "peggedAssets[].circulating",
+      "chart totalCirculating"
+    ],
+    "raw_input": "stablecoin pegged USD totals",
+    "source_id": "defillama_stablecoin",
+    "timestamp_field": "chart row date when historical; collector timestamp otherwise",
+    "timestamp_semantics": [
+      "provider chart date when historical",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "daily/hourly depending endpoint",
+    "collector": "DefiLlamaCollector",
+    "derived_features": [
+      "defi_liquidity_score"
+    ],
+    "endpoints": [
+      "https://api.llama.fi/v2/chains",
+      "https://api.llama.fi/protocols"
+    ],
+    "fallback": "chain/protocol TVL optional; invalid field status when missing",
+    "feature_contracts": [
+      {
+        "confidence": 0.65,
+        "feature": "chain_tvl",
+        "max_age_seconds": 3600,
+        "maximum": null,
+        "minimum": 0,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "defillama"
+      },
+      {
+        "confidence": 0.65,
+        "feature": "tvl",
+        "max_age_seconds": 3600,
+        "maximum": null,
+        "minimum": 0,
+        "missing_policy": "preserve",
+        "required": true,
+        "source": "defillama"
+      }
+    ],
+    "feature_names": [
+      "tvl",
+      "chain_tvl"
+    ],
+    "historical_target": "12m",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "production sums numeric TVL fields and chooses max(chain_tvl, protocol_tvl)",
+    "production_features": [
+      "chain_tvl",
+      "tvl"
+    ],
+    "production_parity_notes": "Current aggregate endpoints may not provide PIT TVL; historical endpoint/schema parity must be proven.",
+    "production_source": "defillama",
+    "provider": "DefiLlama",
+    "raw_fields_consumed": [
+      "chains[].tvl",
+      "protocols[].tvl"
+    ],
+    "raw_input": "chain and protocol TVL",
+    "source_id": "defillama_tvl",
+    "timestamp_field": "collector timestamp for current endpoints",
+    "timestamp_semantics": [
+      "provider timestamp if historical endpoint exists",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "hourly",
+    "collector": "DeribitCollector",
+    "derived_features": [
+      "options_iv"
+    ],
+    "endpoints": [
+      "https://www.deribit.com/api/v2/public/get_volatility_index_data"
+    ],
+    "fallback": "book summary median IV if DVOL missing",
+    "feature_contracts": [
+      {
+        "confidence": 0.8,
+        "feature": "options_iv",
+        "max_age_seconds": 900,
+        "maximum": 5,
+        "minimum": 0,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "deribit"
+      }
+    ],
+    "feature_names": [
+      "options_iv"
+    ],
+    "historical_target": "12m",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "production parser normalizes IV percentages to decimals",
+    "production_features": [
+      "options_iv"
+    ],
+    "production_parity_notes": "Historical DVOL rows need PIT row timestamp and same close-field semantics.",
+    "production_source": "deribit",
+    "provider": "Deribit public API",
+    "raw_fields_consumed": [
+      "result.data[-1][0]",
+      "result.data[-1][4]"
+    ],
+    "raw_input": "DVOL OHLC rows",
+    "source_id": "deribit_dvol",
+    "timestamp_field": "DVOL row timestamp",
+    "timestamp_semantics": [
+      "DVOL row timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "none in collector",
+    "cadence": "minutes/current snapshot",
+    "collector": "DeribitCollector",
+    "derived_features": [
+      "iv_skew"
+    ],
+    "endpoints": [
+      "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option"
+    ],
+    "fallback": "field-level missing status when insufficient 25d put/call samples",
+    "feature_contracts": [
+      {
+        "confidence": 0.8,
+        "feature": "iv_skew",
+        "max_age_seconds": 900,
+        "maximum": 5,
+        "minimum": -5,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "deribit"
+      }
+    ],
+    "feature_names": [
+      "iv_skew"
+    ],
+    "historical_target": "12m",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "production computes matched-expiry put IV minus call IV near 25 delta",
+    "production_features": [
+      "iv_skew"
+    ],
+    "production_parity_notes": "Book summary endpoint is current-state; historical option chain parity requires archive/provenance.",
+    "production_source": "deribit",
+    "provider": "Deribit public API",
+    "raw_fields_consumed": [
+      "instrument_name",
+      "mark_iv",
+      "delta/greeks.delta",
+      "underlying_price"
+    ],
+    "raw_input": "option book summaries with mark_iv/delta by instrument",
+    "source_id": "deribit_iv_skew",
+    "timestamp_field": "collector timestamp",
+    "timestamp_semantics": [
+      "option summary collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 1
+  },
+  {
+    "cache_ttl": "provider dependent",
+    "cadence": "daily",
+    "collector": "ETFCollector",
+    "derived_features": [
+      "etf_momentum",
+      "effective_etf_momentum"
+    ],
+    "endpoints": [
+      "provider-chain-defined",
+      "parsebot_farside_cache"
+    ],
+    "fallback": "disabled by default; provider chain; optional fake defaults only if explicitly allowed",
+    "feature_contracts": [
+      {
+        "confidence": 0.5,
+        "feature": "etf_flow",
+        "max_age_seconds": 86400,
+        "maximum": null,
+        "minimum": null,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "etf"
+      }
+    ],
+    "feature_names": [
+      "etf_flow"
+    ],
+    "historical_target": "determine",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "normalize_alternative_payload derives etf_momentum from previous payload",
+    "production_features": [
+      "etf_flow"
+    ],
+    "production_parity_notes": "Disabled/default placeholder means replay should use production fallback unless provider archive is validated.",
+    "production_source": "etf",
+    "provider": "ETFProviderChain / Parsebot Farside",
+    "raw_fields_consumed": [
+      "total_flow_usd_m",
+      "etf_flow_status",
+      "provider fields"
+    ],
+    "raw_input": "US spot BTC ETF net flow",
+    "source_id": "etf",
+    "timestamp_field": "flow date / provider cache timestamp",
+    "timestamp_semantics": [
+      "flow date",
+      "provider cache timestamp",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 2
+  },
+  {
+    "cache_ttl": "CACHE_FRESHNESS_SECONDS 21600s",
+    "cadence": "hourly/daily",
+    "collector": "GoogleTrendsCollector",
+    "derived_features": [
+      "sentiment_score"
+    ],
+    "endpoints": [
+      "pytrends interest_over_time timeframe=now 7-d"
+    ],
+    "fallback": "disabled by default; cache; rate_limited/missing statuses",
+    "feature_contracts": [
+      {
+        "confidence": 0.35,
+        "feature": "sentiment_score",
+        "max_age_seconds": 86400,
+        "maximum": 1,
+        "minimum": -1,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "google_trends"
+      }
+    ],
+    "feature_names": [
+      "sentiment_score"
+    ],
+    "historical_target": "determine",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "raw 0..100 score divided by 100 as sentiment_score",
+    "production_features": [
+      "sentiment_score"
+    ],
+    "production_parity_notes": "Trends values are rescaled by query window; historical recomputation must freeze query window semantics.",
+    "production_source": "google_trends",
+    "provider": "pytrends unofficial Google Trends",
+    "raw_fields_consumed": [
+      "interest_over_time()[bitcoin].iloc[-1]"
+    ],
+    "raw_input": "bitcoin search interest",
+    "source_id": "google_trends",
+    "timestamp_field": "pytrends row time / cache cached_at",
+    "timestamp_semantics": [
+      "pytrends row time",
+      "cache cached_at",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 2
+  },
+  {
+    "cache_ttl": "none in wrapper collector",
+    "cadence": "realtime",
+    "collector": "RedditCollector",
+    "derived_features": [
+      "social_sentiment"
+    ],
+    "endpoints": [
+      "Reddit OAuth API via configured collector"
+    ],
+    "fallback": "disabled by default; minimum sample gate; missing status",
+    "feature_contracts": [
+      {
+        "confidence": 0.4,
+        "feature": "social_sentiment",
+        "max_age_seconds": 86400,
+        "maximum": 1,
+        "minimum": -1,
+        "missing_policy": "preserve",
+        "required": false,
+        "source": "reddit"
+      }
+    ],
+    "feature_names": [
+      "social_sentiment"
+    ],
+    "historical_target": "determine",
+    "initial_fidelity": "UNCLASSIFIED",
+    "initial_replay_decision": "PENDING_VALIDATION",
+    "inventory_generated_at": "2026-08-14T00:00:00+00:00",
+    "inventory_source": "production collector code + feature_source_registry",
+    "normalization": "collector emits sentiment_score/social_sentiment and sample counts",
+    "production_features": [
+      "social_sentiment"
+    ],
+    "production_parity_notes": "Historical scores must recompute derived metrics only with observations available_at <= replay T.",
+    "production_source": "reddit",
+    "provider": "RedditOAuthCollector",
+    "raw_fields_consumed": [
+      "sentiment_score",
+      "sentiment_volume",
+      "sentiment_zscore",
+      "posts_analyzed"
+    ],
+    "raw_input": "posts/comments sentiment, volume, z-score",
+    "source_id": "reddit",
+    "timestamp_field": "post/comment created time and collector timestamp",
+    "timestamp_semantics": [
+      "post/comment created time",
+      "collector timestamp"
+    ],
+    "validation_boundary": [
+      "READ_ONLY",
+      "NON_EVIDENCE",
+      "NO_ACTIVE_CANARY_MUTATION",
+      "NO_RUNTIME_CONTROL_ACTION",
+      "NO_MODEL_RETRAIN",
+      "NO_POLICY_CHANGE"
+    ],
+    "wave": 3
+  }
+]

@@ -1,0 +1,130 @@
+{
+  "artifact_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+  "boundary": {
+    "NON_EVIDENCE": true,
+    "NON_PRODUCTION": true,
+    "NO_ACTIVE_CANARY_MUTATION": true,
+    "NO_REGISTRY_PROMOTION": true,
+    "RESEARCH_ONLY": true
+  },
+  "calibration_available_max": "2024-12-31T22:15:00+00:00",
+  "calibration_data_sha256": "7a7c7118e7bfe54bf29a9e317a65c1d9e84ac618d5d1386b802ed31f17ecb413",
+  "calibrator_sha256": "1c8ad6f106014519906569fc7ed0260e0b8905839e77cb1bbcc32076c3ed7b34",
+  "class_distribution": {
+    "calibration": {
+      "0": 406,
+      "1": 3
+    },
+    "training": {
+      "0": 9220,
+      "1": 127
+    }
+  },
+  "created_at": "2026-08-14T04:59:57.644010+00:00",
+  "cutoffs": {
+    "calibration_end": "2024-12-31T23:59:59+00:00",
+    "calibration_start": "2024-12-01T00:00:00+00:00",
+    "eligibility_rule": "feature_available_at <= split cutoff AND label_available_at <= split cutoff AND label horizon is complete (no right-censored timeout)",
+    "training_end": "2024-11-30T23:59:59+00:00"
+  },
+  "determinism": {
+    "criterion": "semantic fingerprint over all train/calibration probabilities, class outputs, ensemble weights, and feature importances",
+    "first": {
+      "base_model_sha256": "fae4e92f43000be2b9d124a6aba067999f965b789acf9548d029bb7d5137eb75",
+      "bundle_sha256": "3c5186c5efa943d5b32fdc059f72cb7ae1c40935936c683cc1e6dd29a9ac3756",
+      "calibrator_sha256": "1c8ad6f106014519906569fc7ed0260e0b8905839e77cb1bbcc32076c3ed7b34",
+      "semantic_fingerprint_sha256": "a20c2ee316357ec5d20f6d3674fdabc2c81dd6b6e09cfe3061bb6109a7e2941e"
+    },
+    "second": {
+      "base_model_sha256": "4eb00c1283d6624f518b04e9cb44bdfc4e32a88e0b3290fd166486fe013492cf",
+      "bundle_sha256": "2e94e14505b40ca24798a85f56e859ba5281609c4ebd9410c4e3583e32b09d17",
+      "calibrator_sha256": "2439dfc4b135b317541e6c5c0997f78934b773d3f238a203885a639299031422",
+      "semantic_fingerprint_sha256": "a20c2ee316357ec5d20f6d3674fdabc2c81dd6b6e09cfe3061bb6109a7e2941e"
+    },
+    "serialization_note": "joblib byte hashes are provenance identifiers; third-party estimator serialization is not canonical across independent fits"
+  },
+  "evaluation_earliest_allowed": "2024-12-31T22:15:00.000001+00:00",
+  "feature_schema_sha256": "109fdf305034d4f63e68be1d3d9bfb89f16de5a4fd68bad4d84de8d608fdf1b3",
+  "feature_schema_version": "meta-v3.1-43f",
+  "gates": {
+    "ARTIFACT_PROVENANCE": "PASS",
+    "CALIBRATION_TEMPORAL_VALIDITY": "PASS",
+    "DATASET_PROVENANCE": "PASS",
+    "DETERMINISTIC_TRAINING": "PASS",
+    "LABEL_TEMPORAL_VALIDITY": "PASS",
+    "TRAINING_TEMPORAL_VALIDITY": "PASS"
+  },
+  "interpretation": "Counterfactual OOS evaluation of the current architecture fit only with pre-evaluation information; not evidence of the architecture deployed in 2024.",
+  "milestone": "HMR-V1.2B TEMPORALLY-VALID RESEARCH ARTIFACT",
+  "model_config": {
+    "architecture": "EnsembleMetaModel",
+    "base_params": {
+      "catboost": {
+        "allow_writing_files": false,
+        "thread_count": 1
+      },
+      "lgbm": {
+        "deterministic": true,
+        "force_col_wise": true,
+        "n_jobs": 1
+      },
+      "xgboost": {
+        "n_jobs": 1
+      }
+    },
+    "calibration_method": "isotonic",
+    "estimators": [
+      "lgbm",
+      "catboost",
+      "xgboost"
+    ],
+    "n_estimators": 200,
+    "random_seed": 42,
+    "reuse_fitted_objects": false,
+    "weights": {
+      "catboost": 0.3333333333333333,
+      "lgbm": 0.3333333333333333,
+      "xgboost": 0.3333333333333333
+    }
+  },
+  "model_config_sha256": "f3e3eb68df2124fce313e99d97d1c60ac39737ddd8efa771a54755000bcd1615",
+  "model_sha256": "fae4e92f43000be2b9d124a6aba067999f965b789acf9548d029bb7d5137eb75",
+  "model_version": "v3.1-research-pre2025-f3e3eb68",
+  "n_calibration": 409,
+  "n_train": 9347,
+  "paths": {
+    "bundle": "research/historical_market_replay_v1/research_artifact_pre2025/frozen/research_meta_model.joblib",
+    "calibration_data": "research/historical_market_replay_v1/research_artifact_pre2025/calibration.parquet",
+    "calibrator": "research/historical_market_replay_v1/research_artifact_pre2025/frozen/calibrator.joblib",
+    "model": "research/historical_market_replay_v1/research_artifact_pre2025/frozen/base_model.joblib",
+    "training_data": "research/historical_market_replay_v1/research_artifact_pre2025/training.parquet"
+  },
+  "random_seed": 42,
+  "raw_sources": {
+    "BNB": {
+      "available_max": "2024-12-31T23:45:00+00:00",
+      "path": "data/fresh_training_data_2023_2026/BNB/BNB_15m.csv",
+      "rows_through_cutoff": 70176,
+      "sha256": "33bd996910d7d3fb7dcb27d4e0e086213f2afaf2e26ce9681d499cedeb89980b"
+    },
+    "BTC": {
+      "available_max": "2024-12-31T23:45:00+00:00",
+      "path": "data/fresh_training_data_2023_2026/BTC/BTC_15m.csv",
+      "rows_through_cutoff": 70176,
+      "sha256": "6c4508e24aa563e6d1935754a7c7f91cb9e2963702940ff8ac3b6085fcf52b09"
+    },
+    "ETH": {
+      "available_max": "2024-12-31T23:45:00+00:00",
+      "path": "data/fresh_training_data_2023_2026/ETH/ETH_15m.csv",
+      "rows_through_cutoff": 70176,
+      "sha256": "84a3c49efbafdf68e875c908b637ec3d8ea20175471f37c6160c45d2badefdaf"
+    }
+  },
+  "research_training_run_id": "hmr-v1.2b-771eb50c1814-7a7c7118e7bf-f3e3eb68",
+  "right_censored_rows_excluded": 2,
+  "status": "PASS",
+  "training_available_max": "2024-11-30T21:00:00+00:00",
+  "training_code_git_commit": "f793883aa47742fce0d7fbe15b1285e4ab03ee1f",
+  "training_code_sha": "81a756761c5e9fdc8c4c9319ad881e5ab3d36b6578ffd2a7004ffe3e5644e43b",
+  "training_data_sha256": "771eb50c18143b1d102956cf43505b2a883fc7506ec2cc805dcaea9de5d4af12"
+}

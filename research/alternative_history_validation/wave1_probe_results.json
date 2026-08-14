@@ -1,0 +1,821 @@
+{
+  "generated_at": "2026-08-14T02:38:37.262573+00:00",
+  "questions": [
+    "available_at_T",
+    "source_timestamp",
+    "available_at_known",
+    "future_information",
+    "production_normalizer_accepts",
+    "deterministic_repeat_query"
+  ],
+  "results": [
+    {
+      "as_of": "2026-07-04T09:05:55.641329+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "provider timestamp exists; exact available_at/published_at not proven",
+          "payload_sha256": "c3bd7f7a2b22fdcd867c0e6110c75da551a0b39cd3f4bffc01068b2632dc6948",
+          "raw_path": "research/alternative_history_validation/raw/alternative_me/2026-07-04T09_05_55.641329+00_00_attempt1.json",
+          "raw_sha256": "0d986fa76ac27d7c27272ed56b97a06ebe5c01911d03e277b2f0236b42b1dfe9",
+          "source_timestamp": "2026-07-04T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "provider timestamp exists; exact available_at/published_at not proven",
+          "payload_sha256": "c3bd7f7a2b22fdcd867c0e6110c75da551a0b39cd3f4bffc01068b2632dc6948",
+          "raw_path": "research/alternative_history_validation/raw/alternative_me/2026-07-04T09_05_55.641329+00_00_attempt2.json",
+          "raw_sha256": "4e989dc857efd7014d82fdeca29613863f54113d15b10fab1738fcfcc1335b61",
+          "source_timestamp": "2026-07-04T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "fear_greed_observed_at": {
+          "historical_normalized": "2026-07-04T00:00:00+00:00",
+          "match": false,
+          "snapshot": null
+        },
+        "fear_greed_raw": {
+          "historical_normalized": 22.0,
+          "match": true,
+          "snapshot": 22.0
+        },
+        "fear_greed_score": {
+          "historical_normalized": -0.56,
+          "match": false,
+          "snapshot": 0.22
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-04T09_05_55.641329+00_00.json",
+      "source": "alternative_me",
+      "source_timestamp": "2026-07-04T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-04T09:05:55.641329+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "NOT_AVAILABLE",
+          "note": "missing_fred_api_key",
+          "payload_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "raw_path": "research/alternative_history_validation/raw/fred/2026-07-04T09_05_55.641329+00_00_attempt1.json",
+          "raw_sha256": "a2bf081b70e855157031a7f89f2815df4df2dc2915a9f088191e8573591288c1",
+          "source_timestamp": null
+        },
+        {
+          "attempt": 2,
+          "availability": "NOT_AVAILABLE",
+          "note": "missing_fred_api_key",
+          "payload_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "raw_path": "research/alternative_history_validation/raw/fred/2026-07-04T09_05_55.641329+00_00_attempt2.json",
+          "raw_sha256": "a2bf081b70e855157031a7f89f2815df4df2dc2915a9f088191e8573591288c1",
+          "source_timestamp": null
+        }
+      ],
+      "availability": "NOT_AVAILABLE",
+      "available_at_known": false,
+      "comparison": {},
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": null,
+      "normalizer_status": "NOT_RUN",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-04T09_05_55.641329+00_00.json",
+      "source": "fred",
+      "source_timestamp": null,
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-04T09:05:55.641329+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "fundingTime used as available_at candidate",
+          "payload_sha256": "42c9425c889ea5c73f6f7eeb1b73078cfaec9728b1335afe45f0e30f2bd609a8",
+          "raw_path": "research/alternative_history_validation/raw/binance_funding/2026-07-04T09_05_55.641329+00_00_attempt1.json",
+          "raw_sha256": "33f187baa227567c032455470d039d95535ccde32f468dc53fe812dc873ba08d",
+          "source_timestamp": "2026-07-04T08:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "fundingTime used as available_at candidate",
+          "payload_sha256": "42c9425c889ea5c73f6f7eeb1b73078cfaec9728b1335afe45f0e30f2bd609a8",
+          "raw_path": "research/alternative_history_validation/raw/binance_funding/2026-07-04T09_05_55.641329+00_00_attempt2.json",
+          "raw_sha256": "33f187baa227567c032455470d039d95535ccde32f468dc53fe812dc873ba08d",
+          "source_timestamp": "2026-07-04T08:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": true,
+      "comparison": {
+        "funding_rate": {
+          "historical_normalized": 0.0001,
+          "match": false,
+          "snapshot": -0.00256226
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-04T09_05_55.641329+00_00.json",
+      "source": "binance_funding",
+      "source_timestamp": "2026-07-04T08:00:00+00:00",
+      "stop_after_basic_questions": false
+    },
+    {
+      "as_of": "2026-07-04T09:05:55.641329+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "current historical chart row; vintage/backfill status unknown",
+          "payload_sha256": "6ae81b6c3cc289a146612c96ad7a9f19608a827ee3626777f4c44f289a7b653b",
+          "raw_path": "research/alternative_history_validation/raw/defillama_stablecoin/2026-07-04T09_05_55.641329+00_00_attempt1.json",
+          "raw_sha256": "9cfcddc5bdac83baafbdf35729e06d030863a56f8198bccc1805b234c9975a3b",
+          "source_timestamp": "2026-07-04T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "current historical chart row; vintage/backfill status unknown",
+          "payload_sha256": "6ae81b6c3cc289a146612c96ad7a9f19608a827ee3626777f4c44f289a7b653b",
+          "raw_path": "research/alternative_history_validation/raw/defillama_stablecoin/2026-07-04T09_05_55.641329+00_00_attempt2.json",
+          "raw_sha256": "9cfcddc5bdac83baafbdf35729e06d030863a56f8198bccc1805b234c9975a3b",
+          "source_timestamp": "2026-07-04T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "stablecoin_supply": {
+          "historical_normalized": 308606657085.0,
+          "match": false,
+          "snapshot": 0.0
+        },
+        "stablecoin_supply_total": {
+          "historical_normalized": 308606657085.0,
+          "match": false,
+          "snapshot": 0.0
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-04T09_05_55.641329+00_00.json",
+      "source": "defillama_stablecoin",
+      "source_timestamp": "2026-07-04T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-04T09:05:55.641329+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "historical TVL endpoint; production all-chain parity not proven",
+          "payload_sha256": "7af802314eb3b45a5391d6e2d42a00261561e9cbbe885cc41194df5b6b94a88d",
+          "raw_path": "research/alternative_history_validation/raw/defillama_tvl/2026-07-04T09_05_55.641329+00_00_attempt1.json",
+          "raw_sha256": "43e05118709ae3496c1bc07d363400b87739723d5c25467633b82b678d745f8a",
+          "source_timestamp": "2026-07-04T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "historical TVL endpoint; production all-chain parity not proven",
+          "payload_sha256": "7af802314eb3b45a5391d6e2d42a00261561e9cbbe885cc41194df5b6b94a88d",
+          "raw_path": "research/alternative_history_validation/raw/defillama_tvl/2026-07-04T09_05_55.641329+00_00_attempt2.json",
+          "raw_sha256": "f93c6fa8c6bd9d658ffca9a94d3e08fa8876be29f5c26318f9dc7cd6480cecb4",
+          "source_timestamp": "2026-07-04T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "chain_tvl": {
+          "historical_normalized": 73832826509.0,
+          "match": false,
+          "snapshot": 74080258519.13374
+        },
+        "protocol_tvl": {
+          "historical_normalized": null,
+          "match": false,
+          "snapshot": 478763740488.1144
+        },
+        "tvl": {
+          "historical_normalized": 73832826509.0,
+          "match": false,
+          "snapshot": 478763740488.1144
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-04T09_05_55.641329+00_00.json",
+      "source": "defillama_tvl",
+      "source_timestamp": "2026-07-04T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-04T09:05:55.641329+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "DVOL row timestamp used as available_at candidate",
+          "payload_sha256": "58e15d4a39337fb70ec41de81437a23c00e9708d294d46e481d01c2a074aba07",
+          "raw_path": "research/alternative_history_validation/raw/deribit_dvol/2026-07-04T09_05_55.641329+00_00_attempt1.json",
+          "raw_sha256": "c794cbe74f30ed6688510e0f0453215de6c014db43a8a2e29e3e4ea08bb90216",
+          "source_timestamp": "2026-07-04T09:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "DVOL row timestamp used as available_at candidate",
+          "payload_sha256": "58e15d4a39337fb70ec41de81437a23c00e9708d294d46e481d01c2a074aba07",
+          "raw_path": "research/alternative_history_validation/raw/deribit_dvol/2026-07-04T09_05_55.641329+00_00_attempt2.json",
+          "raw_sha256": "1e8c717c47e82fd830bfe718b32a1661a4460803156c634f39bee1db09c32be3",
+          "source_timestamp": "2026-07-04T09:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": true,
+      "comparison": {
+        "options_iv": {
+          "historical_normalized": 0.39030000000000004,
+          "match": false,
+          "snapshot": 0.0
+        },
+        "options_iv_unit": {
+          "historical_normalized": "decimal",
+          "match": false,
+          "snapshot": null
+        },
+        "raw_options_iv": {
+          "historical_normalized": 39.03,
+          "match": false,
+          "snapshot": null
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-04T09_05_55.641329+00_00.json",
+      "source": "deribit_dvol",
+      "source_timestamp": "2026-07-04T09:00:00+00:00",
+      "stop_after_basic_questions": false
+    },
+    {
+      "as_of": "2026-07-14T18:41:27.795808+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "provider timestamp exists; exact available_at/published_at not proven",
+          "payload_sha256": "1dacebf8f7dcf0f94c5e0fddc86b5611c6a7dfe5ce083e0ee7fd5806650d1176",
+          "raw_path": "research/alternative_history_validation/raw/alternative_me/2026-07-14T18_41_27.795808+00_00_attempt1.json",
+          "raw_sha256": "d637b39894eab97156295e0a0d098615163ca59d58c566e75cd911587b01e74f",
+          "source_timestamp": "2026-07-14T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "provider timestamp exists; exact available_at/published_at not proven",
+          "payload_sha256": "1dacebf8f7dcf0f94c5e0fddc86b5611c6a7dfe5ce083e0ee7fd5806650d1176",
+          "raw_path": "research/alternative_history_validation/raw/alternative_me/2026-07-14T18_41_27.795808+00_00_attempt2.json",
+          "raw_sha256": "ec8bf089668def93dd3bfbaea0c61f3d83bf20d664e26d4405ebf4575a58cc10",
+          "source_timestamp": "2026-07-14T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "fear_greed_observed_at": {
+          "historical_normalized": "2026-07-14T00:00:00+00:00",
+          "match": false,
+          "snapshot": null
+        },
+        "fear_greed_raw": {
+          "historical_normalized": 22.0,
+          "match": true,
+          "snapshot": 22.0
+        },
+        "fear_greed_score": {
+          "historical_normalized": -0.56,
+          "match": true,
+          "snapshot": -0.56
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-14T18_41_27.795808+00_00.json",
+      "source": "alternative_me",
+      "source_timestamp": "2026-07-14T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-14T18:41:27.795808+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "NOT_AVAILABLE",
+          "note": "missing_fred_api_key",
+          "payload_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "raw_path": "research/alternative_history_validation/raw/fred/2026-07-14T18_41_27.795808+00_00_attempt1.json",
+          "raw_sha256": "a2bf081b70e855157031a7f89f2815df4df2dc2915a9f088191e8573591288c1",
+          "source_timestamp": null
+        },
+        {
+          "attempt": 2,
+          "availability": "NOT_AVAILABLE",
+          "note": "missing_fred_api_key",
+          "payload_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "raw_path": "research/alternative_history_validation/raw/fred/2026-07-14T18_41_27.795808+00_00_attempt2.json",
+          "raw_sha256": "a2bf081b70e855157031a7f89f2815df4df2dc2915a9f088191e8573591288c1",
+          "source_timestamp": null
+        }
+      ],
+      "availability": "NOT_AVAILABLE",
+      "available_at_known": false,
+      "comparison": {},
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": null,
+      "normalizer_status": "NOT_RUN",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-14T18_41_27.795808+00_00.json",
+      "source": "fred",
+      "source_timestamp": null,
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-14T18:41:27.795808+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "fundingTime used as available_at candidate",
+          "payload_sha256": "06828bec49094b6e88d388ab222ed3d8886667383ec4bf71f9ed0d15fa9fad4c",
+          "raw_path": "research/alternative_history_validation/raw/binance_funding/2026-07-14T18_41_27.795808+00_00_attempt1.json",
+          "raw_sha256": "e513a1039f0cacd3bd77b5097d09944f0a74661c1d4f584258dd0947983a3797",
+          "source_timestamp": "2026-07-14T16:00:00.001000+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "fundingTime used as available_at candidate",
+          "payload_sha256": "06828bec49094b6e88d388ab222ed3d8886667383ec4bf71f9ed0d15fa9fad4c",
+          "raw_path": "research/alternative_history_validation/raw/binance_funding/2026-07-14T18_41_27.795808+00_00_attempt2.json",
+          "raw_sha256": "e513a1039f0cacd3bd77b5097d09944f0a74661c1d4f584258dd0947983a3797",
+          "source_timestamp": "2026-07-14T16:00:00.001000+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": true,
+      "comparison": {
+        "funding_rate": {
+          "historical_normalized": 5.59e-05,
+          "match": true,
+          "snapshot": 5.59e-05
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-14T18_41_27.795808+00_00.json",
+      "source": "binance_funding",
+      "source_timestamp": "2026-07-14T16:00:00.001000+00:00",
+      "stop_after_basic_questions": false
+    },
+    {
+      "as_of": "2026-07-14T18:41:27.795808+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "current historical chart row; vintage/backfill status unknown",
+          "payload_sha256": "ae9c28ded91fa8c6676ff59c6eee50ab72f6fc8e06d34850e02f9134350da17a",
+          "raw_path": "research/alternative_history_validation/raw/defillama_stablecoin/2026-07-14T18_41_27.795808+00_00_attempt1.json",
+          "raw_sha256": "9cfcddc5bdac83baafbdf35729e06d030863a56f8198bccc1805b234c9975a3b",
+          "source_timestamp": "2026-07-14T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "current historical chart row; vintage/backfill status unknown",
+          "payload_sha256": "ae9c28ded91fa8c6676ff59c6eee50ab72f6fc8e06d34850e02f9134350da17a",
+          "raw_path": "research/alternative_history_validation/raw/defillama_stablecoin/2026-07-14T18_41_27.795808+00_00_attempt2.json",
+          "raw_sha256": "9cfcddc5bdac83baafbdf35729e06d030863a56f8198bccc1805b234c9975a3b",
+          "source_timestamp": "2026-07-14T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "stablecoin_supply": {
+          "historical_normalized": 308134287010.0,
+          "match": false,
+          "snapshot": 308697178631.11365
+        },
+        "stablecoin_supply_total": {
+          "historical_normalized": 308134287010.0,
+          "match": false,
+          "snapshot": 308697178631.11365
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-14T18_41_27.795808+00_00.json",
+      "source": "defillama_stablecoin",
+      "source_timestamp": "2026-07-14T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-14T18:41:27.795808+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "historical TVL endpoint; production all-chain parity not proven",
+          "payload_sha256": "a45664e2ce42cb7ea919afbaca6b2b0c322fee46b52614c2b1241728e42e3065",
+          "raw_path": "research/alternative_history_validation/raw/defillama_tvl/2026-07-14T18_41_27.795808+00_00_attempt1.json",
+          "raw_sha256": "43e05118709ae3496c1bc07d363400b87739723d5c25467633b82b678d745f8a",
+          "source_timestamp": "2026-07-14T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "historical TVL endpoint; production all-chain parity not proven",
+          "payload_sha256": "a45664e2ce42cb7ea919afbaca6b2b0c322fee46b52614c2b1241728e42e3065",
+          "raw_path": "research/alternative_history_validation/raw/defillama_tvl/2026-07-14T18_41_27.795808+00_00_attempt2.json",
+          "raw_sha256": "43e05118709ae3496c1bc07d363400b87739723d5c25467633b82b678d745f8a",
+          "source_timestamp": "2026-07-14T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "chain_tvl": {
+          "historical_normalized": 72745015551.0,
+          "match": false,
+          "snapshot": 75509469254.77068
+        },
+        "protocol_tvl": {
+          "historical_normalized": null,
+          "match": false,
+          "snapshot": 487361603906.9155
+        },
+        "tvl": {
+          "historical_normalized": 72745015551.0,
+          "match": false,
+          "snapshot": 487361603906.9155
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-14T18_41_27.795808+00_00.json",
+      "source": "defillama_tvl",
+      "source_timestamp": "2026-07-14T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-14T18:41:27.795808+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "DVOL row timestamp used as available_at candidate",
+          "payload_sha256": "d124c3bdfecd5a655821b10e98c8018cd5292c8643c21fc3b8142816c9b42a7d",
+          "raw_path": "research/alternative_history_validation/raw/deribit_dvol/2026-07-14T18_41_27.795808+00_00_attempt1.json",
+          "raw_sha256": "a00326c0a6409645fd626842d74b01a63e607b2382855047c968fa5b8b240ab5",
+          "source_timestamp": "2026-07-14T18:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "DVOL row timestamp used as available_at candidate",
+          "payload_sha256": "d124c3bdfecd5a655821b10e98c8018cd5292c8643c21fc3b8142816c9b42a7d",
+          "raw_path": "research/alternative_history_validation/raw/deribit_dvol/2026-07-14T18_41_27.795808+00_00_attempt2.json",
+          "raw_sha256": "57fa59dac25524e8ceda8958ac249a3d38e59c16b859a5305b928269f2bef25f",
+          "source_timestamp": "2026-07-14T18:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": true,
+      "comparison": {
+        "options_iv": {
+          "historical_normalized": 0.36829999999999996,
+          "match": false,
+          "snapshot": 0.3674
+        },
+        "options_iv_unit": {
+          "historical_normalized": "decimal",
+          "match": true,
+          "snapshot": "decimal"
+        },
+        "raw_options_iv": {
+          "historical_normalized": 36.83,
+          "match": false,
+          "snapshot": 36.74
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-14T18_41_27.795808+00_00.json",
+      "source": "deribit_dvol",
+      "source_timestamp": "2026-07-14T18:00:00+00:00",
+      "stop_after_basic_questions": false
+    },
+    {
+      "as_of": "2026-07-26T02:19:22.629347+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "provider timestamp exists; exact available_at/published_at not proven",
+          "payload_sha256": "3151f494aa29a017c4663396775b1b5e898d9849c85a3f62cf5eadb76e942f7b",
+          "raw_path": "research/alternative_history_validation/raw/alternative_me/2026-07-26T02_19_22.629347+00_00_attempt1.json",
+          "raw_sha256": "342760e263537ab151b673e905d51f7fc24486b6991bc3f8f4e4e01f2f9222eb",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "provider timestamp exists; exact available_at/published_at not proven",
+          "payload_sha256": "3151f494aa29a017c4663396775b1b5e898d9849c85a3f62cf5eadb76e942f7b",
+          "raw_path": "research/alternative_history_validation/raw/alternative_me/2026-07-26T02_19_22.629347+00_00_attempt2.json",
+          "raw_sha256": "73e94eb5fe422cd393aedcd925741ddfff3390724118bcdb10f38766d486c685",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "fear_greed_observed_at": {
+          "historical_normalized": "2026-07-26T00:00:00+00:00",
+          "match": true,
+          "snapshot": "2026-07-26T00:00:00+00:00"
+        },
+        "fear_greed_raw": {
+          "historical_normalized": 26.0,
+          "match": true,
+          "snapshot": 26.0
+        },
+        "fear_greed_score": {
+          "historical_normalized": -0.48,
+          "match": true,
+          "snapshot": -0.48
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-26T02_19_22.629347+00_00.json",
+      "source": "alternative_me",
+      "source_timestamp": "2026-07-26T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-26T02:19:22.629347+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "NOT_AVAILABLE",
+          "note": "missing_fred_api_key",
+          "payload_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "raw_path": "research/alternative_history_validation/raw/fred/2026-07-26T02_19_22.629347+00_00_attempt1.json",
+          "raw_sha256": "a2bf081b70e855157031a7f89f2815df4df2dc2915a9f088191e8573591288c1",
+          "source_timestamp": null
+        },
+        {
+          "attempt": 2,
+          "availability": "NOT_AVAILABLE",
+          "note": "missing_fred_api_key",
+          "payload_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "raw_path": "research/alternative_history_validation/raw/fred/2026-07-26T02_19_22.629347+00_00_attempt2.json",
+          "raw_sha256": "a2bf081b70e855157031a7f89f2815df4df2dc2915a9f088191e8573591288c1",
+          "source_timestamp": null
+        }
+      ],
+      "availability": "NOT_AVAILABLE",
+      "available_at_known": false,
+      "comparison": {},
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": null,
+      "normalizer_status": "NOT_RUN",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-26T02_19_22.629347+00_00.json",
+      "source": "fred",
+      "source_timestamp": null,
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-26T02:19:22.629347+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "fundingTime used as available_at candidate",
+          "payload_sha256": "dc6d06f4dd677c867a3c17a6cbfb541eae30adc93adb2e73a91bf8ea86b60ebe",
+          "raw_path": "research/alternative_history_validation/raw/binance_funding/2026-07-26T02_19_22.629347+00_00_attempt1.json",
+          "raw_sha256": "29642260329b8ffda8224b751a6a05746279eb16ba01b1c4f6fb323247e8f7a6",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "fundingTime used as available_at candidate",
+          "payload_sha256": "dc6d06f4dd677c867a3c17a6cbfb541eae30adc93adb2e73a91bf8ea86b60ebe",
+          "raw_path": "research/alternative_history_validation/raw/binance_funding/2026-07-26T02_19_22.629347+00_00_attempt2.json",
+          "raw_sha256": "29642260329b8ffda8224b751a6a05746279eb16ba01b1c4f6fb323247e8f7a6",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": true,
+      "comparison": {
+        "funding_rate": {
+          "historical_normalized": 3.878e-05,
+          "match": true,
+          "snapshot": 3.878e-05
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-26T02_19_22.629347+00_00.json",
+      "source": "binance_funding",
+      "source_timestamp": "2026-07-26T00:00:00+00:00",
+      "stop_after_basic_questions": false
+    },
+    {
+      "as_of": "2026-07-26T02:19:22.629347+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "current historical chart row; vintage/backfill status unknown",
+          "payload_sha256": "952679de676cf6d97f84107ff36c7c58ceb94be55280be08356b9e79fac642fa",
+          "raw_path": "research/alternative_history_validation/raw/defillama_stablecoin/2026-07-26T02_19_22.629347+00_00_attempt1.json",
+          "raw_sha256": "9cfcddc5bdac83baafbdf35729e06d030863a56f8198bccc1805b234c9975a3b",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "current historical chart row; vintage/backfill status unknown",
+          "payload_sha256": "952679de676cf6d97f84107ff36c7c58ceb94be55280be08356b9e79fac642fa",
+          "raw_path": "research/alternative_history_validation/raw/defillama_stablecoin/2026-07-26T02_19_22.629347+00_00_attempt2.json",
+          "raw_sha256": "9cfcddc5bdac83baafbdf35729e06d030863a56f8198bccc1805b234c9975a3b",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "stablecoin_supply": {
+          "historical_normalized": 308296666999.0,
+          "match": false,
+          "snapshot": 309651303750.72864
+        },
+        "stablecoin_supply_total": {
+          "historical_normalized": 308296666999.0,
+          "match": false,
+          "snapshot": 309651303750.72864
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-26T02_19_22.629347+00_00.json",
+      "source": "defillama_stablecoin",
+      "source_timestamp": "2026-07-26T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-26T02:19:22.629347+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "historical TVL endpoint; production all-chain parity not proven",
+          "payload_sha256": "a3b6664a8ff2541c2bdde1886c155a2be08663f57f93ff73fec627298b503984",
+          "raw_path": "research/alternative_history_validation/raw/defillama_tvl/2026-07-26T02_19_22.629347+00_00_attempt1.json",
+          "raw_sha256": "43e05118709ae3496c1bc07d363400b87739723d5c25467633b82b678d745f8a",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "historical TVL endpoint; production all-chain parity not proven",
+          "payload_sha256": "a3b6664a8ff2541c2bdde1886c155a2be08663f57f93ff73fec627298b503984",
+          "raw_path": "research/alternative_history_validation/raw/defillama_tvl/2026-07-26T02_19_22.629347+00_00_attempt2.json",
+          "raw_sha256": "43e05118709ae3496c1bc07d363400b87739723d5c25467633b82b678d745f8a",
+          "source_timestamp": "2026-07-26T00:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": false,
+      "comparison": {
+        "chain_tvl": {
+          "historical_normalized": 75716073427.0,
+          "match": false,
+          "snapshot": 75935354780.79172
+        },
+        "protocol_tvl": {
+          "historical_normalized": null,
+          "match": false,
+          "snapshot": 485079745596.545
+        },
+        "tvl": {
+          "historical_normalized": 75716073427.0,
+          "match": false,
+          "snapshot": 485079745596.545
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": true,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-26T02_19_22.629347+00_00.json",
+      "source": "defillama_tvl",
+      "source_timestamp": "2026-07-26T00:00:00+00:00",
+      "stop_after_basic_questions": true
+    },
+    {
+      "as_of": "2026-07-26T02:19:22.629347+00:00",
+      "attempts": [
+        {
+          "attempt": 1,
+          "availability": "AVAILABLE",
+          "note": "DVOL row timestamp used as available_at candidate",
+          "payload_sha256": "0574bf9ecc8fb14a471a89bf0ef7ccb19490ab5bfdacab5d628a648c5d3b0339",
+          "raw_path": "research/alternative_history_validation/raw/deribit_dvol/2026-07-26T02_19_22.629347+00_00_attempt1.json",
+          "raw_sha256": "2a00819ea0f243d7dddcbbbbcd06c4afb5eb60da4711808012eb78f8c63fab5d",
+          "source_timestamp": "2026-07-26T02:00:00+00:00"
+        },
+        {
+          "attempt": 2,
+          "availability": "AVAILABLE",
+          "note": "DVOL row timestamp used as available_at candidate",
+          "payload_sha256": "0574bf9ecc8fb14a471a89bf0ef7ccb19490ab5bfdacab5d628a648c5d3b0339",
+          "raw_path": "research/alternative_history_validation/raw/deribit_dvol/2026-07-26T02_19_22.629347+00_00_attempt2.json",
+          "raw_sha256": "b2768db47c009f372282198fc0a5b321d3363168561845d40533e0cb1f9651c2",
+          "source_timestamp": "2026-07-26T02:00:00+00:00"
+        }
+      ],
+      "availability": "AVAILABLE",
+      "available_at_known": true,
+      "comparison": {
+        "options_iv": {
+          "historical_normalized": 0.3751,
+          "match": false,
+          "snapshot": 0.37579999999999997
+        },
+        "options_iv_unit": {
+          "historical_normalized": "decimal",
+          "match": true,
+          "snapshot": "decimal"
+        },
+        "raw_options_iv": {
+          "historical_normalized": 37.51,
+          "match": false,
+          "snapshot": 37.58
+        }
+      },
+      "deterministic_payload": true,
+      "deterministic_raw": false,
+      "future_information_detected": false,
+      "normalizer_status": "PASS",
+      "snapshot_path": "data/raw_alternative/alternative_2026-07-26T02_19_22.629347+00_00.json",
+      "source": "deribit_dvol",
+      "source_timestamp": "2026-07-26T02:00:00+00:00",
+      "stop_after_basic_questions": false
+    }
+  ],
+  "scope": "Wave 1 snapshot-grounded probes"
+}

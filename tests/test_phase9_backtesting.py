@@ -7,7 +7,7 @@ from btc_scraper.backtesting.config import BacktestConfig, APPROVAL_RULES
 from btc_scraper.backtesting.cost_model import CostModel
 from btc_scraper.backtesting.slippage_model_v1 import SlippageModel
 from btc_scraper.backtesting.latency_model import LatencyModel
-from btc_scraper.backtesting.engine import BacktestEngine
+from btc_scraper.backtesting.engine import BacktestEngine, signal_score_value
 from btc_scraper.backtesting.vectorized_engine import VectorizedEngine
 from btc_scraper.backtesting.walk_forward import WalkForwardValidator
 from btc_scraper.backtesting.purged_kfold import PurgedKFold
@@ -18,6 +18,10 @@ from btc_scraper.backtesting.monte_carlo import MonteCarloEngine
 from btc_scraper.backtesting.report_builder import ReportBuilder
 
 class TestPhase9Backtesting(unittest.TestCase):
+
+    def test_signal_score_value_accepts_production_envelope(self):
+        self.assertEqual(signal_score_value({"signal_score": {"score": 82}}), 82.0)
+        self.assertEqual(signal_score_value({"signal_score": 67}), 67.0)
     
     def test_cost_model(self):
         # Futures config
@@ -67,6 +71,47 @@ class TestPhase9Backtesting(unittest.TestCase):
         # Penalty should be small but positive (increasing buy price)
         self.assertGreater(res["base_price"], 101.0)
         self.assertLessEqual(res["base_price"], 103.0)
+
+    def test_closed_trade_pnl_includes_entry_and_exit_fees(self):
+        config = BacktestConfig.from_dict({
+            "latency_model": {"enabled": False},
+            "slippage_model": {"enabled": False},
+            "fee_model": {"is_futures": True, "futures_taker_bps": 5.0},
+        })
+        engine = BacktestEngine(config)
+        candles = [
+            {"time": "2026-07-01 00:00:00", "open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"time": "2026-07-01 00:15:00", "open": 110.0, "high": 110.0, "low": 110.0, "close": 110.0},
+        ]
+        position = {
+            "coin": "BTC",
+            "type": "LONG",
+            "units": 10.0,
+            "initial_units": 10.0,
+            "entry_price": 100.0,
+            "entry_time": candles[0]["time"],
+            "partial_pnl": 0.0,
+            "partial_gross_pnl": 0.0,
+            "entry_fee": 0.5,
+            "exit_fees": 0.0,
+            "fee_paid": 0.5,
+            "slippage_paid": 0.0,
+            "spread_paid": 0.0,
+            "spread_bps": 0.0,
+            "slippage_bps": 0.0,
+            "hold_bars": 1,
+            "latency_ms": 0,
+            "regime": "Ranging",
+            "causal_risk_level": "MEDIUM",
+            "meta_confidence_bucket": "MEDIUM",
+        }
+        trades = []
+
+        engine._close_position_event(position, 110.0, "TIMEOUT", 0, candles, [0.0], trades)
+
+        self.assertAlmostEqual(trades[0]["gross_pnl"], 100.0)
+        self.assertAlmostEqual(trades[0]["fee_paid"], 1.05)
+        self.assertAlmostEqual(trades[0]["pnl"], 98.95)
 
     def test_purged_kfold(self):
         # Create 10 sample times spanning consecutive 1-hour intervals

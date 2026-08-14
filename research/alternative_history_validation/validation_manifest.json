@@ -1,0 +1,121 @@
+{
+  "acceptance_criteria": {
+    "DUPLICATES": 0,
+    "EARLIEST_USABLE_TIMESTAMP": "KNOWN",
+    "HISTORICAL_FIDELITY": "H0..H4",
+    "INVALID_TIMESTAMP": 0,
+    "NORMALIZATION_PARITY": "PASS",
+    "PRODUCTION_FALLBACK": "VERIFIED",
+    "RAW_PAYLOAD_ARCHIVED": "YES",
+    "RETENTION_BOUNDARY": "KNOWN",
+    "SCHEMA_PARITY": "PASS",
+    "TEMPORAL_ALIGNMENT": "future records = 0",
+    "TIMEZONE_PARITY": "PASS",
+    "UNIT_PARITY": "PASS"
+  },
+  "boundary": [
+    "READ_ONLY",
+    "NON_EVIDENCE",
+    "NO_ACTIVE_CANARY_MUTATION",
+    "NO_RUNTIME_CONTROL_ACTION",
+    "NO_MODEL_RETRAIN",
+    "NO_POLICY_CHANGE"
+  ],
+  "default_network_policy": "disabled",
+  "fidelity_levels": [
+    "UNCLASSIFIED",
+    "H0_UNAVAILABLE",
+    "H1_HISTORICAL",
+    "H2_AS_OF_RECONSTRUCTABLE",
+    "H3_POINT_IN_TIME_VERIFIED",
+    "H4_PRODUCTION_PARITY"
+  ],
+  "gate_sequence": [
+    {
+      "gate": "G0",
+      "name": "Production contract inventory"
+    },
+    {
+      "gate": "G1",
+      "name": "Historical availability / retention"
+    },
+    {
+      "gate": "G2",
+      "hard_rule": "available_at <= replay_clock",
+      "name": "Temporal / PIT correctness"
+    },
+    {
+      "gate": "G3",
+      "name": "Production normalization parity"
+    },
+    {
+      "gate": "G4",
+      "name": "Existing snapshot comparison"
+    },
+    {
+      "gate": "G5",
+      "name": "Determinism / repeat-query stability"
+    },
+    {
+      "gate": "G6",
+      "name": "Fidelity classification"
+    },
+    {
+      "gate": "G7",
+      "name": "Replay eligibility decision"
+    }
+  ],
+  "generated_at": "2026-08-14T00:00:00+00:00",
+  "probe_timestamps": [
+    {
+      "as_of": "2026-08-07T00:00:00+00:00",
+      "id": "T1_7D"
+    },
+    {
+      "as_of": "2026-07-15T00:00:00+00:00",
+      "id": "T2_30D"
+    },
+    {
+      "as_of": "2026-05-16T00:00:00+00:00",
+      "id": "T3_90D"
+    },
+    {
+      "as_of": "2026-02-15T00:00:00+00:00",
+      "id": "T4_180D"
+    },
+    {
+      "as_of": "2025-08-14T00:00:00+00:00",
+      "id": "T5_365D"
+    },
+    {
+      "as_of": "2024-01-12T16:00:00+00:00",
+      "id": "E1_POST_ETF_LAUNCH"
+    },
+    {
+      "as_of": "2024-04-20T00:00:00+00:00",
+      "id": "E2_HALVING_WINDOW"
+    },
+    {
+      "as_of": "2024-11-06T16:00:00+00:00",
+      "id": "E3_2024_Q4_BREAKOUT"
+    }
+  ],
+  "promotion_rules": {
+    "H0_UNAVAILABLE": "Historical data unavailable.",
+    "H1_HISTORICAL": "Historical records exist but knowledge-at-T correctness is not established.",
+    "H2_AS_OF_RECONSTRUCTABLE": "Can reconstruct using only data <= T, without authoritative PIT snapshot/vintage proof.",
+    "H3_POINT_IN_TIME_VERIFIED": "PIT correctness verified against vintage/archive/snapshot.",
+    "H4_PRODUCTION_PARITY": "H3 plus production normalizer/feature semantics parity and deterministic replay behavior.",
+    "UNCLASSIFIED": "Initial state before probes; no source is assumed usable or unusable."
+  },
+  "replay_decision_rules": {
+    "H0_UNAVAILABLE": "PRODUCTION_FALLBACK plus START_REALTIME_ARCHIVE",
+    "H1_HISTORICAL": "PRODUCTION_FALLBACK or EXCLUDE",
+    "H2_AS_OF_RECONSTRUCTABLE": "USE_RECONSTRUCTED only in sensitivity/research replay",
+    "H3_POINT_IN_TIME_VERIFIED": "USE_EXACT or USE_WITH_PARITY_NOTE",
+    "H4_PRODUCTION_PARITY": "USE_EXACT"
+  },
+  "short_name": "AHDV",
+  "stop_condition": "For every source answer: availability known, retention boundary known, PIT correctness known, production parity known, fallback known, fidelity assigned, replay decision assigned.",
+  "workstream": "Alternative Historical Data Validation"
+}

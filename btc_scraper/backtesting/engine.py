@@ -26,6 +26,17 @@ def atr_percent_to_price_distance(price: float, atr_percent: float) -> float:
     return price_value * percent_value / 100.0
 
 
+def signal_score_value(signal: Dict[str, Any]) -> float:
+    """Read both the production score envelope and legacy scalar score."""
+    value = signal.get("signal_score", 50.0)
+    if isinstance(value, dict):
+        value = value.get("score", 50.0)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 50.0
+
+
 class BacktestEngine:
     """
     Event-driven historical backtester modeling transaction costs, spread, slippage, and latency.
@@ -92,6 +103,7 @@ class BacktestEngine:
         open_positions = {}  # coin -> position_dict
         trade_log = []
         equity_history = []
+        positions_opened = 0
         
         max_positions = 3
         max_holding_bars = 48  # Default limit
@@ -362,6 +374,7 @@ class BacktestEngine:
                     "coin": coin,
                     "type": direction,
                     "units": units,
+                    "initial_units": units,
                     "entry_price": execution_price,
                     "entry_time": latency_res["fill_time"],
                     "entry_idx": fill_idx,
@@ -371,7 +384,10 @@ class BacktestEngine:
                     "tp1_hit": False,
                     "hold_bars": 0,
                     "partial_pnl": 0.0,
+                    "partial_gross_pnl": 0.0,
                     "partial_exits": [],
+                    "entry_fee": entry_fee,
+                    "exit_fees": 0.0,
                     "fee_paid": entry_fee,
                     "slippage_paid": slippage_paid,
                     "spread_paid": spread_paid,
@@ -384,11 +400,63 @@ class BacktestEngine:
                     "atr_price_distance": atr,
                     "same_candle_policy": self.config.same_candle_policy,
                     "causal_risk_level": sig.get("causal_risk_level", "MEDIUM"),
-                    "meta_confidence_bucket": "HIGH" if sig.get("signal_score", 50.0) >= 70 else "MEDIUM"
+                    "meta_confidence_bucket": "HIGH" if signal_score_value(sig) >= 70 else "MEDIUM"
                 }
+                positions_opened += 1
 
         # 3. Compile report
+        ending_equity = cash
+        unrealized_pnl = 0.0
+        open_position_rows = []
+        if sorted_times:
+            for coin, pos in open_positions.items():
+                final_candle = candles_dict[coin][-1]
+                mark_price = float(final_candle["close"])
+                units = float(pos["units"])
+                if pos["type"] == "LONG":
+                    inventory_value = units * mark_price
+                    remaining_gross_pnl = units * (mark_price - pos["entry_price"])
+                else:
+                    inventory_value = units * (2 * pos["entry_price"] - mark_price)
+                    remaining_gross_pnl = units * (pos["entry_price"] - mark_price)
+                position_pnl = (
+                    float(pos["partial_gross_pnl"])
+                    + remaining_gross_pnl
+                    - float(pos["entry_fee"])
+                    - float(pos["exit_fees"])
+                )
+                ending_equity += inventory_value
+                unrealized_pnl += position_pnl
+                open_position_rows.append({
+                    "coin": coin,
+                    "type": pos["type"],
+                    "units": units,
+                    "entry_price": pos["entry_price"],
+                    "mark_price": mark_price,
+                    "unrealized_pnl": position_pnl,
+                })
+            equity_history[-1]["equity"] = ending_equity
+
         metrics = calculate_metrics(trade_log, equity_history, initial_capital, self.config.timeframe)
+        realized_gross_pnl = sum(float(trade.get("gross_pnl", 0.0)) for trade in trade_log)
+        realized_fees = sum(float(trade.get("fee_paid", 0.0)) for trade in trade_log)
+        realized_net_pnl = sum(float(trade.get("pnl", 0.0)) for trade in trade_log)
+        metrics.update({
+            "opening_balance": initial_capital,
+            "ending_cash": cash,
+            "ending_equity": ending_equity,
+            "positions_opened": positions_opened,
+            "positions_closed": len(trade_log),
+            "open_position_count": len(open_positions),
+            "open_quantity": sum(abs(float(pos["units"])) for pos in open_positions.values()),
+            "open_positions": open_position_rows,
+            "realized_gross_pnl": realized_gross_pnl,
+            "realized_fees": realized_fees,
+            "realized_net_pnl": realized_net_pnl,
+            "unrealized_pnl": unrealized_pnl,
+            "equity_reconciliation_residual": ending_equity
+            - (initial_capital + realized_net_pnl + unrealized_pnl),
+        })
         
         # Sprints 9.5, 9.6, 9.7 integrations:
         regime_metrics = RegimeSplitAnalyzer.analyze(trade_log)
@@ -454,7 +522,9 @@ class BacktestEngine:
         
         pos["units"] -= half_units
         pos["partial_pnl"] += net_pnl
+        pos["partial_gross_pnl"] += raw_pnl
         pos["fee_paid"] += fee
+        pos["exit_fees"] += fee
         
         spread_cost = abs(price_spread - base_exit) * half_units
         slippage_cost = abs(execution_exit - price_spread) * half_units
@@ -465,6 +535,9 @@ class BacktestEngine:
             "reason": exit_reason,
             "exit_time": latency_res["fill_time"],
             "exit_price": execution_exit,
+            "units": half_units,
+            "gross_pnl": raw_pnl,
+            "fee": fee,
             "pnl": net_pnl
         })
         
@@ -510,8 +583,10 @@ class BacktestEngine:
         fee = self.cost_model.calculate_fee(notional_exit, is_taker=True)
         net_pnl = raw_pnl - fee
         
-        total_pnl = pos["partial_pnl"] + net_pnl
+        total_gross_pnl = pos["partial_gross_pnl"] + raw_pnl
+        total_pnl = total_gross_pnl - pos["entry_fee"] - pos["exit_fees"] - fee
         pos["fee_paid"] += fee
+        pos["exit_fees"] += fee
         
         spread_cost = abs(price_spread - base_exit) * remaining_units
         slippage_cost = abs(execution_exit - price_spread) * remaining_units
@@ -530,6 +605,11 @@ class BacktestEngine:
             "exit_time": latency_res["fill_time"],
             "entry_price": pos["entry_price"],
             "exit_price": execution_exit,
+            "entry_units": pos["initial_units"],
+            "exit_units": remaining_units,
+            "entry_fee": pos["entry_fee"],
+            "exit_fees": pos["exit_fees"],
+            "gross_pnl": total_gross_pnl,
             "pnl": total_pnl,
             "result": exit_reason,
             "hold_bars": pos["hold_bars"],

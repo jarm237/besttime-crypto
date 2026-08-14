@@ -1,0 +1,70 @@
+{
+  "json": [
+    {
+      "fundingRate": "0.00000271",
+      "fundingTime": 1784793600000,
+      "markPrice": "65405.48600725",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00008458",
+      "fundingTime": 1784822400000,
+      "markPrice": "64940.40000000",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00007598",
+      "fundingTime": 1784851200000,
+      "markPrice": "65069.66000000",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00005149",
+      "fundingTime": 1784880000000,
+      "markPrice": "65470.00000000",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00005879",
+      "fundingTime": 1784908800008,
+      "markPrice": "64068.70000000",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00006074",
+      "fundingTime": 1784937600002,
+      "markPrice": "64116.50000000",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00005425",
+      "fundingTime": 1784966400000,
+      "markPrice": "63973.15203623",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00000729",
+      "fundingTime": 1784995200000,
+      "markPrice": "64150.04885307",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    },
+    {
+      "fundingRate": "0.00003878",
+      "fundingTime": 1785024000000,
+      "markPrice": "64343.23160870",
+      "rateType": "Regular",
+      "symbol": "BTCUSDT"
+    }
+  ],
+  "status_code": 200,
+  "text_prefix": null,
+  "url": "https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1784773162629&endTime=1785032362629&limit=1000"
+}

@@ -108,9 +108,13 @@ def calculate_metrics(
     total_spread_cost = float(df_trades["spread_paid"].sum()) if "spread_paid" in df_trades else 0.0
     
     net_pnl = float(df_trades["pnl"].sum())
-    total_costs = total_fees + total_slippage_cost + total_spread_cost
-    gross_pnl = net_pnl + total_costs
-    cost_drag = total_costs / gross_pnl if gross_pnl > 0 else 0.0
+    market_impact_attribution = total_slippage_cost + total_spread_cost
+    total_costs = total_fees + market_impact_attribution
+    # Fill prices already include spread and slippage. They are attribution
+    # metrics, not additional ledger debits.
+    gross_pnl = net_pnl + total_fees
+    reference_gross_pnl = gross_pnl + market_impact_attribution
+    cost_drag = total_costs / reference_gross_pnl if reference_gross_pnl > 0 else 0.0
     
     # Exposure time: bars occupied
     exposure_bars = sum(df_trades["hold_bars"]) if "hold_bars" in df_trades else 0
@@ -164,7 +168,11 @@ def calculate_metrics(
         "avg_slippage_bps": avg_slippage_bps,
         "avg_latency_ms": avg_latency_ms,
         "gross_pnl": gross_pnl,
+        "reference_gross_pnl": reference_gross_pnl,
         "net_pnl": net_pnl,
+        "total_fees": total_fees,
+        "total_slippage_attribution": total_slippage_cost,
+        "total_spread_attribution": total_spread_cost,
         "total_costs": total_costs,
         "cost_drag": cost_drag
     }

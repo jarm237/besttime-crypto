@@ -1,0 +1,67 @@
+{
+  "artifact": {
+    "artifact_sha256": "4f7bc98a6c18d04d7853a180c4f68763298580128a206bf159f4d16c956cf1e1",
+    "feature_schema_version": "meta-v3.1-43f",
+    "model_version": "v3.1",
+    "path": "logs/meta_model.joblib"
+  },
+  "bounded_forensic": {
+    "layers_checked": [
+      "training_manifest_and_dataset_manifest",
+      "model_registry",
+      "training_logs",
+      "calibration_provenance",
+      "artifact_metadata",
+      "git_history"
+    ],
+    "stop_rule_reached": true
+  },
+  "classification": "UNKNOWN",
+  "evidence": {
+    "artifact_introducing_commit": "f6d49d5d3ad598c48c78dc324c50aca95f7405b8",
+    "artifact_introducing_commit_time": "2026-07-03T00:52:29+07:00",
+    "artifact_metadata": {
+      "embedded_feature_count": 43,
+      "embedded_metadata": null,
+      "embedded_n_samples": 24070,
+      "training_run_id": null
+    },
+    "candidate_training_input": {
+      "calibration_fit_available_at_max": "2026-03-18T17:00:00Z",
+      "calibration_fit_entry_time_max": "2026-03-18T06:30:00Z",
+      "calibration_method_selection_available_at_max": "2026-06-15T10:45:00Z",
+      "calibration_rows": 3610,
+      "path_at_artifact_commit": "logs/adaptive_signals_v2.json",
+      "row_count": 24070,
+      "sha256": "77f1a3c8b406843d9ad58ab2777c8d1446c879f9ade9fc59533e451bf299b19a",
+      "training_available_at_max": "2025-12-23T05:30:00Z",
+      "training_entry_time_max": "2025-12-21T10:00:00Z",
+      "training_rows": 16849
+    },
+    "linkage": {
+      "artifact_and_metadata_changed_in_same_commit": true,
+      "hardcoded_training_input": "logs/adaptive_signals_v2.json",
+      "sample_count_matches_exactly": true,
+      "source_code_sha256_at_artifact_commit": "9e124cadf109df68dc905ff9b8d6ccd79be921b5ec1c50243e49ad9c6fa77a51",
+      "source_metadata_sha256_at_artifact_commit": "b4b9a86eb9947b33ba505ef12a0c267b5fca2456a9b1d0b1c11ae76627e75271"
+    },
+    "missing_authoritative_fields": [
+      "dataset_sha256_bound_to_artifact",
+      "training_data_max_timestamp_bound_to_artifact",
+      "calibration_data_max_timestamp_bound_to_artifact",
+      "training_run_id"
+    ]
+  },
+  "gate": {
+    "MODEL_TEMPORAL_VALIDITY": "FAIL",
+    "reason": "The exact artifact has no authoritative dataset/time/run binding. Repository evidence strongly indicates post-window data, but cannot promote the classification beyond UNKNOWN."
+  },
+  "next_action": {
+    "action": "TRAIN_RESEARCH_ONLY_HISTORICAL_ARTIFACT",
+    "calibration_end_lte": "2024-12-31T23:59:59Z",
+    "evaluation_start": "2025-01-01T00:00:00Z",
+    "training_end_lte": "2024-12-31T23:59:59Z"
+  },
+  "replay_start": "2025-01-01T00:00:00Z",
+  "status": "HMR-V1.2 CLOSED_UNKNOWN"
+}

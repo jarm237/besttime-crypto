@@ -1,0 +1,238 @@
+{
+  "coins": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "current_policy_metrics": {
+    "breakdown_by_coin": {
+      "BNB": {
+        "net_pnl": -55.88029640079357,
+        "trades": 12,
+        "win_rate": 0.0,
+        "wins": 0
+      },
+      "BTC": {
+        "net_pnl": -88.82867874413581,
+        "trades": 15,
+        "win_rate": 0.06666666666666667,
+        "wins": 1
+      },
+      "ETH": {
+        "net_pnl": -109.33884065531738,
+        "trades": 18,
+        "win_rate": 0.0,
+        "wins": 0
+      }
+    },
+    "breakdown_by_side": {
+      "LONG": {
+        "net_pnl": -38.478192555842966,
+        "trades": 8,
+        "win_rate": 0.0,
+        "wins": 0
+      },
+      "SHORT": {
+        "net_pnl": -215.56962324440389,
+        "trades": 37,
+        "win_rate": 0.02702702702702703,
+        "wins": 1
+      }
+    },
+    "cycles": 672,
+    "decision_counts": {
+      "BUY": 10,
+      "HOLD": 0,
+      "SELL": 45
+    },
+    "execution_eligible": 55,
+    "metrics": {
+      "avg_loss": 5.7809285147211265,
+      "avg_win": 0.31303884748278477,
+      "ending_equity": 9745.952184199758,
+      "expectancy_per_trade": -5.645507017783261,
+      "fees": 149.45950264808835,
+      "gross_pnl": -104.58831315215843,
+      "max_drawdown": 0.028504347170578374,
+      "n_trades": 45,
+      "net_pnl": -254.04781580024678,
+      "profit_factor": 0.0012306879842667604,
+      "slippage_attribution": 51.129859466840344,
+      "spread_attribution": 29.891899373742767,
+      "win_rate": 0.022222222222222223
+    },
+    "monthly_breakdown": {
+      "2025-01": {
+        "net_pnl": -254.04781580024687,
+        "trades": 45,
+        "win_rate": 0.022222222222222223,
+        "wins": 1
+      }
+    },
+    "predictions": 55,
+    "regime_breakdown": {
+      "Ranging": {
+        "net_pnl": -254.04781580024687,
+        "trades": 45,
+        "win_rate": 0.022222222222222223,
+        "wins": 1
+      }
+    },
+    "signal_cycles": 48,
+    "trade_counts": {
+      "closed": 45,
+      "open_at_end": 0,
+      "opened": 45
+    }
+  },
+  "engine_result_run_id": "bbb2fea6",
+  "evidence_status": "SMOKE_DIAGNOSTIC_ONLY_NOT_EFFICACY_EVIDENCE",
+  "gates": {
+    "DETERMINISTIC_REPLAY": {
+      "comparisons": {
+        "decision_counts": true,
+        "metrics": true,
+        "trade_counts": true
+      },
+      "status": "PASS"
+    },
+    "EXECUTION_ACCOUNTING": {
+      "cash_ledger": {
+        "ending_cash": 9745.952184199758,
+        "residual": 3.637978807091713e-12,
+        "status": "PASS"
+      },
+      "equity_reconciliation": {
+        "ending_equity": 9745.952184199758,
+        "opening_balance": 10000.0,
+        "realized_net_pnl": -254.04781580024678,
+        "residual": 3.637978807091713e-12,
+        "status": "PASS",
+        "unrealized_pnl": 0.0
+      },
+      "identity_residual": 3.637978807091713e-12,
+      "position_ledger": {
+        "open_position_count": 0,
+        "open_positions": [],
+        "open_quantity": 0.0,
+        "status": "PASS"
+      },
+      "slippage_semantics": "Execution prices include slippage; attribution is reported but not debited again.",
+      "status": "PASS",
+      "tolerance": 1e-06,
+      "trade_reconciliation": {
+        "first_bad_trade": null,
+        "max_abs_residual": 1.7763568394002505e-15,
+        "status": "PASS",
+        "trades_checked": 45
+      }
+    },
+    "NO_LOOKAHEAD": {
+      "forbidden_fields_remaining": [],
+      "missing_closed_bar_count": 0,
+      "missing_closed_bars": [],
+      "signals_checked": 55,
+      "status": "PASS",
+      "timeframe": "15m"
+    },
+    "REPLAY_PARITY_SANITY": {
+      "actual_cycle_count": 672,
+      "expected_cycle_count": 672,
+      "production_policy_path": {
+        "input_mode": "PERSISTED_SIGNAL_RECORDS",
+        "reason": "Runner consumes stored signal_raw values and does not regenerate the production decision path.",
+        "same_features": "NOT_PROVEN",
+        "same_final_decision_implementation": "NOT_PROVEN",
+        "same_meta_threshold": "NOT_PROVEN",
+        "same_policy_version": "NOT_PROVEN",
+        "same_posterior_threshold": "NOT_PROVEN",
+        "same_signal_score_threshold": "NOT_PROVEN",
+        "same_technical_gates": "NOT_PROVEN",
+        "status": "FAIL"
+      },
+      "signal_cycle_count": 48,
+      "status": "FAIL",
+      "symbol_accounting": {
+        "BNB": {
+          "actual": 672,
+          "expected": 672,
+          "extra_count": 0,
+          "first_extra": [],
+          "first_missing": [],
+          "missing_count": 0,
+          "status": "PASS"
+        },
+        "BTC": {
+          "actual": 672,
+          "expected": 672,
+          "extra_count": 0,
+          "first_extra": [],
+          "first_missing": [],
+          "missing_count": 0,
+          "status": "PASS"
+        },
+        "ETH": {
+          "actual": 672,
+          "expected": 672,
+          "extra_count": 0,
+          "first_extra": [],
+          "first_missing": [],
+          "missing_count": 0,
+          "status": "PASS"
+        }
+      },
+      "timeframe": {
+        "actual": "15m",
+        "expected": "15m",
+        "status": "PASS"
+      }
+    }
+  },
+  "input": {
+    "data_dir": "data/fresh_training_data_2023_2026",
+    "signals": "logs/adaptive_signals_v2.json"
+  },
+  "milestone": "HMR-V1 SMOKE REMEDIATION",
+  "notes": [
+    "Decision window is unchanged; settlement bars only allow positions already open at end to close.",
+    "Stored signal records are diagnostic input, not proof of exact production feature/decision parity.",
+    "Open Wave 2 only if STRICT_V1/RESEARCH_V1 deltas later show material alternative-data impact."
+  ],
+  "profile": {
+    "alternative_policy": "PIT-safe/reconstructed-safe data plus production fallback",
+    "evidence_tag": null,
+    "name": "STRICT_V1"
+  },
+  "research_profile_defined": {
+    "alternative_policy": "STRICT_V1 plus historical H1/H2 data tagged NON_PIT_VERIFIED",
+    "evidence_tag": "NON_PIT_VERIFIED",
+    "name": "RESEARCH_V1"
+  },
+  "sanitization": {
+    "forbidden_fields_present": [
+      "exit_time",
+      "pnl_pct",
+      "result",
+      "return_15m",
+      "return_1d",
+      "return_1h",
+      "return_4h"
+    ],
+    "forbidden_fields_removed": [
+      "exit_time",
+      "pnl_pct",
+      "result",
+      "return_15m",
+      "return_1d",
+      "return_1h",
+      "return_4h"
+    ],
+    "future_outcome_fields_removed": 7
+  },
+  "window": {
+    "end": "2025-01-07T23:45:00+00:00",
+    "settlement_end": "2025-01-08T12:00:00+00:00",
+    "start": "2025-01-01T00:00:00+00:00",
+    "timeframe": "15m"
+  }
+}
