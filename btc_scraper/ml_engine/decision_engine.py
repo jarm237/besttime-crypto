@@ -86,10 +86,10 @@ class MetaDecisionEngine:
     def __init__(
         self,
         weights: Optional[Dict[str, float]] = None,
-        buy_threshold: float = 0.65,
-        sell_threshold: float = 0.35,
+        buy_threshold: float = 0.50,
+        sell_threshold: float = 0.50,
         hold_threshold: float = 0.45,
-        min_ev_pct: float = 0.05,
+        min_ev_pct: float = 0.0005,
     ):
         self.proposed_weights = (weights if weights is not None else DEFAULT_EVIDENCE_WEIGHTS).copy()
         self.weights = self.proposed_weights.copy()
@@ -312,16 +312,16 @@ class MetaDecisionEngine:
             expected_return = 0.0
 
         action = "HOLD"
-        if expected_return >= self.min_ev_pct and posterior >= self.buy_threshold:
-            action = "BUY"
-        elif expected_return >= self.min_ev_pct and posterior <= self.sell_threshold:
-            action = "SELL"
-        elif posterior >= self.buy_threshold:
-            action = "INCREASE"
-        elif posterior <= self.sell_threshold:
-            action = "REDUCE"
-        elif self.hold_threshold <= posterior <= 1.0 - self.hold_threshold:
-            action = "HOLD"
+        if signal_side == "BUY":
+            if expected_return >= self.min_ev_pct and side_probability >= self.buy_threshold:
+                action = "BUY"
+            elif side_probability >= self.buy_threshold:
+                action = "INCREASE"
+        elif signal_side == "SELL":
+            if expected_return >= self.min_ev_pct and side_probability >= self.sell_threshold:
+                action = "SELL"
+            elif side_probability >= self.sell_threshold:
+                action = "REDUCE"
 
         if expected_return < self.min_ev_pct:
             action = "IGNORE"
@@ -424,13 +424,24 @@ class MetaDecisionEngine:
         risk_level = str(getattr(context_report.get("risk_level", "LOW"), "value", context_report.get("risk_level", "LOW"))).upper()
         expected_return = float(base_decision.get("expected_return") or 0.0)
 
-        proposed_action = base_decision.get("action", "HOLD")
-        if adjusted_posterior >= self.buy_threshold:
-            proposed_action = "BUY" if expected_return >= self.min_ev_pct else "INCREASE"
-        elif adjusted_posterior <= self.sell_threshold:
-            proposed_action = "SELL" if expected_return >= self.min_ev_pct else "REDUCE"
-        elif self.hold_threshold <= adjusted_posterior <= 1.0 - self.hold_threshold:
-            proposed_action = "HOLD"
+        proposed_side = self._entry_action(analysis_info or {})
+        signal_side = proposed_side if proposed_side in {"BUY", "SELL"} else self._signal_direction(analysis_info or {})
+        adjusted_side_prob = (
+            1.0 - adjusted_posterior if signal_side == "SELL" else adjusted_posterior
+        )
+
+        proposed_action = "HOLD"
+        if signal_side == "BUY":
+            if expected_return >= self.min_ev_pct and adjusted_side_prob >= self.buy_threshold:
+                proposed_action = "BUY"
+            elif adjusted_side_prob >= self.buy_threshold:
+                proposed_action = "INCREASE"
+        elif signal_side == "SELL":
+            if expected_return >= self.min_ev_pct and adjusted_side_prob >= self.sell_threshold:
+                proposed_action = "SELL"
+            elif adjusted_side_prob >= self.sell_threshold:
+                proposed_action = "REDUCE"
+
         if expected_return < self.min_ev_pct:
             proposed_action = "IGNORE"
 

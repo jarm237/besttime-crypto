@@ -334,6 +334,56 @@ class TestSideAgnosticExpectedValueContract:
         assert result["action"] == "IGNORE"
         assert result["eligible"] is False
 
+    def test_symmetric_threshold_gating_behavior(self):
+        # Using a custom symmetric threshold of 0.40 and isolating to meta support only
+        engine = MetaDecisionEngine(weights={"meta": 1.0}, buy_threshold=0.40, sell_threshold=0.40, min_ev_pct=0.05)
+        
+        # 1. Meets threshold exactly -> eligible
+        res_buy = engine.decide({
+            "signal": "BUY",
+            "action": "BUY",
+            "_meta_prediction": {
+                "probability": 0.40,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": 0.10,
+            }
+        }, persist_final=False)
+        assert res_buy["action"] == "BUY"
+        
+        res_sell = engine.decide({
+            "signal": "SELL",
+            "action": "SELL",
+            "_meta_prediction": {
+                "probability": 0.40,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": 0.10,
+            }
+        }, persist_final=False)
+        assert res_sell["action"] == "SELL"
+
+        # 2. Below threshold (0.39) -> HOLD (since EV is positive but probability is insufficient)
+        res_buy_hold = engine.decide({
+            "signal": "BUY",
+            "action": "BUY",
+            "_meta_prediction": {
+                "probability": 0.39,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": 0.10,
+            }
+        }, persist_final=False)
+        assert res_buy_hold["action"] == "HOLD"
+        
+        res_sell_hold = engine.decide({
+            "signal": "SELL",
+            "action": "SELL",
+            "_meta_prediction": {
+                "probability": 0.39,
+                "probability_semantics": "P(win_given_proposed_trade)",
+                "expected_return": 0.10,
+            }
+        }, persist_final=False)
+        assert res_sell_hold["action"] == "HOLD"
+
 
     def test_unavailable_account_risk_is_persistable_in_final_decision(self):
         engine = MetaDecisionEngine()
@@ -533,7 +583,7 @@ class TestDecideWithModel:
 
         monkeypatch.setattr(_de, "predict_meta_confidence", _stub)
 
-        engine = MetaDecisionEngine()
+        engine = MetaDecisionEngine(min_ev_pct=0.05)
         # Use field names that _extract_tp_sl_profile actually reads: entry, sl, tp1
         result = engine.decide({
             "coin": "BTC",

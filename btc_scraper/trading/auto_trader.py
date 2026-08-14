@@ -172,7 +172,7 @@ class AutoTrader:
 
     @property
     def meta_threshold(self) -> float:
-        return _env_float("AUTO_TRADE_META_THRESHOLD", 0.85)
+        return _env_float("AUTO_TRADE_META_THRESHOLD", 0.50)
 
     @property
     def score_threshold(self) -> int:
