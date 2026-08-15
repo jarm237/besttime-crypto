@@ -80,6 +80,19 @@ def apply_final_risk_gate(
     return action, ()
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Unit contract for expected return values
+# CONTRACT: All expected_return values in this engine are *fractional returns*
+# (not percentage points). Scale reference:
+#   0.0001 =  1 bp   (0.01%)
+#   0.0005 =  5 bps  (0.05%)   ← MIN_EV_PCT_DEFAULT
+#   0.005  = 50 bps  (0.5%)
+#   0.05   = 500 bps (5.0%)
+# ──────────────────────────────────────────────────────────────────────
+_EXPECTED_RETURN_UNIT = "FRACTION"  # confirms unit; do not change without updating all callers
+MIN_EV_PCT_DEFAULT = 0.0005  # 5 bps — minimum net expected value per trade
+
+
 class MetaDecisionEngine:
     """Central decision engine combining EV meta model and contextual evidence."""
 
@@ -89,7 +102,7 @@ class MetaDecisionEngine:
         buy_threshold: float = 0.50,
         sell_threshold: float = 0.50,
         hold_threshold: float = 0.45,
-        min_ev_pct: float = 0.0005,
+        min_ev_pct: float = MIN_EV_PCT_DEFAULT,  # see _EXPECTED_RETURN_UNIT: FRACTION (0.0005 = 5 bps)
     ):
         self.proposed_weights = (weights if weights is not None else DEFAULT_EVIDENCE_WEIGHTS).copy()
         self.weights = self.proposed_weights.copy()

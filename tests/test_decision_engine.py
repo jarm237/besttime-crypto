@@ -15,6 +15,7 @@ import numpy as np
 import btc_scraper.ml_engine.meta_model as mm
 from btc_scraper.ml_engine.decision_engine import (
     MetaDecisionEngine, DEFAULT_EVIDENCE_WEIGHTS, DecisionAction, apply_final_risk_gate,
+    MIN_EV_PCT_DEFAULT,
 )
 
 
@@ -600,3 +601,39 @@ class TestDecideWithModel:
             f"Expected IGNORE for near-zero EV, got {result['action']} "
             f"(expected_return={result.get('expected_return')})"
         )
+
+
+# ---------------------------------------------------------------------------
+# E0: Unit contract regression — HMR-V1.3E
+# Ensures MIN_EV_PCT_DEFAULT is in FRACTION units (not percentage points).
+# This prevents re-introduction of the 0.05 (5%) scale bug where the
+# fractional max return of 0.01 (1%) could never exceed the 5% threshold.
+# ---------------------------------------------------------------------------
+class TestMinEvPctUnitContract:
+    def test_default_value_is_5bps(self):
+        """MIN_EV_PCT_DEFAULT must equal 0.0005 (5 basis points in fractional units)."""
+        assert MIN_EV_PCT_DEFAULT == 0.0005, (
+            f"MIN_EV_PCT_DEFAULT is {MIN_EV_PCT_DEFAULT}, expected 0.0005 (5 bps). "
+            "If you changed the default, update this contract test intentionally."
+        )
+
+    def test_unit_is_fraction_not_pct(self):
+        """Confirm scale: 0.0005 * 10_000 bps/unit = 5.0 bps."""
+        bps = MIN_EV_PCT_DEFAULT * 10_000
+        assert abs(bps - 5.0) < 1e-9, (
+            f"Expected 5.0 bps, got {bps}. Unit is FRACTION (not percentage)."
+        )
+
+    def test_engine_uses_correct_default(self):
+        """MetaDecisionEngine constructed without min_ev_pct must inherit 5 bps default."""
+        engine = MetaDecisionEngine()
+        assert engine.min_ev_pct == MIN_EV_PCT_DEFAULT, (
+            f"Engine default min_ev_pct {engine.min_ev_pct} != MIN_EV_PCT_DEFAULT {MIN_EV_PCT_DEFAULT}"
+        )
+
+    def test_scale_ladder(self):
+        """Document the bps ladder to prevent confusion about units."""
+        assert 0.0001 * 10_000 == pytest.approx(1.0)   # 1 bp
+        assert 0.0005 * 10_000 == pytest.approx(5.0)   # 5 bps
+        assert 0.005 * 10_000 == pytest.approx(50.0)   # 50 bps
+        assert 0.05 * 10_000 == pytest.approx(500.0)   # 500 bps = 5%
