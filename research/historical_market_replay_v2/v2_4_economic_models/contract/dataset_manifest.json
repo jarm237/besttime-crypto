@@ -1,0 +1,83 @@
+{
+  "schema": "v2_4_dataset_manifest_v1",
+  "created_at": "2026-08-15T07:14:18.604064+00:00",
+  "training_period": {
+    "start": "2023-01-01",
+    "end": "2024-12-31"
+  },
+  "architecture_freeze_sha": "f67674cce979d53830c870ee6d878855f72353a8903bc5f1cc4b675746f0fc4f",
+  "contract_sha": "9e5355298fa8549cdb2f9541af87d554b5a6649b7fcca2d7d0ccdd02e94c5b5c",
+  "datasets": {
+    "G1B": {
+      "label": "G1-B Compression",
+      "n": 16183,
+      "mean_gross_bps": -1.26,
+      "gross_gt30_rate": 0.183,
+      "gross_gt30_count": 2962,
+      "gross_gt40_rate": 0.1133,
+      "gross_gt40_count": 1834,
+      "nan_label_rows": 0,
+      "by_symbol": {
+        "BNB": 5326,
+        "BTC": 5089,
+        "ETH": 5768
+      },
+      "by_side": {
+        "BUY": 8181,
+        "SELL": 8002
+      }
+    },
+    "G1D": {
+      "label": "G1-D Compression+Opportunity",
+      "n": 10828,
+      "mean_gross_bps": -0.74,
+      "gross_gt30_rate": 0.1894,
+      "gross_gt30_count": 2051,
+      "gross_gt40_rate": 0.1188,
+      "gross_gt40_count": 1286,
+      "nan_label_rows": 0,
+      "by_symbol": {
+        "BNB": 3570,
+        "BTC": 3378,
+        "ETH": 3880
+      },
+      "by_side": {
+        "BUY": 5482,
+        "SELL": 5346
+      }
+    }
+  },
+  "files": {
+    "g1_b_pre2025.parquet": "aff5b07f4c2bc095655b5a64646ab600ed2c4b50d2d7bd31454be0da4d439cb5",
+    "g1_d_pre2025.parquet": "500b34adbfe2960b010f243407af2fdb61b646db608a9f17d48d10569779cb99"
+  },
+  "feature_schema": [
+    "event_id",
+    "timestamp",
+    "symbol",
+    "side",
+    "entry_price",
+    "trend_regime",
+    "volatility_regime",
+    "break_distance_atr",
+    "candle_body_atr",
+    "room_to_structure_atr",
+    "room_to_structure_bps",
+    "recent_cross_count_16bars",
+    "volume_ratio",
+    "sma50_slope",
+    "ema9_ema21_distance_bps",
+    "raw_model_score",
+    "gross_return_72",
+    "gross_return_8",
+    "gross_gt30_72",
+    "gross_gt40_72"
+  ],
+  "pit_invariant": "all features available at event_timestamp; no future data used",
+  "maturity_note": "Events near period_end may have NaN labels if 72-bar exit exceeds settle_end",
+  "label_definitions": {
+    "gross_gt30_72": "1 iff gross_return_72bars >= 0.0030 (30 bps), else 0",
+    "gross_gt40_72": "1 iff gross_return_72bars >= 0.0040 (40 bps), else 0",
+    "gross_return_8": "gross return fraction at 8-bar exit from entry price"
+  }
+}

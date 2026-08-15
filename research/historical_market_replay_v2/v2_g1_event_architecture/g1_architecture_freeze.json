@@ -1,0 +1,53 @@
+{
+  "schema": "g1_architecture_freeze_v1",
+  "frozen_at": "2026-08-15T06:59:39.943780+00:00",
+  "frozen_by": "hmr-v2-g1-research",
+  "discovery_period": {
+    "start": "2025-01-01",
+    "end": "2025-03-31"
+  },
+  "immutable": true,
+  "note": "THRESHOLDS MUST NOT BE MODIFIED after this freeze. Any change requires a new architecture generation validated on a different window.",
+  "architectures": {
+    "G1B_COMPRESSION": {
+      "status": "DISCOVERY_PASS",
+      "rules": {
+        "break_distance_atr_max": 0.25,
+        "candle_body_atr_max": 0.15
+      },
+      "discovery_metrics": {
+        "n": 159,
+        "survival_rate": 0.142,
+        "mean_bps_72bar": 0.45,
+        "gross_gt30_rate": 0.22,
+        "gross_gt30_count": 35,
+        "gross_gt40_rate": 0.145,
+        "gross_gt40_count": 23,
+        "net_pos_rate": 0.296
+      }
+    },
+    "G1D_COMPRESSION_OPPORT": {
+      "status": "PROMISING_COVERAGE_LIMITED",
+      "rules": {
+        "break_distance_atr_max": 0.25,
+        "candle_body_atr_max": 0.15,
+        "room_to_structure_atr_min": 1.0
+      },
+      "discovery_metrics": {
+        "n": 129,
+        "survival_rate": 0.116,
+        "mean_bps_72bar": 2.06,
+        "gross_gt30_rate": 0.248,
+        "gross_gt30_count": 32,
+        "gross_gt40_rate": 0.155,
+        "gross_gt40_count": 20,
+        "net_pos_rate": 0.326
+      },
+      "coverage_gate": "FAIL",
+      "coverage_note": "n=129 < minimum 150; will attempt to validate via pre-2025 corpus expansion"
+    }
+  },
+  "v1_score_disposition": "KEEP_AS_FEATURE",
+  "v1_score_note": "Spearman drops to ~0 on filtered pool (expected distribution shift). Keep raw_model_score as candidate feature for V2.4 ablation; do not hard-drop before feature-ablation study.",
+  "content_sha256": "f67674cce979d53830c870ee6d878855f72353a8903bc5f1cc4b675746f0fc4f"
+}

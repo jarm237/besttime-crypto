@@ -1,0 +1,149 @@
+{
+  "schema": "v2_4_model_research_contract_v1",
+  "created_at": "2026-08-15T07:12:46.712255+00:00",
+  "status": "FROZEN",
+  "note": "This contract is immutable. No field may change after creation without creating a new contract with a new schema version.",
+  "architecture": {
+    "primary": "G1-D",
+    "challenger": "G1-B",
+    "freeze_sha": "f67674cce979d538...",
+    "freeze_file": "research/historical_market_replay_v2/v2_g1_event_architecture/g1_architecture_freeze.json",
+    "thresholds": {
+      "G1B": {
+        "break_distance_atr_max": 0.25,
+        "candle_body_atr_max": 0.15
+      },
+      "G1D": {
+        "break_distance_atr_max": 0.25,
+        "candle_body_atr_max": 0.15,
+        "room_to_structure_atr_min": 1.0
+      }
+    }
+  },
+  "targets": {
+    "primary": "gross_gt30_72",
+    "secondary": "gross_gt40_72",
+    "regression": "gross_return_8"
+  },
+  "label_definitions": {
+    "gross_gt30_72": "1 iff gross_return_72bars >= 0.0030 (30 bps), else 0",
+    "gross_gt40_72": "1 iff gross_return_72bars >= 0.0040 (40 bps), else 0",
+    "gross_return_8": "gross return fraction at 8-bar exit from entry price"
+  },
+  "period_classification": {
+    "training_corpus": {
+      "start": "2023-01-01",
+      "end": "2024-12-31",
+      "status": "AVAILABLE_FOR_TRAINING"
+    },
+    "architecture_discovery": {
+      "start": "2025-01-01",
+      "end": "2025-03-31",
+      "status": "CONTAMINATED_ARCHITECTURE_DECISION"
+    },
+    "architecture_oos_validation": {
+      "start": "2025-04-01",
+      "end": "2025-06-30",
+      "status": "CONTAMINATED_ARCHITECTURE_DECISION"
+    },
+    "final_model_oos": {
+      "window": "Oct-Dec 2025 (or later confirmed-untouched period)",
+      "status": "NOT_YET_OPENED",
+      "open_condition": "artifact_frozen AND selection_policy_frozen"
+    }
+  },
+  "data_split_protocol": "TEMPORAL_WALK_FORWARD_ONLY",
+  "random_split_forbidden": true,
+  "folds": [
+    {
+      "id": "F1",
+      "train": {
+        "start": "2023-01-01",
+        "end": "2023-06-30"
+      },
+      "valid": {
+        "start": "2023-07-01",
+        "end": "2023-12-31"
+      }
+    },
+    {
+      "id": "F2",
+      "train": {
+        "start": "2023-01-01",
+        "end": "2023-12-31"
+      },
+      "valid": {
+        "start": "2024-01-01",
+        "end": "2024-06-30"
+      }
+    },
+    {
+      "id": "F3",
+      "train": {
+        "start": "2023-01-01",
+        "end": "2024-06-30"
+      },
+      "valid": {
+        "start": "2024-07-01",
+        "end": "2024-12-31"
+      }
+    }
+  ],
+  "maturity_rule": "event_timestamp + 72_bars <= fold_valid_end; immature events excluded",
+  "feature_groups": {
+    "A_MARKET_CONTEXT": [
+      "trend_regime",
+      "volatility_regime"
+    ],
+    "B_EVENT_GEOMETRY": [
+      "break_distance_atr",
+      "candle_body_atr"
+    ],
+    "C_STRUCTURAL": [
+      "room_to_structure_atr"
+    ],
+    "D_WHIPSAW_CONTEXT": [
+      "recent_cross_count_16bars"
+    ],
+    "E_LEGACY": [
+      "raw_model_score"
+    ],
+    "F_OPTIONAL_MICRO": [
+      "volume_ratio"
+    ]
+  },
+  "pit_invariant": "max(feature_available_at) <= event_timestamp",
+  "legacy_score_disposition": "KEEP_FOR_ABLATION_NOT_FOR_DEFAULT_USE",
+  "model_selection_gate": {
+    "reject_below_gross_ev_bps": 15.0,
+    "economically_promising_min_gross_ev_bps": 25.0,
+    "net_ev_min": 0.0,
+    "profit_factor_min": 1.0,
+    "concentration_max_single_symbol_pct": 0.8
+  },
+  "selection_policy": {
+    "type": "TOP_PERCENTILE",
+    "candidates": [
+      "TOP_5_PERCENT",
+      "TOP_10_PERCENT",
+      "TOP_20_PERCENT"
+    ],
+    "derivation": "internal_walk_forward_folds_only",
+    "freeze_before_external_oos": true
+  },
+  "calibration": {
+    "default": "SKIP",
+    "apply_if": "policy_requires_accurate_probabilities",
+    "constraint": "must_not_reduce_score_resolution"
+  },
+  "cost_assumptions": {
+    "all_in_friction_bps": 15.0
+  },
+  "baseline_models": [
+    "LogisticRegression",
+    "GradientBoostingClassifier"
+  ],
+  "ablation_required": true,
+  "concentration_audit_required": true,
+  "contract_sha256": "9e5355298fa8549cdb2f9541af87d554b5a6649b7fcca2d7d0ccdd02e94c5b5c"
+}

@@ -1,0 +1,3214 @@
+{
+  "ALL": {
+    "architecture": "G1-D",
+    "run_label": "ALL",
+    "features": [
+      "trend_regime_enc",
+      "volatility_regime_enc",
+      "break_distance_atr",
+      "candle_body_atr",
+      "room_to_structure_atr",
+      "recent_cross_count_16bars",
+      "raw_model_score",
+      "volume_ratio"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5233,
+          "pr_auc": 0.193,
+          "brier": 0.2488,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -0.74,
+              "median_bps": -3.38,
+              "gross_gt30_rate": 0.1481,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": -0.74,
+              "net_ev_bps": -15.74,
+              "profit_factor": 0.95
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": 0.58,
+              "median_bps": 2.74,
+              "gross_gt30_rate": 0.194,
+              "gross_gt40_rate": 0.1642,
+              "gross_ev_bps": 0.58,
+              "net_ev_bps": -14.42,
+              "profit_factor": 1.038
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -2.74,
+              "median_bps": -1.15,
+              "gross_gt30_rate": 0.1926,
+              "gross_gt40_rate": 0.1407,
+              "gross_ev_bps": -2.74,
+              "net_ev_bps": -17.74,
+              "profit_factor": 0.842
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.47,
+              "median_bps": -0.86,
+              "gross_gt30_rate": 0.1963,
+              "gross_gt40_rate": 0.1407,
+              "gross_ev_bps": -2.47,
+              "net_ev_bps": -17.47,
+              "profit_factor": 0.852
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.67,
+              "median_bps": -3.05,
+              "gross_gt30_rate": 0.1981,
+              "gross_gt40_rate": 0.1315,
+              "gross_ev_bps": -2.67,
+              "net_ev_bps": -17.67,
+              "profit_factor": 0.837
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.504,
+          "pr_auc": 0.1905,
+          "brier": 0.1541,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -1.95,
+              "median_bps": 5.64,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": -1.95,
+              "net_ev_bps": -16.95,
+              "profit_factor": 0.889
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -0.54,
+              "median_bps": 1.97,
+              "gross_gt30_rate": 0.209,
+              "gross_gt40_rate": 0.1045,
+              "gross_ev_bps": -0.54,
+              "net_ev_bps": -15.54,
+              "profit_factor": 0.962
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -0.85,
+              "median_bps": -1.31,
+              "gross_gt30_rate": 0.2,
+              "gross_gt40_rate": 0.1259,
+              "gross_ev_bps": -0.85,
+              "net_ev_bps": -15.85,
+              "profit_factor": 0.942
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -3.36,
+              "median_bps": -4.51,
+              "gross_gt30_rate": 0.1889,
+              "gross_gt40_rate": 0.1,
+              "gross_ev_bps": -3.36,
+              "net_ev_bps": -18.36,
+              "profit_factor": 0.793
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.08,
+              "median_bps": -1.42,
+              "gross_gt30_rate": 0.1759,
+              "gross_gt40_rate": 0.1056,
+              "gross_ev_bps": -2.08,
+              "net_ev_bps": -17.08,
+              "profit_factor": 0.861
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5505,
+          "pr_auc": 0.2223,
+          "brier": 0.2465,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 5.04,
+              "median_bps": 5.44,
+              "gross_gt30_rate": 0.2308,
+              "gross_gt40_rate": 0.1538,
+              "gross_ev_bps": 5.04,
+              "net_ev_bps": -9.96,
+              "profit_factor": 1.5
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 6.63,
+              "median_bps": 5.84,
+              "gross_gt30_rate": 0.2615,
+              "gross_gt40_rate": 0.1692,
+              "gross_ev_bps": 6.63,
+              "net_ev_bps": -8.37,
+              "profit_factor": 1.606
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 4.78,
+              "median_bps": 1.77,
+              "gross_gt30_rate": 0.2672,
+              "gross_gt40_rate": 0.1908,
+              "gross_ev_bps": 4.78,
+              "net_ev_bps": -10.22,
+              "profit_factor": 1.385
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 3.48,
+              "median_bps": 0.75,
+              "gross_gt30_rate": 0.2443,
+              "gross_gt40_rate": 0.1718,
+              "gross_ev_bps": 3.48,
+              "net_ev_bps": -11.52,
+              "profit_factor": 1.265
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 3.04,
+              "median_bps": 2.25,
+              "gross_gt30_rate": 0.2328,
+              "gross_gt40_rate": 0.1622,
+              "gross_ev_bps": 3.04,
+              "net_ev_bps": -11.96,
+              "profit_factor": 1.226
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5091,
+          "pr_auc": 0.2038,
+          "brier": 0.1571,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 6.67,
+              "median_bps": 13.24,
+              "gross_gt30_rate": 0.3462,
+              "gross_gt40_rate": 0.1154,
+              "gross_ev_bps": 6.67,
+              "net_ev_bps": -8.33,
+              "profit_factor": 1.605
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 5.3,
+              "median_bps": 7.52,
+              "gross_gt30_rate": 0.2769,
+              "gross_gt40_rate": 0.1231,
+              "gross_ev_bps": 5.3,
+              "net_ev_bps": -9.7,
+              "profit_factor": 1.457
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 0.61,
+              "median_bps": 0.43,
+              "gross_gt30_rate": 0.2366,
+              "gross_gt40_rate": 0.1221,
+              "gross_ev_bps": 0.61,
+              "net_ev_bps": -14.39,
+              "profit_factor": 1.041
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": -3.11,
+              "median_bps": -3.67,
+              "gross_gt30_rate": 0.1985,
+              "gross_gt40_rate": 0.0992,
+              "gross_ev_bps": -3.11,
+              "net_ev_bps": -18.11,
+              "profit_factor": 0.806
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -2.12,
+              "median_bps": -1.82,
+              "gross_gt30_rate": 0.1927,
+              "gross_gt40_rate": 0.1088,
+              "gross_ev_bps": -2.12,
+              "net_ev_bps": -17.12,
+              "profit_factor": 0.862
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.56,
+          "pr_auc": 0.2166,
+          "brier": 0.2472,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 0.07,
+              "median_bps": 0.35,
+              "gross_gt30_rate": 0.2222,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": 0.07,
+              "net_ev_bps": -14.93,
+              "profit_factor": 1.006
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -1.97,
+              "median_bps": -3.63,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -1.97,
+              "net_ev_bps": -16.97,
+              "profit_factor": 0.863
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -1.64,
+              "median_bps": -3.56,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1232,
+              "gross_ev_bps": -1.64,
+              "net_ev_bps": -16.64,
+              "profit_factor": 0.893
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -0.43,
+              "median_bps": 1.14,
+              "gross_gt30_rate": 0.2138,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -0.43,
+              "net_ev_bps": -15.43,
+              "profit_factor": 0.97
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -0.89,
+              "median_bps": 0.0,
+              "gross_gt30_rate": 0.217,
+              "gross_gt40_rate": 0.1284,
+              "gross_ev_bps": -0.89,
+              "net_ev_bps": -15.89,
+              "profit_factor": 0.941
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5387,
+          "pr_auc": 0.2144,
+          "brier": 0.1555,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -1.1,
+              "median_bps": -0.56,
+              "gross_gt30_rate": 0.2593,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": -1.1,
+              "net_ev_bps": -16.1,
+              "profit_factor": 0.929
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -6.29,
+              "median_bps": -6.1,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -6.29,
+              "net_ev_bps": -21.29,
+              "profit_factor": 0.681
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -4.86,
+              "median_bps": -5.61,
+              "gross_gt30_rate": 0.2174,
+              "gross_gt40_rate": 0.1449,
+              "gross_ev_bps": -4.86,
+              "net_ev_bps": -19.86,
+              "profit_factor": 0.74
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -2.74,
+              "median_bps": -4.42,
+              "gross_gt30_rate": 0.2065,
+              "gross_gt40_rate": 0.1341,
+              "gross_ev_bps": -2.74,
+              "net_ev_bps": -17.74,
+              "profit_factor": 0.84
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -2.74,
+              "median_bps": -2.19,
+              "gross_gt30_rate": 0.2025,
+              "gross_gt40_rate": 0.123,
+              "gross_ev_bps": -2.74,
+              "net_ev_bps": -17.74,
+              "profit_factor": 0.832
+            }
+          }
+        }
+      }
+    }
+  },
+  "MINUS_A_MARKET_CONTEXT": {
+    "architecture": "G1-D",
+    "run_label": "MINUS_A_MARKET_CONTEXT",
+    "features": [
+      "break_distance_atr",
+      "candle_body_atr",
+      "room_to_structure_atr",
+      "recent_cross_count_16bars",
+      "raw_model_score",
+      "volume_ratio"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.4987,
+          "pr_auc": 0.1827,
+          "brier": 0.2502,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 0.59,
+              "median_bps": -0.4,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.1852,
+              "gross_ev_bps": 0.59,
+              "net_ev_bps": -14.41,
+              "profit_factor": 1.042
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -0.82,
+              "median_bps": -0.26,
+              "gross_gt30_rate": 0.1642,
+              "gross_gt40_rate": 0.1343,
+              "gross_ev_bps": -0.82,
+              "net_ev_bps": -15.82,
+              "profit_factor": 0.947
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": 0.67,
+              "median_bps": 2.88,
+              "gross_gt30_rate": 0.1778,
+              "gross_gt40_rate": 0.1259,
+              "gross_ev_bps": 0.67,
+              "net_ev_bps": -14.33,
+              "profit_factor": 1.048
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -1.5,
+              "median_bps": -0.55,
+              "gross_gt30_rate": 0.1815,
+              "gross_gt40_rate": 0.1259,
+              "gross_ev_bps": -1.5,
+              "net_ev_bps": -16.5,
+              "profit_factor": 0.902
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -1.44,
+              "median_bps": -0.85,
+              "gross_gt30_rate": 0.1833,
+              "gross_gt40_rate": 0.1167,
+              "gross_ev_bps": -1.44,
+              "net_ev_bps": -16.44,
+              "profit_factor": 0.9
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.4958,
+          "pr_auc": 0.1877,
+          "brier": 0.1546,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -2.81,
+              "median_bps": -6.67,
+              "gross_gt30_rate": 0.2222,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": -2.81,
+              "net_ev_bps": -17.81,
+              "profit_factor": 0.836
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -3.7,
+              "median_bps": 1.51,
+              "gross_gt30_rate": 0.1493,
+              "gross_gt40_rate": 0.0746,
+              "gross_ev_bps": -3.7,
+              "net_ev_bps": -18.7,
+              "profit_factor": 0.77
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -5.39,
+              "median_bps": -6.14,
+              "gross_gt30_rate": 0.163,
+              "gross_gt40_rate": 0.0741,
+              "gross_ev_bps": -5.39,
+              "net_ev_bps": -20.39,
+              "profit_factor": 0.689
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -3.42,
+              "median_bps": -1.96,
+              "gross_gt30_rate": 0.1704,
+              "gross_gt40_rate": 0.0852,
+              "gross_ev_bps": -3.42,
+              "net_ev_bps": -18.42,
+              "profit_factor": 0.778
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -0.96,
+              "median_bps": -0.72,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.1074,
+              "gross_ev_bps": -0.96,
+              "net_ev_bps": -15.96,
+              "profit_factor": 0.933
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5185,
+          "pr_auc": 0.2044,
+          "brier": 0.2492,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 9.29,
+              "median_bps": 3.14,
+              "gross_gt30_rate": 0.2692,
+              "gross_gt40_rate": 0.2308,
+              "gross_ev_bps": 9.29,
+              "net_ev_bps": -5.71,
+              "profit_factor": 2.091
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 8.26,
+              "median_bps": 8.17,
+              "gross_gt30_rate": 0.2615,
+              "gross_gt40_rate": 0.1692,
+              "gross_ev_bps": 8.26,
+              "net_ev_bps": -6.74,
+              "profit_factor": 1.865
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 6.55,
+              "median_bps": 6.05,
+              "gross_gt30_rate": 0.2366,
+              "gross_gt40_rate": 0.1527,
+              "gross_ev_bps": 6.55,
+              "net_ev_bps": -8.45,
+              "profit_factor": 1.649
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 3.45,
+              "median_bps": 1.97,
+              "gross_gt30_rate": 0.1985,
+              "gross_gt40_rate": 0.1298,
+              "gross_ev_bps": 3.45,
+              "net_ev_bps": -11.55,
+              "profit_factor": 1.323
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 1.88,
+              "median_bps": 2.06,
+              "gross_gt30_rate": 0.1947,
+              "gross_gt40_rate": 0.124,
+              "gross_ev_bps": 1.88,
+              "net_ev_bps": -13.12,
+              "profit_factor": 1.154
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.4973,
+          "pr_auc": 0.1947,
+          "brier": 0.1576,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 1.66,
+              "median_bps": 4.09,
+              "gross_gt30_rate": 0.2308,
+              "gross_gt40_rate": 0.1154,
+              "gross_ev_bps": 1.66,
+              "net_ev_bps": -13.34,
+              "profit_factor": 1.128
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": -0.66,
+              "median_bps": 0.47,
+              "gross_gt30_rate": 0.2154,
+              "gross_gt40_rate": 0.0923,
+              "gross_ev_bps": -0.66,
+              "net_ev_bps": -15.66,
+              "profit_factor": 0.952
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 1.86,
+              "median_bps": 2.25,
+              "gross_gt30_rate": 0.2519,
+              "gross_gt40_rate": 0.1298,
+              "gross_ev_bps": 1.86,
+              "net_ev_bps": -13.14,
+              "profit_factor": 1.136
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": -1.15,
+              "median_bps": -0.9,
+              "gross_gt30_rate": 0.2061,
+              "gross_gt40_rate": 0.1145,
+              "gross_ev_bps": -1.15,
+              "net_ev_bps": -16.15,
+              "profit_factor": 0.922
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -2.71,
+              "median_bps": -3.42,
+              "gross_gt30_rate": 0.1794,
+              "gross_gt40_rate": 0.1069,
+              "gross_ev_bps": -2.71,
+              "net_ev_bps": -17.71,
+              "profit_factor": 0.823
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.4979,
+          "pr_auc": 0.1875,
+          "brier": 0.2505,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -0.74,
+              "median_bps": 4.92,
+              "gross_gt30_rate": 0.1111,
+              "gross_gt40_rate": 0.0741,
+              "gross_ev_bps": -0.74,
+              "net_ev_bps": -15.74,
+              "profit_factor": 0.941
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": 0.36,
+              "median_bps": 2.23,
+              "gross_gt30_rate": 0.1449,
+              "gross_gt40_rate": 0.087,
+              "gross_ev_bps": 0.36,
+              "net_ev_bps": -14.64,
+              "profit_factor": 1.032
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -0.65,
+              "median_bps": 1.58,
+              "gross_gt30_rate": 0.1522,
+              "gross_gt40_rate": 0.087,
+              "gross_ev_bps": -0.65,
+              "net_ev_bps": -15.65,
+              "profit_factor": 0.949
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -0.18,
+              "median_bps": 0.82,
+              "gross_gt30_rate": 0.1594,
+              "gross_gt40_rate": 0.1014,
+              "gross_ev_bps": -0.18,
+              "net_ev_bps": -15.18,
+              "profit_factor": 0.986
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": 0.55,
+              "median_bps": 2.09,
+              "gross_gt30_rate": 0.1881,
+              "gross_gt40_rate": 0.1085,
+              "gross_ev_bps": 0.55,
+              "net_ev_bps": -14.45,
+              "profit_factor": 1.042
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5183,
+          "pr_auc": 0.204,
+          "brier": 0.1562,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 1.18,
+              "median_bps": 1.59,
+              "gross_gt30_rate": 0.2593,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": 1.18,
+              "net_ev_bps": -13.82,
+              "profit_factor": 1.077
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -6.54,
+              "median_bps": -7.5,
+              "gross_gt30_rate": 0.1739,
+              "gross_gt40_rate": 0.087,
+              "gross_ev_bps": -6.54,
+              "net_ev_bps": -21.54,
+              "profit_factor": 0.661
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -3.45,
+              "median_bps": -3.48,
+              "gross_gt30_rate": 0.2029,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -3.45,
+              "net_ev_bps": -18.45,
+              "profit_factor": 0.806
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": 0.29,
+              "median_bps": -0.23,
+              "gross_gt30_rate": 0.2065,
+              "gross_gt40_rate": 0.1232,
+              "gross_ev_bps": 0.29,
+              "net_ev_bps": -14.71,
+              "profit_factor": 1.02
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": 1.21,
+              "median_bps": 1.67,
+              "gross_gt30_rate": 0.208,
+              "gross_gt40_rate": 0.1212,
+              "gross_ev_bps": 1.21,
+              "net_ev_bps": -13.79,
+              "profit_factor": 1.092
+            }
+          }
+        }
+      }
+    }
+  },
+  "MINUS_B_EVENT_GEOMETRY": {
+    "architecture": "G1-D",
+    "run_label": "MINUS_B_EVENT_GEOMETRY",
+    "features": [
+      "trend_regime_enc",
+      "volatility_regime_enc",
+      "room_to_structure_atr",
+      "recent_cross_count_16bars",
+      "raw_model_score",
+      "volume_ratio"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.526,
+          "pr_auc": 0.1978,
+          "brier": 0.2488,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 11.99,
+              "median_bps": 7.68,
+              "gross_gt30_rate": 0.2963,
+              "gross_gt40_rate": 0.2593,
+              "gross_ev_bps": 11.99,
+              "net_ev_bps": -3.01,
+              "profit_factor": 2.138
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": 2.1,
+              "median_bps": -2.71,
+              "gross_gt30_rate": 0.2388,
+              "gross_gt40_rate": 0.194,
+              "gross_ev_bps": 2.1,
+              "net_ev_bps": -12.9,
+              "profit_factor": 1.133
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -3.09,
+              "median_bps": -3.38,
+              "gross_gt30_rate": 0.2074,
+              "gross_gt40_rate": 0.1556,
+              "gross_ev_bps": -3.09,
+              "net_ev_bps": -18.09,
+              "profit_factor": 0.825
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -3.56,
+              "median_bps": -4.09,
+              "gross_gt30_rate": 0.2111,
+              "gross_gt40_rate": 0.1556,
+              "gross_ev_bps": -3.56,
+              "net_ev_bps": -18.56,
+              "profit_factor": 0.802
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -1.94,
+              "median_bps": -2.71,
+              "gross_gt30_rate": 0.2019,
+              "gross_gt40_rate": 0.1426,
+              "gross_ev_bps": -1.94,
+              "net_ev_bps": -16.94,
+              "profit_factor": 0.879
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5119,
+          "pr_auc": 0.19,
+          "brier": 0.1533,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -11.7,
+              "median_bps": -11.77,
+              "gross_gt30_rate": 0.1481,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": -11.7,
+              "net_ev_bps": -26.7,
+              "profit_factor": 0.526
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -5.55,
+              "median_bps": -6.37,
+              "gross_gt30_rate": 0.1642,
+              "gross_gt40_rate": 0.0896,
+              "gross_ev_bps": -5.55,
+              "net_ev_bps": -20.55,
+              "profit_factor": 0.692
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -0.57,
+              "median_bps": 1.97,
+              "gross_gt30_rate": 0.2148,
+              "gross_gt40_rate": 0.1185,
+              "gross_ev_bps": -0.57,
+              "net_ev_bps": -15.57,
+              "profit_factor": 0.963
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.75,
+              "median_bps": -1.39,
+              "gross_gt30_rate": 0.1926,
+              "gross_gt40_rate": 0.1185,
+              "gross_ev_bps": -2.75,
+              "net_ev_bps": -17.75,
+              "profit_factor": 0.829
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": 0.19,
+              "median_bps": -1.07,
+              "gross_gt30_rate": 0.2019,
+              "gross_gt40_rate": 0.1352,
+              "gross_ev_bps": 0.19,
+              "net_ev_bps": -14.81,
+              "profit_factor": 1.013
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5419,
+          "pr_auc": 0.2104,
+          "brier": 0.247,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 0.47,
+              "median_bps": -2.61,
+              "gross_gt30_rate": 0.1923,
+              "gross_gt40_rate": 0.1538,
+              "gross_ev_bps": 0.47,
+              "net_ev_bps": -14.53,
+              "profit_factor": 1.037
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": -0.06,
+              "median_bps": -0.42,
+              "gross_gt30_rate": 0.2154,
+              "gross_gt40_rate": 0.1692,
+              "gross_ev_bps": -0.06,
+              "net_ev_bps": -15.06,
+              "profit_factor": 0.996
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 0.8,
+              "median_bps": -1.74,
+              "gross_gt30_rate": 0.2137,
+              "gross_gt40_rate": 0.145,
+              "gross_ev_bps": 0.8,
+              "net_ev_bps": -14.2,
+              "profit_factor": 1.057
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 0.2,
+              "median_bps": -2.12,
+              "gross_gt30_rate": 0.2099,
+              "gross_gt40_rate": 0.145,
+              "gross_ev_bps": 0.2,
+              "net_ev_bps": -14.8,
+              "profit_factor": 1.014
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -0.7,
+              "median_bps": -0.41,
+              "gross_gt30_rate": 0.2023,
+              "gross_gt40_rate": 0.1336,
+              "gross_ev_bps": -0.7,
+              "net_ev_bps": -15.7,
+              "profit_factor": 0.954
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5143,
+          "pr_auc": 0.2093,
+          "brier": 0.1564,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 9.71,
+              "median_bps": 13.32,
+              "gross_gt30_rate": 0.3077,
+              "gross_gt40_rate": 0.1154,
+              "gross_ev_bps": 9.71,
+              "net_ev_bps": -5.29,
+              "profit_factor": 2.182
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 6.61,
+              "median_bps": 6.69,
+              "gross_gt30_rate": 0.3077,
+              "gross_gt40_rate": 0.1231,
+              "gross_ev_bps": 6.61,
+              "net_ev_bps": -8.39,
+              "profit_factor": 1.679
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": -1.18,
+              "median_bps": 2.25,
+              "gross_gt30_rate": 0.2214,
+              "gross_gt40_rate": 0.0992,
+              "gross_ev_bps": -1.18,
+              "net_ev_bps": -16.18,
+              "profit_factor": 0.92
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 0.45,
+              "median_bps": 1.04,
+              "gross_gt30_rate": 0.2061,
+              "gross_gt40_rate": 0.1107,
+              "gross_ev_bps": 0.45,
+              "net_ev_bps": -14.55,
+              "profit_factor": 1.032
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -0.73,
+              "median_bps": -0.06,
+              "gross_gt30_rate": 0.2118,
+              "gross_gt40_rate": 0.1126,
+              "gross_ev_bps": -0.73,
+              "net_ev_bps": -15.73,
+              "profit_factor": 0.95
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5596,
+          "pr_auc": 0.2208,
+          "brier": 0.247,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 2.88,
+              "median_bps": 2.84,
+              "gross_gt30_rate": 0.2963,
+              "gross_gt40_rate": 0.1852,
+              "gross_ev_bps": 2.88,
+              "net_ev_bps": -12.12,
+              "profit_factor": 1.217
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -1.73,
+              "median_bps": 0.35,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1304,
+              "gross_ev_bps": -1.73,
+              "net_ev_bps": -16.73,
+              "profit_factor": 0.881
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -3.76,
+              "median_bps": -3.94,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1232,
+              "gross_ev_bps": -3.76,
+              "net_ev_bps": -18.76,
+              "profit_factor": 0.777
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -3.58,
+              "median_bps": -2.6,
+              "gross_gt30_rate": 0.192,
+              "gross_gt40_rate": 0.1123,
+              "gross_ev_bps": -3.58,
+              "net_ev_bps": -18.58,
+              "profit_factor": 0.789
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -1.23,
+              "median_bps": -0.64,
+              "gross_gt30_rate": 0.2278,
+              "gross_gt40_rate": 0.1392,
+              "gross_ev_bps": -1.23,
+              "net_ev_bps": -16.23,
+              "profit_factor": 0.923
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5209,
+          "pr_auc": 0.2102,
+          "brier": 0.1556,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 2.32,
+              "median_bps": -0.56,
+              "gross_gt30_rate": 0.2963,
+              "gross_gt40_rate": 0.1852,
+              "gross_ev_bps": 2.32,
+              "net_ev_bps": -12.68,
+              "profit_factor": 1.168
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -2.85,
+              "median_bps": -0.57,
+              "gross_gt30_rate": 0.2609,
+              "gross_gt40_rate": 0.1304,
+              "gross_ev_bps": -2.85,
+              "net_ev_bps": -17.85,
+              "profit_factor": 0.831
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -5.37,
+              "median_bps": -3.19,
+              "gross_gt30_rate": 0.2246,
+              "gross_gt40_rate": 0.0942,
+              "gross_ev_bps": -5.37,
+              "net_ev_bps": -20.37,
+              "profit_factor": 0.705
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -2.49,
+              "median_bps": -2.2,
+              "gross_gt30_rate": 0.2138,
+              "gross_gt40_rate": 0.1087,
+              "gross_ev_bps": -2.49,
+              "net_ev_bps": -17.49,
+              "profit_factor": 0.843
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -4.6,
+              "median_bps": -5.61,
+              "gross_gt30_rate": 0.1917,
+              "gross_gt40_rate": 0.1067,
+              "gross_ev_bps": -4.6,
+              "net_ev_bps": -19.6,
+              "profit_factor": 0.735
+            }
+          }
+        }
+      }
+    }
+  },
+  "MINUS_C_STRUCTURAL": {
+    "architecture": "G1-D",
+    "run_label": "MINUS_C_STRUCTURAL",
+    "features": [
+      "trend_regime_enc",
+      "volatility_regime_enc",
+      "break_distance_atr",
+      "candle_body_atr",
+      "recent_cross_count_16bars",
+      "raw_model_score",
+      "volume_ratio"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5301,
+          "pr_auc": 0.195,
+          "brier": 0.2483,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -23.57,
+              "median_bps": -22.16,
+              "gross_gt30_rate": 0.0741,
+              "gross_gt40_rate": 0.0741,
+              "gross_ev_bps": -23.57,
+              "net_ev_bps": -38.57,
+              "profit_factor": 0.198
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -8.96,
+              "median_bps": -4.92,
+              "gross_gt30_rate": 0.1493,
+              "gross_gt40_rate": 0.0896,
+              "gross_ev_bps": -8.96,
+              "net_ev_bps": -23.96,
+              "profit_factor": 0.557
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -6.39,
+              "median_bps": -3.87,
+              "gross_gt30_rate": 0.1778,
+              "gross_gt40_rate": 0.1037,
+              "gross_ev_bps": -6.39,
+              "net_ev_bps": -21.39,
+              "profit_factor": 0.664
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.8,
+              "median_bps": -1.5,
+              "gross_gt30_rate": 0.2074,
+              "gross_gt40_rate": 0.137,
+              "gross_ev_bps": -2.8,
+              "net_ev_bps": -17.8,
+              "profit_factor": 0.837
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -1.73,
+              "median_bps": -1.6,
+              "gross_gt30_rate": 0.2074,
+              "gross_gt40_rate": 0.1389,
+              "gross_ev_bps": -1.73,
+              "net_ev_bps": -16.73,
+              "profit_factor": 0.892
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.513,
+          "pr_auc": 0.1946,
+          "brier": 0.1531,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 0.98,
+              "median_bps": -2.47,
+              "gross_gt30_rate": 0.2222,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": 0.98,
+              "net_ev_bps": -14.02,
+              "profit_factor": 1.081
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": 3.13,
+              "median_bps": 7.63,
+              "gross_gt30_rate": 0.2239,
+              "gross_gt40_rate": 0.1045,
+              "gross_ev_bps": 3.13,
+              "net_ev_bps": -11.87,
+              "profit_factor": 1.252
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": 0.52,
+              "median_bps": 3.75,
+              "gross_gt30_rate": 0.2296,
+              "gross_gt40_rate": 0.1185,
+              "gross_ev_bps": 0.52,
+              "net_ev_bps": -14.48,
+              "profit_factor": 1.036
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -0.19,
+              "median_bps": 1.52,
+              "gross_gt30_rate": 0.2148,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": -0.19,
+              "net_ev_bps": -15.19,
+              "profit_factor": 0.986
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.14,
+              "median_bps": -2.45,
+              "gross_gt30_rate": 0.1963,
+              "gross_gt40_rate": 0.113,
+              "gross_ev_bps": -2.14,
+              "net_ev_bps": -17.14,
+              "profit_factor": 0.861
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5499,
+          "pr_auc": 0.2218,
+          "brier": 0.2466,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 6.04,
+              "median_bps": 5.44,
+              "gross_gt30_rate": 0.2308,
+              "gross_gt40_rate": 0.1538,
+              "gross_ev_bps": 6.04,
+              "net_ev_bps": -8.96,
+              "profit_factor": 1.664
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 7.55,
+              "median_bps": 5.84,
+              "gross_gt30_rate": 0.2615,
+              "gross_gt40_rate": 0.1692,
+              "gross_ev_bps": 7.55,
+              "net_ev_bps": -7.45,
+              "profit_factor": 1.747
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 5.4,
+              "median_bps": 3.06,
+              "gross_gt30_rate": 0.2748,
+              "gross_gt40_rate": 0.1908,
+              "gross_ev_bps": 5.4,
+              "net_ev_bps": -9.6,
+              "profit_factor": 1.449
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 3.95,
+              "median_bps": 1.24,
+              "gross_gt30_rate": 0.2443,
+              "gross_gt40_rate": 0.1679,
+              "gross_ev_bps": 3.95,
+              "net_ev_bps": -11.05,
+              "profit_factor": 1.311
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 3.05,
+              "median_bps": 2.66,
+              "gross_gt30_rate": 0.2328,
+              "gross_gt40_rate": 0.1603,
+              "gross_ev_bps": 3.05,
+              "net_ev_bps": -11.95,
+              "profit_factor": 1.227
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5224,
+          "pr_auc": 0.2001,
+          "brier": 0.1571,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": -15.48,
+              "median_bps": -11.69,
+              "gross_gt30_rate": 0.1154,
+              "gross_gt40_rate": 0.0385,
+              "gross_ev_bps": -15.48,
+              "net_ev_bps": -30.48,
+              "profit_factor": 0.345
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": -1.8,
+              "median_bps": -4.7,
+              "gross_gt30_rate": 0.1692,
+              "gross_gt40_rate": 0.1231,
+              "gross_ev_bps": -1.8,
+              "net_ev_bps": -16.8,
+              "profit_factor": 0.887
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": -0.84,
+              "median_bps": 0.32,
+              "gross_gt30_rate": 0.1908,
+              "gross_gt40_rate": 0.1145,
+              "gross_ev_bps": -0.84,
+              "net_ev_bps": -15.84,
+              "profit_factor": 0.943
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": -1.62,
+              "median_bps": -1.68,
+              "gross_gt30_rate": 0.1794,
+              "gross_gt40_rate": 0.1183,
+              "gross_ev_bps": -1.62,
+              "net_ev_bps": -16.62,
+              "profit_factor": 0.893
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 0.61,
+              "median_bps": 1.45,
+              "gross_gt30_rate": 0.2023,
+              "gross_gt40_rate": 0.1279,
+              "gross_ev_bps": 0.61,
+              "net_ev_bps": -14.39,
+              "profit_factor": 1.044
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5613,
+          "pr_auc": 0.2162,
+          "brier": 0.2469,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 2.73,
+              "median_bps": -4.32,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": 2.73,
+              "net_ev_bps": -12.27,
+              "profit_factor": 1.21
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": 2.15,
+              "median_bps": 2.09,
+              "gross_gt30_rate": 0.2319,
+              "gross_gt40_rate": 0.1449,
+              "gross_ev_bps": 2.15,
+              "net_ev_bps": -12.85,
+              "profit_factor": 1.163
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": 1.4,
+              "median_bps": 2.93,
+              "gross_gt30_rate": 0.2101,
+              "gross_gt40_rate": 0.1087,
+              "gross_ev_bps": 1.4,
+              "net_ev_bps": -13.6,
+              "profit_factor": 1.109
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": 0.42,
+              "median_bps": 1.33,
+              "gross_gt30_rate": 0.2065,
+              "gross_gt40_rate": 0.1232,
+              "gross_ev_bps": 0.42,
+              "net_ev_bps": -14.58,
+              "profit_factor": 1.031
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": 0.9,
+              "median_bps": 1.63,
+              "gross_gt30_rate": 0.2351,
+              "gross_gt40_rate": 0.1302,
+              "gross_ev_bps": 0.9,
+              "net_ev_bps": -14.1,
+              "profit_factor": 1.064
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5408,
+          "pr_auc": 0.2099,
+          "brier": 0.1555,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -15.74,
+              "median_bps": -20.12,
+              "gross_gt30_rate": 0.1481,
+              "gross_gt40_rate": 0.0741,
+              "gross_ev_bps": -15.74,
+              "net_ev_bps": -30.74,
+              "profit_factor": 0.43
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": 1.03,
+              "median_bps": 1.67,
+              "gross_gt30_rate": 0.2319,
+              "gross_gt40_rate": 0.1594,
+              "gross_ev_bps": 1.03,
+              "net_ev_bps": -13.97,
+              "profit_factor": 1.056
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -1.54,
+              "median_bps": -0.25,
+              "gross_gt30_rate": 0.1957,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -1.54,
+              "net_ev_bps": -16.54,
+              "profit_factor": 0.907
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -1.96,
+              "median_bps": 1.44,
+              "gross_gt30_rate": 0.2174,
+              "gross_gt40_rate": 0.1341,
+              "gross_ev_bps": -1.96,
+              "net_ev_bps": -16.96,
+              "profit_factor": 0.884
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -1.27,
+              "median_bps": 0.28,
+              "gross_gt30_rate": 0.2206,
+              "gross_gt40_rate": 0.1356,
+              "gross_ev_bps": -1.27,
+              "net_ev_bps": -16.27,
+              "profit_factor": 0.922
+            }
+          }
+        }
+      }
+    }
+  },
+  "MINUS_D_WHIPSAW_CONTEXT": {
+    "architecture": "G1-D",
+    "run_label": "MINUS_D_WHIPSAW_CONTEXT",
+    "features": [
+      "trend_regime_enc",
+      "volatility_regime_enc",
+      "break_distance_atr",
+      "candle_body_atr",
+      "room_to_structure_atr",
+      "raw_model_score",
+      "volume_ratio"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5224,
+          "pr_auc": 0.1923,
+          "brier": 0.2488,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -0.95,
+              "median_bps": -4.92,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": -0.95,
+              "net_ev_bps": -15.95,
+              "profit_factor": 0.938
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": 0.69,
+              "median_bps": 2.88,
+              "gross_gt30_rate": 0.209,
+              "gross_gt40_rate": 0.1493,
+              "gross_ev_bps": 0.69,
+              "net_ev_bps": -14.31,
+              "profit_factor": 1.046
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -1.15,
+              "median_bps": 0.94,
+              "gross_gt30_rate": 0.1926,
+              "gross_gt40_rate": 0.1407,
+              "gross_ev_bps": -1.15,
+              "net_ev_bps": -16.15,
+              "profit_factor": 0.929
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.69,
+              "median_bps": -0.78,
+              "gross_gt30_rate": 0.1889,
+              "gross_gt40_rate": 0.1407,
+              "gross_ev_bps": -2.69,
+              "net_ev_bps": -17.69,
+              "profit_factor": 0.839
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.46,
+              "median_bps": -2.02,
+              "gross_gt30_rate": 0.1981,
+              "gross_gt40_rate": 0.1315,
+              "gross_ev_bps": -2.46,
+              "net_ev_bps": -17.46,
+              "profit_factor": 0.847
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5023,
+          "pr_auc": 0.1926,
+          "brier": 0.1541,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 4.87,
+              "median_bps": 7.0,
+              "gross_gt30_rate": 0.2593,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": 4.87,
+              "net_ev_bps": -10.13,
+              "profit_factor": 1.39
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -4.17,
+              "median_bps": -1.3,
+              "gross_gt30_rate": 0.1642,
+              "gross_gt40_rate": 0.1045,
+              "gross_ev_bps": -4.17,
+              "net_ev_bps": -19.17,
+              "profit_factor": 0.75
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -4.08,
+              "median_bps": -4.09,
+              "gross_gt30_rate": 0.1778,
+              "gross_gt40_rate": 0.0963,
+              "gross_ev_bps": -4.08,
+              "net_ev_bps": -19.08,
+              "profit_factor": 0.741
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -1.38,
+              "median_bps": -1.96,
+              "gross_gt30_rate": 0.2,
+              "gross_gt40_rate": 0.1074,
+              "gross_ev_bps": -1.38,
+              "net_ev_bps": -16.38,
+              "profit_factor": 0.904
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -0.33,
+              "median_bps": -1.31,
+              "gross_gt30_rate": 0.1963,
+              "gross_gt40_rate": 0.1148,
+              "gross_ev_bps": -0.33,
+              "net_ev_bps": -15.33,
+              "profit_factor": 0.976
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5528,
+          "pr_auc": 0.2228,
+          "brier": 0.2466,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 2.68,
+              "median_bps": 2.31,
+              "gross_gt30_rate": 0.2692,
+              "gross_gt40_rate": 0.2308,
+              "gross_ev_bps": 2.68,
+              "net_ev_bps": -12.32,
+              "profit_factor": 1.19
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 6.48,
+              "median_bps": 7.61,
+              "gross_gt30_rate": 0.2615,
+              "gross_gt40_rate": 0.2,
+              "gross_ev_bps": 6.48,
+              "net_ev_bps": -8.52,
+              "profit_factor": 1.585
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 5.68,
+              "median_bps": 6.47,
+              "gross_gt30_rate": 0.2519,
+              "gross_gt40_rate": 0.1832,
+              "gross_ev_bps": 5.68,
+              "net_ev_bps": -9.32,
+              "profit_factor": 1.466
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 4.54,
+              "median_bps": 3.59,
+              "gross_gt30_rate": 0.2519,
+              "gross_gt40_rate": 0.1718,
+              "gross_ev_bps": 4.54,
+              "net_ev_bps": -10.46,
+              "profit_factor": 1.365
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 2.21,
+              "median_bps": 2.44,
+              "gross_gt30_rate": 0.2233,
+              "gross_gt40_rate": 0.1469,
+              "gross_ev_bps": 2.21,
+              "net_ev_bps": -12.79,
+              "profit_factor": 1.159
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5099,
+          "pr_auc": 0.205,
+          "brier": 0.1571,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 13.4,
+              "median_bps": 21.02,
+              "gross_gt30_rate": 0.4231,
+              "gross_gt40_rate": 0.1538,
+              "gross_ev_bps": 13.4,
+              "net_ev_bps": -1.6,
+              "profit_factor": 2.698
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 2.5,
+              "median_bps": 11.4,
+              "gross_gt30_rate": 0.3077,
+              "gross_gt40_rate": 0.1077,
+              "gross_ev_bps": 2.5,
+              "net_ev_bps": -12.5,
+              "profit_factor": 1.18
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": -0.91,
+              "median_bps": -0.02,
+              "gross_gt30_rate": 0.2443,
+              "gross_gt40_rate": 0.1145,
+              "gross_ev_bps": -0.91,
+              "net_ev_bps": -15.91,
+              "profit_factor": 0.943
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": -0.85,
+              "median_bps": -0.27,
+              "gross_gt30_rate": 0.2099,
+              "gross_gt40_rate": 0.1145,
+              "gross_ev_bps": -0.85,
+              "net_ev_bps": -15.85,
+              "profit_factor": 0.944
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -0.24,
+              "median_bps": -0.56,
+              "gross_gt30_rate": 0.1966,
+              "gross_gt40_rate": 0.1164,
+              "gross_ev_bps": -0.24,
+              "net_ev_bps": -15.24,
+              "profit_factor": 0.983
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5593,
+          "pr_auc": 0.2166,
+          "brier": 0.2472,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -5.62,
+              "median_bps": -4.26,
+              "gross_gt30_rate": 0.1481,
+              "gross_gt40_rate": 0.0741,
+              "gross_ev_bps": -5.62,
+              "net_ev_bps": -20.62,
+              "profit_factor": 0.637
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": 5.9,
+              "median_bps": 5.25,
+              "gross_gt30_rate": 0.2464,
+              "gross_gt40_rate": 0.1594,
+              "gross_ev_bps": 5.9,
+              "net_ev_bps": -9.1,
+              "profit_factor": 1.516
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -2.01,
+              "median_bps": -0.47,
+              "gross_gt30_rate": 0.1739,
+              "gross_gt40_rate": 0.1014,
+              "gross_ev_bps": -2.01,
+              "net_ev_bps": -17.01,
+              "profit_factor": 0.869
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": 0.31,
+              "median_bps": 2.16,
+              "gross_gt30_rate": 0.2138,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": 0.31,
+              "net_ev_bps": -14.69,
+              "profit_factor": 1.022
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -0.05,
+              "median_bps": 0.29,
+              "gross_gt30_rate": 0.2224,
+              "gross_gt40_rate": 0.1266,
+              "gross_ev_bps": -0.05,
+              "net_ev_bps": -15.05,
+              "profit_factor": 0.997
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5333,
+          "pr_auc": 0.2123,
+          "brier": 0.1556,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -1.49,
+              "median_bps": -6.1,
+              "gross_gt30_rate": 0.2593,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": -1.49,
+              "net_ev_bps": -16.49,
+              "profit_factor": 0.912
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -4.42,
+              "median_bps": -3.63,
+              "gross_gt30_rate": 0.2029,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -4.42,
+              "net_ev_bps": -19.42,
+              "profit_factor": 0.744
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -2.79,
+              "median_bps": -2.54,
+              "gross_gt30_rate": 0.2101,
+              "gross_gt40_rate": 0.1304,
+              "gross_ev_bps": -2.79,
+              "net_ev_bps": -17.79,
+              "profit_factor": 0.837
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -2.48,
+              "median_bps": -3.9,
+              "gross_gt30_rate": 0.2246,
+              "gross_gt40_rate": 0.1413,
+              "gross_ev_bps": -2.48,
+              "net_ev_bps": -17.48,
+              "profit_factor": 0.855
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -1.83,
+              "median_bps": -1.05,
+              "gross_gt30_rate": 0.2061,
+              "gross_gt40_rate": 0.123,
+              "gross_ev_bps": -1.83,
+              "net_ev_bps": -16.83,
+              "profit_factor": 0.885
+            }
+          }
+        }
+      }
+    }
+  },
+  "MINUS_E_LEGACY": {
+    "architecture": "G1-D",
+    "run_label": "MINUS_E_LEGACY",
+    "features": [
+      "trend_regime_enc",
+      "volatility_regime_enc",
+      "break_distance_atr",
+      "candle_body_atr",
+      "room_to_structure_atr",
+      "recent_cross_count_16bars",
+      "volume_ratio"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5233,
+          "pr_auc": 0.193,
+          "brier": 0.2488,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -0.74,
+              "median_bps": -3.38,
+              "gross_gt30_rate": 0.1481,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": -0.74,
+              "net_ev_bps": -15.74,
+              "profit_factor": 0.95
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": 0.58,
+              "median_bps": 2.74,
+              "gross_gt30_rate": 0.194,
+              "gross_gt40_rate": 0.1642,
+              "gross_ev_bps": 0.58,
+              "net_ev_bps": -14.42,
+              "profit_factor": 1.038
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -2.74,
+              "median_bps": -1.15,
+              "gross_gt30_rate": 0.1926,
+              "gross_gt40_rate": 0.1407,
+              "gross_ev_bps": -2.74,
+              "net_ev_bps": -17.74,
+              "profit_factor": 0.842
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.47,
+              "median_bps": -0.86,
+              "gross_gt30_rate": 0.1963,
+              "gross_gt40_rate": 0.1407,
+              "gross_ev_bps": -2.47,
+              "net_ev_bps": -17.47,
+              "profit_factor": 0.852
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.67,
+              "median_bps": -3.05,
+              "gross_gt30_rate": 0.1981,
+              "gross_gt40_rate": 0.1315,
+              "gross_ev_bps": -2.67,
+              "net_ev_bps": -17.67,
+              "profit_factor": 0.837
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.504,
+          "pr_auc": 0.1905,
+          "brier": 0.1541,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -1.95,
+              "median_bps": 5.64,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": -1.95,
+              "net_ev_bps": -16.95,
+              "profit_factor": 0.889
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -0.54,
+              "median_bps": 1.97,
+              "gross_gt30_rate": 0.209,
+              "gross_gt40_rate": 0.1045,
+              "gross_ev_bps": -0.54,
+              "net_ev_bps": -15.54,
+              "profit_factor": 0.962
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -0.85,
+              "median_bps": -1.31,
+              "gross_gt30_rate": 0.2,
+              "gross_gt40_rate": 0.1259,
+              "gross_ev_bps": -0.85,
+              "net_ev_bps": -15.85,
+              "profit_factor": 0.942
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -3.36,
+              "median_bps": -4.51,
+              "gross_gt30_rate": 0.1889,
+              "gross_gt40_rate": 0.1,
+              "gross_ev_bps": -3.36,
+              "net_ev_bps": -18.36,
+              "profit_factor": 0.793
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.08,
+              "median_bps": -1.42,
+              "gross_gt30_rate": 0.1759,
+              "gross_gt40_rate": 0.1056,
+              "gross_ev_bps": -2.08,
+              "net_ev_bps": -17.08,
+              "profit_factor": 0.861
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5505,
+          "pr_auc": 0.2223,
+          "brier": 0.2465,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 5.04,
+              "median_bps": 5.44,
+              "gross_gt30_rate": 0.2308,
+              "gross_gt40_rate": 0.1538,
+              "gross_ev_bps": 5.04,
+              "net_ev_bps": -9.96,
+              "profit_factor": 1.5
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 6.63,
+              "median_bps": 5.84,
+              "gross_gt30_rate": 0.2615,
+              "gross_gt40_rate": 0.1692,
+              "gross_ev_bps": 6.63,
+              "net_ev_bps": -8.37,
+              "profit_factor": 1.606
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 4.78,
+              "median_bps": 1.77,
+              "gross_gt30_rate": 0.2672,
+              "gross_gt40_rate": 0.1908,
+              "gross_ev_bps": 4.78,
+              "net_ev_bps": -10.22,
+              "profit_factor": 1.385
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 3.48,
+              "median_bps": 0.75,
+              "gross_gt30_rate": 0.2443,
+              "gross_gt40_rate": 0.1718,
+              "gross_ev_bps": 3.48,
+              "net_ev_bps": -11.52,
+              "profit_factor": 1.265
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 3.04,
+              "median_bps": 2.25,
+              "gross_gt30_rate": 0.2328,
+              "gross_gt40_rate": 0.1622,
+              "gross_ev_bps": 3.04,
+              "net_ev_bps": -11.96,
+              "profit_factor": 1.226
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5091,
+          "pr_auc": 0.2038,
+          "brier": 0.1571,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 6.67,
+              "median_bps": 13.24,
+              "gross_gt30_rate": 0.3462,
+              "gross_gt40_rate": 0.1154,
+              "gross_ev_bps": 6.67,
+              "net_ev_bps": -8.33,
+              "profit_factor": 1.605
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 5.3,
+              "median_bps": 7.52,
+              "gross_gt30_rate": 0.2769,
+              "gross_gt40_rate": 0.1231,
+              "gross_ev_bps": 5.3,
+              "net_ev_bps": -9.7,
+              "profit_factor": 1.457
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 0.61,
+              "median_bps": 0.43,
+              "gross_gt30_rate": 0.2366,
+              "gross_gt40_rate": 0.1221,
+              "gross_ev_bps": 0.61,
+              "net_ev_bps": -14.39,
+              "profit_factor": 1.041
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": -3.11,
+              "median_bps": -3.67,
+              "gross_gt30_rate": 0.1985,
+              "gross_gt40_rate": 0.0992,
+              "gross_ev_bps": -3.11,
+              "net_ev_bps": -18.11,
+              "profit_factor": 0.806
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -2.12,
+              "median_bps": -1.82,
+              "gross_gt30_rate": 0.1927,
+              "gross_gt40_rate": 0.1088,
+              "gross_ev_bps": -2.12,
+              "net_ev_bps": -17.12,
+              "profit_factor": 0.862
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.56,
+          "pr_auc": 0.2166,
+          "brier": 0.2472,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 0.07,
+              "median_bps": 0.35,
+              "gross_gt30_rate": 0.2222,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": 0.07,
+              "net_ev_bps": -14.93,
+              "profit_factor": 1.006
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -1.97,
+              "median_bps": -3.63,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -1.97,
+              "net_ev_bps": -16.97,
+              "profit_factor": 0.863
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -1.64,
+              "median_bps": -3.56,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1232,
+              "gross_ev_bps": -1.64,
+              "net_ev_bps": -16.64,
+              "profit_factor": 0.893
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -0.43,
+              "median_bps": 1.14,
+              "gross_gt30_rate": 0.2138,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -0.43,
+              "net_ev_bps": -15.43,
+              "profit_factor": 0.97
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -0.89,
+              "median_bps": 0.0,
+              "gross_gt30_rate": 0.217,
+              "gross_gt40_rate": 0.1284,
+              "gross_ev_bps": -0.89,
+              "net_ev_bps": -15.89,
+              "profit_factor": 0.941
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5387,
+          "pr_auc": 0.2144,
+          "brier": 0.1555,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -1.1,
+              "median_bps": -0.56,
+              "gross_gt30_rate": 0.2593,
+              "gross_gt40_rate": 0.1481,
+              "gross_ev_bps": -1.1,
+              "net_ev_bps": -16.1,
+              "profit_factor": 0.929
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -6.29,
+              "median_bps": -6.1,
+              "gross_gt30_rate": 0.1884,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -6.29,
+              "net_ev_bps": -21.29,
+              "profit_factor": 0.681
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -4.86,
+              "median_bps": -5.61,
+              "gross_gt30_rate": 0.2174,
+              "gross_gt40_rate": 0.1449,
+              "gross_ev_bps": -4.86,
+              "net_ev_bps": -19.86,
+              "profit_factor": 0.74
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -2.74,
+              "median_bps": -4.42,
+              "gross_gt30_rate": 0.2065,
+              "gross_gt40_rate": 0.1341,
+              "gross_ev_bps": -2.74,
+              "net_ev_bps": -17.74,
+              "profit_factor": 0.84
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -2.74,
+              "median_bps": -2.19,
+              "gross_gt30_rate": 0.2025,
+              "gross_gt40_rate": 0.123,
+              "gross_ev_bps": -2.74,
+              "net_ev_bps": -17.74,
+              "profit_factor": 0.832
+            }
+          }
+        }
+      }
+    }
+  },
+  "MINUS_F_OPTIONAL_MICRO": {
+    "architecture": "G1-D",
+    "run_label": "MINUS_F_OPTIONAL_MICRO",
+    "features": [
+      "trend_regime_enc",
+      "volatility_regime_enc",
+      "break_distance_atr",
+      "candle_body_atr",
+      "room_to_structure_atr",
+      "recent_cross_count_16bars",
+      "raw_model_score"
+    ],
+    "folds": {
+      "F1": {
+        "train_n": 2691,
+        "valid_n": 2700,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.523,
+          "pr_auc": 0.1904,
+          "brier": 0.249,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": -10.28,
+              "median_bps": -1.15,
+              "gross_gt30_rate": 0.0741,
+              "gross_gt40_rate": 0.0,
+              "gross_ev_bps": -10.28,
+              "net_ev_bps": -25.28,
+              "profit_factor": 0.433
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -0.1,
+              "median_bps": 2.88,
+              "gross_gt30_rate": 0.194,
+              "gross_gt40_rate": 0.1194,
+              "gross_ev_bps": -0.1,
+              "net_ev_bps": -15.1,
+              "profit_factor": 0.993
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -0.06,
+              "median_bps": 1.5,
+              "gross_gt30_rate": 0.163,
+              "gross_gt40_rate": 0.1037,
+              "gross_ev_bps": -0.06,
+              "net_ev_bps": -15.06,
+              "profit_factor": 0.996
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.21,
+              "median_bps": -1.41,
+              "gross_gt30_rate": 0.163,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": -2.21,
+              "net_ev_bps": -17.21,
+              "profit_factor": 0.854
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": 0.45,
+              "median_bps": 1.14,
+              "gross_gt30_rate": 0.2037,
+              "gross_gt40_rate": 0.1426,
+              "gross_ev_bps": 0.45,
+              "net_ev_bps": -14.55,
+              "profit_factor": 1.031
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 2691,
+          "train_pos": 512,
+          "valid_n": 2700,
+          "valid_pos": 496,
+          "roc_auc": 0.5057,
+          "pr_auc": 0.1895,
+          "brier": 0.1546,
+          "baseline_economics": {
+            "n": 2700,
+            "mean_bps": -1.13,
+            "median_bps": -1.6,
+            "gross_gt30_rate": 0.1837,
+            "gross_gt40_rate": 0.1163,
+            "gross_ev_bps": -1.13,
+            "net_ev_bps": -16.13,
+            "profit_factor": 0.921
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 7.54,
+              "median_bps": 5.64,
+              "gross_gt30_rate": 0.2222,
+              "gross_gt40_rate": 0.1111,
+              "gross_ev_bps": 7.54,
+              "net_ev_bps": -7.46,
+              "profit_factor": 1.85
+            },
+            "top_2pct": {
+              "n": 67,
+              "mean_bps": -1.02,
+              "median_bps": -1.3,
+              "gross_gt30_rate": 0.1493,
+              "gross_gt40_rate": 0.0746,
+              "gross_ev_bps": -1.02,
+              "net_ev_bps": -16.02,
+              "profit_factor": 0.922
+            },
+            "top_5pct": {
+              "n": 135,
+              "mean_bps": -2.34,
+              "median_bps": -1.6,
+              "gross_gt30_rate": 0.1852,
+              "gross_gt40_rate": 0.0963,
+              "gross_ev_bps": -2.34,
+              "net_ev_bps": -17.34,
+              "profit_factor": 0.847
+            },
+            "top_10pct": {
+              "n": 270,
+              "mean_bps": -2.89,
+              "median_bps": -1.42,
+              "gross_gt30_rate": 0.2037,
+              "gross_gt40_rate": 0.1074,
+              "gross_ev_bps": -2.89,
+              "net_ev_bps": -17.89,
+              "profit_factor": 0.82
+            },
+            "top_20pct": {
+              "n": 540,
+              "mean_bps": -2.65,
+              "median_bps": -3.28,
+              "gross_gt30_rate": 0.1796,
+              "gross_gt40_rate": 0.1074,
+              "gross_ev_bps": -2.65,
+              "net_ev_bps": -17.65,
+              "profit_factor": 0.829
+            }
+          }
+        }
+      },
+      "F2": {
+        "train_n": 5398,
+        "valid_n": 2624,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5541,
+          "pr_auc": 0.2304,
+          "brier": 0.2469,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": -4.3,
+              "median_bps": -8.47,
+              "gross_gt30_rate": 0.1923,
+              "gross_gt40_rate": 0.1538,
+              "gross_ev_bps": -4.3,
+              "net_ev_bps": -19.3,
+              "profit_factor": 0.754
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 3.04,
+              "median_bps": -0.42,
+              "gross_gt30_rate": 0.2769,
+              "gross_gt40_rate": 0.1846,
+              "gross_ev_bps": 3.04,
+              "net_ev_bps": -11.96,
+              "profit_factor": 1.211
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": 4.96,
+              "median_bps": 3.53,
+              "gross_gt30_rate": 0.2595,
+              "gross_gt40_rate": 0.1679,
+              "gross_ev_bps": 4.96,
+              "net_ev_bps": -10.04,
+              "profit_factor": 1.401
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": 4.33,
+              "median_bps": 3.3,
+              "gross_gt30_rate": 0.2634,
+              "gross_gt40_rate": 0.187,
+              "gross_ev_bps": 4.33,
+              "net_ev_bps": -10.67,
+              "profit_factor": 1.332
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": 2.17,
+              "median_bps": 2.84,
+              "gross_gt30_rate": 0.2443,
+              "gross_gt40_rate": 0.1641,
+              "gross_ev_bps": 2.17,
+              "net_ev_bps": -12.83,
+              "profit_factor": 1.152
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 5398,
+          "train_pos": 1008,
+          "valid_n": 2624,
+          "valid_pos": 505,
+          "roc_auc": 0.5136,
+          "pr_auc": 0.2137,
+          "brier": 0.1567,
+          "baseline_economics": {
+            "n": 2624,
+            "mean_bps": -0.63,
+            "median_bps": -0.23,
+            "gross_gt30_rate": 0.1925,
+            "gross_gt40_rate": 0.1204,
+            "gross_ev_bps": -0.63,
+            "net_ev_bps": -15.63,
+            "profit_factor": 0.956
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 26,
+              "mean_bps": 18.73,
+              "median_bps": 26.12,
+              "gross_gt30_rate": 0.5,
+              "gross_gt40_rate": 0.2308,
+              "gross_ev_bps": 18.73,
+              "net_ev_bps": 3.73,
+              "profit_factor": 3.804
+            },
+            "top_2pct": {
+              "n": 65,
+              "mean_bps": 0.12,
+              "median_bps": 0.43,
+              "gross_gt30_rate": 0.3077,
+              "gross_gt40_rate": 0.1385,
+              "gross_ev_bps": 0.12,
+              "net_ev_bps": -14.88,
+              "profit_factor": 1.008
+            },
+            "top_5pct": {
+              "n": 131,
+              "mean_bps": -1.75,
+              "median_bps": -3.1,
+              "gross_gt30_rate": 0.2443,
+              "gross_gt40_rate": 0.1221,
+              "gross_ev_bps": -1.75,
+              "net_ev_bps": -16.75,
+              "profit_factor": 0.89
+            },
+            "top_10pct": {
+              "n": 262,
+              "mean_bps": -1.66,
+              "median_bps": -1.37,
+              "gross_gt30_rate": 0.2214,
+              "gross_gt40_rate": 0.1221,
+              "gross_ev_bps": -1.66,
+              "net_ev_bps": -16.66,
+              "profit_factor": 0.894
+            },
+            "top_20pct": {
+              "n": 524,
+              "mean_bps": -1.41,
+              "median_bps": -1.77,
+              "gross_gt30_rate": 0.2042,
+              "gross_gt40_rate": 0.124,
+              "gross_ev_bps": -1.41,
+              "net_ev_bps": -16.41,
+              "profit_factor": 0.908
+            }
+          }
+        }
+      },
+      "F3": {
+        "train_n": 8030,
+        "valid_n": 2769,
+        "LogisticRegression": {
+          "model": "LogisticRegression",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.561,
+          "pr_auc": 0.2205,
+          "brier": 0.2472,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 2.55,
+              "median_bps": 4.92,
+              "gross_gt30_rate": 0.2593,
+              "gross_gt40_rate": 0.1852,
+              "gross_ev_bps": 2.55,
+              "net_ev_bps": -12.45,
+              "profit_factor": 1.183
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": 1.42,
+              "median_bps": 0.35,
+              "gross_gt30_rate": 0.2319,
+              "gross_gt40_rate": 0.1739,
+              "gross_ev_bps": 1.42,
+              "net_ev_bps": -13.58,
+              "profit_factor": 1.093
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -2.87,
+              "median_bps": -4.04,
+              "gross_gt30_rate": 0.2246,
+              "gross_gt40_rate": 0.1159,
+              "gross_ev_bps": -2.87,
+              "net_ev_bps": -17.87,
+              "profit_factor": 0.823
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -2.48,
+              "median_bps": 0.35,
+              "gross_gt30_rate": 0.2246,
+              "gross_gt40_rate": 0.1268,
+              "gross_ev_bps": -2.48,
+              "net_ev_bps": -17.48,
+              "profit_factor": 0.853
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -0.32,
+              "median_bps": 0.92,
+              "gross_gt30_rate": 0.2242,
+              "gross_gt40_rate": 0.132,
+              "gross_ev_bps": -0.32,
+              "net_ev_bps": -15.32,
+              "profit_factor": 0.979
+            }
+          }
+        },
+        "GradientBoosting": {
+          "model": "GradientBoosting",
+          "train_n": 8030,
+          "train_pos": 1515,
+          "valid_n": 2769,
+          "valid_pos": 532,
+          "roc_auc": 0.5377,
+          "pr_auc": 0.2129,
+          "brier": 0.1556,
+          "baseline_economics": {
+            "n": 2769,
+            "mean_bps": -0.41,
+            "median_bps": -0.08,
+            "gross_gt30_rate": 0.1921,
+            "gross_gt40_rate": 0.117,
+            "gross_ev_bps": -0.41,
+            "net_ev_bps": -15.41,
+            "profit_factor": 0.971
+          },
+          "top_percentile_economics": {
+            "top_1pct": {
+              "n": 27,
+              "mean_bps": 8.06,
+              "median_bps": 7.16,
+              "gross_gt30_rate": 0.2963,
+              "gross_gt40_rate": 0.1852,
+              "gross_ev_bps": 8.06,
+              "net_ev_bps": -6.94,
+              "profit_factor": 1.728
+            },
+            "top_2pct": {
+              "n": 69,
+              "mean_bps": -2.73,
+              "median_bps": -3.63,
+              "gross_gt30_rate": 0.2174,
+              "gross_gt40_rate": 0.1304,
+              "gross_ev_bps": -2.73,
+              "net_ev_bps": -17.73,
+              "profit_factor": 0.829
+            },
+            "top_5pct": {
+              "n": 138,
+              "mean_bps": -5.57,
+              "median_bps": -3.91,
+              "gross_gt30_rate": 0.2174,
+              "gross_gt40_rate": 0.1522,
+              "gross_ev_bps": -5.57,
+              "net_ev_bps": -20.57,
+              "profit_factor": 0.72
+            },
+            "top_10pct": {
+              "n": 276,
+              "mean_bps": -0.97,
+              "median_bps": -0.98,
+              "gross_gt30_rate": 0.2319,
+              "gross_gt40_rate": 0.1522,
+              "gross_ev_bps": -0.97,
+              "net_ev_bps": -15.97,
+              "profit_factor": 0.942
+            },
+            "top_20pct": {
+              "n": 553,
+              "mean_bps": -1.11,
+              "median_bps": -0.29,
+              "gross_gt30_rate": 0.2206,
+              "gross_gt40_rate": 0.1392,
+              "gross_ev_bps": -1.11,
+              "net_ev_bps": -16.11,
+              "profit_factor": 0.93
+            }
+          }
+        }
+      }
+    }
+  }
+}
