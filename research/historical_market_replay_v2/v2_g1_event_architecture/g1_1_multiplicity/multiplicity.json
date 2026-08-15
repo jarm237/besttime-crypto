@@ -1,0 +1,106 @@
+{
+  "raw_candidate_count": 1175,
+  "unique_event_count": 1174,
+  "repeat_candidate_count": 1,
+  "repeat_ratio": 0.000851063829787234,
+  "multiplicity_distribution": {
+    "mean": 1.0008517887563884,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 2
+  },
+  "expectancy_comparison_72bars": {
+    "mean_gross_bps": {
+      "v1_raw": -22.62466469861691,
+      "first_event": -22.59513833944793
+    },
+    "median_gross_bps": {
+      "v1_raw": -19.152822891253955,
+      "first_event": -19.149730555461222
+    },
+    "gross_gt_30bps_rate": {
+      "v1_raw": 0.08851063829787234,
+      "first_event": 0.08858603066439523
+    },
+    "gross_gt_40bps_rate": {
+      "v1_raw": 0.05106382978723404,
+      "first_event": 0.05110732538330494
+    },
+    "net_positive_rate": {
+      "v1_raw": 0.16425531914893618,
+      "first_event": 0.1643952299829642
+    }
+  },
+  "regression_comparison_8bars": {
+    "mean_gross_bps": {
+      "v1_raw": -23.569048033872058,
+      "first_event": -23.57852130739971
+    },
+    "spearman_corr": {
+      "v1_raw": 0.4227388984518379,
+      "first_event": 0.42278010463972493
+    }
+  },
+  "by_trigger_family": [
+    {
+      "trigger_family": "CHANDELIER",
+      "side": "BUY",
+      "raw_candidates": 11,
+      "unique_events": 10,
+      "repeat_ratio": 0.09090909090909091,
+      "mean_multiplicity": 1.1,
+      "max_multiplicity": 2,
+      "first_event_mean_gross_72_bps": -26.950717257226177
+    },
+    {
+      "trigger_family": "RSI_REVERSAL",
+      "side": "BUY",
+      "raw_candidates": 2,
+      "unique_events": 2,
+      "repeat_ratio": 0.0,
+      "mean_multiplicity": 1.0,
+      "max_multiplicity": 1,
+      "first_event_mean_gross_72_bps": 36.83448093224436
+    },
+    {
+      "trigger_family": "SMA200_TREND",
+      "side": "BUY",
+      "raw_candidates": 14,
+      "unique_events": 14,
+      "repeat_ratio": 0.0,
+      "mean_multiplicity": 1.0,
+      "max_multiplicity": 1,
+      "first_event_mean_gross_72_bps": -40.70068212425303
+    },
+    {
+      "trigger_family": "SMA200_TREND",
+      "side": "SELL",
+      "raw_candidates": 31,
+      "unique_events": 31,
+      "repeat_ratio": 0.0,
+      "mean_multiplicity": 1.0,
+      "max_multiplicity": 1,
+      "first_event_mean_gross_72_bps": -44.29087463141912
+    },
+    {
+      "trigger_family": "SMA50_BREAK",
+      "side": "BUY",
+      "raw_candidates": 18,
+      "unique_events": 18,
+      "repeat_ratio": 0.0,
+      "mean_multiplicity": 1.0,
+      "max_multiplicity": 1,
+      "first_event_mean_gross_72_bps": 1.545844995454144
+    },
+    {
+      "trigger_family": "SMA50_BREAK",
+      "side": "SELL",
+      "raw_candidates": 1099,
+      "unique_events": 1099,
+      "repeat_ratio": 0.0,
+      "mean_multiplicity": 1.0,
+      "max_multiplicity": 1,
+      "first_event_mean_gross_72_bps": -22.216426520845083
+    }
+  ]
+}

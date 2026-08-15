@@ -1,0 +1,56 @@
+{
+  "BNB": {
+    "baseline": {
+      "n": 345,
+      "mean_bps": -18.39,
+      "median_bps": -17.1,
+      "gt30_rate": 0.0899,
+      "gt40_rate": 0.0464,
+      "net_pos_rate": 0.1826
+    },
+    "tight_break": {
+      "n": 72,
+      "mean_bps": -1.85,
+      "median_bps": 1.35,
+      "gt30_rate": 0.1389,
+      "gt40_rate": 0.0833,
+      "net_pos_rate": 0.3056
+    }
+  },
+  "BTC": {
+    "baseline": {
+      "n": 405,
+      "mean_bps": -15.5,
+      "median_bps": -14.09,
+      "gt30_rate": 0.0864,
+      "gt40_rate": 0.0494,
+      "net_pos_rate": 0.1605
+    },
+    "tight_break": {
+      "n": 74,
+      "mean_bps": 5.33,
+      "median_bps": 0.54,
+      "gt30_rate": 0.2432,
+      "gt40_rate": 0.1757,
+      "net_pos_rate": 0.2973
+    }
+  },
+  "ETH": {
+    "baseline": {
+      "n": 367,
+      "mean_bps": -32.06,
+      "median_bps": -30.29,
+      "gt30_rate": 0.0954,
+      "gt40_rate": 0.0627,
+      "net_pos_rate": 0.1635
+    },
+    "tight_break": {
+      "n": 78,
+      "mean_bps": -3.35,
+      "median_bps": 2.79,
+      "gt30_rate": 0.2564,
+      "gt40_rate": 0.1667,
+      "net_pos_rate": 0.3718
+    }
+  }
+}

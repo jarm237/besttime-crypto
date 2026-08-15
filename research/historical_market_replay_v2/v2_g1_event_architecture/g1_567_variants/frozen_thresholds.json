@@ -1,0 +1,15 @@
+{
+  "thresholds": {
+    "break_distance_atr_max": 0.25,
+    "candle_body_atr_max": 0.15,
+    "room_to_structure_atr_min": 1.0
+  },
+  "variants": {
+    "G1A_EVENT_ONLY": "Fresh SMA50 crossing. No filters. Control.",
+    "G1B_COMPRESSION": "break_distance_atr <= 0.25 AND candle_body_atr <= 0.15.",
+    "G1C_OPPORTUNITY": "room_to_structure_atr >= 1.0.",
+    "G1D_COMPRESSION_OPPORT": "break_distance_atr <= 0.25 AND candle_body_atr <= 0.15 AND room_to_structure_atr >= 1.0."
+  },
+  "coverage_min_n": 100,
+  "coverage_min_survival": 0.1
+}

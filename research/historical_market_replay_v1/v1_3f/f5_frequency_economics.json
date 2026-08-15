@@ -1,0 +1,112 @@
+[
+  {
+    "horizon_bars": 1,
+    "holding_time_hours": 0.25,
+    "trades_count": 56,
+    "gross_trade_bps": 0.0,
+    "net_trade_bps": -15.0,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -9.454801266268028
+  },
+  {
+    "horizon_bars": 2,
+    "holding_time_hours": 0.5,
+    "trades_count": 56,
+    "gross_trade_bps": 4.19943997942411,
+    "net_trade_bps": -10.80056002057589,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -6.80780990392965
+  },
+  {
+    "horizon_bars": 4,
+    "holding_time_hours": 1.0,
+    "trades_count": 56,
+    "gross_trade_bps": 2.757952693032756,
+    "net_trade_bps": -12.242047306967244,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -7.7164082919751324
+  },
+  {
+    "horizon_bars": 8,
+    "holding_time_hours": 2.0,
+    "trades_count": 56,
+    "gross_trade_bps": -1.0884660346979596,
+    "net_trade_bps": -16.08846603469796,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -10.140883269144826
+  },
+  {
+    "horizon_bars": 16,
+    "holding_time_hours": 4.0,
+    "trades_count": 56,
+    "gross_trade_bps": 1.5553199892078595,
+    "net_trade_bps": -13.44468001079214,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -8.47445183937373
+  },
+  {
+    "horizon_bars": 24,
+    "holding_time_hours": 6.0,
+    "trades_count": 56,
+    "gross_trade_bps": -7.242684545142203,
+    "net_trade_bps": -22.242684545142204,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -14.020010800174052
+  },
+  {
+    "horizon_bars": 32,
+    "holding_time_hours": 8.0,
+    "trades_count": 56,
+    "gross_trade_bps": 6.234820771802848,
+    "net_trade_bps": -8.765179228197152,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -5.524868511054976
+  },
+  {
+    "horizon_bars": 48,
+    "holding_time_hours": 12.0,
+    "trades_count": 56,
+    "gross_trade_bps": 5.664489336656513,
+    "net_trade_bps": -9.335510663343488,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -5.884359869402578
+  },
+  {
+    "horizon_bars": 72,
+    "holding_time_hours": 18.0,
+    "trades_count": 56,
+    "gross_trade_bps": 3.513712955516599,
+    "net_trade_bps": -11.4862870444834,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -7.240037419526646
+  },
+  {
+    "horizon_bars": 96,
+    "holding_time_hours": 24.0,
+    "trades_count": 56,
+    "gross_trade_bps": 4.97687200572384,
+    "net_trade_bps": -10.023127994276159,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -6.317778883483249
+  },
+  {
+    "horizon_bars": 192,
+    "holding_time_hours": 48.0,
+    "trades_count": 56,
+    "gross_trade_bps": 1.6755273472524705,
+    "net_trade_bps": -13.324472652747529,
+    "trades_per_day": 0.6303200844178685,
+    "daily_cost_bps": 9.454801266268028,
+    "daily_net_ev_bps": -8.398682727303402
+  }
+]

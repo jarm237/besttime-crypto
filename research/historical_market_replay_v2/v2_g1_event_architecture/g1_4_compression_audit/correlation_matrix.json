@@ -1,0 +1,65 @@
+{
+  "break_distance_atr": {
+    "break_distance_atr": 1.0,
+    "candle_body_atr": 0.8433,
+    "ema9_ema21_distance": -0.682,
+    "recent_cross_count_16bars": -0.0407,
+    "room_to_structure_bps": -0.7434,
+    "volume_ratio": 0.0173,
+    "sma50_slope": -0.1659
+  },
+  "candle_body_atr": {
+    "break_distance_atr": 0.8433,
+    "candle_body_atr": 1.0,
+    "ema9_ema21_distance": -0.6116,
+    "recent_cross_count_16bars": 0.0003,
+    "room_to_structure_bps": -0.6707,
+    "volume_ratio": 0.0071,
+    "sma50_slope": -0.122
+  },
+  "ema9_ema21_distance": {
+    "break_distance_atr": -0.682,
+    "candle_body_atr": -0.6116,
+    "ema9_ema21_distance": 1.0,
+    "recent_cross_count_16bars": -0.0003,
+    "room_to_structure_bps": 0.4084,
+    "volume_ratio": -0.0473,
+    "sma50_slope": 0.1747
+  },
+  "recent_cross_count_16bars": {
+    "break_distance_atr": -0.0407,
+    "candle_body_atr": 0.0003,
+    "ema9_ema21_distance": -0.0003,
+    "recent_cross_count_16bars": 1.0,
+    "room_to_structure_bps": -0.0258,
+    "volume_ratio": -0.0099,
+    "sma50_slope": 0.0924
+  },
+  "room_to_structure_bps": {
+    "break_distance_atr": -0.7434,
+    "candle_body_atr": -0.6707,
+    "ema9_ema21_distance": 0.4084,
+    "recent_cross_count_16bars": -0.0258,
+    "room_to_structure_bps": 1.0,
+    "volume_ratio": 0.0214,
+    "sma50_slope": 0.0905
+  },
+  "volume_ratio": {
+    "break_distance_atr": 0.0173,
+    "candle_body_atr": 0.0071,
+    "ema9_ema21_distance": -0.0473,
+    "recent_cross_count_16bars": -0.0099,
+    "room_to_structure_bps": 0.0214,
+    "volume_ratio": 1.0,
+    "sma50_slope": -0.0178
+  },
+  "sma50_slope": {
+    "break_distance_atr": -0.1659,
+    "candle_body_atr": -0.122,
+    "ema9_ema21_distance": 0.1747,
+    "recent_cross_count_16bars": 0.0924,
+    "room_to_structure_bps": 0.0905,
+    "volume_ratio": -0.0178,
+    "sma50_slope": 1.0
+  }
+}

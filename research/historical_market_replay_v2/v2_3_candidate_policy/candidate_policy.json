@@ -1,0 +1,95 @@
+{
+  "blacklisted_toxic_subgroups": [
+    {
+      "technical_signal_family": "CHANDELIER",
+      "trend_regime": "RANGE",
+      "volatility_regime": "NORMAL_VOL",
+      "side": "BUY",
+      "n": 7,
+      "mean_gross_bps": -43.5872210735224,
+      "gross_gt_20bps_rate": 0.14285714285714285,
+      "status": "TOXIC"
+    },
+    {
+      "technical_signal_family": "SMA200_TREND",
+      "trend_regime": "RANGE",
+      "volatility_regime": "NORMAL_VOL",
+      "side": "SELL",
+      "n": 12,
+      "mean_gross_bps": -49.5393175687663,
+      "gross_gt_20bps_rate": 0.08333333333333333,
+      "status": "TOXIC"
+    },
+    {
+      "technical_signal_family": "SMA200_TREND",
+      "trend_regime": "TREND_UP",
+      "volatility_regime": "NORMAL_VOL",
+      "side": "SELL",
+      "n": 13,
+      "mean_gross_bps": -41.82184902422433,
+      "gross_gt_20bps_rate": 0.15384615384615385,
+      "status": "TOXIC"
+    },
+    {
+      "technical_signal_family": "SMA50_BREAK",
+      "trend_regime": "RANGE",
+      "volatility_regime": "NORMAL_VOL",
+      "side": "SELL",
+      "n": 881,
+      "mean_gross_bps": -23.890561381028625,
+      "gross_gt_20bps_rate": 0.10442678774120318,
+      "status": "TOXIC"
+    },
+    {
+      "technical_signal_family": "SMA50_BREAK",
+      "trend_regime": "TREND_DOWN",
+      "volatility_regime": "HIGH_VOL",
+      "side": "SELL",
+      "n": 43,
+      "mean_gross_bps": -29.22225483026166,
+      "gross_gt_20bps_rate": 0.09302325581395349,
+      "status": "TOXIC"
+    },
+    {
+      "technical_signal_family": "SMA50_BREAK",
+      "trend_regime": "TREND_DOWN",
+      "volatility_regime": "NORMAL_VOL",
+      "side": "SELL",
+      "n": 135,
+      "mean_gross_bps": -20.398144255332237,
+      "gross_gt_20bps_rate": 0.1259259259259259,
+      "status": "TOXIC"
+    },
+    {
+      "technical_signal_family": "SMA50_BREAK",
+      "trend_regime": "TREND_UP",
+      "volatility_regime": "NORMAL_VOL",
+      "side": "SELL",
+      "n": 24,
+      "mean_gross_bps": -28.54859369916539,
+      "gross_gt_20bps_rate": 0.041666666666666664,
+      "status": "TOXIC"
+    }
+  ],
+  "allowed_promising_subgroups": [],
+  "original_pool_metrics": {
+    "n": 1175,
+    "mean_gross_bps": -24.045706134630866,
+    "median_gross_bps": -21.189157769375704,
+    "gross_gt_20bps_rate": 0.11148936170212766,
+    "gross_gt_25bps_rate": 0.07829787234042553,
+    "net_pos_rate": 0.1472340425531915,
+    "mean_mfe_pct": 0.5561992805833085,
+    "mean_mae_pct": 1.0059183450649223
+  },
+  "redesigned_pool_metrics": {
+    "n": 60,
+    "mean_gross_bps": -17.789684248320068,
+    "median_gross_bps": -16.777986259995043,
+    "gross_gt_20bps_rate": 0.21666666666666667,
+    "gross_gt_25bps_rate": 0.13333333333333333,
+    "net_pos_rate": 0.26666666666666666,
+    "mean_mfe_pct": 0.5579965233121318,
+    "mean_mae_pct": 1.0164068474671308
+  }
+}

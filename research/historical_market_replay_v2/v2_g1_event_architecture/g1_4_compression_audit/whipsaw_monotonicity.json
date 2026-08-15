@@ -1,0 +1,62 @@
+{
+  "quintiles": [
+    {
+      "n": 223,
+      "mean_bps": -20.18,
+      "median_bps": -18.45,
+      "gt30_rate": 0.1076,
+      "gt40_rate": 0.0628,
+      "net_pos_rate": 0.1839,
+      "quintile": 1,
+      "min_val": 2.0,
+      "max_val": 6.0
+    },
+    {
+      "n": 223,
+      "mean_bps": -22.36,
+      "median_bps": -18.91,
+      "gt30_rate": 0.0673,
+      "gt40_rate": 0.0493,
+      "net_pos_rate": 0.1525,
+      "quintile": 2,
+      "min_val": 6.0,
+      "max_val": 8.0
+    },
+    {
+      "n": 223,
+      "mean_bps": -18.25,
+      "median_bps": -16.29,
+      "gt30_rate": 0.1031,
+      "gt40_rate": 0.0628,
+      "net_pos_rate": 0.1794,
+      "quintile": 3,
+      "min_val": 8.0,
+      "max_val": 9.0
+    },
+    {
+      "n": 223,
+      "mean_bps": -22.78,
+      "median_bps": -18.9,
+      "gt30_rate": 0.0897,
+      "gt40_rate": 0.0448,
+      "net_pos_rate": 0.1749,
+      "quintile": 4,
+      "min_val": 9.0,
+      "max_val": 10.0
+    },
+    {
+      "n": 225,
+      "mean_bps": -25.57,
+      "median_bps": -23.7,
+      "gt30_rate": 0.0844,
+      "gt40_rate": 0.0444,
+      "net_pos_rate": 0.1511,
+      "quintile": 5,
+      "min_val": 10.0,
+      "max_val": 14.0
+    }
+  ],
+  "kendall_tau": -0.4,
+  "p_value": 0.4833,
+  "verdict": "WHIPSAW_PLAUSIBLE_NOT_PRIMARY"
+}

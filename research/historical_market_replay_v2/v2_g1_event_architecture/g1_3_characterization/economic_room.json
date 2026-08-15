@@ -1,0 +1,87 @@
+{
+  "quintiles": [
+    {
+      "quintile": 1,
+      "min_val": 0.3845808675692532,
+      "max_val": 23.45284025937373,
+      "n": 223,
+      "mean_gross_bps": -38.78279466779448,
+      "median_gross_bps": -34.91113417053509,
+      "gross_gt_30_rate": 0.013452914798206279,
+      "gross_gt_40_rate": 0.013452914798206279,
+      "net_positive_rate": 0.05829596412556054
+    },
+    {
+      "quintile": 2,
+      "min_val": 23.495731673860572,
+      "max_val": 37.14354874535388,
+      "n": 223,
+      "mean_gross_bps": -29.039030791183674,
+      "median_gross_bps": -26.595006482812945,
+      "gross_gt_30_rate": 0.03139013452914798,
+      "gross_gt_40_rate": 0.013452914798206279,
+      "net_positive_rate": 0.11210762331838565
+    },
+    {
+      "quintile": 3,
+      "min_val": 37.16946917152315,
+      "max_val": 48.50332627721656,
+      "n": 223,
+      "mean_gross_bps": -22.641344030514738,
+      "median_gross_bps": -19.84586531772139,
+      "gross_gt_30_rate": 0.08968609865470852,
+      "gross_gt_40_rate": 0.04035874439461883,
+      "net_positive_rate": 0.16143497757847533
+    },
+    {
+      "quintile": 4,
+      "min_val": 48.551731905875066,
+      "max_val": 63.42077991197199,
+      "n": 223,
+      "mean_gross_bps": -6.700235196154814,
+      "median_gross_bps": -7.118651111613352,
+      "gross_gt_30_rate": 0.14349775784753363,
+      "gross_gt_40_rate": 0.08520179372197309,
+      "net_positive_rate": 0.24663677130044842
+    },
+    {
+      "quintile": 5,
+      "min_val": 63.46953593705673,
+      "max_val": 135.9690258587185,
+      "n": 225,
+      "mean_gross_bps": -12.091503518182803,
+      "median_gross_bps": -12.165621866138965,
+      "gross_gt_30_rate": 0.17333333333333334,
+      "gross_gt_40_rate": 0.1111111111111111,
+      "net_positive_rate": 0.26222222222222225
+    }
+  ],
+  "whipsaw_prone_regimes": [
+    {
+      "regime": "WHIPSAW_PRONE",
+      "n": 1117,
+      "mean_gross_bps": -21.83350719470955,
+      "gross_gt_30_rate": 0.09042076991942703,
+      "gross_gt_40_rate": 0.052820053715308866,
+      "net_positive_rate": 0.1683079677708147
+    }
+  ],
+  "diagnosis_2d_matrix": [
+    {
+      "group": "HighCross_StrongSlope",
+      "n": 559,
+      "mean_gross_bps": -21.562916377246445,
+      "gross_gt_30_rate": 0.09302325581395349,
+      "gross_gt_40_rate": 0.04830053667262969,
+      "net_positive_rate": 0.16457960644007155
+    },
+    {
+      "group": "HighCross_WeakSlope",
+      "n": 558,
+      "mean_gross_bps": -22.104582941953055,
+      "gross_gt_30_rate": 0.08781362007168458,
+      "gross_gt_40_rate": 0.05734767025089606,
+      "net_positive_rate": 0.17204301075268819
+    }
+  ]
+}

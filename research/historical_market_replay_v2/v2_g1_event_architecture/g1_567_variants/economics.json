@@ -1,0 +1,266 @@
+{
+  "G1A_EVENT_ONLY": {
+    "n": 1117,
+    "mean_bps": -21.83,
+    "median_bps": -18.91,
+    "gt30_rate": 0.0904,
+    "gt30_count": 101,
+    "gt40_rate": 0.0528,
+    "gt40_count": 59,
+    "net_pos_rate": 0.1683,
+    "spearman_8bar": 0.4355,
+    "definition": "Fresh SMA50 crossing. No filters. Control.",
+    "by_symbol": {
+      "BNB": {
+        "n": 345,
+        "mean_bps": -18.39,
+        "median_bps": -17.1,
+        "gt30_rate": 0.0899,
+        "gt30_count": 31,
+        "gt40_rate": 0.0464,
+        "gt40_count": 16,
+        "net_pos_rate": 0.1826
+      },
+      "BTC": {
+        "n": 405,
+        "mean_bps": -15.5,
+        "median_bps": -14.09,
+        "gt30_rate": 0.0864,
+        "gt30_count": 35,
+        "gt40_rate": 0.0494,
+        "gt40_count": 20,
+        "net_pos_rate": 0.1605
+      },
+      "ETH": {
+        "n": 367,
+        "mean_bps": -32.06,
+        "median_bps": -30.29,
+        "gt30_rate": 0.0954,
+        "gt30_count": 35,
+        "gt40_rate": 0.0627,
+        "gt40_count": 23,
+        "net_pos_rate": 0.1635
+      }
+    },
+    "by_side": {
+      "BUY": {
+        "n": 18,
+        "mean_bps": 1.55,
+        "median_bps": 4.43,
+        "gt30_rate": 0.2222,
+        "gt30_count": 4,
+        "gt40_rate": 0.1111,
+        "gt40_count": 2,
+        "net_pos_rate": 0.2778
+      },
+      "SELL": {
+        "n": 1099,
+        "mean_bps": -22.22,
+        "median_bps": -19.15,
+        "gt30_rate": 0.0883,
+        "gt30_count": 97,
+        "gt40_rate": 0.0519,
+        "gt40_count": 57,
+        "net_pos_rate": 0.1665
+      }
+    }
+  },
+  "G1B_COMPRESSION": {
+    "n": 159,
+    "mean_bps": 0.45,
+    "median_bps": 1.46,
+    "gt30_rate": 0.2201,
+    "gt30_count": 35,
+    "gt40_rate": 0.1447,
+    "gt40_count": 23,
+    "net_pos_rate": 0.2956,
+    "spearman_8bar": -0.0101,
+    "definition": "break_distance_atr <= 0.25 AND candle_body_atr <= 0.15.",
+    "by_symbol": {
+      "BNB": {
+        "n": 50,
+        "mean_bps": 0.58,
+        "median_bps": 1.56,
+        "gt30_rate": 0.18,
+        "gt30_count": 9,
+        "gt40_rate": 0.08,
+        "gt40_count": 4,
+        "net_pos_rate": 0.3
+      },
+      "BTC": {
+        "n": 49,
+        "mean_bps": 3.56,
+        "median_bps": 0.25,
+        "gt30_rate": 0.2245,
+        "gt30_count": 11,
+        "gt40_rate": 0.1633,
+        "gt40_count": 8,
+        "net_pos_rate": 0.2653
+      },
+      "ETH": {
+        "n": 60,
+        "mean_bps": -2.2,
+        "median_bps": 0.34,
+        "gt30_rate": 0.25,
+        "gt30_count": 15,
+        "gt40_rate": 0.1833,
+        "gt40_count": 11,
+        "net_pos_rate": 0.3167
+      }
+    },
+    "by_side": {
+      "BUY": {
+        "n": 11,
+        "mean_bps": 11.46,
+        "median_bps": 5.17,
+        "gt30_rate": 0.2727,
+        "gt30_count": 3,
+        "gt40_rate": 0.1818,
+        "gt40_count": 2,
+        "net_pos_rate": 0.2727
+      },
+      "SELL": {
+        "n": 148,
+        "mean_bps": -0.37,
+        "median_bps": 0.16,
+        "gt30_rate": 0.2162,
+        "gt30_count": 32,
+        "gt40_rate": 0.1419,
+        "gt40_count": 21,
+        "net_pos_rate": 0.2973
+      }
+    }
+  },
+  "G1C_OPPORTUNITY": {
+    "n": 389,
+    "mean_bps": -4.72,
+    "median_bps": -5.51,
+    "gt30_rate": 0.1799,
+    "gt30_count": 70,
+    "gt40_rate": 0.1028,
+    "gt40_count": 40,
+    "net_pos_rate": 0.2828,
+    "spearman_8bar": 0.1768,
+    "definition": "room_to_structure_atr >= 1.0.",
+    "by_symbol": {
+      "BNB": {
+        "n": 114,
+        "mean_bps": -1.55,
+        "median_bps": 0.51,
+        "gt30_rate": 0.1667,
+        "gt30_count": 19,
+        "gt40_rate": 0.0702,
+        "gt40_count": 8,
+        "net_pos_rate": 0.307
+      },
+      "BTC": {
+        "n": 159,
+        "mean_bps": -2.18,
+        "median_bps": -5.51,
+        "gt30_rate": 0.1572,
+        "gt30_count": 25,
+        "gt40_rate": 0.1006,
+        "gt40_count": 16,
+        "net_pos_rate": 0.2453
+      },
+      "ETH": {
+        "n": 116,
+        "mean_bps": -11.31,
+        "median_bps": -13.83,
+        "gt30_rate": 0.2241,
+        "gt30_count": 26,
+        "gt40_rate": 0.1379,
+        "gt40_count": 16,
+        "net_pos_rate": 0.3103
+      }
+    },
+    "by_side": {
+      "BUY": {
+        "n": 17,
+        "mean_bps": 5.45,
+        "median_bps": 4.76,
+        "gt30_rate": 0.2353,
+        "gt30_count": 4,
+        "gt40_rate": 0.1176,
+        "gt40_count": 2,
+        "net_pos_rate": 0.2941
+      },
+      "SELL": {
+        "n": 372,
+        "mean_bps": -5.18,
+        "median_bps": -6.53,
+        "gt30_rate": 0.1774,
+        "gt30_count": 66,
+        "gt40_rate": 0.1022,
+        "gt40_count": 38,
+        "net_pos_rate": 0.2823
+      }
+    }
+  },
+  "G1D_COMPRESSION_OPPORT": {
+    "n": 129,
+    "mean_bps": 2.06,
+    "median_bps": 1.67,
+    "gt30_rate": 0.2481,
+    "gt30_count": 32,
+    "gt40_rate": 0.155,
+    "gt40_count": 20,
+    "net_pos_rate": 0.3256,
+    "spearman_8bar": -0.0115,
+    "definition": "break_distance_atr <= 0.25 AND candle_body_atr <= 0.15 AND room_to_structure_atr >= 1.0.",
+    "by_symbol": {
+      "BNB": {
+        "n": 38,
+        "mean_bps": 4.57,
+        "median_bps": 5.23,
+        "gt30_rate": 0.2368,
+        "gt30_count": 9,
+        "gt40_rate": 0.1053,
+        "gt40_count": 4,
+        "net_pos_rate": 0.3684
+      },
+      "BTC": {
+        "n": 44,
+        "mean_bps": 4.95,
+        "median_bps": 2.17,
+        "gt30_rate": 0.2273,
+        "gt30_count": 10,
+        "gt40_rate": 0.1591,
+        "gt40_count": 7,
+        "net_pos_rate": 0.2727
+      },
+      "ETH": {
+        "n": 47,
+        "mean_bps": -2.67,
+        "median_bps": -9.27,
+        "gt30_rate": 0.2766,
+        "gt30_count": 13,
+        "gt40_rate": 0.1915,
+        "gt40_count": 9,
+        "net_pos_rate": 0.3404
+      }
+    },
+    "by_side": {
+      "BUY": {
+        "n": 11,
+        "mean_bps": 11.46,
+        "median_bps": 5.17,
+        "gt30_rate": 0.2727,
+        "gt30_count": 3,
+        "gt40_rate": 0.1818,
+        "gt40_count": 2,
+        "net_pos_rate": 0.2727
+      },
+      "SELL": {
+        "n": 118,
+        "mean_bps": 1.19,
+        "median_bps": 0.16,
+        "gt30_rate": 0.2458,
+        "gt30_count": 29,
+        "gt40_rate": 0.1525,
+        "gt40_count": 18,
+        "net_pos_rate": 0.3305
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "phase": "HMR-V2-G1.0",
+  "status": "PASS",
+  "milestone": "HMR-V2-G1.0 BASELINE FROZEN",
+  "created_at": "2026-08-15T06:19:44Z",
+  "v1_raw_generator": {
+    "candidate_count": 1175,
+    "sma50_break_count": 1117,
+    "sma50_break_share": 0.951,
+    "mean_gross_72": -22.62,
+    "median_gross_72": -19.15,
+    "gross_gt_30_72": 0.089,
+    "gross_gt_40_72": 0.051,
+    "net_positive_72": 0.164,
+    "spearman_8": 0.4227
+  },
+  "v2_3_filtered_pool": {
+    "candidate_count": 60,
+    "mean_gross_72": -19.45,
+    "median_gross_72": -13.23,
+    "gross_gt_30_72": 0.117,
+    "gross_gt_40_72": 0.050,
+    "net_positive_72": 0.200,
+    "spearman_8": 0.0732
+  },
+  "gate": {
+    "G1_BASELINE_FROZEN": "PASS"
+  }
+}

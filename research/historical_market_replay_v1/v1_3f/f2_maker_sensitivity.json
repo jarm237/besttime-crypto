@@ -1,0 +1,242 @@
+[
+  {
+    "fill_ratio": 1.0,
+    "adverse_selection_bps": 0.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.5892857142857143,
+    "net_ev_bps": 3.6644893366565126,
+    "profit_factor": 1.4083731233647543,
+    "net_pnl_bps": 205.2114028527647
+  },
+  {
+    "fill_ratio": 1.0,
+    "adverse_selection_bps": 1.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.5892857142857143,
+    "net_ev_bps": 2.6644893366565117,
+    "profit_factor": 1.2839366040318247,
+    "net_pnl_bps": 149.21140285276465
+  },
+  {
+    "fill_ratio": 1.0,
+    "adverse_selection_bps": 2.0,
+    "n": 56,
+    "win_rate_filled": 0.5714285714285714,
+    "effective_win_rate": 0.5714285714285714,
+    "net_ev_bps": 1.6644893366565119,
+    "profit_factor": 1.1697158946228652,
+    "net_pnl_bps": 93.21140285276468
+  },
+  {
+    "fill_ratio": 1.0,
+    "adverse_selection_bps": 3.0,
+    "n": 56,
+    "win_rate_filled": 0.5535714285714286,
+    "effective_win_rate": 0.5535714285714286,
+    "net_ev_bps": 0.6644893366565122,
+    "profit_factor": 1.064859502322555,
+    "net_pnl_bps": 37.211402852764685
+  },
+  {
+    "fill_ratio": 1.0,
+    "adverse_selection_bps": 4.0,
+    "n": 56,
+    "win_rate_filled": 0.5,
+    "effective_win_rate": 0.5,
+    "net_ev_bps": -0.3355106633434888,
+    "profit_factor": 0.9686841661548627,
+    "net_pnl_bps": -18.788597147235375
+  },
+  {
+    "fill_ratio": 1.0,
+    "adverse_selection_bps": 5.0,
+    "n": 56,
+    "win_rate_filled": 0.48214285714285715,
+    "effective_win_rate": 0.48214285714285715,
+    "net_ev_bps": -1.3355106633434886,
+    "profit_factor": 0.8810776285862585,
+    "net_pnl_bps": -74.78859714723535
+  },
+  {
+    "fill_ratio": 0.75,
+    "adverse_selection_bps": 0.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.4419642857142857,
+    "net_ev_bps": 2.748367002492384,
+    "profit_factor": 1.4083731233647543,
+    "net_pnl_bps": 153.90855213957352
+  },
+  {
+    "fill_ratio": 0.75,
+    "adverse_selection_bps": 1.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.4419642857142857,
+    "net_ev_bps": 1.9983670024923832,
+    "profit_factor": 1.2839366040318247,
+    "net_pnl_bps": 111.90855213957346
+  },
+  {
+    "fill_ratio": 0.75,
+    "adverse_selection_bps": 2.0,
+    "n": 56,
+    "win_rate_filled": 0.5714285714285714,
+    "effective_win_rate": 0.42857142857142855,
+    "net_ev_bps": 1.2483670024923836,
+    "profit_factor": 1.1697158946228652,
+    "net_pnl_bps": 69.90855213957349
+  },
+  {
+    "fill_ratio": 0.75,
+    "adverse_selection_bps": 3.0,
+    "n": 56,
+    "win_rate_filled": 0.5535714285714286,
+    "effective_win_rate": 0.41517857142857145,
+    "net_ev_bps": 0.49836700249238447,
+    "profit_factor": 1.064859502322555,
+    "net_pnl_bps": 27.908552139573526
+  },
+  {
+    "fill_ratio": 0.75,
+    "adverse_selection_bps": 4.0,
+    "n": 56,
+    "win_rate_filled": 0.5,
+    "effective_win_rate": 0.375,
+    "net_ev_bps": -0.25163299750761675,
+    "profit_factor": 0.9686841661548627,
+    "net_pnl_bps": -14.09144786042654
+  },
+  {
+    "fill_ratio": 0.75,
+    "adverse_selection_bps": 5.0,
+    "n": 56,
+    "win_rate_filled": 0.48214285714285715,
+    "effective_win_rate": 0.36160714285714285,
+    "net_ev_bps": -1.0016329975076157,
+    "profit_factor": 0.8810776285862585,
+    "net_pnl_bps": -56.09144786042648
+  },
+  {
+    "fill_ratio": 0.5,
+    "adverse_selection_bps": 0.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.29464285714285715,
+    "net_ev_bps": 1.8322446683282563,
+    "profit_factor": 1.4083731233647543,
+    "net_pnl_bps": 102.60570142638235
+  },
+  {
+    "fill_ratio": 0.5,
+    "adverse_selection_bps": 1.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.29464285714285715,
+    "net_ev_bps": 1.3322446683282558,
+    "profit_factor": 1.2839366040318247,
+    "net_pnl_bps": 74.60570142638232
+  },
+  {
+    "fill_ratio": 0.5,
+    "adverse_selection_bps": 2.0,
+    "n": 56,
+    "win_rate_filled": 0.5714285714285714,
+    "effective_win_rate": 0.2857142857142857,
+    "net_ev_bps": 0.8322446683282559,
+    "profit_factor": 1.1697158946228652,
+    "net_pnl_bps": 46.60570142638234
+  },
+  {
+    "fill_ratio": 0.5,
+    "adverse_selection_bps": 3.0,
+    "n": 56,
+    "win_rate_filled": 0.5535714285714286,
+    "effective_win_rate": 0.2767857142857143,
+    "net_ev_bps": 0.3322446683282561,
+    "profit_factor": 1.064859502322555,
+    "net_pnl_bps": 18.605701426382343
+  },
+  {
+    "fill_ratio": 0.5,
+    "adverse_selection_bps": 4.0,
+    "n": 56,
+    "win_rate_filled": 0.5,
+    "effective_win_rate": 0.25,
+    "net_ev_bps": -0.1677553316717444,
+    "profit_factor": 0.9686841661548627,
+    "net_pnl_bps": -9.394298573617688
+  },
+  {
+    "fill_ratio": 0.5,
+    "adverse_selection_bps": 5.0,
+    "n": 56,
+    "win_rate_filled": 0.48214285714285715,
+    "effective_win_rate": 0.24107142857142858,
+    "net_ev_bps": -0.6677553316717443,
+    "profit_factor": 0.8810776285862585,
+    "net_pnl_bps": -37.394298573617675
+  },
+  {
+    "fill_ratio": 0.25,
+    "adverse_selection_bps": 0.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.14732142857142858,
+    "net_ev_bps": 0.9161223341641281,
+    "profit_factor": 1.4083731233647543,
+    "net_pnl_bps": 51.30285071319118
+  },
+  {
+    "fill_ratio": 0.25,
+    "adverse_selection_bps": 1.0,
+    "n": 56,
+    "win_rate_filled": 0.5892857142857143,
+    "effective_win_rate": 0.14732142857142858,
+    "net_ev_bps": 0.6661223341641279,
+    "profit_factor": 1.2839366040318247,
+    "net_pnl_bps": 37.30285071319116
+  },
+  {
+    "fill_ratio": 0.25,
+    "adverse_selection_bps": 2.0,
+    "n": 56,
+    "win_rate_filled": 0.5714285714285714,
+    "effective_win_rate": 0.14285714285714285,
+    "net_ev_bps": 0.41612233416412797,
+    "profit_factor": 1.1697158946228652,
+    "net_pnl_bps": 23.30285071319117
+  },
+  {
+    "fill_ratio": 0.25,
+    "adverse_selection_bps": 3.0,
+    "n": 56,
+    "win_rate_filled": 0.5535714285714286,
+    "effective_win_rate": 0.13839285714285715,
+    "net_ev_bps": 0.16612233416412805,
+    "profit_factor": 1.064859502322555,
+    "net_pnl_bps": 9.302850713191171
+  },
+  {
+    "fill_ratio": 0.25,
+    "adverse_selection_bps": 4.0,
+    "n": 56,
+    "win_rate_filled": 0.5,
+    "effective_win_rate": 0.125,
+    "net_ev_bps": -0.0838776658358722,
+    "profit_factor": 0.9686841661548627,
+    "net_pnl_bps": -4.697149286808844
+  },
+  {
+    "fill_ratio": 0.25,
+    "adverse_selection_bps": 5.0,
+    "n": 56,
+    "win_rate_filled": 0.48214285714285715,
+    "effective_win_rate": 0.12053571428571429,
+    "net_ev_bps": -0.33387766583587214,
+    "profit_factor": 0.8810776285862585,
+    "net_pnl_bps": -18.697149286808838
+  }
+]

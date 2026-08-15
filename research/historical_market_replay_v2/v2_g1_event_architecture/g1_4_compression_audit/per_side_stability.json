@@ -1,0 +1,38 @@
+{
+  "BUY": {
+    "baseline": {
+      "n": 18,
+      "mean_bps": 1.55,
+      "median_bps": 4.43,
+      "gt30_rate": 0.2222,
+      "gt40_rate": 0.1111,
+      "net_pos_rate": 0.2778
+    },
+    "tight_break": {
+      "n": 14,
+      "mean_bps": 4.17,
+      "median_bps": 4.96,
+      "gt30_rate": 0.2143,
+      "gt40_rate": 0.1429,
+      "net_pos_rate": 0.2857
+    }
+  },
+  "SELL": {
+    "baseline": {
+      "n": 1099,
+      "mean_bps": -22.22,
+      "median_bps": -19.15,
+      "gt30_rate": 0.0883,
+      "gt40_rate": 0.0519,
+      "net_pos_rate": 0.1665
+    },
+    "tight_break": {
+      "n": 210,
+      "mean_bps": -0.28,
+      "median_bps": 0.16,
+      "gt30_rate": 0.2143,
+      "gt40_rate": 0.1429,
+      "net_pos_rate": 0.3286
+    }
+  }
+}

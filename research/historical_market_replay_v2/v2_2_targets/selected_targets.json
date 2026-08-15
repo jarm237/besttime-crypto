@@ -1,0 +1,48 @@
+{
+  "classification": [
+    {
+      "target_type": "gross_class",
+      "horizon_bars": 72,
+      "target_name": "GROSS_GT_40BPS",
+      "n": 1130,
+      "pos_count": 57,
+      "positive_rate": 0.050442477876106194,
+      "mean_pos_payoff_bps": 56.56041653488829,
+      "mean_neg_payoff_bps": -27.03896887462383,
+      "spread_bps": 83.59938540951212,
+      "auc_vs_score": 0.7399159595166855,
+      "spearman_corr": NaN,
+      "is_binary": true
+    },
+    {
+      "target_type": "gross_class",
+      "horizon_bars": 72,
+      "target_name": "GROSS_GT_30BPS",
+      "n": 1130,
+      "pos_count": 98,
+      "positive_rate": 0.08672566371681416,
+      "mean_pos_payoff_bps": 47.43325305439765,
+      "mean_neg_payoff_bps": -29.4935355225908,
+      "spread_bps": 76.92678857698846,
+      "auc_vs_score": 0.7387478247112798,
+      "spearman_corr": NaN,
+      "is_binary": true
+    }
+  ],
+  "regression": [
+    {
+      "target_type": "regression",
+      "horizon_bars": 8,
+      "target_name": "gross_return_bps",
+      "n": 1130,
+      "pos_count": -1,
+      "positive_rate": NaN,
+      "mean_pos_payoff_bps": -23.647745768359304,
+      "mean_neg_payoff_bps": NaN,
+      "spread_bps": NaN,
+      "auc_vs_score": NaN,
+      "spearman_corr": 0.4422087797645438,
+      "is_binary": false
+    }
+  ]
+}
