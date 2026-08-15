@@ -1,0 +1,214 @@
+{
+  "slices": [
+    {
+      "fold": "F1",
+      "dimension": "trend_regime",
+      "value": "downtrend",
+      "n": 1323,
+      "base_gt30_rate": 0.1837,
+      "base_mean_bps": -1.72,
+      "oos_auc": 0.5317,
+      "top10_ev_bps": -1.39
+    },
+    {
+      "fold": "F1",
+      "dimension": "trend_regime",
+      "value": "uptrend",
+      "n": 1377,
+      "base_gt30_rate": 0.1837,
+      "base_mean_bps": -0.55,
+      "oos_auc": 0.515,
+      "top10_ev_bps": -5.34
+    },
+    {
+      "fold": "F1",
+      "dimension": "volatility_regime",
+      "value": "high_vol",
+      "n": 1644,
+      "base_gt30_rate": 0.1971,
+      "base_mean_bps": -2.07,
+      "oos_auc": 0.5006,
+      "top10_ev_bps": -3.03
+    },
+    {
+      "fold": "F1",
+      "dimension": "volatility_regime",
+      "value": "low_vol",
+      "n": 1056,
+      "base_gt30_rate": 0.1629,
+      "base_mean_bps": 0.35,
+      "oos_auc": 0.4946,
+      "top10_ev_bps": 2.04
+    },
+    {
+      "fold": "F1",
+      "dimension": "symbol",
+      "value": "BNB",
+      "n": 885,
+      "base_gt30_rate": 0.1729,
+      "base_mean_bps": -3.08,
+      "oos_auc": 0.4481,
+      "top10_ev_bps": -2.37
+    },
+    {
+      "fold": "F1",
+      "dimension": "symbol",
+      "value": "BTC",
+      "n": 844,
+      "base_gt30_rate": 0.141,
+      "base_mean_bps": -0.17,
+      "oos_auc": 0.537,
+      "top10_ev_bps": 6.45
+    },
+    {
+      "fold": "F1",
+      "dimension": "symbol",
+      "value": "ETH",
+      "n": 971,
+      "base_gt30_rate": 0.2307,
+      "base_mean_bps": -0.17,
+      "oos_auc": 0.4915,
+      "top10_ev_bps": -7.28
+    },
+    {
+      "fold": "F2",
+      "dimension": "trend_regime",
+      "value": "downtrend",
+      "n": 1306,
+      "base_gt30_rate": 0.1884,
+      "base_mean_bps": -0.42,
+      "oos_auc": 0.5507,
+      "top10_ev_bps": 6.22
+    },
+    {
+      "fold": "F2",
+      "dimension": "trend_regime",
+      "value": "uptrend",
+      "n": 1318,
+      "base_gt30_rate": 0.1965,
+      "base_mean_bps": -0.84,
+      "oos_auc": 0.5497,
+      "top10_ev_bps": 3.22
+    },
+    {
+      "fold": "F2",
+      "dimension": "volatility_regime",
+      "value": "high_vol",
+      "n": 1526,
+      "base_gt30_rate": 0.2136,
+      "base_mean_bps": -0.84,
+      "oos_auc": 0.5293,
+      "top10_ev_bps": 3.81
+    },
+    {
+      "fold": "F2",
+      "dimension": "volatility_regime",
+      "value": "low_vol",
+      "n": 1098,
+      "base_gt30_rate": 0.163,
+      "base_mean_bps": -0.35,
+      "oos_auc": 0.5032,
+      "top10_ev_bps": 1.13
+    },
+    {
+      "fold": "F2",
+      "dimension": "symbol",
+      "value": "BNB",
+      "n": 882,
+      "base_gt30_rate": 0.1848,
+      "base_mean_bps": -0.46,
+      "oos_auc": 0.5174,
+      "top10_ev_bps": 1.68
+    },
+    {
+      "fold": "F2",
+      "dimension": "symbol",
+      "value": "BTC",
+      "n": 831,
+      "base_gt30_rate": 0.1468,
+      "base_mean_bps": -0.04,
+      "oos_auc": 0.4856,
+      "top10_ev_bps": 2.18
+    },
+    {
+      "fold": "F2",
+      "dimension": "symbol",
+      "value": "ETH",
+      "n": 911,
+      "base_gt30_rate": 0.2415,
+      "base_mean_bps": -1.33,
+      "oos_auc": 0.5169,
+      "top10_ev_bps": 3.27
+    },
+    {
+      "fold": "F3",
+      "dimension": "trend_regime",
+      "value": "downtrend",
+      "n": 1421,
+      "base_gt30_rate": 0.19,
+      "base_mean_bps": 0.21,
+      "oos_auc": 0.5837,
+      "top10_ev_bps": 1.03
+    },
+    {
+      "fold": "F3",
+      "dimension": "trend_regime",
+      "value": "uptrend",
+      "n": 1348,
+      "base_gt30_rate": 0.1944,
+      "base_mean_bps": -1.05,
+      "oos_auc": 0.5355,
+      "top10_ev_bps": -2.63
+    },
+    {
+      "fold": "F3",
+      "dimension": "volatility_regime",
+      "value": "high_vol",
+      "n": 1619,
+      "base_gt30_rate": 0.2248,
+      "base_mean_bps": -0.62,
+      "oos_auc": 0.4962,
+      "top10_ev_bps": -3.73
+    },
+    {
+      "fold": "F3",
+      "dimension": "volatility_regime",
+      "value": "low_vol",
+      "n": 1150,
+      "base_gt30_rate": 0.1461,
+      "base_mean_bps": -0.1,
+      "oos_auc": 0.5144,
+      "top10_ev_bps": -3.1
+    },
+    {
+      "fold": "F3",
+      "dimension": "symbol",
+      "value": "BNB",
+      "n": 885,
+      "base_gt30_rate": 0.1887,
+      "base_mean_bps": 0.4,
+      "oos_auc": 0.4958,
+      "top10_ev_bps": -4.45
+    },
+    {
+      "fold": "F3",
+      "dimension": "symbol",
+      "value": "BTC",
+      "n": 850,
+      "base_gt30_rate": 0.1353,
+      "base_mean_bps": -0.85,
+      "oos_auc": 0.5361,
+      "top10_ev_bps": 0.87
+    },
+    {
+      "fold": "F3",
+      "dimension": "symbol",
+      "value": "ETH",
+      "n": 1034,
+      "base_gt30_rate": 0.2418,
+      "base_mean_bps": -0.73,
+      "oos_auc": 0.5175,
+      "top10_ev_bps": 0.91
+    }
+  ]
+}

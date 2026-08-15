@@ -1,0 +1,66 @@
+{
+  "trend_regime_enc": {
+    "mean_spearman": -0.0013,
+    "min_spearman": -0.0143,
+    "max_spearman": 0.009,
+    "permutation_mean": 0.00132,
+    "permutation_std": 0.00083,
+    "classification": "REDUNDANT"
+  },
+  "volatility_regime_enc": {
+    "mean_spearman": -0.0163,
+    "min_spearman": -0.0408,
+    "max_spearman": -0.0017,
+    "permutation_mean": 0.04081,
+    "permutation_std": 0.01677,
+    "classification": "WITHIN_POOL_INCREMENTAL"
+  },
+  "break_distance_atr": {
+    "mean_spearman": -0.0296,
+    "min_spearman": -0.0508,
+    "max_spearman": -0.0075,
+    "permutation_mean": 0.00186,
+    "permutation_std": 0.00246,
+    "classification": "ARCHITECTURE_GATE_ONLY"
+  },
+  "candle_body_atr": {
+    "mean_spearman": -0.0391,
+    "min_spearman": -0.0506,
+    "max_spearman": -0.0308,
+    "permutation_mean": 0.00419,
+    "permutation_std": 0.00168,
+    "classification": "ARCHITECTURE_GATE_ONLY"
+  },
+  "room_to_structure_atr": {
+    "mean_spearman": 0.0059,
+    "min_spearman": -0.0119,
+    "max_spearman": 0.0402,
+    "permutation_mean": -0.00099,
+    "permutation_std": 0.00254,
+    "classification": "ARCHITECTURE_GATE_ONLY"
+  },
+  "recent_cross_count_16bars": {
+    "mean_spearman": 0.0076,
+    "min_spearman": -0.0058,
+    "max_spearman": 0.0144,
+    "permutation_mean": -0.00041,
+    "permutation_std": 0.00203,
+    "classification": "REDUNDANT"
+  },
+  "raw_model_score": {
+    "mean_spearman": 0.0,
+    "min_spearman": 0.0,
+    "max_spearman": 0.0,
+    "permutation_mean": 0.0,
+    "permutation_std": 0.0,
+    "classification": "REDUNDANT"
+  },
+  "volume_ratio": {
+    "mean_spearman": -0.0,
+    "min_spearman": -0.0119,
+    "max_spearman": 0.0231,
+    "permutation_mean": 0.00137,
+    "permutation_std": 0.00271,
+    "classification": "REDUNDANT"
+  }
+}

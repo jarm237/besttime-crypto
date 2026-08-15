@@ -1,0 +1,23 @@
+{
+  "phase": "HMR-V2.4D",
+  "status": "COMPLETE",
+  "primary_root_cause": "FEATURE_INSUFFICIENCY",
+  "secondary_findings": [
+    "REGIME_BASE_RATE_VARIATION_PRESENT",
+    "NO_STABLE_ALTERNATIVE_HORIZON"
+  ],
+  "cases": {
+    "A_feature_insufficiency": "SUPPORTED",
+    "B_regime_information": "REJECTED",
+    "C_target_payoff_mismatch": "REJECTED",
+    "D_horizon_mismatch": "REJECTED",
+    "E_conditional_context_edge": "REJECTED"
+  },
+  "authorized_next_action": "STOP_RESIZE_TO_V3",
+  "prohibited_actions": [
+    "MODEL_SPACE_EXPANSION",
+    "THRESHOLD_RETUNING",
+    "UNAUTHORIZED_FEATURE_ENGINEERING",
+    "EXIT_OPTIMIZATION"
+  ]
+}

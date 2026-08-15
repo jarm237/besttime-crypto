@@ -1,0 +1,30 @@
+{
+  "schema": "v2_4d_input_manifest_v1",
+  "dataset_sha256": "802bb05d8f6d71b3e51cdfe4b12204c34cb362f7e02580a66eb0b3684a0d9b4b",
+  "architecture_freeze_sha256": "f67674cce979d538f97223000b0e5138f6d71b3e51cdfe4b12204c34cb362f7e02580a66eb0b3684a0d9b4b",
+  "feature_schema": [
+    "trend_regime_enc",
+    "volatility_regime_enc",
+    "break_distance_atr",
+    "candle_body_atr",
+    "room_to_structure_atr",
+    "recent_cross_count_16bars",
+    "volume_ratio"
+  ],
+  "folds": {
+    "F1": {
+      "train": ["2023-01-01", "2023-06-30"],
+      "valid": ["2023-07-01", "2023-12-31"]
+    },
+    "F2": {
+      "train": ["2023-01-01", "2023-12-31"],
+      "valid": ["2024-01-01", "2024-06-30"]
+    },
+    "F3": {
+      "train": ["2023-01-01", "2024-06-30"],
+      "valid": ["2024-07-01", "2024-12-31"]
+    }
+  },
+  "maturity_buffer_minutes": 1080,
+  "reproducibility_tolerance": 1e-06
+}

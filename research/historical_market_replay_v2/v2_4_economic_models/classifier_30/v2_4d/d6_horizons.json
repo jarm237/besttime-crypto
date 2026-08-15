@@ -1,0 +1,20 @@
+{
+  "gross_return_8": {
+    "n": 10828,
+    "mean_bps": -0.55,
+    "std_bps": 29.81,
+    "gt30_rate": 0.1441,
+    "gt40_rate": 0.0859,
+    "cond_mean_pos_bps": 46.84,
+    "cond_mean_neg_bps": -8.52
+  },
+  "gross_return_72": {
+    "n": 10828,
+    "mean_bps": -0.74,
+    "std_bps": 35.08,
+    "gt30_rate": 0.1894,
+    "gt40_rate": 0.1188,
+    "cond_mean_pos_bps": 49.38,
+    "cond_mean_neg_bps": -12.45
+  }
+}

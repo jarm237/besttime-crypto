@@ -1,0 +1,304 @@
+{
+  "deciles": [
+    {
+      "fold": "F1",
+      "decile": 1,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.1704,
+      "mean_ev_bps": -1.44,
+      "profit_factor": 0.893,
+      "lift": 0.928
+    },
+    {
+      "fold": "F1",
+      "decile": 2,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.1556,
+      "mean_ev_bps": -0.83,
+      "profit_factor": 0.935,
+      "lift": 0.847
+    },
+    {
+      "fold": "F1",
+      "decile": 3,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.1593,
+      "mean_ev_bps": -0.4,
+      "profit_factor": 0.968,
+      "lift": 0.867
+    },
+    {
+      "fold": "F1",
+      "decile": 4,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.1963,
+      "mean_ev_bps": 0.03,
+      "profit_factor": 1.002,
+      "lift": 1.069
+    },
+    {
+      "fold": "F1",
+      "decile": 5,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.1889,
+      "mean_ev_bps": -0.09,
+      "profit_factor": 0.993,
+      "lift": 1.028
+    },
+    {
+      "fold": "F1",
+      "decile": 6,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.2037,
+      "mean_ev_bps": -2.14,
+      "profit_factor": 0.861,
+      "lift": 1.109
+    },
+    {
+      "fold": "F1",
+      "decile": 7,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.163,
+      "mean_ev_bps": -4.0,
+      "profit_factor": 0.761,
+      "lift": 0.887
+    },
+    {
+      "fold": "F1",
+      "decile": 8,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.2037,
+      "mean_ev_bps": 2.95,
+      "profit_factor": 1.236,
+      "lift": 1.109
+    },
+    {
+      "fold": "F1",
+      "decile": 9,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.2,
+      "mean_ev_bps": -2.87,
+      "profit_factor": 0.82,
+      "lift": 1.089
+    },
+    {
+      "fold": "F1",
+      "decile": 10,
+      "n": 270,
+      "base_rate": 0.1837,
+      "gt30_rate": 0.1963,
+      "mean_ev_bps": -2.47,
+      "profit_factor": 0.852,
+      "lift": 1.069
+    },
+    {
+      "fold": "F2",
+      "decile": 1,
+      "n": 263,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.1749,
+      "mean_ev_bps": 1.37,
+      "profit_factor": 1.12,
+      "lift": 0.909
+    },
+    {
+      "fold": "F2",
+      "decile": 2,
+      "n": 262,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.145,
+      "mean_ev_bps": -2.76,
+      "profit_factor": 0.804,
+      "lift": 0.753
+    },
+    {
+      "fold": "F2",
+      "decile": 3,
+      "n": 262,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.1603,
+      "mean_ev_bps": -1.89,
+      "profit_factor": 0.859,
+      "lift": 0.833
+    },
+    {
+      "fold": "F2",
+      "decile": 4,
+      "n": 263,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.1939,
+      "mean_ev_bps": 1.69,
+      "profit_factor": 1.145,
+      "lift": 1.008
+    },
+    {
+      "fold": "F2",
+      "decile": 5,
+      "n": 262,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.1641,
+      "mean_ev_bps": -4.62,
+      "profit_factor": 0.716,
+      "lift": 0.853
+    },
+    {
+      "fold": "F2",
+      "decile": 6,
+      "n": 262,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.2023,
+      "mean_ev_bps": -2.79,
+      "profit_factor": 0.835,
+      "lift": 1.051
+    },
+    {
+      "fold": "F2",
+      "decile": 7,
+      "n": 263,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.2015,
+      "mean_ev_bps": -0.81,
+      "profit_factor": 0.945,
+      "lift": 1.047
+    },
+    {
+      "fold": "F2",
+      "decile": 8,
+      "n": 262,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.2176,
+      "mean_ev_bps": -2.67,
+      "profit_factor": 0.848,
+      "lift": 1.131
+    },
+    {
+      "fold": "F2",
+      "decile": 9,
+      "n": 262,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.2176,
+      "mean_ev_bps": 2.42,
+      "profit_factor": 1.176,
+      "lift": 1.131
+    },
+    {
+      "fold": "F2",
+      "decile": 10,
+      "n": 263,
+      "base_rate": 0.1925,
+      "gt30_rate": 0.2471,
+      "mean_ev_bps": 3.71,
+      "profit_factor": 1.284,
+      "lift": 1.284
+    },
+    {
+      "fold": "F3",
+      "decile": 1,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.1191,
+      "mean_ev_bps": -2.28,
+      "profit_factor": 0.808,
+      "lift": 0.62
+    },
+    {
+      "fold": "F3",
+      "decile": 2,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.1697,
+      "mean_ev_bps": 2.65,
+      "profit_factor": 1.24,
+      "lift": 0.883
+    },
+    {
+      "fold": "F3",
+      "decile": 3,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.1516,
+      "mean_ev_bps": -1.61,
+      "profit_factor": 0.874,
+      "lift": 0.789
+    },
+    {
+      "fold": "F3",
+      "decile": 4,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.1769,
+      "mean_ev_bps": 1.75,
+      "profit_factor": 1.153,
+      "lift": 0.921
+    },
+    {
+      "fold": "F3",
+      "decile": 5,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.1841,
+      "mean_ev_bps": -2.48,
+      "profit_factor": 0.847,
+      "lift": 0.958
+    },
+    {
+      "fold": "F3",
+      "decile": 6,
+      "n": 276,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.2138,
+      "mean_ev_bps": -2.08,
+      "profit_factor": 0.874,
+      "lift": 1.113
+    },
+    {
+      "fold": "F3",
+      "decile": 7,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.231,
+      "mean_ev_bps": 0.53,
+      "profit_factor": 1.037,
+      "lift": 1.202
+    },
+    {
+      "fold": "F3",
+      "decile": 8,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.2419,
+      "mean_ev_bps": 1.23,
+      "profit_factor": 1.082,
+      "lift": 1.259
+    },
+    {
+      "fold": "F3",
+      "decile": 9,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.2202,
+      "mean_ev_bps": -1.36,
+      "profit_factor": 0.914,
+      "lift": 1.146
+    },
+    {
+      "fold": "F3",
+      "decile": 10,
+      "n": 277,
+      "base_rate": 0.1921,
+      "gt30_rate": 0.213,
+      "mean_ev_bps": -0.4,
+      "profit_factor": 0.972,
+      "lift": 1.109
+    }
+  ]
+}
