@@ -1,5 +1,39 @@
 # HMR-V4A-5-r1 DefiLlama Stablecoin supply / liquidity Audit Report
 
+## Canonical closeout
+
+```text
+HMR-V4A-5 — Stablecoin Liquidity
+
+stablecoin_supply_level
+  REJECT_SUPPORT_COLLAPSE
+  calendar confounding = HIGH
+
+stablecoin_supply_change_1d
+  REJECT_NON_TRANSPORTABLE
+
+stablecoin_supply_change_7d
+  REJECT_NON_TRANSPORTABLE
+
+stablecoin_supply_change_30d
+  REJECT_NO_ECONOMIC_INFORMATION
+  calendar confounding = HIGH
+  support collapse = YES
+
+stablecoin_supply_zscore_90d
+  REJECT_NO_ECONOMIC_INFORMATION
+  support collapse = YES
+
+Family state
+  CLOSED_FOR_V4A
+
+Rescue transforms
+  BLOCKED
+
+ML training
+  BLOCKED
+```
+
 ## Contract & Provenance
 
 - **Source authenticity**: `PASS_WITH_CONSERVATIVE_LAG`
