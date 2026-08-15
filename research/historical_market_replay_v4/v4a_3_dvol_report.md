@@ -1,5 +1,31 @@
 # HMR-V4A-3M-r1 Deribit DVOL Magnitude Audit
 
+## Canonical closeout
+
+```text
+HMR-V4A-3M-r1
+
+Source authenticity            PASS_WITH_CAVEAT
+Historical parity              H2_ASOF_RECONSTRUCTABLE
+Archived PIT parity            NOT_PROVEN
+Production evidence            BLOCKED
+
+Magnitude information          FAIL
+Transportability               FAIL
+Directional information        NOT_PROMOTED
+
+dvol_level                     REJECT_NON_TRANSPORTABLE
+dvol_change_4h                 REJECT_NON_TRANSPORTABLE
+dvol_change_24h                REJECT_NON_TRANSPORTABLE
+dvol_percentile_30d            REJECT_NON_TRANSPORTABLE
+
+DVOL family                    CLOSED_FOR_V4A
+Rescue transforms              BLOCKED
+ML training                    BLOCKED
+```
+
+Không cần quay lại DVOL trừ khi có **materially different data contract**, ví dụ archived PIT parity tốt hơn hoặc một genuine historical source khác chứ không chỉ thêm feature transform.
+
 ## Contract
 
 Provenance: `PASS_WITH_CAVEAT` / `H2_ASOF_RECONSTRUCTABLE`. Production evidence remains blocked; research inference is allowed.
