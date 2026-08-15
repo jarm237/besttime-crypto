@@ -1,0 +1,16 @@
+{
+  "phase": "HMR-V3",
+  "status": "COMPLETE",
+  "primary_outcome": "REJECTED_TOXIC_VALIDATION_REPLAY",
+  "stop_rule_triggered": "STOP_3_CANDIDATE_POPULATION_REMAINS_TOXIC",
+  "validation_metrics": {
+    "V3-H1": {"n": 4182, "mean_gross_bps": -39.15, "gt30_rate": 0.018},
+    "V3-H2": {"n": 5620, "mean_gross_bps": -40.27, "gt30_rate": 0.024},
+    "V3-H3": {"n": 43161, "mean_gross_bps": -11.38, "gt30_rate": 0.135}
+  },
+  "prohibited_actions": [
+    "V3_MODEL_DEVELOPMENT",
+    "V3_EXIT_OPTIMIZATION",
+    "V3_RULE_RE-TUNING"
+  ]
+}

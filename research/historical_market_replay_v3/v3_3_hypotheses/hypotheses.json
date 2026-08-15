@@ -1,0 +1,40 @@
+{
+  "schema": "v3_event_hypotheses_v1",
+  "freeze_sha256": "c15f00c7fba8a1073669042f592733b88fa15c71ab1ba49c1fd9240f7c8e251d",
+  "hypotheses": {
+    "V3-H1_COMPRESSION_BREAKOUT": {
+      "hypothesis_id": "V3-H1",
+      "name": "Compression Channel Breakout",
+      "expected_horizon": 72,
+      "rules": {
+        "bollinger_width_max": 0.012,
+        "range_pos_buy_min": 0.8,
+        "range_pos_sell_max": 0.2
+      },
+      "rationale": "Enters when volatility is tightly compressed and price initiates a breakout near the 50-bar channel extremes."
+    },
+    "V3-H2_ATR_COMPRESSION": {
+      "hypothesis_id": "V3-H2",
+      "name": "ATR Squeeze Expansion",
+      "expected_horizon": 72,
+      "rules": {
+        "atr_compression_max": 1.05,
+        "range_pos_buy_min": 0.75,
+        "range_pos_sell_max": 0.25
+      },
+      "rationale": "Enters when short-term ATR relative to long-term ATR reaches a local squeeze state (ATR ratio < 1.05) and price moves near boundaries."
+    },
+    "V3-H3_MOMENTUM_ACCEL": {
+      "hypothesis_id": "V3-H3",
+      "name": "Volatility Slope Breakout",
+      "expected_horizon": 32,
+      "rules": {
+        "bollinger_width_max": 0.015,
+        "ema9_slope_buy_min": 0.0001,
+        "ema9_slope_sell_max": -0.0001
+      },
+      "rationale": "Uses a wider volatility gate but requires directional momentum slope confirmation to initiate entry."
+    }
+  },
+  "rules_immutable": true
+}

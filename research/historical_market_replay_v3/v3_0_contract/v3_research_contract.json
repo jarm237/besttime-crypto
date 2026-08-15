@@ -1,0 +1,21 @@
+{
+  "schema": "v3_research_contract_v1",
+  "program": "HMR-V3",
+  "status": "FROZEN",
+  "note": "This research contract locks the HMR-V3 starting boundaries. Retuning or reusing V2 SMA50 eligibility logic is strictly prohibited.",
+  "boundaries": {
+    "no_sma50_entry_anchor": true,
+    "no_v2_threshold_tuning": true,
+    "no_v2_model_score_as_policy": true,
+    "no_model_training_before_event_validation": true,
+    "no_exit_optimization_before_entry_edge": true
+  },
+  "cost_assumptions": {
+    "all_in_taker_friction_bps": 15.0,
+    "optimistic_maker_discount_allowed_for_entry_discovery": false
+  },
+  "vocabulary": {
+    "target_bps_options": [20, 30, 40, 50],
+    "fixed_horizons": [8, 16, 32, 48, 72, 96]
+  }
+}

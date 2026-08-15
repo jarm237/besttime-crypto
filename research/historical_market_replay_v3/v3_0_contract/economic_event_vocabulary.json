@@ -1,0 +1,36 @@
+{
+  "schema": "v3_economic_event_vocabulary_v1",
+  "status": "FROZEN",
+  "note": "This vocabulary freezes the economic targets for HMR-V3. Return definitions must align with trade perspective (e.g. favorable return for SELL matches price drops).",
+  "horizons": {
+    "grid_bars": [8, 16, 32, 48, 72, 96],
+    "timeframe": "15m",
+    "equivalent_hours": [2, 4, 8, 12, 18, 24]
+  },
+  "event_labels": {
+    "directional_moves": {
+      "UP_MOVE_20BPS": "favorable_return_72bars >= 0.0020 for BUY",
+      "UP_MOVE_30BPS": "favorable_return_72bars >= 0.0030 for BUY",
+      "UP_MOVE_40BPS": "favorable_return_72bars >= 0.0040 for BUY",
+      "UP_MOVE_50BPS": "favorable_return_72bars >= 0.0050 for BUY",
+      "DOWN_MOVE_20BPS": "favorable_return_72bars >= 0.0020 for SELL",
+      "DOWN_MOVE_30BPS": "favorable_return_72bars >= 0.0030 for SELL",
+      "DOWN_MOVE_40BPS": "favorable_return_72bars >= 0.0040 for SELL",
+      "DOWN_MOVE_50BPS": "favorable_return_72bars >= 0.0050 for SELL"
+    },
+    "net_economics": {
+      "NET_POSITIVE": "gross_return - 0.0015 > 0",
+      "NET_GT_5BPS": "gross_return - 0.0015 >= 0.0005",
+      "NET_GT_10BPS": "gross_return - 0.0015 >= 0.0010"
+    },
+    "path_sensitive": {
+      "MFE_30BPS_BEFORE_MAE_30BPS": "maximum favorable excursion >= 30 bps achieved before maximum adverse excursion >= 30 bps",
+      "MFE_40BPS_BEFORE_MAE_20BPS": "maximum favorable excursion >= 40 bps achieved before maximum adverse excursion >= 20 bps",
+      "TARGET_BEFORE_ADVERSE_MOVE": "target bps hit before hitting maximum tolerable adverse move"
+    }
+  },
+  "cost_model": {
+    "friction_bps": 15.0,
+    "cost_type": "taker_only"
+  }
+}

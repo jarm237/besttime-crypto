@@ -1,0 +1,38 @@
+{
+  "bollinger_width": {
+    "event_mean": 0.01264,
+    "background_mean": 0.01116,
+    "ks_statistic": 0.22131,
+    "ks_pvalue": 2.75966759320389e-57
+  },
+  "atr_compression": {
+    "event_mean": 1.16981,
+    "background_mean": 0.99728,
+    "ks_statistic": 0.32871,
+    "ks_pvalue": 3.313625868488332e-127
+  },
+  "range_pos": {
+    "event_mean": 0.50284,
+    "background_mean": 0.49632,
+    "ks_statistic": 0.42277,
+    "ks_pvalue": 3.640708341681492e-213
+  },
+  "ema9_slope": {
+    "event_mean": 2e-05,
+    "background_mean": 1e-05,
+    "ks_statistic": 0.1764,
+    "ks_pvalue": 1.860020395227246e-36
+  },
+  "momentum_accel": {
+    "event_mean": -3e-05,
+    "background_mean": 4e-05,
+    "ks_statistic": 0.09869,
+    "ks_pvalue": 1.1444705944000865e-11
+  },
+  "vol_accel": {
+    "event_mean": 0.96456,
+    "background_mean": 1.00343,
+    "ks_statistic": 0.03482,
+    "ks_pvalue": 0.07865449478315
+  }
+}

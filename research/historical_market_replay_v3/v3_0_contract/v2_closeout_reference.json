@@ -1,0 +1,19 @@
+{
+  "schema": "v2_closeout_reference_v1",
+  "v2_verdict": {
+    "status": "CLOSED",
+    "result": "REJECTED_AS_TRADABLE_STRATEGY_FAMILY",
+    "primary_root_cause": "FEATURE_INSUFFICIENCY",
+    "cases": {
+      "A_feature_insufficiency": "SUPPORTED",
+      "E_conditional_context_edge": "REJECTED"
+    }
+  },
+  "sma50_hard_stop": {
+    "model_tuning": "BLOCKED",
+    "feature_engineering": "BLOCKED",
+    "threshold_search": "BLOCKED",
+    "exit_optimization": "BLOCKED"
+  },
+  "manifest_sha256": "f67674cce979d538f97223000b0e5138f6d71b3e51cdfe4b12204c34cb362f7e02580a66eb0b3684a0d9b4b"
+}

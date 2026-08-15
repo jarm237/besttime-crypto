@@ -1,0 +1,26 @@
+{
+  "schema": "v3_temporal_partitions_v1",
+  "partitions": {
+    "Period_A_Economic_Event_Discovery": {
+      "start": "2023-01-01",
+      "end": "2024-06-30",
+      "status": "OPEN_FOR_ANALYSIS"
+    },
+    "Period_B_C_Hypothesis_Validation": {
+      "start": "2024-07-01",
+      "end": "2024-12-31",
+      "status": "OPEN_FOR_REPLAY"
+    },
+    "Period_D_Model_Development": {
+      "start": "2025-01-01",
+      "end": "2025-06-30",
+      "status": "LOCKED_UNTIL_EVENT_VALIDATED"
+    },
+    "Period_E_Final_Untouched_OOS": {
+      "start": "2025-10-01",
+      "end": "2025-12-31",
+      "status": "LOCKED_UNTIL_MODEL_FROZEN",
+      "validation_note": "This window must not be parsed or analyzed in any form before final strategy freeze."
+    }
+  }
+}
