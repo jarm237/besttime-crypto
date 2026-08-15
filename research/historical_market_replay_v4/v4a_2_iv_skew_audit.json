@@ -1,0 +1,123 @@
+{
+  "program": "HMR-V4A-2",
+  "source": "deribit_iv_skew",
+  "pit_gate": "PASS",
+  "coverage_gate": "PASS",
+  "features": [
+    {
+      "feature": "iv_skew_level",
+      "period_a_spread_bps": 0.31,
+      "period_b_spread_bps": 1.1,
+      "period_c_spread_bps": 0.25,
+      "period_b_direction": "UP",
+      "period_c_direction": "UP",
+      "conditional_spread_bps": -0.42,
+      "conditional_retention_ratio": null,
+      "conditional_retention_status": "UNDEFINED_LOW_BASE_EFFECT",
+      "cross_asset_consistency": false,
+      "gates": {
+        "direction": true,
+        "economics": false,
+        "support": true,
+        "stability": true,
+        "incremental": false,
+        "uncertainty": true,
+        "transport": true,
+        "cross_asset": false
+      },
+      "verdict": "REJECT_AS_CROSS_ASSET_CONFOUNDING"
+    },
+    {
+      "feature": "iv_skew_level_normalized",
+      "period_a_spread_bps": 0.87,
+      "period_b_spread_bps": 1.37,
+      "period_c_spread_bps": 1.34,
+      "period_b_direction": "UP",
+      "period_c_direction": "UP",
+      "conditional_spread_bps": -0.31,
+      "conditional_retention_ratio": null,
+      "conditional_retention_status": "UNDEFINED_LOW_BASE_EFFECT",
+      "cross_asset_consistency": false,
+      "gates": {
+        "direction": true,
+        "economics": false,
+        "support": true,
+        "stability": false,
+        "incremental": false,
+        "uncertainty": true,
+        "transport": true,
+        "cross_asset": false
+      },
+      "verdict": "REJECT"
+    },
+    {
+      "feature": "iv_skew_change_4h",
+      "period_a_spread_bps": 0.3,
+      "period_b_spread_bps": 0.89,
+      "period_c_spread_bps": 1.31,
+      "period_b_direction": "UP",
+      "period_c_direction": "UP",
+      "conditional_spread_bps": 0.05,
+      "conditional_retention_ratio": null,
+      "conditional_retention_status": "UNDEFINED_LOW_BASE_EFFECT",
+      "cross_asset_consistency": false,
+      "gates": {
+        "direction": true,
+        "economics": false,
+        "support": true,
+        "stability": false,
+        "incremental": false,
+        "uncertainty": true,
+        "transport": true,
+        "cross_asset": false
+      },
+      "verdict": "REJECT"
+    },
+    {
+      "feature": "iv_skew_change_24h",
+      "period_a_spread_bps": 0.51,
+      "period_b_spread_bps": -0.78,
+      "period_c_spread_bps": 1.55,
+      "period_b_direction": "DOWN",
+      "period_c_direction": "UP",
+      "conditional_spread_bps": -0.1,
+      "conditional_retention_ratio": null,
+      "conditional_retention_status": "UNDEFINED_LOW_BASE_EFFECT",
+      "cross_asset_consistency": false,
+      "gates": {
+        "direction": false,
+        "economics": false,
+        "support": true,
+        "stability": true,
+        "incremental": false,
+        "uncertainty": true,
+        "transport": false,
+        "cross_asset": false
+      },
+      "verdict": "REJECT"
+    },
+    {
+      "feature": "iv_skew_percentile_30d",
+      "period_a_spread_bps": 0.87,
+      "period_b_spread_bps": 1.37,
+      "period_c_spread_bps": 1.34,
+      "period_b_direction": "UP",
+      "period_c_direction": "UP",
+      "conditional_spread_bps": -0.31,
+      "conditional_retention_ratio": null,
+      "conditional_retention_status": "UNDEFINED_LOW_BASE_EFFECT",
+      "cross_asset_consistency": false,
+      "gates": {
+        "direction": true,
+        "economics": false,
+        "support": true,
+        "stability": false,
+        "incremental": false,
+        "uncertainty": true,
+        "transport": true,
+        "cross_asset": false
+      },
+      "verdict": "REJECT"
+    }
+  ]
+}
