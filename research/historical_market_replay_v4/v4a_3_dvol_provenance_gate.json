@@ -1,0 +1,54 @@
+{
+  "program": "HMR-V4A-3P",
+  "stage": "0",
+  "source": "deribit_dvol",
+  "provenance_class": "EXTERNAL_DERIBIT_OBSERVATION",
+  "market_observed": true,
+  "source_authenticity": "PASS_WITH_CAVEAT",
+  "historical_reconstruction": "H2_AS_OF_RECONSTRUCTABLE",
+  "archived_pit_parity": "NOT_PROVEN",
+  "independent_information_eligible": "YES_FOR_RESEARCH",
+  "production_evidence": "BLOCKED",
+  "pit_gate": "H2_ASOF_RECONSTRUCTABLE",
+  "decision": "PROCEED_WITH_RECONSTRUCTION_CAVEAT",
+  "primary_question": "Does DVOL provide independent information about future movement expansion probability and magnitude?",
+  "not_primary_question": "Does DVOL predict UP or DOWN direction?",
+  "inspection": {
+    "genuine_deribit_timestamped_value": "YES_FOR_DERIBIT_DVOL_ROWS",
+    "reconstructed_from_btc_realized_vol_or_price": "NO_EVIDENCE_IN_CURRENT_ARTIFACTS",
+    "source_timestamp": "DVOL row timestamp: result.data[-1][0]",
+    "available_at": "DVOL closed row timestamp, pending H3/H4 archive parity proof",
+    "future_interpolation": "NO_EVIDENCE",
+    "future_known_backfill": "NO_EVIDENCE",
+    "per_asset_synthetic_mapping": "NO_CURRENT_MAPPING_PROVEN; production Deribit collector fetches BTC DVOL/options_iv"
+  },
+  "evidence": {
+    "collector": "btc_scraper/collectors/deribit_collector.py",
+    "endpoint": "https://www.deribit.com/api/v2/public/get_volatility_index_data",
+    "raw_input": "DVOL OHLC rows",
+    "raw_fields_consumed": [
+      "result.data[-1][0]",
+      "result.data[-1][4]"
+    ],
+    "normalization": "Deribit percentage IV normalized to decimal options_iv",
+    "ahdv_fidelity": "H2_AS_OF_RECONSTRUCTABLE",
+    "ahdv_replay_decision": "USE_RECONSTRUCTED_CLOSED_OBSERVATION"
+  },
+  "feature_freeze": [
+    "dvol_level",
+    "dvol_change_4h",
+    "dvol_change_24h",
+    "dvol_percentile_30d"
+  ],
+  "excluded_this_revision": [
+    "dvol acceleration",
+    "custom zscore windows",
+    "dvol x ATR",
+    "dvol x funding",
+    "dvol regime thresholds"
+  ],
+  "caveats": [
+    "Do not claim H3/H4 PIT parity until authentic archive/vintage proof is available.",
+    "Audit target is volatility expansion magnitude/timing, not directional sign."
+  ]
+}

@@ -22,11 +22,12 @@ Boundary: READ_ONLY, NON_EVIDENCE, NO_ACTIVE_CANARY_MUTATION, NO_RUNTIME_CONTROL
 ## Next Gates
 
 0. Freeze production contract inventory: source, endpoint/provider, raw fields, timestamp field, normalizer, derived feature, cache/TTL, fallback.
-1. Run historical availability and retention probes per timestamp and archive raw responses with hashes.
-2. Check `available_at <= replay_clock` for every record.
-3. Feed historical payloads through production normalization and compare schema/units/timezone.
-4. Compare against existing raw snapshots before promoting any source to H3/H4.
-5. Repeat queries to prove deterministic behavior before final replay eligibility.
+1. Classify A-1 source authenticity before any independent-information claim.
+2. Run historical availability and retention probes per timestamp and archive raw responses with hashes.
+3. Check `available_at <= replay_clock` for every record.
+4. Feed historical payloads through production normalization and compare schema/units/timezone.
+5. Compare against existing raw snapshots before promoting any source to H3/H4.
+6. Repeat queries to prove deterministic behavior before final replay eligibility.
 
 ## Wave 1 Closeout
 

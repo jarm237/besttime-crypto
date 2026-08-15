@@ -36,6 +36,23 @@
       "name": "Production contract inventory"
     },
     {
+      "classes": [
+        "MARKET_OBSERVED",
+        "EXTERNALLY_PUBLISHED",
+        "RECONSTRUCTED_FROM_EXTERNAL_SOURCE",
+        "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE",
+        "SYNTHETIC"
+      ],
+      "eligible_for_independent_information": [
+        "MARKET_OBSERVED",
+        "EXTERNALLY_PUBLISHED",
+        "RECONSTRUCTED_FROM_EXTERNAL_SOURCE"
+      ],
+      "gate": "A-1",
+      "hard_rule": "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE and SYNTHETIC are controls, derived state, or pipeline validation only.",
+      "name": "Source authenticity"
+    },
+    {
       "gate": "G1",
       "name": "Historical availability / retention"
     },
@@ -116,6 +133,22 @@
     "H4_PRODUCTION_PARITY": "USE_EXACT"
   },
   "short_name": "AHDV",
+  "source_authenticity_rules": {
+    "EXTERNALLY_PUBLISHED": "Published by an external provider, not derived from local target price state.",
+    "MARKET_OBSERVED": "Directly observed market venue/provider data.",
+    "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE": "Derived from the same instrument price/volatility state under audit.",
+    "RECONSTRUCTED_FROM_EXTERNAL_SOURCE": "Rebuilt from external observations with explicit availability semantics.",
+    "SYNTHETIC": "Simulated or generated data.",
+    "control_only": [
+      "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE",
+      "SYNTHETIC"
+    ],
+    "independent_information_candidates": [
+      "MARKET_OBSERVED",
+      "EXTERNALLY_PUBLISHED",
+      "RECONSTRUCTED_FROM_EXTERNAL_SOURCE"
+    ]
+  },
   "stop_condition": "For every source answer: availability known, retention boundary known, PIT correctness known, production parity known, fallback known, fidelity assigned, replay decision assigned.",
   "workstream": "Alternative Historical Data Validation"
 }

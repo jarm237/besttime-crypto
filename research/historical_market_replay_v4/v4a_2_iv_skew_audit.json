@@ -1,8 +1,35 @@
 {
-  "program": "HMR-V4A-2",
-  "source": "deribit_iv_skew",
+  "program": "HMR-V4A-2-R",
+  "source": "reconstructed_iv_skew_proxy",
+  "source_class": "ENDOGENOUS_RECONSTRUCTED_PROXY",
+  "market_observed": false,
+  "genuine_market_priced_deribit_iv_skew": "NOT_TESTED",
+  "independent_information_eligible": false,
+  "allowed_use": [
+    "control",
+    "derived_state",
+    "pipeline_validation"
+  ],
+  "reopen_condition": "authentic historical option-chain/skew archive",
+  "canonical_closeout": {
+    "V4A-2-R": {
+      "source_class": "ENDOGENOUS_RECONSTRUCTED_PROXY",
+      "verdict": "REJECTED_FINAL",
+      "directional_alpha": "NONE",
+      "independent_info": "NOT_DEMONSTRATED",
+      "reopen_allowed": false
+    },
+    "V4A-2-G": {
+      "source_class": "GENUINE_OPTIONS_MARKET_DATA",
+      "status": "UNTESTED",
+      "reopen_condition": "authentic historical option-chain/skew archive"
+    }
+  },
   "pit_gate": "PASS",
   "coverage_gate": "PASS",
+  "decision": "REJECTED_FINAL",
+  "independent_information": "NOT_DEMONSTRATED",
+  "do_not_reopen_with_proxy_transform": true,
   "features": [
     {
       "feature": "iv_skew_level",

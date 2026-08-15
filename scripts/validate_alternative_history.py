@@ -42,6 +42,20 @@ FIDELITY_LEVELS = (
     "H4_PRODUCTION_PARITY",
 )
 
+SOURCE_AUTHENTICITY_CLASSES = (
+    "MARKET_OBSERVED",
+    "EXTERNALLY_PUBLISHED",
+    "RECONSTRUCTED_FROM_EXTERNAL_SOURCE",
+    "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE",
+    "SYNTHETIC",
+)
+
+INDEPENDENT_INFORMATION_ELIGIBLE_CLASSES = (
+    "MARKET_OBSERVED",
+    "EXTERNALLY_PUBLISHED",
+    "RECONSTRUCTED_FROM_EXTERNAL_SOURCE",
+)
+
 PROBE_OFFSETS = (
     ("T1_7D", timedelta(days=7)),
     ("T2_30D", timedelta(days=30)),
@@ -55,6 +69,56 @@ EVENT_PROBE_TIMESTAMPS = (
     ("E2_HALVING_WINDOW", "2024-04-20T00:00:00+00:00"),
     ("E3_2024_Q4_BREAKOUT", "2024-11-06T16:00:00+00:00"),
 )
+
+KNOWN_FIDELITY_OVERRIDES: dict[str, dict[str, str]] = {
+    "alternative_me": {
+        "T1_7D": "AVAILABLE",
+        "PIT": "NOT_PROVEN",
+        "Parity": "PARTIAL",
+        "Fallback": "VERIFIED",
+        "Fidelity": "H1_HISTORICAL",
+        "Replay decision": "PRODUCTION_FALLBACK",
+    },
+    "fred": {
+        "T1_7D": "PROBE_BLOCKED_ENVIRONMENT",
+        "PIT": "UNKNOWN",
+        "Parity": "UNKNOWN",
+        "Fallback": "VERIFIED",
+        "Replay decision": "PRODUCTION_FALLBACK",
+    },
+    "binance_funding": {
+        "T1_7D": "AVAILABLE",
+        "PIT": "NOT_PROVEN",
+        "Parity": "PARTIAL_2_OF_3",
+        "Fallback": "VERIFIED",
+        "Fidelity": "H1_HISTORICAL",
+        "Replay decision": "PRODUCTION_FALLBACK",
+    },
+    "defillama_stablecoin": {
+        "T1_7D": "AVAILABLE",
+        "PIT": "NOT_PROVEN",
+        "Parity": "FAIL_0_OF_6",
+        "Fallback": "VERIFIED",
+        "Fidelity": "H1_HISTORICAL",
+        "Replay decision": "PRODUCTION_FALLBACK",
+    },
+    "defillama_tvl": {
+        "T1_7D": "AVAILABLE",
+        "PIT": "NOT_PROVEN",
+        "Parity": "FAIL_0_OF_9",
+        "Fallback": "VERIFIED",
+        "Fidelity": "H1_HISTORICAL",
+        "Replay decision": "PRODUCTION_FALLBACK",
+    },
+    "deribit_dvol": {
+        "T1_7D": "AVAILABLE",
+        "PIT": "RECONSTRUCTABLE_WITH_CLOSED_CANDLE_ONLY",
+        "Parity": "ALIGNMENT_CONTRACT_DEFINED",
+        "Fallback": "VERIFIED",
+        "Fidelity": "H2_AS_OF_RECONSTRUCTABLE",
+        "Replay decision": "USE_RECONSTRUCTED_CLOSED_OBSERVATION",
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -77,6 +141,10 @@ class SourceContract:
     normalization: str
     production_parity_notes: str
     wave: int
+    provenance_class: str = "EXTERNALLY_PUBLISHED"
+    independent_information_eligible: bool = True
+    allowed_research_use: tuple[str, ...] = ("independent_information_candidate",)
+    source_authenticity_notes: str = "A-1 provenance gate must be verified before statistical audit."
 
 
 SOURCE_CONTRACTS: tuple[SourceContract, ...] = (
@@ -242,6 +310,13 @@ SOURCE_CONTRACTS: tuple[SourceContract, ...] = (
         normalization="production parser normalizes IV percentages to decimals",
         production_parity_notes="Historical DVOL rows need PIT row timestamp and same close-field semantics.",
         wave=1,
+        provenance_class="RECONSTRUCTED_FROM_EXTERNAL_SOURCE",
+        independent_information_eligible=True,
+        allowed_research_use=("independent_information_candidate", "volatility_state_control"),
+        source_authenticity_notes=(
+            "Deribit publishes DVOL rows; current evidence is H2/as-of reconstructable, "
+            "not archived H3/H4 PIT parity."
+        ),
     ),
     SourceContract(
         source_id="deribit_iv_skew",
@@ -262,6 +337,13 @@ SOURCE_CONTRACTS: tuple[SourceContract, ...] = (
         normalization="production computes matched-expiry put IV minus call IV near 25 delta",
         production_parity_notes="Book summary endpoint is current-state; historical option chain parity requires archive/provenance.",
         wave=1,
+        provenance_class="MARKET_OBSERVED",
+        independent_information_eligible=True,
+        allowed_research_use=("independent_information_candidate",),
+        source_authenticity_notes=(
+            "Production current snapshot is market-observed. V4A-2-R historical series is a separate "
+            "endogenous reconstructed proxy and is not eligible as genuine Deribit IV skew."
+        ),
     ),
     SourceContract(
         source_id="etf",
@@ -363,6 +445,7 @@ def build_source_inventory(anchor: datetime) -> list[dict[str, Any]]:
         inventory.append(
             {
                 **asdict(contract),
+                "source_authenticity_gate": "A-1",
                 "production_features": [item["feature"] for item in features],
                 "feature_contracts": features,
                 "validation_boundary": list(BOUNDARY_FLAGS),
@@ -414,20 +497,20 @@ def build_fidelity_matrix(inventory: Iterable[dict[str, Any]], timestamps: Itera
     columns = [item["id"] for item in timestamps]
     matrix = []
     for source in inventory:
-        matrix.append(
-            {
-                "source": source["source_id"],
-                **{column: "NOT_PROBED" for column in columns},
-                "Earliest usable": "UNKNOWN",
-                "PIT": "NOT_EVALUATED",
-                "Parity": "NOT_EVALUATED",
-                "Fallback": "NOT_VERIFIED",
-                "Fidelity": "UNCLASSIFIED",
-                "Replay decision": "PENDING_VALIDATION",
-                "wave": source["wave"],
-                "notes": source["production_parity_notes"],
-            }
-        )
+        row = {
+            "source": source["source_id"],
+            **{column: "NOT_PROBED" for column in columns},
+            "Earliest usable": "UNKNOWN",
+            "PIT": "NOT_EVALUATED",
+            "Parity": "NOT_EVALUATED",
+            "Fallback": "NOT_VERIFIED",
+            "Fidelity": "UNCLASSIFIED",
+            "Replay decision": "PENDING_VALIDATION",
+            "wave": source["wave"],
+            "notes": source["production_parity_notes"],
+        }
+        row.update(KNOWN_FIDELITY_OVERRIDES.get(source["source_id"], {}))
+        matrix.append(row)
     return matrix
 
 
@@ -441,6 +524,16 @@ def build_validation_manifest(anchor: datetime, timestamps: list[dict[str, str]]
         "probe_timestamps": timestamps,
         "gate_sequence": [
             {"gate": "G0", "name": "Production contract inventory"},
+            {
+                "gate": "A-1",
+                "name": "Source authenticity",
+                "classes": list(SOURCE_AUTHENTICITY_CLASSES),
+                "eligible_for_independent_information": list(INDEPENDENT_INFORMATION_ELIGIBLE_CLASSES),
+                "hard_rule": (
+                    "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE and SYNTHETIC are controls, "
+                    "derived state, or pipeline validation only."
+                ),
+            },
             {"gate": "G1", "name": "Historical availability / retention"},
             {"gate": "G2", "name": "Temporal / PIT correctness", "hard_rule": "available_at <= replay_clock"},
             {"gate": "G3", "name": "Production normalization parity"},
@@ -456,6 +549,15 @@ def build_validation_manifest(anchor: datetime, timestamps: list[dict[str, str]]
             "H2_AS_OF_RECONSTRUCTABLE": "Can reconstruct using only data <= T, without authoritative PIT snapshot/vintage proof.",
             "H3_POINT_IN_TIME_VERIFIED": "PIT correctness verified against vintage/archive/snapshot.",
             "H4_PRODUCTION_PARITY": "H3 plus production normalizer/feature semantics parity and deterministic replay behavior.",
+        },
+        "source_authenticity_rules": {
+            "MARKET_OBSERVED": "Directly observed market venue/provider data.",
+            "EXTERNALLY_PUBLISHED": "Published by an external provider, not derived from local target price state.",
+            "RECONSTRUCTED_FROM_EXTERNAL_SOURCE": "Rebuilt from external observations with explicit availability semantics.",
+            "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE": "Derived from the same instrument price/volatility state under audit.",
+            "SYNTHETIC": "Simulated or generated data.",
+            "independent_information_candidates": list(INDEPENDENT_INFORMATION_ELIGIBLE_CLASSES),
+            "control_only": ["RECONSTRUCTED_FROM_ENDOGENOUS_PRICE", "SYNTHETIC"],
         },
         "replay_decision_rules": {
             "H4_PRODUCTION_PARITY": "USE_EXACT",
@@ -535,11 +637,21 @@ def write_report(path: Path, matrix: list[dict[str, Any]], manifest: dict[str, A
             "## Next Gates",
             "",
             "0. Freeze production contract inventory: source, endpoint/provider, raw fields, timestamp field, normalizer, derived feature, cache/TTL, fallback.",
-            "1. Run historical availability and retention probes per timestamp and archive raw responses with hashes.",
-            "2. Check `available_at <= replay_clock` for every record.",
-            "3. Feed historical payloads through production normalization and compare schema/units/timezone.",
-            "4. Compare against existing raw snapshots before promoting any source to H3/H4.",
-            "5. Repeat queries to prove deterministic behavior before final replay eligibility.",
+            "1. Classify A-1 source authenticity before any independent-information claim.",
+            "2. Run historical availability and retention probes per timestamp and archive raw responses with hashes.",
+            "3. Check `available_at <= replay_clock` for every record.",
+            "4. Feed historical payloads through production normalization and compare schema/units/timezone.",
+            "5. Compare against existing raw snapshots before promoting any source to H3/H4.",
+            "6. Repeat queries to prove deterministic behavior before final replay eligibility.",
+            "",
+            "## Wave 1 Closeout",
+            "",
+            "Wave 1 is frozen. Do not continue provider investigation on the critical path. Move to Historical Market Replay V1 with two profiles:",
+            "",
+            "- `STRICT_V1`: PIT-safe data plus production fallback.",
+            "- `RESEARCH_V1`: includes historical H1/H2 data with `NON_PIT_VERIFIED` where applicable.",
+            "",
+            "Replay must never use high/low/close from a candle containing `T` before that candle is complete.",
         ]
     )
     path.parent.mkdir(parents=True, exist_ok=True)

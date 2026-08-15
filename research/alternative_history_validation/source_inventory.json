@@ -1,5 +1,8 @@
 [
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "ALTERNATIVE_ME_CACHE_TTL_SECONDS default 21600s",
     "cadence": "daily",
     "collector": "AlternativeMeCollector",
@@ -38,6 +41,7 @@
       "fear_greed_score"
     ],
     "historical_target": "12m+",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -49,6 +53,7 @@
     ],
     "production_parity_notes": "Historical payload must use production normalize_fear_greed and aggregate normalizer.",
     "production_source": "alternative_me",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "Alternative.me Fear & Greed",
     "raw_fields_consumed": [
       "value",
@@ -56,6 +61,8 @@
       "timestamp"
     ],
     "raw_input": "Fear & Greed observation: value, value_classification, timestamp",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "alternative_me",
     "timestamp_field": "timestamp -> fear_greed_observed_at",
     "timestamp_semantics": [
@@ -73,6 +80,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "daily",
     "collector": "FredCollector",
@@ -102,6 +112,7 @@
       "us10y"
     ],
     "historical_target": "12m+",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -112,12 +123,15 @@
     ],
     "production_parity_notes": "Do not treat final revised FRED observations as PIT without realtime_start/realtime_end audit.",
     "production_source": "fred",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "FRED DGS10 with Yahoo ^TNX fallback",
     "raw_fields_consumed": [
       "observations[-1].value",
       "Yahoo regularMarketPrice/close fallback"
     ],
     "raw_input": "macro observations for us10y; gold field currently defaults/overridden by Yahoo collector",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "fred",
     "timestamp_field": "FRED date / Yahoo chart timestamp; collector timestamp in wrapper",
     "timestamp_semantics": [
@@ -136,6 +150,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "8h",
     "collector": "BinanceCollector",
@@ -163,6 +180,7 @@
       "funding_rate"
     ],
     "historical_target": "12m",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -173,12 +191,15 @@
     ],
     "production_parity_notes": "Historical funding endpoint must preserve fundingTime and fundingRate semantics.",
     "production_source": "binance",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "Binance USD-M Futures",
     "raw_fields_consumed": [
       "fundingRate",
       "fundingTime"
     ],
     "raw_input": "BTCUSDT funding rate",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "binance_funding",
     "timestamp_field": "fundingTime",
     "timestamp_semantics": [
@@ -196,6 +217,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "current snapshot",
     "collector": "BinanceCollector",
@@ -222,6 +246,7 @@
       "open_interest"
     ],
     "historical_target": "determine",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -232,11 +257,14 @@
     ],
     "production_parity_notes": "Current endpoint schema differs from historical OI endpoints; parity must be proven separately.",
     "production_source": "binance",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "Binance USD-M Futures",
     "raw_fields_consumed": [
       "openInterest"
     ],
     "raw_input": "current BTCUSDT open interest snapshot",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "binance_open_interest",
     "timestamp_field": "collector timestamp",
     "timestamp_semantics": [
@@ -253,6 +281,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "current snapshot",
     "collector": "BinanceCollector",
@@ -279,6 +310,7 @@
       "orderbook_imbalance"
     ],
     "historical_target": "determine",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -289,12 +321,15 @@
     ],
     "production_parity_notes": "Order book cannot be replayed exactly without archived depth snapshots.",
     "production_source": "binance",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "Binance USD-M Futures",
     "raw_fields_consumed": [
       "bids[][1]",
       "asks[][1]"
     ],
     "raw_input": "top 100 bid/ask depth snapshot",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "binance_orderbook",
     "timestamp_field": "collector timestamp",
     "timestamp_semantics": [
@@ -311,6 +346,9 @@
     "wave": 3
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "daily",
     "collector": "DefiLlamaCollector",
@@ -350,6 +388,7 @@
       "stablecoin_supply_total"
     ],
     "historical_target": "12m",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -361,6 +400,7 @@
     ],
     "production_parity_notes": "Chart rows must not be summed across time; choose as-of row only.",
     "production_source": "defillama",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "DefiLlama",
     "raw_fields_consumed": [
       "total",
@@ -369,6 +409,8 @@
       "chart totalCirculating"
     ],
     "raw_input": "stablecoin pegged USD totals",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "defillama_stablecoin",
     "timestamp_field": "chart row date when historical; collector timestamp otherwise",
     "timestamp_semantics": [
@@ -386,6 +428,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "daily/hourly depending endpoint",
     "collector": "DefiLlamaCollector",
@@ -424,6 +469,7 @@
       "chain_tvl"
     ],
     "historical_target": "12m",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -435,12 +481,15 @@
     ],
     "production_parity_notes": "Current aggregate endpoints may not provide PIT TVL; historical endpoint/schema parity must be proven.",
     "production_source": "defillama",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "DefiLlama",
     "raw_fields_consumed": [
       "chains[].tvl",
       "protocols[].tvl"
     ],
     "raw_input": "chain and protocol TVL",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "defillama_tvl",
     "timestamp_field": "collector timestamp for current endpoints",
     "timestamp_semantics": [
@@ -458,6 +507,10 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate",
+      "volatility_state_control"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "hourly",
     "collector": "DeribitCollector",
@@ -484,6 +537,7 @@
       "options_iv"
     ],
     "historical_target": "12m",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -494,12 +548,15 @@
     ],
     "production_parity_notes": "Historical DVOL rows need PIT row timestamp and same close-field semantics.",
     "production_source": "deribit",
+    "provenance_class": "RECONSTRUCTED_FROM_EXTERNAL_SOURCE",
     "provider": "Deribit public API",
     "raw_fields_consumed": [
       "result.data[-1][0]",
       "result.data[-1][4]"
     ],
     "raw_input": "DVOL OHLC rows",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "Deribit publishes DVOL rows; current evidence is H2/as-of reconstructable, not archived H3/H4 PIT parity.",
     "source_id": "deribit_dvol",
     "timestamp_field": "DVOL row timestamp",
     "timestamp_semantics": [
@@ -516,6 +573,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in collector",
     "cadence": "minutes/current snapshot",
     "collector": "DeribitCollector",
@@ -542,6 +602,7 @@
       "iv_skew"
     ],
     "historical_target": "12m",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -552,6 +613,7 @@
     ],
     "production_parity_notes": "Book summary endpoint is current-state; historical option chain parity requires archive/provenance.",
     "production_source": "deribit",
+    "provenance_class": "MARKET_OBSERVED",
     "provider": "Deribit public API",
     "raw_fields_consumed": [
       "instrument_name",
@@ -560,6 +622,8 @@
       "underlying_price"
     ],
     "raw_input": "option book summaries with mark_iv/delta by instrument",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "Production current snapshot is market-observed. V4A-2-R historical series is a separate endogenous reconstructed proxy and is not eligible as genuine Deribit IV skew.",
     "source_id": "deribit_iv_skew",
     "timestamp_field": "collector timestamp",
     "timestamp_semantics": [
@@ -576,6 +640,9 @@
     "wave": 1
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "provider dependent",
     "cadence": "daily",
     "collector": "ETFCollector",
@@ -604,6 +671,7 @@
       "etf_flow"
     ],
     "historical_target": "determine",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -614,6 +682,7 @@
     ],
     "production_parity_notes": "Disabled/default placeholder means replay should use production fallback unless provider archive is validated.",
     "production_source": "etf",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "ETFProviderChain / Parsebot Farside",
     "raw_fields_consumed": [
       "total_flow_usd_m",
@@ -621,6 +690,8 @@
       "provider fields"
     ],
     "raw_input": "US spot BTC ETF net flow",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "etf",
     "timestamp_field": "flow date / provider cache timestamp",
     "timestamp_semantics": [
@@ -639,6 +710,9 @@
     "wave": 2
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "CACHE_FRESHNESS_SECONDS 21600s",
     "cadence": "hourly/daily",
     "collector": "GoogleTrendsCollector",
@@ -665,6 +739,7 @@
       "sentiment_score"
     ],
     "historical_target": "determine",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -675,11 +750,14 @@
     ],
     "production_parity_notes": "Trends values are rescaled by query window; historical recomputation must freeze query window semantics.",
     "production_source": "google_trends",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "pytrends unofficial Google Trends",
     "raw_fields_consumed": [
       "interest_over_time()[bitcoin].iloc[-1]"
     ],
     "raw_input": "bitcoin search interest",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "google_trends",
     "timestamp_field": "pytrends row time / cache cached_at",
     "timestamp_semantics": [
@@ -698,6 +776,9 @@
     "wave": 2
   },
   {
+    "allowed_research_use": [
+      "independent_information_candidate"
+    ],
     "cache_ttl": "none in wrapper collector",
     "cadence": "realtime",
     "collector": "RedditCollector",
@@ -724,6 +805,7 @@
       "social_sentiment"
     ],
     "historical_target": "determine",
+    "independent_information_eligible": true,
     "initial_fidelity": "UNCLASSIFIED",
     "initial_replay_decision": "PENDING_VALIDATION",
     "inventory_generated_at": "2026-08-14T00:00:00+00:00",
@@ -734,6 +816,7 @@
     ],
     "production_parity_notes": "Historical scores must recompute derived metrics only with observations available_at <= replay T.",
     "production_source": "reddit",
+    "provenance_class": "EXTERNALLY_PUBLISHED",
     "provider": "RedditOAuthCollector",
     "raw_fields_consumed": [
       "sentiment_score",
@@ -742,6 +825,8 @@
       "posts_analyzed"
     ],
     "raw_input": "posts/comments sentiment, volume, z-score",
+    "source_authenticity_gate": "A-1",
+    "source_authenticity_notes": "A-1 provenance gate must be verified before statistical audit.",
     "source_id": "reddit",
     "timestamp_field": "post/comment created time and collector timestamp",
     "timestamp_semantics": [

@@ -1,4 +1,13 @@
-# HMR-V4A-2 Deribit IV Skew Audit Report
+# HMR-V4A-2-R Reconstructed IV Skew Proxy Audit Report
+
+## Canonical closeout
+
+
+- `V4A-2-R`: `ENDOGENOUS_RECONSTRUCTED_PROXY`, `REJECTED_FINAL`, directional alpha `NONE`, independent information `NOT_DEMONSTRATED`.
+- `V4A-2-G`: `GENUINE_OPTIONS_MARKET_DATA`, `UNTESTED`; reopen only with an authentic historical option-chain/skew archive.
+- Do not reopen `V4A-2-R` with another proxy transform.
+
+The tested series was reconstructed from past return and rolling volatility, so no independent information after conditioning is structurally expected.
 
 ## Summary table
 

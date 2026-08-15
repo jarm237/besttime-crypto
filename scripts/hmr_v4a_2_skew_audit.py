@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HMR-V4A-2: Deribit IV Skew Information Source Audit."""
+"""HMR-V4A-2-R: Reconstructed IV skew proxy audit."""
 
 import sys
 import json
@@ -15,11 +15,22 @@ SCAFFOLD_PATH = REPO_ROOT / "research/historical_market_replay_v4/v4a_outcome_sc
 SKEW_PATH = REPO_ROOT / "data/historical_iv_skew.parquet"
 OUT_DIR = REPO_ROOT / "research/historical_market_replay_v4"
 
+SOURCE_PROVENANCE = {
+    "program": "HMR-V4A-2-R",
+    "source": "reconstructed_iv_skew_proxy",
+    "source_class": "ENDOGENOUS_RECONSTRUCTED_PROXY",
+    "market_observed": False,
+    "genuine_market_priced_deribit_iv_skew": "NOT_TESTED",
+    "independent_information_eligible": False,
+    "allowed_use": ["control", "derived_state", "pipeline_validation"],
+    "reopen_condition": "authentic historical option-chain/skew archive",
+}
+
 def compute_rolling_percentile(s, window=2880, min_periods=100):
     return s.rolling(window, min_periods=min_periods).rank(pct=True)
 
 def run_audit():
-    print("HMR-V4A-2: Running Deribit IV Skew Audit...")
+    print("HMR-V4A-2-R: Running reconstructed IV skew proxy audit...")
     
     # Load outcome scaffold
     df_scaffold = pd.read_parquet(SCAFFOLD_PATH)
@@ -241,10 +252,26 @@ def run_audit():
         
     # Build final JSON output
     output_json = {
-        "program": "HMR-V4A-2",
-        "source": "deribit_iv_skew",
+        **SOURCE_PROVENANCE,
+        "canonical_closeout": {
+            "V4A-2-R": {
+                "source_class": "ENDOGENOUS_RECONSTRUCTED_PROXY",
+                "verdict": "REJECTED_FINAL",
+                "directional_alpha": "NONE",
+                "independent_info": "NOT_DEMONSTRATED",
+                "reopen_allowed": False,
+            },
+            "V4A-2-G": {
+                "source_class": "GENUINE_OPTIONS_MARKET_DATA",
+                "status": "UNTESTED",
+                "reopen_condition": "authentic historical option-chain/skew archive",
+            },
+        },
         "pit_gate": "PASS",
         "coverage_gate": "PASS",
+        "decision": "REJECTED_FINAL",
+        "independent_information": "NOT_DEMONSTRATED",
+        "do_not_reopen_with_proxy_transform": True,
         "features": feature_verdicts
     }
     
@@ -260,7 +287,15 @@ def run_audit():
     
     # Write report MD
     report_lines = [
-        "# HMR-V4A-2 Deribit IV Skew Audit Report\n",
+        "# HMR-V4A-2-R Reconstructed IV Skew Proxy Audit Report\n",
+        "## Canonical closeout\n",
+        "",
+        "- `V4A-2-R`: `ENDOGENOUS_RECONSTRUCTED_PROXY`, `REJECTED_FINAL`, directional alpha `NONE`, independent information `NOT_DEMONSTRATED`.",
+        "- `V4A-2-G`: `GENUINE_OPTIONS_MARKET_DATA`, `UNTESTED`; reopen only with an authentic historical option-chain/skew archive.",
+        "- Do not reopen `V4A-2-R` with another proxy transform.",
+        "",
+        "The tested series was reconstructed from past return and rolling volatility, so no independent information after conditioning is structurally expected.",
+        "",
         "## Summary table\n",
         "| Feature | Period A Spread (bps) | Period B Spread (bps) | Period C Spread (bps) | Retention Ratio | Verdict |",
         "| :--- | :---: | :---: | :---: | :---: | :---: |"
