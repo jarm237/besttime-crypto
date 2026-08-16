@@ -1,0 +1,142 @@
+{
+  "program": "HMR-V4D-1-r1",
+  "run_class": "CONFIRMATORY",
+  "audit_timestamp": "2026-08-16T15:41:48.997148+00:00",
+  "source": "parsebot_farside_etf_flows",
+  "primary_asset": "BTC",
+  "integration_start": "2024-01-11",
+  "integration_end": "2024-12-31",
+  "total_signals": 13851,
+  "n_q5_signals": 2306,
+  "n_q1_q4_signals": 11545,
+  "q5_fraction_pct": 16.65,
+  "pre_registered_thresholds": {
+    "G2_ev_degradation_floor_bps": -5.0,
+    "G3_cvar95_improvement_pct": 10.0,
+    "G4_dd_improvement_pct": 5.0,
+    "G5_sharpe_degradation_floor": -0.5
+  },
+  "i1_frozen_rule": "Q5 -> 0.5x size, Q1-Q4 -> 1.0x",
+  "i2_frozen_rule": "Q5 -> SL -2.25%, TP +4.5%; Q1-Q4 -> SL -1.5%, TP +3.0%",
+  "use_case_1_sizing": {
+    "baseline": {
+      "n_trades": 13851,
+      "net_ev_bps": 18.925244,
+      "sharpe": 8.598576,
+      "max_drawdown_pct": 9.798356,
+      "worst_trade_pct": -1.020382,
+      "profit_factor": 4.692394,
+      "win_rate_pct": 72.5002,
+      "avg_win_pct": 0.3317,
+      "avg_loss_pct": -0.1864,
+      "cvar_95_pct": -0.431496,
+      "cvar_99_pct": -0.604832,
+      "stop_hit_rate_pct": 0.0,
+      "target_hit_rate_pct": 0.0,
+      "avg_bars_held": 72.0
+    },
+    "volatility_aware": {
+      "n_trades": 13851,
+      "net_ev_bps": 17.070453,
+      "sharpe": 8.265959,
+      "max_drawdown_pct": 9.798356,
+      "worst_trade_pct": -1.020382,
+      "profit_factor": 4.573601,
+      "win_rate_pct": 72.5002,
+      "avg_win_pct": 0.3013,
+      "avg_loss_pct": -0.1737,
+      "cvar_95_pct": -0.416043,
+      "cvar_99_pct": -0.591699,
+      "stop_hit_rate_pct": 0.0,
+      "target_hit_rate_pct": 0.0,
+      "avg_bars_held": 72.0
+    },
+    "baseline_clustered": {
+      "unique_etf_states": 357,
+      "total_signals": 13851,
+      "signals_per_state_avg": 38.8,
+      "clustered_ev_bps": 18.684435,
+      "clustered_sharpe": 21.955779
+    },
+    "volatility_aware_clustered": {
+      "unique_etf_states": 357,
+      "total_signals": 13851,
+      "signals_per_state_avg": 38.8,
+      "clustered_ev_bps": 16.884354,
+      "clustered_sharpe": 20.883892
+    }
+  },
+  "use_case_2_widths": {
+    "baseline": {
+      "n_trades": 13851,
+      "net_ev_bps": 18.925244,
+      "sharpe": 8.598576,
+      "max_drawdown_pct": 9.798356,
+      "worst_trade_pct": -1.020382,
+      "profit_factor": 4.692394,
+      "win_rate_pct": 72.5002,
+      "avg_win_pct": 0.3317,
+      "avg_loss_pct": -0.1864,
+      "cvar_95_pct": -0.431496,
+      "cvar_99_pct": -0.604832,
+      "stop_hit_rate_pct": 0.0,
+      "target_hit_rate_pct": 0.0,
+      "avg_bars_held": 72.0
+    },
+    "dynamic_widths": {
+      "n_trades": 13851,
+      "net_ev_bps": 18.925244,
+      "sharpe": 8.598576,
+      "max_drawdown_pct": 9.798356,
+      "worst_trade_pct": -1.020382,
+      "profit_factor": 4.692394,
+      "win_rate_pct": 72.5002,
+      "avg_win_pct": 0.3317,
+      "avg_loss_pct": -0.1864,
+      "cvar_95_pct": -0.431496,
+      "cvar_99_pct": -0.604832,
+      "stop_hit_rate_pct": 0.0,
+      "target_hit_rate_pct": 0.0,
+      "avg_bars_held": 72.0
+    },
+    "baseline_clustered": {
+      "unique_etf_states": 357,
+      "total_signals": 13851,
+      "signals_per_state_avg": 38.8,
+      "clustered_ev_bps": 18.684435,
+      "clustered_sharpe": 21.955779
+    },
+    "dynamic_widths_clustered": {
+      "unique_etf_states": 357,
+      "total_signals": 13851,
+      "signals_per_state_avg": 38.8,
+      "clustered_ev_bps": 18.684435,
+      "clustered_sharpe": 21.955779
+    }
+  },
+  "gate_results": {
+    "gates": {
+      "G0_data_pit": "PASS",
+      "G1_clustered_inference_i1": "PASS",
+      "G1_clustered_inference_i2": "PASS",
+      "G2_ev_noninferiority_i1": "PASS",
+      "G3_cvar_improvement_i1": "FAIL \u2014 CVaR 95 improvement 3.6% < threshold 10.0%",
+      "G4_dd_improvement_i1": "FAIL \u2014 Max DD delta 0.00%, improvement 0.0% < 5.0%",
+      "G5_sharpe_noninferiority_i1": "PASS",
+      "G6_period_stability": "PASS \u2014 Period B delta -2.15 bps, Period C delta -1.58 bps >= floor -5.0 bps",
+      "G7_lag_robustness": "PASS \u2014 lagged (+4h) EV delta -1.85 bps >= floor -5.0 bps"
+    },
+    "i1_verdict": "INTEGRATION_NOT_PROMOTED",
+    "i2_verdict": "CLOSED_NOT_EVALUATED_ARCHITECTURE_BOUNDARY",
+    "economic_non_inferiority": "PASS",
+    "risk_improvement": "FAIL",
+    "risk_adjusted_utility": "NOT_DEMONSTRATED",
+    "ev_delta_i1_bps": -1.854791,
+    "sharpe_delta_i1": -0.332617,
+    "cvar95_delta_i1_pct": 0.015453,
+    "dd_delta_i1_pct": 0.0,
+    "simulation_architecture_note": "The scaffold stores pre-computed 72-bar forward returns. The maximum forward return for BTC long signals is +1.57% and minimum is -1.02%. Neither the SL (-1.5%) nor the TP (+3.0%) bound is ever crossed within the scaffold. Stop-hit rate = 0% and identical I2 metrics are structurally correct, not a bug. CVaR, Max DD, and I2 stop/target hit rates reflect timeout-only exit scenarios. Intrabar SL/TP simulation requires path-aware OHLCV or finer data, not the outcome scaffold."
+  },
+  "overall_verdict": "INTEGRATION_NOT_PROMOTED",
+  "ml_training": "BLOCKED \u2014 overall_verdict is INTEGRATION_NOT_PROMOTED"
+}

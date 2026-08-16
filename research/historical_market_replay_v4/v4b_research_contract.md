@@ -54,22 +54,22 @@ Since all market microstructure candidates (V4B-1 to V4B-5) have failed either p
 | --- | --- | --- | :---: | --- |
 | **V4C-1** | Cross-Market Risk Regime | Macro Risk / Volatility | P0 | `REJECTED_FINAL` |
 | **V4C-2** | Stablecoin Liquidity / Supply | Stablecoin Issuer Flows | P1 | `REJECTED_FINAL` |
-| **V4C-3** | ETF / Institutional Flow | Institutional Activity | P1 | `INTEGRATION_PROMOTED` |
-| **V4C-4** | Macro Event State | Macro Release Surprises | P1 | `DISCOVERY` |
-| **V4C-5** | On-chain Exchange Flow | Blockchain Wallet Activity | P2 | `DISCOVERY` |
-| **V4D-1** | ETF Volatility Integration | Sizing & Dynamic Widths | P0 | `INTEGRATION_PROMOTED` |
+| **V4C-3** | ETF / Institutional Flow | Institutional Activity | P1 | `INFORMATION_SOURCE_PROMOTED` |
+| **V4C-4** | Macro Event State | Macro Release Surprises | P1 | `REJECTED_FINAL` |
+| **V4D-1** | ETF Volatility Integration | Sizing & Dynamic Widths | P0 | `INTEGRATION_NOT_PROMOTED` |
 
 Every V4C candidate must pass a two-phase audit:
 1. **Phase A (Provenance Audit)**: Assess availability, PIT safety, timezone, revision, and market-hours alignment semantics.
 2. **Phase B (Information Audit)**: Verify directional, volatility, or risk-state information strength.
 
 ### Governance & Budget Gates
-- **Discovery Budget**: Maximum of 4 independent source families (V4C-1 to V4C-4).
-- **Discovery Completion**: After V4C-4, close the discovery phase regardless of results.
-- **Verdict Action**:
-  - If zero promoted sources: Trigger `FEATURE_DISCOVERY_HARD_STOP` and reassess strategy objectives.
-  - If >=1 promoted source: Declare `DISCOVERY_PHASE_COMPLETE` and proceed to Information Integration Audit.
+- **Discovery Budget**: 4/4 independent source families consumed (V4C-1 to V4C-4).
+- **Discovery Phase**: **`CLOSED`** — `DISCOVERY_PHASE_COMPLETE` declared.
+- **FEATURE_DISCOVERY_HARD_STOP**: **`DISARMED`** — 1 source promoted (ETF2 ex-GBTC from V4C-3).
+- **DISCOVERY_CLOSE_GATE**: **`FIRED`** — V4C-4 audit complete.
+- **Promoted Sources**: `1` (`parsebot_farside_etf_flows` / `ETF2_ex_gbtc_net_flow_usd`, class: `VOLATILITY`).
+- **Verdict Action**: `DISCOVERY_PHASE_COMPLETE` → proceed to confirmatory Integration Audit.
 
-ML model training is now **UNBLOCKED** specifically for strategy integrations that incorporate the promoted ETF Volatility source (`ETF2_ex_gbtc_net_flow_usd`). For all other sources, ML and parameter optimization remain strictly blocked.
-
-
+ML model training, feature interaction search, and parameter optimization remain strictly **`BLOCKED`**.
+Integration (`V4D-1`) returned `INTEGRATION_NOT_PROVEN`. Confirmatory rerun `HMR-V4D-1-r1` must pre-register
+gates G0–G7 from independent risk/economic policy (not exploratory run numbers) before execution.

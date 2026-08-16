@@ -171,9 +171,11 @@ def main():
         "use_case_2_widths": {
             "baseline": baseline_metrics,
             "dynamic_widths": dyn_width_metrics,
-            "rule": "Bins 0-3 -> SL -1.5%, TP +3.0%; Bin 4 -> SL -2.25%, TP +4.5%"
+            "rule": "Q1-Q4 -> SL -1.5%, TP +3.0%; Q5 -> SL -2.25%, TP +4.5%"
         },
-        "verdict": "INTEGRATION_PROMOTED"
+        "run_class": "EXPLORATORY_INTEGRATION_RUN",
+        "verdict": "INTEGRATION_NOT_PROVEN",
+        "note": "Gates G0-G7 were not pre-registered before this run. Results are exploratory only."
     }
     
     # Write JSON

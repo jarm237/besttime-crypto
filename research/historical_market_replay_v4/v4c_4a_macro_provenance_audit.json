@@ -1,0 +1,148 @@
+{
+  "program": "HMR-V4C-4A",
+  "audit_timestamp": "2026-08-16T15:28:51.980575+00:00",
+  "audit_class": "PROVENANCE_ONLY",
+  "knowledge_class": "STATIC_KNOWLEDGE",
+  "discovery_budget_consumed": "4/4",
+  "discovery_close_gate": "ARMED \u2014 discovery closes after V4C-4 regardless of result",
+  "feature_discovery_hard_stop": "DISARMED \u2014 V4C-3 (ETF2) already promoted",
+  "discovery_outcome": "DISCOVERY_PHASE_COMPLETE",
+  "promoted_sources_count": 1,
+  "sources": [
+    {
+      "source": "CPI_BLS",
+      "description": "US CPI All Urban Consumers (BLS release, FRED CPIAUCSL)",
+      "source_class": "STATIC_KNOWLEDGE",
+      "n_releases_2023_2024": 24,
+      "timestamp_resolution": "DATE_ONLY_CONVENTIONAL_TIME",
+      "scheduled_release_time_utc": "13:30",
+      "pit_lag_policy": "0d (intraday, after 13:30 UTC on release day)",
+      "revision_class": "MINOR_REVISION",
+      "revision_scope": "CPI is revised within the release cycle: preliminary, then final. YoY figures can be restated when seasonal factors are updated annually (Jan). Typical magnitude: \u00b10.1 pp YoY in seasonal revisions.",
+      "consensus_publicly_available": false,
+      "consensus_vintage_note": "Consensus polls are collected by Bloomberg/Reuters from professional forecasters in the days before each release. Historical poll vintage data (what was the consensus as-of T-1 day before release N) is not publicly available. Current-database consensus reflects the final polled value, not the real-time pre-release snapshot used by traders.",
+      "fred_vintage_history": true,
+      "gates": {
+        "C0_source_reachable": "WARN_API_KEY_REQUIRED",
+        "C1_timestamp_resolution": "WARN_DATE_ONLY_CONVENTIONAL_TIME",
+        "C2_consensus_vintage": "FAIL_CONSENSUS_NOT_PUBLICLY_AVAILABLE",
+        "C3_revision_risk": "PASS_MINOR",
+        "C4_coverage_2023_2024": "PASS",
+        "C5_pit_lag_policy_definable": "PASS",
+        "C6_schema_determinism": "PASS",
+        "C7_surprise_pit_safe": "FAIL_CONSENSUS_NOT_PIT_SAFE",
+        "C8_intraday_timestamp": "WARN_CONVENTIONAL_TIME_NOT_MACHINE_READABLE",
+        "C9_production_feasible": "PASS"
+      },
+      "hard_fail_gates": [
+        "C2_consensus_vintage"
+      ],
+      "c7_fail_gates": [
+        "C7_surprise_pit_safe"
+      ],
+      "warning_gates": [
+        "C0_source_reachable",
+        "C1_timestamp_resolution",
+        "C8_intraday_timestamp"
+      ],
+      "verdict": "REJECT_PROVENANCE_INCOMPLETE",
+      "authorized_next": null
+    },
+    {
+      "source": "NFP_BLS",
+      "description": "US Nonfarm Payrolls (BLS Employment Situation, FRED PAYEMS)",
+      "source_class": "STATIC_KNOWLEDGE",
+      "n_releases_2023_2024": 24,
+      "timestamp_resolution": "DATE_ONLY_CONVENTIONAL_TIME",
+      "scheduled_release_time_utc": "13:30",
+      "pit_lag_policy": "0d (intraday, after 13:30 UTC on release day)",
+      "revision_class": "MAJOR_REVISION_RISK",
+      "revision_scope": "NFP is subject to two subsequent monthly revisions (preliminary, second estimate). Annual benchmark revisions occur in Feb. Typical preliminary-to-final revision: \u00b150k\u2013100k jobs (0.03\u20130.07% of employment). The benchmark revision (2024) revised 2023 figures by ~800k jobs.",
+      "consensus_publicly_available": false,
+      "consensus_vintage_note": "Same provenance boundary as CPI. Bloomberg consensus polls are not free. In addition, the 2024 benchmark revision retroactively changed 2023 headline figures by ~818k jobs \u2014 if a model is trained with post-revision data, it has implicit lookahead on the exact series value a model would have seen at trade time.",
+      "fred_vintage_history": true,
+      "gates": {
+        "C0_source_reachable": "WARN_API_KEY_REQUIRED",
+        "C1_timestamp_resolution": "WARN_DATE_ONLY_CONVENTIONAL_TIME",
+        "C2_consensus_vintage": "FAIL_CONSENSUS_NOT_PUBLICLY_AVAILABLE",
+        "C3_revision_risk": "FAIL_MAJOR_REVISION_RISK",
+        "C4_coverage_2023_2024": "PASS",
+        "C5_pit_lag_policy_definable": "PASS",
+        "C6_schema_determinism": "PASS",
+        "C7_surprise_pit_safe": "FAIL_CONSENSUS_NOT_PIT_SAFE",
+        "C8_intraday_timestamp": "WARN_CONVENTIONAL_TIME_NOT_MACHINE_READABLE",
+        "C9_production_feasible": "PASS"
+      },
+      "hard_fail_gates": [
+        "C2_consensus_vintage",
+        "C3_revision_risk"
+      ],
+      "c7_fail_gates": [
+        "C7_surprise_pit_safe"
+      ],
+      "warning_gates": [
+        "C0_source_reachable",
+        "C1_timestamp_resolution",
+        "C8_intraday_timestamp"
+      ],
+      "verdict": "REJECT_PROVENANCE_INCOMPLETE",
+      "authorized_next": null
+    },
+    {
+      "source": "FOMC_FED",
+      "description": "FOMC rate decisions (Federal Reserve press releases)",
+      "source_class": "STATIC_KNOWLEDGE",
+      "n_releases_2023_2024": 16,
+      "timestamp_resolution": "DATE_ONLY_CONVENTIONAL_TIME",
+      "scheduled_release_time_utc": "19:00",
+      "pit_lag_policy": "0d (intraday, after 19:00 UTC on decision day)",
+      "revision_class": "NO_REVISION",
+      "revision_scope": "Rate decision (hike/hold/cut) is not revised \u2014 it is the official policy action. Statement text is the official record. Dot plot and projections released quarterly may be revised in subsequent meetings but are not retroactively restated.",
+      "consensus_publicly_available": false,
+      "consensus_vintage_note": "Rate-change surprise = actual_rate_change \u2212 market_implied_expectation. Market-implied expectation (from OIS or Fed funds futures) must be snapshotted just before the 2 PM ET announcement. Historical snapshots of OIS-implied probability distributions are not freely available; they require Bloomberg WIRP function historical data or similar proprietary feed. Binary direction (hike/hold/cut) IS PIT-safe from Fed press releases alone.",
+      "fred_vintage_history": false,
+      "gates": {
+        "C0_source_reachable": "PASS_STATIC_KNOWLEDGE",
+        "C1_timestamp_resolution": "WARN_DATE_ONLY_CONVENTIONAL_TIME",
+        "C2_consensus_vintage": "FAIL_CONSENSUS_NOT_PUBLICLY_AVAILABLE",
+        "C3_revision_risk": "PASS",
+        "C4_coverage_2023_2024": "PASS_LOWER_FREQUENCY",
+        "C5_pit_lag_policy_definable": "PASS",
+        "C6_schema_determinism": "PASS",
+        "C7_surprise_pit_safe": "FAIL_CONSENSUS_NOT_PIT_SAFE",
+        "C8_intraday_timestamp": "WARN_CONVENTIONAL_TIME_NOT_MACHINE_READABLE",
+        "C9_production_feasible": "PASS"
+      },
+      "hard_fail_gates": [
+        "C2_consensus_vintage"
+      ],
+      "c7_fail_gates": [
+        "C7_surprise_pit_safe"
+      ],
+      "warning_gates": [
+        "C1_timestamp_resolution",
+        "C8_intraday_timestamp"
+      ],
+      "verdict": "REJECT_PROVENANCE_INCOMPLETE",
+      "authorized_next": null
+    }
+  ],
+  "special_findings": [
+    {
+      "finding": "NFP_BENCHMARK_REVISION_LOOKAHEAD",
+      "description": "The 2024 annual benchmark revision retroactively revised 2023 NFP figures by approximately \u2212818k jobs. Any model trained or evaluated with post-revision PAYEMS data for the 2023 period has implicit lookahead. FRED vintage API (REALTIME_START parameter) is required to obtain first-print values \u2014 this requires an API key not present in this environment. Gate C3 for NFP must be classified MAJOR_REVISION_RISK until vintage-correct data can be confirmed.",
+      "severity": "HIGH"
+    },
+    {
+      "finding": "CONSENSUS_VINTAGE_UNIVERSAL_BLOCKER",
+      "description": "The surprise feature (actual - consensus) is the primary information vector for macro event strategies. It fails universally because historical consensus snapshots require Bloomberg BEST function or Reuters terminal data. This is a structural, not incidental, provenance boundary.",
+      "severity": "HIGH"
+    }
+  ],
+  "overall_verdict": "REJECT_SURPRISE_FEATURE_FAMILY",
+  "overall_note": "All three macro event sources fail C7 (surprise PIT safety) because Bloomberg/Reuters consensus vintage data is not publicly available. The feature family `surprise = actual - consensus` cannot be constructed with PIT safety from free data sources. Binary event-state features (hike/hold/cut, above/below consensus direction) are PIT-safe from release dates alone but have lower information content.",
+  "v4c4_stage_verdict": "REJECTED_FINAL",
+  "binary_event_state_viable": true,
+  "binary_event_state_note": "Binary event-state features (fomc_hike_cut_hold, cpi_above_prior_direction, nfp_headline_first_print) are PIT-safe from public release dates but are out of scope for V4C-4B given that the primary surprise feature family is rejected. If binary event-state features are to be researched, they require a new scoped audit.",
+  "ml_training": "BLOCKED"
+}

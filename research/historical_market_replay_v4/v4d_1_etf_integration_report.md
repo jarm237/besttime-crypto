@@ -2,7 +2,7 @@
 
 ## Governance Rationale & Verdict Summary
 
-- **Verdict**: `INTEGRATION_PROMOTED`
+- **Verdict**: `INTEGRATION_NOT_PROVEN`
 - **Integration Phase**: `HMR-V4D-1`
 - **Target Asset**: `BTC`
 - **Test Period**: `2024-01-11` to `2024-12-31`
@@ -17,7 +17,7 @@
 | Volatility-Aware | 17.07 | 8.27 | 9.80 | -1.02 | 4.57 | 13851 |
 
 ## Use Case 2: Dynamic Stop / Target Widths (I2)
-- **Rule**: Bins 0-3 -> SL -1.5%, TP +3.0%; Bin 4 -> SL -2.25%, TP +4.5%
+- **Rule**: Q1-Q4 -> SL -1.5%, TP +3.0%; Q5 -> SL -2.25%, TP +4.5%
 
 | Width Mode | Net EV (bps) | Sharpe | Max Drawdown (%) | Worst Trade (%) | Profit Factor | Trades |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
