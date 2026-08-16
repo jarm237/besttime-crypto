@@ -1,0 +1,530 @@
+{
+  "program": "HMR-V4B-2B-r1",
+  "source": "binance_premium_index_klines",
+  "information_family": "PERP_PREMIUM_DISLOCATION",
+  "provenance": "MARKET_OBSERVED",
+  "provenance_gate": "PASS",
+  "model_training": "BLOCKED",
+  "feature_verdicts": [
+    {
+      "feature": "perp_premium_level",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "max_observed_spread_bps": 0.6740484141463803,
+      "horizon_of_max_observed_spread": 192,
+      "economic_floor_ratio": 0.03370242070731901,
+      "horizon_verdicts": {
+        "32": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": false,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -0.24062520853030947,
+          "weighted_funding_spread_bps": -0.25922853330934126,
+          "funding_retention": 1.0773124515617345,
+          "weighted_endog_spread_bps": -0.8193850502736485,
+          "endog_retention": 3.405233621524063,
+          "asset_spreads": {
+            "BTC": 0.03609878734696974,
+            "ETH": -1.3176641430772467,
+            "BNB": 1.0294265284472894
+          },
+          "asset_largest_contribution": 0.5528994508481883,
+          "monthly_spreads": {
+            "2024-07": 1.33634444550796,
+            "2024-08": 2.742642929708039,
+            "2024-09": -0.24442181028434762,
+            "2024-10": -1.3048704640123414,
+            "2024-11": -3.7100142599257664,
+            "2024-12": 4.414724693836044
+          },
+          "monthly_largest_contribution": 0.3210004160675627,
+          "ci_b": [
+            -2.782336149293767,
+            2.888790414088833
+          ],
+          "ci_c": [
+            -1.0561651145324618,
+            5.012991565902393
+          ],
+          "winsorized_spread_bps": -0.12410507099483886,
+          "tail_contribution": 0.4842391129639003
+        },
+        "72": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": true,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": false,
+          "raw_val_spread_bps": -0.13963891760809927,
+          "weighted_funding_spread_bps": 0.18198832047880423,
+          "funding_retention": 1.3032779370974488,
+          "weighted_endog_spread_bps": -0.5089288511490089,
+          "endog_retention": 3.6446061016981863,
+          "asset_spreads": {
+            "BTC": -0.6136907603331372,
+            "ETH": -1.4890897354729513,
+            "BNB": 3.7936335488123922
+          },
+          "asset_largest_contribution": 0.6433797762683834,
+          "monthly_spreads": {
+            "2024-07": 0.8057901772822914,
+            "2024-08": 8.73396507910628,
+            "2024-09": -4.123606548738711,
+            "2024-10": -5.307055052316805,
+            "2024-11": 1.8678016761230858,
+            "2024-12": 5.00960547451563
+          },
+          "monthly_largest_contribution": 0.3378994330963838,
+          "ci_b": [
+            -4.250210756617417,
+            3.454938335112864
+          ],
+          "ci_c": [
+            -3.0547135742205818,
+            6.061484727352342
+          ],
+          "winsorized_spread_bps": 0.007181795444854554,
+          "tail_contribution": 1.0514311881520773
+        },
+        "192": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": false,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": 0.6740484141463803,
+          "weighted_funding_spread_bps": 3.4806189649053407,
+          "funding_retention": 5.163752175447548,
+          "weighted_endog_spread_bps": 1.6050885447577303,
+          "endog_retention": 2.381265961125991,
+          "asset_spreads": {
+            "BTC": -4.53436040909545,
+            "ETH": -0.6028126471140571,
+            "BNB": 12.157331453884499
+          },
+          "asset_largest_contribution": 0.7029592230751002,
+          "monthly_spreads": {
+            "2024-07": 1.7102720473405577,
+            "2024-08": 18.158955195374862,
+            "2024-09": 3.374022850965773,
+            "2024-10": -16.35350905131476,
+            "2024-11": 7.926175789482015,
+            "2024-12": 17.590834622024722
+          },
+          "monthly_largest_contribution": 0.27888041683130277,
+          "ci_b": [
+            -6.9617379243018425,
+            11.266330556457204
+          ],
+          "ci_c": [
+            -1.9480469660144506,
+            14.908378883185971
+          ],
+          "winsorized_spread_bps": 0.733976649460823,
+          "tail_contribution": -0.08890790936781046
+        }
+      }
+    },
+    {
+      "feature": "perp_premium_change_4h",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "max_observed_spread_bps": 0.4974090951249817,
+      "horizon_of_max_observed_spread": 32,
+      "economic_floor_ratio": 0.04974090951249817,
+      "horizon_verdicts": {
+        "32": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": true,
+          "monthly_passed": true,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": 0.4974090951249817,
+          "weighted_funding_spread_bps": 0.6893007709729896,
+          "funding_retention": 1.3857824027117802,
+          "weighted_endog_spread_bps": 0.4878469234939314,
+          "endog_retention": 0.9807760418440927,
+          "asset_spreads": {
+            "BTC": 1.8271075623693938,
+            "ETH": 1.5568382337797741,
+            "BNB": -0.9467404352357189
+          },
+          "asset_largest_contribution": 0.4218979313551222,
+          "monthly_spreads": {
+            "2024-07": 1.3024450720156748,
+            "2024-08": -2.1937710065208313,
+            "2024-09": 0.30355355753394997,
+            "2024-10": 2.025369707243991,
+            "2024-11": 0.6600329290713742,
+            "2024-12": 1.274124174985906
+          },
+          "monthly_largest_contribution": 0.2827280825523708,
+          "ci_b": [
+            -2.133778922914002,
+            1.4783805111659494
+          ],
+          "ci_c": [
+            -0.8396139385947204,
+            3.208363147429029
+          ],
+          "winsorized_spread_bps": 0.5553561262988658,
+          "tail_contribution": -0.11649773142834063
+        },
+        "72": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": false,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -0.09992311783311417,
+          "weighted_funding_spread_bps": 0.0829348206084348,
+          "funding_retention": 0.8299863175501364,
+          "weighted_endog_spread_bps": -0.09644289427868714,
+          "endog_retention": 0.9651709871559503,
+          "asset_spreads": {
+            "BTC": 1.1358827189140788,
+            "ETH": 0.1897978159579693,
+            "BNB": -0.9906765754820743
+          },
+          "asset_largest_contribution": 0.4903746118578522,
+          "monthly_spreads": {
+            "2024-07": 1.13345805796219,
+            "2024-08": 0.5035869446722951,
+            "2024-09": -2.651963173513471,
+            "2024-10": 2.751379544367962,
+            "2024-11": -2.694966196198179,
+            "2024-12": 0.7434818824355319
+          },
+          "monthly_largest_contribution": 0.2625653838941956,
+          "ci_b": [
+            -2.3983155515361623,
+            1.8073533564903352
+          ],
+          "ci_c": [
+            -2.5929173670241608,
+            2.0077100254924987
+          ],
+          "winsorized_spread_bps": -0.04667395008606277,
+          "tail_contribution": 0.5329013836015914
+        },
+        "192": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": true,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -0.058836008430830755,
+          "weighted_funding_spread_bps": 0.10343780034967633,
+          "funding_retention": 1.7580696432063483,
+          "weighted_endog_spread_bps": -0.11777366321383485,
+          "endog_retention": 2.0017276214835826,
+          "asset_spreads": {
+            "BTC": 0.7357490034806287,
+            "ETH": 0.6570020282388529,
+            "BNB": -0.9774502190238755
+          },
+          "asset_largest_contribution": 0.4123912341693861,
+          "monthly_spreads": {
+            "2024-07": -0.6291464322112899,
+            "2024-08": -0.992788939189166,
+            "2024-09": -3.456682498581009,
+            "2024-10": -0.4594738721808828,
+            "2024-11": 2.2180124308180678,
+            "2024-12": 2.4875431775175527
+          },
+          "monthly_largest_contribution": 0.33744645635550613,
+          "ci_b": [
+            -4.549081677086707,
+            0.5477279564653458
+          ],
+          "ci_c": [
+            -0.8515400029754526,
+            3.726941415313098
+          ],
+          "winsorized_spread_bps": -0.0945406185848148,
+          "tail_contribution": -0.6068496335192313
+        }
+      }
+    },
+    {
+      "feature": "perp_premium_change_24h",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "max_observed_spread_bps": 0.580991514371055,
+      "horizon_of_max_observed_spread": 72,
+      "economic_floor_ratio": 0.038732767624737,
+      "horizon_verdicts": {
+        "32": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": false,
+          "monthly_passed": true,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -0.18225530318537478,
+          "weighted_funding_spread_bps": 0.08885302017399689,
+          "funding_retention": 0.48751953233219814,
+          "weighted_endog_spread_bps": -0.21509940508164366,
+          "endog_retention": 1.1802093070667063,
+          "asset_spreads": {
+            "BTC": 2.3815522098627495,
+            "ETH": -0.2953022719735464,
+            "BNB": -1.4066399908504972
+          },
+          "asset_largest_contribution": 0.5832142606760463,
+          "monthly_spreads": {
+            "2024-07": 0.9307227054910263,
+            "2024-08": 0.41789031880633415,
+            "2024-09": -4.361575386843548,
+            "2024-10": -0.9581994338577506,
+            "2024-11": 1.4385122482712747,
+            "2024-12": 0.7916098291230328
+          },
+          "monthly_largest_contribution": 0.4901467127510538,
+          "ci_b": [
+            -3.28344148422948,
+            1.3705147142796659
+          ],
+          "ci_c": [
+            -1.7795015974272268,
+            2.3618462264733777
+          ],
+          "winsorized_spread_bps": -0.10754186823526833,
+          "tail_contribution": 0.409938331803241
+        },
+        "72": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": false,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": 0.580991514371055,
+          "weighted_funding_spread_bps": 1.0410214543926142,
+          "funding_retention": 1.7918014784080947,
+          "weighted_endog_spread_bps": 0.711755223644657,
+          "endog_retention": 1.225069912449855,
+          "asset_spreads": {
+            "BTC": 2.0167753689363384,
+            "ETH": 1.0082885957184595,
+            "BNB": -0.3584138867898562
+          },
+          "asset_largest_contribution": 0.5960657812715485,
+          "monthly_spreads": {
+            "2024-07": 3.107807740936333,
+            "2024-08": 1.8439894253419236,
+            "2024-09": -7.527770514463227,
+            "2024-10": 2.2750026965820966,
+            "2024-11": 2.0271663802088895,
+            "2024-12": 1.1794374430911205
+          },
+          "monthly_largest_contribution": 0.41911349616562776,
+          "ci_b": [
+            -3.940420404821681,
+            2.2166984726818466
+          ],
+          "ci_c": [
+            -1.2479168290590392,
+            4.676196083905958
+          ],
+          "winsorized_spread_bps": 0.5876607206080355,
+          "tail_contribution": -0.01147900799239765
+        },
+        "192": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": true,
+          "monthly_passed": true,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -0.1757151257559972,
+          "weighted_funding_spread_bps": -0.1911633535113706,
+          "funding_retention": 1.0879163230194833,
+          "weighted_endog_spread_bps": -0.5136233468422942,
+          "endog_retention": 2.923045723198158,
+          "asset_spreads": {
+            "BTC": 1.906874279541573,
+            "ETH": -0.32950139733329703,
+            "BNB": -1.1592507726078145
+          },
+          "asset_largest_contribution": 0.56156774248006,
+          "monthly_spreads": {
+            "2024-07": -1.0975716090597318,
+            "2024-08": -0.7139450626931153,
+            "2024-09": -9.577033827754525,
+            "2024-10": -4.804236982861084,
+            "2024-11": 5.336306785314241,
+            "2024-12": 8.518432267669539
+          },
+          "monthly_largest_contribution": 0.31872952392559584,
+          "ci_b": [
+            -9.027616257297273,
+            2.3522668047320137
+          ],
+          "ci_c": [
+            -2.1771109783466,
+            7.5686015429202245
+          ],
+          "winsorized_spread_bps": -0.2578656624514641,
+          "tail_contribution": -0.46752114447758664
+        }
+      }
+    },
+    {
+      "feature": "perp_premium_percentile_30d",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "max_observed_spread_bps": -1.204755010412001,
+      "horizon_of_max_observed_spread": 192,
+      "economic_floor_ratio": 0.060237750520600056,
+      "horizon_verdicts": {
+        "32": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": false,
+          "asset_passed": false,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": 0.13819195167681572,
+          "weighted_funding_spread_bps": -0.10400688827246804,
+          "funding_retention": 0.7526262348165181,
+          "weighted_endog_spread_bps": -0.24547941404936025,
+          "endog_retention": 1.7763654906868502,
+          "asset_spreads": {
+            "BTC": 0.9113475972318799,
+            "ETH": 0.6170320739709708,
+            "BNB": -1.1305074856769495
+          },
+          "asset_largest_contribution": 0.4251806936416204,
+          "monthly_spreads": {
+            "2024-07": 1.2904492627444788,
+            "2024-08": -1.274213871403264,
+            "2024-09": -3.3485312842895603,
+            "2024-10": 0.46979419594390454,
+            "2024-11": -0.906038004435186,
+            "2024-12": 4.740790144626489
+          },
+          "monthly_largest_contribution": 0.3940866463596653,
+          "ci_b": [
+            -4.043536906972452,
+            0.7299122520161269
+          ],
+          "ci_c": [
+            -0.7506486429369245,
+            3.588899103406446
+          ],
+          "winsorized_spread_bps": 0.1772468553137242,
+          "tail_contribution": -0.2826134457399132
+        },
+        "72": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": false,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -0.23933165961376304,
+          "weighted_funding_spread_bps": -0.10245107859144222,
+          "funding_retention": 0.4280715671164412,
+          "weighted_endog_spread_bps": -0.6748850244701439,
+          "endog_retention": 2.8198735827900214,
+          "asset_spreads": {
+            "BTC": 0.5932448569985326,
+            "ETH": 0.23559646402419498,
+            "BNB": -1.6012646434176965
+          },
+          "asset_largest_contribution": 0.6589279096668595,
+          "monthly_spreads": {
+            "2024-07": -1.0602140862250142,
+            "2024-08": 1.278151258764662,
+            "2024-09": -2.76634618584773,
+            "2024-10": -1.7198729458621989,
+            "2024-11": 4.098869457064377,
+            "2024-12": 5.886374284382644
+          },
+          "monthly_largest_contribution": 0.35017456502191713,
+          "ci_b": [
+            -5.9498655947954076,
+            0.8371118299936626
+          ],
+          "ci_c": [
+            -2.6404658845209594,
+            5.135905592766565
+          ],
+          "winsorized_spread_bps": -0.18547732914175277,
+          "tail_contribution": 0.22501966751461622
+        },
+        "192": {
+          "passed_economic": false,
+          "support_collapse": false,
+          "funding_passed": false,
+          "endog_passed": true,
+          "asset_passed": true,
+          "monthly_passed": false,
+          "bootstrap_passed": false,
+          "tail_passed": true,
+          "raw_val_spread_bps": -1.204755010412001,
+          "weighted_funding_spread_bps": -1.5712857079002818,
+          "funding_retention": 1.3042367073144066,
+          "weighted_endog_spread_bps": -1.536698170460499,
+          "endog_retention": 1.2755275198523393,
+          "asset_spreads": {
+            "BTC": -3.172027313869331,
+            "ETH": 2.122977430872013,
+            "BNB": -2.6714330954688092
+          },
+          "asset_largest_contribution": 0.39817386107736874,
+          "monthly_spreads": {
+            "2024-07": -4.227668920778021,
+            "2024-08": 3.5703985730744647,
+            "2024-09": 0.791082455501458,
+            "2024-10": -8.01335551224648,
+            "2024-11": 2.699769095410554,
+            "2024-12": 17.45369102995819
+          },
+          "monthly_largest_contribution": 0.47485328575195757,
+          "ci_b": [
+            -9.048801271602352,
+            3.2667518681107364
+          ],
+          "ci_c": [
+            -7.2121737343413175,
+            7.327214625580722
+          ],
+          "winsorized_spread_bps": -1.2843627342369182,
+          "tail_contribution": -0.0660779354614951
+        }
+      }
+    }
+  ]
+}

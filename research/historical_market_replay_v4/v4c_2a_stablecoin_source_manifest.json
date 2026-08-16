@@ -1,0 +1,28 @@
+{
+  "source": "DefiLlama stablecoins endpoint",
+  "retrieved_at": "2026-08-16T11:53:54.403341+00:00",
+  "symbols": [
+    "USDT",
+    "USDC",
+    "DAI"
+  ],
+  "chains": [
+    "Ethereum",
+    "Tron",
+    "Solana",
+    "BSC",
+    "Arbitrum",
+    "Optimism",
+    "Polygon",
+    "Avalanche"
+  ],
+  "requested_start": "2023-01-01T00:00:00Z",
+  "requested_end": "2024-12-31T23:59:59Z",
+  "actual_start": "2023-01-01T00:00:00Z",
+  "actual_end": "2024-12-31T23:59:59Z",
+  "event_semantics": "Multi-chain USD-pegged stablecoin aggregate circulating supply",
+  "sampling_semantics": "EOD daily aggregate supply snapshots; revision-free; dynamic confirmation/indexing latency",
+  "known_censoring": "None for aggregate supply; high attribution lookahead for exchange-specific address attribution.",
+  "pit_timestamp": "available_at = date + 1 day at 00:00 UTC",
+  "coverage_ratio": 1.0
+}

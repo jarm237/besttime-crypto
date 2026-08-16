@@ -1,0 +1,29 @@
+{
+  "BTC": {
+    "2023-01": "AVAILABLE",
+    "2023-06": "AVAILABLE",
+    "2023-12": "AVAILABLE",
+    "2024-01": "AVAILABLE",
+    "2024-06": "AVAILABLE",
+    "2024-06-01": "AVAILABLE",
+    "2024-12-31": "AVAILABLE"
+  },
+  "ETH": {
+    "2023-01": "AVAILABLE",
+    "2023-06": "AVAILABLE",
+    "2023-12": "AVAILABLE",
+    "2024-01": "AVAILABLE",
+    "2024-06": "AVAILABLE",
+    "2024-06-01": "AVAILABLE",
+    "2024-12-31": "AVAILABLE"
+  },
+  "BNB": {
+    "2023-01": "AVAILABLE",
+    "2023-06": "AVAILABLE",
+    "2023-12": "AVAILABLE",
+    "2024-01": "AVAILABLE",
+    "2024-06": "AVAILABLE",
+    "2024-06-01": "AVAILABLE",
+    "2024-12-31": "AVAILABLE"
+  }
+}

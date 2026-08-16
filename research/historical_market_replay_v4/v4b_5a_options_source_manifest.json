@@ -1,0 +1,18 @@
+{
+  "source": "Binance Options & Deribit Public API",
+  "retrieved_at": "2026-08-16T07:59:36.251680+00:00",
+  "raw_sha256": "N/A - DOWNLOADS_BLOCKED_BY_404_OR_PAYWALL",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT"
+  ],
+  "requested_start": "2023-01-01T00:00:00Z",
+  "requested_end": "2024-12-31T23:59:59Z",
+  "actual_start": null,
+  "actual_end": null,
+  "event_semantics": "Historical Deribit/Binance Options chain snapshots containing complete strikes and greeks",
+  "sampling_semantics": "REST API returns current summaries; Vision daily archives are missing/404. No historical chain archives in free public domain.",
+  "known_censoring": "HIGH (Historical bulk data commercialized and paywalled on Tardis/Amberdata/etc.)",
+  "pit_timestamp": "available_at = N/A (no data)",
+  "coverage_ratio": 0.0
+}

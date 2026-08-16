@@ -1,0 +1,34 @@
+{
+  "program": "HMR-V4B-5A",
+  "source": "binance_deribit_options",
+  "information_family": "VOLATILITY_TAIL_PRICING",
+  "provenance": "REJECTED",
+  "provenance_gates": {
+    "O0_SOURCE_PROVENANCE": true,
+    "O1_HISTORICAL_AVAILABILITY": false,
+    "O2_COVERAGE_PERIOD_A_B_C": false,
+    "O3_INSTRUMENT_CONTRACT_SEMANTICS": true,
+    "O4_QUOTE_MARK_TIMESTAMP_SEMANTICS": false,
+    "O5_STRIKE_EXPIRY_NORMALIZATION": false,
+    "O6_IV_GREEKS_PROVENANCE": true,
+    "O7_PIT_SAFE_CHAIN_RECONSTRUCTION": false,
+    "O8_CROSS_SECTIONAL_COMPLETENESS": false,
+    "O9_DETERMINISTIC_CANONICALIZATION": true,
+    "O10_SUITABILITY_FOR_FEATURE_AUDIT": false
+  },
+  "binance_vision_probe": {
+    "url": "https://data.binance.vision/data/option/daily/klines/BTCBVOLUSDT/15m/BTCBVOLUSDT-15m-2024-06-01.zip",
+    "status_code": 404
+  },
+  "deribit_instruments_probe": {
+    "url": "https://www.deribit.com/api/v2/public/get_instruments?currency=BTC&kind=option&expired=true",
+    "status_code": 200,
+    "count": 42
+  },
+  "deribit_summary_probe": {
+    "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option",
+    "status_code": 200,
+    "count": 818
+  },
+  "verdict": "REJECT_INSUFFICIENT_CHAIN_COVERAGE"
+}

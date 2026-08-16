@@ -1,0 +1,24 @@
+{
+  "source": "Parsebot Farside ETF Flows",
+  "retrieved_at": "2026-08-16T12:02:16.026377+00:00",
+  "primary_asset": "BTC",
+  "individual_funds": [
+    "IBIT",
+    "FBTC",
+    "BITB",
+    "ARKB",
+    "BTCO",
+    "EZBC",
+    "BRRR",
+    "HODL",
+    "BTCW",
+    "MSBT",
+    "GBTC"
+  ],
+  "historical_start": "2024-01-11",
+  "historical_end": "2024-12-31",
+  "time_semantics": "DATE_ONLY_UNKNOWN_LATENCY",
+  "revision_semantics": "REVISION_CLASS = UNKNOWN",
+  "available_at_policy": "trade_date + 1 day at 12:00 UTC",
+  "coverage_ratio": 1.0
+}

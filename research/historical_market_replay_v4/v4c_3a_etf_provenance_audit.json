@@ -1,0 +1,25 @@
+{
+  "program": "HMR-V4C-3A",
+  "source": "parsebot_farside_etf_flows",
+  "information_family": "ETF_INSTITUTIONAL_FLOWS",
+  "provenance": "AUTHORIZED_V4C_3B",
+  "gates": {
+    "E0_SOURCE_PROVENANCE": true,
+    "E1_HISTORICAL_COVERAGE": true,
+    "E2_FUND_ISSUER_SEMANTICS": true,
+    "E3_TRADE_DATE_SEMANTICS": true,
+    "E4_PUBLICATION_TIME_SEMANTICS": false,
+    "E5_REVISION_CORRECTION_POLICY": false,
+    "E6_WEEKEND_HOLIDAY_HANDLING": true,
+    "E7_PIT_AVAILABILITY": true,
+    "E8_MISSING_FUND_HANDLING": true,
+    "E9_AGGREGATE_FLOW_RECONSTRUCTION": true,
+    "E10_DETERMINISM": true,
+    "E11_SUITABILITY": true
+  },
+  "api_probe": {
+    "status": "ok",
+    "count": 666
+  },
+  "verdict": "AUTHORIZED_V4C_3B"
+}

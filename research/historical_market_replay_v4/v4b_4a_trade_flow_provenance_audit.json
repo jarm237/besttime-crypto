@@ -1,0 +1,47 @@
+{
+  "program": "HMR-V4B-4A",
+  "source": "binance_um_trade_flow",
+  "information_family": "MICROSTRUCTURE_FLOW",
+  "provenance": "PROVEN",
+  "provenance_gates": {
+    "F0_SOURCE_PROVENANCE": true,
+    "F1_HISTORICAL_AVAILABILITY": true,
+    "F2_COVERAGE": true,
+    "F3_TRADE_SIDE_SEMANTICS": true,
+    "F4_TIMESTAMP_GRANULARITY": true,
+    "F5_PIT_VALIDITY": true,
+    "F6_AGGREGATION_DETERMINISM": true,
+    "F7_SEQUENCE_ANOMALY": true,
+    "F8_SUITABILITY": true
+  },
+  "vision_aggtrades_probes": {
+    "BTCUSDT": {
+      "2023-01": 200,
+      "2023-06": 200,
+      "2023-12": 200,
+      "2024-01": 200,
+      "2024-06": 200,
+      "2024-06-01": 200,
+      "2024-12-31": 200
+    },
+    "ETHUSDT": {
+      "2023-01": 200,
+      "2023-06": 200,
+      "2023-12": 200,
+      "2024-01": 200,
+      "2024-06": 200,
+      "2024-06-01": 200,
+      "2024-12-31": 200
+    },
+    "BNBUSDT": {
+      "2023-01": 200,
+      "2023-06": 200,
+      "2023-12": 200,
+      "2024-01": 200,
+      "2024-06": 200,
+      "2024-06-01": 200,
+      "2024-12-31": 200
+    }
+  },
+  "verdict": "AUTHORIZE_V4B_4B"
+}

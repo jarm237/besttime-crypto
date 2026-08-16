@@ -1,0 +1,7 @@
+{
+  "S1_total_circulating_supply": "PASS",
+  "S2_net_issuance_redemption": "PASS",
+  "S3_exchange_stablecoin_balances": "REJECT_ATTRIBUTION_LOOKAHEAD",
+  "S4_exchange_stablecoin_netflows": "REJECT_ATTRIBUTION_LOOKAHEAD",
+  "S5_stablecoin_dominance": "PASS"
+}

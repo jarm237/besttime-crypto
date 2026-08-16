@@ -1,0 +1,47 @@
+{
+  "program": "HMR-V4D-1",
+  "source": "parsebot_farside_etf_flows",
+  "primary_asset": "BTC",
+  "integration_start": "2024-01-11",
+  "integration_end": "2024-12-31",
+  "total_signals_tested": 13851,
+  "use_case_1_sizing": {
+    "baseline": {
+      "net_ev_bps": 18.925243730887818,
+      "sharpe": 8.598576315229325,
+      "max_drawdown_pct": 9.798356393897183,
+      "worst_trade_pct": -1.020381904780023,
+      "profit_factor": 4.692393846821679,
+      "n_trades": 13851
+    },
+    "volatility_aware_sizing": {
+      "net_ev_bps": 17.070453224399177,
+      "sharpe": 8.265959092675589,
+      "max_drawdown_pct": 9.798356393897185,
+      "worst_trade_pct": -1.020381904780023,
+      "profit_factor": 4.5736007119849,
+      "n_trades": 13851
+    },
+    "rule": "Q5 (high volatility) -> size 0.5x, Q1-Q4 -> size 1.0x"
+  },
+  "use_case_2_widths": {
+    "baseline": {
+      "net_ev_bps": 18.925243730887818,
+      "sharpe": 8.598576315229325,
+      "max_drawdown_pct": 9.798356393897183,
+      "worst_trade_pct": -1.020381904780023,
+      "profit_factor": 4.692393846821679,
+      "n_trades": 13851
+    },
+    "dynamic_widths": {
+      "net_ev_bps": 18.925243730887818,
+      "sharpe": 8.598576315229325,
+      "max_drawdown_pct": 9.798356393897183,
+      "worst_trade_pct": -1.020381904780023,
+      "profit_factor": 4.692393846821679,
+      "n_trades": 13851
+    },
+    "rule": "Bins 0-3 -> SL -1.5%, TP +3.0%; Bin 4 -> SL -2.25%, TP +4.5%"
+  },
+  "verdict": "INTEGRATION_PROMOTED"
+}

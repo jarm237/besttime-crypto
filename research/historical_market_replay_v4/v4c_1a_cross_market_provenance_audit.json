@@ -1,0 +1,41 @@
+{
+  "program": "HMR-V4C-1A",
+  "source": "cross_market_risk_regime",
+  "information_family": "CROSS_MARKET_RISK_REGIME",
+  "provenance": "PROVEN",
+  "provenance_gates": {
+    "C0_SOURCE_PROVENANCE": true,
+    "C1_HISTORICAL_COVERAGE": true,
+    "C2_TIMESTAMP_SESSION_SEMANTICS": true,
+    "C3_REVISION_SEMANTICS": true,
+    "C4_MARKET_HOURS_ALIGNMENT": true,
+    "C5_PIT_AVAILABILITY": true,
+    "C6_TIMEZONE_NORMALIZATION": true,
+    "C7_MISSING_DAY_POLICY": true,
+    "C8_DETERMINISTIC_RECONSTRUCTION": true,
+    "C9_SUITABILITY": true
+  },
+  "yahoo_chart_probes": {
+    "VIX": {
+      "ticker": "^VIX",
+      "status_code": 200,
+      "candle_count": 521
+    },
+    "SPX": {
+      "ticker": "^SPX",
+      "status_code": 200,
+      "candle_count": 502
+    },
+    "DXY": {
+      "ticker": "DX-Y.NYB",
+      "status_code": 200,
+      "candle_count": 607
+    },
+    "US10Y": {
+      "ticker": "^TNX",
+      "status_code": 200,
+      "candle_count": 502
+    }
+  },
+  "verdict": "AUTHORIZE_V4C_1B"
+}

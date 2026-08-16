@@ -1,0 +1,36 @@
+{
+  "program": "HMR-V4B",
+  "phase": "Independent Information Acquisition Program",
+  "status": "ACTIVE",
+  "governance": {
+    "provenance_classes_eligible_for_promotion": [
+      "MARKET_OBSERVED",
+      "EXTERNALLY_PUBLISHED",
+      "RECONSTRUCTED_FROM_EXTERNAL_OBSERVATIONS"
+    ],
+    "prohibited_provenance_classes": [
+      "RECONSTRUCTED_FROM_ENDOGENOUS_PRICE",
+      "SYNTHETIC"
+    ],
+    "hard_rules": [
+      "No synthetic open interest allowed.",
+      "No candle-derived liquidation metrics allowed.",
+      "No reconstructed options skew from spot price allowed.",
+      "Quantile edges must be fit strictly on Period A (Discovery) and applied to Period B/C (Validation) without refitting.",
+      "No post-hoc hypothesis sign/orientation reversal permitted.",
+      "No window-tuning or feature-set expansion allowed after validations begin.",
+      "ML model research is blocked until at least one independent information source passes audit."
+    ]
+  },
+  "verdict_taxonomy": [
+    "PROMOTE_DIRECTIONAL_INFORMATION",
+    "PROMOTE_MAGNITUDE_INFORMATION",
+    "PROMOTE_DISLOCATION_REGIME_INFORMATION",
+    "REJECT_NO_ECONOMIC_INFORMATION",
+    "REJECT_NON_TRANSPORTABLE",
+    "REJECT_SUPPORT_COLLAPSE",
+    "REJECT_FUNDING_REDUNDANT",
+    "REJECT_TAIL_EVENT_DOMINATED",
+    "BLOCKED_PROVENANCE"
+  ]
+}

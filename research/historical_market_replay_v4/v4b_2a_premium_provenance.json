@@ -1,0 +1,111 @@
+{
+  "program": "HMR-V4B-2A",
+  "source": "binance_um_premium_index",
+  "provenance_class": "MARKET_OBSERVED",
+  "eligible_assets": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "probed_months": [
+    "2023-01",
+    "2023-03",
+    "2023-06",
+    "2023-09",
+    "2023-12",
+    "2024-01",
+    "2024-03",
+    "2024-06",
+    "2024-09",
+    "2024-12"
+  ],
+  "coverage_matrix": {
+    "BTC": {
+      "2023-01": true,
+      "2023-03": true,
+      "2023-06": true,
+      "2023-09": true,
+      "2023-12": true,
+      "2024-01": true,
+      "2024-03": true,
+      "2024-06": true,
+      "2024-09": true,
+      "2024-12": true
+    },
+    "ETH": {
+      "2023-01": true,
+      "2023-03": true,
+      "2023-06": true,
+      "2023-09": true,
+      "2023-12": true,
+      "2024-01": true,
+      "2024-03": true,
+      "2024-06": true,
+      "2024-09": true,
+      "2024-12": true
+    },
+    "BNB": {
+      "2023-01": true,
+      "2023-03": true,
+      "2023-06": true,
+      "2023-09": true,
+      "2023-12": true,
+      "2024-01": true,
+      "2024-03": true,
+      "2024-06": true,
+      "2024-09": true,
+      "2024-12": true
+    }
+  },
+  "integrity_checks": {
+    "BTC": {
+      "success": true,
+      "klines_probed": 1000,
+      "timestamp_monotonic": true,
+      "no_duplicate_timestamps": true,
+      "ohlc_consistency_ratio": 1.0,
+      "finite_value_ratio": 1.0,
+      "non_negative_timestamp_ratio": 1.0,
+      "no_future_row_ratio": 1.0,
+      "missing_interval_ratio": 0.0,
+      "duplicate_ratio": 0.0,
+      "invalid_row_ratio": 0.0
+    },
+    "ETH": {
+      "success": true,
+      "klines_probed": 1000,
+      "timestamp_monotonic": true,
+      "no_duplicate_timestamps": true,
+      "ohlc_consistency_ratio": 1.0,
+      "finite_value_ratio": 1.0,
+      "non_negative_timestamp_ratio": 1.0,
+      "no_future_row_ratio": 1.0,
+      "missing_interval_ratio": 0.0,
+      "duplicate_ratio": 0.0,
+      "invalid_row_ratio": 0.0
+    },
+    "BNB": {
+      "success": true,
+      "klines_probed": 1000,
+      "timestamp_monotonic": true,
+      "no_duplicate_timestamps": true,
+      "ohlc_consistency_ratio": 1.0,
+      "finite_value_ratio": 1.0,
+      "non_negative_timestamp_ratio": 1.0,
+      "no_future_row_ratio": 1.0,
+      "missing_interval_ratio": 0.0,
+      "duplicate_ratio": 0.0,
+      "invalid_row_ratio": 0.0
+    }
+  },
+  "provenance_gates": {
+    "P0_MARKET_SOURCE": true,
+    "P1_HISTORICAL_DEPTH": true,
+    "P2_ASSET_COVERAGE": true,
+    "P3_TEMPORAL_SEMANTICS": true,
+    "P4_PIT_USABILITY": true,
+    "P5_DATA_QUALITY": true,
+    "P6_NO_SYNTHETIC_RECONSTRUCTION": true
+  },
+  "verdict": "AUTHORIZED_V4B_2B"
+}

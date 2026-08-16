@@ -1,0 +1,99 @@
+{
+  "program": "HMR-V4C-2A",
+  "source": "defillama_stablecoin_supply",
+  "information_family": "STABLECOIN_LIQUIDITY_SUPPLY",
+  "provenance": "AUTHORIZED_V4C_2B",
+  "classes": {
+    "S1_total_circulating_supply": {
+      "verdict": "PASS",
+      "gates": {
+        "S0_SOURCE_IDENTITY": true,
+        "S1_HISTORICAL_AVAILABILITY": true,
+        "S2_PERIOD_A_B_C_COVERAGE": true,
+        "S3_ASSET_CHAIN_SEMANTICS": true,
+        "S4_EVENT_SEMANTICS": true,
+        "S5_TIMESTAMP_SEMANTICS": true,
+        "S6_PIT_RECONSTRUCTION": true,
+        "S7_PROVIDER_REVISION_SEMANTICS": true,
+        "S8_CHAIN_COVERAGE_STABILITY": true,
+        "S9_ATTRIBUTION_VINTAGE_VALIDITY": true,
+        "S10_DETERMINISTIC_RECONSTRUCTION": true,
+        "S11_SUITABILITY": true
+      }
+    },
+    "S2_net_issuance_redemption": {
+      "verdict": "PASS",
+      "gates": {
+        "S0_SOURCE_IDENTITY": true,
+        "S1_HISTORICAL_AVAILABILITY": true,
+        "S2_PERIOD_A_B_C_COVERAGE": true,
+        "S3_ASSET_CHAIN_SEMANTICS": true,
+        "S4_EVENT_SEMANTICS": true,
+        "S5_TIMESTAMP_SEMANTICS": true,
+        "S6_PIT_RECONSTRUCTION": true,
+        "S7_PROVIDER_REVISION_SEMANTICS": true,
+        "S8_CHAIN_COVERAGE_STABILITY": true,
+        "S9_ATTRIBUTION_VINTAGE_VALIDITY": true,
+        "S10_DETERMINISTIC_RECONSTRUCTION": true,
+        "S11_SUITABILITY": true
+      }
+    },
+    "S3_exchange_stablecoin_balances": {
+      "verdict": "REJECT_ATTRIBUTION_LOOKAHEAD",
+      "gates": {
+        "S0_SOURCE_IDENTITY": true,
+        "S1_HISTORICAL_AVAILABILITY": false,
+        "S2_PERIOD_A_B_C_COVERAGE": false,
+        "S3_ASSET_CHAIN_SEMANTICS": true,
+        "S4_EVENT_SEMANTICS": true,
+        "S5_TIMESTAMP_SEMANTICS": true,
+        "S6_PIT_RECONSTRUCTION": false,
+        "S7_PROVIDER_REVISION_SEMANTICS": false,
+        "S8_CHAIN_COVERAGE_STABILITY": true,
+        "S9_ATTRIBUTION_VINTAGE_VALIDITY": false,
+        "S10_DETERMINISTIC_RECONSTRUCTION": false,
+        "S11_SUITABILITY": false
+      }
+    },
+    "S4_exchange_stablecoin_netflows": {
+      "verdict": "REJECT_ATTRIBUTION_LOOKAHEAD",
+      "gates": {
+        "S0_SOURCE_IDENTITY": true,
+        "S1_HISTORICAL_AVAILABILITY": false,
+        "S2_PERIOD_A_B_C_COVERAGE": false,
+        "S3_ASSET_CHAIN_SEMANTICS": true,
+        "S4_EVENT_SEMANTICS": true,
+        "S5_TIMESTAMP_SEMANTICS": true,
+        "S6_PIT_RECONSTRUCTION": false,
+        "S7_PROVIDER_REVISION_SEMANTICS": false,
+        "S8_CHAIN_COVERAGE_STABILITY": true,
+        "S9_ATTRIBUTION_VINTAGE_VALIDITY": false,
+        "S10_DETERMINISTIC_RECONSTRUCTION": false,
+        "S11_SUITABILITY": false
+      }
+    },
+    "S5_stablecoin_dominance": {
+      "verdict": "PASS",
+      "gates": {
+        "S0_SOURCE_IDENTITY": true,
+        "S1_HISTORICAL_AVAILABILITY": true,
+        "S2_PERIOD_A_B_C_COVERAGE": true,
+        "S3_ASSET_CHAIN_SEMANTICS": true,
+        "S4_EVENT_SEMANTICS": true,
+        "S5_TIMESTAMP_SEMANTICS": true,
+        "S6_PIT_RECONSTRUCTION": true,
+        "S7_PROVIDER_REVISION_SEMANTICS": true,
+        "S8_CHAIN_COVERAGE_STABILITY": true,
+        "S9_ATTRIBUTION_VINTAGE_VALIDITY": true,
+        "S10_DETERMINISTIC_RECONSTRUCTION": true,
+        "S11_SUITABILITY": true
+      }
+    }
+  },
+  "defillama_api_probe": {
+    "url": "https://stablecoins.llama.fi/stablecoincharts/all",
+    "status_code": 200,
+    "count_2023_2024": 732
+  },
+  "verdict": "AUTHORIZED_V4C_2B"
+}

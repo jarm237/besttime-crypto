@@ -1,0 +1,31 @@
+{
+  "source": "Binance Futures Data Collection (data.binance.vision)",
+  "retrieved_at": "2026-08-16T06:10:00.156753+00:00",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT"
+  ],
+  "requested_start": "2023-01-01T00:00:00Z",
+  "requested_end": "2024-12-31T23:59:59Z",
+  "actual_start": "2023-01-01T00:00:00Z",
+  "actual_end": "2024-12-31T23:59:59Z",
+  "event_semantics": "Binance Futures aggTrades zip files containing detailed trade-level execution snapshots",
+  "sampling_semantics": "Tick-by-tick aggregated trades; no WebSocket throttling or client-side censoring. Complete transaction history.",
+  "known_censoring": "NONE (Full executed trade history is archived)",
+  "pit_timestamp": "available_at = bar_close_time (15m canonical bars close time)",
+  "coverage_ratio": 1.0,
+  "aggressor_semantics_mapping": {
+    "maker_buy_taker_sell": "is_buyer_maker == True (Taker Sell)",
+    "maker_sell_taker_buy": "is_buyer_maker == False (Taker Buy)"
+  },
+  "canonical_schema": [
+    "taker_buy_notional",
+    "taker_sell_notional",
+    "taker_buy_qty",
+    "taker_sell_qty",
+    "trade_count",
+    "signed_notional",
+    "trade_imbalance"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "expiry_buckets": {
+    "0-7d": "0.0%",
+    "8-30d": "0.0%",
+    "31-90d": "0.0%",
+    ">90d": "0.0%"
+  },
+  "moneyness_buckets": {
+    "deep_put": "0.0%",
+    "put_wing": "0.0%",
+    "ATM": "0.0%",
+    "call_wing": "0.0%",
+    "deep_call": "0.0%"
+  },
+  "total_historical_coverage_ratio": 0.0
+}

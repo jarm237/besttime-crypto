@@ -1,0 +1,12 @@
+{
+  "program": "HMR-V4A",
+  "status": "CLOSED",
+  "promoted_sources": 0,
+  "information_inventory": "EXHAUSTED",
+  "downstream": {
+    "ml_training": "BLOCKED",
+    "cross_source_combination": "BLOCKED",
+    "failed_source_rescue": "BLOCKED"
+  },
+  "next_program": "HMR-V4B_INFORMATION_ACQUISITION"
+}

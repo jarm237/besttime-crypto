@@ -1,0 +1,19 @@
+{
+  "source": "Yahoo Finance Public Chart API",
+  "retrieved_at": "2026-08-16T10:01:09.490258+00:00",
+  "symbols": [
+    "VIX",
+    "SPX",
+    "DXY",
+    "US10Y"
+  ],
+  "requested_start": "2023-01-01T00:00:00Z",
+  "requested_end": "2024-12-31T23:59:59Z",
+  "actual_start": "2023-01-03T00:00:00Z",
+  "actual_end": "2024-12-31T23:59:59Z",
+  "event_semantics": "Yahoo Finance daily macro indicators and index close quotes",
+  "sampling_semantics": "REVISION_CLASS = MARKET_OBSERVED. No macro-vintage reconstruction required. Historical-provider corrections remain possible and are controlled by raw snapshot/checksum provenance.",
+  "known_censoring": "NONE (Index prices are completely published)",
+  "pit_timestamp": "available_at_policy = CONSERVATIVE_DAILY_RELEASE_LAG",
+  "coverage_ratio": 1.0
+}

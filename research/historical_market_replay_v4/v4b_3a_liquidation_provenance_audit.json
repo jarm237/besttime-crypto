@@ -1,0 +1,47 @@
+{
+  "program": "HMR-V4B-3A",
+  "source": "binance_um_liquidations",
+  "information_family": "FORCED_LIQUIDATION_FLOW",
+  "provenance": "REJECTED",
+  "provenance_gates": {
+    "L0_SOURCE_PROVENANCE": true,
+    "L1_HISTORICAL_AVAILABILITY": false,
+    "L2_COVERAGE": false,
+    "L3_SCHEMA_SEMANTICS": true,
+    "L4_COMPLETENESS_CENSORING": false,
+    "L5_PIT_VALIDITY": true,
+    "L6_DETERMINISM": true,
+    "L7_SUITABILITY": false
+  },
+  "vision_snapshot_probes": {
+    "BTCUSDT": {
+      "2023-06-01": 404,
+      "2023-12-01": 404,
+      "2024-03-31": 404,
+      "2024-04-01": 404,
+      "2024-06-01": 404,
+      "2024-12-31": 404
+    },
+    "ETHUSDT": {
+      "2023-06-01": 404,
+      "2023-12-01": 404,
+      "2024-03-31": 404,
+      "2024-04-01": 404,
+      "2024-06-01": 404,
+      "2024-12-31": 404
+    },
+    "BNBUSDT": {
+      "2023-06-01": 404,
+      "2023-12-01": 404,
+      "2024-03-31": 404,
+      "2024-04-01": 404,
+      "2024-06-01": 404,
+      "2024-12-31": 404
+    }
+  },
+  "force_orders_api_probe": {
+    "status_code": 401,
+    "response": "{\"code\":-2014,\"msg\":\"API-key format invalid.\"}"
+  },
+  "verdict": "REJECT_INCOMPLETE_LIQUIDATION_OBSERVABILITY"
+}

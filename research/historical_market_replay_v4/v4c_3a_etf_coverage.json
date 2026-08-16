@@ -1,0 +1,5 @@
+{
+  "BTC_etf_flows": "PASS",
+  "ETH_etf_flows": "PASS",
+  "BNB_etf_flows": "FAIL"
+}

@@ -1,0 +1,19 @@
+{
+  "source": "Binance Futures Data Collection (data.binance.vision)",
+  "retrieved_at": "2026-08-16T05:56:45.698120+00:00",
+  "raw_sha256": "N/A - DOWNLOADS_BLOCKED_BY_404",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT"
+  ],
+  "requested_start": "2023-01-01T00:00:00Z",
+  "requested_end": "2024-12-31T23:59:59Z",
+  "actual_start": null,
+  "actual_end": null,
+  "event_semantics": "Binance forceOrders liquidationSnapshot zip files containing daily liquidation order records",
+  "sampling_semantics": "WebSocket stream throttled at latest liquidation order per 1000ms window; daily snapshot files missing after 2024-03-31",
+  "known_censoring": "HIGH (WebSocket 1000ms window limit; forceOrders endpoint credential-locked/geo-blocked)",
+  "pit_timestamp": "available_at = event_time (but no files available)",
+  "coverage_ratio": 0.0
+}

@@ -1,0 +1,532 @@
+{
+  "program": "HMR-V4C-3B",
+  "source": "parsebot_farside_etf_flows",
+  "observation_count": 210528,
+  "unique_source_state_count": 2190,
+  "eligible_states_period_b": 546,
+  "eligible_states_period_c": 552,
+  "model_training": "BLOCKED",
+  "contamination_correlations": {
+    "corr_flow_btc_same_trade_day_return": -0.0392192584482499,
+    "corr_flow_btc_prev_24h_return": -0.07213509825015894,
+    "corr_flow_btc_future_24h_return": 0.007791347339449199,
+    "corr_flow_btc_future_72h_return": 0.047545399876940626,
+    "corr_flow_btc_future_7d_return": 0.12243614967013351
+  },
+  "directional_audit": [
+    {
+      "feature": "ETF1_total_net_flow_usd",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "floor_bps": 30.0,
+          "pooled_spread_bps": -0.06585054846773579,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": -5.06680517392181,
+          "spread_sens_1_bps": 0.5902686149474939,
+          "spread_sens_2_bps": 1.260969484240367,
+          "r1_period_stability": false,
+          "r2_bootstrap_p_gt_0": 0.565,
+          "r3_positive_months": 7,
+          "r6_winsorized_spread_bps": 0.5848537194918021,
+          "r7_lag_sensitivity_pass": true,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "floor_bps": 60.0,
+          "pooled_spread_bps": 2.350274977934749,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 11.908342570215822,
+          "spread_sens_1_bps": -0.731294835738684,
+          "spread_sens_2_bps": -0.33182126680242746,
+          "r1_period_stability": false,
+          "r2_bootstrap_p_gt_0": 0.675,
+          "r3_positive_months": 7,
+          "r6_winsorized_spread_bps": 1.3118044599695557,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "floor_bps": 100.0,
+          "pooled_spread_bps": -6.885961770518036,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 25.7230047486457,
+          "spread_sens_1_bps": -8.006645213199551,
+          "spread_sens_2_bps": -11.871054406256567,
+          "r1_period_stability": false,
+          "r2_bootstrap_p_gt_0": 0.39,
+          "r3_positive_months": 4,
+          "r6_winsorized_spread_bps": -6.885961770518036,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF2_ex_gbtc_net_flow_usd",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "floor_bps": 30.0,
+          "pooled_spread_bps": 6.8949062902033695,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 6.8949062902033695,
+          "spread_sens_1_bps": 2.1822927913943744,
+          "spread_sens_2_bps": 3.44869953021978,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.95,
+          "r3_positive_months": 8,
+          "r6_winsorized_spread_bps": 7.424514828913949,
+          "r7_lag_sensitivity_pass": true,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "floor_bps": 60.0,
+          "pooled_spread_bps": 11.878835801484646,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 11.878835801484646,
+          "spread_sens_1_bps": 0.9033691554810939,
+          "spread_sens_2_bps": 5.799880382308709,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.915,
+          "r3_positive_months": 6,
+          "r6_winsorized_spread_bps": 10.746501904818125,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "floor_bps": 100.0,
+          "pooled_spread_bps": 14.048381842075106,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 14.048381842075106,
+          "spread_sens_1_bps": -7.052635228380263,
+          "spread_sens_2_bps": 0.6822064598078929,
+          "r1_period_stability": false,
+          "r2_bootstrap_p_gt_0": 0.78,
+          "r3_positive_months": 5,
+          "r6_winsorized_spread_bps": 14.048381842075106,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF3_net_flow_as_pct_aum",
+      "verdict": "REJECT_FEATURE_PROVENANCE",
+      "best_horizon": null,
+      "horizons": []
+    },
+    {
+      "feature": "ETF4_rolling_flow_zscore_20d",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "floor_bps": 30.0,
+          "pooled_spread_bps": -1.072578570883335,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": -1.072578570883335,
+          "spread_sens_1_bps": -7.108270463050601,
+          "spread_sens_2_bps": -5.925191129780172,
+          "r1_period_stability": false,
+          "r2_bootstrap_p_gt_0": 0.365,
+          "r3_positive_months": 7,
+          "r6_winsorized_spread_bps": -1.072578570883335,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "supported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "floor_bps": 60.0,
+          "pooled_spread_bps": 5.088720563662022,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 5.088720563662022,
+          "spread_sens_1_bps": 1.9130488559744976,
+          "spread_sens_2_bps": 3.9339845518421903,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.63,
+          "r3_positive_months": 5,
+          "r6_winsorized_spread_bps": 5.088720563662022,
+          "r7_lag_sensitivity_pass": true,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "supported",
+            "BNB": "unsupported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "floor_bps": 100.0,
+          "pooled_spread_bps": 24.766354500425003,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 24.766354500425003,
+          "spread_sens_1_bps": 17.810684871457827,
+          "spread_sens_2_bps": 18.685944463690774,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.93,
+          "r3_positive_months": 6,
+          "r6_winsorized_spread_bps": 24.766354500425003,
+          "r7_lag_sensitivity_pass": true,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "unsupported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF5_cumulative_net_flow_5d",
+      "verdict": "REJECT_NO_ECONOMIC_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "floor_bps": 30.0,
+          "pooled_spread_bps": 3.332067708791724,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 3.332067708791724,
+          "spread_sens_1_bps": 2.776060235318938,
+          "spread_sens_2_bps": 3.226657076309098,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.77,
+          "r3_positive_months": 7,
+          "r6_winsorized_spread_bps": 2.8056440712238393,
+          "r7_lag_sensitivity_pass": true,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "floor_bps": 60.0,
+          "pooled_spread_bps": 14.508808192343487,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 14.508808192343487,
+          "spread_sens_1_bps": 2.799859025888123,
+          "spread_sens_2_bps": 11.157889682657828,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.88,
+          "r3_positive_months": 9,
+          "r6_winsorized_spread_bps": 14.528017636723579,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "floor_bps": 100.0,
+          "pooled_spread_bps": 15.574049951578198,
+          "conditioned_spread_bps": 0.0,
+          "spread_ex_ibit_bps": 15.574049951578198,
+          "spread_sens_1_bps": 3.252680314892348,
+          "spread_sens_2_bps": 4.881164403618571,
+          "r1_period_stability": true,
+          "r2_bootstrap_p_gt_0": 0.8,
+          "r3_positive_months": 7,
+          "r6_winsorized_spread_bps": 14.943559493840224,
+          "r7_lag_sensitivity_pass": false,
+          "incremental_pass": false,
+          "spillover": {
+            "ETH": "unsupported",
+            "BNB": "supported"
+          },
+          "verdict": "REJECT_NO_ECONOMIC_INFORMATION"
+        }
+      ]
+    }
+  ],
+  "volatility_audit": [
+    {
+      "feature": "ETF1_total_net_flow_usd",
+      "verdict": "REJECT_NO_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "q5_rv_bps": 30.490026527355266,
+          "q4_rv_bps": 30.904026797171387,
+          "q3_rv_bps": 30.45056027982809,
+          "q2_rv_bps": 30.810243873206485,
+          "q1_rv_bps": 30.600204955126635,
+          "spread_bps": -0.11017842777137024,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.09141016529914378,
+          "rank_corr_c": 0.146896190307474,
+          "bootstrap_p_gt_0": 0.32,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "q5_rv_bps": 30.695264506909112,
+          "q4_rv_bps": 30.60196350775829,
+          "q3_rv_bps": 30.595287845595188,
+          "q2_rv_bps": 30.54074499552932,
+          "q1_rv_bps": 30.56535488623684,
+          "spread_bps": 0.1299096206722715,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.13980993058870328,
+          "rank_corr_c": 0.29439649341297636,
+          "bootstrap_p_gt_0": 0.585,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "q5_rv_bps": 30.760609886138177,
+          "q4_rv_bps": 30.522021228642934,
+          "q3_rv_bps": 30.651921136841484,
+          "q2_rv_bps": 30.419876370179562,
+          "q1_rv_bps": 30.52374332516066,
+          "spread_bps": 0.2368665609775184,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.32040543085807605,
+          "rank_corr_c": 0.5714027563590703,
+          "bootstrap_p_gt_0": 0.69,
+          "verdict": "REJECT_NO_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF2_ex_gbtc_net_flow_usd",
+      "verdict": "PROMOTE_VOLATILITY_INFORMATION",
+      "best_horizon": "72h",
+      "horizons": [
+        {
+          "horizon": "24h",
+          "q5_rv_bps": 30.834753196092407,
+          "q4_rv_bps": 30.985505091298414,
+          "q3_rv_bps": 30.696804358111887,
+          "q2_rv_bps": 30.43843529276473,
+          "q1_rv_bps": 30.40667459843006,
+          "spread_bps": 0.42807859766234513,
+          "monotonic_pass": false,
+          "rank_corr_b": 0.013278324866897331,
+          "rank_corr_c": 0.13971517686579266,
+          "bootstrap_p_gt_0": 0.84,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "q5_rv_bps": 31.112849551518554,
+          "q4_rv_bps": 30.77148814018675,
+          "q3_rv_bps": 30.61839848550661,
+          "q2_rv_bps": 30.37451852764046,
+          "q1_rv_bps": 30.294007792026033,
+          "spread_bps": 0.8188417594925208,
+          "monotonic_pass": true,
+          "rank_corr_b": 0.02020865680507405,
+          "rank_corr_c": 0.28610373421125723,
+          "bootstrap_p_gt_0": 0.98,
+          "verdict": "PROMOTE_VOLATILITY_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "q5_rv_bps": 31.126911903641176,
+          "q4_rv_bps": 30.845432090510602,
+          "q3_rv_bps": 30.615023478948153,
+          "q2_rv_bps": 30.32312229283051,
+          "q1_rv_bps": 30.21606806565443,
+          "spread_bps": 0.9108438379867465,
+          "monotonic_pass": true,
+          "rank_corr_b": -0.020490369522469052,
+          "rank_corr_c": 0.5556646682489019,
+          "bootstrap_p_gt_0": 1.0,
+          "verdict": "REJECT_NO_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF3_net_flow_as_pct_aum",
+      "verdict": "REJECT_FEATURE_PROVENANCE",
+      "best_horizon": null,
+      "horizons": []
+    },
+    {
+      "feature": "ETF4_rolling_flow_zscore_20d",
+      "verdict": "REJECT_NO_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "q5_rv_bps": 30.09902083410712,
+          "q4_rv_bps": 30.630254226443046,
+          "q3_rv_bps": 30.781972385396568,
+          "q2_rv_bps": 30.712020214516127,
+          "q1_rv_bps": 31.119739314471826,
+          "spread_bps": -1.020718480364705,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.06932568642743894,
+          "rank_corr_c": -0.11763208472703057,
+          "bootstrap_p_gt_0": 0.0,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "q5_rv_bps": 30.295645696428064,
+          "q4_rv_bps": 30.543855864634388,
+          "q3_rv_bps": 30.963328402063297,
+          "q2_rv_bps": 30.615445155377856,
+          "q1_rv_bps": 30.759244988666392,
+          "spread_bps": -0.4635992922383302,
+          "monotonic_pass": false,
+          "rank_corr_b": 0.00969136166354434,
+          "rank_corr_c": -0.16710894792368375,
+          "bootstrap_p_gt_0": 0.06,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "q5_rv_bps": 30.524795553345793,
+          "q4_rv_bps": 30.52414374529198,
+          "q3_rv_bps": 30.793143379118757,
+          "q2_rv_bps": 30.569798222882795,
+          "q1_rv_bps": 30.640042289618634,
+          "spread_bps": -0.11524673627283898,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.07975365528398069,
+          "rank_corr_c": 0.009924650779693192,
+          "bootstrap_p_gt_0": 0.25,
+          "verdict": "REJECT_NO_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF5_cumulative_net_flow_5d",
+      "verdict": "REJECT_NO_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "24h",
+          "q5_rv_bps": 30.415485155054533,
+          "q4_rv_bps": 30.54178383039966,
+          "q3_rv_bps": 31.132408656280322,
+          "q2_rv_bps": 30.273667769625554,
+          "q1_rv_bps": 30.65019206408817,
+          "spread_bps": -0.2347069090336386,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.05370321373769773,
+          "rank_corr_c": 0.053163237083128555,
+          "bootstrap_p_gt_0": 0.245,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "72h",
+          "q5_rv_bps": 30.57020334247475,
+          "q4_rv_bps": 30.846755602773257,
+          "q3_rv_bps": 30.715050278741863,
+          "q2_rv_bps": 30.253243168590682,
+          "q1_rv_bps": 30.560322156403352,
+          "spread_bps": 0.009881186071396784,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.08618135979307393,
+          "rank_corr_c": 0.1912900319098877,
+          "bootstrap_p_gt_0": 0.45,
+          "verdict": "REJECT_NO_INFORMATION"
+        },
+        {
+          "horizon": "7d",
+          "q5_rv_bps": 30.749956962683243,
+          "q4_rv_bps": 30.56615320182292,
+          "q3_rv_bps": 30.623972411815704,
+          "q2_rv_bps": 30.365773757254033,
+          "q1_rv_bps": 30.555870027268238,
+          "spread_bps": 0.19408693541500543,
+          "monotonic_pass": false,
+          "rank_corr_b": -0.27828997196535943,
+          "rank_corr_c": 0.5060613552966632,
+          "bootstrap_p_gt_0": 0.665,
+          "verdict": "REJECT_NO_INFORMATION"
+        }
+      ]
+    }
+  ],
+  "risk_state_audit": [
+    {
+      "feature": "ETF1_total_net_flow_usd",
+      "verdict": "REJECT_NO_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "7d",
+          "q1_mae_bps": 384.7644299703587,
+          "q5_mae_bps": 93.74663151547033,
+          "rs1_state_info_pass": false,
+          "baseline_strategy_ev_bps": 18.84334277072242,
+          "vetoed_strategy_ev_bps": 20.681826251316135,
+          "rs2_utility_pass": true,
+          "verdict": "REJECT_NO_INFORMATION"
+        }
+      ]
+    },
+    {
+      "feature": "ETF2_ex_gbtc_net_flow_usd",
+      "verdict": "REJECT_NO_INFORMATION",
+      "best_horizon": null,
+      "horizons": [
+        {
+          "horizon": "7d",
+          "q1_mae_bps": 377.38846829505616,
+          "q5_mae_bps": 86.23613322588336,
+          "rs1_state_info_pass": false,
+          "baseline_strategy_ev_bps": 18.84334277072242,
+          "vetoed_strategy_ev_bps": 20.455416047213188,
+          "rs2_utility_pass": true,
+          "verdict": "REJECT_NO_INFORMATION"
+        }
+      ]
+    }
+  ]
+}

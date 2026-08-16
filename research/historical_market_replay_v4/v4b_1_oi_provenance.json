@@ -1,0 +1,198 @@
+{
+  "program": "HMR-V4B-1A",
+  "source": "binance_open_interest",
+  "historical_depth_check": {
+    "start_date": "2023-01-01",
+    "end_date": "2024-12-31",
+    "eligible_assets": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "api_url": "https://fapi.binance.com/futures/data/openInterestHist",
+    "lookback_limit_days": 30,
+    "historical_availability": "UNAVAILABLE",
+    "probes": {
+      "1_day_ago": {
+        "timestamp": "2026-08-14 11:34:23 UTC",
+        "status_code": 200,
+        "response": [
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "113625.56700000",
+            "sumOpenInterestValue": "7143908639.65788100",
+            "CMCCirculatingSupply": "20069815.00000000",
+            "timestamp": 1786707300000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "113647.23000000",
+            "sumOpenInterestValue": "7143695277.42686700",
+            "CMCCirculatingSupply": "20069815.00000000",
+            "timestamp": 1786707600000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "113644.52700000",
+            "sumOpenInterestValue": "7144370543.04144100",
+            "CMCCirculatingSupply": "20069815.00000000",
+            "timestamp": 1786707900000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "113681.45800000",
+            "sumOpenInterestValue": "7143833765.88640000",
+            "CMCCirculatingSupply": "20069815.00000000",
+            "timestamp": 1786708200000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "113703.38000000",
+            "sumOpenInterestValue": "7151192159.69200000",
+            "CMCCirculatingSupply": "20069815.00000000",
+            "timestamp": 1786708500000
+          }
+        ],
+        "success": true
+      },
+      "15_days_ago": {
+        "timestamp": "2026-07-31 11:34:23 UTC",
+        "status_code": 200,
+        "response": [
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "105466.45200000",
+            "sumOpenInterestValue": "6732647037.78204800",
+            "CMCCirculatingSupply": "20063506.00000000",
+            "timestamp": 1785497700000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "105445.21400000",
+            "sumOpenInterestValue": "6730166191.52959800",
+            "CMCCirculatingSupply": "20063506.00000000",
+            "timestamp": 1785498000000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "105466.75500000",
+            "sumOpenInterestValue": "6730537944.30452400",
+            "CMCCirculatingSupply": "20063506.00000000",
+            "timestamp": 1785498300000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "105416.70400000",
+            "sumOpenInterestValue": "6724419719.37007500",
+            "CMCCirculatingSupply": "20063506.00000000",
+            "timestamp": 1785498600000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "105420.07900000",
+            "sumOpenInterestValue": "6727981449.04086300",
+            "CMCCirculatingSupply": "20063506.00000000",
+            "timestamp": 1785498900000
+          }
+        ],
+        "success": true
+      },
+      "29_days_ago": {
+        "timestamp": "2026-07-17 11:34:23 UTC",
+        "status_code": 200,
+        "response": [
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "102243.76900000",
+            "sumOpenInterestValue": "6454039247.70211100",
+            "CMCCirculatingSupply": "20057287.00000000",
+            "timestamp": 1784288100000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "102187.81500000",
+            "sumOpenInterestValue": "6464724623.54908400",
+            "CMCCirculatingSupply": "20057287.00000000",
+            "timestamp": 1784288400000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "102129.72200000",
+            "sumOpenInterestValue": "6462207094.68900000",
+            "CMCCirculatingSupply": "20057287.00000000",
+            "timestamp": 1784288700000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "102017.62100000",
+            "sumOpenInterestValue": "6453146944.90784100",
+            "CMCCirculatingSupply": "20057287.00000000",
+            "timestamp": 1784289000000
+          },
+          {
+            "symbol": "BTCUSDT",
+            "sumOpenInterest": "102011.82300000",
+            "sumOpenInterestValue": "6460041508.02720000",
+            "CMCCirculatingSupply": "20057287.00000000",
+            "timestamp": 1784289300000
+          }
+        ],
+        "success": true
+      },
+      "35_days_ago": {
+        "timestamp": "2026-07-11 11:34:23 UTC",
+        "status_code": 400,
+        "response": {
+          "msg": "parameter 'startTime' is invalid.",
+          "code": -1130
+        },
+        "success": false
+      },
+      "90_days_ago": {
+        "timestamp": "2026-05-17 11:34:23 UTC",
+        "status_code": 400,
+        "response": {
+          "msg": "parameter 'startTime' is invalid.",
+          "code": -1130
+        },
+        "success": false
+      },
+      "365_days_ago": {
+        "timestamp": "2025-08-15 11:34:23 UTC",
+        "status_code": 400,
+        "response": {
+          "msg": "parameter 'startTime' is invalid.",
+          "code": -1130
+        },
+        "success": false
+      },
+      "2023_06_01": {
+        "timestamp": "2023-06-01 00:00:00 UTC",
+        "status_code": 400,
+        "response": {
+          "msg": "parameter 'startTime' is invalid.",
+          "code": -1130
+        },
+        "success": false
+      }
+    },
+    "local_cache": {
+      "raw_present": false,
+      "normalized_present": false
+    }
+  },
+  "provenance_audit": {
+    "source_provider": "Binance USD-M Futures",
+    "source_class": "EXTERNAL_PUBLISHED_OBSERVATION",
+    "exchange_native": true,
+    "historical_parity": "NOT_PROVEN",
+    "archived_publication_parity": "NOT_PROVEN",
+    "production_evidence_eligible": false,
+    "pit_provenance_gate": "FAIL",
+    "verdict": "BLOCKED_PROVENANCE"
+  },
+  "actions": {
+    "next_steps": "ABANDON_OPEN_INTEREST_ACQUISITION",
+    "alternative_acquisition": "BASIS_OR_LIQUIDATION_FLOW"
+  }
+}
