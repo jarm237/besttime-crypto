@@ -1,0 +1,79 @@
+{
+  "_schema": "canary-activation-record-v1",
+  "_note": "IMMUTABLE — do not edit after activation. This is the single source of truth for V5 prospective canary boundary.",
+
+  "epoch_id": "canary-v5-filter-20260817-01",
+  "activated_at": "2026-08-17T03:41:57.245045+00:00",
+  "paper_run_id": "local-production",
+  "deployment_id": "local-production",
+
+  "code_commit_sha": "8d9cd2cdb5d2553920c138cfa0d9904c0b3e169b",
+
+  "model_artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+  "feature_schema_hash": "d7f241aed17acaa4885104784bc955a2d42f0c10ee6e1e00462936c194343507",
+  "runtime_contract_hash": "c166c73b81ae09efc367a8b51f0ef8d4f88bf322b5902c5c8c0d9bfca88577ae",
+  "release_manifest_sha256": "4e082edc4d0b8b00544231b0485884155753116cd8c20984c18b75708ee08a79",
+
+  "thresholds": {
+    "BTC": 0.6815743466054911,
+    "ETH": 0.8280730473863367,
+    "BNB": 0.7566326790486391
+  },
+
+  "exit_contract": {
+    "version": "E4",
+    "tp_bps": 50,
+    "sl_bps": -30,
+    "max_hold_bars": 96
+  },
+
+  "execution_contract": {
+    "version": "P4",
+    "concurrency_limit_per_asset": 1,
+    "cooldown_bars": 96
+  },
+
+  "cost_contract": {
+    "maker_bps": 7.0,
+    "taker_bps": 15.0
+  },
+
+  "live_trading": false,
+  "paper_execution": true,
+  "model_retrain": "DISABLED",
+  "threshold_change": "DISABLED",
+  "fallback_model": "DISABLED",
+
+  "analysis_universe": ["BTC", "ETH", "BNB"],
+  "analysis_universe_hash": "e684836adb74ab67fe4c0a54b8c2af70259c06a7cb4fe8a0b3a1f57834d48071",
+
+  "artifact_checksums": {
+    "manifest.json":          "942db40e4c6b9f70357b09d5614529084534546a1e18aa40a55e1da7b069af3e",
+    "model.json":             "35bea38a767d673b6b87e40cc6f52f5b3a1aea453632a4b05ac8a49ab6b613db",
+    "preprocessing.json":     "071b6b119dd3a1df8cbc4c2ca6e3cad4f36d2051f08cd182f49c8aeaf5b207c1",
+    "feature_schema.json":    "d7f241aed17acaa4885104784bc955a2d42f0c10ee6e1e00462936c194343507",
+    "decision_policy.json":   "b3dd7dee9a659bb68971e331a6afbe0165272e9e16a158cb6924b4cdd3c8a27d",
+    "training_metadata.json": "1aefe7c8d237d68bafa0ce77ae4b0a63303f4721ac5592ba09325a1d95d26589"
+  },
+
+  "activation_evidence": {
+    "runtime_activation":           "PASS",
+    "artifact_registry_integrity":  "PASS",
+    "prediction_persistence":       "PASS",
+    "prediction_decision_lineage":  "PASS",
+    "first_cycle_sanity":           "PASS",
+    "real_runtime_parity_d2r1":     "PASS  (max_diff=0.00e+00, decision_mismatch=0)"
+  },
+
+  "prospective_status": {
+    "natural_s3_rejection":   "NOT_YET_OBSERVED",
+    "natural_s3_acceptance":  "NOT_YET_OBSERVED",
+    "natural_p4_suppression": "NOT_YET_OBSERVED",
+    "paper_fill":             "NOT_YET_OBSERVED",
+    "position_close":         "NOT_YET_OBSERVED",
+    "outcome_linkage":        "NOT_YET_OBSERVED",
+    "incidents_quarantine":   "CLEAN",
+    "seal_readiness":         "NOT_YET",
+    "live_readiness":         "BLOCKED"
+  }
+}

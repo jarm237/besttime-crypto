@@ -1,6 +1,7 @@
 import os
-os.environ["BTC_ENVIRONMENT"] = "test"
-os.environ["BTC_EVIDENCE_ELIGIBLE"] = "false"
+if __name__ == "__main__":
+    os.environ["BTC_ENVIRONMENT"] = "test"
+    os.environ["BTC_EVIDENCE_ELIGIBLE"] = "false"
 
 import inspect
 import json
@@ -19,7 +20,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(REPO_ROOT))
 
 import btc_scraper.ml_engine.prediction_logger as pl
-pl.append_prediction = lambda **kwargs: {"prediction_id": "dummy-parity-id", "feature_hash": "dummy-hash", "deployment_id": "dummy-dep"}
+if __name__ == "__main__":
+    pl.append_prediction = lambda **kwargs: {"prediction_id": "dummy-parity-id", "feature_hash": "dummy-hash", "deployment_id": "dummy-dep"}
 
 from btc_scraper.core.paths import build_logs_path
 from btc_scraper.ml_engine.feature_extractor import features_from_analysis

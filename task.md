@@ -55,6 +55,9 @@
     - [x] Ghi nhận độ chính xác máy tính 100% (max diff = 0.00e+00, decision mismatch = 0)
 - [x] Thực hiện HMR-V5-D3 — Paper Canary
     - [x] Tạo `v5_d3_canary_config.json` và cập nhật sang ACTIVE_PROSPECTIVE_CANARY
+    - [x] Thiết lập và kích hoạt V5 evidence epoch canary-v5-filter-20260817-01 trong SQLite
+    - [x] Thực hiện First-Cycle Sanity Check giả lập và xác minh tính toàn vẹn của database
+    - [x] Viết báo cáo `v5_d3_canary_activation_report.md`
 - [x] Thực hiện HMR-V5-B2-r1 — Portfolio Risk Accounting Validation
     - [x] Viết script `scripts/hmr_v5_b2_r1_risk_accounting_audit.py` kiểm định thuật toán rủi ro và PnL hàng ngày
 - [x] Tạo unit test cho V5-D và B2-r1
