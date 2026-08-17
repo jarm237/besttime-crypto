@@ -7,7 +7,7 @@
   "paper_run_id": "local-production",
   "deployment_id": "local-production",
 
-  "code_commit_sha": "8d9cd2cdb5d2553920c138cfa0d9904c0b3e169b",
+  "code_commit_sha": "ae37e0d45c68794ca76a7578f7f0d2e98a923b39",
 
   "model_artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
   "feature_schema_hash": "d7f241aed17acaa4885104784bc955a2d42f0c10ee6e1e00462936c194343507",

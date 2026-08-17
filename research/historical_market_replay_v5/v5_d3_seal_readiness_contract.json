@@ -1,0 +1,116 @@
+{
+  "_schema": "seal-readiness-contract-v1",
+  "_note": "PRE-REGISTERED before prospective evidence accumulation. Do not modify after activation boundary. Standards must be set before observing canary outcomes.",
+  "_registered_at": "2026-08-17T04:09:58+00:00",
+  "_activation_epoch": "canary-v5-filter-20260817-01",
+  "_activation_record_sha256": "6987d4aa71c6dec1010137373dc17894d8b5033121b3ee72c6b345e417b6d498",
+
+  "seal_definition": "S0..S7 PASS",
+
+  "live_ready_definition": "NOT implied by SEAL. Requires separate live-risk/capital authorization event.",
+
+  "criteria": {
+    "S0": {
+      "name": "Activation integrity",
+      "description": "Immutable activation record exists, all required fields present, SHA256 checksum verified, epoch ACTIVE.",
+      "status": "PASS",
+      "pass_condition": "Verified at activation. No re-check required unless artifact mismatch detected."
+    },
+
+    "S1": {
+      "name": "Prospective prediction lineage",
+      "description": "At least 1 natural post-activation prediction observed with full lineage intact.",
+      "status": "NOT_YET_OBSERVED",
+      "pass_condition": "prediction.activated_at > epoch.activated_at AND prediction.artifact_sha256 == activation_record.model_artifact_sha256 AND prediction.epoch_id == activation_record.epoch_id AND prediction.paper_run_id == activation_record.paper_run_id AND prediction.feature_schema_version == activation_record.feature_schema_hash"
+    },
+
+    "S2": {
+      "name": "Filter behavior",
+      "description": "Natural S3 ACCEPT and natural S3 REJECT both observed. If one class has not occurred by end of observation window, classify as TIME-ACCUMULATING, not FAIL.",
+      "status": "NOT_YET_OBSERVED",
+      "pass_condition": "natural S3 ACCEPT observed AND natural S3 REJECT observed",
+      "time_accumulating_condition": "If one class not observed in window: record as TIME-ACCUMULATING. Does not block seal automatically. Requires human review.",
+      "note": "Absence of one class is informative (threshold may be aggressive) but is not a failure mode of the canary itself."
+    },
+
+    "S3": {
+      "name": "Execution semantics",
+      "description": "At least 1 natural executable decision, 1 paper reservation/fill. P4 serialization behavior verified correct.",
+      "status": "NOT_YET_OBSERVED",
+      "pass_condition": "natural executable decision count >= 1 AND paper fill count >= 1 AND P4 concurrent-limit and cooldown behavior correct",
+      "suppression_note": "P4 suppression (overlap/capacity) is informative if observed but NOT required for seal. If market does not create contention in observation window, NOT_OBSERVED != FAIL."
+    },
+
+    "S4": {
+      "name": "Outcome semantics",
+      "description": "At least 1 natural E4 position close observed. Exit reason (TP/SL/timeout) and realized outcome linked end-to-end from signal to fill to outcome.",
+      "status": "NOT_YET_OBSERVED",
+      "pass_condition": "natural E4 close count >= 1 AND exit_reason in {TP, SL, TIMEOUT, COLLISION} AND outcome.prediction_id links back to prediction AND outcome.fill_id links back to fill"
+    },
+
+    "S5": {
+      "name": "Recovery and idempotency",
+      "description": "Restart/recovery observed or controlled non-trading restart test passes. No duplicate prediction, decision, fill, or outcome records.",
+      "status": "NOT_YET_OBSERVED",
+      "pass_condition": "restart_recovery_observed == true OR controlled_restart_test_pass == true AND duplicate_count == 0",
+      "note": "Controlled non-trading restart (kill/restart runner, verify idempotency) is an acceptable substitute for natural outage recovery."
+    },
+
+    "S6": {
+      "name": "Integrity",
+      "description": "Artifact checksum unchanged since activation. Runtime contract unchanged. Zero lineage mismatches. Zero unexplained quarantines. Zero FAILED_INTERNAL events.",
+      "status": "CLEAN",
+      "pass_condition": "artifact_sha256 == activation_record.model_artifact_sha256 AND runtime_contract_hash == activation_record.runtime_contract_hash AND lineage_mismatch_count == 0 AND unexplained_quarantine_count == 0 AND FAILED_INTERNAL_count == 0",
+      "note": "S6 is a continuous gate. Any breach triggers immediate review and may block seal."
+    },
+
+    "S7": {
+      "name": "Stability",
+      "description": "Prospective collection runs for the predeclared observation window without semantic or runtime incident.",
+      "status": "ACCUMULATING",
+      "pass_condition": "observation_window_elapsed AND no_semantic_incident AND no_runtime_incident",
+      "observation_window": "NOT YET DECLARED — must be declared before seal review, independently of observed outcomes"
+    }
+  },
+
+  "event_triggers": {
+    "description": "Return to validate only when a real event fires. Do not poll on schedule.",
+    "triggers": [
+      "first natural S3 ACCEPT",
+      "first natural S3 REJECT",
+      "first P4 suppression (informational only)",
+      "first paper fill",
+      "first E4 position close",
+      "first linked outcome (prediction -> fill -> outcome)",
+      "restart or outage recovery",
+      "FAILED_INTERNAL event",
+      "quarantine event",
+      "artifact checksum mismatch",
+      "lineage mismatch",
+      "SEAL_BLOCKED event"
+    ]
+  },
+
+  "prohibited_actions": {
+    "description": "The following actions are prohibited during canary accumulation period.",
+    "items": [
+      "Modifying model weights, coefficients, or preprocessing parameters",
+      "Changing S3 thresholds for BTC, ETH, or BNB",
+      "Changing exit contract (E4 tp_bps, sl_bps, max_hold_bars)",
+      "Changing execution contract (P4 concurrency_limit, cooldown_bars)",
+      "Creating synthetic trades to accelerate execution/outcome evidence",
+      "Retroactively relaxing seal criteria based on observed canary behavior",
+      "Enabling live trading before SEAL + separate live-risk authorization"
+    ]
+  },
+
+  "status_vocabulary": {
+    "NOT_YET_OBSERVED": "Event has not occurred. Does not imply failure.",
+    "TIME_ACCUMULATING": "One class of a binary event not yet observed within window. Informative, requires human review at seal time. Does not auto-block seal.",
+    "FAILED_TO_OCCUR": "Event required but window elapsed without observation. Blocks seal.",
+    "CLEAN": "No incidents recorded.",
+    "ACCUMULATING": "Collection in progress, no terminal condition reached.",
+    "PASS": "Criterion met.",
+    "BLOCKED": "Terminal condition prevents progression."
+  }
+}

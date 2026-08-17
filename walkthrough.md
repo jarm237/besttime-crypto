@@ -79,7 +79,7 @@ The canonical activation boundary is frozen in:
 - [v5_d3_canary_activation_record.json](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/research/historical_market_replay_v5/v5_d3_canary_activation_record.json) — **do not edit after activation**
 - [v5_d3_canary_activation_record.json.sha256](file:///home/tran-huynh/Workspaces/Personal/besttime-crypto/research/historical_market_replay_v5/v5_d3_canary_activation_record.json.sha256) — integrity checksum
 
-**Record SHA256**: `10bcc79d190154c78cadab10f79105e0e6e722256c41b59d46da37a667588ae3`
+**Record SHA256**: `6987d4aa71c6dec1010137373dc17894d8b5033121b3ee72c6b345e417b6d498`
 
 This record contains all 12 required fields: `epoch_id`, `activated_at`, `code_commit_sha`, `model_artifact_sha256`, `feature_schema_hash`, `runtime_contract_hash`, `paper_run_id`, `thresholds` (BTC/ETH/BNB), `exit_contract` (E4), `execution_contract` (P4), `live_trading=false`, `paper_execution=true`.
 

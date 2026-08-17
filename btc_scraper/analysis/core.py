@@ -316,7 +316,11 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
             "tp_sl": {"entry": 0.0, "sl": 0.0, "tp1": 0.0, "tp2": 0.0, "rr1": 0.0, "rr2": 0.0, "method": "N/A"},
             "signal": "ERROR",
             "reason": "Khong co du lieu de phan tich",
-            "history": []
+            "history": [],
+            "return_8": 0.0,
+            "return_32": 0.0,
+            "return_72": 0.0,
+            "abs_move_72": 0.0
         }
         
     close_prices = [c["close"] for c in candles]
@@ -413,6 +417,19 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
         c["choch_bull"] = choch_bull_list[i]
         c["choch_bear"] = choch_bear_list[i]
         
+        # V5 features: return_8, return_32, return_72, abs_move_72 (raw fractions, not %)
+        c["return_8"] = (current_close - close_prices[i-8]) / close_prices[i-8] if i >= 8 and close_prices[i-8] > 0 else 0.0
+        c["return_32"] = (current_close - close_prices[i-32]) / close_prices[i-32] if i >= 32 and close_prices[i-32] > 0 else 0.0
+        c["return_72"] = (current_close - close_prices[i-72]) / close_prices[i-72] if i >= 72 and close_prices[i-72] > 0 else 0.0
+
+        if i >= 72:
+            window_h = highs[i-72+1 : i+1]
+            window_l = lows[i-72+1 : i+1]
+            max_dev = max(max(window_h) - close_prices[i-72], close_prices[i-72] - min(window_l))
+            c["abs_move_72"] = max_dev / close_prices[i-72] if close_prices[i-72] > 0 else 0.0
+        else:
+            c["abs_move_72"] = 0.0
+            
         current_high = c["high"]
         current_low = c["low"]
         current_sma200 = sma200_list[i]
@@ -695,6 +712,10 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
                 "return_1h": c["return_1h"],
                 "return_4h": c["return_4h"],
                 "return_1d": c["return_1d"],
+                "return_8": c["return_8"],
+                "return_32": c["return_32"],
+                "return_72": c["return_72"],
+                "abs_move_72": c["abs_move_72"],
                 "ema9_slope": c["ema9_slope"],
                 "ema21_slope": c["ema21_slope"],
                 "sma50_slope": c["sma50_slope"],
