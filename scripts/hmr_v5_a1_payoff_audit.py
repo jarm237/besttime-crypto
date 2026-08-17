@@ -293,7 +293,7 @@ def main():
 
     results["verdict"] = verdict
     results["verdict_note"] = verdict_note
-    results["ml_training"] = "BLOCKED — V5-A payoff edge must be proven and promoted first"
+    results["ml_training"] = "BLOCKED — exit architecture baseline and economic survivability must be established before ML authorization."
 
     # Save JSON
     json_path = OUT_DIR / "v5_a1_payoff_audit.json"

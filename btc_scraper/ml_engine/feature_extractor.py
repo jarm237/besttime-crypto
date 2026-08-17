@@ -304,6 +304,11 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
         else:
             f[k] = float(f[k]) if not math.isnan(f[k]) and not math.isinf(f[k]) else 0.0
 
+    # V5 feature support: copy V5 features from info if they are present
+    for k in ["return_8", "return_32", "return_72", "abs_move_72"]:
+        if k in info:
+            f[k] = _safe_float(info[k], default=0.0)
+
     return f
 
 

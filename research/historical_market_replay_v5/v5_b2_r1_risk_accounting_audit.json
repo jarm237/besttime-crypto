@@ -1,0 +1,42 @@
+{
+  "program": "HMR-V5-B2-r1",
+  "audit_timestamp": "2026-08-16T17:39:08.496068+00:00",
+  "control": {
+    "summed_simplification": {
+      "executed_trades": 7526,
+      "gross_ev_bps": 35.6497,
+      "net_ev_maker_bps": 28.6497,
+      "net_ev_taker_bps": 20.6497,
+      "total_net_pnl_pct": 752.57,
+      "sharpe": 95.8586,
+      "max_drawdown_pct": 0.0,
+      "exposure_pct": 100.0
+    },
+    "sequential_capital": {
+      "final_capital": 315618.0,
+      "max_drawdown_pct": 0.0,
+      "sharpe": 48.1731,
+      "executed_count": 7526,
+      "skipped_count": 0
+    }
+  },
+  "treatment": {
+    "summed_simplification": {
+      "executed_trades": 7211,
+      "gross_ev_bps": 41.8902,
+      "net_ev_maker_bps": 34.8902,
+      "net_ev_taker_bps": 26.8902,
+      "total_net_pnl_pct": 1116.31,
+      "sharpe": 126.8054,
+      "max_drawdown_pct": 0.0,
+      "exposure_pct": 94.44
+    },
+    "sequential_capital": {
+      "final_capital": 351593.0,
+      "max_drawdown_pct": 0.0,
+      "sharpe": 48.1569,
+      "executed_count": 7211,
+      "skipped_count": 0
+    }
+  }
+}

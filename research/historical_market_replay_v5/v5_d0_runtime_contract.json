@@ -1,0 +1,54 @@
+{
+  "program": "HMR-V5-D0",
+  "status": "FROZEN",
+  "frozen_at": "2026-08-16T17:37:00Z",
+  "contracts": {
+    "model_family": "LogisticRegression",
+    "feature_schema": {
+      "features": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_order_hash": "4b6845c43d8a6e873a11b689025e172d7f8d6bb77636e0971b86c35bb5f37ccb",
+      "dtypes": {
+        "return_8": "float64",
+        "return_32": "float64",
+        "return_72": "float64",
+        "abs_move_72": "float64"
+      }
+    },
+    "preprocessing": {
+      "scaler": "StandardScaler",
+      "pit_alignment": "features_evaluated_at_entry_timestamp"
+    },
+    "decision_policy": {
+      "canonical_policy": "S3",
+      "score_thresholds": {
+        "BTC": 0.6815743466054911,
+        "ETH": 0.8280730473863367,
+        "BNB": 0.7566326790486391
+      }
+    },
+    "exit_contract": {
+      "canonical_exit": "E4",
+      "tp_bps": 50.0,
+      "sl_bps": 30.0,
+      "max_hold_bars": 96
+    },
+    "execution_contract": {
+      "canonical_execution": "P4",
+      "concurrency_limit_per_asset": 1,
+      "cooldown_bars": 96
+    },
+    "cost_contract": {
+      "maker_bps": 7.0,
+      "taker_bps": 15.0
+    },
+    "fallback_behavior": {
+      "missing_feature": "raise_exception_or_fill_zero",
+      "invalid_score": "reject_signal"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "feature_names": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "feature_order_hash": "4b6845c43d8a6e873a11b689025e172d7f8d6bb77636e0971b86c35bb5f37ccb",
+  "dtypes": {
+    "return_8": "float64",
+    "return_32": "float64",
+    "return_72": "float64",
+    "abs_move_72": "float64"
+  }
+}

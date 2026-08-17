@@ -1,0 +1,8 @@
+{
+  "trained_at": "2026-08-16T17:30:54Z",
+  "training_start": "2023-01-01",
+  "training_end": "2023-12-31",
+  "validation_start": "2024-01-02",
+  "validation_end": "2024-06-30",
+  "dataset_sha256": "82bcad48ef72a6c8e3a241bb69025e172d7f8d6bb77636e0971b86c35bb5f37cc"
+}

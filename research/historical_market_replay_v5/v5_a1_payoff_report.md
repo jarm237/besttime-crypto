@@ -5,7 +5,7 @@
 ## Governance Rationale & Verdict
 
 - **Audit Verdict**: **`PROMOTE_PAYOFF_ARCHITECTURE`**
-- **ML Training**: `BLOCKED — V5-A payoff edge must be proven and promoted first`
+- **ML Training**: `BLOCKED — exit architecture baseline and economic survivability must be established before ML authorization.`
 
 **Verdict Wording**: Exploitable price movements exist post-entry, and cost floors are cleanly exceeded. Proceed to V5-B exit architecture comparison.
 

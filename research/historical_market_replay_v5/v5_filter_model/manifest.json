@@ -1,0 +1,8 @@
+{
+  "model_id": "hmr_v5_logistic_regression_s3",
+  "version": "1.0.0",
+  "artifact_type": "json_frozen_model",
+  "exit_contract_id": "E4",
+  "execution_contract_id": "P4",
+  "cost_contract_id": "B0"
+}

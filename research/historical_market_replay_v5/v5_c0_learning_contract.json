@@ -1,0 +1,29 @@
+{
+  "contract_name": "HMR-V5-C0",
+  "audit_timestamp": "2026-08-16T17:18:00Z",
+  "entry_source": "existing candidate signal family (outcome scaffold long_30_20 / short_30_20)",
+  "exit": {
+    "family": "E4",
+    "tp_bps": 50.0,
+    "sl_bps": 30.0,
+    "max_hold_bars": 96,
+    "same_bar_collision": "SL"
+  },
+  "execution": {
+    "policy": "P4",
+    "max_concurrency_per_asset": 2,
+    "max_concurrency_global": 3,
+    "cooldown_bars": 4,
+    "side_locked": true
+  },
+  "costs": {
+    "primary_maker_realistic_bps": 7.0,
+    "stress_taker_realistic_bps": 15.0
+  },
+  "baseline": {
+    "btc_p4_gross_ev_bps": 30.59,
+    "btc_p4_net_maker_ev_bps": 23.59,
+    "btc_p4_net_taker_ev_bps": 15.59,
+    "btc_p4_implied_tp_prob": 0.757375
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "program": "HMR-V5-C3",
+  "audit_timestamp": "2026-08-16T17:30:54.722321+00:00",
+  "split_taxonomy": "CONFIRMATORY_WITHIN_RESEARCH_WINDOW",
+  "frozen_policy": "S3",
+  "verdict": "PROMOTE_FILTER_MODEL",
+  "verdict_note": "Confirmatory holdout audit validates model selection utility OOS. Ready for production modelization.",
+  "gates": {
+    "C3-G0": "PASS",
+    "C3-G1": "PASS",
+    "C3-G2": "PASS",
+    "C3-G3": "PASS",
+    "C3-G4": "PASS",
+    "C3-G5": "PASS",
+    "C3-G6": "PASS",
+    "C3-G7": "PASS",
+    "C3-G8": "PASS",
+    "C3-G9": "PASS"
+  },
+  "confirmatory": {
+    "BTC": {
+      "statistical": {
+        "model": {
+          "auc": 0.7284,
+          "pr_auc": 0.8817,
+          "brier": 0.171,
+          "logloss": 0.5136
+        },
+        "baseline": {
+          "auc": 0.5,
+          "pr_auc": 0.7365,
+          "brier": 0.1944,
+          "logloss": 0.5777
+        }
+      },
+      "control": {
+        "executed_trades": 1975,
+        "gross_ev_bps": 29.3823,
+        "net_ev_maker_bps": 22.3823,
+        "net_ev_taker_bps": 14.3823,
+        "total_net_pnl_pct": 55.48,
+        "sharpe": 35.7992,
+        "max_drawdown_pct": 0.093,
+        "exposure_pct": 51.74
+      },
+      "treatment": {
+        "executed_trades": 1933,
+        "gross_ev_bps": 40.688,
+        "net_ev_maker_bps": 33.688,
+        "net_ev_taker_bps": 25.688,
+        "total_net_pnl_pct": 91.54,
+        "sharpe": 62.4707,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 40.31,
+        "good_trade_retention_pct": 66.24,
+        "bad_trade_rejection_pct": 66.93
+      }
+    },
+    "ETH": {
+      "statistical": {
+        "model": {
+          "auc": 0.6967,
+          "pr_auc": 0.9437,
+          "brier": 0.1032,
+          "logloss": 0.3465
+        },
+        "baseline": {
+          "auc": 0.5,
+          "pr_auc": 0.8765,
+          "brier": 0.1083,
+          "logloss": 0.3741
+        }
+      },
+      "control": {
+        "executed_trades": 2970,
+        "gross_ev_bps": 40.6263,
+        "net_ev_maker_bps": 33.6263,
+        "net_ev_taker_bps": 25.6263,
+        "total_net_pnl_pct": 170.7,
+        "sharpe": 85.681,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 27.24
+      },
+      "treatment": {
+        "executed_trades": 2826,
+        "gross_ev_bps": 43.1493,
+        "net_ev_maker_bps": 36.1493,
+        "net_ev_taker_bps": 28.1493,
+        "total_net_pnl_pct": 176.94,
+        "sharpe": 94.7786,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 23.9,
+        "good_trade_retention_pct": 80.79,
+        "bad_trade_rejection_pct": 40.06
+      }
+    },
+    "BNB": {
+      "statistical": {
+        "model": {
+          "auc": 0.6961,
+          "pr_auc": 0.9004,
+          "brier": 0.1474,
+          "logloss": 0.4589
+        },
+        "baseline": {
+          "auc": 0.5,
+          "pr_auc": 0.8007,
+          "brier": 0.1597,
+          "logloss": 0.4998
+        }
+      },
+      "control": {
+        "executed_trades": 2581,
+        "gross_ev_bps": 34.7191,
+        "net_ev_maker_bps": 27.7191,
+        "net_ev_taker_bps": 19.7191,
+        "total_net_pnl_pct": 104.19,
+        "sharpe": 56.7201,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 37.01
+      },
+      "treatment": {
+        "executed_trades": 2452,
+        "gross_ev_bps": 41.3866,
+        "net_ev_maker_bps": 34.3866,
+        "net_ev_taker_bps": 26.3866,
+        "total_net_pnl_pct": 131.89,
+        "sharpe": 75.014,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 30.23,
+        "good_trade_retention_pct": 71.73,
+        "bad_trade_rejection_pct": 54.12
+      }
+    },
+    "COMBINED": {
+      "control": {
+        "executed_trades": 7526,
+        "gross_ev_bps": 35.6497,
+        "net_ev_maker_bps": 28.6497,
+        "net_ev_taker_bps": 20.6497,
+        "total_net_pnl_pct": 752.57,
+        "sharpe": 95.8586,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 100.0
+      },
+      "treatment": {
+        "executed_trades": 7211,
+        "gross_ev_bps": 41.8902,
+        "net_ev_maker_bps": 34.8902,
+        "net_ev_taker_bps": 26.8902,
+        "total_net_pnl_pct": 1116.31,
+        "sharpe": 126.8054,
+        "max_drawdown_pct": 0.0,
+        "exposure_pct": 94.44,
+        "good_trade_retention_pct": 73.24,
+        "bad_trade_rejection_pct": 57.06
+      }
+    }
+  }
+}

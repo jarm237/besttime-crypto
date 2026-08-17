@@ -1,0 +1,28 @@
+{
+  "program": "HMR-V5-D2",
+  "audit_timestamp": "2026-08-16T17:38:25.825957+00:00",
+  "gates": {
+    "D2-G0": "PASS",
+    "D2-G1": "PASS",
+    "D2-G2": "PASS",
+    "D2-G3": "PASS",
+    "D2-G4": "PASS",
+    "D2-G5": "PASS",
+    "D2-G6": "PASS",
+    "D2-G7": "PASS"
+  },
+  "parity_check": {
+    "BTC": {
+      "max_probability_diff": 2.220446049250313e-16,
+      "decision_mismatch_count": 0
+    },
+    "ETH": {
+      "max_probability_diff": 2.220446049250313e-16,
+      "decision_mismatch_count": 0
+    },
+    "BNB": {
+      "max_probability_diff": 2.220446049250313e-16,
+      "decision_mismatch_count": 0
+    }
+  }
+}

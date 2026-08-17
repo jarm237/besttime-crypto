@@ -1,0 +1,52 @@
+{
+  "canary_id": "hmr_v5_canary_001",
+  "status": "ACTIVE_PROSPECTIVE_CANARY",
+  "live_trading": "DISABLED",
+  "paper_execution": "ENABLED",
+  "start_timestamp": "2024-12-31T23:45:00Z",
+  "target_model_artifact": "research/historical_market_replay_v5/v5_filter_model/manifest.json",
+  "config": {
+    "model": "frozen LogisticRegression",
+    "filter": "frozen absolute S3 thresholds",
+    "thresholds": {
+      "BTC": 0.6815743466054911,
+      "ETH": 0.8280730473863367,
+      "BNB": 0.7566326790486391
+    },
+    "exit": {
+      "type": "E4",
+      "tp_bps": 50,
+      "sl_bps": -30
+    },
+    "execution": "P4",
+    "model_retrain": "DISABLED",
+    "threshold_change": "DISABLED",
+    "feature_change": "DISABLED"
+  },
+  "telemetry": {
+    "log_level": "DEBUG",
+    "metrics_interval_seconds": 60,
+    "monitored_attributes": [
+      "prediction_id",
+      "decision_id",
+      "artifact_sha",
+      "feature_schema_hash",
+      "timestamp_available_at",
+      "symbol",
+      "score",
+      "threshold",
+      "filter_result",
+      "execution_result",
+      "position_id",
+      "exit_reason",
+      "gross_bps",
+      "maker_equivalent_net_bps"
+    ]
+  },
+  "constraints": {
+    "max_concurrent_positions": 3,
+    "max_concurrency_per_asset": 1,
+    "leverage_limit": 1.0,
+    "cooldown_bars": 96
+  }
+}

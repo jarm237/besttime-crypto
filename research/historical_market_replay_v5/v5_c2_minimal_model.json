@@ -1,0 +1,445 @@
+{
+  "program": "HMR-V5-C2",
+  "audit_timestamp": "2026-08-16T17:26:30.738375+00:00",
+  "max_time_to_outcome_bars": 52,
+  "embargo_bars": 96,
+  "verdict": "PROMOTE_FILTER_MODEL",
+  "verdict_note": "Logistic Regression model provides statistically real and executable economic improvement under P4.",
+  "gates": {
+    "C2-G0": "PASS",
+    "C2-G1": "PASS",
+    "C2-G2": "PASS",
+    "C2-G3": "PASS",
+    "C2-G4": "PASS",
+    "C2-G5": "PASS",
+    "C2-G6": "PASS",
+    "C2-G7": "PASS",
+    "C2-G8": "PASS"
+  },
+  "folds": {
+    "Fold 1": {
+      "BTC": {
+        "statistical": {
+          "model": {
+            "auc": 0.7095,
+            "pr_auc": 0.8769,
+            "brier": 0.1708,
+            "logloss": 0.5131
+          },
+          "baseline": {
+            "auc": 0.5,
+            "pr_auc": 0.7442,
+            "brier": 0.1906,
+            "logloss": 0.5691
+          }
+        },
+        "economic": {
+          "S0": {
+            "executed_trades": 1060,
+            "gross_ev_bps": 31.0566,
+            "net_ev_maker_bps": 24.0566,
+            "net_ev_taker_bps": 16.0566,
+            "total_net_pnl_pct": 28.99,
+            "sharpe": 6.406,
+            "max_drawdown_pct": 0.013,
+            "exposure_pct": 5.9,
+            "good_trade_retention_pct": 100.0,
+            "bad_trade_rejection_pct": 0.0,
+            "filter_threshold": 0.0
+          },
+          "S1": {
+            "executed_trades": 1056,
+            "gross_ev_bps": 33.4091,
+            "net_ev_maker_bps": 26.4091,
+            "net_ev_taker_bps": 18.4091,
+            "total_net_pnl_pct": 32.1,
+            "sharpe": 6.5322,
+            "max_drawdown_pct": 0.007,
+            "exposure_pct": 5.7,
+            "good_trade_retention_pct": 94.12,
+            "bad_trade_rejection_pct": 17.83,
+            "filter_threshold": 0.5586
+          },
+          "S2": {
+            "executed_trades": 1065,
+            "gross_ev_bps": 36.1784,
+            "net_ev_maker_bps": 29.1784,
+            "net_ev_taker_bps": 21.1784,
+            "total_net_pnl_pct": 36.36,
+            "sharpe": 6.6383,
+            "max_drawdown_pct": 0.007,
+            "exposure_pct": 5.38,
+            "good_trade_retention_pct": 86.88,
+            "bad_trade_rejection_pct": 34.21,
+            "filter_threshold": 0.6272
+          },
+          "S3": {
+            "executed_trades": 1049,
+            "gross_ev_bps": 36.959,
+            "net_ev_maker_bps": 29.959,
+            "net_ev_taker_bps": 21.959,
+            "total_net_pnl_pct": 36.84,
+            "sharpe": 6.6589,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 5.12,
+            "good_trade_retention_pct": 77.76,
+            "bad_trade_rejection_pct": 48.13,
+            "filter_threshold": 0.6828
+          }
+        }
+      },
+      "ETH": {
+        "statistical": {
+          "model": {
+            "auc": 0.7096,
+            "pr_auc": 0.94,
+            "brier": 0.1095,
+            "logloss": 0.3621
+          },
+          "baseline": {
+            "auc": 0.5,
+            "pr_auc": 0.8649,
+            "brier": 0.1169,
+            "logloss": 0.3961
+          }
+        },
+        "economic": {
+          "S0": {
+            "executed_trades": 1450,
+            "gross_ev_bps": 40.3448,
+            "net_ev_maker_bps": 33.3448,
+            "net_ev_taker_bps": 25.3448,
+            "total_net_pnl_pct": 61.96,
+            "sharpe": 7.0196,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 3.51,
+            "good_trade_retention_pct": 100.0,
+            "bad_trade_rejection_pct": 0.0,
+            "filter_threshold": 0.0
+          },
+          "S1": {
+            "executed_trades": 1431,
+            "gross_ev_bps": 41.8379,
+            "net_ev_maker_bps": 34.8379,
+            "net_ev_taker_bps": 26.8379,
+            "total_net_pnl_pct": 64.4,
+            "sharpe": 7.0125,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 3.29,
+            "good_trade_retention_pct": 91.69,
+            "bad_trade_rejection_pct": 21.94,
+            "filter_threshold": 0.7503
+          },
+          "S2": {
+            "executed_trades": 1402,
+            "gross_ev_bps": 42.9815,
+            "net_ev_maker_bps": 35.9815,
+            "net_ev_taker_bps": 27.9815,
+            "total_net_pnl_pct": 65.37,
+            "sharpe": 7.0358,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 3.14,
+            "good_trade_retention_pct": 82.52,
+            "bad_trade_rejection_pct": 40.0,
+            "filter_threshold": 0.7971
+          },
+          "S3": {
+            "executed_trades": 1355,
+            "gross_ev_bps": 43.5055,
+            "net_ev_maker_bps": 36.5055,
+            "net_ev_taker_bps": 28.5055,
+            "total_net_pnl_pct": 63.76,
+            "sharpe": 7.0275,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 2.94,
+            "good_trade_retention_pct": 73.77,
+            "bad_trade_rejection_pct": 52.37,
+            "filter_threshold": 0.8299
+          }
+        }
+      },
+      "BNB": {
+        "statistical": {
+          "model": {
+            "auc": 0.7012,
+            "pr_auc": 0.905,
+            "brier": 0.1432,
+            "logloss": 0.4488
+          },
+          "baseline": {
+            "auc": 0.5,
+            "pr_auc": 0.808,
+            "brier": 0.1552,
+            "logloss": 0.4893
+          }
+        },
+        "economic": {
+          "S0": {
+            "executed_trades": 1266,
+            "gross_ev_bps": 36.0979,
+            "net_ev_maker_bps": 29.0979,
+            "net_ev_taker_bps": 21.0979,
+            "total_net_pnl_pct": 44.42,
+            "sharpe": 6.8091,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 4.68,
+            "good_trade_retention_pct": 100.0,
+            "bad_trade_rejection_pct": 0.0,
+            "filter_threshold": 0.0
+          },
+          "S1": {
+            "executed_trades": 1261,
+            "gross_ev_bps": 37.9461,
+            "net_ev_maker_bps": 30.9461,
+            "net_ev_taker_bps": 22.9461,
+            "total_net_pnl_pct": 47.6,
+            "sharpe": 6.8477,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 4.41,
+            "good_trade_retention_pct": 91.55,
+            "bad_trade_rejection_pct": 24.39,
+            "filter_threshold": 0.6602
+          },
+          "S2": {
+            "executed_trades": 1242,
+            "gross_ev_bps": 38.6634,
+            "net_ev_maker_bps": 31.6634,
+            "net_ev_taker_bps": 23.6634,
+            "total_net_pnl_pct": 48.04,
+            "sharpe": 6.8503,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 4.09,
+            "good_trade_retention_pct": 81.8,
+            "bad_trade_rejection_pct": 41.71,
+            "filter_threshold": 0.7179
+          },
+          "S3": {
+            "executed_trades": 1215,
+            "gross_ev_bps": 41.2428,
+            "net_ev_maker_bps": 34.2428,
+            "net_ev_taker_bps": 26.2428,
+            "total_net_pnl_pct": 51.44,
+            "sharpe": 6.9335,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 3.76,
+            "good_trade_retention_pct": 72.3,
+            "bad_trade_rejection_pct": 55.84,
+            "filter_threshold": 0.7603
+          }
+        }
+      }
+    },
+    "Fold 2": {
+      "BTC": {
+        "statistical": {
+          "model": {
+            "auc": 0.7284,
+            "pr_auc": 0.8817,
+            "brier": 0.171,
+            "logloss": 0.5136
+          },
+          "baseline": {
+            "auc": 0.5,
+            "pr_auc": 0.7365,
+            "brier": 0.1944,
+            "logloss": 0.5777
+          }
+        },
+        "economic": {
+          "S0": {
+            "executed_trades": 1975,
+            "gross_ev_bps": 29.3823,
+            "net_ev_maker_bps": 22.3823,
+            "net_ev_taker_bps": 14.3823,
+            "total_net_pnl_pct": 55.48,
+            "sharpe": 9.3984,
+            "max_drawdown_pct": 0.093,
+            "exposure_pct": 12.95,
+            "good_trade_retention_pct": 100.0,
+            "bad_trade_rejection_pct": 0.0,
+            "filter_threshold": 0.0
+          },
+          "S1": {
+            "executed_trades": 1996,
+            "gross_ev_bps": 34.6092,
+            "net_ev_maker_bps": 27.6092,
+            "net_ev_taker_bps": 19.6092,
+            "total_net_pnl_pct": 73.34,
+            "sharpe": 9.9248,
+            "max_drawdown_pct": 0.093,
+            "exposure_pct": 11.9,
+            "good_trade_retention_pct": 87.47,
+            "bad_trade_rejection_pct": 34.17,
+            "filter_threshold": 0.5592
+          },
+          "S2": {
+            "executed_trades": 1972,
+            "gross_ev_bps": 38.2353,
+            "net_ev_maker_bps": 31.2353,
+            "net_ev_taker_bps": 23.2353,
+            "total_net_pnl_pct": 84.93,
+            "sharpe": 10.1871,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 11.03,
+            "good_trade_retention_pct": 76.83,
+            "bad_trade_rejection_pct": 53.35,
+            "filter_threshold": 0.6276
+          },
+          "S3": {
+            "executed_trades": 1933,
+            "gross_ev_bps": 40.688,
+            "net_ev_maker_bps": 33.688,
+            "net_ev_taker_bps": 25.688,
+            "total_net_pnl_pct": 91.54,
+            "sharpe": 10.41,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 10.09,
+            "good_trade_retention_pct": 66.24,
+            "bad_trade_rejection_pct": 66.93,
+            "filter_threshold": 0.6816
+          }
+        }
+      },
+      "ETH": {
+        "statistical": {
+          "model": {
+            "auc": 0.6967,
+            "pr_auc": 0.9437,
+            "brier": 0.1032,
+            "logloss": 0.3465
+          },
+          "baseline": {
+            "auc": 0.5,
+            "pr_auc": 0.8765,
+            "brier": 0.1083,
+            "logloss": 0.3741
+          }
+        },
+        "economic": {
+          "S0": {
+            "executed_trades": 2970,
+            "gross_ev_bps": 40.6263,
+            "net_ev_maker_bps": 33.6263,
+            "net_ev_taker_bps": 25.6263,
+            "total_net_pnl_pct": 170.7,
+            "sharpe": 10.6915,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 6.82,
+            "good_trade_retention_pct": 100.0,
+            "bad_trade_rejection_pct": 0.0,
+            "filter_threshold": 0.0
+          },
+          "S1": {
+            "executed_trades": 2937,
+            "gross_ev_bps": 41.2836,
+            "net_ev_maker_bps": 34.2836,
+            "net_ev_taker_bps": 26.2836,
+            "total_net_pnl_pct": 172.92,
+            "sharpe": 10.7004,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 6.62,
+            "good_trade_retention_pct": 94.94,
+            "bad_trade_rejection_pct": 11.96,
+            "filter_threshold": 0.7481
+          },
+          "S2": {
+            "executed_trades": 2887,
+            "gross_ev_bps": 42.1579,
+            "net_ev_maker_bps": 35.1579,
+            "net_ev_taker_bps": 27.1579,
+            "total_net_pnl_pct": 175.13,
+            "sharpe": 10.7074,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 6.35,
+            "good_trade_retention_pct": 88.48,
+            "bad_trade_rejection_pct": 25.71,
+            "filter_threshold": 0.7934
+          },
+          "S3": {
+            "executed_trades": 2826,
+            "gross_ev_bps": 43.1493,
+            "net_ev_maker_bps": 36.1493,
+            "net_ev_taker_bps": 28.1493,
+            "total_net_pnl_pct": 176.94,
+            "sharpe": 10.7528,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 5.98,
+            "good_trade_retention_pct": 80.79,
+            "bad_trade_rejection_pct": 40.06,
+            "filter_threshold": 0.8281
+          }
+        }
+      },
+      "BNB": {
+        "statistical": {
+          "model": {
+            "auc": 0.6961,
+            "pr_auc": 0.9004,
+            "brier": 0.1474,
+            "logloss": 0.4589
+          },
+          "baseline": {
+            "auc": 0.5,
+            "pr_auc": 0.8007,
+            "brier": 0.1597,
+            "logloss": 0.4998
+          }
+        },
+        "economic": {
+          "S0": {
+            "executed_trades": 2581,
+            "gross_ev_bps": 34.7191,
+            "net_ev_maker_bps": 27.7191,
+            "net_ev_taker_bps": 19.7191,
+            "total_net_pnl_pct": 104.19,
+            "sharpe": 10.2892,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 9.27,
+            "good_trade_retention_pct": 100.0,
+            "bad_trade_rejection_pct": 0.0,
+            "filter_threshold": 0.0
+          },
+          "S1": {
+            "executed_trades": 2568,
+            "gross_ev_bps": 37.134,
+            "net_ev_maker_bps": 30.134,
+            "net_ev_taker_bps": 22.134,
+            "total_net_pnl_pct": 116.42,
+            "sharpe": 10.4101,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 8.6,
+            "good_trade_retention_pct": 90.87,
+            "bad_trade_rejection_pct": 24.32,
+            "filter_threshold": 0.6584
+          },
+          "S2": {
+            "executed_trades": 2511,
+            "gross_ev_bps": 39.4544,
+            "net_ev_maker_bps": 32.4544,
+            "net_ev_taker_bps": 24.4544,
+            "total_net_pnl_pct": 125.46,
+            "sharpe": 10.5461,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 8.09,
+            "good_trade_retention_pct": 81.19,
+            "bad_trade_rejection_pct": 41.77,
+            "filter_threshold": 0.7148
+          },
+          "S3": {
+            "executed_trades": 2452,
+            "gross_ev_bps": 41.3866,
+            "net_ev_maker_bps": 34.3866,
+            "net_ev_taker_bps": 26.3866,
+            "total_net_pnl_pct": 131.89,
+            "sharpe": 10.5916,
+            "max_drawdown_pct": 0.0,
+            "exposure_pct": 7.57,
+            "good_trade_retention_pct": 71.73,
+            "bad_trade_rejection_pct": 54.12,
+            "filter_threshold": 0.7566
+          }
+        }
+      }
+    }
+  }
+}

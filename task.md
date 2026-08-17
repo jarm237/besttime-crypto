@@ -1,0 +1,63 @@
+# Task List — V5-B0 & V5-B1 Execution
+
+- [x] Sửa stale ML-status trong V5-A1
+    - [x] Cập nhật `scripts/hmr_v5_a1_payoff_audit.py`
+    - [x] Cập nhật `research/historical_market_replay_v5/v5_a1_payoff_report.md`
+- [x] Tạo và freeze HMR-V5-B0 Economic Cost Contract
+    - [x] Tạo `research/historical_market_replay_v5/v5_b0_economic_cost_contract.json`
+    - [x] Tạo `research/historical_market_replay_v5/v5_b0_economic_cost_contract.md`
+- [x] Tạo unit test cho B0
+    - [x] Tạo `tests/test_v5_b0_cost_contract.py`
+- [x] Chạy HMR-V5-B1 Path-Aware Exit Capture Audit
+    - [x] Viết script `scripts/hmr_v5_b1_exit_audit.py`
+    - [x] Chạy audit và sinh report / json
+- [x] Tạo unit test cho B1
+    - [x] Tạo `tests/test_v5_b1_exit_audit.py`
+- [x] Thực hiện HMR-V5-B1-r1 — Exit Simulation Semantic & Accounting Audit
+    - [x] Cập nhật kết quả / trạng thái trong `scripts/hmr_v5_b1_exit_audit.py` và chạy lại để cập nhật JSON/Report
+    - [x] Viết script `scripts/hmr_v5_b1_r1_exit_accounting_audit.py`
+    - [x] Chạy audit B1-r1 để kiểm tra 10 invariants, chạy synthetic test, trích xuất 60 trade samples ra CSV và xuất báo cáo markdown
+- [x] Tạo unit test cho B1-r1
+    - [x] Tạo `tests/test_v5_b1_r1_audit.py`
+- [x] Thực hiện HMR-V5-B2 — Executable Trade Stream Audit
+    - [x] Cập nhật lại trạng thái chính thức của B1 (E4 basis) trong `scripts/hmr_v5_b1_exit_audit.py` và chạy lại để cập nhật JSON/Report
+    - [x] Viết script `scripts/hmr_v5_b2_executable_replay.py`
+    - [x] Chạy audit B2 để phân tích các serialization policies P0-P4, tính toán các chỉ số kinh tế/rủi ro thực tế và xuất báo cáo markdown
+- [x] Tạo unit test cho B2
+    - [x] Tạo `tests/test_v5_b2_replay.py`
+- [x] Thực hiện HMR-V5-C0 — Economic Learning Contract Freeze
+    - [x] Tạo `research/historical_market_replay_v5/v5_c0_learning_contract.json`
+    - [x] Tạo `research/historical_market_replay_v5/v5_c0_learning_contract.md`
+- [x] Thực hiện HMR-V5-C1 — Economic Label & Objective Audit
+    - [x] Viết script `scripts/hmr_v5_c1_label_audit.py`
+    - [x] Chạy audit C1 để kiểm tra class balance, stability (temporal, quarterly, regime), duration (time-to-TP/SL), autocorrelation, duplicate state, và thiết kế walk-forward split với 96-bar embargoes.
+- [x] Tạo unit test cho C0/C1
+    - [x] Tạo `tests/test_v5_c0_c1.py`
+- [x] Thực hiện HMR-V5-C2 — Minimal Economic Selection Model
+    - [x] Viết script `scripts/hmr_v5_c2_minimal_model.py`
+    - [x] Chạy audit C2 để fit Logistic Regression model, đánh giá các metrics thống kê và chạy replay P4 với các policies S0-S3 để đối chiếu kinh tế
+- [x] Tạo unit test cho C2
+    - [x] Tạo `tests/test_v5_c2_model.py`
+- [x] Thực hiện HMR-V5-C3 — Confirmatory Model & Selection Policy Audit
+    - [x] Viết script `scripts/hmr_v5_c3_confirmatory_audit.py`
+    - [x] Chạy audit C3 để xác thực model và đóng băng canonical filter policy trên untouched confirmatory period, xuất báo cáo markdown đối chiếu Control và Treatment
+- [x] Tạo unit test cho C3
+    - [x] Tạo `tests/test_v5_c3_confirmatory.py`
+- [x] Thực hiện HMR-V5-D0 — Runtime Contract Freeze
+    - [x] Tạo `v5_d0_runtime_contract.json` và `v5_d0_runtime_contract.md`
+- [x] Thực hiện HMR-V5-D1 — Frozen Model Artifact
+    - [x] Tạo thư mục `v5_filter_model/` chứa manifest, model, preprocessing, decision policy, training metadata, và checksums JSON.
+- [x] Thực hiện HMR-V5-D2 — Research/Runtime Parity Replay
+    - [x] Viết script `scripts/hmr_v5_d2_parity_replay.py` chạy mock runtime inference và assert parity
+- [x] Thực hiện HMR-V5-D2-r1 — Real Runtime Parity Gate
+    - [x] Sửa runtime feature extractor build_meta_features hỗ trợ return_8, return_32, return_72, abs_move_72
+    - [x] Viết script `scripts/hmr_v5_d2_r1_real_runtime_parity.py` chạy kiểm toán và so khớp trên confirmatory period
+    - [x] Ghi nhận độ chính xác máy tính 100% (max diff = 0.00e+00, decision mismatch = 0)
+- [x] Thực hiện HMR-V5-D3 — Paper Canary
+    - [x] Tạo `v5_d3_canary_config.json` và cập nhật sang ACTIVE_PROSPECTIVE_CANARY
+- [x] Thực hiện HMR-V5-B2-r1 — Portfolio Risk Accounting Validation
+    - [x] Viết script `scripts/hmr_v5_b2_r1_risk_accounting_audit.py` kiểm định thuật toán rủi ro và PnL hàng ngày
+- [x] Tạo unit test cho V5-D và B2-r1
+    - [x] Tạo `tests/test_v5_d_parity.py`
+- [x] Chạy kiểm thử pytest toàn diện
+- [x] Chạy refresh GitNexus index và kiểm tra detect-changes

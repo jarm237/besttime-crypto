@@ -1,0 +1,13 @@
+{
+  "selection_policy": "S3",
+  "exit_contract": {
+    "tp_bps": 50.0,
+    "sl_bps": 30.0,
+    "max_hold": 96
+  },
+  "execution_contract": {
+    "policy": "P4",
+    "concurrency_limit": 1,
+    "cooldown_bars": 96
+  }
+}

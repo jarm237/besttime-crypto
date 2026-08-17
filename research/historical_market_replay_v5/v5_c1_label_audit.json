@@ -1,0 +1,195 @@
+{
+  "program": "HMR-V5-C1",
+  "audit_timestamp": "2026-08-16T17:19:45.394193+00:00",
+  "class_balance": {
+    "BTC": {
+      "total_signals": 56872,
+      "positives": 42576,
+      "negatives": 14296,
+      "positive_rate_pct": 74.86,
+      "buy_signals": 28453,
+      "buy_positives": 21328,
+      "buy_positive_rate_pct": 74.96,
+      "sell_signals": 28419,
+      "sell_positives": 21248,
+      "sell_positive_rate_pct": 74.77
+    },
+    "ETH": {
+      "total_signals": 55202,
+      "positives": 48080,
+      "negatives": 7122,
+      "positive_rate_pct": 87.1,
+      "buy_signals": 27634,
+      "buy_positives": 24049,
+      "buy_positive_rate_pct": 87.03,
+      "sell_signals": 27568,
+      "sell_positives": 24031,
+      "sell_positive_rate_pct": 87.17
+    },
+    "BNB": {
+      "total_signals": 56968,
+      "positives": 45980,
+      "negatives": 10988,
+      "positive_rate_pct": 80.71,
+      "buy_signals": 28750,
+      "buy_positives": 23162,
+      "buy_positive_rate_pct": 80.56,
+      "sell_signals": 28218,
+      "sell_positives": 22818,
+      "sell_positive_rate_pct": 80.86
+    },
+    "COMBINED": {
+      "total_signals": 169042,
+      "positives": 136636,
+      "negatives": 32406,
+      "positive_rate_pct": 80.83,
+      "buy_signals": 84837,
+      "buy_positives": 68539,
+      "buy_positive_rate_pct": 80.79,
+      "sell_signals": 84205,
+      "sell_positives": 68097,
+      "sell_positive_rate_pct": 80.87
+    }
+  },
+  "temporal_stability": {
+    "yearly": {
+      "2023": {
+        "total_signals": 84440,
+        "positive_rate_pct": 81.12
+      },
+      "2024": {
+        "total_signals": 84602,
+        "positive_rate_pct": 80.54
+      }
+    },
+    "quarterly": {
+      "2023Q1": {
+        "total_signals": 20768,
+        "positive_rate_pct": 81.39
+      },
+      "2023Q2": {
+        "total_signals": 21036,
+        "positive_rate_pct": 81.35
+      },
+      "2023Q3": {
+        "total_signals": 21305,
+        "positive_rate_pct": 81.25
+      },
+      "2023Q4": {
+        "total_signals": 21331,
+        "positive_rate_pct": 80.5
+      },
+      "2024Q1": {
+        "total_signals": 21161,
+        "positive_rate_pct": 80.83
+      },
+      "2024Q2": {
+        "total_signals": 21042,
+        "positive_rate_pct": 80.58
+      },
+      "2024Q3": {
+        "total_signals": 21230,
+        "positive_rate_pct": 79.81
+      },
+      "2024Q4": {
+        "total_signals": 21169,
+        "positive_rate_pct": 80.95
+      }
+    }
+  },
+  "regime_stability": {
+    "trend": {
+      "Bull": {
+        "total_signals": 24335,
+        "positive_rate_pct": 88.17
+      },
+      "Bear": {
+        "total_signals": 23446,
+        "positive_rate_pct": 88.53
+      },
+      "Range": {
+        "total_signals": 121261,
+        "positive_rate_pct": 77.87
+      }
+    },
+    "volatility": {
+      "High Vol": {
+        "total_signals": 86523,
+        "positive_rate_pct": 82.04
+      },
+      "Low Vol": {
+        "total_signals": 82519,
+        "positive_rate_pct": 79.56
+      }
+    }
+  },
+  "durations": {
+    "time_to_tp_bars": {
+      "mean": 2.35,
+      "median": 1,
+      "std": 2.53,
+      "max": 52
+    },
+    "time_to_sl_bars": {
+      "mean": 4.97,
+      "median": 4,
+      "std": 3.57,
+      "max": 41
+    },
+    "timeouts": 0
+  },
+  "autocorrelation": {
+    "BTC": {
+      "1": 0.0211,
+      "2": -0.0018,
+      "3": 0.0009,
+      "4": -0.0021,
+      "5": 0.0021
+    },
+    "ETH": {
+      "1": 0.0333,
+      "2": -0.004,
+      "3": -0.0088,
+      "4": -0.0022,
+      "5": -0.0022
+    },
+    "BNB": {
+      "1": 0.0333,
+      "2": 0.004,
+      "3": -0.0034,
+      "4": 0.0022,
+      "5": 0.0008
+    }
+  },
+  "overlapping_dependence": {
+    "BTC": {
+      "overlap_pct": 97.61
+    },
+    "ETH": {
+      "overlap_pct": 87.98
+    },
+    "BNB": {
+      "overlap_pct": 94.45
+    }
+  },
+  "state_concentration": {
+    "BTC": {
+      "total_signals": 56872,
+      "unique_entries": 56872,
+      "duplicate_entry_signals": 0,
+      "duplicate_pct": 0.0
+    },
+    "ETH": {
+      "total_signals": 55202,
+      "unique_entries": 55202,
+      "duplicate_entry_signals": 0,
+      "duplicate_pct": 0.0
+    },
+    "BNB": {
+      "total_signals": 56968,
+      "unique_entries": 56968,
+      "duplicate_entry_signals": 0,
+      "duplicate_pct": 0.0
+    }
+  }
+}

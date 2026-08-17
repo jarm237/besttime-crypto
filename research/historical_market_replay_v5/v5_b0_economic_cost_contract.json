@@ -1,0 +1,34 @@
+{
+  "program": "HMR-V5-B0",
+  "phase": "Economic Cost Contract Freeze",
+  "status": "FROZEN",
+  "scenarios": {
+    "RESEARCH_IDEALIZED": {
+      "fees_bps_per_leg": 1.0,
+      "spread_bps_per_leg": 0.25,
+      "slippage_bps_per_leg": 0.0,
+      "adverse_selection_bps_per_leg": 0.0,
+      "round_trip_convention": "2 * fees + 2 * spread + 2 * slippage + 2 * adverse_selection",
+      "total_cost_floor_bps": 2.5,
+      "rationale": "VIP tier trading with zero execution slippage and extremely narrow spread, matching the historical V5-A1 baseline assumptions."
+    },
+    "MAKER_REALISTIC": {
+      "fees_bps_per_leg": 2.0,
+      "spread_bps_per_leg": 0.5,
+      "slippage_bps_per_leg": 0.5,
+      "adverse_selection_bps_per_leg": 0.5,
+      "round_trip_convention": "2 * fees + 2 * spread + 2 * slippage + 2 * adverse_selection",
+      "total_cost_floor_bps": 7.0,
+      "rationale": "Realistic passive order placement using standard maker fee tier (2.0 bps), accounting for toxic flow adverse selection and execution deviation."
+    },
+    "TAKER_REALISTIC": {
+      "fees_bps_per_leg": 5.0,
+      "spread_bps_per_leg": 1.0,
+      "slippage_bps_per_leg": 1.5,
+      "adverse_selection_bps_per_leg": 0.0,
+      "round_trip_convention": "2 * fees + 2 * spread + 2 * slippage + 2 * adverse_selection",
+      "total_cost_floor_bps": 15.0,
+      "rationale": "Aggressive market order crossing standard taker fee tier (5.0 bps), matching typical Binance retail taker conditions with expected orderbook slippage."
+    }
+  }
+}

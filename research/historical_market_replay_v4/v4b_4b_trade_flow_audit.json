@@ -27,7 +27,7 @@
             "ETH": 1.491477242927108,
             "BNB": 0.9958261389939628
           },
-          "r3_bootstrap_p_gt_0": 0.955,
+          "r3_bootstrap_p_gt_0": 0.95,
           "r3_bootstrap_pass": true,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 8,
@@ -53,7 +53,7 @@
             "ETH": 0.9064542825607189,
             "BNB": 0.9948987059231502
           },
-          "r3_bootstrap_p_gt_0": 0.91,
+          "r3_bootstrap_p_gt_0": 0.885,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 8,
@@ -79,7 +79,7 @@
             "ETH": -0.9918349587344132,
             "BNB": 0.6993715704246589
           },
-          "r3_bootstrap_p_gt_0": 0.62,
+          "r3_bootstrap_p_gt_0": 0.64,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
@@ -112,7 +112,7 @@
             "ETH": -1.1450309743396547,
             "BNB": 0.10009433026504196
           },
-          "r3_bootstrap_p_gt_0": 0.31,
+          "r3_bootstrap_p_gt_0": 0.285,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
@@ -138,7 +138,7 @@
             "ETH": 0.7834475292212374,
             "BNB": -0.04170762552958307
           },
-          "r3_bootstrap_p_gt_0": 0.695,
+          "r3_bootstrap_p_gt_0": 0.565,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 9,
@@ -164,7 +164,7 @@
             "ETH": 1.1148403175871546,
             "BNB": 0.6713532987035606
           },
-          "r3_bootstrap_p_gt_0": 0.905,
+          "r3_bootstrap_p_gt_0": 0.91,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 9,
@@ -223,7 +223,7 @@
             "ETH": 1.4659339245415075,
             "BNB": 1.913730066215876
           },
-          "r3_bootstrap_p_gt_0": 1.0,
+          "r3_bootstrap_p_gt_0": 0.995,
           "r3_bootstrap_pass": true,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 8,
@@ -249,7 +249,7 @@
             "ETH": 0.8569895372388618,
             "BNB": -0.2583853729605415
           },
-          "r3_bootstrap_p_gt_0": 0.225,
+          "r3_bootstrap_p_gt_0": 0.15,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 5,
@@ -282,7 +282,7 @@
             "ETH": 0.9697635481355573,
             "BNB": -0.9005000604407143
           },
-          "r3_bootstrap_p_gt_0": 0.595,
+          "r3_bootstrap_p_gt_0": 0.655,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 5,
@@ -308,7 +308,7 @@
             "ETH": 0.5976612255003485,
             "BNB": -0.0887448671170191
           },
-          "r3_bootstrap_p_gt_0": 0.605,
+          "r3_bootstrap_p_gt_0": 0.65,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 5,
@@ -334,7 +334,7 @@
             "ETH": 1.0949096794071385,
             "BNB": 3.8477070487763223
           },
-          "r3_bootstrap_p_gt_0": 0.885,
+          "r3_bootstrap_p_gt_0": 0.915,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 7,
@@ -367,7 +367,7 @@
             "ETH": -0.02171738641416563,
             "BNB": -0.2689477942896159
           },
-          "r3_bootstrap_p_gt_0": 0.63,
+          "r3_bootstrap_p_gt_0": 0.73,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
@@ -393,7 +393,7 @@
             "ETH": 0.49120628537337674,
             "BNB": -0.2967589107193391
           },
-          "r3_bootstrap_p_gt_0": 0.68,
+          "r3_bootstrap_p_gt_0": 0.65,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 7,
@@ -419,7 +419,7 @@
             "ETH": -0.6295119330702046,
             "BNB": -0.2863032973782706
           },
-          "r3_bootstrap_p_gt_0": 0.475,
+          "r3_bootstrap_p_gt_0": 0.455,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
