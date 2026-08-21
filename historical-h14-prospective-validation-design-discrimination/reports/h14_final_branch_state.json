@@ -1,0 +1,52 @@
+{
+  "research_branch": "H14",
+  "closed_as_of": "2026-08-21",
+  "status": "CLOSED",
+  "verdict": "RESEARCH_HARD_STOP",
+  "failure_class": "INFEASIBLE_RESEARCH_DESIGN",
+  "failed_model": false,
+  "pipeline_integrity_failed": false,
+  "resumable": false,
+  "h14_3_allowed": false,
+  "h14_3_status": "BLOCKED_FINAL",
+  "collection_allowed": false,
+  "collection_status": "DISABLED_BY_GOVERNANCE",
+  "activation_allowed": false,
+  "activation_status": "NOT_ARMED",
+  "transition_allowed": false,
+  "transition_status": "ABSENT",
+  "post_divergence_clock": "NOT_STARTED",
+  "runtime_modified_by_closeout": false,
+  "model_modified_by_closeout": false,
+  "policy_modified_by_closeout": false,
+  "G5_v1": "IMMUTABLE_UNSUPERSEDED",
+  "G5_v2": "ABSENT",
+  "raw_evidence": "PRESERVED",
+  "pre_divergence_authoritative_count": 647,
+  "pre_divergence_counts_toward_future_discrimination": false,
+  "H14_prospective_outcome_or_PnL_contamination": "NONE",
+  "legacy_H13_summary_exposure": "DISCLOSED_NOT_USED",
+  "successor_research": "NOT_AUTHORIZED",
+  "reopen_mode": "NEW_RESEARCH_REVISION_OR_SUCCESSOR_ONLY",
+  "reopen_requires_any": [
+    "RESEARCH_ESTIMAND_CHANGE",
+    "MATERIAL_ELIGIBLE_POPULATION_EXPANSION",
+    "SCIENTIFICALLY_JUSTIFIED_EFFECTIVE_EVENT_RATE_INCREASE",
+    "OPERATIONALLY_ACCEPTABLE_HORIZON_AT_LEAST_APPROX_262_DAYS",
+    "NEW_DESIGN_POWERS_UNCHANGED_MEANINGFUL_EFFECT"
+  ],
+  "reopen_forbidden_reasons": [
+    "CALENDAR_TIME_PASSED",
+    "CURRENT_MARKET_CHANGED",
+    "MF2_MEMBERSHIP_HAPPENED_TO_CHANGE",
+    "DESIRE_FOR_MORE_SAMPLES",
+    "THRESHOLDS_FEEL_CONSERVATIVE"
+  ],
+  "source_hashes": {
+    "G5_v1": "f8e5702d3f6660dcb51de67054579a8a08d80347a0441828cbd77cec242d4675",
+    "G7_contract": "8c1e9b21d22ef5da79ed59f748980d3e8e86f8d27e046fb1b44322d885ed5f25",
+    "G8_checkpoint": "8ea8733716d15ea0b5fb5968fa54075fcc7d6fb3d1a46f4cc3e2ead213b897ae",
+    "raw_analysis_checkpoint_681": "9192aa6e7e12111ff108560d2019ec109967d8854c36df4597cb5c0db2eedf27",
+    "raw_checkpoint_681": "6ddd601108bbdca29527a032c40a8e7a2223b065b431e769b32d68ab2ab7efd4"
+  }
+}

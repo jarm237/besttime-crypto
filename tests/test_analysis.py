@@ -54,6 +54,15 @@ def test_analyze_market_does_not_track_missed_signals():
     assert "missed_signals" not in result
 
 
+def test_analyze_market_preserves_producer_utc_timestamp_in_history():
+    candles = make_synthetic_candles(260)
+    candles[-1]["time_utc"] = "2026-08-13T10:45:00Z"
+
+    result = analyze_market(candles, coin_name="BTC")
+
+    assert result["history"][-1]["time_utc"] == "2026-08-13T10:45:00Z"
+
+
 def test_calculate_tp_sl_directional_targets():
     long_tp = calculate_tp_sl(
         close=100.0,

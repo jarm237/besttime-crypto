@@ -1,0 +1,62 @@
+{
+  "checkpoint_id": "h14_2_collection_readiness_checkpoint_v1",
+  "evidence_source": "h14_2_stream_checkpoint_r2",
+  "source_analysis_sha256": "ff10fe32f4d58942f400a52dcc1ac78019e030dcbbaaf6eea4736e04abc389a0",
+  "integrity_gates": {
+    "G0_BASELINE_FROZEN": "PASS",
+    "G1_TIMESTAMP_INTEGRITY": "PASS",
+    "G2_PROVENANCE_PURITY": "PASS",
+    "G3_CANONICAL_SEMANTIC_UNIQUENESS": "PASS",
+    "G4_SIGNAL_SCORE_SEMANTICS": "PASS"
+  },
+  "G5_EVIDENCE_SUFFICIENCY_CONTRACT": "PASS",
+  "G6_SUFFICIENCY_REACHABILITY": "STRUCTURALLY_UNREACHABLE",
+  "g4_verdict": "EXPECTED_NEUTRAL_SEMANTICS",
+  "current_evidence": {
+    "authoritative_total": 647,
+    "technical_directional_total": 17,
+    "mf2_eligible_directional": 8,
+    "mf4_eligible_directional": 8,
+    "actionable_total": 4,
+    "shared_actionable": 4,
+    "mf2_only_actionable": 0,
+    "mf4_only_actionable": 0,
+    "effective_disagreement_total": 0,
+    "neither_actionable": 643,
+    "score_50_total": 630,
+    "coverage_ratio_from_epoch_to_checkpoint": 0.3667,
+    "contiguous_horizon_days_observed": 6.05
+  },
+  "sufficiency_contract": {
+    "contract_id": "h14_2_evidence_sufficiency_contract_v1",
+    "sha256": "f8e5702d3f6660dcb51de67054579a8a08d80347a0441828cbd77cec242d4675",
+    "status": "FROZEN",
+    "minimum_contiguous_days": 60,
+    "minimum_coverage_ratio": 0.95,
+    "minimum_actionable_total": 400,
+    "minimum_effective_disagreement_total": 350,
+    "minimum_mf2_only": 175,
+    "minimum_mf4_only": 175
+  },
+  "sufficiency_status": {
+    "temporal_horizon": "NOT_MET",
+    "collection_coverage": "NOT_MET",
+    "actionable_sample": "NOT_MET",
+    "discriminative_sample": "NOT_MET"
+  },
+  "sufficiency_contract_frozen": "PASS",
+  "quality_evaluation": "NOT_ACCESSED",
+  "pnl_evaluation": "NOT_ACCESSED",
+  "h14_3": "BLOCKED_INSUFFICIENT_EVIDENCE",
+  "prospective_collection": "BLOCKED_BY_G6_STRUCTURAL_UNREACHABILITY",
+  "next_state": "RESEARCH_CONTRACT_DESIGN_REVIEW",
+  "elapsed_time_counts_toward_discriminative_sufficiency": false,
+  "reachability_basis": {
+    "mf2_mf4_membership_symmetric_difference": [],
+    "design_specific_posterior_input": false,
+    "design_specific_threshold": false,
+    "different_action_branch": false,
+    "conditional_reachability_requires_governed_schedule_divergence": true
+  },
+  "low_actionable_rate_is_incident": false
+}

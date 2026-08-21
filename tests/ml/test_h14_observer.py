@@ -3,8 +3,11 @@ from __future__ import annotations
 import copy
 import json
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timezone
 from pathlib import Path
 from types import SimpleNamespace
+
+import pytest
 
 from btc_scraper.ml_engine.h14_observer import (
     H14ProspectiveObserver,
@@ -111,6 +114,34 @@ def test_h14_observer_first_row_and_idempotency(tmp_path):
     assert checkpoint["reservation_created"] == 0
     assert checkpoint["position_created"] == 0
     assert checkpoint["governed_evidence_write"] == 0
+    assert analysis_rows[0]["epoch_id"] == "H14_PROSPECTIVE_OBSERVATION_EPOCH_V1_2026_08_13"
+    assert analysis_rows[0]["semantic_analysis_key"]
+    assert analysis_rows[0]["semantic_fingerprint"]
+
+
+def test_h14_observer_test_process_requires_isolated_root(monkeypatch):
+    monkeypatch.delenv("BTC_H14_OBSERVER_ROOT", raising=False)
+    with pytest.raises(RuntimeError, match="h14_test_requires_isolated_observer_root"):
+        H14ProspectiveObserver()
+
+
+def test_h14_observer_non_pytest_test_environment_requires_isolated_root(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("BTC_H14_OBSERVER_ROOT", raising=False)
+    monkeypatch.setenv("BTC_ENVIRONMENT", "test")
+    with pytest.raises(RuntimeError, match="h14_test_requires_isolated_observer_root"):
+        H14ProspectiveObserver()
+
+
+def test_h14_observer_rejects_semantic_collision(tmp_path):
+    _write_schedules(tmp_path)
+    observer = H14ProspectiveObserver(root=tmp_path)
+    observer.observe(_analysis())
+
+    with pytest.raises(RuntimeError, match="h14_canonical_semantic_collision"):
+        observer.observe(_analysis(feature_hash="different-feature"))
+
+    assert len(_rows(observer.analysis_path)) == 1
 
 
 def test_h14_observer_skips_pre_boundary_analysis(tmp_path):
@@ -122,6 +153,74 @@ def test_h14_observer_skips_pre_boundary_analysis(tmp_path):
     assert result.status == "SKIPPED_PRE_BOUNDARY"
     assert _rows(tmp_path / "data/h14_1_prospective_analysis_stream.jsonl") == []
     assert _rows(tmp_path / "data/h14_1_prospective_design_decisions.jsonl") == []
+
+
+def test_h14_timestamp_contract_normalizes_aware_inputs_to_utc():
+    assert _parse_timestamp("2026-08-19T19:00:00+07:00").isoformat() == (
+        "2026-08-19T12:00:00+00:00"
+    )
+    parsed_z = _parse_timestamp("2026-08-19T12:00:00Z")
+    assert parsed_z.isoformat() == "2026-08-19T12:00:00+00:00"
+    assert parsed_z.tzinfo is timezone.utc
+
+
+def test_h14_timestamp_contract_rejects_unknown_naive_input():
+    with pytest.raises(ValueError, match="h14_timestamp_timezone_required"):
+        _parse_timestamp("2026-08-19T19:00:00")
+
+
+def test_h14_legacy_timestamp_requires_explicit_producer_timezone():
+    winter = _parse_timestamp(
+        "2026-01-19T19:00:00",
+        legacy_timezone="Asia/Ho_Chi_Minh",
+    )
+    summer = _parse_timestamp(
+        "2026-08-19T19:00:00",
+        legacy_timezone="Asia/Ho_Chi_Minh",
+    )
+
+    assert winter.isoformat() == "2026-01-19T12:00:00+00:00"
+    assert summer.isoformat() == "2026-08-19T12:00:00+00:00"
+
+
+def test_h14_observer_prefers_producer_utc_over_legacy_display_time(tmp_path):
+    _write_schedules(tmp_path)
+    observer = H14ProspectiveObserver(root=tmp_path)
+    analysis = _analysis(
+        cycle_timestamp=None,
+        history=[
+            {
+                "time": "2026-08-13 17:45",
+                "time_utc": "2026-08-13T10:45:00Z",
+            }
+        ],
+    )
+
+    result = observer.observe(analysis)
+
+    assert result.status == "APPENDED"
+    row = _rows(observer.analysis_path)[0]
+    assert row["cycle_timestamp"] == "2026-08-13T10:45:00Z"
+
+
+def test_h14_observer_rejects_future_timestamp_without_writing(tmp_path):
+    _write_schedules(tmp_path)
+    observer = H14ProspectiveObserver(root=tmp_path)
+
+    with pytest.raises(ValueError, match="h14_timestamp_in_future"):
+        observer.observe(_analysis(cycle_timestamp="2999-01-01T00:00:00Z"))
+
+    assert not observer.analysis_path.exists()
+
+
+def test_h14_observer_rejects_naive_timestamp_without_writing(tmp_path):
+    _write_schedules(tmp_path)
+    observer = H14ProspectiveObserver(root=tmp_path)
+
+    with pytest.raises(ValueError, match="h14_timestamp_timezone_required"):
+        observer.observe(_analysis(cycle_timestamp="2026-08-19T19:00:00"))
+
+    assert not observer.analysis_path.exists()
 
 
 def test_h14_observer_does_not_mutate_input_analysis(tmp_path):

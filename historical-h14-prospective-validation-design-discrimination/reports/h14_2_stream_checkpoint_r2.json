@@ -1,0 +1,26 @@
+{
+  "authoritative_accounting_rows": 647,
+  "authoritative_analysis_rows": 647,
+  "authoritative_decision_rows": 1294,
+  "checkpoint_id": "h14_2_stream_checkpoint_r2",
+  "classification_hash": "d03008f727d1f0122839dcb56e805fd0a4022389b5060befc9e7dfa00378c1d7",
+  "derived_stream_sha256": {
+    "accounting": "2d499b3780260d03f4368d83b5b35835d55e1afe2d02d16c8e3443c27eeb347d",
+    "analysis": "ff10fe32f4d58942f400a52dcc1ac78019e030dcbbaaf6eea4736e04abc389a0",
+    "decisions": "d83fece6421b68ed2649fd789f0ea109191f0bc96d510d25f64b05464515efa9"
+  },
+  "gates": {
+    "G1_TIMESTAMP_CONTRACT": "PASS",
+    "G2_PROVENANCE_PURITY": "PASS",
+    "G3_CANONICAL_SEMANTIC_UNIQUENESS": "PASS",
+    "H14_3": "BLOCKED"
+  },
+  "pnl_evaluation": "BLOCKED",
+  "quality_evaluation": "BLOCKED",
+  "quarantine_manifest_sha256": "89075b8b139ec835a1ac899add55224cbf27b4d65deffe5a4b496dc8ef9a8da2",
+  "raw_checkpoint_681_mutated": false,
+  "source_analysis_rows": 652,
+  "source_analysis_sha256": "9192aa6e7e12111ff108560d2019ec109967d8854c36df4597cb5c0db2eedf27",
+  "source_checkpoint_sequence": 681,
+  "source_checkpoint_sha256": "6ddd601108bbdca29527a032c40a8e7a2223b065b431e769b32d68ab2ab7efd4"
+}

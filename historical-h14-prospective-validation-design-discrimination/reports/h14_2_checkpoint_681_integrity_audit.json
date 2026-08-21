@@ -1,0 +1,65 @@
+{
+  "artifact_id": "h14_2_checkpoint_681_integrity_audit_v1",
+  "audit_status": "PASS_WITH_INTEGRITY_FAILURES_FROZEN",
+  "source_checkpoint": {
+    "checkpoint_sequence": 681,
+    "checkpoint_generated_at": "2026-08-19T12:01:03Z",
+    "checkpoint_file_sha256": "6ddd601108bbdca29527a032c40a8e7a2223b065b431e769b32d68ab2ab7efd4",
+    "checkpoint_payload_hash": "b57df46889a00be1c1ebe7b5b41788a615c68807befe3f4a6da2fa311147f7e2",
+    "repository_commit": "1f358cfbcc35be217f7d3d19b3fecb9d90b9b87a",
+    "observer_health_reported": "PASS"
+  },
+  "raw_streams": {
+    "analysis": {
+      "rows": 652,
+      "sha256": "9192aa6e7e12111ff108560d2019ec109967d8854c36df4597cb5c0db2eedf27"
+    },
+    "decisions": {
+      "rows": 1304,
+      "sha256": "8aa32ad6d4c3f8507d91d3f31447cf62bc4fd0a52022ca092c671569e2dd8e7b"
+    },
+    "accounting": {
+      "rows": 652,
+      "sha256": "f7ffefc3985c4f8f8a8cc3b0b9bc4d0f86e93d8814f3a5da6cd9b91bccd94b58"
+    },
+    "membership_transitions": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "decision_accounting": {
+    "shared_actionable": 4,
+    "mf2_only_actionable": 0,
+    "mf4_only_actionable": 0,
+    "neither_actionable": 648
+  },
+  "local_production_coverage": {
+    "observed_cycles": 215,
+    "expected_cycles": 223,
+    "missing_cycles": 8,
+    "coverage_ratio": 0.9641255605381166
+  },
+  "known_anomalies": {
+    "timestamp_future_rows": 84,
+    "test_contamination_rows": 3,
+    "canonical_collision_groups": 1,
+    "canonical_collision_rows": 2
+  },
+  "integrity_state": {
+    "timestamp_semantics": "FAIL",
+    "stream_purity": "FAIL",
+    "canonical_uniqueness": "FAIL",
+    "temporal_horizon": "INSUFFICIENT",
+    "actionable_sample": "INSUFFICIENT",
+    "quality_evaluation": "BLOCKED",
+    "h14_3": "BLOCKED"
+  },
+  "gates": {
+    "G0_BASELINE_FROZEN": "PASS",
+    "G1_TIMESTAMP_CONTRACT": "PENDING_REMEDIATION_VERIFICATION"
+  },
+  "immutability": {
+    "raw_streams_modified_by_audit": false,
+    "checkpoint_681_overwritten_by_audit": false
+  }
+}

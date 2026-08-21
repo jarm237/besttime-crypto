@@ -1,0 +1,47 @@
+{
+  "checkpoint_id": "h14_2_post_divergence_readiness_checkpoint_v1",
+  "phase": "H14_2_G7_PROSPECTIVE_DIVERGENCE_CONTRACT_DESIGN",
+  "source_G6_verdict": "STRUCTURALLY_UNREACHABLE_UNDER_CURRENT_SCHEDULES",
+  "pre_divergence_authoritative_count": 647,
+  "pre_divergence_classification": "PRESERVED_NOT_COUNTED_TOWARD_NEW_HORIZON",
+  "post_divergence": {
+    "clock_status": "NOT_STARTED",
+    "elapsed_days": 0,
+    "coverage": "NOT_STARTED",
+    "N_total": 0,
+    "N_actionable": 0,
+    "N_disagreement": 0,
+    "N_MF2_only": 0,
+    "N_MF4_only": 0
+  },
+  "G7_gates": {
+    "G7_RESEARCH_ESTIMAND": "PASS",
+    "G7_DIVERGENCE_MECHANISM": "NOT_SELECTED",
+    "G7_STATIC_REACHABILITY": "PASS_CONDITIONAL_ON_SCHEDULE_DIVERGENCE",
+    "G7_VOLUME_REACHABILITY": "FAIL",
+    "G7_TRANSITION_CONTRACT": "NOT_OPENED",
+    "G7_RUNTIME_IMPLEMENTATION": "NOT_STARTED_NO_AUTHORIZED_MECHANISM",
+    "G7_SHADOW_SANITY": "NOT_STARTED"
+  },
+  "divergence_contract": {
+    "contract_id": "h14_2_prospective_divergence_contract_v1",
+    "sha256": "8c1e9b21d22ef5da79ed59f748980d3e8e86f8d27e046fb1b44322d885ed5f25",
+    "status": "NOT_FROZEN_NO_ADMISSIBLE_VOLUME_REACHABLE_MECHANISM"
+  },
+  "G5_contract": {
+    "sha256": "f8e5702d3f6660dcb51de67054579a8a08d80347a0441828cbd77cec242d4675",
+    "thresholds_modified": false
+  },
+  "current_schedule_file_sha256": "3c455a645b713a6695a5e25246927e365af468b897bf0171be697e0e392b21fa",
+  "current_schedule_mutated": false,
+  "model_modified": false,
+  "policy_modified": false,
+  "runtime_modified": false,
+  "retroactive_application": false,
+  "h14_prospective_outcome_or_pnl_accessed": false,
+  "legacy_h13_summary_exposure_disclosed": true,
+  "H14_3": "BLOCKED_INSUFFICIENT_EVIDENCE",
+  "prospective_collection": "BLOCKED",
+  "activation_state": "NOT_ARMED",
+  "next_required_governance_action": "FORMAL_RESEARCH_DESIGN_OR_G5_CONTRACT_REVIEW_WITHOUT_SILENT_THRESHOLD_CHANGE"
+}

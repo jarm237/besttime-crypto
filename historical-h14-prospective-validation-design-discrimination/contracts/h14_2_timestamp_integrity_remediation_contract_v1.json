@@ -1,0 +1,41 @@
+{
+  "contract_id": "h14_2_timestamp_integrity_remediation_contract_v1",
+  "phase": "H14_2_INTEGRITY_REMEDIATION",
+  "scope": "timestamp_ingestion_and_legacy_reconstitution_only",
+  "source_checkpoint_sequence": 681,
+  "authoritative_timestamp_contract": {
+    "timezone_awareness_required": true,
+    "canonical_timezone": "UTC",
+    "serialized_format": "YYYY-MM-DDTHH:MM:SS[.ffffff]Z",
+    "naive_live_input": "REJECT",
+    "future_live_input": "REJECT",
+    "downstream_timezone_inference": "FORBIDDEN"
+  },
+  "producer_contract": {
+    "binance_rest": "UTC_AWARE_FROM_EPOCH_MILLISECONDS",
+    "binance_websocket": "UTC_AWARE_FROM_EPOCH_MILLISECONDS",
+    "conversion_rule": "datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)"
+  },
+  "legacy_migration_contract": {
+    "automatic_reinterpretation": "FORBIDDEN",
+    "explicit_producer_timezone_required": true,
+    "proven_legacy_timezone": "Asia/Ho_Chi_Minh",
+    "eligible_only_during": "AUTHORITATIVE_RECONSTITUTION",
+    "unknown_or_unproven_timezone": "QUARANTINED_AMBIGUOUS",
+    "raw_stream_mutation": "FORBIDDEN"
+  },
+  "acceptance_gate": {
+    "gate": "G1_TIMESTAMP_CONTRACT",
+    "new_ingestion_contract": "PASS",
+    "historical_authoritative_reconstitution": "PASS",
+    "future_authoritative_rows_required": 0,
+    "timezone_ambiguous_authoritative_rows_required": 0,
+    "overall_status": "PASS"
+  },
+  "governance": {
+    "quality_evaluation": "BLOCKED",
+    "pnl_evaluation": "BLOCKED",
+    "h14_3": "BLOCKED",
+    "outcome_accessed": false
+  }
+}

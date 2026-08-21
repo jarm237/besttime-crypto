@@ -1,0 +1,40 @@
+{
+  "entries": [
+    {
+      "canonical_key": "69efd4c0dfeabb8f95d5269ff8e9c53de07915e26028d7020627e82a51b8bd8a",
+      "classification": "CANONICAL_COLLISION",
+      "reason_code": "SEMANTIC_FINGERPRINT_MISMATCH",
+      "record_ids": [
+        "h14pa-296a4b30290041b9b676d935",
+        "h14pa-abe2c919f88c82ce597a6d02"
+      ],
+      "source_checkpoint": 681
+    },
+    {
+      "classification": "QUARANTINED_TEST",
+      "prospective_analysis_id": "h14pa-07f2efcd4bea858c97570d4f",
+      "reason_code": "FROZEN_TEST_PARITY_LINEAGE",
+      "reason_detail": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+      "source_checkpoint": 681
+    },
+    {
+      "classification": "QUARANTINED_TEST",
+      "prospective_analysis_id": "h14pa-250ea490fbf27b0beead73bf",
+      "reason_code": "FROZEN_TEST_PARITY_LINEAGE",
+      "reason_detail": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+      "source_checkpoint": 681
+    },
+    {
+      "classification": "QUARANTINED_TEST",
+      "prospective_analysis_id": "h14pa-f271bde822087aebbde66201",
+      "reason_code": "FROZEN_TEST_PARITY_LINEAGE",
+      "reason_detail": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+      "source_checkpoint": 681
+    }
+  ],
+  "manifest_id": "h14_2_quarantine_manifest_v1",
+  "policy": "excluded_from_authoritative_derived_streams; raw source unchanged",
+  "record_level_quarantine_count": 5,
+  "source_analysis_sha256": "9192aa6e7e12111ff108560d2019ec109967d8854c36df4597cb5c0db2eedf27",
+  "source_checkpoint_sequence": 681
+}

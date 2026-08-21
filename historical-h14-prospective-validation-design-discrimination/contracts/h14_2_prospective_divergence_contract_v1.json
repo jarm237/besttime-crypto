@@ -1,0 +1,49 @@
+{
+  "contract_id": "h14_2_prospective_divergence_contract_v1",
+  "contract_version": 1,
+  "status": "NOT_FROZEN_NO_ADMISSIBLE_VOLUME_REACHABLE_MECHANISM",
+  "research_estimand": "Compare SLOW_UPDATE_V1 membership persistence against FIXED membership persistence under one shared policy and canonical observation stream.",
+  "estimand_status": "FROZEN",
+  "interpretation_guard": "Results describe membership schedule/update semantics, not model or policy superiority.",
+  "pre_divergence": {
+    "classification": "PRE_DIVERGENCE_EVIDENCE",
+    "authoritative_count": 647,
+    "actionable_count": 4,
+    "effective_disagreement_count": 0,
+    "mf2_only_count": 0,
+    "mf4_only_count": 0,
+    "counts_toward_post_divergence_horizon": false
+  },
+  "MF2_definition": {
+    "label": "SLOW_UPDATE_2M",
+    "membership_semantics": "SLOW_UPDATE_V1",
+    "current_membership": ["ETHUSDT", "BNBUSDT"],
+    "current_schedule_hash": "5b3ac18f565de82fce67105c1554972b8d234765e9c1a1e08996a79e6a1e6174"
+  },
+  "MF4_definition": {
+    "label": "FIXED_2M",
+    "membership_semantics": "FIXED",
+    "current_membership": ["ETHUSDT", "BNBUSDT"],
+    "current_schedule_hash": "9af5d5d2968b8e2a083769cb7f61b7aa4a6e6d4048b24b4ce05862ec77e3d2be"
+  },
+  "divergence_mechanism": null,
+  "membership_or_policy_difference": null,
+  "effective_at": null,
+  "transition_id": null,
+  "pre_transition_schedule_file_sha256": "3c455a645b713a6695a5e25246927e365af468b897bf0171be697e0e392b21fa",
+  "post_transition_schedule_hash": null,
+  "G5_contract_hash": "f8e5702d3f6660dcb51de67054579a8a08d80347a0441828cbd77cec242d4675",
+  "G5_thresholds_modified": false,
+  "outcome_access_prohibited": true,
+  "h14_prospective_outcome_accessed": false,
+  "legacy_h13_summary_exposure_disclosed": true,
+  "retroactive_application": false,
+  "historical_replay_role": "DECISION_SPACE_REACHABILITY_ONLY",
+  "post_divergence_clock_rule": "max(frozen_effective_at, first_valid_post_divergence_observation)",
+  "activation": "FORBIDDEN_UNTIL_REPLACED_BY_A_PASSING_FROZEN_CONTRACT",
+  "current_schedule_mutation": "FORBIDDEN",
+  "policy_model_mutation": "FORBIDDEN",
+  "prospective_collection": "BLOCKED",
+  "h14_3": "BLOCKED_INSUFFICIENT_EVIDENCE",
+  "rejection_reason": "No scientifically admissible candidate is volume-reachable against the frozen G5 thresholds within the 60-day horizon."
+}

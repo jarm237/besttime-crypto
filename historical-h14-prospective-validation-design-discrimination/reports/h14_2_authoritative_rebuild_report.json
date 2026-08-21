@@ -1,0 +1,35 @@
+{
+  "derived_stream_sha256": {
+    "accounting": "2d499b3780260d03f4368d83b5b35835d55e1afe2d02d16c8e3443c27eeb347d",
+    "analysis": "ff10fe32f4d58942f400a52dcc1ac78019e030dcbbaaf6eea4736e04abc389a0",
+    "decisions": "d83fece6421b68ed2649fd789f0ea109191f0bc96d510d25f64b05464515efa9"
+  },
+  "gates": {
+    "G1_TIMESTAMP_CONTRACT": "PASS",
+    "G2_PROVENANCE_PURITY": "PASS",
+    "G3_CANONICAL_SEMANTIC_UNIQUENESS": "PASS",
+    "H14_3": "BLOCKED"
+  },
+  "pnl_evaluation": "BLOCKED",
+  "quality_evaluation": "BLOCKED",
+  "report_id": "h14_2_authoritative_rebuild_report_v1",
+  "source_checkpoint_sequence": 681,
+  "source_checkpoint_sha256": "6ddd601108bbdca29527a032c40a8e7a2223b065b431e769b32d68ab2ab7efd4",
+  "summary": {
+    "authoritative_analysis_rows": 647,
+    "canonical_collision_count": 1,
+    "canonical_collision_rows": 2,
+    "cardinality_violations": 0,
+    "classification_hash": "d03008f727d1f0122839dcb56e805fd0a4022389b5060befc9e7dfa00378c1d7",
+    "duplicate_identical_count": 0,
+    "future_authoritative_rows": 0,
+    "invalid_lineage_count": 0,
+    "posterior_violations": 0,
+    "quarantined_analysis_rows": 5,
+    "raw_analysis_rows": 652,
+    "test_quarantine_count": 3,
+    "timestamp_corrected_count": 649,
+    "timezone_ambiguous_authoritative_rows": 0,
+    "unknown_lineage_count": 0
+  }
+}

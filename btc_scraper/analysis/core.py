@@ -870,7 +870,8 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
     history = []
     for c in candles[-8:]:
         history.append({
-            "time": c["time"], "open": c["open"], "high": c["high"],
+            "time": c["time"], "time_utc": c.get("time_utc"),
+            "open": c["open"], "high": c["high"],
             "low": c["low"], "close": c["close"], "volume": c["volume"],
             "rsi": c["rsi"], "ema9": c["ema9"], "ema21": c["ema21"],
             "sma50": c["sma50"], "sma200": c["sma200"], "macd": c["macd"],

@@ -1,0 +1,54 @@
+{
+  "contract_id": "h14_2_provenance_purity_contract_v1",
+  "epoch_id": "H14_PROSPECTIVE_OBSERVATION_EPOCH_V1_2026_08_13",
+  "authoritative_root": "historical-h14-prospective-validation-design-discrimination",
+  "required_record_fields": [
+    "prospective_analysis_id",
+    "symbol",
+    "cycle_timestamp",
+    "release_sha",
+    "artifact_sha256",
+    "feature_snapshot_hash"
+  ],
+  "allowed_lineages": [
+    {
+      "deployment_id": "paper-canary-20260813-01",
+      "release_sha": "paper-canary-20260813-01",
+      "artifact_sha256": "4f7bc98a6c18d04d7853a180c4f68763298580128a206bf159f4d16c956cf1e1",
+      "producer": "binance_h14_observer_legacy_v1",
+      "environment": "paper_canary",
+      "legacy_timestamp_timezone": "Asia/Ho_Chi_Minh",
+      "legacy_timestamp_semantics": "LOCAL_WALL_CLOCK_MISLABELED_UTC"
+    },
+    {
+      "deployment_id": "local-production",
+      "release_sha": "local-production",
+      "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "producer": "binance_h14_observer_legacy_v1",
+      "environment": "production",
+      "legacy_timestamp_timezone": "Asia/Ho_Chi_Minh",
+      "legacy_timestamp_semantics": "LOCAL_WALL_CLOCK_MISLABELED_UTC"
+    }
+  ],
+  "frozen_test_lineages": [
+    {
+      "release_sha": "dummy-dep",
+      "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "feature_snapshot_hash": "dummy-hash",
+      "producer": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+      "environment": "test_parity",
+      "reason_code": "FROZEN_TEST_PARITY_LINEAGE"
+    }
+  ],
+  "classification_states": [
+    "AUTHORITATIVE",
+    "QUARANTINED_TEST",
+    "QUARANTINED_INVALID_LINEAGE",
+    "QUARANTINED_UNKNOWN_LINEAGE"
+  ],
+  "unknown_lineage_policy": "QUARANTINE",
+  "acceptance_gate": "PASS",
+  "raw_stream_mutation": "FORBIDDEN",
+  "quality_evaluation": "BLOCKED",
+  "h14_3": "BLOCKED"
+}

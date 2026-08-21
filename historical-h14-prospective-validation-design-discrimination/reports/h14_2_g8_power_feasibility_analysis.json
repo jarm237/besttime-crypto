@@ -1,0 +1,64 @@
+{
+  "analysis_id": "h14_2_g8_power_feasibility_analysis_v1",
+  "source_hashes": {
+    "G5_v1": "f8e5702d3f6660dcb51de67054579a8a08d80347a0441828cbd77cec242d4675",
+    "G7_contract": "8c1e9b21d22ef5da79ed59f748980d3e8e86f8d27e046fb1b44322d885ed5f25",
+    "G7_checkpoint": "b8172112ca07f482a73833bd9ae3a2655442c9129a5797451ef871109311dac9"
+  },
+  "primary_design": {
+    "population": ["BTCUSDT", "ETHUSDT", "BNBUSDT"],
+    "endpoint": "daily design-exclusive actionable event rate ratio",
+    "estimand": "lambda_MF2_only / lambda_MF4_only",
+    "unit_of_inference": "UTC_CALENDAR_DAY",
+    "raw_observation_unit": "15_MINUTE_SYMBOL_CYCLE_NESTED_IN_DAY",
+    "minimum_meaningful_rate_ratio": 1.5,
+    "reciprocal_boundary": 0.6666666667,
+    "two_sided_alpha": 0.05,
+    "power": 0.8,
+    "dependence_design_effect": 1.5,
+    "calendar_availability_margin": 1.2
+  },
+  "derivation": {
+    "formula": "2 * (z_alpha_2 + z_power)^2 / log(rate_ratio)^2",
+    "z_alpha_2": 1.9599639845,
+    "z_power": 0.8416212336,
+    "unadjusted_events_per_exclusive_arm": 95.484020092,
+    "adjusted_events_per_exclusive_arm": 144,
+    "adjusted_total_disagreement_events": 288
+  },
+  "outcome_blind_availability": {
+    "observed_days": 6.0520833333,
+    "best_candidate_actionable_count": 8,
+    "best_candidate_disagreement_count": 8,
+    "best_candidate_MF2_only_count": 4,
+    "best_candidate_MF4_only_count": 4,
+    "actionable_per_day": 1.321858864,
+    "disagreement_per_day": 1.321858864,
+    "MF2_only_per_day": 0.660929432,
+    "MF4_only_per_day": 0.660929432
+  },
+  "calendar_projection": {
+    "raw_days_for_144_per_arm": 217.875,
+    "margin_adjusted_days_for_primary_design": 261.45,
+    "G5_v1_raw_days_for_400_actionable": 302.6041666667,
+    "G5_v1_margin_adjusted_days": 363.125,
+    "expected_60d_actionable": 79.3115318417,
+    "expected_60d_disagreement": 79.3115318417,
+    "expected_60d_per_exclusive_arm": 39.6557659208,
+    "effective_60d_per_exclusive_arm": 26.4371772806,
+    "detectable_rate_ratio_at_60d": 2.1609945907
+  },
+  "branch_results": {
+    "RETAIN_G5_EXTEND_HORIZON": "REJECT_CURRENT_PROGRAM_APPROX_365_DAYS",
+    "ADOPT_G5_V2_60D": "REJECT_INSUFFICIENT_POWER_FOR_MME",
+    "ADOPT_G5_V2_EXTENDED": "NOT_ADOPTED_STILL_APPROX_262_DAYS",
+    "REDESIGN_POPULATION": "REQUIRES_SEPARATE_ESTIMAND_REVIEW",
+    "FINAL": "RESEARCH_HARD_STOP"
+  },
+  "G5_v1_modified": false,
+  "G5_v2_created": false,
+  "transition_frozen": false,
+  "runtime_model_policy_modified": false,
+  "H14_outcome_or_PnL_accessed": false,
+  "H13_quality_used": false
+}

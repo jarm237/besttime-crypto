@@ -1,0 +1,51 @@
+{
+  "checkpoint_id": "h14_2_g8_final_checkpoint_v1",
+  "phase": "H14_2_G8_FORMAL_RESEARCH_DESIGN_AND_G5_FEASIBILITY_REVIEW",
+  "source_hashes": {
+    "G5_v1": "f8e5702d3f6660dcb51de67054579a8a08d80347a0441828cbd77cec242d4675",
+    "G7_contract": "8c1e9b21d22ef5da79ed59f748980d3e8e86f8d27e046fb1b44322d885ed5f25",
+    "G7_checkpoint": "b8172112ca07f482a73833bd9ae3a2655442c9129a5797451ef871109311dac9"
+  },
+  "artifact_hashes": {
+    "formal_research_design_review": "bf1f989d0f2044ce28849a889f14ac15e8e5f668d56134e2a4bccb514cb28ef6",
+    "power_feasibility_analysis": "160a066a06d37c533cf97fda609aca490a784905b908bebc886d252fc03ce0c4"
+  },
+  "definition_of_done": {
+    "primary_estimand": "FROZEN",
+    "primary_endpoint": "FROZEN",
+    "unit_of_analysis": "FROZEN",
+    "minimum_meaningful_effect": "FROZEN_RATE_RATIO_1_50",
+    "precision_power_requirement": "FROZEN_ALPHA_0_05_POWER_0_80",
+    "dependence_assumptions": "FROZEN_DESIGN_EFFECT_1_50",
+    "G5_v1_feasibility": "FORMALLY_ASSESSED_INFEASIBLE_AT_60_DAYS",
+    "alternative_horizon": "ASSESSED_APPROX_365_DAYS_FOR_G5_V1",
+    "G5_v2_statistical_requirement": "DERIVED_144_PER_ARM_BUT_NOT_ADOPTED",
+    "expanded_design_alternatives": "ASSESSED_ESTIMAND_REVIEW_REQUIRED",
+    "outcome_PnL": "NOT_ACCESSED_FOR_H14",
+    "H13_quality": "NOT_USED",
+    "runtime_model_policy": "UNCHANGED",
+    "transition": "NOT_FROZEN"
+  },
+  "G5_v1": {
+    "status": "IMMUTABLE_UNSUPERSEDED",
+    "modified": false
+  },
+  "G5_v2": {
+    "created": false,
+    "reason": "A statistically adequate revision still requires approximately 261.5 calendar days and does not make the current program feasible."
+  },
+  "pre_divergence_evidence": {
+    "authoritative_count": 647,
+    "status": "PRESERVED",
+    "counts_toward_future_discrimination_clock": false
+  },
+  "post_divergence_clock": "NOT_STARTED",
+  "prospective_collection": "BLOCKED",
+  "activation": "NOT_ARMED",
+  "H14_3": "BLOCKED",
+  "final_verdict": "RESEARCH_HARD_STOP",
+  "reopen_conditions": [
+    "FORMAL_POPULATION_OR_ESTIMAND_REVISION",
+    "MATERIALLY_DIFFERENT_OUTCOME_BLIND_OBSERVATION_AVAILABILITY"
+  ]
+}

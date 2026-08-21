@@ -1,0 +1,32 @@
+{
+  "artifact_id": "h14_2_preexisting_test_failure_baseline_v1",
+  "baseline_commit": "1f358cfbcc35be217f7d3d19b3fecb9d90b9b87a",
+  "captured_before_batch": "H14.2-G2/G3",
+  "known_failures": [
+    {
+      "node_id": "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+      "failure_type": "AssertionError",
+      "signature": "violations() returned 12 direct model deserialization/static safety violations"
+    },
+    {
+      "node_id": "tests/ml/test_non_evidence_inference_smoke.py::test_non_evidence_decision_contract_stays_sell_side_probability_v2",
+      "failure_type": "AssertionError",
+      "signature": "decision action IGNORE != expected SELL"
+    },
+    {
+      "node_id": "tests/test_etf_integration_audit.py::test_integration_json_schema",
+      "failure_type": "AssertionError",
+      "signature": "INTEGRATION_NOT_PROVEN != expected INTEGRATION_PROMOTED"
+    },
+    {
+      "node_id": "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+      "failure_type": "KeyError",
+      "signature": "gate_sequence[2].hard_rule missing"
+    },
+    {
+      "node_id": "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence",
+      "failure_type": "AssertionError",
+      "signature": "Fidelity contains H1_HISTORICAL and H2_AS_OF_RECONSTRUCTABLE"
+    }
+  ]
+}

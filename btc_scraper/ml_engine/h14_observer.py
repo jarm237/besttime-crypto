@@ -14,9 +14,16 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
+from zoneinfo import ZoneInfo
 
 from btc_scraper.core.paths import build_repo_path
 from btc_scraper.core.utils import write_atomic
+from btc_scraper.ml_engine.h14_integrity import (
+    H14_EPOCH_ID,
+    classify_provenance,
+    semantic_analysis_key,
+    semantic_fingerprint,
+)
 
 
 H14_PROSPECTIVE_START_TIMESTAMP = "2026-08-13T08:50:07Z"
@@ -24,6 +31,7 @@ H14_DEFAULT_ROOT = build_repo_path(
     "historical-h14-prospective-validation-design-discrimination"
 )
 H14_ACTIONABLE_ACTIONS = {"BUY", "SELL"}
+H14_LEGACY_LOCAL_TIMEZONE = "Asia/Ho_Chi_Minh"
 
 
 @dataclass(frozen=True)
@@ -51,6 +59,14 @@ class H14ProspectiveObserver:
     def __init__(self, *, root: str | Path | None = None) -> None:
         env_root = os.getenv("BTC_H14_OBSERVER_ROOT")
         self.root = Path(root or env_root or H14_DEFAULT_ROOT)
+        test_process = bool(os.getenv("PYTEST_CURRENT_TEST")) or str(
+            os.getenv("BTC_ENVIRONMENT") or ""
+        ).lower() in {"test", "testing"}
+        if test_process and (
+            (root is None and not env_root)
+            or self.root.resolve() == H14_DEFAULT_ROOT.resolve()
+        ):
+            raise RuntimeError("h14_test_requires_isolated_observer_root")
         self.data_dir = self.root / "data"
         self.reports_dir = self.root / "reports"
         self.analysis_path = self.data_dir / "h14_1_prospective_analysis_stream.jsonl"
@@ -65,6 +81,8 @@ class H14ProspectiveObserver:
         timestamp = _analysis_timestamp(analysis)
         if timestamp is None:
             return self._result("SKIPPED_MISSING_TIMESTAMP", None, "PASS")
+        if timestamp > datetime.now(timezone.utc):
+            raise ValueError("h14_timestamp_in_future")
         if timestamp < _parse_timestamp(H14_PROSPECTIVE_START_TIMESTAMP):
             return self._result("SKIPPED_PRE_BOUNDARY", None, "PASS")
 
@@ -72,6 +90,17 @@ class H14ProspectiveObserver:
         with self._locked():
             schedules = self._load_schedules()
             canonical = self._canonical_record(analysis, timestamp)
+            self._assert_authoritative_provenance(canonical)
+            semantic_match = self._existing_row(
+                self.analysis_path,
+                "semantic_analysis_key",
+                canonical["semantic_analysis_key"],
+            )
+            if semantic_match is not None:
+                existing_fingerprint = semantic_match.get("semantic_fingerprint")
+                if existing_fingerprint != canonical["semantic_fingerprint"]:
+                    raise RuntimeError("h14_canonical_semantic_collision")
+                canonical = semantic_match
             analysis_created = self._append_unique(
                 self.analysis_path,
                 canonical,
@@ -119,6 +148,19 @@ class H14ProspectiveObserver:
                 incomplete_accounting=checkpoint["incomplete_accounting"],
             )
 
+    def _assert_authoritative_provenance(self, canonical: Mapping[str, Any]) -> None:
+        if self.root.resolve() != H14_DEFAULT_ROOT.resolve():
+            return
+        contract_path = self.root / "contracts/h14_2_provenance_purity_contract_v1.json"
+        if not contract_path.exists():
+            raise RuntimeError("h14_authoritative_provenance_contract_missing")
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        result = classify_provenance(canonical, contract)
+        if result["classification"] != "AUTHORITATIVE":
+            raise RuntimeError(
+                f"h14_authoritative_provenance_rejected:{result['reason_code']}"
+            )
+
     def _canonical_record(
         self,
         analysis: Mapping[str, Any],
@@ -135,6 +177,7 @@ class H14ProspectiveObserver:
         action = _action_from(analysis, signal_score, final_decision)
         base = {
             "prospective_analysis_id": "",
+            "epoch_id": H14_EPOCH_ID,
             "symbol": symbol,
             "cycle_timestamp": cycle_timestamp,
             "release_sha": str(
@@ -175,6 +218,9 @@ class H14ProspectiveObserver:
             "meta_confidence": _meta_confidence(analysis, signal_score, final_decision),
             "current_policy_action": action,
         }
+        base["deployment_id"] = base["release_sha"]
+        base["producer"] = "binance_h14_observer_v2"
+        base["environment"] = str(analysis.get("environment") or "production")
         identity = {
             "symbol": base["symbol"],
             "cycle_timestamp": base["cycle_timestamp"],
@@ -184,6 +230,10 @@ class H14ProspectiveObserver:
             "feature_snapshot_hash": base["feature_snapshot_hash"],
         }
         base["prospective_analysis_id"] = f"h14pa-{_sha256(identity)[:24]}"
+        base["semantic_analysis_key"] = semantic_analysis_key(
+            base["epoch_id"], base["symbol"], base["cycle_timestamp"]
+        )
+        base["semantic_fingerprint"] = semantic_fingerprint(base)
         base["record_hash"] = _sha256(base)
         return base
 
@@ -417,11 +467,22 @@ class H14ProspectiveObserver:
 
 
 def _analysis_timestamp(analysis: Mapping[str, Any]) -> datetime | None:
-    for key in ("cycle_timestamp", "input_end_time", "observed_at", "time", "timestamp"):
+    for key in ("cycle_timestamp", "time_utc"):
         value = analysis.get(key)
         if value:
             return _parse_timestamp(str(value))
     history = analysis.get("history")
+    if isinstance(history, list) and history:
+        tail = history[-1]
+        if isinstance(tail, Mapping):
+            for key in ("time_utc", "timestamp_utc"):
+                value = tail.get(key)
+                if value:
+                    return _parse_timestamp(str(value))
+    for key in ("input_end_time", "observed_at", "time", "timestamp"):
+        value = analysis.get(key)
+        if value:
+            return _parse_timestamp(str(value))
     if isinstance(history, list) and history:
         tail = history[-1]
         if isinstance(tail, Mapping):
@@ -432,11 +493,23 @@ def _analysis_timestamp(analysis: Mapping[str, Any]) -> datetime | None:
     return None
 
 
-def _parse_timestamp(value: str) -> datetime:
+def _parse_timestamp(
+    value: str,
+    *,
+    legacy_timezone: str | None = None,
+) -> datetime:
+    """Parse an authoritative aware timestamp or an explicitly scoped legacy one.
+
+    Naive values are never assumed to be UTC. Historical migration code may
+    supply a proven producer timezone explicitly; live authoritative ingestion
+    must leave ``legacy_timezone`` unset and therefore rejects naive input.
+    """
     normalized = value.strip().replace("Z", "+00:00")
     parsed = datetime.fromisoformat(normalized)
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        if legacy_timezone is None:
+            raise ValueError("h14_timestamp_timezone_required")
+        parsed = parsed.replace(tzinfo=ZoneInfo(legacy_timezone))
     return parsed.astimezone(timezone.utc)
 
 

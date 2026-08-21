@@ -1,6 +1,6 @@
 import aiohttp
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from btc_scraper.core.config import INTERVAL, LIMIT
 
 __all__ = ["fetch_ohlcv", "fetch_ohlcv_tf", "fetch_ohlcv_multi_tf", "get_ws_stream_names", "LIMIT", "MTF_INTERVALS"]
@@ -13,6 +13,16 @@ MTF_INTERVALS = {
 }
 
 BASE_URL = "https://api.binance.com"
+
+
+def _utc_candle_time(timestamp_ms: int | float) -> str:
+    """Serialize a Binance millisecond epoch as an aware UTC timestamp."""
+    return (
+        datetime.fromtimestamp(float(timestamp_ms) / 1000, tz=timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 async def fetch_ohlcv(coin: str, session: aiohttp.ClientSession = None) -> list[dict]:
@@ -36,6 +46,7 @@ async def fetch_ohlcv(coin: str, session: aiohttp.ClientSession = None) -> list[
             for k in raw:
                 candles.append({
                     "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
+                    "time_utc": _utc_candle_time(k[0]),
                     "open":   float(k[1]),
                     "high":   float(k[2]),
                     "low":    float(k[3]),
@@ -73,6 +84,7 @@ async def fetch_ohlcv_tf(coin: str, interval: str, limit: int, session: aiohttp.
             for k in raw:
                 candles.append({
                     "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
+                    "time_utc": _utc_candle_time(k[0]),
                     "open":   float(k[1]),
                     "high":   float(k[2]),
                     "low":    float(k[3]),

@@ -16,7 +16,6 @@ import json
 import time
 import threading
 import logging
-from datetime import datetime
 from typing import Callable, Optional
 
 from btc_scraper.core.candle_store import candle_store as _default_store
@@ -25,6 +24,7 @@ from btc_scraper.exchanges.binance import (
     fetch_ohlcv_tf,
     MTF_INTERVALS,
     LIMIT,
+    _utc_candle_time,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,11 @@ def _parse_kline_event(msg: dict) -> Optional[dict]:
         "interval": k["i"],
         "is_closed": k["x"],
         "candle": {
-            "time":   datetime.fromtimestamp(k["t"] / 1000).strftime("%Y-%m-%d %H:%M"),
+            "time":   time.strftime(
+                "%Y-%m-%d %H:%M",
+                time.localtime(k["t"] / 1000),
+            ),
+            "time_utc": _utc_candle_time(k["t"]),
             "open":   float(k["o"]),
             "high":   float(k["h"]),
             "low":    float(k["l"]),

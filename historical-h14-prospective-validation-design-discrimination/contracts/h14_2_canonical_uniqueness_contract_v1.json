@@ -1,0 +1,24 @@
+{
+  "contract_id": "h14_2_canonical_uniqueness_contract_v1",
+  "epoch_id": "H14_PROSPECTIVE_OBSERVATION_EPOCH_V1_2026_08_13",
+  "canonical_key_fields": [
+    "epoch_id",
+    "symbol",
+    "canonical_cycle_timestamp"
+  ],
+  "canonical_key_encoding": "sha256(epoch_id + '|' + symbol + '|' + canonical_cycle_timestamp)",
+  "classification_order": [
+    "timestamp_integrity",
+    "provenance",
+    "canonical_grouping"
+  ],
+  "duplicate_identical_rule": "same canonical key and same semantic fingerprint",
+  "semantic_collision_rule": "same canonical key and different semantic fingerprint",
+  "semantic_collision_resolution": "QUARANTINE_ENTIRE_CANONICAL_KEY",
+  "last_write_wins": "FORBIDDEN",
+  "first_write_wins": "FORBIDDEN_FOR_COLLISIONS",
+  "acceptance_gate": "PASS",
+  "raw_stream_mutation": "FORBIDDEN",
+  "quality_evaluation": "BLOCKED",
+  "h14_3": "BLOCKED"
+}

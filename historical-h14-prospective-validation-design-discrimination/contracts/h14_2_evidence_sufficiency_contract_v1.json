@@ -1,0 +1,78 @@
+{
+  "contract_id": "h14_2_evidence_sufficiency_contract_v1",
+  "frozen_before_outcome_access": true,
+  "outcome_accessed": false,
+  "pnl_accessed": false,
+  "research_objective": "Prospectively discriminate MF2 versus MF4 actionable frequency, exclusive behavior, and later outcome quality without adapting the policy to observed outcomes.",
+  "state_machine": [
+    "INTEGRITY_REMEDIATION",
+    "INTEGRITY_VALID",
+    "PROSPECTIVE_ACCUMULATION",
+    "TEMPORAL_SUFFICIENCY",
+    "SAMPLE_SUFFICIENCY",
+    "H14_3_ELIGIBLE"
+  ],
+  "prohibited_transition": "INTEGRITY_VALID -> H14_3_ELIGIBLE",
+  "eligibility_rule": "all integrity, temporal, coverage, actionable, and discriminative gates must pass simultaneously",
+  "gates": {
+    "integrity": {
+      "required": "G0_G1_G2_G3_G4_PASS"
+    },
+    "temporal_horizon": {
+      "minimum_contiguous_days": 60,
+      "clock": "canonical UTC cycle timestamps",
+      "unexplained_gap_resets_contiguity": true
+    },
+    "collection_coverage": {
+      "minimum_ratio": 0.95,
+      "denominator": "contracted 15-minute cycles multiplied by symbols in the frozen schedules",
+      "numerator": "authoritative canonical observations",
+      "planned_exclusion_requires_predeclared_reason": true,
+      "unknown_gap_policy": "REOPEN_INTEGRITY_REMEDIATION"
+    },
+    "actionable_sample": {
+      "minimum_total": 400,
+      "definition": "union of shared, MF2-only, and MF4-only actionable canonical observations",
+      "derivation": "rounded above 385, the worst-case Bernoulli sample size for an approximately 95% interval with 5 percentage-point margin of error"
+    },
+    "discriminative_sample": {
+      "minimum_total_disagreements": 350,
+      "minimum_mf2_only": 175,
+      "minimum_mf4_only": 175,
+      "definition": "canonical observations where exactly one design is actionable",
+      "derivation": "approximately 175 observations per independent exclusive subgroup to detect a 15 percentage-point difference around a 50% baseline with two-sided alpha 0.05 and power 0.80"
+    }
+  },
+  "h14_2_collection_outcome_maturity_required": false,
+  "h14_3_outcome_maturity_contract": "REQUIRED_BEFORE_OUTCOME_EVALUATION",
+  "periodic_checkpoint_fields": [
+    "future_timestamp_count",
+    "test_lineage_count",
+    "canonical_collision_count",
+    "cardinality_status",
+    "coverage_ratio",
+    "authoritative_total",
+    "actionable_total",
+    "effective_disagreement_total",
+    "mf2_only_total",
+    "mf4_only_total",
+    "contiguous_horizon_days"
+  ],
+  "remediation_triggers": [
+    "INTEGRITY_VIOLATION",
+    "UNKNOWN_COLLECTION_GAP",
+    "CANONICAL_COLLISION",
+    "LINEAGE_CONTAMINATION",
+    "TIMESTAMP_REGRESSION",
+    "SILENT_FALLBACK",
+    "RUNTIME_OR_RELEASE_CONTRACT_CHANGE"
+  ],
+  "non_incident_conditions": [
+    "LOW_ACTIONABLE_RATE",
+    "LOW_DISAGREEMENT_RATE_WITHOUT_INTEGRITY_FAILURE"
+  ],
+  "threshold_status": "FROZEN",
+  "quality_evaluation": "BLOCKED",
+  "pnl_evaluation": "BLOCKED",
+  "h14_3": "BLOCKED_INSUFFICIENT_EVIDENCE"
+}
