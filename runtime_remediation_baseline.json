@@ -1,0 +1,1137 @@
+{
+  "schema_version": "runtime-remediation-baseline/v1",
+  "baseline_id": "P0-2026-08-21T03:54:40Z",
+  "captured_at": "2026-08-21T03:54:40Z",
+  "repository": "besttime-crypto",
+  "scope": {
+    "phase": "P0 — Freeze Baseline and Contracts",
+    "mode": "observational_read_only",
+    "semantic_changes_allowed": false,
+    "live_real_money_authorized": false,
+    "successor_program_authorized": false,
+    "purpose": "Freeze the observed runtime, research, artifact, contract, parity, scoring, sizing, and test state before remediation. A PASS gate means the state was captured and verified; it does not mean the captured behavior is correct."
+  },
+  "gates": {
+    "H14_GOVERNANCE_PRESERVED": "PASS",
+    "SOURCE_SNAPSHOT_FROZEN": "PASS",
+    "RELEASE_IDENTITY_FROZEN": "PASS",
+    "ARTIFACT_INVENTORY_FROZEN": "PASS",
+    "FEATURE_SCHEMAS_FROZEN": "PASS",
+    "DECISION_CONTRACT_FROZEN": "PASS",
+    "EV_AND_S3_BEHAVIOR_FROZEN": "PASS",
+    "PARITY_EVIDENCE_FROZEN": "PASS",
+    "SCORING_FIXTURES_FROZEN": "PASS",
+    "SIZING_FIXTURES_FROZEN": "PASS",
+    "TARGETED_TEST_BASELINE_FROZEN": "PASS",
+    "FULL_TEST_BASELINE_FROZEN": "PASS",
+    "BASELINE_SELF_CHECK": "PASS",
+    "P0_BASELINE_FROZEN": "PASS"
+  },
+  "governance": {
+    "canonical_h14_state": {
+      "path": "historical-h14-prospective-validation-design-discrimination/reports/h14_final_branch_state.json",
+      "sha256": "0617fa193d1bcb4d9751b4ccdac5b76c6fb8345df058fa0333f830102fe7d8d8",
+      "status": "CLOSED",
+      "verdict": "RESEARCH_HARD_STOP",
+      "failure_class": "INFEASIBLE_RESEARCH_DESIGN",
+      "resumable": false,
+      "h14_3": {
+        "allowed": false,
+        "status": "BLOCKED_FINAL"
+      },
+      "collection": {
+        "allowed": false,
+        "status": "DISABLED_BY_GOVERNANCE"
+      },
+      "activation": {
+        "allowed": false,
+        "status": "NOT_ARMED"
+      },
+      "transition": {
+        "allowed": false,
+        "status": "ABSENT"
+      },
+      "raw_evidence": "PRESERVED",
+      "successor": "NOT_AUTHORIZED"
+    },
+    "supporting_evidence": [
+      {
+        "path": "historical-h14-prospective-validation-design-discrimination/reports/h14_final_research_verdict.md",
+        "sha256": "0ceaabf91260e269f9aaf7f3eec5927d9c2abe53f2da65194f60fa3938670d9a"
+      },
+      {
+        "path": "historical-h14-prospective-validation-design-discrimination/reports/h14_research_decision_ledger.md",
+        "sha256": "71f2db7e50afeef33509d54ef5456bdcc087a7e7e8c15915738c01ffa28762fd"
+      }
+    ],
+    "runtime_safety_observation": {
+      "live_real_money_allowed": false,
+      "active_runtime_process_observed": false,
+      "environment": {
+        "path": ".env",
+        "sha256": "ea58beb0c9dd7ec8e73cd9f0430819b24808f69a61f0c6d99d9774fad993571e",
+        "AUTO_TRADE_DRY_RUN": true,
+        "LIVE_TRADING_ENABLED": false
+      },
+      "ml_engine_readiness": {
+        "path": "config/ml_engine_readiness.json",
+        "sha256": "b49d50ad5be7170fc745b098a62dfd739ffbc12c40687a8d16d7fdb837bd588b",
+        "status": "BLOCKED",
+        "automated_live_entry": false,
+        "live_ready": false,
+        "manual_gate": false
+      },
+      "legacy_non_authoritative_flags": [
+        {
+          "path": "live_mode_enabled.json",
+          "sha256": "d31e41ab7a034e2124860978b6e38a3c4449578e14bae1fdf2e29ef84a604687",
+          "observed_value": {
+            "enabled": true
+          }
+        },
+        {
+          "path": "phase5_report_latest.json",
+          "sha256": "79debfa85342d6c2093378ea3dcbe1a5a8ce94ba797befe7cadb187d880ccb69",
+          "observed_live_readiness_gate_passed": true
+        }
+      ],
+      "authorization_interpretation": "Legacy flags are contradictory but are not sufficient for authorization. main_live.assert_live_authorized additionally requires LIVE_TRADING_ENABLED=true, AUTO_TRADE_DRY_RUN=false, a valid authorization token, readiness/checklist gates, and an armed kill switch. Current environment and readiness fail closed."
+    }
+  },
+  "source_snapshot": {
+    "branch": "main",
+    "head_commit": "890806880777383d37711a5c0ec3ecf8503864c6",
+    "tree_sha": "7f8f82c7764d8b59d786d83cd0a0eb44b227f4c9",
+    "remote": "git@github.com:jarm237/besttime-crypto.git",
+    "submodules": [],
+    "preexisting_worktree": {
+      "tracked_unstaged_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "staged_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked_files": [
+        {
+          "path": "besttime_crypto_implementation_roadmap.md",
+          "size_bytes": 17465,
+          "sha256": "f4405002796c5a73a76a349d70dd3201c2e327f636bd5c297d514cd375927f38"
+        }
+      ],
+      "snapshot_sha256": "9e5b68cf34d0bc0cf99c564f2dd0ec58179352108dc905eb5e8c3d8eca9790ad"
+    }
+  },
+  "release_identity": {
+    "workspace_release": "890806880777383d37711a5c0ec3ecf8503864c6",
+    "runtime_selected_release": null,
+    "runtime_selected_release_reason": "No active main/main_live/canary process and no active evidence epoch were observable at capture time; P0 does not infer a running release from files alone.",
+    "last_named_paper_canary": {
+      "id": "paper-canary-20260813-01",
+      "commit": "35f28fbf4608e19b7688aade53a85a422bb640d0",
+      "active": false
+    },
+    "runtime_states": [
+      {
+        "scope": "local-production",
+        "state": "FAILED_INTERNAL",
+        "epoch_state": "ACTIVE",
+        "sha256": "2541339379ec59a1230e57dfd36741d4da1de1bdc506d76823f5f8b1dd391598"
+      },
+      {
+        "scope": "paper-canary-20260813-01",
+        "state": "PAUSED_SYSTEM_SLEEP",
+        "sha256": "e2268b6e6365531d89e9e416ebe247fe292b0153270b37f57c60f268fed523dc"
+      }
+    ]
+  },
+  "artifact_inventory": {
+    "manifest": {
+      "path": "config/model_artifacts.yaml",
+      "sha256": "81f5be3dcdf138b8d681c06bd9181ff3df564854ce36ad21becedda26081afa2"
+    },
+    "registry": {
+      "path": "logs/model_registry.json",
+      "file_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+      "canonical_revision_sha256": "c8e50900b0212310137e1f2d99c78424f0024b18b1b0f36fa84819a85ec05a2a"
+    },
+    "models": [
+      {
+        "name": "adaptive_rf",
+        "registry_state": "production",
+        "model_version": "v2026.07.07.1",
+        "feature_schema_version": "adaptive-rf-v2",
+        "path": "logs/adaptive_model.joblib",
+        "sha256": "1e97e8033e51e3bf9a1e010efac88861880531f262854744c3eac6338a5e1042",
+        "size_bytes": 809077,
+        "metadata_sha256": "dfecafc07dd73c826d1334dc27f7680b9b5a7334713bea184b465913d4796f96",
+        "exists": true
+      },
+      {
+        "name": "meta_model",
+        "registry_state": "production",
+        "model_version": "v3.1",
+        "feature_schema_version": "meta-v3.1-43f",
+        "bundle_version": "1.0.0",
+        "path": "logs/meta_model.joblib",
+        "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "size_bytes": 909,
+        "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "estimator_type": "scripts.hmr_v5_d2_r1_real_runtime_parity.V5FilterModelClassifier",
+        "exists": true
+      },
+      {
+        "name": "rl_exit",
+        "registry_state": "shadow",
+        "model_version": "v2026.06.28.215012",
+        "feature_schema_version": "rl-exit-obs-v2",
+        "path": "logs/rl_models/production/rl_exit_ppo.zip",
+        "sha256": "ae894e5835b0e145d3bffc164e5d29500bea245d225b70aeef437de06cb3a489",
+        "size_bytes": 7370384,
+        "metadata_sha256": "8440d3c4fccfc595c720ad474c7344dbe7d925a86889097c873ef30a2b64b595",
+        "exists": true
+      },
+      {
+        "name": "slippage_model_v2",
+        "registry_state": "disabled",
+        "path": null,
+        "sha256": null,
+        "metadata_sha256": null,
+        "exists": false
+      }
+    ],
+    "runtime_scoped_observations": [
+      {
+        "scope": "paper-canary-20260813-01",
+        "path": "runtime/worktrees/paper-canary-20260813-01/logs/meta_model.joblib",
+        "sha256": "4f7bc98a6c18d04d7853a180c4f68763298580128a206bf159f4d16c956cf1e1",
+        "relationship": "last observed canary artifact; archived registry revision, not current canonical registry artifact"
+      },
+      {
+        "scope": "local-production",
+        "path": "runtime/production/local-production/logs/meta_model.joblib",
+        "sha256": "97d38cac481797bd78b14a755fbda6a42a4d08c8f118df2f191239ec457f9404",
+        "relationship": "runtime-scoped artifact differs from current canonical registry artifact; no active process proves selection"
+      }
+    ]
+  },
+  "feature_schema_contracts": {
+    "meta_model": {
+      "runtime_order": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "runtime_order_sha256": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+      "stored_research_feature_order_hash": "4b6845c43d8a6e873a11b689025e172d7f8d6bb77636e0971b86c35bb5f37ccb",
+      "dtype": "float64",
+      "count": 4,
+      "preprocessing": "per-symbol StandardScaler using research/historical_market_replay_v5/v5_filter_model/preprocessing.json",
+      "point_in_time": "entry_timestamp",
+      "declared_schema_version": "meta-v3.1-43f",
+      "observed_contract_status": "ARTIFACT_METADATA_SCHEMA_MISMATCH"
+    },
+    "adaptive_rf": {
+      "runtime_order": [
+        "rsi_score",
+        "macd_score",
+        "structure_score",
+        "atr_pct",
+        "volume_ratio",
+        "fear_greed",
+        "ema_distance_pct",
+        "bb_width_pct",
+        "adx",
+        "mtf_alignment",
+        "regime_trending_bull",
+        "regime_trending_bear",
+        "regime_ranging",
+        "regime_high_volatility"
+      ],
+      "runtime_order_sha256": "98ec42702909a2056b95b86e6cb5d68c928047fb75633301061c5515bbb2a1c9",
+      "dtype": "float64",
+      "count": 14,
+      "declared_schema_version": "adaptive-rf-v2"
+    },
+    "rl_exit": {
+      "ordered_indices": [
+        "0:rsi_normalized",
+        "1:macd_hist_tanh",
+        "2:atr_pct_tanh",
+        "3:adx_fraction",
+        "4:entry_confidence",
+        "5:regime_strong_trend",
+        "6:regime_weak_trend",
+        "7:regime_compression",
+        "8:regime_breakout",
+        "9:regime_mean_reversion",
+        "10:regime_panic_sell",
+        "11:regime_low_liquidity",
+        "12:regime_pump_risk",
+        "13:pnl_pct_tanh",
+        "14:hold_time_fraction",
+        "15:fear_greed_normalized",
+        "16:volume_ratio_tanh",
+        "17:bb_width_pct_tanh",
+        "18:max_drawdown_since_entry_tanh",
+        "19:average_market_correlation"
+      ],
+      "dtype": "float32",
+      "count": 20,
+      "declared_schema_version": "rl-exit-obs-v2"
+    }
+  },
+  "thresholds_and_runtime_policy": {
+    "research_s3_by_symbol": {
+      "BTC": 0.6815743466054911,
+      "ETH": 0.8280730473863367,
+      "BNB": 0.7566326790486391
+    },
+    "research_s3_source": {
+      "path": "research/historical_market_replay_v5/v5_filter_model/model.json",
+      "sha256": "35bea38a767d673b6b87e40cc6f52f5b3a1aea453632a4b05ac8a49ab6b613db"
+    },
+    "runtime_symbol_s3_resolution": "ABSENT",
+    "runtime_fallback": {
+      "AUTO_TRADE_META_THRESHOLD": 0.0,
+      "META_REJECT_THRESHOLD": 0.0,
+      "fail_closed_on_missing_symbol_s3": false
+    },
+    "observed_nonsecret_policy": {
+      "AUTO_TRADE_ACCOUNT_USDT": 500.0,
+      "AUTO_TRADE_ESTIMATED_FEE_RATIO": 0.001,
+      "AUTO_TRADE_KELLY_FRACTION": 0.5,
+      "AUTO_TRADE_MAX_TRADE_USDT": 100.0,
+      "AUTO_TRADE_META_THRESHOLD": 0.0,
+      "AUTO_TRADE_MIN_EXPECTED_EDGE": 0.0,
+      "AUTO_TRADE_MIN_RR": 0.1,
+      "AUTO_TRADE_MIN_TRADE_USDT": 10.0,
+      "AUTO_TRADE_POSITION_SIZING_METHOD": "hybrid",
+      "AUTO_TRADE_RISK_PCT": 2.0,
+      "AUTO_TRADE_SCORE_THRESHOLD": 0.0,
+      "AUTO_TRADE_USE_KELLY": true
+    }
+  },
+  "decision_contract": {
+    "decision_actions": [
+      "BUY",
+      "SELL",
+      "HOLD",
+      "IGNORE",
+      "INCREASE",
+      "REDUCE",
+      "NEUTRAL",
+      "BLOCK_ENTRY",
+      "ALLOW_REDUCE_ONLY",
+      "ALLOW_EXIT_ONLY"
+    ],
+    "trade_actions": [
+      "BUY",
+      "SELL",
+      "NEUTRAL"
+    ],
+    "final_decision_statuses": [
+      "eligible",
+      "rejected",
+      "authorized",
+      "submitted",
+      "filled",
+      "partially_filled"
+    ],
+    "decision_stages": [
+      "normalization",
+      "eligibility",
+      "edge",
+      "sizing",
+      "authorization",
+      "reservation",
+      "execution"
+    ],
+    "entry_rejection_reasons": [
+      "low_meta_confidence",
+      "insufficient_statistical_edge",
+      "rr_below_minimum",
+      "non_positive_kelly",
+      "action_disagreement",
+      "causal_regime_veto",
+      "direction_encoding_inconsistent",
+      "invalid_sizing_input",
+      "weak_signal",
+      "coin_not_allowed",
+      "circuit_breaker",
+      "correlation_filter",
+      "existing_position",
+      "daily_limit",
+      "missing_final_decision",
+      "non_executable_final_decision",
+      "final_decision_lineage_mismatch",
+      "final_decision_superseded"
+    ],
+    "authorization_reasons": [
+      "phase5_gate_closed",
+      "live_mode_disabled",
+      "kill_switch",
+      "rollout_stage",
+      "hard_risk_limits",
+      "system_health",
+      "execution_risk",
+      "stale_account_state",
+      "stale_market_data",
+      "stale_model_features",
+      "stale_orderbook"
+    ],
+    "decision_breakdown_fields": [
+      "decision_stage",
+      "technical_score",
+      "directional_score",
+      "signal_strength",
+      "signal_action",
+      "meta_probability",
+      "rr_ratio",
+      "gross_expected_value",
+      "estimated_cost",
+      "net_expected_value",
+      "kelly_raw",
+      "kelly_applied",
+      "risk_pct_applied",
+      "risk_notional",
+      "size_before_caps",
+      "var_cap",
+      "exposure_cap",
+      "max_trade_cap",
+      "min_notional",
+      "final_notional",
+      "rejection_reason"
+    ],
+    "entry_decision_fields": [
+      "eligible",
+      "action",
+      "rejection_reason",
+      "final_status",
+      "breakdown",
+      "sizing",
+      "signal_eligible",
+      "live_authorized",
+      "eligibility_reason",
+      "authorization_reason",
+      "decision_id",
+      "signal_id",
+      "prediction_id",
+      "model_version",
+      "artifact_hash",
+      "feature_schema_version",
+      "deployment_id",
+      "paper_run_id",
+      "cycle_id",
+      "decision_sha256",
+      "decision_context",
+      "caller_context",
+      "decision_timestamp",
+      "meta_probability_semantics"
+    ],
+    "entry_rejection_precedence": [
+      "final-decision presence and lineage",
+      "coin allowlist",
+      "BUY/SELL executable action",
+      "weak signal and direction consistency",
+      "global meta threshold",
+      "causal regime veto",
+      "signal strength",
+      "risk/reward",
+      "Kelly",
+      "circuit breaker",
+      "existing position",
+      "correlation",
+      "net expected value",
+      "sizing",
+      "readiness/live authorization",
+      "execution"
+    ],
+    "meta_engine_override_precedence": [
+      "posterior and expected value propose action",
+      "expected value below threshold forces IGNORE",
+      "risk unavailable forces BLOCK_ENTRY",
+      "canonical entry-action mismatch converts executable BUY/SELL to HOLD",
+      "hard context risk can force BLOCK_ENTRY or ALLOW_EXIT_ONLY"
+    ]
+  },
+  "expected_value_contract": {
+    "declared_engine_unit": "FRACTION",
+    "declared_engine_scale": {
+      "0.0001": "1 bp",
+      "0.0005": "5 bps",
+      "0.005": "50 bps",
+      "0.05": "500 bps"
+    },
+    "engine_minimum": 0.0005,
+    "producer_observation": "meta_model._extract_tp_sl_profile multiplies TP/SL price ratios by 100 and _compute_expected_value_metrics emits expected_return in percentage points.",
+    "consumer_observation": "MetaDecisionEngine compares the produced value directly against a threshold declared as a fractional return.",
+    "auto_trader_edge_observation": "AutoTrader separately computes gross_ev = p*rr - (1-p), subtracts ratio-like costs, and compares the result to AUTO_TRADE_MIN_EXPECTED_EDGE; the mixed dimensional contract is ambiguous.",
+    "transport_observation": "Inference, final-decision persistence, SQLite JSON payloads, and logs pass/display expected_return without an explicit unit conversion.",
+    "status": "CURRENT_MIXED_UNIT_BEHAVIOR_FROZEN",
+    "controlled_boundary_fixtures": [
+      {
+        "id": "EV_ZERO",
+        "expected_return_input": 0.0,
+        "action_input": "BUY",
+        "result_action": "IGNORE",
+        "eligible": false,
+        "terminal_status": "HOLD"
+      },
+      {
+        "id": "EV_POSITIVE_TINY",
+        "expected_return_input": 1e-08,
+        "action_input": "BUY",
+        "result_action": "IGNORE",
+        "eligible": false,
+        "terminal_status": "HOLD"
+      },
+      {
+        "id": "EV_THRESHOLD_MINUS_EPSILON",
+        "expected_return_input": 0.000499999,
+        "action_input": "BUY",
+        "result_action": "IGNORE",
+        "eligible": false,
+        "terminal_status": "HOLD"
+      },
+      {
+        "id": "EV_THRESHOLD_EXACT",
+        "expected_return_input": 0.0005,
+        "action_input": "BUY",
+        "result_action": "BUY",
+        "eligible": true,
+        "terminal_status": "TRADE"
+      },
+      {
+        "id": "EV_THRESHOLD_PLUS_EPSILON",
+        "expected_return_input": 0.000500001,
+        "action_input": "BUY",
+        "result_action": "BUY",
+        "eligible": true,
+        "terminal_status": "TRADE"
+      },
+      {
+        "id": "EV_NEGATIVE",
+        "expected_return_input": -0.001,
+        "action_input": "BUY",
+        "result_action": "IGNORE",
+        "eligible": false,
+        "terminal_status": "HOLD"
+      },
+      {
+        "id": "EV_SELL_POSITIVE",
+        "expected_return_input": 0.001,
+        "action_input": "SELL",
+        "result_action": "SELL",
+        "eligible": true,
+        "terminal_status": "TRADE"
+      }
+    ],
+    "fixture_probability": 0.9,
+    "fixture_probability_semantics": "P(win_given_proposed_trade)"
+  },
+  "parity_contract": {
+    "fixture_input_contract": {
+      "feature_order": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "WARMUP_ZERO_S3_GAP_BUYISH": {
+        "action": "BUY",
+        "signal": "BUY",
+        "tp_sl": {
+          "entry": 100.0,
+          "sl": 99.7,
+          "tp1": 100.5,
+          "tp2": 101.0
+        }
+      },
+      "SELLISH": {
+        "action": "SELL",
+        "signal": "SELL",
+        "tp_sl": {
+          "entry": 100.0,
+          "sl": 100.3,
+          "tp1": 99.5,
+          "tp2": 99.0
+        }
+      },
+      "persistence": false,
+      "audit_writer": "disabled for controlled observation"
+    },
+    "historical_record": {
+      "path": "research/historical_market_replay_v5/v5_d2_r1_real_runtime_parity.json",
+      "sha256": "102129e45ec43d8dce07a8bbfa87ee7caadedc65d24a46701133e7e72de3259b",
+      "audit_date": "2026-08-17",
+      "gates_D2_G0_through_D2_G8": "PASS",
+      "BTC": {
+        "max_probability_diff": 0.0,
+        "decision_mismatch_count": 0
+      },
+      "ETH": {
+        "max_probability_diff": 0.0,
+        "decision_mismatch_count": 0
+      },
+      "BNB": {
+        "max_probability_diff": 0.0,
+        "decision_mismatch_count": 0
+      },
+      "limitation": "The recorded script compares model probabilities and a locally applied research S3 threshold. It does not prove that the current final runtime decision path resolves or enforces per-symbol S3."
+    },
+    "controlled_current_model_fixtures": [
+      {
+        "id": "BTC_WARMUP_ZERO",
+        "symbol": "BTC",
+        "features": [0.0, 0.0, 0.0, 0.0],
+        "probability": 0.03728378000547365,
+        "generated_expected_return": -0.2646,
+        "offline_runtime_probability_abs_diff": 0.0,
+        "research_s3_eligible": false,
+        "runtime_final_action": "IGNORE"
+      },
+      {
+        "id": "BTC_S3_GAP",
+        "symbol": "BTC",
+        "features": [0.0024333333333333334, 0.004866666666666667, 0.0073, 0.0073],
+        "probability": 0.5863507385296476,
+        "generated_expected_return": 0.257,
+        "research_s3_eligible": false,
+        "runtime_symbol_s3_enforced": false,
+        "runtime_final_action": "BUY"
+      },
+      {
+        "id": "BTC_BUYISH",
+        "symbol": "BTC",
+        "features": [0.004, 0.008, 0.012, 0.012],
+        "probability": 0.9350372500043952,
+        "generated_expected_return": 0.5883,
+        "research_s3_eligible": true,
+        "runtime_final_action": "BUY"
+      },
+      {
+        "id": "BTC_SELLISH",
+        "symbol": "BTC",
+        "features": [-0.004, -0.008, -0.012, 0.012],
+        "probability": 0.9447353447136193,
+        "generated_expected_return": 0.5975,
+        "research_s3_eligible": true,
+        "runtime_final_action": "HOLD"
+      },
+      {
+        "id": "ETH_WARMUP_ZERO",
+        "symbol": "ETH",
+        "features": [0.0, 0.0, 0.0, 0.0],
+        "probability": 0.08798124607389776,
+        "generated_expected_return": -0.2164,
+        "offline_runtime_probability_abs_diff": 0.0,
+        "research_s3_eligible": false,
+        "runtime_final_action": "IGNORE"
+      },
+      {
+        "id": "ETH_S3_GAP",
+        "symbol": "ETH",
+        "features": [0.0030333333333333336, 0.006066666666666667, 0.0091, 0.0091],
+        "probability": 0.6648850505192974,
+        "generated_expected_return": 0.3316,
+        "research_s3_eligible": false,
+        "runtime_symbol_s3_enforced": false,
+        "runtime_final_action": "BUY"
+      },
+      {
+        "id": "ETH_BUYISH",
+        "symbol": "ETH",
+        "features": [0.004, 0.008, 0.012, 0.012],
+        "probability": 0.8387193428047229,
+        "generated_expected_return": 0.4968,
+        "research_s3_eligible": true,
+        "runtime_final_action": "BUY"
+      },
+      {
+        "id": "ETH_SELLISH",
+        "symbol": "ETH",
+        "features": [-0.004, -0.008, -0.012, 0.012],
+        "probability": 0.8413366185358101,
+        "generated_expected_return": 0.4993,
+        "research_s3_eligible": true,
+        "runtime_final_action": "HOLD"
+      },
+      {
+        "id": "BNB_WARMUP_ZERO",
+        "symbol": "BNB",
+        "features": [0.0, 0.0, 0.0, 0.0],
+        "probability": 0.06663044417746758,
+        "generated_expected_return": -0.2367,
+        "offline_runtime_probability_abs_diff": 0.0,
+        "research_s3_eligible": false,
+        "runtime_final_action": "IGNORE"
+      },
+      {
+        "id": "BNB_S3_GAP",
+        "symbol": "BNB",
+        "features": [0.0026666666666666666, 0.005333333333333333, 0.008, 0.008],
+        "probability": 0.6266333240608257,
+        "generated_expected_return": 0.2953,
+        "research_s3_eligible": false,
+        "runtime_symbol_s3_enforced": false,
+        "runtime_final_action": "BUY"
+      },
+      {
+        "id": "BNB_BUYISH",
+        "symbol": "BNB",
+        "features": [0.004, 0.008, 0.012, 0.012],
+        "probability": 0.8905645468802235,
+        "generated_expected_return": 0.546,
+        "research_s3_eligible": true,
+        "runtime_final_action": "BUY"
+      },
+      {
+        "id": "BNB_SELLISH",
+        "symbol": "BNB",
+        "features": [-0.004, -0.008, -0.012, 0.012],
+        "probability": 0.8924811892452076,
+        "generated_expected_return": 0.5479,
+        "research_s3_eligible": true,
+        "runtime_final_action": "HOLD"
+      }
+    ],
+    "required_future_comparison_fields": [
+      "technical_state",
+      "regime",
+      "raw_score",
+      "final_score",
+      "meta_probability",
+      "eligibility",
+      "symbol_s3_threshold",
+      "final_action",
+      "tp",
+      "sl",
+      "risk",
+      "sizing",
+      "feature_hash",
+      "artifact_hash",
+      "contract_hash"
+    ],
+    "current_full_field_parity_status": "CURRENT_BEHAVIOR_AMBIGUOUS",
+    "current_coverage_gap": "No common evaluator emits every required future comparison field across live and historical paths."
+  },
+  "scoring_fixtures": {
+    "environment": {
+      "ml_enabled": false,
+      "risk_metrics": "deterministic healthy fixture",
+      "score_threshold": 0.0
+    },
+    "cases": [
+      {
+        "id": "SCORE_STRONG_BUY",
+        "base_score": 90,
+        "adjusted_score": 90,
+        "output_action": "BUY",
+        "signal_strength": 90,
+        "position_size": 0.85,
+        "entry_normalized_action": "BUY",
+        "entry_directional_score": 80
+      },
+      {
+        "id": "SCORE_WEAK_BUY",
+        "base_score": 55,
+        "adjusted_score": 55,
+        "output_action": "BUY",
+        "signal_strength": 55,
+        "position_size": 0.33,
+        "entry_normalized_action": "BUY",
+        "entry_directional_score": 10
+      },
+      {
+        "id": "SCORE_BUY_POSITIVE_CONTEXT",
+        "base_score": 70,
+        "context": "volume +5; above SMA +5",
+        "adjusted_score": 80,
+        "output_action": "BUY",
+        "signal_strength": 80,
+        "position_size": 0.7,
+        "entry_normalized_action": "BUY",
+        "entry_directional_score": 60
+      },
+      {
+        "id": "SCORE_BUY_NEGATIVE_CONTEXT",
+        "base_score": 70,
+        "context": "ATR -10; sentiment -20",
+        "adjusted_score": 40,
+        "output_action": "BUY",
+        "signal_strength": 40,
+        "position_size": 0.4,
+        "entry_normalized_action": "SELL",
+        "entry_directional_score": -20
+      },
+      {
+        "id": "SCORE_BUY_NEAR_NEUTRAL",
+        "base_score": 55,
+        "context": "ATR -10",
+        "adjusted_score": 45,
+        "output_action": "BUY",
+        "position_size": 0.33,
+        "entry_normalized_action": "SELL",
+        "entry_directional_score": -10
+      },
+      {
+        "id": "SCORE_STRONG_SELL",
+        "base_score": 10,
+        "adjusted_score": 10,
+        "output_action": "SELL",
+        "signal_strength": 90,
+        "position_size": 0.85,
+        "entry_normalized_action": "SELL",
+        "entry_directional_score": -80
+      },
+      {
+        "id": "SCORE_WEAK_SELL",
+        "base_score": 45,
+        "adjusted_score": 45,
+        "output_action": "SELL",
+        "signal_strength": 55,
+        "position_size": 0.33,
+        "entry_normalized_action": "SELL",
+        "entry_directional_score": -10
+      },
+      {
+        "id": "SCORE_SELL_POSITIVE_FOR_SELL_CONTEXT",
+        "base_score": 30,
+        "context": "negative sentiment; no adjustment",
+        "adjusted_score": 30,
+        "output_action": "SELL",
+        "signal_strength": 70,
+        "position_size": 0.55
+      },
+      {
+        "id": "SCORE_SELL_NEGATIVE_FOR_SELL_CONTEXT",
+        "base_score": 30,
+        "context": "positive sentiment subtracts 20",
+        "adjusted_score": 10,
+        "output_action": "SELL",
+        "signal_strength": 90,
+        "position_size": 0.85
+      },
+      {
+        "id": "SCORE_NEUTRAL",
+        "base_score": 50,
+        "adjusted_score": 50,
+        "output_action": "NEUTRAL",
+        "signal_strength": 0,
+        "position_size": 0.25
+      },
+      {
+        "id": "SCORE_CONFLICTING_BUY",
+        "base_score": 70,
+        "context": "ATR -10; explicit sentiment -40",
+        "adjusted_score": 20,
+        "output_action": "BUY",
+        "signal_strength": 20,
+        "position_size": 0.7,
+        "entry_normalized_action": "SELL",
+        "entry_directional_score": -60
+      }
+    ]
+  },
+  "sizing_fixtures": {
+    "environment": {
+      "account_usdt": 500.0,
+      "risk_pct": 2.0,
+      "max_trade_usdt": 100.0,
+      "min_trade_usdt": 10.0,
+      "method": "hybrid",
+      "kelly_enabled": true,
+      "kelly_fraction": 0.5
+    },
+    "cases": [
+      {
+        "id": "SIZE_BUY_ACCEPTED",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 99.0,
+        "win_probability": 0.8,
+        "rr": 2.0,
+        "raw_size": 1000.0,
+        "kelly_adjusted_size": 17500.0,
+        "final_notional": 100.0,
+        "rejected": false
+      },
+      {
+        "id": "SIZE_SELL_ACCEPTED",
+        "action": "SELL",
+        "entry": 100.0,
+        "stop": 101.0,
+        "win_probability": 0.8,
+        "rr": 2.0,
+        "final_notional": 100.0,
+        "rejected": false
+      },
+      {
+        "id": "SIZE_MINIMUM_BOUNDARY",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 50.0,
+        "raw_size": 20.0,
+        "kelly_adjusted_size": 350.0,
+        "final_notional": 20.0,
+        "rejected": false
+      },
+      {
+        "id": "SIZE_KELLY_NON_POSITIVE",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 99.0,
+        "win_probability": 0.3,
+        "rr": 0.5,
+        "final_notional": 0.0,
+        "rejected": true,
+        "rejection_reason": "non_positive_kelly"
+      },
+      {
+        "id": "SIZE_KELLY_POSITIVE",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 95.0,
+        "win_probability": 0.6,
+        "rr": 2.0,
+        "risk_multiplier": 0.5,
+        "risk_notional": 5.0,
+        "raw_size": 100.0,
+        "kelly_adjusted_size": 2000.0,
+        "final_notional": 100.0,
+        "rejected": false
+      },
+      {
+        "id": "SIZE_INVALID_ZERO_STOP",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 100.0,
+        "final_notional": 0.0,
+        "rejected": true,
+        "rejection_reason": "invalid_sizing_input"
+      },
+      {
+        "id": "SIZE_INVALID_TINY_STOP",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 99.95,
+        "final_notional": 0.0,
+        "rejected": true,
+        "rejection_reason": "invalid_sizing_input"
+      },
+      {
+        "id": "SIZE_EXPOSURE_CAP_ZERO",
+        "action": "BUY",
+        "entry": 100.0,
+        "stop": 99.0,
+        "exposure_cap": 0.0,
+        "final_notional": 10.0,
+        "rejected": false,
+        "observation": "Current minimum-notional floor raises a zero exposure cap to 10.0."
+      },
+      {
+        "id": "SIZE_NON_EXECUTABLE_ACTIONS",
+        "actions": [
+          "NEUTRAL",
+          "IGNORE",
+          "BLOCK_ENTRY"
+        ],
+        "sizing_invoked": false,
+        "final_notional": null,
+        "observation": "These actions reject before compute_position_size; no explicit zero-size SizingDecision is emitted."
+      }
+    ]
+  },
+  "test_baseline": {
+    "environment": {
+      "python": "3.12.3",
+      "pytest": "9.0.3",
+      "platform": "Linux-7.0.0-29-generic-x86_64-with-glibc2.39",
+      "requirements_lock_sha256": "f6d93f29af2f337d3dd863206d3c84b012a06368006d83bbc1d1f2eaae462c61",
+      "pip_freeze_sha256": "bec4f9377be02f81bf5e252ae6211d1f16a7694077971f3f12a92cbdce44c5fb",
+      "installed_distribution_count": 129
+    },
+    "targeted": {
+      "command": ".venv/bin/python -m pytest -q --disable-warnings --maxfail=0 --junitxml=<temp>/targeted.xml tests/test_decision_engine.py tests/test_auto_trader.py tests/test_decision_types.py tests/ml_engine/test_probability_contract.py tests/ml/test_artifact_resolver.py tests/ml/test_governed_artifact_loader.py tests/ml/test_schema_parity.py tests/ml/test_non_evidence_inference_smoke.py tests/ml/test_rl_inference_integration.py tests/test_v5_d_parity.py tests/test_execution_reservation_concurrency.py tests/test_hard_risk_limits.py tests/test_risk_manager.py tests/test_provision_pinned_runtime_artifacts.py tests/recovery/test_decision_reservation_recovery.py tests/recovery/test_prediction_decision_recovery.py",
+      "tests": 169,
+      "passed": 168,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 21.401,
+      "junit_sha256": "45d3a0e9e2a43338bbb96f4590225d10d74cc27193772eef31c7f2cfde22b715"
+    },
+    "full": {
+      "command": ".venv/bin/python -m pytest -q --disable-warnings --maxfail=0 --junitxml=<temp>/full.xml",
+      "tests": 1121,
+      "passed": 1116,
+      "failed": 5,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 794.713,
+      "junit_sha256": "9d7b3d40fb524d5263fec4871c0e98b0a9c37ef724efdc877960bbfa61ab59d5"
+    },
+    "failure_fingerprints": [
+      {
+        "test": "tests.ml.test_ml_engine_static_safety::test_ml_engine_static_safety_gates",
+        "exception": "AssertionError",
+        "summary": "12 static-safety violations; first: scripts/hmr_v1_3e_e1_freeze_dataset.py:259 direct model deserialization",
+        "fingerprint": "sha256:ff01aed7ec48922e18d43752ef6fb62f5685ee8bdaab9e8b4330e2b21a5f676c",
+        "present_in": [
+          "full"
+        ]
+      },
+      {
+        "test": "tests.ml.test_non_evidence_inference_smoke::test_non_evidence_decision_contract_stays_sell_side_probability_v2",
+        "exception": "AssertionError",
+        "summary": "Expected SELL; observed IGNORE",
+        "fingerprint": "sha256:953a70bca07ebbad23b0234940d6e2cab8780bf82f8d5f2e0694a158b89815a0",
+        "present_in": [
+          "targeted",
+          "full"
+        ]
+      },
+      {
+        "test": "tests.test_etf_integration_audit::test_integration_json_schema",
+        "exception": "AssertionError",
+        "summary": "Expected INTEGRATION_PROMOTED; observed INTEGRATION_NOT_PROVEN",
+        "fingerprint": "sha256:c72b0b37b6c54cfb8b205df023e1961c9051f96733fc772ecd70169692c58ad1",
+        "present_in": [
+          "full"
+        ]
+      },
+      {
+        "test": "tests.test_validate_alternative_history::test_generate_artifacts_writes_research_only_contract",
+        "exception": "KeyError",
+        "summary": "Missing hard_rule",
+        "fingerprint": "sha256:45aa14f4cf30bd405d5b2286ae39e916eff5ab7f9ca5af9fae24870db8952d7c",
+        "present_in": [
+          "full"
+        ]
+      },
+      {
+        "test": "tests.test_validate_alternative_history::test_probe_results_are_not_marked_as_evidence",
+        "exception": "AssertionError",
+        "summary": "Expected only Fidelity UNCLASSIFIED; observed H1 and H2 also",
+        "fingerprint": "sha256:4e72e1e9cc608f7cbcfcc97e521acde96a5f84cf5dee509549147425c07a3e4a",
+        "present_in": [
+          "full"
+        ]
+      }
+    ],
+    "interpretation": "The test-baseline gates PASS because deterministic commands, counts, environment, JUnit hashes, and failure fingerprints were frozen. The suites themselves are not green. Full-suite generated research-file side effects were reverted; the preexisting worktree was restored before creating P0 artifacts."
+  },
+  "known_findings": [
+    {
+      "id": "P0-F01",
+      "severity": "CRITICAL",
+      "code": "EV_UNIT_MISMATCH",
+      "description": "The producer emits expected_return in percentage points while the decision engine declares and thresholds fractional returns."
+    },
+    {
+      "id": "P0-F02",
+      "severity": "CRITICAL",
+      "code": "RUNTIME_S3_NOT_ENFORCED",
+      "description": "Per-symbol research S3 thresholds are not resolved by the final runtime decision path; missing resolution does not fail closed."
+    },
+    {
+      "id": "P0-F03",
+      "severity": "HIGH",
+      "code": "ARTIFACT_METADATA_SCHEMA_MISMATCH",
+      "description": "The canonical meta artifact contains four V5 features while registry/schema lineage is named meta-v3.1-43f."
+    },
+    {
+      "id": "P0-F04",
+      "severity": "HIGH",
+      "code": "RUNTIME_SCOPED_ARTIFACT_CANONICAL_MISMATCH",
+      "description": "Observed runtime-scoped meta artifacts do not match the current canonical registry artifact; no active process identifies a selected release/artifact."
+    },
+    {
+      "id": "P0-F05",
+      "severity": "HIGH",
+      "code": "SCORING_DIRECTION_CONFLICT",
+      "description": "Context-adjusted numeric scores can imply the opposite normalized entry direction while score_signal retains the original action."
+    },
+    {
+      "id": "P0-F06",
+      "severity": "HIGH",
+      "code": "ZERO_EXPOSURE_CAP_MINIMUM_FLOOR",
+      "description": "The sizing path can raise a zero exposure cap to the minimum notional instead of rejecting."
+    },
+    {
+      "id": "P0-F07",
+      "severity": "MEDIUM",
+      "code": "NON_EXECUTABLE_ZERO_SIZE_NOT_EXPLICIT",
+      "description": "NEUTRAL, IGNORE, and BLOCK_ENTRY reject before sizing and do not emit an explicit zero-size SizingDecision."
+    },
+    {
+      "id": "P0-F08",
+      "severity": "HIGH",
+      "code": "FULL_FIELD_PARITY_NOT_PROVEN",
+      "description": "Existing probability/S3 replay parity does not prove full final-decision parity over all required fields."
+    },
+    {
+      "id": "P0-F09",
+      "severity": "HIGH",
+      "code": "REGRESSION_BASELINE_NOT_GREEN",
+      "description": "The targeted suite has one frozen failure and the full suite has five frozen failures."
+    },
+    {
+      "id": "P0-F10",
+      "severity": "MEDIUM",
+      "code": "LEGACY_LIVE_FLAG_CONTRADICTION",
+      "description": "Legacy live flag/report indicate enabled/pass while current environment and readiness are fail-closed."
+    }
+  ],
+  "gitnexus_impact_snapshot": [
+    {
+      "symbol": "MetaDecisionEngine.decide",
+      "risk": "CRITICAL",
+      "impacted_symbols": 28,
+      "direct": 15,
+      "affected_processes": 5,
+      "affected_modules": 3
+    },
+    {
+      "symbol": "AutoTrader.build_entry_decision",
+      "risk": "CRITICAL",
+      "impacted_symbols": 34,
+      "direct": 16,
+      "affected_processes": 6,
+      "affected_modules": 4
+    },
+    {
+      "symbol": "score_signal",
+      "risk": "CRITICAL",
+      "impacted_symbols": 43,
+      "direct": 11,
+      "affected_processes": 7,
+      "affected_modules": 4
+    },
+    {
+      "symbol": "AutoTrader.compute_position_size",
+      "risk": "HIGH",
+      "impacted_symbols": 12,
+      "direct": 3,
+      "affected_processes": 1,
+      "affected_modules": 4
+    },
+    {
+      "symbol": "ArtifactResolver.resolve",
+      "risk": "CRITICAL",
+      "impacted_symbols": 67,
+      "direct": 7,
+      "affected_processes": 18,
+      "affected_modules": 4
+    }
+  ],
+  "remediation_guardrails": [
+    "Do not reinterpret P0 PASS as proof that current behavior is correct or production-ready.",
+    "Do not modify EV units, S3 enforcement, scoring, sizing, artifact selection, schemas, registry semantics, runtime stores, or live authorization within P0.",
+    "Keep H14 CLOSED with RESEARCH_HARD_STOP; do not resume H14.3, collection, activation, transition, or authorize a successor.",
+    "Keep real-money live trading unauthorized.",
+    "Every later remediation must compare against this baseline, explicitly approve intended fixture drift, and preserve unrelated fixture outputs.",
+    "Because the frozen symbols are HIGH/CRITICAL blast-radius paths, later edits require targeted and full invariant validation plus GitNexus change detection."
+  ],
+  "baseline_hashes": {
+    "algorithm": "SHA-256 over UTF-8 canonical JSON (sorted keys, separators ',' and ':') after removing baseline_hashes.runtime_remediation_baseline_payload_sha256",
+    "runtime_remediation_baseline_payload_sha256": "6eaed153158623f7d79ac290e65cd2fb21f380de8888120eb217e5be1b9a2825"
+  }
+}

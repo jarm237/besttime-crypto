@@ -1,0 +1,17 @@
+{
+  "schema_version": "s3-threshold-contract/v1",
+  "threshold_contract_version": "s3-per-symbol-v1",
+  "probability_field": "meta_probability",
+  "probability_semantics": "P(win_given_proposed_trade)",
+  "comparison": ">=",
+  "missing_policy": "FAIL_CLOSED",
+  "thresholds": {
+    "BTC": 0.6815743466054911,
+    "ETH": 0.8280730473863367,
+    "BNB": 0.7566326790486391
+  },
+  "source": {
+    "path": "research/historical_market_replay_v5/v5_filter_model/model.json",
+    "sha256": "35bea38a767d673b6b87e40cc6f52f5b3a1aea453632a4b05ac8a49ab6b613db"
+  }
+}

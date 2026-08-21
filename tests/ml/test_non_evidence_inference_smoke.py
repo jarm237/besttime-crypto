@@ -75,6 +75,8 @@ def test_non_evidence_decision_contract_stays_sell_side_probability_v2(monkeypat
 
     decision = MetaDecisionEngine().decide(
         {
+            "coin": "BTC",
+            "symbol": "BTCUSDT",
             "signal": "STRONG SELL",
             "action": "SELL",
             "fear_greed": 20,
@@ -84,7 +86,7 @@ def test_non_evidence_decision_contract_stays_sell_side_probability_v2(monkeypat
             "_meta_prediction": {
                 "probability": 0.2,
                 "probability_semantics": "P(up)",
-                "expected_return": -0.1,
+                "expected_return": 0.1,
                 "prediction_id": "pred-smoke-sell",
                 "signal_id": "sig-smoke-sell",
                 "artifact_sha256": "sha256-smoke-sell",

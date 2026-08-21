@@ -18,6 +18,7 @@ class MetaPrediction:
     decision_context: str
     caller_context: str
     probability: float
+    probability_semantics: str
     model_version: str
     artifact_sha256: str
     feature_schema_version: str
@@ -25,6 +26,13 @@ class MetaPrediction:
     paper_run_id: str
     cycle_id: str
     feature_hash: str
+    expected_return_unit: str
+    ev_contract_version: str
+    s3_threshold: float | None
+    s3_pass: bool
+    threshold_contract_version: str
+    threshold_contract_sha256: str | None
+    s3_threshold_error: str | None
     expected_return: float | None = None
     expected_drawdown: float | None = None
     expected_hold_time: float | None = None
@@ -78,8 +86,10 @@ class InferenceCoordinator:
         decision_context: str = "entry",
         caller_context: str = "agent_orchestrator",
     ) -> MetaPrediction:
+        from .economic_contract import EV_CONTRACT_VERSION, EXPECTED_RETURN_UNIT
         from .meta_model import MODEL_VERSION, predict_meta_confidence
         from .runtime_evidence_store import get_runtime_evidence_store
+        from .s3_thresholds import S3_PROBABILITY_SEMANTICS, evaluate_s3_threshold
 
         normalized_symbol = str(symbol).upper().replace("/", "").removesuffix("USDT")
         if normalized_symbol not in get_analysis_universe():
@@ -111,6 +121,7 @@ class InferenceCoordinator:
             if existing is not None:
                 result = {
                     "probability": existing.get("calibrated_probability"),
+                    "probability_semantics": existing.get("probability_semantics"),
                     "prediction_id": existing.get("prediction_id"),
                     "model_version": existing.get("model_version"),
                     "artifact_sha256": existing.get("artifact_sha256"),
@@ -125,6 +136,13 @@ class InferenceCoordinator:
                     "prob_tp1": existing.get("prob_tp1"),
                     "prob_tp2": existing.get("prob_tp2"),
                     "prob_sl": existing.get("prob_sl"),
+                    "expected_return_unit": existing.get("expected_return_unit"),
+                    "ev_contract_version": existing.get("ev_contract_version"),
+                    "s3_threshold": existing.get("s3_threshold"),
+                    "s3_pass": existing.get("s3_pass"),
+                    "threshold_contract_version": existing.get("threshold_contract_version"),
+                    "threshold_contract_sha256": existing.get("threshold_contract_sha256"),
+                    "s3_threshold_error": existing.get("s3_threshold_error"),
                 }
             else:
                 result = predict_meta_confidence(analysis)
@@ -134,6 +152,21 @@ class InferenceCoordinator:
             result["paper_run_id"] = runtime_paper_run_id()
         if not result.get("cycle_id"):
             result["cycle_id"] = cycle_id
+        if result.get("probability_semantics") != S3_PROBABILITY_SEMANTICS:
+            raise RuntimeError("meta_prediction_probability_semantics_incompatible")
+        if (
+            result.get("expected_return_unit") != EXPECTED_RETURN_UNIT
+            or result.get("ev_contract_version") != EV_CONTRACT_VERSION
+        ):
+            raise RuntimeError("meta_prediction_ev_contract_incompatible")
+        s3_gate = evaluate_s3_threshold(normalized_symbol, result["probability"])
+        result.update({
+            "s3_threshold": s3_gate.s3_threshold,
+            "s3_pass": s3_gate.s3_pass,
+            "threshold_contract_version": s3_gate.threshold_contract_version,
+            "threshold_contract_sha256": s3_gate.threshold_contract_sha256,
+            "s3_threshold_error": s3_gate.error,
+        })
         required = (
             "prediction_id", "model_version", "artifact_sha256",
             "feature_schema_version", "deployment_id", "paper_run_id",
@@ -149,6 +182,7 @@ class InferenceCoordinator:
             decision_context=decision_context,
             caller_context=caller_context,
             probability=float(result["probability"]),
+            probability_semantics=str(result["probability_semantics"]),
             model_version=str(result["model_version"]),
             artifact_sha256=str(result["artifact_sha256"]),
             feature_schema_version=str(result["feature_schema_version"]),
@@ -156,6 +190,17 @@ class InferenceCoordinator:
             paper_run_id=str(result.get("paper_run_id") or runtime_paper_run_id() or ""),
             cycle_id=str(result.get("cycle_id") or cycle_id),
             feature_hash=str(result["feature_hash"]),
+            expected_return_unit=str(result["expected_return_unit"]),
+            ev_contract_version=str(result["ev_contract_version"]),
+            s3_threshold=(
+                float(result["s3_threshold"])
+                if result.get("s3_threshold") is not None
+                else None
+            ),
+            s3_pass=bool(result["s3_pass"]),
+            threshold_contract_version=str(result["threshold_contract_version"]),
+            threshold_contract_sha256=result.get("threshold_contract_sha256"),
+            s3_threshold_error=result.get("s3_threshold_error"),
             expected_return=result.get("expected_return"),
             expected_drawdown=result.get("expected_drawdown"),
             expected_hold_time=result.get("expected_hold_time"),

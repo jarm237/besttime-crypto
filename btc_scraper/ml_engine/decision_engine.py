@@ -2,7 +2,9 @@ from enum import Enum
 from typing import Dict, Optional, TYPE_CHECKING
 import uuid
 
+from .economic_contract import EV_CONTRACT_VERSION, EXPECTED_RETURN_UNIT
 from .meta_model import predict_meta_confidence
+from .s3_thresholds import evaluate_s3_threshold
 from btc_scraper.core.paths import (
     runtime_evidence_eligible,
     runtime_paper_run_id,
@@ -85,12 +87,13 @@ def apply_final_risk_gate(
 # CONTRACT: All expected_return values in this engine are *fractional returns*
 # (not percentage points). Scale reference:
 #   0.0001 =  1 bp   (0.01%)
-#   0.0005 =  5 bps  (0.05%)   ← MIN_EV_PCT_DEFAULT
+#   0.0005 =  5 bps  (0.05%)   ← MIN_EV_FRACTION_DEFAULT
 #   0.005  = 50 bps  (0.5%)
 #   0.05   = 500 bps (5.0%)
 # ──────────────────────────────────────────────────────────────────────
-_EXPECTED_RETURN_UNIT = "FRACTION"  # confirms unit; do not change without updating all callers
-MIN_EV_PCT_DEFAULT = 0.0005  # 5 bps — minimum net expected value per trade
+MIN_EV_FRACTION_DEFAULT = 0.0005
+# Backward-compatible alias. Despite the historical name, the value is a fraction.
+MIN_EV_PCT_DEFAULT = MIN_EV_FRACTION_DEFAULT
 
 
 class MetaDecisionEngine:
@@ -305,6 +308,13 @@ class MetaDecisionEngine:
             if meta.get("execution_probability") is not None
             else self._execution_probability(signal_side, model_probability_up)
         )
+        s3_gate = evaluate_s3_threshold(
+            meta.get("symbol")
+            or analysis_info.get("coin")
+            or analysis_info.get("symbol")
+            or analysis_info.get("ticker"),
+            meta_prob,
+        )
         sentiment_prob = self._sentiment_support(analysis_info)
         proposed_regime_prob = self._regime_support(analysis_info)
         applied_regime_prob = proposed_regime_prob if self.regime_decision_effect_enabled else 0.5
@@ -338,6 +348,8 @@ class MetaDecisionEngine:
 
         if expected_return < self.min_ev_pct:
             action = "IGNORE"
+        if not s3_gate.s3_pass:
+            action = "IGNORE"
 
         risk_status = str(analysis_info.get("risk_status") or "HEALTHY").upper()
         risk_failure_reason = analysis_info.get("risk_failure_reason")
@@ -364,7 +376,14 @@ class MetaDecisionEngine:
             f"posterior={posterior:.3f}",
             f"side_probability={side_probability:.3f}",
             f"ev={expected_return:.4f}",
+            f"ev_unit={EXPECTED_RETURN_UNIT}",
+            f"ev_contract={EV_CONTRACT_VERSION}",
+            f"s3_threshold={s3_gate.s3_threshold}",
+            f"s3_pass={str(s3_gate.s3_pass).lower()}",
+            f"threshold_contract={s3_gate.threshold_contract_version}",
         ]
+        if s3_gate.error:
+            reason.append(f"s3_error={s3_gate.error}")
         if risk_blocked or risk_status == "UNAVAILABLE":
             reason.append(f"risk_failure={risk_failure_reason}")
 
@@ -390,12 +409,20 @@ class MetaDecisionEngine:
             "regime_snapshot": analysis_info.get("regime_snapshot"),
             "volatility_support": volatility_prob,
             "expected_return": expected_return,
+            "expected_return_unit": EXPECTED_RETURN_UNIT,
+            "ev_contract_version": EV_CONTRACT_VERSION,
             "expected_drawdown": meta.get("expected_drawdown"),
             "expected_hold_time": meta.get("expected_hold_time"),
             "prob_tp1": meta.get("prob_tp1"),
             "prob_tp2": meta.get("prob_tp2"),
             "prob_sl": meta.get("prob_sl"),
-            "meta_ev": meta.get("expected_return"),
+            "meta_ev": expected_return,
+            "symbol": s3_gate.symbol,
+            "s3_threshold": s3_gate.s3_threshold,
+            "s3_pass": s3_gate.s3_pass,
+            "s3_threshold_error": s3_gate.error,
+            "threshold_contract_version": s3_gate.threshold_contract_version,
+            "threshold_contract_sha256": s3_gate.threshold_contract_sha256,
             "reason": " | ".join(reason),
             "signal_id": analysis_info.get("signal_id") or analysis_info.get("id"),
             "prediction_id": meta.get("prediction_id"),
@@ -457,8 +484,12 @@ class MetaDecisionEngine:
 
         if expected_return < self.min_ev_pct:
             proposed_action = "IGNORE"
+        if not bool(base_decision.get("s3_pass")):
+            proposed_action = "IGNORE"
 
         final_action, risk_reasons = apply_final_risk_gate(proposed_action, risk_level, stop_processing)
+        if not bool(base_decision.get("s3_pass")) and not risk_reasons:
+            risk_reasons = tuple(risk_reasons) + ("s3_threshold_failed",)
         if (
             bool(base_decision.get("risk_blocked"))
             or str(base_decision.get("risk_status") or "").upper() == "UNAVAILABLE"

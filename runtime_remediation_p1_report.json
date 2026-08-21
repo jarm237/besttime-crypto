@@ -1,0 +1,304 @@
+{
+  "schema_version": "runtime-remediation-p1-report/v1",
+  "phase": "P1 — Economic and Final-Decision Correctness",
+  "status": "CLOSED",
+  "captured_at": "2026-08-21T04:44:15Z",
+  "p0_baseline": {
+    "path": "runtime_remediation_baseline.json",
+    "file_sha256": "909df17a4af44296b94f5c7b350cd6799ffc18b726b9a8dc3ac9db0cb716c1c0",
+    "payload_sha256": "6eaed153158623f7d79ac290e65cd2fb21f380de8888120eb217e5be1b9a2825",
+    "status": "P0_BASELINE_FROZEN_PASS"
+  },
+  "authorized_scope": [
+    "P1.1 EV unit correctness",
+    "P1.2 per-symbol S3 runtime enforcement"
+  ],
+  "excluded_scope": [
+    "P2 symbol-routing architecture",
+    "P2 artifact-identity propagation",
+    "P3 scoring semantics",
+    "P4 risk and sizing semantics",
+    "P5 unified parity architecture",
+    "P6 artifact and schema cleanup",
+    "successor research",
+    "live real-money authorization"
+  ],
+  "gates": {
+    "EV_UNIT_CONTRACT": "PASS",
+    "S3_RUNTIME_ENFORCEMENT": "PASS",
+    "DECISION_BOUNDARY_TESTS": "PASS"
+  },
+  "contracts": {
+    "expected_value": {
+      "contract_version": "expected-return-fraction-v1",
+      "canonical_internal_unit": "fraction",
+      "minimum_expected_return_fraction": 0.0005,
+      "boundary_behavior": {
+        "4.99_bps": "IGNORE",
+        "5.00_bps": "BUY",
+        "5.01_bps": "BUY"
+      },
+      "buy_positive_economic_ev": "eligible_for_ev_gate",
+      "sell_positive_economic_ev": "eligible_for_ev_gate",
+      "negative_economic_ev": "IGNORE",
+      "conversion_boundaries": [
+        "fraction_to_bps",
+        "bps_to_fraction",
+        "fraction_to_percent_points",
+        "percent_points_to_fraction"
+      ]
+    },
+    "s3": {
+      "contract_version": "s3-per-symbol-v1",
+      "probability_field": "meta_probability",
+      "probability_semantics": "P(win_given_proposed_trade)",
+      "comparison": ">=",
+      "missing_policy": "FAIL_CLOSED",
+      "thresholds": {
+        "BTC": 0.6815743466054911,
+        "ETH": 0.8280730473863367,
+        "BNB": 0.7566326790486391
+      },
+      "final_decision_fields": [
+        "symbol",
+        "meta_probability",
+        "s3_threshold",
+        "s3_pass",
+        "s3_threshold_error",
+        "threshold_contract_version",
+        "threshold_contract_sha256"
+      ],
+      "context_override_policy": "A failed or unresolved S3 gate remains IGNORE after context adjustment unless a harder risk outcome replaces it.",
+      "global_zero_threshold_fallback": false,
+      "shared_resolver_consumers": [
+        "production meta prediction",
+        "production final decision",
+        "historical parity replay",
+        "real-runtime parity replay"
+      ]
+    }
+  },
+  "controlled_production_model_replay": [
+    {
+      "symbol": "BTC",
+      "case": "S3_GAP",
+      "meta_probability": 0.5863507385296476,
+      "expected_return_fraction": 0.00257033,
+      "s3_threshold": 0.6815743466054911,
+      "s3_pass": false,
+      "final_action": "IGNORE"
+    },
+    {
+      "symbol": "BTC",
+      "case": "BUYISH",
+      "meta_probability": 0.9350372500043952,
+      "expected_return_fraction": 0.00588285,
+      "s3_threshold": 0.6815743466054911,
+      "s3_pass": true,
+      "final_action": "BUY"
+    },
+    {
+      "symbol": "ETH",
+      "case": "S3_GAP",
+      "meta_probability": 0.6648850505192974,
+      "expected_return_fraction": 0.00331641,
+      "s3_threshold": 0.8280730473863367,
+      "s3_pass": false,
+      "final_action": "IGNORE"
+    },
+    {
+      "symbol": "ETH",
+      "case": "BUYISH",
+      "meta_probability": 0.8387193428047229,
+      "expected_return_fraction": 0.00496783,
+      "s3_threshold": 0.8280730473863367,
+      "s3_pass": true,
+      "final_action": "BUY"
+    },
+    {
+      "symbol": "BNB",
+      "case": "S3_GAP",
+      "meta_probability": 0.6266333240608257,
+      "expected_return_fraction": 0.00295302,
+      "s3_threshold": 0.7566326790486391,
+      "s3_pass": false,
+      "final_action": "IGNORE"
+    },
+    {
+      "symbol": "BNB",
+      "case": "BUYISH",
+      "meta_probability": 0.8905645468802235,
+      "expected_return_fraction": 0.00546036,
+      "s3_threshold": 0.7566326790486391,
+      "s3_pass": true,
+      "final_action": "BUY"
+    }
+  ],
+  "implementation_artifacts": [
+    {
+      "path": "btc_scraper/ml_engine/economic_contract.py",
+      "sha256": "ab776d6f691640ef44fd777da3c7e97d03d2fc2ac6a2635cef1df8e549c54882"
+    },
+    {
+      "path": "btc_scraper/ml_engine/s3_thresholds.py",
+      "sha256": "2d73ac3535be9c597fcc6b1c7046db449a9263cf42daee18ae8b6bf4f68a9025"
+    },
+    {
+      "path": "config/s3_thresholds_v1.json",
+      "sha256": "7cb5f2f40555860bb69c961ad65bac1972eefaada91f5cfce8d08e1f35799829"
+    },
+    {
+      "path": "btc_scraper/ml_engine/meta_model.py",
+      "sha256": "e8f3136c47f679b4cbe466d0b3d87f1927546558b5ec9a255e0f8142f6b02926"
+    },
+    {
+      "path": "btc_scraper/ml_engine/decision_engine.py",
+      "sha256": "99ecdac8e3992ae7cf3bf3318b8e48db2d8c5c3ba4090504ea06a0e365b44917"
+    },
+    {
+      "path": "btc_scraper/ml_engine/inference_coordinator.py",
+      "sha256": "465a5a21328ad5b88645ca405f502f56739001996ef91abee9a8d7d3ea520944"
+    },
+    {
+      "path": "scripts/hmr_v5_d2_parity_replay.py",
+      "sha256": "6ae4e5f255a3e104ce567ee2e3bef69b8eef1fa0ba36968e1e9136aedc41408a"
+    },
+    {
+      "path": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+      "sha256": "0250b9f5517889f921a4fa34c3bdb34b75bef7f70e5fd3ced52ead05cdf6c0ce"
+    },
+    {
+      "path": "tests/ml/test_p1_decision_correctness.py",
+      "sha256": "0155b53dbe0f767d31661bac3923eb7c7541435a988cb246c9ab2f984b318248"
+    }
+  ],
+  "verification": {
+    "syntax": {
+      "command": ".venv/bin/python -m py_compile <P1 modules, adapters, and boundary tests>",
+      "status": "PASS"
+    },
+    "p1_boundary_tests": {
+      "path": "tests/ml/test_p1_decision_correctness.py",
+      "tests": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "targeted_suite": {
+      "tests": 182,
+      "passed": 182,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 17.818,
+      "junit_sha256": "3cd1b5a6f3a30f857f5e6f4f6f089c89c77c14fcf511dcd53c01e1268196a61d"
+    },
+    "lineage_evidence_canary_suite": {
+      "status": "PASS",
+      "scope": [
+        "runtime universe",
+        "canary execution invariants",
+        "shadow validation",
+        "prediction traceability",
+        "evidence epoch",
+        "runtime evidence store",
+        "production lineage"
+      ]
+    },
+    "full_suite": {
+      "tests": 1134,
+      "passed": 1130,
+      "failed": 4,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 580.673,
+      "junit_sha256": "a14f7ae26702e9f08d448120fb058e8fb8c00607637c4e03eddbce4cece193cf",
+      "baseline_comparison": {
+        "p0_tests": 1121,
+        "p0_passed": 1116,
+        "p0_failed": 5,
+        "added_p1_tests": 13,
+        "resolved_frozen_failure": "tests.ml.test_non_evidence_inference_smoke::test_non_evidence_decision_contract_stays_sell_side_probability_v2",
+        "new_unrelated_failures": 0
+      },
+      "remaining_frozen_failures": [
+        {
+          "test": "tests.ml.test_ml_engine_static_safety::test_ml_engine_static_safety_gates",
+          "p0_fingerprint": "sha256:ff01aed7ec48922e18d43752ef6fb62f5685ee8bdaab9e8b4330e2b21a5f676c"
+        },
+        {
+          "test": "tests.test_etf_integration_audit::test_integration_json_schema",
+          "p0_fingerprint": "sha256:c72b0b37b6c54cfb8b205df023e1961c9051f96733fc772ecd70169692c58ad1"
+        },
+        {
+          "test": "tests.test_validate_alternative_history::test_generate_artifacts_writes_research_only_contract",
+          "p0_fingerprint": "sha256:45aa14f4cf30bd405d5b2286ae39e916eff5ab7f9ca5af9fae24870db8952d7c"
+        },
+        {
+          "test": "tests.test_validate_alternative_history::test_probe_results_are_not_marked_as_evidence",
+          "p0_fingerprint": "sha256:4e72e1e9cc608f7cbcfcc97e521acde96a5f84cf5dee509549147425c07a3e4a"
+        }
+      ]
+    },
+    "test_generated_research_side_effects": "REVERTED_TO_PRE_TEST_STATE"
+  },
+  "gitnexus_verification": {
+    "tools_used": [
+      "query",
+      "context",
+      "impact",
+      "process resource",
+      "analyze --force",
+      "detect-changes --scope compare --base-ref main"
+    ],
+    "index_refresh": {
+      "initial_incremental_refresh": "FAILED_FTS_INCONSISTENCY",
+      "forced_full_rebuild": "PASS",
+      "nodes": 16886,
+      "edges": 29048,
+      "clusters": 572,
+      "execution_flows": 300
+    },
+    "change_detection": {
+      "status": "PASS_EXPECTED_SCOPE",
+      "changed_files": 8,
+      "changed_symbols": 41,
+      "affected_processes": 58,
+      "risk_level": "CRITICAL",
+      "assessment": "Expected fan-out from the shared prediction coordinator and final-decision path; no execution, fill, ledger, sizing, scoring-direction, artifact-cleanup, or deployment-gate symbols were edited."
+    },
+    "unresolved_dynamic_relationships": [
+      "A concrete runtime release and artifact binding cannot be resolved because no active runtime/evidence epoch exists."
+    ]
+  },
+  "p0_finding_transitions": [
+    {
+      "id": "P0-F01",
+      "code": "EV_UNIT_MISMATCH",
+      "transition": "REMEDIATED_BY_P1_1"
+    },
+    {
+      "id": "P0-F02",
+      "code": "RUNTIME_S3_NOT_ENFORCED",
+      "transition": "REMEDIATED_BY_P1_2"
+    },
+    {
+      "id": "P0-F09",
+      "code": "REGRESSION_BASELINE_NOT_GREEN",
+      "transition": "PARTIAL_INTENDED_DELTA_ONE_FROZEN_FAILURE_RESOLVED_FOUR_UNRELATED_REMAIN"
+    }
+  ],
+  "governance": {
+    "h14_state_path": "historical-h14-prospective-validation-design-discrimination/reports/h14_final_branch_state.json",
+    "h14_state_sha256": "0617fa193d1bcb4d9751b4ccdac5b76c6fb8345df058fa0333f830102fe7d8d8",
+    "h14_status": "CLOSED",
+    "h14_verdict": "RESEARCH_HARD_STOP",
+    "successor_research": "NOT_AUTHORIZED",
+    "live_real_money": "NOT_AUTHORIZED",
+    "selected_runtime_release": {
+      "status": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+      "reason": "no active runtime/evidence epoch",
+      "pre_runtime_requirement": "Release and artifact selection must be explicit and deterministic before any remediation is used by a real runtime."
+    }
+  },
+  "decision": "P1_CLOSED_PASS"
+}

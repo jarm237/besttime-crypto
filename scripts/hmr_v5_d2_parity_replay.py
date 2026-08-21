@@ -24,6 +24,7 @@ from scripts.generate_triple_barrier_labels import load_candles_for_coin
 from scripts.hmr_v5_b1_exit_audit import compute_atr14, simulate_path_aware_exit
 from scripts.hmr_v5_b2_executable_replay import apply_policy_p4
 from scripts.hmr_v5_c2_minimal_model import run_e4_generation
+from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 
 SCAFFOLD_PATH = REPO_ROOT / "research/historical_market_replay_v4/v4a_outcome_scaffold.parquet"
 C3_JSON_PATH = REPO_ROOT / "research/historical_market_replay_v5/v5_c3_confirmatory_audit.json"
@@ -77,9 +78,8 @@ class RuntimeInferenceEngine:
         # Sigmoid function
         prob = 1.0 / (1.0 + math.exp(-z))
         
-        # Threshold decision
-        thresh = self.model[symbol]["s3_threshold"]
-        decision = (prob >= thresh)
+        # Production and replay share one versioned, fail-closed threshold resolver.
+        decision = evaluate_s3_threshold(symbol, prob).s3_pass
         
         return prob, decision
 
@@ -217,7 +217,8 @@ def main():
         assert max_diff < 1e-12, f"Parity mismatch on {symbol} probabilities! Max diff: {max_diff}"
         
         # Verify decision parity
-        thresh = engine.model[symbol]["s3_threshold"]
+        thresh = evaluate_s3_threshold(symbol, 0.0).s3_threshold
+        assert thresh is not None, f"S3 threshold unresolved for {symbol}"
         off_decisions = (probs_conf_off >= thresh)
         dec_mismatch = int(np.sum(off_decisions != runtime_decisions))
         print(f"Parity [{symbol}]: decision mismatches = {dec_mismatch}")

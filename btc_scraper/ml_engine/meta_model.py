@@ -30,6 +30,13 @@ from sklearn.model_selection import TimeSeriesSplit, cross_val_score, Predefined
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.base import BaseEstimator, ClassifierMixin
 from btc_scraper.core.paths import build_logs_path, get_runtime_paths
+from btc_scraper.ml_engine.economic_contract import (
+    EV_CONTRACT_VERSION,
+    EXPECTED_RETURN_UNIT,
+    fraction_to_bps,
+    percent_points_to_fraction,
+)
+from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 
 BASE = Path(__file__).parent.parent.parent
 LOGS = build_logs_path()
@@ -427,12 +434,14 @@ def _compute_expected_value_metrics(prob: float, analysis_info: dict) -> dict:
     tp2_prob = 0.0 if profile["tp2_pct"] <= 0.0 else prob * 0.30
     prob_sl = 1.0 - prob
 
-    expected_return = (
+    expected_return_pct = (
         tp1_prob * profile["tp1_pct"]
         + tp2_prob * profile["tp2_pct"]
         - prob_sl * profile["sl_pct"]
     )
-    expected_drawdown = prob_sl * profile["sl_pct"]
+    expected_drawdown_pct = prob_sl * profile["sl_pct"]
+    expected_return = percent_points_to_fraction(expected_return_pct)
+    expected_drawdown = percent_points_to_fraction(expected_drawdown_pct)
     expected_hold_time = _safe_float(
         analysis_info.get("expected_hold_time")
         or analysis_info.get("hold_hours")
@@ -443,8 +452,12 @@ def _compute_expected_value_metrics(prob: float, analysis_info: dict) -> dict:
     )
 
     return {
-        "expected_return": round(expected_return, 4),
-        "expected_drawdown": round(expected_drawdown, 4),
+        "expected_return": round(expected_return, 8),
+        "expected_return_bps": round(fraction_to_bps(expected_return), 4),
+        "expected_return_unit": EXPECTED_RETURN_UNIT,
+        "ev_contract_version": EV_CONTRACT_VERSION,
+        "expected_drawdown": round(expected_drawdown, 8),
+        "expected_drawdown_bps": round(fraction_to_bps(expected_drawdown), 4),
         "expected_hold_time": round(expected_hold_time, 2),
         "prob_tp1": round(tp1_prob, 4),
         "prob_tp2": round(tp2_prob, 4),
@@ -452,7 +465,8 @@ def _compute_expected_value_metrics(prob: float, analysis_info: dict) -> dict:
         "tp1_pct": round(profile["tp1_pct"], 4),
         "tp2_pct": round(profile["tp2_pct"], 4),
         "sl_pct": round(profile["sl_pct"], 4),
-        "ev": round(expected_return, 4),
+        "ev": round(expected_return, 8),
+        "ev_bps": round(fraction_to_bps(expected_return), 4),
     }
 
 
@@ -1162,6 +1176,17 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
         sizing_probability = min(0.80, max(0.40, prob))
 
         ev_metrics = _compute_expected_value_metrics(prob, analysis_info)
+        prediction_symbol = _resolve_prediction_symbol(analysis_info)
+        s3_gate = evaluate_s3_threshold(prediction_symbol, prob)
+        s3_fields = {
+            "symbol": s3_gate.symbol,
+            "probability_semantics": "P(win_given_proposed_trade)",
+            "s3_threshold": s3_gate.s3_threshold,
+            "s3_pass": s3_gate.s3_pass,
+            "threshold_contract_version": s3_gate.threshold_contract_version,
+            "threshold_contract_sha256": s3_gate.threshold_contract_sha256,
+            "s3_threshold_error": s3_gate.error,
+        }
 
         # Prediction-level logging (append newline-delimited JSON, mỗi ngày 1 file)
         try:
@@ -1186,7 +1211,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                 artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
                 raw_prediction=prob, calibrated_prediction=prob, features=row,
                 decision_context=analysis_info.get("decision_context") or "unclassified",
-                symbol=_resolve_prediction_symbol(analysis_info),
+                symbol=prediction_symbol,
                 timeframe=analysis_info.get("timeframe") or analysis_info.get("interval") or "15m",
                 side=prediction_side,
                 calibration_method=(artifact.metadata or {}).get("calibration_method", "isotonic"),
@@ -1200,6 +1225,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                     "cycle_id": analysis_info.get("cycle_id"),
                     "sizing_probability": sizing_probability,
                     **ev_metrics,
+                    **s3_fields,
                     "regime_snapshot": analysis_info.get("regime_snapshot"),
                     "regime_config_sha256": (
                         (analysis_info.get("regime_snapshot") or {}).get("config_sha256")
@@ -1221,6 +1247,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
         return {
             "probability": prob,
+            "probability_semantics": "P(win_given_proposed_trade)",
             "sizing_probability": sizing_probability,
             "prediction_id": prediction_event.get("prediction_id"),
             "model_version": MODEL_VERSION,
@@ -1236,6 +1263,7 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             "caller_context": prediction_event.get("caller_context"),
             "regime_snapshot": analysis_info.get("regime_snapshot"),
             **ev_metrics,
+            **s3_fields,
         }
     except Exception as e:
         from btc_scraper.ml_engine.operational_health import record_degradation

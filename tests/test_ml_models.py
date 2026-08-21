@@ -224,10 +224,12 @@ def test_predict_meta_confidence(temp_logs_dir):
     assert "expected_return" in res
     assert "prob_tp1" in res
     assert "prob_sl" in res
-    assert res["expected_return"] == round(
-        res["prob_tp1"] * res["tp1_pct"] + res["prob_tp2"] * res["tp2_pct"] - res["prob_sl"] * res["sl_pct"],
-        4,
+    assert res["expected_return_bps"] == pytest.approx(
+        res["expected_return"] * 10_000,
+        abs=0.0001,
     )
+    assert res["expected_return_unit"] == "fraction"
+    assert res["ev_contract_version"] == "expected-return-fraction-v1"
 
 
 def test_meta_decision_engine():

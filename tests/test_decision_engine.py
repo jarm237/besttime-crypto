@@ -216,10 +216,12 @@ class TestFinalRiskGate:
     def test_neutral_structured_action_cannot_become_trade(self):
         engine = MetaDecisionEngine()
         result = engine.decide({
+            "coin": "BTC",
             "signal": "NEUTRAL (BEARISH)",
             "action": "NEUTRAL",
             "_meta_prediction": {
-                "probability": 0.2,
+                "probability": 0.9,
+                "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": 0.1,
                 "prediction_id": None,
             },
@@ -232,6 +234,7 @@ class TestFinalRiskGate:
     def test_structured_sell_has_side_adjusted_execution_probability(self):
         engine = MetaDecisionEngine()
         result = engine.decide({
+            "coin": "BTC",
             "signal": "NEUTRAL (BEARISH)",
             "action": "SELL",
             "_meta_prediction": {
@@ -248,6 +251,7 @@ class TestFinalRiskGate:
     def test_bearish_support_combines_in_side_space_for_sell(self):
         engine = MetaDecisionEngine()
         result = engine.decide({
+            "coin": "BTC",
             "signal": "STRONG SELL",
             "action": "SELL",
             "fear_greed": 20,
@@ -275,6 +279,7 @@ class TestSideAgnosticExpectedValueContract:
         engine = MetaDecisionEngine(min_ev_pct=0.05)
         # P(win) high + TP > SL -> positive EV -> BUY is eligible
         result = engine.decide({
+            "coin": "BTC",
             "signal": "BUY",
             "action": "BUY",
             "_meta_prediction": {
@@ -291,6 +296,7 @@ class TestSideAgnosticExpectedValueContract:
         engine = MetaDecisionEngine(min_ev_pct=0.05)
         # P(win) high + TP > SL -> positive EV -> SELL is eligible
         result = engine.decide({
+            "coin": "BTC",
             "signal": "SELL",
             "action": "SELL",
             "_meta_prediction": {
@@ -305,12 +311,13 @@ class TestSideAgnosticExpectedValueContract:
 
     def test_buy_ignored_with_negative_ev(self):
         engine = MetaDecisionEngine(min_ev_pct=0.05)
-        # P(win) low -> negative EV -> BUY is ignored
+        # S3 passes, but negative economic EV still rejects the BUY.
         result = engine.decide({
+            "coin": "BTC",
             "signal": "BUY",
             "action": "BUY",
             "_meta_prediction": {
-                "probability": 0.2,
+                "probability": 0.8,
                 "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": -0.10,
                 "prediction_id": "pred-3",
@@ -321,12 +328,13 @@ class TestSideAgnosticExpectedValueContract:
 
     def test_sell_ignored_with_negative_ev(self):
         engine = MetaDecisionEngine(min_ev_pct=0.05)
-        # P(win) low -> negative EV -> SELL is ignored
+        # S3 passes, but negative economic EV still rejects the SELL.
         result = engine.decide({
+            "coin": "BTC",
             "signal": "SELL",
             "action": "SELL",
             "_meta_prediction": {
-                "probability": 0.2,
+                "probability": 0.8,
                 "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": -0.10,
                 "prediction_id": "pred-4",
@@ -336,15 +344,16 @@ class TestSideAgnosticExpectedValueContract:
         assert result["eligible"] is False
 
     def test_symmetric_threshold_gating_behavior(self):
-        # Using a custom symmetric threshold of 0.40 and isolating to meta support only
-        engine = MetaDecisionEngine(weights={"meta": 1.0}, buy_threshold=0.40, sell_threshold=0.40, min_ev_pct=0.05)
+        # Use a posterior threshold above BTC S3 so each gate remains independently observable.
+        engine = MetaDecisionEngine(weights={"meta": 1.0}, buy_threshold=0.80, sell_threshold=0.80, min_ev_pct=0.05)
         
         # 1. Meets threshold exactly -> eligible
         res_buy = engine.decide({
+            "coin": "BTC",
             "signal": "BUY",
             "action": "BUY",
             "_meta_prediction": {
-                "probability": 0.40,
+                "probability": 0.80,
                 "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": 0.10,
             }
@@ -352,22 +361,24 @@ class TestSideAgnosticExpectedValueContract:
         assert res_buy["action"] == "BUY"
         
         res_sell = engine.decide({
+            "coin": "BTC",
             "signal": "SELL",
             "action": "SELL",
             "_meta_prediction": {
-                "probability": 0.40,
+                "probability": 0.80,
                 "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": 0.10,
             }
         }, persist_final=False)
         assert res_sell["action"] == "SELL"
 
-        # 2. Below threshold (0.39) -> HOLD (since EV is positive but probability is insufficient)
+        # 2. Below posterior threshold but above S3 -> HOLD.
         res_buy_hold = engine.decide({
+            "coin": "BTC",
             "signal": "BUY",
             "action": "BUY",
             "_meta_prediction": {
-                "probability": 0.39,
+                "probability": 0.79,
                 "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": 0.10,
             }
@@ -375,10 +386,11 @@ class TestSideAgnosticExpectedValueContract:
         assert res_buy_hold["action"] == "HOLD"
         
         res_sell_hold = engine.decide({
+            "coin": "BTC",
             "signal": "SELL",
             "action": "SELL",
             "_meta_prediction": {
-                "probability": 0.39,
+                "probability": 0.79,
                 "probability_semantics": "P(win_given_proposed_trade)",
                 "expected_return": 0.10,
             }
