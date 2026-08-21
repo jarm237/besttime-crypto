@@ -20,6 +20,7 @@ from btc_scraper.regime.config import (
     regime_position_sizing_enabled,
 )
 from btc_scraper.regime.contract import coerce_regime_snapshot
+from btc_scraper.ml_engine.pure_scoring import score_signal_pure
 
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
@@ -214,49 +215,10 @@ def _base_score_from_text(sig_text: str) -> int:
 
 
 def _apply_context_adjustments(score: int, data: Dict, context: Dict) -> int:
-    # volume spike
-    if context.get("vol_spike"):
-        score += 5
-
-    signal_action = _primary_signal_action(data.get("signal", ""))
-    # trend / market regime
-    if context.get("above_sma200") and signal_action == "BUY":
-        score += 5
-    if context.get("below_sma200") and signal_action == "SELL":
-        score -= 0  # keep for now
-
-    # ATR shock reduces confidence
-    if data.get("atr_shock"):
-        score -= 10
-
-    # Sentiment extreme adjustments if provided
-    sentiment = data.get("sentiment") or {}
-    score_adj = 0
-    try:
-        score_value = sentiment.get("normalized_score", sentiment.get("score"))
-        s = float(score_value) if score_value is not None else None
-        # Allow overriding penalty via context: use explicit penalty value if provided
-        explicit_penalty = None
-        try:
-            explicit_penalty = float(context.get("sentiment_penalty")) if context and context.get("sentiment_penalty") is not None else None
-        except Exception:
-            explicit_penalty = None
-
-        if s is not None and s <= -0.6 and "BUY" in data.get("signal", ""):
-            if explicit_penalty is not None:
-                score += explicit_penalty
-            else:
-                score -= 20
-        if s is not None and s >= 0.6 and "SELL" in data.get("signal", ""):
-            if explicit_penalty is not None:
-                score += explicit_penalty
-            else:
-                score -= 20
-    except Exception:
-        pass
-
-    score = max(0, min(100, int(round(score + score_adj))))
-    return score
+    """Compatibility adapter for the canonical side-aware pure scorer."""
+    signal = data.get("signal", "")
+    result = score_signal_pure({**data, "signal": signal}, context)
+    return int(result.final_score)
 
 
 def map_score_to_action(score: int) -> str:
@@ -594,59 +556,53 @@ def score_signal(
     if isinstance(context, dict):
         merged.update(context)
 
-    if not is_buy and not is_sell:
-        action = "NEUTRAL"
-        score = 50
-        conf = "LOW"
-        initial_pos_size = 0.25
-    else:
-        # First try adaptive model (if available)
-        model_bundle = _load_adaptive_model() if not disable_ml else None
-        if model_bundle is not None:
-            try:
-                from btc_scraper.ml_engine.feature_extractor import features_from_analysis
-                from btc_scraper.ml_engine.meta_model import model_predict_proba
+    adaptive_probability = None
+    model_bundle = _load_adaptive_model() if not disable_ml and (is_buy or is_sell) else None
+    if model_bundle is not None:
+        try:
+            from btc_scraper.ml_engine.feature_extractor import features_from_analysis
+            from btc_scraper.ml_engine.meta_model import model_predict_proba
 
-                feat = features_from_analysis({**(data or {}), **(context or {}), "signal_score": {"score": None, "raw_text": sig_text}})
-                feature_names = model_bundle.get("features")
-                model = model_bundle.get("model")
-                row = [float(feat.get(k, 0.0)) for k in feature_names]
-                prob = float(model_predict_proba(model, [row], feature_names)[0][1])
-                action_from_text = _primary_signal_action(sig_text)
-                is_buy = action_from_text == "BUY"
-                is_sell = action_from_text == "SELL"
+            feat = features_from_analysis(
+                {**merged, "signal_score": {"score": None, "raw_text": sig_text}}
+            )
+            feature_names = model_bundle.get("features")
+            model = model_bundle.get("model")
+            row = [float(feat.get(key, 0.0)) for key in feature_names]
+            adaptive_probability = float(
+                model_predict_proba(model, [row], feature_names)[0][1]
+            )
+        except Exception:
+            adaptive_probability = None
 
-                if is_buy:
-                    base = _base_score_from_text(sig_text)
-                    score = _apply_context_adjustments(base, data or {}, context or {})
-                    score = score + int(round((prob - 0.5) * 40))
-                elif is_sell:
-                    base = _base_score_from_text(sig_text)
-                    score = _apply_context_adjustments(base, data or {}, context or {})
-                    score = score - int(round((prob - 0.5) * 40))
-                else:
-                    score = 50
-                score = max(0, min(100, int(score)))
-
-                # Use the blended score to keep sizing aligned with displayed signal strength.
-                try:
-                    base_pos = position_size_from_score(int(score))
-                except Exception:
-                    base_pos = position_size_from_score(int(score))
-            except Exception:
-                base = _base_score_from_text(sig_text)
-                score = _apply_context_adjustments(base, data or {}, context or {})
-        else:
-            base = _base_score_from_text(sig_text)
-            score = _apply_context_adjustments(base, data or {}, context or {})
-        action = action_from_text if action_from_text in ("BUY", "SELL") else map_score_to_action(score)
-        conf = map_score_to_confidence(score)
-
-        # If adaptive model provided base_pos (from above), use it; else derive from score
-        if 'base_pos' in locals() and isinstance(base_pos, (int, float)):
-            initial_pos_size = float(base_pos)
-        else:
-            initial_pos_size = position_size_from_score(score)
+    try:
+        meta_reject_threshold = float(os.getenv("META_REJECT_THRESHOLD", "0").strip())
+    except (TypeError, ValueError):
+        meta_reject_threshold = 0.0
+    pure_context = {
+        **(context or {}),
+        "adaptive_probability": adaptive_probability,
+        "meta_probability": (
+            meta_prediction.get("probability")
+            if isinstance(meta_prediction, dict) else None
+        ),
+        "meta_reject_threshold": meta_reject_threshold,
+    }
+    pure_score = score_signal_pure(
+        analysis={**merged, "signal": sig_text},
+        context=pure_context,
+    )
+    score = int(pure_score.final_score)
+    action = pure_score.side.value
+    conf = map_score_to_confidence(score)
+    initial_pos_size = (
+        0.25 if action == "NEUTRAL" else position_size_from_score(score)
+    )
+    for adjustment in pure_score.adjustments:
+        reason += (
+            f" | Score {adjustment.reason}: {adjustment.effect.value} "
+            f"{adjustment.magnitude:g}"
+        )
 
     # determine regime early so meta prediction can use it
     regime = None
@@ -780,53 +736,6 @@ def score_signal(
         reason += f" | Risk Block: {risk_reason}"
     # ─────────────────────────────────────────────────────────────────────────────
 
-    # ── Sprint 3: Meta Signal Filter ─────────────────────────────────────────────
-    # Penalize score khi Meta Model xác suất thấp (cấu hình qua env var).
-    # Chỉ hoạt động khi META_REJECT_THRESHOLD được set trong .env hoặc environ.
-    # Mặc định disabled (threshold = 0.0) để không phá hệ thống cũ.
-    _meta_reject_threshold = None
-    try:
-        import os as _os
-        _thresh_str = _os.getenv("META_REJECT_THRESHOLD", "0").strip()
-        _thresh_val = float(_thresh_str)
-        if _thresh_val > 0:
-            _meta_reject_threshold = _thresh_val
-    except Exception:
-        pass
-
-    if _meta_reject_threshold is not None and meta_prob is not None:
-        if meta_prob < _meta_reject_threshold:
-            _penalty = 20
-            score = max(0, score - _penalty)
-            reason += f" | Meta Filter: {meta_prob:.0%} < {_meta_reject_threshold:.0%} → score -{_penalty}"
-    # ─────────────────────────────────────────────────────────────────────────────
-
-    # ── MTF Confluence Filter (Layer 8) ──────────────────────────────────────────
-    # Phạt tín hiệu đi ngược chiều TF lớn hơn, thưởng khi xác nhận đa khung.
-    # tf_X_bull: +1=BULL, 0=NEUTRAL, -1=BEAR (EMA cross + Chandelier + SMA50 trên TF đó)
-    try:
-        if is_buy or is_sell:
-            signal_dir = 1 if is_buy else -1
-            _mtf_weights = [
-                (int(merged.get("tf_1h_bull", 0) or 0), 8, 15),   # (tf_val, bonus, penalty)
-                (int(merged.get("tf_4h_bull", 0) or 0), 5, 10),
-                (int(merged.get("tf_1d_bull", 0) or 0), 5, 5),
-            ]
-            _mtf_score_delta = 0
-            for tf_val, bonus_mag, penalty_mag in _mtf_weights:
-                align = tf_val * signal_dir
-                if align > 0:
-                    _mtf_score_delta += signal_dir * bonus_mag
-                elif align < 0:
-                    _mtf_score_delta -= signal_dir * penalty_mag
-            if _mtf_score_delta != 0:
-                score = max(0, min(100, score + _mtf_score_delta))
-                _tf_vals = [t[0] for t in _mtf_weights]
-                reason += f" | MTF 1h={_tf_vals[0]:+d} 4h={_tf_vals[1]:+d} 1d={_tf_vals[2]:+d} adj={_mtf_score_delta:+d}"
-    except Exception:
-        pass
-    # ─────────────────────────────────────────────────────────────────────────────
-
     # ── Volatility (Standard Deviation) Sizing ──────────────────────────────────
     std_dev_pct = None
     vol_mult = 1.0
@@ -957,6 +866,10 @@ def score_signal(
     return {
         "action": action,
         "score": int(score),               # internal 0-100 (0=strong sell, 100=strong buy)
+        "raw_score": int(pure_score.raw_score),
+        "scoring_contract_version": pure_score.contract_version,
+        "scoring_adjustments": [item.to_dict() for item in pure_score.adjustments],
+        "scoring_pass_count": 1,
         "strength": strength,              # side-agnostic 0-100 strength for trade gates
         "display_score": display_score,    # 0-100 strength in direction of action
         "display_label": display_label,    # e.g. "BUY 80%" / "SELL 75%" / "NEUTRAL"

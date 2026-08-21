@@ -1,0 +1,19 @@
+{
+  "phase": "P3",
+  "meaning": "frozen pre-refactor behavior, not a correctness declaration",
+  "fixtures": [
+    {"id": "strong-buy", "raw_score": 90, "current_final_score": 90, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "weak-buy", "raw_score": 55, "current_final_score": 55, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "strong-sell", "raw_score": 10, "current_final_score": 10, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "weak-sell", "raw_score": 45, "current_final_score": 45, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "neutral", "raw_score": 50, "current_final_score": 50, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "buy-atr-shock", "raw_score": 70, "current_final_score": 60, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "sell-atr-shock", "raw_score": 30, "current_final_score": 20, "classification": "KNOWN_DIRECTION_CONFLICT", "p3_final_score": 40},
+    {"id": "buy-volume-spike", "raw_score": 70, "current_final_score": 75, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "sell-volume-spike", "raw_score": 30, "current_final_score": 35, "classification": "KNOWN_DIRECTION_CONFLICT", "p3_final_score": 25},
+    {"id": "buy-adverse-sentiment", "raw_score": 70, "current_final_score": 50, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "sell-adverse-sentiment", "raw_score": 30, "current_final_score": 10, "classification": "KNOWN_DIRECTION_CONFLICT", "p3_final_score": 50},
+    {"id": "buy-huge-penalty", "raw_score": 70, "current_final_score": 0, "classification": "KNOWN_DIRECTION_CONFLICT", "p3_final_score": 50},
+    {"id": "sell-huge-penalty", "raw_score": 30, "current_final_score": 0, "classification": "KNOWN_DIRECTION_CONFLICT", "p3_final_score": 50}
+  ]
+}

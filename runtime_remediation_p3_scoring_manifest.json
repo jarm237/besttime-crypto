@@ -1,0 +1,76 @@
+{
+  "phase": "P3",
+  "contract_version": "pure-scoring/v1",
+  "axis": {"minimum": 0, "neutral": 50, "maximum": 100},
+  "scoring_nodes": [
+    {
+      "id": "SC-001",
+      "file": "btc_scraper/ml_engine/signal_score.py",
+      "function": "score_signal",
+      "role": "legacy_orchestrator",
+      "side_effects": ["model_load", "risk_read", "telemetry_write", "position_sizing"],
+      "called_from": ["analysis/core.py", "multi_agent.py", "auto_trader.py", "scripts/backtest.py"],
+      "mutates_score": false
+    },
+    {
+      "id": "SC-002",
+      "file": "btc_scraper/ml_engine/pure_scoring.py",
+      "function": "score_signal_pure",
+      "role": "canonical_pure_score",
+      "side_effects": [],
+      "called_from": ["signal_score.score_signal"],
+      "mutates_score": true
+    },
+    {
+      "id": "SC-003",
+      "file": "btc_scraper/ml_engine/decision_engine.py",
+      "function": "MetaDecisionEngine.apply_context",
+      "role": "posterior_context_and_final_decision",
+      "side_effects": ["final_decision_persistence"],
+      "called_from": ["decide_with_context", "decide_with_provider"],
+      "mutates_score": false
+    },
+    {
+      "id": "SC-004",
+      "file": "btc_scraper/ml_engine/context_engine.py",
+      "function": "context adjustment providers",
+      "role": "posterior_probability_context",
+      "side_effects": [],
+      "called_from": ["causal_context_bridge"],
+      "mutates_score": false
+    },
+    {
+      "id": "SC-005",
+      "file": "btc_scraper/ml_engine/feature_extractor.py",
+      "function": "technical feature score helpers",
+      "role": "model_feature_generation",
+      "side_effects": [],
+      "called_from": ["model inference"],
+      "mutates_score": false
+    },
+    {
+      "id": "SC-006",
+      "file": "btc_scraper/ml_engine/ab_backtest.py",
+      "function": "technical score helpers",
+      "role": "legacy_research_only",
+      "side_effects": [],
+      "called_from": ["ABBacktestComparator"],
+      "mutates_score": true
+    }
+  ],
+  "canonical_flow": [
+    "CanonicalAnalysis",
+    "score_signal_pure",
+    "MetaDecision",
+    "RiskGate",
+    "PositionSizing",
+    "FinalDecision",
+    "Telemetry/Persistence"
+  ],
+  "one_pass": {"production": 1, "direct": 1, "replay_adapter": 1},
+  "deferred": [
+    "P4 risk and position-sizing cleanup",
+    "P5 common live/replay evaluator",
+    "P6 artifact and warm-up cleanup"
+  ]
+}

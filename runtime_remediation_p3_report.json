@@ -1,0 +1,148 @@
+{
+  "phase": "P3",
+  "status": "CLOSED",
+  "parent": {
+    "p2_commit_sha": "869b18cb0d59fc6e6153ee7e2731224beb6bac51",
+    "p2_tree_sha": "710b195b13dd229120c2e87288e70bb812ede870",
+    "p2_commit_boundary": "PASS"
+  },
+  "contract": {
+    "version": "pure-scoring/v1",
+    "minimum_score": 0,
+    "neutral_score": 50,
+    "maximum_score": 100,
+    "axis": "0=strong SELL, 50=NEUTRAL, 100=strong BUY",
+    "weakening_policy": "clamp_at_neutral"
+  },
+  "gates": {
+    "P2_COMMIT_BOUNDARY": "PASS",
+    "SCORING_SURFACE_INVENTORIED": "PASS",
+    "CURRENT_SCORING_FLOW_MAPPED": "PASS",
+    "P3_BEHAVIORAL_BASELINE_FROZEN": "PASS",
+    "PURE_SCORING_CONTRACT_DEFINED": "PASS",
+    "SCORE_AXIS_CONTRACT": "PASS",
+    "SIDE_AWARE_ADJUSTMENT_CONTRACT": "PASS",
+    "PURE_BASE_SCORER": "PASS",
+    "SCORING_DETERMINISM": "PASS",
+    "NO_INPUT_MUTATION": "PASS",
+    "NO_AMBIENT_SCORING_STATE": "PASS",
+    "SIDE_STRENGTHENING_MONOTONIC": "PASS",
+    "SIDE_WEAKENING_MONOTONIC": "PASS",
+    "NO_ACCIDENTAL_SIDE_FLIP": "PASS",
+    "NO_OPPOSITE_SIDE_STRENGTHENING": "PASS",
+    "NEUTRAL_SEMANTICS": "PASS",
+    "SCORING_LINEAGE": "PASS",
+    "SCORING_RISK_BOUNDARY": "PASS",
+    "P1_DECISION_REGRESSION_LOCK": "PASS",
+    "P2_INFERENCE_REGRESSION_LOCK": "PASS",
+    "P3_BEHAVIOR_DELTA_ACCOUNTED": "PASS",
+    "P3_SCORING_PARITY_NO_NEW_DRIFT": "PASS",
+    "P3_TARGETED_SUITE": "PASS",
+    "NO_NEW_FULL_SUITE_REGRESSION": "PASS",
+    "RESEARCH_ARTIFACT_INTEGRITY": "PASS",
+    "P3_BLAST_RADIUS_REVIEW": "PASS_WITH_GRAPH_OVERATTRIBUTION_CAVEAT",
+    "P3_REPORT_SELF_CHECK": "PASS",
+    "PURE_SCORING": "PASS",
+    "SIDE_SYMMETRY": "PASS",
+    "ONE_SCORING_PASS": "PASS",
+    "NO_SCORING_SIDE_EFFECT": "PASS"
+  },
+  "implementation": {
+    "canonical_scorer": "btc_scraper/ml_engine/pure_scoring.py:score_signal_pure",
+    "legacy_orchestrator": "btc_scraper/ml_engine/signal_score.py:score_signal",
+    "production_invocation_count": 1,
+    "pure_scorer_forbidden_dependencies": {
+      "writes": 0,
+      "risk_calls": 0,
+      "sizing_calls": 0,
+      "order_calls": 0,
+      "model_mutations": 0,
+      "ast_violations": 0
+    },
+    "risk_sizing_telemetry_location": "downstream legacy orchestration; P4 cleanup deferred"
+  },
+  "behavior_deltas": {
+    "intended": [
+      "SELL ATR shock moves 30 toward neutral to 40 instead of strengthening to 20",
+      "SELL volume spike strengthens SELL from 30 to 25 instead of weakening to 35",
+      "adverse SELL sentiment weakens toward neutral instead of strengthening SELL",
+      "quality and meta penalties clamp at neutral and cannot create the opposite side",
+      "SMA200 and MTF evidence use mirrored side-aware semantics"
+    ],
+    "unexpected": []
+  },
+  "verification": {
+    "p3_suite": {"tests": 32, "passed": 32, "failed": 0},
+    "near_scoring_regression": {"tests": 72, "passed": 72, "failed": 0},
+    "p1_p2_decision_lineage_lock": {"tests": 99, "passed": 99, "failed": 0},
+    "targeted_suite": {
+      "tests": 231,
+      "passed": 231,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 26.055,
+      "junit_sha256": "f0e8b7e056d819a2a7ee19c9372176919cd048f506aa2affceaa5f2d1c2abc40"
+    },
+    "full_suite": {
+      "tests": 1183,
+      "passed": 1179,
+      "failed": 4,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 649.434,
+      "junit_sha256": "ef88e2b93ec88dd8074edfe28de2c69819703918b8b82a7c836e7d883e14e282",
+      "p2_comparison": {
+        "p2_tests": 1151,
+        "p2_passed": 1147,
+        "p2_failed": 4,
+        "added_p3_tests": 32,
+        "new_unrelated_failures": 0
+      },
+      "remaining_frozen_failures": [
+        "tests.ml.test_ml_engine_static_safety::test_ml_engine_static_safety_gates",
+        "tests.test_etf_integration_audit::test_integration_json_schema",
+        "tests.test_validate_alternative_history::test_generate_artifacts_writes_research_only_contract",
+        "tests.test_validate_alternative_history::test_probe_results_are_not_marked_as_evidence"
+      ]
+    }
+  },
+  "research_artifact_integrity": {
+    "tree_sha256_before": "16bcfcd66b0cd8c58683f2b40baf3f48a62d7d97d3208d19197d8629221ce6f3",
+    "tree_sha256_after_restore": "16bcfcd66b0cd8c58683f2b40baf3f48a62d7d97d3208d19197d8629221ce6f3",
+    "test_generated_files_restored": 10,
+    "status": "PASS"
+  },
+  "gitnexus": {
+    "tools_used": ["query", "context", "impact", "detect_changes", "refresh"],
+    "pre_change_score_signal": {
+      "risk": "CRITICAL",
+      "direct_callers": 11,
+      "impacted_symbols": 43,
+      "affected_process_families": 7
+    },
+    "post_change": {
+      "risk": "CRITICAL",
+      "changed_existing_symbols": ["score_signal", "_apply_context_adjustments"],
+      "semantic_scope": ["scoring", "analysis", "multi-agent", "auto-trader", "backtest/replay"],
+      "excluded_substantive_scope": ["training", "artifact routing", "risk policy", "position sizing algorithm", "order execution", "fills", "ledger"]
+    },
+    "unresolved_dynamic_relationships": [
+      "Post-refresh MCP impact/detect-changes over-attributed 327 direct callers and 288 processes to score_signal/score_signal_pure; target type was empty. Source inspection shows one production caller of score_signal_pure. Treat graph fan-out counts as unreliable until the GitNexus index relationship issue is resolved."
+    ]
+  },
+  "hashes": {
+    "behavioral_baseline_sha256": "220058a48074f6cd9295969debff348a46aa96d53f30689934b3018a30849aee",
+    "scoring_manifest_sha256": "d654e7dbe41fa468a48fb94a1159639aafaeb59ab33f560474215d82a8d5b344"
+  },
+  "governance": {
+    "h14": "CLOSED",
+    "successor_research": "NOT_AUTHORIZED",
+    "live_real_money": "NOT_AUTHORIZED",
+    "selected_runtime_release": {
+      "status": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+      "reason": "no active runtime/evidence epoch"
+    },
+    "next_authorized_scope": "P4 — Risk, Gating, and Position Sizing"
+  }
+}
