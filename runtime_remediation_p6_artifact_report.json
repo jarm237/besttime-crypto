@@ -1,0 +1,33 @@
+{
+  "phase": "P6.1",
+  "status": "BLOCKED_ARTIFACT_PROVENANCE",
+  "inventory": [
+    {"name": "adaptive_rf", "status": "production", "schema": "adaptive-rf-v2", "sha256": "1e97e8033e51e3bf9a1e010efac88861880531f262854744c3eac6338a5e1042", "health": "PASS", "evaluator_entry_artifact": false},
+    {"name": "meta_model", "status": "production", "schema": "meta-v3.1-43f", "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c", "health": "STRUCTURAL_PASS_SEMANTIC_FAIL", "evaluator_entry_artifact": true},
+    {"name": "rl_exit", "status": "shadow", "schema": "rl-exit-obs-v2", "sha256": "ae894e5835b0e145d3bffc164e5d29500bea245d225b70aeef437de06cb3a489", "health": "PASS_NOT_PRODUCTION", "evaluator_entry_artifact": false},
+    {"name": "slippage_model_v2", "status": "disabled", "schema": "slippage-v2-12f", "sha256": null, "health": "ARTIFACT_MISSING_DISABLED", "evaluator_entry_artifact": false}
+  ],
+  "meta_model_findings": {
+    "sidecar_model_version": "v3.1",
+    "bundle_version": "1.0.0",
+    "declared_schema": "meta-v3.1-43f",
+    "actual_feature_count": 4,
+    "ordered_features": ["return_8", "return_32", "return_72", "abs_move_72"],
+    "training_contract": "UNRESOLVED",
+    "calibration_contract": "UNRESOLVED",
+    "classification": "P6_RELEVANT",
+    "action": "FAIL_CLOSED_DO_NOT_REWRITE_WITH_ASSUMED_VERSION"
+  },
+  "fallback_audit": {
+    "governed_loader": "FAIL_CLOSED",
+    "mutable_latest_lookup_in_canonical_loader": false,
+    "production_evaluator_currently_receives_incomplete_p6_identity": true
+  },
+  "gates": {
+    "ARTIFACT_IDENTITY_EXPLICIT": "FOUNDATION_PASS",
+    "ARTIFACT_HASH_PINNED": "PASS",
+    "ARTIFACT_COMPATIBILITY": "BLOCKED",
+    "ARTIFACT_FAIL_CLOSED": "UNIT_PASS_NOT_INTEGRATED",
+    "SILENT_FALLBACK": "ABSENT_IN_GOVERNED_LOADER"
+  }
+}

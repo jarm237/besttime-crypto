@@ -1,0 +1,8 @@
+{
+  "phase": "P6.2",
+  "status": "FOUNDATION_COMPLETE_NOT_INTEGRATED",
+  "existing_contracts": ["CanonicalCandle", "CanonicalCandleWindow", "MarketEvaluationInput", "MarketEvaluationResult", "InferenceArtifact", "InferenceResult", "EntryDecision", "SizingDecision"],
+  "new_contracts": ["FieldContract", "SchemaContract", "ArtifactContract", "EvaluationProvenance"],
+  "semantics": {"ordered_fields": true, "dtype": true, "nullable": true, "extra_fields_explicit": true, "nan_infinity_rejected": true, "utc_timestamp_required": true},
+  "gates": {"CANONICAL_SCHEMA": "FOUNDATION_PASS", "FEATURE_ORDER_LOCK": "PASS", "TIMESTAMP_SEMANTICS": "PASS", "SERIALIZATION_DETERMINISM": "PASS", "SCHEMA_FINGERPRINT": "PASS", "PRODUCTION_INTEGRATION": "BLOCKED_BY_ARTIFACT_PROVENANCE"}
+}

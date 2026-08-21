@@ -672,6 +672,34 @@ parity suite        PASS
 
 Known stale fixtures must be corrected to the frozen contract, not hidden with `xfail`.
 
+## P6 Implementation Progress
+
+```text
+P6-G0 BASELINE PIN                 PASS
+P6-G1 CONTRACT INVENTORY           PASS
+P6 ARTIFACT/SCHEMA/WARMUP FOUNDATION PASS
+P6-G2 ARTIFACT CONTRACT CLOSURE    BLOCKED_ARTIFACT_PROVENANCE
+P6                                 IN_PROGRESS / BLOCKED
+```
+
+The canonical `meta_model` bytes are hash-pinned, but their sidecar declares
+`v3.1 / 43f` while the bundle exposes version `1.0.0` and exactly four ordered
+features. No authoritative training or calibration contract is present. P6
+therefore does not infer a replacement version or fabricate contract hashes.
+
+A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
+contract gaps. Per stop condition SC-4, those integration edits were rolled
+back and the affected P5/canary/AutoTrader regression set returned to
+`98/98 PASS`. The reusable P6 contract foundation remains covered by
+`15/15 PASS` tests, but it is not production-authoritative until artifact
+provenance is resolved.
+
+```text
+selected_runtime_release = UNRESOLVED / NOT_APPLICABLE_CURRENTLY
+reason = no active runtime/evidence epoch
+successor research = NOT_AUTHORIZED
+```
+
 ---
 
 # Platform Gate — EXPERIMENTAL_SUBSTRATE_READY

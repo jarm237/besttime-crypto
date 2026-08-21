@@ -1,0 +1,10 @@
+{
+  "phase": "P6.3",
+  "status": "FOUNDATION_COMPLETE_NOT_INTEGRATED",
+  "states": ["READY", "WARMING_UP", "INVALID_INPUT", "INCOMPATIBLE_ARTIFACT"],
+  "invariant": "WARMING_UP != HOLD",
+  "dependency_rule": "required_bars=max(explicit minimum_bars values)",
+  "covered_boundaries": ["minimum-1", "minimum", "gap", "partial candle", "future observation", "restart reconstruction"],
+  "inventory_findings": {"legacy_analysis_sma200_start": 200, "resolved_p5_evaluator_history_contract": "NOT_DECLARED", "indicator_nan_to_zero_candidates": ["choppiness", "rate_of_change", "historical_volatility"]},
+  "gates": {"WARMUP_EXPLICIT": "FOUNDATION_PASS", "MIN_HISTORY_DETERMINISTIC": "UNIT_PASS", "FIRST_VALID_TIMESTAMP_PARITY": "UNIT_PASS", "MTF_READINESS": "NOT_INTEGRATED", "WARMUP_NOT_HOLD": "PASS", "RESTART_PARITY": "UNIT_PASS"}
+}
