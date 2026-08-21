@@ -443,6 +443,53 @@ SIZING_LINEAGE            PASS
 KELLY_SEMANTICS           PASS
 ```
 
+### Implementation Progress — 2026-08-21
+
+```text
+P3_COMMIT_BOUNDARY        PASS
+P3 close commit           b15a942ce643a49bf79eb1cbe098ffaad6493e65
+P3 tree                   8757f5fe2d7123465d62a0e7956f388699ab7719
+
+NON_ACTIONABLE_SIZE_ZERO  PASS
+RISK_REJECTION_GATED      PASS
+SIZING_LINEAGE            PASS
+KELLY_SEMANTICS           PASS
+
+POSITIVE_MINIMUM_SEMANTICS    PASS
+ORDER_FINAL_SIZE_BOUNDARY     PASS
+P1_DECISION_REGRESSION_LOCK   PASS
+P2_INFERENCE_REGRESSION_LOCK  PASS
+P3_SCORING_REGRESSION_LOCK    PASS
+NO_NEW_FULL_SUITE_REGRESSION  PASS
+RESEARCH_ARTIFACT_INTEGRITY   PASS
+
+P4                        CLOSED
+Runtime semantics changed YES — risk/gating/final sizing only
+Successor research        NOT_AUTHORIZED
+Next authorized scope     P5 — Unified Live / Historical Evaluator
+```
+
+Implemented contract and evidence:
+
+- Canonical risk/sizing finalizer: `btc_scraper/trading/risk_sizing_contract.py`, contract `risk-sizing/v1`.
+- `final_position_size` is authoritative; `position_size` remains only a compatibility alias to that value.
+- Non-actionable and risk-rejected decisions expose zero final size; risk rejection is explicitly gated.
+- Sizing lineage separates Kelly recommendation, raw size, risk-adjusted size, and final size.
+- Positive actionable minimum and maximum constraints remain intact; zero exposure is never raised by a floor.
+- The order-planning handoff consumes `EntryDecision.final_position_size`.
+- P4 suite: `44/44 PASS`; combined targeted suite: `275/275 PASS`.
+- Full suite: `1223/1227 PASS`; the four failures are unchanged frozen fingerprints, with zero new unrelated failures.
+- Closure evidence: `runtime_remediation_p4_report.json`, `runtime_remediation_p4_risk_sizing_manifest.json`, and `runtime_remediation_p4_behavioral_baseline.json`.
+
+Explicit caveats retained:
+
+```text
+selected_runtime_release = UNRESOLVED / NOT_APPLICABLE_CURRENTLY
+reason = no active runtime/evidence epoch
+```
+
+GitNexus post-rebuild change detection is `MEDIUM`, while `_process_signal` and `score_signal` retain `HIGH` upstream impact because they are shared production boundaries. The implementation and regression evidence bound P4 to risk/gating/final-sizing semantics; no P5/P6, execution, fills, ledger, or successor-research work is included.
+
 ---
 
 # P5 — Unified Live / Historical Evaluator

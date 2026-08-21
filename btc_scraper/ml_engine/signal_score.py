@@ -21,6 +21,10 @@ from btc_scraper.regime.config import (
 )
 from btc_scraper.regime.contract import coerce_regime_snapshot
 from btc_scraper.ml_engine.pure_scoring import score_signal_pure
+from btc_scraper.trading.risk_sizing_contract import (
+    evaluate_risk_gate,
+    finalize_position_size,
+)
 
 # ── TTL Cache cho calculate_risk_metrics ─────────────────────────────────────
 # Tránh query MongoDB 24 lần/chu kỳ (1 lần/coin) → chỉ query 1 lần/phút
@@ -834,6 +838,23 @@ def score_signal(
             proposed_regime_multiplier = 1.0
             applied_regime_multiplier = 1.0
 
+    risk_gate_result = evaluate_risk_gate(
+        action=action_from_text if risk_blocked else action,
+        risk_approved=not risk_blocked,
+        risk_multiplier=1.0,
+        reason=risk_failure_reason,
+    )
+    sizing_result = finalize_position_size(
+        action=action,
+        risk_result=risk_gate_result,
+        raw_position_size=pos_size,
+        kelly_fraction=kelly,
+        minimum_size=0.0,
+        maximum_size=1.0,
+        sizing_method=sizing_method,
+    )
+    pos_size = sizing_result.final_position_size
+
     # ── Display fields (human-readable) ─────────────────────────────────────────
     display_score, display_label = map_score_to_display(int(score), action)
     strength = signal_strength_from_score(action, score)
@@ -875,8 +896,20 @@ def score_signal(
         "display_label": display_label,    # e.g. "BUY 80%" / "SELL 75%" / "NEUTRAL"
         "confidence": conf,
         "position_size": pos_size,
+        "raw_position_size": sizing_result.raw_position_size,
+        "risk_adjusted_size": sizing_result.risk_adjusted_size,
+        "final_position_size": sizing_result.final_position_size,
+        "sizing_adjustments": [
+            {
+                "reason": item.reason,
+                "from": item.value_before,
+                "to": item.value_after,
+            }
+            for item in sizing_result.adjustments
+        ],
+        "sizing_contract_version": sizing_result.sizing_contract_version,
         "raw_text": sig_text,
-        "gated": gated,
+        "gated": bool(gated or sizing_result.gated),
         "meta_confidence": meta_prob,
         "meta_probability": meta_prob,
         "meta_probability_semantics": "P(win_given_proposed_trade)",

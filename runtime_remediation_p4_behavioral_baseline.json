@@ -1,0 +1,15 @@
+{
+  "phase": "P4",
+  "meaning": "frozen pre-P4 behavior, not a correctness declaration",
+  "fixtures": [
+    {"id": "legacy-neutral-floor", "action": "NEUTRAL", "current_position_size": 0.25, "p4_final_position_size": 0, "classification": "KNOWN_ZERO_EXPOSURE_VIOLATION"},
+    {"id": "legacy-risk-blocked-buy", "candidate_action": "BUY", "final_action": "NEUTRAL", "current_position_size": "positive floor possible", "p4_final_position_size": 0, "p4_gated": true, "classification": "KNOWN_RISK_SIZE_LEAK"},
+    {"id": "entry-action-disagreement", "action": "NEUTRAL", "current_sizing": null, "p4_final_position_size": 0, "classification": "EXPLICIT_LINEAGE_ONLY"},
+    {"id": "risk-circuit-breaker", "action": "BUY", "current_sizing": null, "p4_final_position_size": 0, "p4_gated": true, "classification": "EXPLICIT_LINEAGE_ONLY"},
+    {"id": "sizing-invalid-input", "raw_position_size": 0, "current_final_notional": 0, "p4_final_position_size": 0, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "kelly-non-positive", "current_rejected": true, "current_final_notional": 0, "p4_final_position_size": 0, "classification": "UNCHANGED_EXPECTED"},
+    {"id": "positive-sub-min-risk-safe", "current_behavior": "clamp_to_minimum", "p4_behavior": "clamp_to_minimum", "classification": "UNCHANGED_EXPECTED"},
+    {"id": "positive-sub-min-risk-unsafe", "current_behavior": "reject", "p4_behavior": "reject_and_zero", "classification": "UNCHANGED_EXPECTED"},
+    {"id": "order-handoff", "current_field": "SizingDecision.final_notional", "p4_field": "EntryDecision.final_position_size", "classification": "INTENDED_P4_CHANGE"}
+  ]
+}

@@ -421,6 +421,8 @@ class AutoTrader:
             max_trade_capped = max_limit
             notional = min(notional, max_limit)
 
+        risk_adjusted_notional = max(0.0, notional)
+
         # 8. Min Notional Validation
         min_limit = min_trade_cap if min_trade_cap is not None else self.min_trade_usdt
         allowed_risk = risk_notional
@@ -443,6 +445,7 @@ class AutoTrader:
                     var_capped=var_capped,
                     exposure_capped=exposure_capped,
                     max_trade_capped=max_trade_capped,
+                    risk_adjusted_notional=risk_adjusted_notional,
                     final_notional=0.0,
                     rejected=True,
                     rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
@@ -461,6 +464,7 @@ class AutoTrader:
             var_capped=var_capped,
             exposure_capped=exposure_capped,
             max_trade_capped=max_trade_capped,
+            risk_adjusted_notional=risk_adjusted_notional,
             final_notional=round(notional, 2),
             rejected=False,
         )
@@ -1173,9 +1177,11 @@ class AutoTrader:
             self._notify_trade(log_entry)
             return log_entry
 
-        usdt_amount = sizing_decision.final_notional
         import dataclasses
         decision = dataclasses.replace(decision, sizing=sizing_decision)
+        # The order boundary consumes one authoritative field. Rejected and
+        # non-actionable decisions can never recover exposure through a floor.
+        usdt_amount = decision.final_position_size
 
         # Đặt lệnh qua ExecutionEngine (Phase 1: tất cả write đi qua đây)
         log_mode = "DRY_RUN" if self.dry_run else "TESTNET"
@@ -1202,6 +1208,11 @@ class AutoTrader:
             "sl_price": float(sl_price),
             "tp1_price": float(tp1_price),
             "usdt_amount": usdt_amount,
+            "raw_position_size": sizing_decision.raw_position_size,
+            "risk_adjusted_size": sizing_decision.risk_adjusted_size,
+            "final_position_size": decision.final_position_size,
+            "sizing_contract_version": "risk-sizing/v1",
+            "gated": decision.gated,
             "account_balance_est": real_balance,
             "order_id": None,
             "status": None,

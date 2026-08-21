@@ -1,0 +1,73 @@
+{
+  "phase": "P4",
+  "contract_version": "risk-sizing/v1",
+  "authoritative_field": "final_position_size",
+  "nodes": [
+    {
+      "id": "RS-001",
+      "file": "btc_scraper/trading/risk_sizing_contract.py",
+      "function": "evaluate_risk_gate",
+      "role": "canonical_risk_gate",
+      "inputs": ["action", "risk_approved", "risk_multiplier", "reason"],
+      "outputs": ["eligible", "gated", "reason", "risk_multiplier"],
+      "needs_change": false
+    },
+    {
+      "id": "RS-002",
+      "file": "btc_scraper/trading/risk_sizing_contract.py",
+      "function": "finalize_position_size",
+      "role": "canonical_final_exposure",
+      "inputs": ["action", "risk_result", "raw_position_size", "kelly_fraction", "minimum_size", "maximum_size"],
+      "outputs": ["raw_position_size", "risk_adjusted_size", "final_position_size", "adjustments"],
+      "current_size_floor": "positive actionable exposure only",
+      "needs_change": false
+    },
+    {
+      "id": "RS-003",
+      "file": "btc_scraper/ml_engine/signal_score.py",
+      "function": "score_signal",
+      "role": "legacy_scoring_envelope_and_sizing_orchestrator",
+      "outputs": ["position_size", "final_position_size", "gated"],
+      "current_size_floor": "legacy 0.05/0.25 floors now bypassed for zero exposure",
+      "needs_change": false
+    },
+    {
+      "id": "RS-004",
+      "file": "btc_scraper/trading/auto_trader.py",
+      "function": "AutoTrader.compute_position_size",
+      "role": "production_notional_sizer",
+      "outputs": ["SizingDecision"],
+      "current_size_floor": "positive sub-min clamps only when within allowed risk; otherwise rejects",
+      "needs_change": false
+    },
+    {
+      "id": "RS-005",
+      "file": "btc_scraper/trading/auto_trader.py",
+      "function": "AutoTrader._process_signal",
+      "role": "order_planning_boundary",
+      "inputs": ["EntryDecision.final_position_size"],
+      "outputs": ["execution notional"],
+      "needs_change": false
+    },
+    {
+      "id": "RS-006",
+      "file": "btc_scraper/trading/decision_types.py",
+      "function": "EntryDecision/SizingDecision",
+      "role": "final decision sizing lineage DTO",
+      "outputs": ["gated", "kelly_fraction", "raw_position_size", "risk_adjusted_size", "final_position_size"],
+      "needs_change": false
+    }
+  ],
+  "exposure_flow": [
+    "candidate action",
+    "non-actionable zero check",
+    "risk gate",
+    "raw position size",
+    "risk-adjusted size",
+    "positive-only minimum / maximum caps",
+    "final_position_size",
+    "order boundary"
+  ],
+  "kelly_role": "recommendation/intermediate metadata; never authoritative final exposure",
+  "deferred": ["P5 unified live/replay evaluator", "P6 artifact and warm-up cleanup"]
+}

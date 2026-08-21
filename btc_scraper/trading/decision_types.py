@@ -220,9 +220,38 @@ class SizingDecision:
     var_capped: Optional[float] = None
     exposure_capped: Optional[float] = None
     max_trade_capped: Optional[float] = None
+    risk_adjusted_notional: Optional[float] = None
     final_notional: float = 0.0
     rejected: bool = False
     rejection_reason: Optional[EntryRejectionReason] = None
+
+    @property
+    def kelly_fraction(self) -> Optional[float]:
+        """Kelly recommendation; never the authoritative final exposure."""
+        if self.raw_notional <= 0 or self.kelly_adjusted is None:
+            return None
+        return max(0.0, min(1.0, self.kelly_adjusted / self.raw_notional))
+
+    @property
+    def raw_position_size(self) -> float:
+        return max(0.0, float(self.raw_notional))
+
+    @property
+    def risk_adjusted_size(self) -> float:
+        value = (
+            self.risk_adjusted_notional
+            if self.risk_adjusted_notional is not None
+            else self.final_notional
+        )
+        return max(0.0, float(value))
+
+    @property
+    def final_position_size(self) -> float:
+        return 0.0 if self.rejected else max(0.0, float(self.final_notional))
+
+    @property
+    def gated(self) -> bool:
+        return bool(self.rejected)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -236,7 +265,14 @@ class SizingDecision:
             "var_capped": self.var_capped,
             "exposure_capped": self.exposure_capped,
             "max_trade_capped": self.max_trade_capped,
+            "risk_adjusted_notional": self.risk_adjusted_notional,
             "final_notional": self.final_notional,
+            "kelly_fraction": self.kelly_fraction,
+            "raw_position_size": self.raw_position_size,
+            "risk_adjusted_size": self.risk_adjusted_size,
+            "final_position_size": self.final_position_size,
+            "gated": self.gated,
+            "sizing_contract_version": "risk-sizing/v1",
             "rejected": self.rejected,
             "rejection_reason": self.rejection_reason.value if self.rejection_reason else None,
         }
@@ -293,6 +329,24 @@ class EntryDecision:
     # Meta probability semantics annotation
     meta_probability_semantics: str = "P(win_given_proposed_trade)"
 
+    @property
+    def gated(self) -> bool:
+        risk_reasons = {
+            EntryRejectionReason.CIRCUIT_BREAKER,
+            EntryRejectionReason.CORRELATION_FILTER,
+            EntryRejectionReason.DAILY_LIMIT,
+        }
+        return bool(
+            (self.sizing and self.sizing.rejected)
+            or self.rejection_reason in risk_reasons
+        )
+
+    @property
+    def final_position_size(self) -> float:
+        if not self.eligible or self.action not in {TradeAction.BUY, TradeAction.SELL}:
+            return 0.0
+        return self.sizing.final_position_size if self.sizing is not None else 0.0
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize for JSON logging."""
         return {
@@ -321,4 +375,8 @@ class EntryDecision:
             "caller_context": self.caller_context,
             "decision_timestamp": self.decision_timestamp,
             "meta_probability_semantics": self.meta_probability_semantics,
+            "gated": self.gated,
+            "final_position_size": self.final_position_size,
+            "position_size": self.final_position_size,
+            "sizing_contract_version": "risk-sizing/v1",
         }

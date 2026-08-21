@@ -1,0 +1,144 @@
+{
+  "phase": "P4",
+  "status": "CLOSED",
+  "parent": {
+    "p3_commit_sha": "b15a942ce643a49bf79eb1cbe098ffaad6493e65",
+    "p3_tree_sha": "8757f5fe2d7123465d62a0e7956f388699ab7719",
+    "p3_commit_boundary": "PASS"
+  },
+  "contract": {
+    "version": "risk-sizing/v1",
+    "authoritative_exposure_field": "final_position_size",
+    "non_actionable_actions": ["NEUTRAL", "BLOCKED", "BLOCK_ENTRY", "IGNORE", "HOLD"],
+    "non_actionable_final_size": 0,
+    "risk_rejection_policy": "gated=true and final_position_size=0",
+    "minimum_size_policy": "apply only to positive actionable risk-approved exposure",
+    "kelly_role": "recommendation/intermediate metadata; never authoritative final exposure"
+  },
+  "gates": {
+    "P3_COMMIT_BOUNDARY": "PASS",
+    "P4_BEHAVIORAL_BASELINE_FROZEN": "PASS",
+    "RISK_SIZING_SURFACE_INVENTORIED": "PASS",
+    "NON_ACTIONABLE_SIZE_ZERO": "PASS",
+    "RISK_REJECTION_GATED": "PASS",
+    "SIZING_LINEAGE": "PASS",
+    "KELLY_SEMANTICS": "PASS",
+    "POSITIVE_MINIMUM_SEMANTICS": "PASS",
+    "ORDER_FINAL_SIZE_BOUNDARY": "PASS",
+    "P1_DECISION_REGRESSION_LOCK": "PASS",
+    "P2_INFERENCE_REGRESSION_LOCK": "PASS",
+    "P3_SCORING_REGRESSION_LOCK": "PASS",
+    "P4_TARGETED_SUITE": "PASS",
+    "NO_NEW_FULL_SUITE_REGRESSION": "PASS",
+    "RESEARCH_ARTIFACT_INTEGRITY": "PASS",
+    "P4_BLAST_RADIUS_REVIEW": "PASS_WITH_HIGH_RISK_BOUNDARY_CAVEAT",
+    "P4_REPORT_SELF_CHECK": "PASS"
+  },
+  "implementation": {
+    "canonical_contract": "btc_scraper/trading/risk_sizing_contract.py",
+    "risk_gate": "evaluate_risk_gate",
+    "finalizer": "finalize_position_size",
+    "lineage": ["kelly_fraction", "raw_position_size", "risk_adjusted_size", "final_position_size"],
+    "production_order_handoff": "EntryDecision.final_position_size",
+    "legacy_position_size_alias": "final_position_size",
+    "pure_p3_scorer_modified": false,
+    "excluded_scope": ["P2 symbol routing", "P3 scoring semantics", "P5 parity architecture", "P6 artifact cleanup", "execution", "fills", "ledger", "successor research"]
+  },
+  "behavior_deltas": {
+    "intended": [
+      "non-actionable outcomes expose zero final tradable size",
+      "risk-rejected actionable candidates are explicitly gated and expose zero final size",
+      "raw, risk-adjusted, and final position sizes are separately observable",
+      "order planning consumes the final decision's authoritative final_position_size",
+      "invalid non-finite or negative exposure fails closed"
+    ],
+    "preserved": [
+      "positive minimum-size behavior for actionable risk-approved exposure",
+      "maximum exposure caps",
+      "P1 decision boundary, P2 inference routing, and P3 pure scoring semantics"
+    ],
+    "unexpected": []
+  },
+  "verification": {
+    "p4_suite": {"tests": 44, "passed": 44, "failed": 0},
+    "p1_p2_p3_regression_lock": {"tests": 153, "passed": 153, "failed": 0},
+    "targeted_suite": {
+      "tests": 275,
+      "passed": 275,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 34.776,
+      "junit_sha256": "93d13b7d6a4692da8ba829afc5b31d5cc6a3ceaab19fda00a30f2fa19dfb0a76"
+    },
+    "full_suite": {
+      "tests": 1227,
+      "passed": 1223,
+      "failed": 4,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 511.810,
+      "junit_sha256": "cb50717fb5eeea47a9b8e075372441af7067f12ed6514dfc5d00f6a10fcb6589",
+      "p3_comparison": {
+        "p3_tests": 1183,
+        "p3_passed": 1179,
+        "p3_failed": 4,
+        "added_p4_tests": 44,
+        "new_unrelated_failures": 0
+      },
+      "remaining_frozen_failures": [
+        "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+        "tests/test_etf_integration_audit.py::test_integration_json_schema",
+        "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+        "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+      ]
+    },
+    "static_audits": {
+      "order_planner_raw_size_uses": 0,
+      "production_handoff": "usdt_amount = decision.final_position_size",
+      "pure_scoring_byte_change": 0,
+      "manifest_and_report_json_valid": true
+    }
+  },
+  "research_artifact_integrity": {
+    "tree_sha256_before": "16bcfcd66b0cd8c58683f2b40baf3f48a62d7d97d3208d19197d8629221ce6f3",
+    "tree_sha256_after_restore": "16bcfcd66b0cd8c58683f2b40baf3f48a62d7d97d3208d19197d8629221ce6f3",
+    "test_generated_files_restored": 10,
+    "status": "PASS"
+  },
+  "gitnexus": {
+    "tools_used": ["query", "context", "impact", "detect_changes", "refresh", "force analyze"],
+    "index": {"nodes": 17133, "edges": 29467, "clusters": 581, "flows": 300},
+    "post_change_impacts": {
+      "finalize_position_size": {"risk": "MEDIUM", "direct_callers": 10, "processes_affected": 0},
+      "evaluate_risk_gate": {"risk": "MEDIUM", "direct_callers": 10, "processes_affected": 0},
+      "compute_position_size": {"risk": "LOW", "direct_callers": 3, "processes_affected": 1},
+      "_process_signal": {"risk": "HIGH", "direct_callers": 6, "processes_affected": 1},
+      "score_signal": {"risk": "HIGH", "direct_callers": 13, "processes_affected": 0}
+    },
+    "change_detection": {
+      "risk": "MEDIUM",
+      "changed_symbols": 18,
+      "affected_processes": ["Run -> _resolve_meta_probability", "Run -> _get_sector_average_correlation", "Run -> Get_open_positions"]
+    },
+    "unresolved_dynamic_relationships": [
+      "Incremental refresh hit an FTS index inconsistency; a successful forced rebuild restored a queryable 300-flow index.",
+      "Change detection attributed documentation symbols in AGENTS.md and CLAUDE.md although git status contains no edits to those files; source diff is authoritative for file scope.",
+      "GitNexus maps the affected _process_signal boundary to multi-agent run-family processes; targeted tests and source audit verify no execution, fill, or ledger implementation was modified."
+    ]
+  },
+  "hashes": {
+    "behavioral_baseline_sha256": "e5b3a4d456910478dd6850b0d2abab968757c192c320040194e137b4ff81c076",
+    "risk_sizing_manifest_sha256": "91096a2ff985177f602af52662680d87fa014a344e5f9af785311f2590903a94"
+  },
+  "governance": {
+    "h14": "CLOSED",
+    "successor_research": "NOT_AUTHORIZED",
+    "live_real_money": "NOT_AUTHORIZED",
+    "selected_runtime_release": {
+      "status": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+      "reason": "no active runtime/evidence epoch"
+    },
+    "next_authorized_scope": "P5 — Unified Live / Historical Evaluator"
+  }
+}
