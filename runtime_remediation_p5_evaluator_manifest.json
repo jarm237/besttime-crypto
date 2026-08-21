@@ -1,0 +1,66 @@
+{
+  "phase": "P5",
+  "status": "IMPLEMENTATION_IN_PROGRESS",
+  "contract_version": "common-evaluator/v1",
+  "parent": {
+    "p4_commit_sha": "5caa4f6476377b28e64ec11030d4e589abd6ff44",
+    "p4_tree_sha": "e2f98b9618c69e4f069b202860feeb364dfadf54",
+    "p4_report_sha256": "fb270f1435710199335f12b8b3f0160cff4f4714e560545867d2aa68a3971eb0"
+  },
+  "canonical": {
+    "evaluator": "btc_scraper/ml_engine/common_evaluator.py:evaluate_market",
+    "input": "MarketEvaluationInput",
+    "window": "CanonicalCandleWindow",
+    "result": "MarketEvaluationResult",
+    "live_adapter": "LiveEvaluationAdapter",
+    "historical_adapter": "HistoricalEvaluationAdapter",
+    "clock_adapters": ["LiveClock", "ReplayClock", "FixedClock"],
+    "persistence_adapters": ["NoOpPersistence", "InMemoryPersistence"],
+    "pipeline_order": ["technical", "features", "inference", "score", "decision"],
+    "decision_contract_inputs": [
+      "expected-return-fraction-v1",
+      "s3-per-symbol-v1",
+      "explicit-inference/v1",
+      "pure-scoring/v1",
+      "risk-sizing/v1",
+      "threshold_config_hash",
+      "risk_config_hash"
+    ]
+  },
+  "live_nodes": [
+    {"id": "LIVE-001", "symbol": "MarketAnalystAgent.run", "role": "technical/MTF orchestration", "state_dependency": true, "clock_dependency": false, "io_dependency": false},
+    {"id": "LIVE-002", "symbol": "analyze_market", "role": "technical/regime/TP-SL/legacy score", "state_dependency": true, "clock_dependency": false, "io_dependency": true, "writes_persistence": true},
+    {"id": "LIVE-003", "symbol": "SignalGeneratorAgent.run", "role": "P2 inference/P3 score/causal terminal decision", "state_dependency": true, "clock_dependency": false, "io_dependency": true, "writes_persistence": true},
+    {"id": "LIVE-004", "symbol": "RiskManagerAgent.run", "role": "account risk", "state_dependency": true, "clock_dependency": false, "io_dependency": true},
+    {"id": "LIVE-005", "symbol": "PortfolioManagerAgent.run", "role": "portfolio allocation", "state_dependency": true, "clock_dependency": false, "io_dependency": false},
+    {"id": "LIVE-006", "symbol": "AutoTrader.build_entry_decision", "role": "P1 final decision gate", "state_dependency": true, "clock_dependency": true, "io_dependency": true, "writes_persistence": true},
+    {"id": "LIVE-007", "symbol": "AutoTrader.compute_position_size", "role": "P4 sizing", "state_dependency": true, "clock_dependency": false, "io_dependency": true},
+    {"id": "LIVE-008", "symbol": "AutoTrader._process_signal", "role": "order-planning handoff", "state_dependency": true, "clock_dependency": true, "io_dependency": true}
+  ],
+  "historical_nodes": [
+    {"id": "HIST-001", "symbol": "analyze_all_market", "role": "legacy point-in-time technical/score path", "classification": "DEFERRED_LEGACY"},
+    {"id": "HIST-002", "symbol": "scripts/backtest.py:run_backtest", "role": "legacy trading simulation", "classification": "NON_CANONICAL_RESEARCH_ONLY"},
+    {"id": "HIST-003", "symbol": "RuntimeInferenceEngine.predict_score_and_decision", "role": "research/runtime inference parity fixture", "classification": "NON_CANONICAL_RESEARCH_ONLY"},
+    {"id": "HIST-004", "symbol": "ABBacktestComparator", "role": "context research utility", "classification": "NON_CANONICAL_RESEARCH_ONLY"},
+    {"id": "HIST-005", "symbol": "HistoricalEvaluationAdapter", "role": "canonical replay adapter", "classification": "CANONICAL"}
+  ],
+  "semantic_diff": [
+    {"stage": "window", "live": "exchange dictionaries", "replay": "dataframes/dictionaries", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "CanonicalCandleWindow"},
+    {"stage": "technical", "live": "analyze_market", "replay": "analyze_all_market and scripts", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.technical"},
+    {"stage": "regime", "live": "analyze_market", "replay": "analyze_all_market", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.technical"},
+    {"stage": "features", "live": "InferenceCoordinator path", "replay": "script-specific matrices", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.features"},
+    {"stage": "inference", "live": "explicit-inference/v1", "replay": "mixed explicit and research-only", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.inference"},
+    {"stage": "score", "live": "pure-scoring/v1 via wrapper", "replay": "mixed wrapper/script", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.score"},
+    {"stage": "EV/S3", "live": "P1 contracts", "replay": "mixed shared/script", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.decision"},
+    {"stage": "risk/sizing", "live": "risk-sizing/v1 plus account state", "replay": "usually omitted", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.decision"},
+    {"stage": "TP/SL", "live": "calculate_tp_sl", "replay": "mixed research exit policies", "classification": "KNOWN_SEMANTIC_DRIFT", "canonical": "EvaluationPipeline.decision"},
+    {"stage": "clock", "live": "wall clock", "replay": "row timestamp", "classification": "CLOCK_ONLY", "canonical": "EvaluationClock"},
+    {"stage": "persistence", "live": "runtime evidence and telemetry", "replay": "files/in-memory", "classification": "PERSISTENCE_ONLY", "canonical": "EvaluationPersistence"}
+  ],
+  "remaining_migration": [
+    "Instantiate one production EvaluationPipeline from the existing P1-P4 owners.",
+    "Replace the split MarketAnalystAgent/SignalGeneratorAgent/AutoTrader semantic chain with LiveEvaluationAdapter.",
+    "Route the canonical point-in-time replay through HistoricalEvaluationAdapter.",
+    "Remove or formally quarantine analyze_all_market as a decision evaluator."
+  ]
+}

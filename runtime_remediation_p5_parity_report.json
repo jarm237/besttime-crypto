@@ -1,0 +1,78 @@
+{
+  "phase": "P5",
+  "status": "FOUNDATION_PARITY_PASS",
+  "contract_version": "common-evaluator/v1",
+  "scope": "canonical evaluator and adapter boundary; production-chain migration not yet complete",
+  "fixtures": {
+    "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT"],
+    "actions": ["BUY", "SELL", "NEUTRAL"],
+    "rejections": ["EV_REJECTED", "S3_REJECTED", "RISK_REJECTED"],
+    "timeframes": ["15m", "1h", "4h", "1d"],
+    "sizing_boundaries": [0.0, 0.099999999, 0.1, 0.100000001]
+  },
+  "gates": {
+    "CANONICAL_MARKET_INPUT_DEFINED": "PASS",
+    "CANONICAL_EVALUATION_RESULT_DEFINED": "PASS",
+    "COMMON_EVALUATOR_BOUNDARY_DEFINED": "PASS",
+    "EXPLICIT_EVALUATION_CLOCK": "PASS",
+    "PERSISTENCE_OUTSIDE_DECISION_SEMANTICS": "PASS",
+    "CANONICAL_CANDLE_ADAPTERS": "PASS",
+    "DECISION_CONTRACT_HASH_DEFINED": "PASS",
+    "COMMON_EVALUATOR_IMPLEMENTED": "PASS",
+    "LIVE_ADAPTER_THIN": "PASS",
+    "HISTORICAL_ADAPTER_THIN": "PASS",
+    "LIVE_REPLAY_SIGNAL_PARITY": "PASS",
+    "LIVE_REPLAY_SCORE_PARITY": "PASS",
+    "LIVE_REPLAY_INFERENCE_PARITY": "PASS",
+    "LIVE_REPLAY_DECISION_PARITY": "PASS",
+    "LIVE_REPLAY_REJECTION_PARITY": "PASS",
+    "LIVE_REPLAY_BOUNDARY_PARITY": "PASS",
+    "CLOCK_BOUNDARY_PARITY": "PASS",
+    "CANONICAL_WINDOW_NO_LOOKAHEAD": "PASS",
+    "CANDLE_WINDOW_EQUIVALENCE": "PASS",
+    "MTF_WINDOW_PARITY": "PASS",
+    "COMMON_EVALUATOR_DETERMINISM": "PASS",
+    "ADAPTER_INTERCHANGEABILITY": "PASS",
+    "PERSISTENCE_INDEPENDENCE": "PASS",
+    "CLOCK_SOURCE_INDEPENDENCE": "PASS",
+    "EVALUATOR_EXECUTION_SEPARATION": "PASS",
+    "COMMON_EVALUATOR": "PENDING_PRODUCTION_MIGRATION"
+  },
+  "tests": {
+    "p5_foundation": {"total": 34, "passed": 34, "failed": 0},
+    "p1_p2_p3_p4_and_decision_regression": {"total": 254, "passed": 254, "failed": 0},
+    "full_suite": {
+      "total": 1261,
+      "passed": 1257,
+      "failed": 4,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 669.754,
+      "junit_sha256": "f9eef2b53d2f151fd50fc284aa4e3c79a81709bc00459385eb77476339244b5c",
+      "new_unrelated_failures": 0,
+      "remaining_frozen_failures": [
+        "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+        "tests/test_etf_integration_audit.py::test_integration_json_schema",
+        "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+        "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+      ]
+    }
+  },
+  "research_artifact_integrity": {
+    "tree_sha256_before": "7b8f036d19cfa45d2b3412e20504cf5cdbddbbdc04755fc4454cc418f92f20d7",
+    "tree_sha256_after_restore": "7b8f036d19cfa45d2b3412e20504cf5cdbddbbdc04755fc4454cc418f92f20d7",
+    "test_generated_files_restored": 10,
+    "status": "PASS"
+  },
+  "gitnexus": {
+    "index": {"nodes": 17325, "edges": 29771, "clusters": 586, "flows": 300},
+    "evaluate_market": {"risk": "LOW", "direct_callers": 2, "affected_processes": 0},
+    "market_evaluation_adapter": {"risk": "LOW", "direct_dependents": 3, "affected_processes": 0},
+    "canonical_window_from_rows": {"risk": "LOW", "direct_callers": 4, "affected_processes": 0},
+    "caveats": [
+      "Two refresh attempts exceeded their command window and left an incremental flag; one subsequent forced rebuild completed successfully.",
+      "detect_changes does not include untracked files and therefore reported only GitNexus-generated AGENTS.md/CLAUDE.md metadata drift; those generated edits were restored."
+    ]
+  },
+  "differences": []
+}
