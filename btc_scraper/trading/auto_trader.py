@@ -1031,8 +1031,52 @@ class AutoTrader:
         signal = ana.get("signal", "")
         sig_score = ana.get("signal_score") or {}
 
-        # 1. Evaluate canonical entry decision
-        decision = self.build_entry_decision(ana, coin)
+        # Resolve adapter-only account/exposure inputs before the canonical
+        # evaluator. Eligibility and sizing themselves execute inside its
+        # production EvaluationPipeline exactly once.
+        real_balance = self.account_usdt
+        if not self.dry_run:
+            try:
+                engine = self._get_execution_engine()
+                adapter = getattr(engine, "_adapter", None)
+                if adapter is not None:
+                    balance = await adapter.get_usdt_balance()
+                    if balance and balance > 0:
+                        real_balance = float(balance)
+            except Exception:
+                real_balance = self.account_usdt
+
+        open_positions = exposure_manager.get_open_positions()
+        max_var_size = exposure_manager.calculate_max_size_by_var_limit(
+            coin, open_positions, real_balance
+        )
+        total_pct, coin_pct, sector_pct = exposure_manager.get_portfolio_exposures(
+            real_balance
+        )
+        sector = SECTOR_MAP.get(coin, "OTHER")
+        remaining_single = max(
+            0.0, (0.15 - coin_pct.get(coin, 0.0)) * real_balance
+        )
+        remaining_sector = max(
+            0.0, (0.35 - sector_pct.get(sector, 0.0)) * real_balance
+        )
+        remaining_total = max(0.0, (0.75 - total_pct) * real_balance)
+        max_exposure_size = min(
+            remaining_single, remaining_sector, remaining_total
+        )
+
+        from btc_scraper.ml_engine.production_evaluator import evaluate_live_market
+
+        market_evaluation = evaluate_live_market(
+            analysis=ana,
+            coin=coin,
+            trader=self,
+            current_balance=real_balance,
+            var_cap=max_var_size,
+            exposure_cap=max_exposure_size,
+        )
+        decision = market_evaluation.entry_decision
+        ana["market_evaluation_result"] = market_evaluation.result.to_dict()
         final_decision = ana.get("causal_decision") or {}
 
         if not decision.eligible:
@@ -1110,75 +1154,11 @@ class AutoTrader:
         sl_price = tp_sl.get("sl") or 0.0
         tp1_price = tp_sl.get("tp1") or 0.0
 
-        # Tính position size
-        real_balance = self.account_usdt
-        if not self.dry_run:
-            try:
-                engine = self._get_execution_engine()
-                adapter = getattr(engine, "_adapter", None)
-                if adapter is not None:
-                    balance = await adapter.get_usdt_balance()
-                    if balance and balance > 0:
-                        real_balance = float(balance)
-            except Exception:
-                real_balance = self.account_usdt
-
         rr_ratio = float(tp_sl.get("rr1", 0.0))
-
-        # --- 2. Portfolio VaR Sizing Scale Down ---
         symbol = f"{coin}/USDT"
-        open_positions = exposure_manager.get_open_positions()
-        max_var_size = exposure_manager.calculate_max_size_by_var_limit(coin, open_positions, real_balance)
-
-        # --- 3. Exposure Caps (Total, Sector, Single) Scale Down ---
-        total_pct, coin_pct, sector_pct = exposure_manager.get_portfolio_exposures(real_balance)
-        sector = SECTOR_MAP.get(coin, "OTHER")
-        remaining_single = max(0.0, (0.15 - coin_pct.get(coin, 0.0)) * real_balance)
-        remaining_sector = max(0.0, (0.35 - sector_pct.get(sector, 0.0)) * real_balance)
-        remaining_total = max(0.0, (0.75 - total_pct) * real_balance)
-        max_exposure_size = min(remaining_single, remaining_sector, remaining_total)
-
-        sizing_decision = self.compute_position_size(
-            entry_price=float(entry_price),
-            sl_price=float(sl_price),
-            current_balance=real_balance,
-            multiplier=float(sig_score.get("position_size", 1.0)),
-            win_prob=float(meta_prob or 0.5),
-            rr_ratio=rr_ratio,
-            var_cap=max_var_size,
-            exposure_cap=max_exposure_size,
-            max_trade_cap=self.max_trade_usdt,
-            min_trade_cap=self.min_trade_usdt,
-        )
-
-        if sizing_decision.rejected:
-            import dataclasses
-            decision = dataclasses.replace(
-                decision,
-                eligible=False,
-                rejection_reason=sizing_decision.rejection_reason,
-                sizing=sizing_decision,
-            )
-            
-            reason_str = "sizing_rejected"
-            if sizing_decision.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY:
-                reason_str = "Kelly Fraction <= 0 (Ky vong am)"
-            elif sizing_decision.rejection_reason == EntryRejectionReason.INVALID_SIZING_INPUT:
-                reason_str = f"Size lenh sau co gian {sizing_decision.final_notional:.2f} USDT < min {self.min_trade_usdt:.2f} USDT"
-            
-            log_entry = self._build_skip_log(
-                coin,
-                signal,
-                reason_str,
-                ana,
-                decision,
-            )
-            _append_log(log_entry)
-            self._notify_trade(log_entry)
-            return log_entry
-
-        import dataclasses
-        decision = dataclasses.replace(decision, sizing=sizing_decision)
+        sizing_decision = decision.sizing
+        if sizing_decision is None:
+            raise RuntimeError("canonical evaluator returned eligible decision without sizing")
         # The order boundary consumes one authoritative field. Rejected and
         # non-actionable decisions can never recover exposure through a floor.
         usdt_amount = decision.final_position_size

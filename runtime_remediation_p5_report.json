@@ -1,0 +1,52 @@
+{
+  "phase": "P5",
+  "status": "CLOSED",
+  "contract": "common-evaluator/v1",
+  "foundation_commit": {
+    "sha": "faa3c9717e51c6fe46392e23ff296d8ed1458155",
+    "tree": "9e52223d47fede7d0dd706adb2c7a51a465a42f8"
+  },
+  "gates": {
+    "COMMON_EVALUATOR": "PASS",
+    "COMMON_EVALUATOR_PRODUCTION_REACHABLE": "PASS",
+    "LIVE_REPLAY_SIGNAL_PARITY": "PASS",
+    "LIVE_REPLAY_SCORE_PARITY": "PASS",
+    "LIVE_REPLAY_DECISION_PARITY": "PASS",
+    "ONE_DECISION_PASS": "PASS",
+    "ONE_RISK_SIZING_PASS": "PASS",
+    "CROSS_SYMBOL_ISOLATION": "PASS",
+    "LEGACY_EVALUATOR_QUARANTINE": "PASS",
+    "RESEARCH_ARTIFACT_INTEGRITY": "PASS"
+  },
+  "production_path": [
+    "AgentOrchestrator.run_cycle",
+    "ExecutionAgent.run",
+    "AutoTrader.evaluate_and_trade",
+    "AutoTrader._process_signal",
+    "evaluate_live_market",
+    "LiveEvaluationAdapter.evaluate",
+    "evaluate_market"
+  ],
+  "canonical_replay_entrypoint": "btc_scraper.ml_engine.production_evaluator.evaluate_historical_market",
+  "tests": {
+    "p5_foundation": "34/34 PASS",
+    "p5_production_migration": "7/7 PASS",
+    "targeted_regression": "282/282 PASS",
+    "full_suite": "1264/1268 PASS; 4 frozen failures; 0 new regressions",
+    "full_suite_junit_sha256": "dc79b143fc49991d300b8d453b524654214be66349eab132feaf1c3b32176728"
+  },
+  "research_artifact_tree_sha256": "7b8f036d19cfa45d2b3412e20504cf5cdbddbbdc04755fc4454cc418f92f20d7",
+  "gitnexus": {
+    "index": "17356 nodes; 29828 edges; 584 clusters; 300 flows",
+    "production_live_wrapper_risk": "HIGH",
+    "change_detection_risk": "MEDIUM",
+    "dynamic_relationship_caveat": "The graph sees production reachability through evaluate_live_market and _process_signal but does not propagate process membership through the adapter's dynamic pipeline call; source-level call-chain tests cover it."
+  },
+  "governance": {
+    "runtime_semantics_changed": false,
+    "selected_runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+    "selected_runtime_release_reason": "no active runtime/evidence epoch",
+    "successor_research": "NOT_AUTHORIZED",
+    "next_authorized_scope": "P6 — Artifact, Schema, Warm-Up, and Regression Closure"
+  }
+}

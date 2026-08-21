@@ -1,8 +1,10 @@
 {
   "phase": "P5",
-  "status": "FOUNDATION_PARITY_PASS",
+  "status": "AUTHORITATIVE_PARITY_PASS",
   "contract_version": "common-evaluator/v1",
-  "scope": "canonical evaluator and adapter boundary; production-chain migration not yet complete",
+  "scope": "production-reachable live adapter and canonical historical adapter using one production EvaluationPipeline",
+  "foundation_only": false,
+  "authoritative": true,
   "fixtures": {
     "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT"],
     "actions": ["BUY", "SELL", "NEUTRAL"],
@@ -36,19 +38,27 @@
     "PERSISTENCE_INDEPENDENCE": "PASS",
     "CLOCK_SOURCE_INDEPENDENCE": "PASS",
     "EVALUATOR_EXECUTION_SEPARATION": "PASS",
-    "COMMON_EVALUATOR": "PENDING_PRODUCTION_MIGRATION"
+    "COMMON_EVALUATOR": "PASS",
+    "COMMON_EVALUATOR_PRODUCTION_REACHABLE": "PASS",
+    "CANONICAL_REPLAY_USES_COMMON_EVALUATOR": "PASS",
+    "ONE_RISK_PASS": "PASS",
+    "PORTFOLIO_MANAGER_DOES_NOT_REDECIDE_SIZE": "PASS",
+    "AUTOTRADER_DECISION_FREE": "PASS",
+    "ALTERNATE_DECISION_EVALUATOR_QUARANTINED": "PASS",
+    "CROSS_SYMBOL_ISOLATION": "PASS"
   },
   "tests": {
     "p5_foundation": {"total": 34, "passed": 34, "failed": 0},
-    "p1_p2_p3_p4_and_decision_regression": {"total": 254, "passed": 254, "failed": 0},
+    "production_migration": {"total": 7, "passed": 7, "failed": 0},
+    "p1_p2_p3_p4_and_decision_regression": {"total": 282, "passed": 282, "failed": 0},
     "full_suite": {
-      "total": 1261,
-      "passed": 1257,
+      "total": 1268,
+      "passed": 1264,
       "failed": 4,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 669.754,
-      "junit_sha256": "f9eef2b53d2f151fd50fc284aa4e3c79a81709bc00459385eb77476339244b5c",
+      "duration_seconds": 583.526,
+      "junit_sha256": "dc79b143fc49991d300b8d453b524654214be66349eab132feaf1c3b32176728",
       "new_unrelated_failures": 0,
       "remaining_frozen_failures": [
         "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
@@ -65,13 +75,15 @@
     "status": "PASS"
   },
   "gitnexus": {
-    "index": {"nodes": 17325, "edges": 29771, "clusters": 586, "flows": 300},
+    "index": {"nodes": 17356, "edges": 29828, "clusters": 584, "flows": 300},
     "evaluate_market": {"risk": "LOW", "direct_callers": 2, "affected_processes": 0},
     "market_evaluation_adapter": {"risk": "LOW", "direct_dependents": 3, "affected_processes": 0},
     "canonical_window_from_rows": {"risk": "LOW", "direct_callers": 4, "affected_processes": 0},
+    "production_live_wrapper": {"risk": "HIGH", "direct_callers": 2, "affected_processes": 1},
+    "change_detection": {"risk": "MEDIUM", "changed_symbols": 4, "affected_processes": 2},
     "caveats": [
-      "Two refresh attempts exceeded their command window and left an incremental flag; one subsequent forced rebuild completed successfully.",
-      "detect_changes does not include untracked files and therefore reported only GitNexus-generated AGENTS.md/CLAUDE.md metadata drift; those generated edits were restored."
+      "GitNexus exposes production reachability at evaluate_live_market and _process_signal but does not propagate process membership through the adapter's dynamic pipeline call to evaluate_market; the source-level call chain and tests cover that relationship.",
+      "GitNexus-generated AGENTS.md/CLAUDE.md count updates were restored and are not part of P5."
     ]
   },
   "differences": []

@@ -1,6 +1,6 @@
 {
   "phase": "P5",
-  "status": "IMPLEMENTATION_IN_PROGRESS",
+  "status": "CLOSED",
   "contract_version": "common-evaluator/v1",
   "parent": {
     "p4_commit_sha": "5caa4f6476377b28e64ec11030d4e589abd6ff44",
@@ -25,6 +25,18 @@
       "risk-sizing/v1",
       "threshold_config_hash",
       "risk_config_hash"
+    ],
+    "production_composition": "btc_scraper/ml_engine/production_evaluator.py:evaluate_resolved_market",
+    "production_live_entrypoint": "evaluate_live_market",
+    "canonical_replay_entrypoint": "evaluate_historical_market",
+    "production_call_chain": [
+      "AgentOrchestrator.run_cycle",
+      "ExecutionAgent.run",
+      "AutoTrader.evaluate_and_trade",
+      "AutoTrader._process_signal",
+      "evaluate_live_market",
+      "LiveEvaluationAdapter.evaluate",
+      "evaluate_market"
     ]
   },
   "live_nodes": [
@@ -57,10 +69,18 @@
     {"stage": "clock", "live": "wall clock", "replay": "row timestamp", "classification": "CLOCK_ONLY", "canonical": "EvaluationClock"},
     {"stage": "persistence", "live": "runtime evidence and telemetry", "replay": "files/in-memory", "classification": "PERSISTENCE_ONLY", "canonical": "EvaluationPersistence"}
   ],
-  "remaining_migration": [
-    "Instantiate one production EvaluationPipeline from the existing P1-P4 owners.",
-    "Replace the split MarketAnalystAgent/SignalGeneratorAgent/AutoTrader semantic chain with LiveEvaluationAdapter.",
-    "Route the canonical point-in-time replay through HistoricalEvaluationAdapter.",
-    "Remove or formally quarantine analyze_all_market as a decision evaluator."
-  ]
+  "semantic_ownership": {
+    "technical": "analyze_market result injected as the single resolved technical state",
+    "inference_and_score": "sealed P2/P3 result envelope injected once",
+    "final_eligibility": "AutoTrader.build_entry_decision invoked once by EvaluationPipeline.decision",
+    "risk_sizing": "AutoTrader.compute_position_size invoked once by EvaluationPipeline.decision",
+    "order_handoff": "AutoTrader consumes ProductionEvaluation.entry_decision.final_position_size",
+    "legacy_bulk_historical": {
+      "symbol": "analyze_all_market",
+      "authoritative_decision": false,
+      "execution_allowed": false,
+      "classification": "NON_CANONICAL_RESEARCH_ONLY"
+    }
+  },
+  "remaining_migration": []
 }

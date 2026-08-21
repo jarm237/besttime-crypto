@@ -554,6 +554,55 @@ LIVE_REPLAY_DECISION_PARITY  PASS
 
 No successor feasibility replay should be trusted before this phase passes.
 
+## Implementation Progress
+
+P5 is closed on the frozen P4 boundary. The production order-planning path and
+the canonical historical path now enter the same `EvaluationPipeline` through
+thin live and replay adapters. Final eligibility and position sizing each run
+exactly once inside that evaluator; `AutoTrader._process_signal` only supplies
+runtime state and consumes the resulting entry decision. The legacy bulk
+historical evaluator is explicitly non-authoritative and cannot execute.
+
+```text
+P4_COMMIT_BOUNDARY                 PASS
+P5_FOUNDATION_FROZEN               PASS
+COMMON_EVALUATOR                   PASS
+COMMON_EVALUATOR_PRODUCTION_REACHABLE PASS
+LIVE_REPLAY_SIGNAL_PARITY          PASS
+LIVE_REPLAY_SCORE_PARITY           PASS
+LIVE_REPLAY_DECISION_PARITY        PASS
+ONE_DECISION_PASS                  PASS
+ONE_RISK_SIZING_PASS               PASS
+CROSS_SYMBOL_ISOLATION             PASS
+LEGACY_EVALUATOR_QUARANTINE        PASS
+RESEARCH_ARTIFACT_INTEGRITY        PASS
+
+P5                                 CLOSED
+Runtime semantics changed          NO — ownership/orchestration unified
+Successor research                 NOT_AUTHORIZED
+Next authorized scope              P6
+```
+
+Verification evidence:
+
+- P5 foundation: `34/34 PASS`.
+- Production migration: `7/7 PASS`.
+- P1–P5 and decision-path targeted regression: `282/282 PASS`.
+- Full suite: `1264/1268 PASS`; the remaining four failures match the frozen
+  baseline and no new regression was introduced.
+- Research artifact tree hash was restored unchanged after the full suite:
+  `7b8f036d19cfa45d2b3412e20504cf5cdbddbbdc04755fc4454cc418f92f20d7`.
+
+Explicit release caveat:
+
+```text
+selected_runtime_release = UNRESOLVED / NOT_APPLICABLE_CURRENTLY
+reason = no active runtime/evidence epoch
+```
+
+Release/artifact selection must become explicit and deterministic before any
+remediation is used for a real runtime epoch.
+
 ---
 
 # P6 — Artifact, Schema, Warm-Up, and Regression Closure

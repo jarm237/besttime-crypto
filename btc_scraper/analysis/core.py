@@ -1441,3 +1441,11 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
         })
 
     return results
+
+
+# P5 quarantine: this optimized historical helper preserves legacy research
+# behavior but is not an authoritative decision evaluator and may not feed
+# execution. Canonical replay uses HistoricalEvaluationAdapter.
+analyze_all_market.authoritative_decision = False
+analyze_all_market.execution_allowed = False
+analyze_all_market.evaluator_classification = "NON_CANONICAL_RESEARCH_ONLY"
