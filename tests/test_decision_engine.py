@@ -28,12 +28,16 @@ def clean_engine(tmp_path):
     original_model_out = mm.MODEL_OUT
     original_model_cache = mm._MODEL_CACHE
     original_model_error = mm._MODEL_LOAD_ERROR
+    original_artifact_provenance = mm._MODEL_ARTIFACT_PROVENANCE
+    original_artifact_owner = mm._MODEL_ARTIFACT_OWNER_ID
     original_logs = mm.LOGS
 
     mm.MODEL_OUT = tmp_path / "meta_model.joblib"
     mm.LOGS = tmp_path
     mm._MODEL_CACHE = None
     mm._MODEL_LOAD_ERROR = None
+    mm._MODEL_ARTIFACT_PROVENANCE = None
+    mm._MODEL_ARTIFACT_OWNER_ID = None
 
     yield MetaDecisionEngine()
 
@@ -41,6 +45,8 @@ def clean_engine(tmp_path):
     mm.LOGS = original_logs
     mm._MODEL_CACHE = original_model_cache
     mm._MODEL_LOAD_ERROR = original_model_error
+    mm._MODEL_ARTIFACT_PROVENANCE = original_artifact_provenance
+    mm._MODEL_ARTIFACT_OWNER_ID = original_artifact_owner
 
 
 @pytest.fixture
@@ -57,12 +63,16 @@ def engine_with_model(tmp_path):
     original_model_out = mm.MODEL_OUT
     original_model_cache = mm._MODEL_CACHE
     original_model_error = mm._MODEL_LOAD_ERROR
+    original_artifact_provenance = mm._MODEL_ARTIFACT_PROVENANCE
+    original_artifact_owner = mm._MODEL_ARTIFACT_OWNER_ID
     original_logs = mm.LOGS
 
     mm.MODEL_OUT = tmp_path / "meta_model.joblib"
     mm.LOGS = tmp_path
     mm._MODEL_CACHE = None
     mm._MODEL_LOAD_ERROR = None
+    mm._MODEL_ARTIFACT_PROVENANCE = None
+    mm._MODEL_ARTIFACT_OWNER_ID = None
 
     n_features = len(FEATURE_SCHEMA_V2)
     X = np.random.rand(40, n_features)
@@ -79,6 +89,8 @@ def engine_with_model(tmp_path):
     mm.LOGS = original_logs
     mm._MODEL_CACHE = original_model_cache
     mm._MODEL_LOAD_ERROR = original_model_error
+    mm._MODEL_ARTIFACT_PROVENANCE = original_artifact_provenance
+    mm._MODEL_ARTIFACT_OWNER_ID = original_artifact_owner
 
 
 # ---------------------------------------------------------------------------
@@ -452,7 +464,7 @@ class TestSideAgnosticExpectedValueContract:
             {"prediction_id": "pred-1", "features": [1]},
         )
         monkeypatch.setattr(evidence_module, "_STORE", store)
-        monkeypatch.setattr(decision_module, "predict_meta_confidence", lambda _info: {
+        monkeypatch.setattr(decision_module, "predict_meta_confidence", lambda _info, *, symbol: {
             "probability": .8, "expected_return": .2, "prediction_id": "pred-1",
             "model_version": "v", "artifact_sha256": "sha",
         })
@@ -590,7 +602,7 @@ class TestDecideWithModel:
         _mm._MODEL_CACHE = None
 
         # Inject a stub that bypasses model loading and returns prob=0.5 + EV computation
-        def _stub(info):
+        def _stub(info, *, symbol):
             from btc_scraper.ml_engine.meta_model import _compute_expected_value_metrics
             return {"probability": 0.5, **_compute_expected_value_metrics(0.5, info)}
 

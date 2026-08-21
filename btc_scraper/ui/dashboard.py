@@ -152,7 +152,10 @@ async def meta_model_predict(request: Request):
         body.setdefault("signal_id", f"ui-{uuid.uuid4().hex}")
         body["decision_context"] = "ui_preview"
         body["caller_context"] = "ui_dashboard"
-        res = predict_meta_confidence(body)
+        res = predict_meta_confidence(
+            body,
+            symbol=(body.get("symbol") or body.get("coin") or body.get("ticker")),
+        )
         return res
     except Exception as e:
         return JSONResponse({"error": "predict_failed", "message": str(e)}, status_code=500)

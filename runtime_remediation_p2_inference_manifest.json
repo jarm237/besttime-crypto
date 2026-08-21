@@ -1,0 +1,254 @@
+{
+  "schema_version": "runtime-remediation-p2-inference-manifest/v1",
+  "phase": "P2 — Explicit Inference Contracts",
+  "captured_at": "2026-08-21T06:36:02Z",
+  "parent_boundary": {
+    "p1_commit_sha": "4e6142556bfe61d9d9b7dd3e235c4d195b5b6738",
+    "p1_tree_sha": "b099569b2bc53059e016b8aee560cd3d67cd9157",
+    "p1_report_sha256": "778a0f07f6f05b92f4fe986406ebdd60bc0287a7ddca0819a1f5627df77ae7aa",
+    "p1_boundary_paths_clean_after_commit": true,
+    "whole_worktree_clean_after_commit": false,
+    "documented_exception": "besttime_crypto_implementation_roadmap.md was a pre-existing untracked user input and was intentionally excluded from the P1 commit."
+  },
+  "gates": {
+    "P1_COMMIT_BOUNDARY": "PASS",
+    "INFERENCE_SURFACE_INVENTORIED": "PASS",
+    "IMPLICIT_ROUTING_MAP_COMPLETE": "PASS"
+  },
+  "execution_flows": [
+    {
+      "id": "FLOW-PRODUCTION-ENTRY",
+      "trace": [
+        "SignalGeneratorAgent.run",
+        "InferenceCoordinator.predict_once",
+        "get_meta_inference_artifact",
+        "predict_meta_confidence",
+        "explicit-inference/v1 predict",
+        "MetaDecisionEngine.decide",
+        "final decision evidence"
+      ]
+    },
+    {
+      "id": "FLOW-HISTORICAL-PARITY",
+      "trace": [
+        "RuntimeInferenceEngine.predict_inference",
+        "explicit-inference/v1 predict",
+        "per-symbol S3 resolver"
+      ]
+    },
+    {
+      "id": "FLOW-REAL-RUNTIME-PARITY",
+      "trace": [
+        "V5FilterModelClassifier.predict_proba(symbol=...)",
+        "bound actual joblib identity",
+        "predict_meta_confidence(symbol=...)",
+        "explicit-inference/v1 predict"
+      ]
+    },
+    {
+      "id": "FLOW-DIRECT-PREVIEW-AND-RECHECK",
+      "trace": [
+        "dashboard/backtest/position recheck/first-cycle adapter",
+        "predict_meta_confidence(symbol=...)",
+        "explicit-inference/v1 predict"
+      ]
+    }
+  ],
+  "entrypoints": [
+    {
+      "id": "INF-001",
+      "file": "btc_scraper/ml_engine/inference_coordinator.py",
+      "symbol": "InferenceCoordinator.predict_once",
+      "kind": "production",
+      "caller": "SignalGeneratorAgent and governed replay callers",
+      "current_symbol_source": "A — explicit keyword argument",
+      "artifact_source": "identity-bound artifact loaded before idempotency lookup",
+      "needs_change": true,
+      "status": "MIGRATED"
+    },
+    {
+      "id": "INF-002",
+      "file": "btc_scraper/ml_engine/meta_model.py",
+      "symbol": "predict_meta_confidence",
+      "kind": "production-core",
+      "caller": "coordinator, decision fallback, UI, backtest, position recheck, parity and verification adapters",
+      "current_symbol_source": "A — mandatory explicit keyword argument",
+      "artifact_source": "same loaded object provenance or explicit InferenceArtifact",
+      "needs_change": true,
+      "status": "MIGRATED"
+    },
+    {
+      "id": "INF-003",
+      "file": "btc_scraper/ml_engine/inference_contract.py",
+      "symbol": "predict",
+      "kind": "lowest-level canonical predictor",
+      "caller": "production and replay adapters",
+      "current_symbol_source": "A — explicit request",
+      "artifact_source": "explicit immutable InferenceArtifact",
+      "needs_change": false,
+      "status": "DEFINED_V1"
+    },
+    {
+      "id": "INF-004",
+      "file": "btc_scraper/ml_engine/decision_engine.py",
+      "symbol": "MetaDecisionEngine.decide fallback inference",
+      "kind": "production fallback",
+      "caller": "direct decision consumers without _meta_prediction",
+      "current_symbol_source": "A — explicitly forwarded market-observation field",
+      "artifact_source": "meta predictor identity",
+      "needs_change": true,
+      "status": "MIGRATED_FAIL_CLOSED"
+    },
+    {
+      "id": "INF-005",
+      "file": "btc_scraper/trading/position_tracker.py",
+      "symbol": "evaluate_positions meta exit recheck",
+      "kind": "production recheck",
+      "caller": "position loop",
+      "current_symbol_source": "A — explicit coin loop variable",
+      "artifact_source": "governed meta artifact",
+      "needs_change": true,
+      "status": "MIGRATED"
+    },
+    {
+      "id": "INF-006",
+      "file": "btc_scraper/ui/dashboard.py",
+      "symbol": "meta_model_predict",
+      "kind": "preview API",
+      "caller": "HTTP request body",
+      "current_symbol_source": "A — explicit request field, missing fails closed",
+      "artifact_source": "governed meta artifact",
+      "needs_change": true,
+      "status": "MIGRATED"
+    },
+    {
+      "id": "INF-007",
+      "file": "scripts/backtest.py",
+      "symbol": "run_backtest meta gate",
+      "kind": "legacy backtest adapter",
+      "caller": "coin loop",
+      "current_symbol_source": "A — explicit coin loop variable",
+      "artifact_source": "governed meta artifact",
+      "needs_change": true,
+      "status": "MIGRATED"
+    },
+    {
+      "id": "INF-008",
+      "file": "scripts/hmr_v1_baseline.py",
+      "symbol": "research_model_override",
+      "kind": "controlled replay artifact adapter",
+      "caller": "HMR-V1 policy replay",
+      "current_symbol_source": "A — coordinator explicit symbol",
+      "artifact_source": "frozen manifest path plus verified bundle SHA-256",
+      "needs_change": true,
+      "status": "MIGRATED_IDENTITY_BOUND"
+    },
+    {
+      "id": "INF-009",
+      "file": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+      "symbol": "V5FilterModelClassifier.predict_proba",
+      "kind": "real-runtime parity adapter",
+      "caller": "D2-r1 parity loop and meta predictor wrapper",
+      "previous_symbol_source": "D — stack/caller frame, then B — mutable current_symbol, then G — BTC fallback",
+      "current_symbol_source": "A — mandatory keyword argument",
+      "artifact_source": "actual generated joblib SHA-256",
+      "needs_change": true,
+      "status": "MIGRATED_STACK_AND_MUTABLE_ROUTING_REMOVED"
+    },
+    {
+      "id": "INF-010",
+      "file": "scripts/hmr_v5_d2_parity_replay.py",
+      "symbol": "RuntimeInferenceEngine.predict_inference",
+      "kind": "historical parity adapter",
+      "caller": "D2 replay loop",
+      "current_symbol_source": "A — mandatory explicit argument",
+      "artifact_source": "ordered manifest/model/preprocessing/schema byte hash",
+      "needs_change": true,
+      "status": "MIGRATED_IDENTITY_PROPAGATED"
+    },
+    {
+      "id": "INF-011",
+      "file": "scripts/verify_first_cycle.py",
+      "symbol": "main mock prediction",
+      "kind": "CLI verification",
+      "caller": "operator",
+      "current_symbol_source": "A — explicit BTC fixture",
+      "artifact_source": "governed meta artifact",
+      "needs_change": true,
+      "status": "MIGRATED"
+    },
+    {
+      "id": "INF-012",
+      "file": "btc_scraper/ml_engine/signal_score.py",
+      "symbol": "adaptive scoring model_predict_proba",
+      "kind": "auxiliary scoring model",
+      "caller": "score_signal",
+      "current_symbol_source": "not used for model routing",
+      "artifact_source": "adaptive model bundle",
+      "needs_change": false,
+      "status": "INVENTORIED_EXCLUDED_P3_SCORING_SEMANTICS"
+    },
+    {
+      "id": "INF-013",
+      "file": "btc_scraper/ml_engine/rl_inference.py and btc_scraper/execution/slippage_predictor.py",
+      "symbol": "RL and slippage predict surfaces",
+      "kind": "exit/execution inference",
+      "caller": "position management and execution",
+      "current_symbol_source": "explicit observation or execution inputs; no stack routing found",
+      "artifact_source": "governed RL/slippage loaders",
+      "needs_change": false,
+      "status": "INVENTORIED_EXCLUDED_EXECUTION_AND_P4"
+    },
+    {
+      "id": "INF-014",
+      "file": "scripts/*.py training, calibration and offline audit surfaces",
+      "symbol": "direct sklearn predict/predict_proba calls",
+      "kind": "offline research/training",
+      "caller": "explicit dataset/model variables",
+      "current_symbol_source": "explicit loop/dataset partition or symbol-independent model",
+      "artifact_source": "local research/training artifacts",
+      "needs_change": false,
+      "status": "INVENTORIED_EXCLUDED_MODEL_TRAINING_AND_SUCCESSOR_RESEARCH"
+    }
+  ],
+  "routing_modes": {
+    "A_explicit_function_argument": [
+      "INF-001",
+      "INF-002",
+      "INF-003",
+      "INF-004",
+      "INF-005",
+      "INF-006",
+      "INF-007",
+      "INF-008",
+      "INF-009",
+      "INF-010",
+      "INF-011"
+    ],
+    "B_instance_mutable_state": [],
+    "C_global_module_symbol_state": [],
+    "D_stack_caller_inspection": [],
+    "E_feature_derived_symbol": [],
+    "F_artifact_derived_symbol": [],
+    "G_constant_default_fallback": [],
+    "H_missing_unknown": "FAIL_CLOSED"
+  },
+  "static_counts": {
+    "btc_scraper_predict_or_predict_proba_calls_inventory": 25,
+    "scripts_predict_or_predict_proba_calls_inventory": 67,
+    "tests_predict_or_predict_proba_calls_inventory": 8,
+    "explicit_meta_inference_call_sites": 7,
+    "forbidden_runtime_routing_findings_after_migration": 0
+  },
+  "scope_exclusions": [
+    "EV and S3 semantics",
+    "technical/scoring semantics and weights",
+    "risk and position sizing",
+    "execution/fill/ledger",
+    "model coefficients and training",
+    "artifact registry or metadata cleanup",
+    "warm-up semantics",
+    "live/replay evaluator redesign",
+    "successor research and H14"
+  ]
+}

@@ -164,6 +164,28 @@ def enhance_signal_with_causal_context(
             "execution_probability_semantics": "P(win_given_proposed_trade)",
             "prediction_id": decision_input.get("prediction_id"),
             "signal_id": decision_input.get("signal_id"),
+            "symbol": (
+                decision_input.get("symbol")
+                or decision_input.get("coin")
+                or decision_input.get("ticker")
+            ),
+            "inference_contract_version": decision_input.get(
+                "inference_contract_version"
+            ),
+            "model_family": decision_input.get("model_family"),
+            "artifact_version": decision_input.get("artifact_version"),
+            "artifact_hash": decision_input.get("artifact_hash")
+            or decision_input.get("artifact_sha256")
+            or decision_input.get("model_artifact_sha256"),
+            "feature_schema_hash": decision_input.get("feature_schema_hash"),
+            "prediction": (
+                decision_input.get("prediction")
+                if decision_input.get("prediction") is not None
+                else model_probability_up
+            ),
+            "artifact_metadata_consistent": decision_input.get(
+                "artifact_metadata_consistent"
+            ),
             "model_version": decision_input.get("model_version"),
             "artifact_sha256": decision_input.get("artifact_sha256") or decision_input.get("model_artifact_sha256"),
             "feature_schema_version": decision_input.get("feature_schema_version"),

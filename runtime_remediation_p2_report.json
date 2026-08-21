@@ -1,0 +1,283 @@
+{
+  "schema_version": "runtime-remediation-p2-report/v1",
+  "phase": "P2 — Explicit Inference Contracts",
+  "status": "CLOSED",
+  "decision": "P2_CLOSED_PASS",
+  "captured_at": "2026-08-21T06:55:46Z",
+  "parent": {
+    "p1_commit_sha": "4e6142556bfe61d9d9b7dd3e235c4d195b5b6738",
+    "p1_tree_sha": "b099569b2bc53059e016b8aee560cd3d67cd9157",
+    "p1_report_sha256": "778a0f07f6f05b92f4fe986406ebdd60bc0287a7ddca0819a1f5627df77ae7aa",
+    "p1_commit_boundary": "PASS",
+    "boundary_note": "All P0/P1 implementation and evidence paths were committed before P2. The pre-existing untracked roadmap input remained intentionally outside that commit."
+  },
+  "exit_gates": {
+    "EXPLICIT_SYMBOL_ROUTING": "PASS",
+    "NO_STACK_ROUTING": "PASS",
+    "ARTIFACT_IDENTITY_PROPAGATED": "PASS",
+    "CONCURRENCY_TEST": "PASS"
+  },
+  "detailed_gates": {
+    "P1_COMMIT_BOUNDARY": "PASS",
+    "INFERENCE_SURFACE_INVENTORIED": "PASS",
+    "IMPLICIT_ROUTING_MAP_COMPLETE": "PASS",
+    "INFERENCE_CONTRACT_V1_DEFINED": "PASS",
+    "CORE_PREDICTOR_EXPLICIT_SYMBOL": "PASS",
+    "SYMBOL_PROPAGATION_COMPLETE": "PASS",
+    "NO_MUTABLE_SYMBOL_ROUTING": "PASS",
+    "MISSING_SYMBOL_FAIL_CLOSED": "PASS",
+    "PREDICTION_LINEAGE_SURVIVES_DECISION_PATH": "PASS",
+    "ASYNC_SYMBOL_ISOLATION": "PASS",
+    "CALLER_STRUCTURE_INVARIANCE": "PASS",
+    "MISSING_SYMBOL_TEST_MATRIX": "PASS",
+    "P1_REGRESSION_LOCK": "PASS",
+    "P2_INFERENCE_PARITY": "PASS",
+    "P2_TARGETED_SUITE": "PASS",
+    "NO_NEW_FULL_SUITE_REGRESSION": "PASS",
+    "NO_P3_SCOPE_LEAKAGE": "PASS",
+    "NO_P4_SCOPE_LEAKAGE": "PASS",
+    "NO_P5_SCOPE_LEAKAGE": "PASS",
+    "NO_P6_SCOPE_LEAKAGE": "PASS",
+    "P2_BLAST_RADIUS_REVIEW": "PASS",
+    "P2_REPORT_SELF_CHECK": "PASS"
+  },
+  "inference_contract": {
+    "version": "explicit-inference/v1",
+    "request_fields": [
+      "symbol",
+      "features",
+      "artifact"
+    ],
+    "required_result_fields": [
+      "symbol",
+      "artifact_version",
+      "artifact_hash",
+      "feature_schema_hash",
+      "model_family",
+      "prediction"
+    ],
+    "symbol_policy": {
+      "mandatory": true,
+      "normalization": "case-insensitive base or USDT pair to canonical base symbol",
+      "missing_or_unsupported": "FAIL_CLOSED",
+      "analysis_request_mismatch": "FAIL_CLOSED",
+      "request_result_invariant": "request.symbol == result.symbol"
+    },
+    "removed_routing": {
+      "stack_inspection": true,
+      "caller_frame_lookup": true,
+      "mutable_current_symbol_dependency": true,
+      "implicit_BTC_fallback": true
+    }
+  },
+  "inventory": {
+    "path": "runtime_remediation_p2_inference_manifest.json",
+    "sha256": "653c8b9a93ee47180ab6adc66ed2d45a5faa4d63af214dfab94f7feb29e26429",
+    "entrypoints": 14,
+    "forbidden_runtime_routing_findings": 0
+  },
+  "artifact_identity": {
+    "binding": "Identity is captured from the exact artifact path/bytes at load time and bound to the deserialized object before prediction and idempotency lookup.",
+    "production_controlled_check": {
+      "model_family": "meta_model",
+      "artifact_version": "v3.1",
+      "artifact_hash": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "feature_names": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+      "artifact_metadata_consistent": false,
+      "result_identity_matches_loaded_artifact": true
+    },
+    "p6_boundary": "The existing v3.1/meta-v3.1-43f versus four-feature metadata contradiction is propagated as false and remains unresolved; no metadata, registry or artifact cleanup was performed."
+  },
+  "lineage": {
+    "chain": [
+      "InferenceRequest",
+      "InferenceResult",
+      "MetaPrediction",
+      "signal lineage",
+      "FinalDecision",
+      "prediction/final-decision evidence link"
+    ],
+    "final_decision_fields": [
+      "symbol",
+      "inference_contract_version",
+      "model_family",
+      "artifact_version",
+      "artifact_hash",
+      "feature_schema_hash",
+      "prediction",
+      "artifact_metadata_consistent",
+      "prediction_id"
+    ],
+    "idempotency_version_source": "actual artifact_version"
+  },
+  "verification": {
+    "syntax": {
+      "status": "PASS",
+      "scope": "all P2 modules, adapters and tests"
+    },
+    "p2_suite": {
+      "path": "tests/ml/test_p2_explicit_inference_contract.py",
+      "tests": 17,
+      "passed": 17,
+      "failed": 0,
+      "coverage": [
+        "BTC/ETH/BNB explicit routing",
+        "randomized async concurrency",
+        "adversarial mutable current_symbol",
+        "caller and wrapper invariance",
+        "invalid symbol matrix",
+        "feature schema and artifact hash identity",
+        "live/historical adapter inference parity",
+        "final-decision lineage",
+        "static forbidden-pattern audit"
+      ]
+    },
+    "p1_regression_lock": {
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "ev_and_s3_behavior_changed": false
+    },
+    "targeted_suite": {
+      "tests": 225,
+      "passed": 225,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 41.68,
+      "junit_sha256": "76b1e8db44ac944316dcf336c90a314cfb4012fec8a9152f84e498a61fc2c063"
+    },
+    "full_suite": {
+      "tests": 1151,
+      "passed": 1147,
+      "failed": 4,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 701.555,
+      "junit_sha256": "5a429773bb41787fc44744243ff718a1bb27b3a3216974b7481f8873d4af8616",
+      "p1_comparison": {
+        "p1_tests": 1134,
+        "p1_passed": 1130,
+        "p1_failed": 4,
+        "added_p2_tests": 17,
+        "new_unrelated_failures": 0
+      },
+      "remaining_frozen_failures": [
+        {
+          "test": "tests.ml.test_ml_engine_static_safety::test_ml_engine_static_safety_gates",
+          "p0_fingerprint": "sha256:ff01aed7ec48922e18d43752ef6fb62f5685ee8bdaab9e8b4330e2b21a5f676c"
+        },
+        {
+          "test": "tests.test_etf_integration_audit::test_integration_json_schema",
+          "p0_fingerprint": "sha256:c72b0b37b6c54cfb8b205df023e1961c9051f96733fc772ecd70169692c58ad1"
+        },
+        {
+          "test": "tests.test_validate_alternative_history::test_generate_artifacts_writes_research_only_contract",
+          "p0_fingerprint": "sha256:45aa14f4cf30bd405d5b2286ae39e916eff5ab7f9ca5af9fae24870db8952d7c"
+        },
+        {
+          "test": "tests.test_validate_alternative_history::test_probe_results_are_not_marked_as_evidence",
+          "p0_fingerprint": "sha256:4e72e1e9cc608f7cbcfcc97e521acde96a5f84cf5dee509549147425c07a3e4a"
+        }
+      ]
+    },
+    "test_generated_research_side_effects": "REVERTED_BYTE_FOR_BYTE_TO_PRE_TEST_STATE"
+  },
+  "gitnexus": {
+    "tools_used": [
+      "repo context resource",
+      "query",
+      "symbol context",
+      "process resources",
+      "upstream impact",
+      "analyze --force",
+      "detect-changes --scope compare --base-ref main"
+    ],
+    "index_refresh": {
+      "initial_incremental_refresh": "FAILED_FTS_INCONSISTENCY",
+      "forced_full_rebuild": "PASS",
+      "nodes": 16990,
+      "edges": 29249,
+      "clusters": 576,
+      "execution_flows": 300
+    },
+    "change_detection": {
+      "risk": "CRITICAL",
+      "changed_files": 18,
+      "changed_symbols": 63,
+      "affected_processes": 60,
+      "assessment": "Expected fan-out from explicit predictor, coordinator and final-decision lineage. Execution/fill/ledger, risk/sizing, model training, coefficients, scoring behavior and artifact metadata were not substantively modified."
+    },
+    "post_impact": {
+      "explicit_predict": "CRITICAL — 53 symbols, 11 processes",
+      "predict_meta_confidence": "CRITICAL — 66 symbols, 11 processes",
+      "InferenceCoordinator.predict_once": "CRITICAL — 25 symbols, 10 processes",
+      "MetaDecisionEngine.decide": "CRITICAL — 28 symbols, 5 processes",
+      "V5FilterModelClassifier.predict_proba": "LOW — 6 symbols, 1 process"
+    }
+  },
+  "implementation_artifacts": {
+    "btc_scraper/ml_engine/inference_contract.py": "e55f06c40612ce3259eb641ccfa108614cba0b413f6bcf418c1c16034ec6bfb6",
+    "btc_scraper/ml_engine/meta_model.py": "ee3c75ab4112fef8129553fc1fbec70fccbafc46ce9ecc275ee9314cd165f969",
+    "btc_scraper/ml_engine/inference_coordinator.py": "9412e916793026045b1a46840ae8b07f6f3ca0f796b7fd1c78b512ac44106009",
+    "btc_scraper/ml_engine/decision_engine.py": "e603e3ae76fcd8cb03da7d12cb1fe45f48d8a81fd662095900736fce7bd89493",
+    "btc_scraper/ml_engine/signal_score.py": "441720eb862571432001065c54e1aa99547148297504ebde64846940123d9132",
+    "btc_scraper/ml_engine/multi_agent.py": "a0437e9be38dbc9f0a3e530a52296b2ffb9cd50ca54a8c199fe5e7eb03609189",
+    "btc_scraper/ml_engine/causal_context_bridge.py": "a2b84a371050b7e4a4d222a024dd2af05eb08e7d5ffd3cf33c3981c7df5c1c72",
+    "btc_scraper/trading/position_tracker.py": "7134e1e829833cd85b23f5032cf4cd2eb375ade9c50ca1ced407a3ea9565f91c",
+    "btc_scraper/ui/dashboard.py": "367d7af6fcb9f55bb106631c4153c09adae289805793f860a1d20d7af857962f",
+    "scripts/backtest.py": "bf17216c418cf5351be31b875a53733c844035bd5b0ed4244ea10e80579669c0",
+    "scripts/hmr_v1_baseline.py": "52182942ff26e79bd7ef000070d1a51c2acd36dbfc185bab402e471590329b58",
+    "scripts/hmr_v5_d2_parity_replay.py": "d5e2fa45a3decce32ff16f2f73f014d207bfe0202398d9ddf4ba5576011294e5",
+    "scripts/hmr_v5_d2_r1_real_runtime_parity.py": "b0c08c9947e6fbd0c09f089db2e467c31a5d59a92e143f07f2c4206ae0ec8fc9",
+    "scripts/verify_first_cycle.py": "cace451ca0600d50a4352a91b28fd42fdec8f9096c64c00991116928d1f6249a",
+    "tests/ml/test_p2_explicit_inference_contract.py": "ca3cb76556a594870216440795d092903707a4ee6feac01f67424ebe80c940c5",
+    "tests/ml/test_production_lineage_path.py": "6fe66951e42294ebb8d26a9beb4fd91660dc8bc7d22b231e9a4a882af2db2831",
+    "tests/ml/test_prediction_traceability.py": "22bf7e01f9472cb2ab70091207c3743f5ebdc3554395a8ac1025a944ceb0f7a4",
+    "tests/test_decision_engine.py": "41f779a158b4f117ba6c7a88504a5bb0260be57fef62f6ae071ae6d5e002929f",
+    "tests/test_ml_models.py": "1d7e7812fc1c353a9662f65095728de073fd6352bc3d7747632553407a9a5343",
+    "tests/test_runtime_universe.py": "50ac2a2543afa7d70b23b7766921821aa0535d162f712bc08145c43c8bb97e98",
+    "runtime_remediation_p2_inference_manifest.json": "653c8b9a93ee47180ab6adc66ed2d45a5faa4d63af214dfab94f7feb29e26429"
+  },
+  "scope": {
+    "runtime_semantics_changed": "Inference routing and prediction lineage only",
+    "unchanged": [
+      "P1 EV units and boundary behavior",
+      "P1 per-symbol S3 thresholds and enforcement",
+      "technical/scoring semantics and weights",
+      "risk and position sizing",
+      "execution/fills/ledger",
+      "model coefficients/training/threshold optimization",
+      "artifact metadata and registry",
+      "live/replay evaluator architecture",
+      "H14 and successor research"
+    ],
+    "p3_started": false,
+    "p4_started": false,
+    "p5_started": false,
+    "p6_started": false
+  },
+  "governance": {
+    "p0_baseline_sha256": "909df17a4af44296b94f5c7b350cd6799ffc18b726b9a8dc3ac9db0cb716c1c0",
+    "h14_state_sha256": "0617fa193d1bcb4d9751b4ccdac5b76c6fb8345df058fa0333f830102fe7d8d8",
+    "h14_status": "CLOSED",
+    "h14_verdict": "RESEARCH_HARD_STOP",
+    "successor_research": "NOT_AUTHORIZED",
+    "live_real_money": "NOT_AUTHORIZED",
+    "selected_runtime_release": {
+      "status": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+      "reason": "no active runtime/evidence epoch",
+      "pre_runtime_requirement": "Release and artifact selection must be explicit and deterministic before any remediation is used by a real runtime."
+    }
+  },
+  "unresolved_dynamic_relationships": [
+    "No concrete runtime release or evidence epoch exists, so release-to-artifact binding remains unresolved.",
+    "GitNexus reachability includes execution-adjacent callers through production orchestration; semantic edits were confined to inference routing and lineage and were validated by full regression."
+  ]
+}

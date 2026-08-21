@@ -36,6 +36,15 @@ from btc_scraper.ml_engine.economic_contract import (
     fraction_to_bps,
     percent_points_to_fraction,
 )
+from btc_scraper.ml_engine.inference_contract import (
+    INFERENCE_CONTRACT_VERSION,
+    META_MODEL_FAMILY,
+    InferenceArtifact,
+    InferenceContractError,
+    feature_schema_hash,
+    normalize_inference_symbol,
+    predict as predict_explicit_inference,
+)
 from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 
 BASE = Path(__file__).parent.parent.parent
@@ -55,18 +64,6 @@ MODEL_VERSION = "v3.1"
 # Production: chỉ ghi đè production nếu vượt ngưỡng này VÀ không tệ hơn model cũ.
 _MIN_CANDIDATE_AUC = 0.50
 _MIN_PRODUCTION_AUC = 0.56
-
-
-def _resolve_prediction_symbol(analysis_info: dict) -> str:
-    """Return a non-empty symbol for prediction audit contracts."""
-    for key in ("coin", "symbol", "ticker"):
-        value = analysis_info.get(key)
-        if value is None:
-            continue
-        symbol = str(value).strip().upper()
-        if symbol:
-            return symbol.replace("/", "").removesuffix("USDT") or symbol
-    return "UNKNOWN"
 
 
 def should_replace_model(
@@ -1060,7 +1057,106 @@ def train_meta_model(n_estimators: int = 200, cv: int = 5, calibrate: bool = Tru
 _MODEL_CACHE = None
 _MODEL_LOAD_ERROR = None
 
+# Identity is cached with the exact deserialized object. A caller that replaces
+# the model cache must also provide explicit artifact identity; stale provenance
+# is never attached to a different object.
+_MODEL_ARTIFACT_PROVENANCE: dict | None = None
+_MODEL_ARTIFACT_OWNER_ID: int | None = None
+
 _CACHED_MODEL = None
+
+
+def _artifact_metadata_consistency(
+    metadata: dict,
+    feature_names: list[str] | tuple[str, ...],
+    feature_schema_version: str | None,
+) -> bool | None:
+    """Report observable contradictions without rewriting P6 metadata."""
+    if not metadata:
+        return None
+    names = tuple(str(name) for name in feature_names)
+    checks: list[bool] = []
+    if metadata.get("features") is not None:
+        checks.append(tuple(str(name) for name in metadata["features"]) == names)
+    if metadata.get("n_features") is not None:
+        checks.append(int(metadata["n_features"]) == len(names))
+    suffix = str(feature_schema_version or "").rsplit("-", 1)[-1]
+    if suffix.endswith("f") and suffix[:-1].isdigit():
+        checks.append(int(suffix[:-1]) == len(names))
+    return all(checks) if checks else None
+
+
+def bind_model_artifact_provenance(
+    model_bundle: object,
+    *,
+    artifact_version: str,
+    artifact_hash: str,
+    feature_names: list[str] | tuple[str, ...],
+    feature_schema_version: str | None,
+    metadata: dict | None = None,
+    calibration_method: str | None = None,
+) -> None:
+    """Bind observable identity to an already-loaded runtime/replay artifact."""
+    global _MODEL_ARTIFACT_PROVENANCE, _MODEL_ARTIFACT_OWNER_ID
+    names = tuple(str(name) for name in feature_names)
+    metadata_value = dict(metadata or {})
+    _MODEL_ARTIFACT_PROVENANCE = {
+        "model_family": META_MODEL_FAMILY,
+        "artifact_version": str(artifact_version),
+        "artifact_hash": str(artifact_hash),
+        "feature_schema_hash": feature_schema_hash(names),
+        "feature_names": names,
+        "feature_schema_version": (
+            str(feature_schema_version) if feature_schema_version else None
+        ),
+        "artifact_metadata_consistent": _artifact_metadata_consistency(
+            metadata_value,
+            names,
+            feature_schema_version,
+        ),
+        "calibration_method": calibration_method,
+    }
+    _MODEL_ARTIFACT_OWNER_ID = id(model_bundle)
+
+
+def _inference_artifact_for_model(
+    model_bundle: object,
+    feature_names: list[str] | tuple[str, ...],
+) -> InferenceArtifact:
+    if (
+        _MODEL_ARTIFACT_PROVENANCE is None
+        or _MODEL_ARTIFACT_OWNER_ID != id(model_bundle)
+    ):
+        raise InferenceContractError("model_artifact_identity_unavailable")
+    names = tuple(str(name) for name in feature_names)
+    provenance = dict(_MODEL_ARTIFACT_PROVENANCE)
+    if names != tuple(provenance["feature_names"]):
+        raise InferenceContractError("loaded_feature_schema_identity_mismatch")
+    model = model_bundle.get("model") if isinstance(model_bundle, dict) else model_bundle
+
+    def predictor(explicit_symbol: str, values: tuple[float, ...]) -> float:
+        kwargs = (
+            {"symbol": explicit_symbol}
+            if bool(getattr(model, "requires_explicit_symbol", False))
+            else {}
+        )
+        return float(
+            model_predict_proba(model, [values], names, **kwargs)[0, 1]
+        )
+
+    return InferenceArtifact(
+        model_family=provenance["model_family"],
+        artifact_version=provenance["artifact_version"],
+        artifact_hash=provenance["artifact_hash"],
+        feature_schema_hash=provenance["feature_schema_hash"],
+        feature_names=names,
+        predictor=predictor,
+        feature_schema_version=provenance["feature_schema_version"],
+        artifact_metadata_consistent=provenance[
+            "artifact_metadata_consistent"
+        ],
+        calibration_method=provenance.get("calibration_method"),
+    )
 
 
 def load_model():
@@ -1110,13 +1206,15 @@ def load_model():
             )
             from btc_scraper.ml_engine.artifact_resolver import DEFAULT_CONFIG
             from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
-            canonical_path = get_governed_artifact_loader().resolver.resolve("meta_model").path
+            loader = get_governed_artifact_loader()
+            canonical_path = loader.resolver.resolve("meta_model").path
+            loaded_record = None
             if canonical_path is not None and model_path.resolve() == canonical_path.resolve():
-                loaded = get_governed_artifact_loader().load_production("meta_model", "meta-v3.1-43f")
-                _MODEL_CACHE = loaded.model
+                loaded_record = loader.load_production("meta_model", "meta-v3.1-43f")
+                _MODEL_CACHE = loaded_record.model
             else:
                 # Unit tests redirect MODEL_OUT to an isolated fixture.
-                _MODEL_CACHE = get_governed_artifact_loader().load_test_artifact(model_path)
+                _MODEL_CACHE = loader.load_test_artifact(model_path)
         if isinstance(_MODEL_CACHE, dict) and "model" in _MODEL_CACHE:
             clf = _MODEL_CACHE["model"]
             feature_names = _MODEL_CACHE.get("features")
@@ -1140,6 +1238,47 @@ def load_model():
                     for cls in est.calibrated_classifiers_:
                         _set_n_jobs(cls)
             _set_n_jobs(clf)
+        feature_names = (
+            list(_MODEL_CACHE.get("features") or [])
+            if isinstance(_MODEL_CACHE, dict)
+            else []
+        )
+        if not feature_names:
+            from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2
+            feature_names = list(FEATURE_SCHEMA_V2)
+        if loaded_record is not None:
+            bind_model_artifact_provenance(
+                _MODEL_CACHE,
+                artifact_version=loaded_record.model_version,
+                artifact_hash=loaded_record.artifact_sha256,
+                feature_names=feature_names,
+                feature_schema_version=loaded_record.feature_schema_version,
+                metadata=loaded_record.metadata,
+                calibration_method=loaded_record.metadata.get(
+                    "calibration_method", "isotonic"
+                ),
+            )
+        else:
+            from btc_scraper.ml_engine.artifact_resolver import sha256_file
+            version = (
+                _MODEL_CACHE.get("model_version")
+                or _MODEL_CACHE.get("version")
+                or MODEL_VERSION
+                if isinstance(_MODEL_CACHE, dict)
+                else MODEL_VERSION
+            )
+            schema_version = (
+                _MODEL_CACHE.get("feature_schema_version")
+                if isinstance(_MODEL_CACHE, dict)
+                else None
+            ) or "meta-v3.1-43f"
+            bind_model_artifact_provenance(
+                _MODEL_CACHE,
+                artifact_version=str(version),
+                artifact_hash=sha256_file(model_path),
+                feature_names=feature_names,
+                feature_schema_version=str(schema_version),
+            )
         _MODEL_LOAD_ERROR = None
         return _MODEL_CACHE
     except Exception as e:
@@ -1152,34 +1291,63 @@ def get_model_load_error() -> Optional[str]:
     return _MODEL_LOAD_ERROR
 
 
-def predict_meta_confidence(analysis_info: dict) -> dict:
-    """
-    Predict win probability cho một tín hiệu.
-    """
-    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2, build_meta_features_v2
+def get_meta_inference_artifact() -> InferenceArtifact:
+    """Return the identity-bound artifact before prediction/idempotency lookup."""
+    from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2
 
     obj = load_model()
     if obj is None:
-        err = get_model_load_error() or "no_model"
-        return {"error": err, "probability": None}
+        raise InferenceContractError(get_model_load_error() or "no_model")
+    feature_names = (
+        obj.get("features", FEATURE_SCHEMA_V2)
+        if isinstance(obj, dict)
+        else FEATURE_SCHEMA_V2
+    )
+    return _inference_artifact_for_model(obj, feature_names)
 
-    clf = obj.get("model") if isinstance(obj, dict) else obj
-    feature_names = obj.get("features", FEATURE_SCHEMA_V2) if isinstance(obj, dict) else FEATURE_SCHEMA_V2
+
+def predict_meta_confidence(
+    analysis_info: dict,
+    *,
+    symbol: str,
+    artifact: InferenceArtifact | None = None,
+) -> dict:
+    """Predict from an explicit symbol and the artifact actually loaded."""
+    from btc_scraper.ml_engine.feature_extractor import build_meta_features_v2
 
     try:
+        prediction_symbol = normalize_inference_symbol(symbol)
+        for key in ("coin", "symbol", "ticker"):
+            observed = analysis_info.get(key)
+            if observed is None:
+                continue
+            if normalize_inference_symbol(observed) != prediction_symbol:
+                raise InferenceContractError(
+                    f"analysis_symbol_mismatch:{key}:{observed}:{prediction_symbol}"
+                )
+
+        if artifact is None:
+            artifact = get_meta_inference_artifact()
+            feature_names = artifact.feature_names
+        else:
+            feature_names = artifact.feature_names
+
         feat = build_meta_features_v2(analysis_info)
         row = [float(feat.get(k, 0.0)) for k in feature_names]
-
-        prob = float(model_predict_proba(clf, [row], feature_names)[0, 1])
+        inference_result = predict_explicit_inference(
+            symbol=prediction_symbol,
+            features=row,
+            artifact=artifact,
+        )
+        prob = inference_result.prediction
         # Calibration tails currently have insufficient evidence for position sizing.
         # Retain the raw probability in the audit trail, but expose a bounded value.
         sizing_probability = min(0.80, max(0.40, prob))
 
         ev_metrics = _compute_expected_value_metrics(prob, analysis_info)
-        prediction_symbol = _resolve_prediction_symbol(analysis_info)
         s3_gate = evaluate_s3_threshold(prediction_symbol, prob)
         s3_fields = {
-            "symbol": s3_gate.symbol,
+            "symbol": inference_result.symbol,
             "probability_semantics": "P(win_given_proposed_trade)",
             "s3_threshold": s3_gate.s3_threshold,
             "s3_pass": s3_gate.s3_pass,
@@ -1190,12 +1358,8 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
 
         # Prediction-level logging (append newline-delimited JSON, mỗi ngày 1 file)
         try:
-            from datetime import datetime, timezone
-            from btc_scraper.ml_engine.artifact_resolver import get_artifact_resolver
             from btc_scraper.ml_engine.prediction_logger import append_prediction
 
-            now_utc = datetime.now(timezone.utc)
-            artifact = get_artifact_resolver().resolve("meta_model")
             signal_text = analysis_info.get("signal")
             signal_upper = str(signal_text or "").upper()
             prediction_side = (
@@ -1207,14 +1371,18 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             if not signal_id:
                 signal_id = f"adhoc-{uuid.uuid4().hex}"
             prediction_event = append_prediction(
-                model_name="meta_model", model_version=MODEL_VERSION,
-                artifact_sha256=artifact.sha256, feature_schema_version="meta-v3.1-43f",
+                model_name=inference_result.model_family,
+                model_version=inference_result.artifact_version,
+                artifact_sha256=inference_result.artifact_hash,
+                feature_schema_version=(
+                    inference_result.feature_schema_version or "UNRESOLVED"
+                ),
                 raw_prediction=prob, calibrated_prediction=prob, features=row,
                 decision_context=analysis_info.get("decision_context") or "unclassified",
                 symbol=prediction_symbol,
                 timeframe=analysis_info.get("timeframe") or analysis_info.get("interval") or "15m",
                 side=prediction_side,
-                calibration_method=(artifact.metadata or {}).get("calibration_method", "isotonic"),
+                calibration_method=artifact.calibration_method or "isotonic",
                 fallback_used=False,
                 signal_id=signal_id,
                 caller_context=analysis_info.get("caller_context") or "direct_runtime",
@@ -1224,6 +1392,15 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
                     "signal": analysis_info.get("signal"),
                     "cycle_id": analysis_info.get("cycle_id"),
                     "sizing_probability": sizing_probability,
+                    "inference_contract_version": INFERENCE_CONTRACT_VERSION,
+                    "artifact_version": inference_result.artifact_version,
+                    "artifact_hash": inference_result.artifact_hash,
+                    "feature_schema_hash": inference_result.feature_schema_hash,
+                    "model_family": inference_result.model_family,
+                    "prediction": inference_result.prediction,
+                    "artifact_metadata_consistent": (
+                        inference_result.artifact_metadata_consistent
+                    ),
                     **ev_metrics,
                     **s3_fields,
                     "regime_snapshot": analysis_info.get("regime_snapshot"),
@@ -1240,20 +1417,33 @@ def predict_meta_confidence(analysis_info: dict) -> dict:
             record_degradation("prediction_audit", "prediction_audit_write_failure_total", exc)
             logging.getLogger(__name__).warning(
                 "Prediction audit write failed",
-                extra={"signal_id": analysis_info.get("signal_id"), "model_version": MODEL_VERSION, "error_type": type(exc).__name__},
+                extra={
+                    "signal_id": analysis_info.get("signal_id"),
+                    "model_version": inference_result.artifact_version,
+                    "error_type": type(exc).__name__,
+                },
                 exc_info=True,
             )
             prediction_event = {}
 
         return {
             "probability": prob,
+            "prediction": inference_result.prediction,
             "probability_semantics": "P(win_given_proposed_trade)",
             "sizing_probability": sizing_probability,
             "prediction_id": prediction_event.get("prediction_id"),
-            "model_version": MODEL_VERSION,
-            "artifact_sha256": artifact.sha256 if 'artifact' in locals() else None,
-            "model_artifact_sha256": artifact.sha256 if 'artifact' in locals() else None,
-            "feature_schema_version": "meta-v3.1-43f",
+            "inference_contract_version": INFERENCE_CONTRACT_VERSION,
+            "model_family": inference_result.model_family,
+            "artifact_version": inference_result.artifact_version,
+            "artifact_hash": inference_result.artifact_hash,
+            "feature_schema_hash": inference_result.feature_schema_hash,
+            "artifact_metadata_consistent": (
+                inference_result.artifact_metadata_consistent
+            ),
+            "model_version": inference_result.artifact_version,
+            "artifact_sha256": inference_result.artifact_hash,
+            "model_artifact_sha256": inference_result.artifact_hash,
+            "feature_schema_version": inference_result.feature_schema_version,
             "feature_hash": prediction_event.get("feature_hash"),
             "deployment_id": prediction_event.get("deployment_id"),
             "paper_run_id": prediction_event.get("paper_run_id"),

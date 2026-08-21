@@ -169,7 +169,10 @@ class SignalGeneratorAgent(BaseAgent):
                 }
             ana["signal_score"] = sig_score
             for field in (
-                "signal_id", "prediction_id", "model_version", "artifact_sha256",
+                "signal_id", "prediction_id", "inference_contract_version",
+                "model_family", "artifact_version", "artifact_hash",
+                "feature_schema_hash", "prediction",
+                "artifact_metadata_consistent", "model_version", "artifact_sha256",
                 "model_artifact_sha256", "feature_schema_version", "deployment_id",
                 "paper_run_id", "cycle_id", "decision_context", "caller_context",
                 "feature_hash",
@@ -237,6 +240,20 @@ class SignalGeneratorAgent(BaseAgent):
                         "decision_id": f"fd-error-{uuid.uuid4().hex}",
                         "prediction_id": sig_score.get("prediction_id"),
                         "signal_id": sig_score.get("signal_id"),
+                        "inference_contract_version": sig_score.get(
+                            "inference_contract_version"
+                        ),
+                        "model_family": sig_score.get("model_family"),
+                        "artifact_version": sig_score.get("artifact_version"),
+                        "artifact_hash": sig_score.get("artifact_hash")
+                        or sig_score.get("artifact_sha256"),
+                        "feature_schema_hash": sig_score.get(
+                            "feature_schema_hash"
+                        ),
+                        "prediction": sig_score.get("prediction"),
+                        "artifact_metadata_consistent": sig_score.get(
+                            "artifact_metadata_consistent"
+                        ),
                         "cycle_id": cycle_id,
                         "deployment_id": sig_score.get("deployment_id"),
                         "paper_run_id": (

@@ -8,6 +8,10 @@ from typing import Any, Mapping
 
 from btc_scraper.core.config import get_analysis_universe
 from btc_scraper.core.paths import runtime_deployment_id, runtime_paper_run_id
+from btc_scraper.ml_engine.inference_contract import (
+    INFERENCE_CONTRACT_VERSION,
+    normalize_inference_symbol,
+)
 
 
 @dataclass(frozen=True)
@@ -18,7 +22,14 @@ class MetaPrediction:
     decision_context: str
     caller_context: str
     probability: float
+    prediction: float
     probability_semantics: str
+    inference_contract_version: str
+    model_family: str
+    artifact_version: str
+    artifact_hash: str
+    feature_schema_hash: str
+    artifact_metadata_consistent: bool | None
     model_version: str
     artifact_sha256: str
     feature_schema_version: str
@@ -87,15 +98,14 @@ class InferenceCoordinator:
         caller_context: str = "agent_orchestrator",
     ) -> MetaPrediction:
         from .economic_contract import EV_CONTRACT_VERSION, EXPECTED_RETURN_UNIT
-        from .meta_model import MODEL_VERSION, predict_meta_confidence
+        from .meta_model import get_meta_inference_artifact, predict_meta_confidence
         from .runtime_evidence_store import get_runtime_evidence_store
         from .s3_thresholds import S3_PROBABILITY_SEMANTICS, evaluate_s3_threshold
 
-        normalized_symbol = str(symbol).upper().replace("/", "").removesuffix("USDT")
-        if normalized_symbol not in get_analysis_universe():
-            raise ValueError(
-                f"inference symbol outside BTC_ANALYSIS_UNIVERSE: {normalized_symbol}"
-            )
+        normalized_symbol = normalize_inference_symbol(
+            symbol,
+            supported_symbols=get_analysis_universe(),
+        )
         signal_id = ensure_signal_id(
             analysis,
             symbol=symbol,
@@ -113,15 +123,30 @@ class InferenceCoordinator:
         cycle_id = str(analysis.get("cycle_id") or "")
         if not cycle_id:
             raise ValueError("entry inference requires cycle_id")
-        idempotency_key = f"{signal_id}:{MODEL_VERSION}:{decision_context}"
+        artifact = get_meta_inference_artifact()
+        idempotency_key = (
+            f"{signal_id}:{artifact.artifact_version}:{decision_context}"
+        )
         with _INFERENCE_LOCK:
             existing = get_runtime_evidence_store().get_prediction_by_idempotency_key(
                 idempotency_key
             )
             if existing is not None:
                 result = {
+                    "symbol": existing.get("symbol"),
                     "probability": existing.get("calibrated_probability"),
+                    "prediction": existing.get("prediction"),
                     "probability_semantics": existing.get("probability_semantics"),
+                    "inference_contract_version": existing.get(
+                        "inference_contract_version"
+                    ),
+                    "model_family": existing.get("model_family"),
+                    "artifact_version": existing.get("artifact_version"),
+                    "artifact_hash": existing.get("artifact_hash"),
+                    "feature_schema_hash": existing.get("feature_schema_hash"),
+                    "artifact_metadata_consistent": existing.get(
+                        "artifact_metadata_consistent"
+                    ),
                     "prediction_id": existing.get("prediction_id"),
                     "model_version": existing.get("model_version"),
                     "artifact_sha256": existing.get("artifact_sha256"),
@@ -145,7 +170,11 @@ class InferenceCoordinator:
                     "s3_threshold_error": existing.get("s3_threshold_error"),
                 }
             else:
-                result = predict_meta_confidence(analysis)
+                result = predict_meta_confidence(
+                    analysis,
+                    symbol=normalized_symbol,
+                    artifact=artifact,
+                )
         if result.get("probability") is None:
             raise RuntimeError(str(result.get("error") or "meta_prediction_unavailable"))
         if not result.get("paper_run_id"):
@@ -154,6 +183,14 @@ class InferenceCoordinator:
             result["cycle_id"] = cycle_id
         if result.get("probability_semantics") != S3_PROBABILITY_SEMANTICS:
             raise RuntimeError("meta_prediction_probability_semantics_incompatible")
+        if result.get("inference_contract_version") != INFERENCE_CONTRACT_VERSION:
+            raise RuntimeError("meta_prediction_inference_contract_incompatible")
+        if normalize_inference_symbol(result.get("symbol")) != normalized_symbol:
+            raise RuntimeError("meta_prediction_symbol_mismatch")
+        if result.get("artifact_hash") != result.get("artifact_sha256"):
+            raise RuntimeError("meta_prediction_artifact_identity_mismatch")
+        if result.get("artifact_version") != result.get("model_version"):
+            raise RuntimeError("meta_prediction_artifact_version_mismatch")
         if (
             result.get("expected_return_unit") != EXPECTED_RETURN_UNIT
             or result.get("ev_contract_version") != EV_CONTRACT_VERSION
@@ -168,7 +205,9 @@ class InferenceCoordinator:
             "s3_threshold_error": s3_gate.error,
         })
         required = (
-            "prediction_id", "model_version", "artifact_sha256",
+            "prediction_id", "inference_contract_version", "model_family",
+            "artifact_version", "artifact_hash", "feature_schema_hash",
+            "model_version", "artifact_sha256",
             "feature_schema_version", "deployment_id", "paper_run_id",
             "cycle_id", "feature_hash",
         )
@@ -178,11 +217,20 @@ class InferenceCoordinator:
         return MetaPrediction(
             signal_id=signal_id,
             prediction_id=str(result["prediction_id"]),
-            symbol=str(symbol).upper(),
+            symbol=normalized_symbol,
             decision_context=decision_context,
             caller_context=caller_context,
             probability=float(result["probability"]),
+            prediction=float(result["prediction"]),
             probability_semantics=str(result["probability_semantics"]),
+            inference_contract_version=str(result["inference_contract_version"]),
+            model_family=str(result["model_family"]),
+            artifact_version=str(result["artifact_version"]),
+            artifact_hash=str(result["artifact_hash"]),
+            feature_schema_hash=str(result["feature_schema_hash"]),
+            artifact_metadata_consistent=result.get(
+                "artifact_metadata_consistent"
+            ),
             model_version=str(result["model_version"]),
             artifact_sha256=str(result["artifact_sha256"]),
             feature_schema_version=str(result["feature_schema_version"]),

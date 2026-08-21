@@ -3,7 +3,6 @@ if __name__ == "__main__":
     os.environ["BTC_ENVIRONMENT"] = "test"
     os.environ["BTC_EVIDENCE_ELIGIBLE"] = "false"
 
-import inspect
 import json
 import math
 import sys
@@ -25,7 +24,12 @@ if __name__ == "__main__":
 
 from btc_scraper.core.paths import build_logs_path
 from btc_scraper.ml_engine.feature_extractor import features_from_analysis
-from btc_scraper.ml_engine.meta_model import predict_meta_confidence
+from btc_scraper.ml_engine.artifact_resolver import sha256_file
+from btc_scraper.ml_engine.meta_model import (
+    bind_model_artifact_provenance,
+    predict_meta_confidence,
+)
+from btc_scraper.ml_engine.inference_contract import normalize_inference_symbol
 from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 from scripts.generate_triple_barrier_labels import load_candles_for_coin
 from scripts.hmr_v5_b1_exit_audit import compute_atr14
@@ -42,6 +46,8 @@ COINS = ["BTC", "ETH", "BNB"]
 
 class V5FilterModelClassifier(BaseEstimator, ClassifierMixin):
     """Scikit-Learn wrapper classifier executing V5 frozen Logistic Regression models."""
+
+    requires_explicit_symbol = True
     
     def __init__(self, model_dir_path: str):
         self.model_dir_path = model_dir_path
@@ -53,26 +59,12 @@ class V5FilterModelClassifier(BaseEstimator, ClassifierMixin):
         with open(p / "preprocessing.json", "r") as f:
             self.preprocessing_params = json.load(f)
             
-    def _detect_symbol(self) -> str:
-        """Inspects stack frame to identify current coin symbol in the runtime loop."""
-        for frame_info in inspect.stack():
-            locals_dict = frame_info.frame.f_locals
-            # First check for dicts
-            for name in ["analysis_info", "analysis", "ana", "tf_ana", "info"]:
-                if name in locals_dict and isinstance(locals_dict[name], dict):
-                    coin = locals_dict[name].get("coin") or locals_dict[name].get("symbol")
-                    if coin:
-                        # Normalize symbol
-                        return str(coin).upper().replace("/", "").removesuffix("USDT")
-            # Next check for direct string variables
-            for name in ["symbol", "coin"]:
-                if name in locals_dict and isinstance(locals_dict[name], str):
-                    return str(locals_dict[name]).upper().replace("/", "").removesuffix("USDT")
-        return "BTC"
-        
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        """Row-by-row prediction probability."""
-        symbol = getattr(self, "current_symbol", None) or self._detect_symbol()
+    def predict_proba(self, X: np.ndarray, *, symbol: str) -> np.ndarray:
+        """Row-by-row prediction using only the explicit symbol argument."""
+        symbol = normalize_inference_symbol(
+            symbol,
+            supported_symbols=self.model_params.keys(),
+        )
         
         # Get scaling params
         means = self.preprocessing_params[symbol]["means"]
@@ -118,6 +110,19 @@ def main():
     import btc_scraper.ml_engine.meta_model as mm
     mm._MODEL_CACHE = model_bundle
     mm._CACHED_MODEL = model_bundle
+    bind_model_artifact_provenance(
+        model_bundle,
+        artifact_version=str(model_bundle["version"]),
+        artifact_hash=sha256_file(MODEL_OUT),
+        feature_names=model_bundle["features"],
+        feature_schema_version="meta-v3.1-43f",
+        metadata={
+            "version": model_bundle["version"],
+            "n_features": len(model_bundle["features"]),
+            "features": model_bundle["features"],
+            "feature_schema_version": "meta-v3.1-43f",
+        },
+    )
     
     # Load scaffold
     df_scaffold = pd.read_parquet(SCAFFOLD_PATH)
@@ -151,8 +156,10 @@ def main():
         
         # Calculate expected scores offline (reference probabilities)
         # using the direct classifier
-        classifier.current_symbol = symbol
-        off_probs = classifier.predict_proba(df_conf[X_cols].values)[:, 1]
+        off_probs = classifier.predict_proba(
+            df_conf[X_cols].values,
+            symbol=symbol,
+        )[:, 1]
         
         # Run through the ACTUAL production code path
         real_runtime_probs = []
@@ -181,8 +188,10 @@ def main():
             assert "return_8" in feat, f"Feature builder failed to retain return_8: {feat}"
             
             # 2. Run actual runtime classifier prediction
-            pred_res = predict_meta_confidence(analysis_info)
+            pred_res = predict_meta_confidence(analysis_info, symbol=symbol)
             assert "probability" in pred_res, f"Runtime prediction failed: {pred_res}"
+            assert pred_res["symbol"] == symbol
+            assert pred_res["artifact_hash"] == sha256_file(MODEL_OUT)
             
             prob = pred_res["probability"]
             decision = evaluate_s3_threshold(symbol, prob).s3_pass

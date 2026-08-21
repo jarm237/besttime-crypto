@@ -72,10 +72,22 @@ class _AsyncPassAgent:
 def test_real_entry_components_propagate_prediction_to_outcome(monkeypatch, tmp_path):
     evidence_store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
     monkeypatch.setattr(evidence_module, "_STORE", evidence_store)
+    model = _FixedModel()
+    bundle = {"model": model, "features": ["rsi_score"]}
+    monkeypatch.setattr(meta_model, "_MODEL_ARTIFACT_PROVENANCE", None)
+    monkeypatch.setattr(meta_model, "_MODEL_ARTIFACT_OWNER_ID", None)
+    meta_model.bind_model_artifact_provenance(
+        bundle,
+        artifact_version="lineage-test-v1",
+        artifact_hash="a" * 64,
+        feature_names=["rsi_score"],
+        feature_schema_version="lineage-test-schema/v1",
+        metadata={"features": ["rsi_score"], "n_features": 1},
+    )
     monkeypatch.setattr(
         meta_model,
         "load_model",
-        lambda: {"model": _FixedModel(), "features": ["rsi_score"]},
+        lambda: bundle,
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.artifact_resolver.ArtifactResolver.resolve",
@@ -236,10 +248,21 @@ def test_coordinator_replay_reuses_one_prediction(monkeypatch, tmp_path):
     evidence_store = RuntimeEvidenceStore(tmp_path / "runtime_evidence.sqlite")
     monkeypatch.setattr(evidence_module, "_STORE", evidence_store)
     model = _FixedModel()
+    bundle = {"model": model, "features": ["rsi_score"]}
+    monkeypatch.setattr(meta_model, "_MODEL_ARTIFACT_PROVENANCE", None)
+    monkeypatch.setattr(meta_model, "_MODEL_ARTIFACT_OWNER_ID", None)
+    meta_model.bind_model_artifact_provenance(
+        bundle,
+        artifact_version="lineage-test-v1",
+        artifact_hash="a" * 64,
+        feature_names=["rsi_score"],
+        feature_schema_version="lineage-test-schema/v1",
+        metadata={"features": ["rsi_score"], "n_features": 1},
+    )
     monkeypatch.setattr(
         meta_model,
         "load_model",
-        lambda: {"model": model, "features": ["rsi_score"]},
+        lambda: bundle,
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.artifact_resolver.ArtifactResolver.resolve",

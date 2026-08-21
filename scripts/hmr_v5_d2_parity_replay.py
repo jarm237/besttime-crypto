@@ -24,6 +24,13 @@ from scripts.generate_triple_barrier_labels import load_candles_for_coin
 from scripts.hmr_v5_b1_exit_audit import compute_atr14, simulate_path_aware_exit
 from scripts.hmr_v5_b2_executable_replay import apply_policy_p4
 from scripts.hmr_v5_c2_minimal_model import run_e4_generation
+from btc_scraper.ml_engine.inference_contract import (
+    InferenceArtifact,
+    InferenceResult,
+    artifact_set_hash,
+    feature_schema_hash,
+    predict as predict_explicit_inference,
+)
 from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 
 SCAFFOLD_PATH = REPO_ROOT / "research/historical_market_replay_v4/v4a_outcome_scaffold.parquet"
@@ -55,11 +62,29 @@ class RuntimeInferenceEngine:
             self.preprocessing = json.load(f)
         with open(model_dir / "feature_schema.json", "r") as f:
             self.schema = json.load(f)
-            
-    def predict_score_and_decision(self, symbol: str, features: list[float]) -> tuple[float, bool]:
-        """Calculates probability and threshold decision in a production mock manner."""
-        # Feature validation
-        assert len(features) == len(self.schema["feature_names"]), "Feature length mismatch"
+        feature_names = tuple(self.schema["feature_names"])
+        self.artifact = InferenceArtifact(
+            model_family=str(self.manifest["model_id"]),
+            artifact_version=str(self.manifest["version"]),
+            artifact_hash=artifact_set_hash((
+                model_dir / "manifest.json",
+                model_dir / "model.json",
+                model_dir / "preprocessing.json",
+                model_dir / "feature_schema.json",
+            )),
+            feature_schema_hash=feature_schema_hash(feature_names),
+            feature_names=feature_names,
+            predictor=self._predict_probability,
+            feature_schema_version="hmr-v5-filter-schema/v1",
+            supported_symbols=frozenset(self.model),
+        )
+
+    def _predict_probability(
+        self,
+        symbol: str,
+        features: tuple[float, ...],
+    ) -> float:
+        """Evaluate frozen JSON parameters for one explicit symbol."""
         
         # Preprocessing (Standardization)
         means = self.preprocessing[symbol]["means"]
@@ -75,13 +100,28 @@ class RuntimeInferenceEngine:
         
         z = sum(w * x for w, x in zip(coefs, norm_features)) + intercept
         
-        # Sigmoid function
-        prob = 1.0 / (1.0 + math.exp(-z))
+        return 1.0 / (1.0 + math.exp(-z))
+
+    def predict_inference(
+        self,
+        *,
+        symbol: str,
+        features: list[float],
+    ) -> InferenceResult:
+        return predict_explicit_inference(
+            symbol=symbol,
+            features=features,
+            artifact=self.artifact,
+        )
+
+    def predict_score_and_decision(self, symbol: str, features: list[float]) -> tuple[float, bool]:
+        """Calculate probability and threshold decision through the P2 contract."""
+        result = self.predict_inference(symbol=symbol, features=features)
         
         # Production and replay share one versioned, fail-closed threshold resolver.
-        decision = evaluate_s3_threshold(symbol, prob).s3_pass
+        decision = evaluate_s3_threshold(result.symbol, result.prediction).s3_pass
         
-        return prob, decision
+        return result.prediction, decision
 
 
 def main():

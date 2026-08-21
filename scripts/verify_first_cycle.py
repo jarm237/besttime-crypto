@@ -65,7 +65,7 @@ def main():
     }
     
     print("\nTracing first mock prediction...")
-    pred_res = predict_meta_confidence(mock_analysis)
+    pred_res = predict_meta_confidence(mock_analysis, symbol="BTC")
     
     if "error" in pred_res:
         print(f"✗ Prediction error: {pred_res['error']}")

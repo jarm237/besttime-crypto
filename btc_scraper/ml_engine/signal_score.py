@@ -976,6 +976,20 @@ def score_signal(
         "meta_decision": meta_decision,
         "signal_id": meta_decision.get("signal_id"),
         "prediction_id": meta_decision.get("prediction_id"),
+        "inference_contract_version": meta_decision.get(
+            "inference_contract_version"
+        ),
+        "model_family": meta_decision.get("model_family"),
+        "artifact_version": meta_decision.get("artifact_version"),
+        "artifact_hash": meta_decision.get("artifact_hash")
+        or meta_decision.get("artifact_sha256"),
+        "feature_schema_hash": meta_decision.get("feature_schema_hash"),
+        "prediction": meta_decision.get(
+            "prediction", meta_decision.get("probability")
+        ),
+        "artifact_metadata_consistent": meta_decision.get(
+            "artifact_metadata_consistent"
+        ),
         "model_version": meta_decision.get("model_version"),
         "artifact_sha256": meta_decision.get("artifact_sha256"),
         "model_artifact_sha256": meta_decision.get("artifact_sha256"),

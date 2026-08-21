@@ -417,7 +417,10 @@ def run_backtest(initial_balance: float = 10000.0, sentiment_penalty: float | No
                 if _hard_val and _hard_val > 0:
                     try:
                         from btc_scraper.ml_engine.meta_model import predict_meta_confidence
-                        meta_res = predict_meta_confidence({**coin_data, "signal": sig_text})
+                        meta_res = predict_meta_confidence(
+                            {**coin_data, "signal": sig_text},
+                            symbol=coin,
+                        )
                         p = None
                         # meta_res may be a dict with different probability field names
                         if isinstance(meta_res, dict):

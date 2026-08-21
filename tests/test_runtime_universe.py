@@ -127,7 +127,7 @@ def test_analysis_and_inference_run_only_for_configured_universe(monkeypatch):
 
 def test_inference_boundary_rejects_symbol_outside_runtime_universe(monkeypatch):
     monkeypatch.setenv("BTC_ANALYSIS_UNIVERSE", "BTC,ETH,BNB")
-    with pytest.raises(ValueError, match="outside BTC_ANALYSIS_UNIVERSE"):
+    with pytest.raises(ValueError, match="inference_symbol_unsupported"):
         InferenceCoordinator().predict_once(
             {"observed_at": "2026-07-30T08:00:00+00:00", "signal": "BUY"},
             symbol="WLD",

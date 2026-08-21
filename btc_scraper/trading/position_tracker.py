@@ -1140,7 +1140,7 @@ def evaluate_positions(analysis_results: dict[str, dict]) -> list[dict]:
                     "score": 30,
                     "confidence": "MEDIUM"
                 }
-            res = predict_meta_confidence(eval_info)
+            res = predict_meta_confidence(eval_info, symbol=coin)
             if res and res.get("probability") is not None:
                 pos_meta_prob = float(res["probability"])
         except Exception:

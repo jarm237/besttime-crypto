@@ -25,6 +25,8 @@ def temp_logs_dir(tmp_path):
     original_mm_metric_out = mm.METRIC_OUT
     original_mm_feature_imp = mm.FEATURE_IMPORTANCE_OUT
     original_model_cache = mm._MODEL_CACHE
+    original_artifact_provenance = mm._MODEL_ARTIFACT_PROVENANCE
+    original_artifact_owner = mm._MODEL_ARTIFACT_OWNER_ID
     
     mm.INPUT = tmp_path / "adaptive_signals_v2.json"
     mm.MODEL_OUT = tmp_path / "meta_model.joblib"
@@ -32,6 +34,8 @@ def temp_logs_dir(tmp_path):
     mm.FEATURE_IMPORTANCE_OUT = tmp_path / "meta_feature_importance.json"
     mm.LOGS = tmp_path
     mm._MODEL_CACHE = None
+    mm._MODEL_ARTIFACT_PROVENANCE = None
+    mm._MODEL_ARTIFACT_OWNER_ID = None
     
     yield tmp_path
     
@@ -45,6 +49,8 @@ def temp_logs_dir(tmp_path):
     mm.FEATURE_IMPORTANCE_OUT = original_mm_feature_imp
     mm.LOGS = original_mm_model_out.parent
     mm._MODEL_CACHE = original_model_cache
+    mm._MODEL_ARTIFACT_PROVENANCE = original_artifact_provenance
+    mm._MODEL_ARTIFACT_OWNER_ID = original_artifact_owner
 
 
 def test_calibration_buckets():
@@ -177,7 +183,10 @@ def test_xgboost_gpu_device_string():
 
 def test_predict_meta_confidence(temp_logs_dir):
     # Test predict when model is missing
-    res_no_model = predict_meta_confidence({"coin": "BTC", "action": "BUY"})
+    res_no_model = predict_meta_confidence(
+        {"coin": "BTC", "action": "BUY"},
+        symbol="BTC",
+    )
     assert "error" in res_no_model
     assert res_no_model["probability"] is None
     
@@ -217,7 +226,7 @@ def test_predict_meta_confidence(temp_logs_dir):
         "regime": "STRONG_TREND_BULL"
     }
     
-    res = predict_meta_confidence(mock_analysis_info)
+    res = predict_meta_confidence(mock_analysis_info, symbol="BTC")
     assert "probability" in res
     assert isinstance(res["probability"], float)
     assert 0.0 <= res["probability"] <= 1.0

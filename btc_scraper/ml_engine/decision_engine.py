@@ -3,6 +3,7 @@ from typing import Dict, Optional, TYPE_CHECKING
 import uuid
 
 from .economic_contract import EV_CONTRACT_VERSION, EXPECTED_RETURN_UNIT
+from .inference_contract import normalize_inference_symbol
 from .meta_model import predict_meta_confidence
 from .s3_thresholds import evaluate_s3_threshold
 from btc_scraper.core.paths import (
@@ -277,7 +278,15 @@ class MetaDecisionEngine:
         if existing is not None:
             return existing
         if not isinstance(meta, dict):
-            meta = predict_meta_confidence(analysis_info)
+            explicit_symbol = (
+                analysis_info.get("symbol")
+                or analysis_info.get("coin")
+                or analysis_info.get("ticker")
+            )
+            meta = predict_meta_confidence(
+                analysis_info,
+                symbol=explicit_symbol,
+            )
         if not isinstance(meta, dict) or meta.get("probability") is None:
             return {
                 "error": meta.get("error", "no_model"),
@@ -291,7 +300,40 @@ class MetaDecisionEngine:
                 "context_snapshot_id": None,
                 "model_version": None,
                 "artifact_sha256": None,
+                "inference_contract_version": None,
+                "model_family": None,
+                "artifact_version": None,
+                "artifact_hash": None,
+                "feature_schema_hash": None,
             }
+
+        explicit_analysis_symbol = (
+            analysis_info.get("symbol")
+            or analysis_info.get("coin")
+            or analysis_info.get("ticker")
+        )
+        if meta.get("symbol") is not None and explicit_analysis_symbol is not None:
+            try:
+                if normalize_inference_symbol(meta["symbol"]) != normalize_inference_symbol(
+                    explicit_analysis_symbol
+                ):
+                    return {
+                        "error": "prediction_symbol_mismatch",
+                        "action": "NEUTRAL",
+                        "posterior_probability": None,
+                        "meta_probability": None,
+                        "prediction_id": meta.get("prediction_id"),
+                        "decision_id": str(uuid.uuid4()),
+                    }
+            except ValueError as exc:
+                return {
+                    "error": str(exc),
+                    "action": "NEUTRAL",
+                    "posterior_probability": None,
+                    "meta_probability": None,
+                    "prediction_id": meta.get("prediction_id"),
+                    "decision_id": str(uuid.uuid4()),
+                }
 
         proposed_side = self._entry_action(analysis_info)
         signal_side = proposed_side if proposed_side in {"BUY", "SELL"} else self._signal_direction(analysis_info)
@@ -426,6 +468,15 @@ class MetaDecisionEngine:
             "reason": " | ".join(reason),
             "signal_id": analysis_info.get("signal_id") or analysis_info.get("id"),
             "prediction_id": meta.get("prediction_id"),
+            "inference_contract_version": meta.get("inference_contract_version"),
+            "model_family": meta.get("model_family"),
+            "artifact_version": meta.get("artifact_version"),
+            "artifact_hash": meta.get("artifact_hash") or meta.get("artifact_sha256"),
+            "feature_schema_hash": meta.get("feature_schema_hash"),
+            "prediction": meta.get("prediction", meta.get("probability")),
+            "artifact_metadata_consistent": meta.get(
+                "artifact_metadata_consistent"
+            ),
             "model_version": meta.get("model_version"),
             "artifact_sha256": meta.get("artifact_sha256"),
             "model_artifact_sha256": meta.get("artifact_sha256"),

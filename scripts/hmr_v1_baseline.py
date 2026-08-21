@@ -205,6 +205,8 @@ def research_model_override(manifest_path: str | None):
     previous_cache = meta_model._MODEL_CACHE
     previous_cached = meta_model._CACHED_MODEL
     previous_error = meta_model._MODEL_LOAD_ERROR
+    previous_provenance = meta_model._MODEL_ARTIFACT_PROVENANCE
+    previous_provenance_owner = meta_model._MODEL_ARTIFACT_OWNER_ID
     previous_version = meta_model.MODEL_VERSION
     resolver = ResearchResolver()
     resolver_module.get_artifact_resolver = lambda: resolver
@@ -212,6 +214,19 @@ def research_model_override(manifest_path: str | None):
     meta_model._CACHED_MODEL = None
     meta_model._MODEL_LOAD_ERROR = None
     meta_model.MODEL_VERSION = manifest["model_version"]
+    feature_names = tuple(
+        meta_model._MODEL_CACHE.get("features")
+        or manifest.get("features")
+        or ()
+    )
+    meta_model.bind_model_artifact_provenance(
+        meta_model._MODEL_CACHE,
+        artifact_version=manifest["model_version"],
+        artifact_hash=manifest["artifact_sha256"],
+        feature_names=feature_names,
+        feature_schema_version=manifest["feature_schema_version"],
+        metadata=metadata,
+    )
     try:
         yield manifest
     finally:
@@ -219,6 +234,8 @@ def research_model_override(manifest_path: str | None):
         meta_model._MODEL_CACHE = previous_cache
         meta_model._CACHED_MODEL = previous_cached
         meta_model._MODEL_LOAD_ERROR = previous_error
+        meta_model._MODEL_ARTIFACT_PROVENANCE = previous_provenance
+        meta_model._MODEL_ARTIFACT_OWNER_ID = previous_provenance_owner
         meta_model.MODEL_VERSION = previous_version
 
 
