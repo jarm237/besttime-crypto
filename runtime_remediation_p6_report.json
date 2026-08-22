@@ -6,10 +6,10 @@
   "scope": "artifact/schema/warm-up/provenance/regression closure",
   "implemented": ["immutable ArtifactContract", "deterministic SchemaContract fingerprint and order hash", "explicit ReadinessState/WarmupContract", "strict EvaluationProvenance round-trip", "P6 boundary unit tests"],
   "stop_conditions": [
-    {"id": "SC-1", "status": "TRIGGERED", "reason": "canonical meta artifact training/calibration provenance and authoritative version cannot be established"},
+    {"id": "SC-1", "status": "PARTIALLY_RECOVERED_STILL_TRIGGERED", "reason": "physical/model/calibration lineage recovered, but immutable historical training-dataset identity cannot be established"},
     {"id": "SC-4", "status": "TRIGGERED_AND_ROLLED_BACK", "reason": "integration before manifest closure broke four P1-P5 production fixtures"}
   ],
-  "gates": {"P6-G0": "PASS", "P6-G1": "PASS", "P6-G2": "BLOCKED", "P6-G3": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G4": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G5": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G6": "NOT_RUN_BLOCKED", "P6-G7": "NOT_AUTHORIZED"},
+  "gates": {"P6-G0": "PASS", "P6-G1": "PASS", "P6-PROV": "PARTIAL_PROVENANCE_ONLY", "P6-G2": "BLOCKED", "P6-G3": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G4": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G5": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G6": "NOT_RUN_BLOCKED", "P6-G7": "NOT_AUTHORIZED"},
   "governance": {"economic_semantics_changed": false, "model_tuning": false, "runtime_release_selected": false, "runtime_evidence_epoch": "NOT_ACTIVE", "selected_runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY", "selected_runtime_release_reason": "no active runtime/evidence epoch", "successor_research": "NOT_AUTHORIZED"},
   "final_verdict": "P6_NOT_CLOSED"
 }

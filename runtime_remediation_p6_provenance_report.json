@@ -1,0 +1,112 @@
+{
+  "phase": "P6-PROV",
+  "status": "COMPLETE",
+  "checkpoint_commit": "9ca600737f57b9c1f227e707f4c929b7b8668ef4",
+  "checkpoint_tree": "343b29ada46dc6429e990b8e022d68634784da02",
+  "checkpoint_validation": {
+    "working_tree_before_audit": "CLEAN",
+    "seal_critical_tests": "98/98 PASS",
+    "p6_foundation": "15/15 PASS",
+    "p6_plus_p5": "56/56 PASS",
+    "full_suite": "1274 passed, 5 subtests passed, 4 frozen failures",
+    "logical_full_suite": "1279/1283 PASS",
+    "junit_sha256": "bbe6e0ec08e80e2a34f5a26ab0a324dcb680547b5c471c7c38a8017b2e9cd3c6",
+    "new_regressions": 0
+  },
+  "physical_artifact": {
+    "path": "logs/meta_model.joblib",
+    "size_bytes": 909,
+    "serialization_format": "joblib",
+    "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "physical_artifact_id": "dc1a98c35a20c223e45cc97bca83ef619a35ac20d66da1808e847ba551f6308e",
+    "bundle_version": "1.0.0",
+    "bundle_keys": ["features", "model", "version"],
+    "model_type": "scripts.hmr_v5_d2_r1_real_runtime_parity.V5FilterModelClassifier",
+    "ordered_features": ["return_8", "return_32", "return_72", "abs_move_72"],
+    "model_dependency": "research/historical_market_replay_v5/v5_filter_model",
+    "embedded_calibrator": false,
+    "external_calibrator_reference": false
+  },
+  "declared_metadata": {
+    "sidecar_model_version": "v3.1",
+    "sidecar_feature_schema": "meta-v3.1-43f",
+    "registry_versions_observed_for_same_sha": ["v5.0", "v3.1"],
+    "classification": "LEGACY_UNVERIFIED_METADATA",
+    "evidence": "scripts/activate_v5_canary.py hard-codes v3.1/43f while building V5FilterModelClassifier; registry records first used v5.0 and later v3.1 for the identical SHA"
+  },
+  "dependency_checksums": {
+    "manifest.json": "942db40e4c6b9f70357b09d5614529084534546a1e18aa40a55e1da7b069af3e",
+    "model.json": "35bea38a767d673b6b87e40cc6f52f5b3a1aea453632a4b05ac8a49ab6b613db",
+    "preprocessing.json": "071b6b119dd3a1df8cbc4c2ca6e3cad4f36d2051f08cd182f49c8aeaf5b207c1",
+    "feature_schema.json": "d7f241aed17acaa4885104784bc955a2d42f0c10ee6e1e00462936c194343507",
+    "decision_policy.json": "b3dd7dee9a659bb68971e331a6afbe0165272e9e16a158cb6924b4cdd3c8a27d",
+    "training_metadata.json": "1aefe7c8d237d68bafa0ce77ae4b0a63303f4721ac5592ba09325a1d95d26589"
+  },
+  "candidate_lineage": {
+    "source_commit": "8d9cd2cdb5d2553920c138cfa0d9904c0b3e169b",
+    "activation_commit": "ae37e0d45c68794ca76a7578f7f0d2e98a923b39",
+    "training_source": "scripts/hmr_v5_d2_parity_replay.py",
+    "wrapper_source": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+    "activation_source": "scripts/activate_v5_canary.py",
+    "model_family": "per-symbol LogisticRegression",
+    "parameters": {"penalty": "l2", "C": 1.0, "random_state": 42},
+    "preprocessing": "per-symbol StandardScaler",
+    "training_window": ["2023-01-01", "2023-12-31"],
+    "validation_window": ["2024-01-02", "2024-06-30"],
+    "training_rows": {"BTC": 28231, "ETH": 27653, "BNB": 28338}
+  },
+  "training_contract": {
+    "status": "PARTIAL",
+    "code_parameters_and_outputs": "EXACTLY_REPRODUCED",
+    "declared_dataset_sha256": "82bcad48ef72a6c8e3a241bb69025e172d7f8d6bb77636e0971b86c35bb5f37cc",
+    "declared_dataset_hash_rule": "ABSENT",
+    "immutable_dataset_identity": "NOT_PROVEN",
+    "reason": "BTC/ETH/BNB candle CSVs are git-ignored and untracked; the declared dataset hash has no producer or canonical hashing rule"
+  },
+  "current_input_fingerprints": {
+    "outcome_scaffold": "6c47d09b7e607987883a179e6f0a63d3f57aab91171cc0b6ee601a40bc8ce8f9",
+    "BTC_15m.csv": "6c4508e24aa563e6d1935754a7c7f91cb9e2963702940ff8ac3b6085fcf52b09",
+    "ETH_15m.csv": "84a3c49efbafdf68e875c908b637ec3d8ea20175471f37c6160c45d2badefdaf",
+    "BNB_15m.csv": "33bd996910d7d3fb7dcb27d4e0e086213f2afaf2e26ce9681d499cedeb89980b",
+    "classification": "CURRENT_REPRODUCTION_INPUTS_NOT_AUTHORITATIVE_HISTORICAL_DATASET_IDENTITY"
+  },
+  "calibration_contract": {
+    "status": "PROVEN_NOT_APPLICABLE",
+    "evidence": "training and replay source fit plain LogisticRegression and persist direct predict_proba coefficients; wrapper has neither embedded calibrator nor external calibrator reference",
+    "post_hoc_calibration": false
+  },
+  "reproducibility": {
+    "wrapper_byte_level": "PASS",
+    "wrapper_reproduced_size_bytes": 909,
+    "wrapper_reproduced_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "model_semantic_level": "PASS_EXACT",
+    "preprocessing_semantic_level": "PASS_EXACT",
+    "model_semantic_hash": "fc2e2ee6d250b0cb9d0fa41f42b5b39e029598ae3c5f296c441c151f301df98c",
+    "preprocessing_semantic_hash": "7831918121c09c03bb3e238018435d923d3bb1e5c939a9be16ab46775cb34856"
+  },
+  "sources_examined": [
+    "Git history and all branches/tags",
+    "tracked artifact history and SHA history",
+    "current artifact and governed deserialization",
+    "model registry and backups",
+    "V5 frozen manifests/checksums/contracts",
+    "V5 training/replay/wrapper/activation scripts",
+    "canary activation record",
+    "historical model backups",
+    "registered worktrees",
+    "current training input files"
+  ],
+  "acceptance": {
+    "physical_artifact_sha_pinned": "PASS",
+    "ordered_feature_schema_proven": "PASS",
+    "bundle_version_meaning_established": "PASS",
+    "legacy_sidecar_classified_non_authoritative": "PASS",
+    "training_lineage_authoritative": "FAIL_DATASET_IDENTITY_NOT_IMMUTABLE",
+    "calibration_lineage_authoritative_or_na": "PASS_PROVEN_NA",
+    "no_fabricated_fields": "PASS",
+    "provenance_reconstructable": "PARTIAL"
+  },
+  "final_classification": "PARTIAL_PROVENANCE_ONLY",
+  "p6_g2_status": "BLOCKED_ARTIFACT_PROVENANCE",
+  "next_requirement": "authoritative immutable identity and canonical hashing rule for the exact historical training dataset; otherwise explicit LEGACY_ARTIFACT_REPLACEMENT_AUTHORIZATION"
+}

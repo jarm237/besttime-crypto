@@ -678,14 +678,21 @@ Known stale fixtures must be corrected to the frozen contract, not hidden with `
 P6-G0 BASELINE PIN                 PASS
 P6-G1 CONTRACT INVENTORY           PASS
 P6 ARTIFACT/SCHEMA/WARMUP FOUNDATION PASS
+P6-PROV PROVENANCE RECOVERY        PARTIAL_PROVENANCE_ONLY
 P6-G2 ARTIFACT CONTRACT CLOSURE    BLOCKED_ARTIFACT_PROVENANCE
 P6                                 IN_PROGRESS / BLOCKED
 ```
 
-The canonical `meta_model` bytes are hash-pinned, but their sidecar declares
-`v3.1 / 43f` while the bundle exposes version `1.0.0` and exactly four ordered
-features. No authoritative training or calibration contract is present. P6
-therefore does not infer a replacement version or fabricate contract hashes.
+The canonical `meta_model` wrapper is byte-reproducible and its model/scaler
+parameters reproduce exactly from the V5 D2 source. Its sidecar `v3.1 / 43f`
+identifiers are classified as `LEGACY_UNVERIFIED_METADATA`; calibration is
+proven not applicable because the frozen model uses direct `LogisticRegression`
+probabilities without an embedded or external calibrator.
+
+Provenance remains partial because the exact BTC/ETH/BNB training CSVs are
+git-ignored and the declared dataset hash has no producer or canonical hashing
+rule. Therefore immutable training-dataset identity is not proven, P6-G2 stays
+blocked, and no replacement identity or contract hash is inferred.
 
 A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
 contract gaps. Per stop condition SC-4, those integration edits were rolled
