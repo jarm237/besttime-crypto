@@ -1,0 +1,303 @@
+{
+  "phase": "P6-PROV-DATA",
+  "status": "CLOSED",
+  "checkpoint": {
+    "commit": "70b7a3539f934b0b58640944bded67f42a82756e",
+    "tree": "945f979b7b538aee5af61ccd9f5fed51fdf4c530",
+    "working_tree_at_start": "clean"
+  },
+  "baseline": {
+    "seal_critical_expanded": "103/103 PASS",
+    "p5_p6_focused": "56/56 PASS",
+    "autotrader_probability_targeted": "26/26 PASS",
+    "full_suite": {
+      "tests": 1284,
+      "failures": 4,
+      "errors": 0,
+      "junit_path": "/tmp/besttime-p6-prov-data-pd0-full.xml",
+      "junit_sha256": "dcc896f8a85900ef37af1bfdbf83015b648dfba9a96903a43f7f4232be0a9f99",
+      "frozen_failures": [
+        "tests.ml.test_ml_engine_static_safety::test_ml_engine_static_safety_gates",
+        "tests.test_etf_integration_audit::test_integration_json_schema",
+        "tests.test_validate_alternative_history::test_generate_artifacts_writes_research_only_contract",
+        "tests.test_validate_alternative_history::test_probe_results_are_not_marked_as_evidence"
+      ],
+      "new_regressions": 0
+    }
+  },
+  "artifact": {
+    "path": "logs/meta_model.joblib",
+    "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "size_bytes": 909,
+    "sidecar_path": "logs/meta_model.json",
+    "sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "deserialized_bundle": {
+      "keys": ["features", "model", "version"],
+      "version": "1.0.0",
+      "features": ["return_8", "return_32", "return_72", "abs_move_72"],
+      "model_class": "scripts.hmr_v5_d2_r1_real_runtime_parity.V5FilterModelClassifier",
+      "model_dir_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/research/historical_market_replay_v5/v5_filter_model"
+    }
+  },
+  "training_consumer": {
+    "entrypoint": "scripts/hmr_v5_d2_parity_replay.py",
+    "runtime_wrapper_entrypoint": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+    "dataset_loader": "scripts.generate_triple_barrier_labels.load_candles_for_coin",
+    "input_file_set": {
+      "BTC": "data/fresh_training_data_2023_2026/BTC/BTC_15m.csv",
+      "ETH": "data/fresh_training_data_2023_2026/ETH/ETH_15m.csv",
+      "BNB": "data/fresh_training_data_2023_2026/BNB/BNB_15m.csv"
+    },
+    "symbol_order": ["BTC", "ETH", "BNB"],
+    "file_matching": "coin_dir exact sorted rglob for <COIN>_15m_*.csv followed by <COIN>_15m.csv; current candidate resolves to one exact file per symbol",
+    "parsing": {
+      "parser": "btc_scraper.core.io.smart_read_csv via _read_csv_candle",
+      "timestamp_column": "time renamed to timestamp",
+      "timestamp_timezone": "UTC",
+      "sort": "ascending timestamp",
+      "deduplication": "drop duplicate timestamp keep last",
+      "reset_index": true
+    },
+    "row_selection": {
+      "e4_generation": "run_e4_generation over long_30_20 and short_30_20 scaffold signals",
+      "train_filter": "entry_timestamp >= 2023-01-01 and <= 2023-12-31",
+      "validation_filter": "2024-01-02 through 2024-06-30 in metadata",
+      "embargo": "used for validation/test replay, not training fit"
+    },
+    "preprocessing": {
+      "features": ["return_8", "return_32", "return_72", "abs_move_72"],
+      "scaler": "sklearn.preprocessing.StandardScaler fit on per-symbol train slice",
+      "fillna": "run_e4_generation fills selected features with 0.0 when output is non-empty"
+    },
+    "label_logic": {
+      "exit_contract": "E4",
+      "Y": "1 iff simulate_path_aware_exit hits target before stop/timeout, else 0",
+      "tp_bps": 50.0,
+      "sl_bps": 30.0,
+      "max_hold_bars": 96
+    },
+    "model_training": {
+      "model": "sklearn.linear_model.LogisticRegression",
+      "penalty": "l2",
+      "C": 1.0,
+      "random_state": 42,
+      "s3_threshold": "30th percentile of train probabilities"
+    },
+    "gate_PD_G1": "PASS"
+  },
+  "producer_lineage": {
+    "producer_file": "scripts/fetch_fresh_training_data.py",
+    "producer_commit": "2aac820 Refresh training data",
+    "provider": "Binance spot REST API",
+    "endpoint": "https://api.binance.com/api/v3/klines",
+    "symbol_format": "<COIN>USDT",
+    "interval": "15m",
+    "configured_range": "2023-01 through 2026-06 by default",
+    "pagination": "limit=1000, next start = last open time + 1 ms",
+    "retry_policy": "5 retries, 20s timeout, backoff on HTTP errors",
+    "sorting": "sort by time before write",
+    "deduplication": "dedupe by formatted minute timestamp",
+    "output_schema": ["time", "open", "high", "low", "close", "volume", "is_warmup"],
+    "determinism": "CONDITIONALLY_DETERMINISTIC",
+    "upstream_mutability": "HISTORICAL_API_WITH_POSSIBLE_CORRECTIONS",
+    "gate_PD_G2": "PASS_WITH_UPSTREAM_MUTABILITY_CAVEAT"
+  },
+  "candidate_dataset": {
+    "BTC": {
+      "path": "data/fresh_training_data_2023_2026/BTC/BTC_15m.csv",
+      "raw_sha256": "6c4508e24aa563e6d1935754a7c7f91cb9e2963702940ff8ac3b6085fcf52b09",
+      "size_bytes": 7782242,
+      "line_count": 122661,
+      "row_count": 122660,
+      "first_timestamp": "2023-01-01T00:00:00Z",
+      "last_timestamp": "2026-08-11T07:30:00Z",
+      "duplicate_timestamps": 0,
+      "out_of_order_rows": 0,
+      "interval_gap_count": 1,
+      "first_100_rows_sha256": "b41d1a937897c12c4b0a032e1b2b6a54034aa85f4d493f83e9400683c303011a",
+      "last_100_rows_sha256": "6a263b754cc1d994d96822786845b1c1a31053f7642785f51952244cf1e43430"
+    },
+    "ETH": {
+      "path": "data/fresh_training_data_2023_2026/ETH/ETH_15m.csv",
+      "raw_sha256": "84a3c49efbafdf68e875c908b637ec3d8ea20175471f37c6160c45d2badefdaf",
+      "size_bytes": 7782593,
+      "line_count": 122661,
+      "row_count": 122660,
+      "first_timestamp": "2023-01-01T00:00:00Z",
+      "last_timestamp": "2026-08-11T07:30:00Z",
+      "duplicate_timestamps": 0,
+      "out_of_order_rows": 0,
+      "interval_gap_count": 1,
+      "first_100_rows_sha256": "bf02d27c6beda7458a957869d3bcd9d8ee0efdc5579d5f46b20c3f1825c16d94",
+      "last_100_rows_sha256": "6c9e91f5eea4f0fbc2fcdea369a82ca7f4c9a5e3d5880b78a90632e4b625d874"
+    },
+    "BNB": {
+      "path": "data/fresh_training_data_2023_2026/BNB/BNB_15m.csv",
+      "raw_sha256": "33bd996910d7d3fb7dcb27d4e0e086213f2afaf2e26ce9681d499cedeb89980b",
+      "size_bytes": 7781960,
+      "line_count": 122661,
+      "row_count": 122660,
+      "first_timestamp": "2023-01-01T00:00:00Z",
+      "last_timestamp": "2026-08-11T07:30:00Z",
+      "duplicate_timestamps": 0,
+      "out_of_order_rows": 0,
+      "interval_gap_count": 1,
+      "first_100_rows_sha256": "aa9b5fecf177b09f235bb26bd05b10cdcb892c311f9c1b3a87c1408cf20406a5",
+      "last_100_rows_sha256": "9ce0fd06acc7b17f0359c70d0e98fcb60bf248117123a05565ede68664ecc698"
+    }
+  },
+  "physical_identity": {
+    "recovered_file_set_id_v1": "92d423da2d1bf9a8f970fffaed353268020b93b28fd5493c58487898f1d0ff0b",
+    "introduced_during": "P6-PROV-DATA",
+    "historical_metadata": false,
+    "gate_PD_G3": "PASS"
+  },
+  "historical_evidence": {
+    "immutable_anchors": [
+      {
+        "source": "research/historical_market_replay_v1/research_artifact_pre2025/manifest.json",
+        "manifest_sha256": "547a19e382522293ab0be7d28ef6504861b9fcb7de5c891fb9596b87f44b3bdd",
+        "commit": "5550d408473885c0a79d0815ea2ed42f8db100cc",
+        "commit_time": "2026-08-14T13:09:21+07:00",
+        "strength": "E3",
+        "what_it_proves": "git-anchored SHA256 identity for the exact BTC/ETH/BNB raw CSV byte files currently used as V5 candidate inputs",
+        "what_it_does_not_prove": "it was not created as V5 training metadata and does not by itself prove V5 consumed those files"
+      }
+    ],
+    "other_sources_checked": [
+      "current repo",
+      "full git history via git log -S/-G",
+      "local branches and tags",
+      "deleted historical files",
+      "research directories",
+      "model directories",
+      "runtime manifests",
+      "local archives/backups",
+      "DVC metadata",
+      "Git LFS metadata",
+      "runtime worktrees"
+    ],
+    "dvc": "NOT_PRESENT",
+    "git_lfs_anchor": "NOT_FOUND",
+    "gate_PD_G4": "IMMUTABLE_HISTORICAL_ANCHOR_FOUND"
+  },
+  "semantic_identity": {
+    "canonicalization_rule": {
+      "name": "RECOVERY_CANONICALIZATION_RULE_V1",
+      "introduced_during": "P6-PROV-DATA",
+      "historical_metadata": false,
+      "symbol_order": ["BTC", "ETH", "BNB"],
+      "row_order": "sort by UTC timestamp",
+      "timestamp_format": "YYYY-MM-DDTHH:MM:SSZ",
+      "column_order": ["time", "open", "high", "low", "close", "volume"],
+      "numeric_format": "Python format(float, '.12g')",
+      "line_ending": "LF"
+    },
+    "per_symbol_semantic_sha256": {
+      "BTC": "b6d641564b521b3931fc5a6fddba6cb060747b23da2f6b1f5039bcecfe290750",
+      "ETH": "81bf8db9b6a3102c492af322d0bcaff119b39926f789987d65b1c649dd472fe1",
+      "BNB": "c55033cd13e1ae0ad4aa1b6a5a99aa944beb0369a2df33216309413b4a6cfa5d"
+    },
+    "recovered_semantic_dataset_id_v1": "dee9b50fdcb483867e31d37bf834f96b6024c70ebf233bdb63a2b26176aa8d33",
+    "gate_PD_G5": "PASS"
+  },
+  "training_input_reconstruction": {
+    "features": ["return_8", "return_32", "return_72", "abs_move_72"],
+    "per_symbol": {
+      "BTC": {
+        "raw_rows_loaded": 122660,
+        "consumer_rows_after_load": 122660,
+        "e4_rows": 56872,
+        "training_rows": 28231,
+        "training_start": "2023-01-01T00:00:00Z",
+        "training_end": "2023-12-30T23:30:00Z",
+        "positive_labels": 21326,
+        "negative_labels": 6905,
+        "training_matrix_sha256": "87e2b082b2c221cd4f61a4dda64c7764212c09e09fb36fa3a3a257070a5ad58e"
+      },
+      "ETH": {
+        "raw_rows_loaded": 122660,
+        "consumer_rows_after_load": 122660,
+        "e4_rows": 55202,
+        "training_rows": 27653,
+        "training_start": "2023-01-01T00:00:00Z",
+        "training_end": "2023-12-31T00:00:00Z",
+        "positive_labels": 23990,
+        "negative_labels": 3663,
+        "training_matrix_sha256": "129b4bdc08daa5807162ed702027246c9c97e1b7498c4cba9b93752bfa6083c5"
+      },
+      "BNB": {
+        "raw_rows_loaded": 122660,
+        "consumer_rows_after_load": 122660,
+        "e4_rows": 56968,
+        "training_rows": 28338,
+        "training_start": "2023-01-01T00:00:00Z",
+        "training_end": "2023-12-31T00:00:00Z",
+        "positive_labels": 23007,
+        "negative_labels": 5331,
+        "training_matrix_sha256": "cee98db2a9e902aec89e2e8144de3180ec2604ecbae07b6c24a3fd6b7b29cde1"
+      }
+    },
+    "recovered_training_matrix_id_v1": "2c75cf8d8d3b2669f6d8e3ba0993e9808f8ac679295f24be8ac285b66254949b",
+    "gate_PD_G6": "PASS"
+  },
+  "reproduction": {
+    "environment": {
+      "python": "3.12.3",
+      "numpy": "2.4.6",
+      "pandas": "3.0.3",
+      "sklearn": "1.9.0",
+      "joblib": "1.5.3"
+    },
+    "preprocessing": "PASS",
+    "model_semantic": "PASS",
+    "per_symbol_model_exact": {
+      "BTC": true,
+      "ETH": true,
+      "BNB": true
+    },
+    "per_symbol_preprocessing_exact": {
+      "BTC": true,
+      "ETH": true,
+      "BNB": true
+    },
+    "wrapper_byte_reproduction_current_environment": {
+      "status": "NOT_BYTE_EXACT",
+      "reproduced_sha256": "b36c9cd2bd19cf4ca0737a61317a47144d8f6fe7bb0958b8849e051ee3edf919",
+      "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "note": "the current artifact itself is hash-pinned and deserializes to the V5 wrapper and exact model directory; the fresh joblib redump is not treated as historical metadata"
+    },
+    "artifact_linkage": "PASS_VIA_PINNED_ARTIFACT_DESERIALIZATION_AND_EXACT_MODEL_PREPROCESSING_REPRODUCTION",
+    "gate_PD_G7": "PASS_WITH_WRAPPER_REDUMP_CAVEAT"
+  },
+  "immutable_anchor_correlation": {
+    "case": "A",
+    "historical_raw_sha_exists": true,
+    "raw_identity": {
+      "BTC": "PROVEN",
+      "ETH": "PROVEN",
+      "BNB": "PROVEN"
+    },
+    "training_consumer_linkage": "PASS",
+    "artifact_reproduction_linkage": "PASS",
+    "gate_PD_G8": "PASS"
+  },
+  "identity_strength": "D3",
+  "immutable_training_dataset_identity": "PASS",
+  "final_verdict": "DATASET_PROVENANCE_RECOVERED",
+  "next_state": {
+    "P6-PROV-DATA": "CLOSED",
+    "P6-PROV": "PROVENANCE_RECOVERED",
+    "P6-G2": "READY_TO_RESUME",
+    "P6": "IN_PROGRESS",
+    "runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+    "successor_research": "NOT_AUTHORIZED"
+  },
+  "integrity_rules": {
+    "fabricated_historical_dataset_hash": false,
+    "runtime_code_modified": false,
+    "model_binary_replaced": false,
+    "csv_mutated": false,
+    "production_release_selected": false
+  }
+}

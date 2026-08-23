@@ -678,11 +678,11 @@ Known stale fixtures must be corrected to the frozen contract, not hidden with `
 P6-G0 BASELINE PIN                 PASS
 P6-G1 CONTRACT INVENTORY           PASS
 P6 ARTIFACT/SCHEMA/WARMUP FOUNDATION PASS
-P6-PROV PROVENANCE RECOVERY        PARTIAL_PROVENANCE_ONLY
+P6-PROV PROVENANCE RECOVERY        PROVENANCE_RECOVERED
 P6-PRE-PD0 BASELINE DETERMINISM    CLOSED
-P6-PROV-DATA                       READY_TO_RETRY_PD0
-P6-G2 ARTIFACT CONTRACT CLOSURE    BLOCKED_ARTIFACT_PROVENANCE
-P6                                 IN_PROGRESS / BLOCKED
+P6-PROV-DATA                       DATASET_PROVENANCE_RECOVERED
+P6-G2 ARTIFACT CONTRACT CLOSURE    READY_TO_RESUME
+P6                                 IN_PROGRESS
 ```
 
 The canonical `meta_model` wrapper is byte-reproducible and its model/scaler
@@ -691,10 +691,19 @@ identifiers are classified as `LEGACY_UNVERIFIED_METADATA`; calibration is
 proven not applicable because the frozen model uses direct `LogisticRegression`
 probabilities without an embedded or external calibrator.
 
-Provenance remains partial because the exact BTC/ETH/BNB training CSVs are
-git-ignored and the declared dataset hash has no producer or canonical hashing
-rule. Therefore immutable training-dataset identity is not proven, P6-G2 stays
-blocked, and no replacement identity or contract hash is inferred.
+P6-PROV-DATA recovered immutable training-dataset identity. A git-anchored
+historical manifest at commit `5550d408473885c0a79d0815ea2ed42f8db100cc`
+records the exact raw SHA256 values for the BTC/ETH/BNB CSVs used by the V5
+candidate consumer. The V5 training path was then reconstructed from those
+candidate files, producing exact model and preprocessing parameters and a
+deterministic recovered training-matrix identity. The producer remains a live
+Binance historical API path, but producer reconstruction is no longer the
+identity anchor because raw CSV identity is proven by the historical manifest.
+
+P6-G2 is therefore ready to resume, but it is not `PASS` yet. G2 still requires
+building the immutable artifact compatibility manifest from recovered facts,
+applying the smallest fail-closed runtime validation, and passing P1-P6
+regression without reintroducing SC-4 fixture/runtime breaks.
 
 A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
 contract gaps. Per stop condition SC-4, those integration edits were rolled

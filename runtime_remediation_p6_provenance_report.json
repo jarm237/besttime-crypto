@@ -56,19 +56,22 @@
     "training_rows": {"BTC": 28231, "ETH": 27653, "BNB": 28338}
   },
   "training_contract": {
-    "status": "PARTIAL",
+    "status": "RECOVERED_BY_P6_PROV_DATA",
     "code_parameters_and_outputs": "EXACTLY_REPRODUCED",
     "declared_dataset_sha256": "82bcad48ef72a6c8e3a241bb69025e172d7f8d6bb77636e0971b86c35bb5f37cc",
     "declared_dataset_hash_rule": "ABSENT",
-    "immutable_dataset_identity": "NOT_PROVEN",
-    "reason": "BTC/ETH/BNB candle CSVs are git-ignored and untracked; the declared dataset hash has no producer or canonical hashing rule"
+    "immutable_dataset_identity": "PROVEN_BY_RAW_SHA_ANCHOR",
+    "p6_prov_data_report": "runtime_remediation_p6_dataset_provenance_report.json",
+    "raw_sha_anchor_commit": "5550d408473885c0a79d0815ea2ed42f8db100cc",
+    "raw_sha_anchor_path": "research/historical_market_replay_v1/research_artifact_pre2025/manifest.json",
+    "reason": "the declared dataset hash remains unexplained, but P6-PROV-DATA recovered a git-anchored historical manifest containing the exact raw SHA256 identities of the BTC/ETH/BNB CSVs consumed by the V5 training path"
   },
   "current_input_fingerprints": {
     "outcome_scaffold": "6c47d09b7e607987883a179e6f0a63d3f57aab91171cc0b6ee601a40bc8ce8f9",
     "BTC_15m.csv": "6c4508e24aa563e6d1935754a7c7f91cb9e2963702940ff8ac3b6085fcf52b09",
     "ETH_15m.csv": "84a3c49efbafdf68e875c908b637ec3d8ea20175471f37c6160c45d2badefdaf",
     "BNB_15m.csv": "33bd996910d7d3fb7dcb27d4e0e086213f2afaf2e26ce9681d499cedeb89980b",
-    "classification": "CURRENT_REPRODUCTION_INPUTS_NOT_AUTHORITATIVE_HISTORICAL_DATASET_IDENTITY"
+    "classification": "CURRENT_REPRODUCTION_INPUTS_MATCH_IMMUTABLE_RAW_SHA_ANCHOR"
   },
   "calibration_contract": {
     "status": "PROVEN_NOT_APPLICABLE",
@@ -101,12 +104,12 @@
     "ordered_feature_schema_proven": "PASS",
     "bundle_version_meaning_established": "PASS",
     "legacy_sidecar_classified_non_authoritative": "PASS",
-    "training_lineage_authoritative": "FAIL_DATASET_IDENTITY_NOT_IMMUTABLE",
+    "training_lineage_authoritative": "PASS_RECOVERED_BY_P6_PROV_DATA",
     "calibration_lineage_authoritative_or_na": "PASS_PROVEN_NA",
     "no_fabricated_fields": "PASS",
-    "provenance_reconstructable": "PARTIAL"
+    "provenance_reconstructable": "RECOVERED_WITH_WRAPPER_REDUMP_CAVEAT"
   },
-  "final_classification": "PARTIAL_PROVENANCE_ONLY",
-  "p6_g2_status": "BLOCKED_ARTIFACT_PROVENANCE",
-  "next_requirement": "authoritative immutable identity and canonical hashing rule for the exact historical training dataset; otherwise explicit LEGACY_ARTIFACT_REPLACEMENT_AUTHORIZATION"
+  "final_classification": "PROVENANCE_RECOVERED",
+  "p6_g2_status": "READY_TO_RESUME",
+  "next_requirement": "build immutable artifact compatibility manifest from recovered facts, apply smallest fail-closed runtime validation, and pass P1-P6 regression before marking P6-G2 PASS"
 }
