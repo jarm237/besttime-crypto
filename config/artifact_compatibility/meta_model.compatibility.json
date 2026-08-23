@@ -1,0 +1,102 @@
+{
+  "contract_version": "artifact-compatibility/v1",
+  "artifact": {
+    "model_family": "meta_model",
+    "artifact_path": "logs/meta_model.joblib",
+    "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "artifact_version": "v3.1",
+    "metadata_path": "logs/meta_model.json"
+  },
+  "feature_schema": {
+    "schema_version": "meta-v3.1-43f",
+    "ordered_names": [
+      "return_8",
+      "return_32",
+      "return_72",
+      "abs_move_72"
+    ],
+    "fields": [
+      {
+        "name": "return_8",
+        "dtype": "float",
+        "nullable": false
+      },
+      {
+        "name": "return_32",
+        "dtype": "float",
+        "nullable": false
+      },
+      {
+        "name": "return_72",
+        "dtype": "float",
+        "nullable": false
+      },
+      {
+        "name": "abs_move_72",
+        "dtype": "float",
+        "nullable": false
+      }
+    ],
+    "schema_hash": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+    "order_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+    "inference_feature_schema_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc"
+  },
+  "dataset_identities": {
+    "provenance_verdict": "DATASET_PROVENANCE_RECOVERED",
+    "identity_strength": "D3",
+    "historical_anchor_commit": "5550d408473885c0a79d0815ea2ed42f8db100cc",
+    "symbols": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "timeframe": "15m",
+    "train_window": {
+      "start": "2023-01-01",
+      "end": "2023-12-31"
+    },
+    "raw_hashes": {
+      "BTC": "6c4508e24aa563e6d1935754a7c7f91cb9e2963702940ff8ac3b6085fcf52b09",
+      "ETH": "84a3c49efbafdf68e875c908b637ec3d8ea20175471f37c6160c45d2badefdaf",
+      "BNB": "33bd996910d7d3fb7dcb27d4e0e086213f2afaf2e26ce9681d499cedeb89980b"
+    },
+    "file_set_id": "92d423da2d1bf9a8f970fffaed353268020b93b28fd5493c58487898f1d0ff0b",
+    "semantic_dataset_id": "dee9b50fdcb483867e31d37bf834f96b6024c70ebf233bdb63a2b26176aa8d33",
+    "training_matrix_id": "2c75cf8d8d3b2669f6d8e3ba0993e9808f8ac679295f24be8ac285b66254949b"
+  },
+  "model_config": {
+    "provenance_basis": "P6-PROV-DATA_RECOVERED_D3",
+    "historical_model_class": "sklearn.linear_model.LogisticRegression",
+    "historical_model_params": {
+      "C": 1.0,
+      "random_state": 42
+    },
+    "runtime_wrapper_class": "scripts.hmr_v5_d2_r1_real_runtime_parity.V5FilterModelClassifier",
+    "symbols": [
+      "BNB",
+      "BTC",
+      "ETH"
+    ]
+  },
+  "preprocessing": {
+    "kind": "per-symbol StandardScaler",
+    "required_parameter_sets": [
+      "BNB",
+      "BTC",
+      "ETH"
+    ]
+  },
+  "calibration": {
+    "status": "PROVEN_NOT_APPLICABLE"
+  },
+  "lineage": {
+    "historical_anchor_commit": "5550d408473885c0a79d0815ea2ed42f8db100cc",
+    "dataset_provenance": "RECOVERED / D3",
+    "compatibility_manifest": "INTRODUCED_DURING_P6",
+    "compatibility_hash": "P6_DERIVED",
+    "unverified_sidecars_excluded": [
+      "v3.1/43f"
+    ]
+  },
+  "compatibility_hash": "750c86ad0a1ed5992c5b97904941c927c860f3594015d85f3749f21b13a1e949"
+}

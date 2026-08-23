@@ -681,7 +681,8 @@ P6 ARTIFACT/SCHEMA/WARMUP FOUNDATION PASS
 P6-PROV PROVENANCE RECOVERY        PROVENANCE_RECOVERED
 P6-PRE-PD0 BASELINE DETERMINISM    CLOSED
 P6-PROV-DATA                       DATASET_PROVENANCE_RECOVERED
-P6-G2 ARTIFACT CONTRACT CLOSURE    READY_TO_RESUME
+P6-G2 ARTIFACT CONTRACT CLOSURE    PASS
+P6-G3 REGRESSION/PARITY CLOSURE     READY_TO_RESUME
 P6                                 IN_PROGRESS
 ```
 
@@ -700,10 +701,22 @@ deterministic recovered training-matrix identity. The producer remains a live
 Binance historical API path, but producer reconstruction is no longer the
 identity anchor because raw CSV identity is proven by the historical manifest.
 
-P6-G2 is therefore ready to resume, but it is not `PASS` yet. G2 still requires
-building the immutable artifact compatibility manifest from recovered facts,
-applying the smallest fail-closed runtime validation, and passing P1-P6
-regression without reintroducing SC-4 fixture/runtime breaks.
+P6-G2 is closed. The immutable compatibility manifest at
+`config/artifact_compatibility/meta_model.compatibility.json` pins the
+canonical artifact SHA, 4-feature ordered schema, recovered D3 dataset
+identities, observed V5 wrapper metadata, per-symbol preprocessing contract,
+and `PROVEN_NOT_APPLICABLE` calibration contract. `GovernedArtifactLoader`
+now validates the manifest and artifact identity before production `meta_model`
+inference can proceed; incompatible artifacts surface explicitly as
+`INCOMPATIBLE_ARTIFACT`, never as HOLD/NEUTRAL/warm-up substitution.
+
+G2R regression evidence: focused artifact compatibility `19/19 PASS`, P6
+foundation plus G2R `25/25 PASS`, P5/P6 focused `56/56 PASS`,
+AutoTrader/probability `26/26 PASS`, seal-critical expanded `103/103 PASS`,
+P1-P5 targeted `147/147 PASS`, and full suite returns the exact four approved
+frozen failures with zero new failures. The full-suite JUnit is
+`/tmp/besttime-p6-g2r-full.xml` with SHA256
+`8ff916c7b7d35b089bac4c2ec0d41ef0ddfd79db70818c6133078b6282af66d6`.
 
 A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
 contract gaps. Per stop condition SC-4, those integration edits were rolled

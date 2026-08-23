@@ -1,9 +1,9 @@
 {
-  "phase": "P6.1",
-  "status": "BLOCKED_ARTIFACT_PROVENANCE",
+  "phase": "P6-G2R",
+  "status": "ARTIFACT_CONTRACT_CLOSURE_PASS",
   "inventory": [
     {"name": "adaptive_rf", "status": "production", "schema": "adaptive-rf-v2", "sha256": "1e97e8033e51e3bf9a1e010efac88861880531f262854744c3eac6338a5e1042", "health": "PASS", "evaluator_entry_artifact": false},
-    {"name": "meta_model", "status": "production", "schema": "meta-v3.1-43f", "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c", "health": "STRUCTURAL_PASS_SEMANTIC_FAIL", "evaluator_entry_artifact": true},
+    {"name": "meta_model", "status": "production", "schema": "meta-v3.1-43f", "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c", "health": "COMPATIBILITY_MANIFEST_PASS", "evaluator_entry_artifact": true},
     {"name": "rl_exit", "status": "shadow", "schema": "rl-exit-obs-v2", "sha256": "ae894e5835b0e145d3bffc164e5d29500bea245d225b70aeef437de06cb3a489", "health": "PASS_NOT_PRODUCTION", "evaluator_entry_artifact": false},
     {"name": "slippage_model_v2", "status": "disabled", "schema": "slippage-v2-12f", "sha256": null, "health": "ARTIFACT_MISSING_DISABLED", "evaluator_entry_artifact": false}
   ],
@@ -13,21 +13,29 @@
     "declared_schema": "meta-v3.1-43f",
     "actual_feature_count": 4,
     "ordered_features": ["return_8", "return_32", "return_72", "abs_move_72"],
-    "training_contract": "UNRESOLVED",
-    "calibration_contract": "UNRESOLVED",
+    "training_contract": "RECOVERED_D3",
+    "calibration_contract": "PROVEN_NOT_APPLICABLE",
     "classification": "P6_RELEVANT",
-    "action": "FAIL_CLOSED_DO_NOT_REWRITE_WITH_ASSUMED_VERSION"
+    "action": "FAIL_CLOSED_RUNTIME_VALIDATION_INTEGRATED"
+  },
+  "compatibility_manifest": {
+    "path": "config/artifact_compatibility/meta_model.compatibility.json",
+    "version": "artifact-compatibility/v1",
+    "compatibility_hash": "750c86ad0a1ed5992c5b97904941c927c860f3594015d85f3749f21b13a1e949",
+    "provenance_basis": "P6-PROV-DATA_RECOVERED_D3",
+    "compatibility_hash_basis": "P6_DERIVED",
+    "unverified_sidecars_excluded": ["v3.1/43f"]
   },
   "fallback_audit": {
     "governed_loader": "FAIL_CLOSED",
     "mutable_latest_lookup_in_canonical_loader": false,
-    "production_evaluator_currently_receives_incomplete_p6_identity": true
+    "production_evaluator_currently_receives_incomplete_p6_identity": false
   },
   "gates": {
-    "ARTIFACT_IDENTITY_EXPLICIT": "FOUNDATION_PASS",
+    "ARTIFACT_IDENTITY_EXPLICIT": "PASS",
     "ARTIFACT_HASH_PINNED": "PASS",
-    "ARTIFACT_COMPATIBILITY": "BLOCKED",
-    "ARTIFACT_FAIL_CLOSED": "UNIT_PASS_NOT_INTEGRATED",
+    "ARTIFACT_COMPATIBILITY": "PASS",
+    "ARTIFACT_FAIL_CLOSED": "PASS",
     "SILENT_FALLBACK": "ABSENT_IN_GOVERNED_LOADER"
   }
 }

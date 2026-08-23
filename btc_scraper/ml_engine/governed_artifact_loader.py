@@ -12,6 +12,12 @@ from pathlib import Path
 from typing import Any
 
 from .artifact_resolver import ArtifactResolver, ROOT
+from .artifact_compatibility import (
+    RuntimeFeatureSchema,
+    compatibility_manifest_path_for_artifact,
+    load_compatibility_manifest,
+    validate_artifact_compatibility,
+)
 from .model_registry import ModelRegistry
 from .operational_health import record_degradation, record_healthy
 
@@ -81,7 +87,47 @@ class GovernedArtifactLoader:
             if actual_schema != expected_schema_version:
                 raise ArtifactGovernanceError(f"schema_mismatch:{actual_schema}:{expected_schema_version}")
             self._verify_runtime_compatibility(metadata, path)
+            compatibility_manifest = None
+            runtime_schema = self._runtime_feature_schema(model_family, metadata, actual_schema)
+            if runtime_schema is not None:
+                try:
+                    compatibility_manifest = load_compatibility_manifest(
+                        compatibility_manifest_path_for_artifact(path)
+                    )
+                except ValueError as exc:
+                    raise ArtifactGovernanceError(f"INCOMPATIBLE_ARTIFACT:{exc}") from exc
+                identity_result = validate_artifact_compatibility(
+                    path,
+                    compatibility_manifest,
+                    runtime_schema,
+                    metadata=metadata,
+                    artifact_sha256=str(resolved.sha256),
+                )
+                if not identity_result.ready:
+                    raise ArtifactGovernanceError(
+                        f"{identity_result.status.value}:{identity_result.reason_code}"
+                    )
             model = self._deserialize(path, model_class=model_class, device=device)
+            if runtime_schema is not None:
+                artifact_result = validate_artifact_compatibility(
+                    path,
+                    compatibility_manifest,
+                    runtime_schema,
+                    artifact_obj=model,
+                    metadata=metadata,
+                    artifact_sha256=str(resolved.sha256),
+                )
+                if not artifact_result.ready:
+                    raise ArtifactGovernanceError(
+                        f"{artifact_result.status.value}:{artifact_result.reason_code}"
+                    )
+                metadata = dict(metadata)
+                metadata["artifact_compatibility"] = {
+                    "status": artifact_result.status.value,
+                    "reason_code": artifact_result.reason_code,
+                    "compatibility_hash": artifact_result.compatibility_hash,
+                    "artifact_sha256": artifact_result.artifact_sha256,
+                }
             version = str(metadata.get("model_version") or metadata.get("version") or "unknown")
             artifact_id = str(metadata.get("artifact_id") or f"{model_family}:{version}:{resolved.sha256[:12]}")
             registry_revision = self.registry.revision()
@@ -105,6 +151,24 @@ class GovernedArtifactLoader:
             if isinstance(exc, ArtifactGovernanceError):
                 raise
             raise ArtifactGovernanceError(str(exc)) from exc
+
+    @staticmethod
+    def _runtime_feature_schema(
+        model_family: str,
+        metadata: dict[str, Any],
+        schema_version: str,
+    ) -> RuntimeFeatureSchema | None:
+        if model_family != "meta_model":
+            return None
+        features = tuple(str(name) for name in metadata.get("features", ()))
+        if not features:
+            raise ArtifactGovernanceError("INCOMPATIBLE_ARTIFACT:FEATURE_SCHEMA_MISMATCH")
+        return RuntimeFeatureSchema.from_names(
+            features,
+            schema_version=schema_version,
+            dtype="float",
+            nullable=False,
+        )
 
     def load_test_artifact(self, path: Path | str) -> Any:
         """Explicit test-only deserialization for isolated fixtures outside the registry."""

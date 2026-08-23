@@ -1,0 +1,137 @@
+{
+  "phase": "P6-G2R",
+  "status": "PASS",
+  "base_checkpoint": {
+    "head": "0f6b6b11b24374e369fa99539d68cdde841c642b",
+    "tree": "1d02cee7a7a7ee3436df99eb6a7fd6e46beecb18",
+    "working_tree": "clean_at_start"
+  },
+  "scope": {
+    "authorized": [
+      "artifact compatibility manifest",
+      "offline fail-closed validator",
+      "minimal runtime artifact-loader integration",
+      "negative matrix",
+      "live/replay parity regression evidence"
+    ],
+    "not_authorized": [
+      "runtime release selection",
+      "canary activation",
+      "successor research",
+      "retraining",
+      "recalibration",
+      "scoring/risk/sizing/economic semantic changes"
+    ]
+  },
+  "artifact_identity": {
+    "model_family": "meta_model",
+    "schema_version": "meta-v3.1-43f",
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "feature_order": ["return_8", "return_32", "return_72", "abs_move_72"]
+  },
+  "provenance": {
+    "dataset_provenance": "DATASET_PROVENANCE_RECOVERED",
+    "identity_strength": "D3",
+    "historical_anchor_commit": "5550d408473885c0a79d0815ea2ed42f8db100cc",
+    "raw_hashes": {
+      "BTC": "6c4508e24aa563e6d1935754a7c7f91cb9e2963702940ff8ac3b6085fcf52b09",
+      "ETH": "84a3c49efbafdf68e875c908b637ec3d8ea20175471f37c6160c45d2badefdaf",
+      "BNB": "33bd996910d7d3fb7dcb27d4e0e086213f2afaf2e26ce9681d499cedeb89980b"
+    },
+    "file_set_id": "92d423da2d1bf9a8f970fffaed353268020b93b28fd5493c58487898f1d0ff0b",
+    "semantic_dataset_id": "dee9b50fdcb483867e31d37bf834f96b6024c70ebf233bdb63a2b26176aa8d33",
+    "training_matrix_id": "2c75cf8d8d3b2669f6d8e3ba0993e9808f8ac679295f24be8ac285b66254949b"
+  },
+  "compatibility_manifest": {
+    "path": "config/artifact_compatibility/meta_model.compatibility.json",
+    "version": "artifact-compatibility/v1",
+    "compatibility_hash": "750c86ad0a1ed5992c5b97904941c927c860f3594015d85f3749f21b13a1e949",
+    "lineage": {
+      "historical_anchor_commit": "5550d408473885c0a79d0815ea2ed42f8db100cc",
+      "dataset_provenance": "RECOVERED / D3",
+      "compatibility_manifest": "INTRODUCED_DURING_P6",
+      "compatibility_hash": "P6_DERIVED"
+    }
+  },
+  "static_validation": {
+    "artifact_hash": "PASS",
+    "manifest_integrity": "PASS",
+    "historical_provenance": "D3",
+    "model_metadata": "PASS",
+    "preprocessing_metadata": "PASS",
+    "calibration_contract": "PASS"
+  },
+  "dynamic_validation": {
+    "runtime_feature_names": "PASS",
+    "runtime_feature_order": "PASS",
+    "runtime_feature_dtypes": "PASS",
+    "runtime_feature_nullability": "PASS"
+  },
+  "negative_matrix": {
+    "missing_manifest": "FAIL_CLOSED_INCOMPATIBLE_ARTIFACT",
+    "wrong_artifact_hash": "FAIL_CLOSED_INCOMPATIBLE_ARTIFACT",
+    "wrong_feature_order": "FAIL_CLOSED_INCOMPATIBLE_ARTIFACT",
+    "wrong_model_wrapper": "FAIL_CLOSED_INCOMPATIBLE_ARTIFACT",
+    "wrong_preprocessing_sets": "FAIL_CLOSED_INCOMPATIBLE_ARTIFACT",
+    "wrong_calibration": "FAIL_CLOSED_INCOMPATIBLE_ARTIFACT",
+    "manifest_hash_mismatch": "FAIL_CLOSED_INVALID_INPUT",
+    "economic_hold_substitution": "ABSENT"
+  },
+  "runtime_integration": {
+    "seam": "GovernedArtifactLoader.load_production(meta_model)",
+    "validation_order": [
+      "registry/hash/schema/runtime_contract",
+      "manifest identity validation",
+      "deserialize",
+      "wrapper/model/preprocessing validation",
+      "expose artifact_compatibility READY metadata"
+    ],
+    "no_inference_on_failure": "PASS"
+  },
+  "regression": {
+    "g2r_focused": "19/19 PASS",
+    "p6_foundation_plus_g2r": "25/25 PASS",
+    "p5_p6_focused": "56/56 PASS",
+    "autotrader_probability": "26/26 PASS",
+    "seal_critical_expanded": "103/103 PASS",
+    "p1_p5_targeted": "147/147 PASS",
+    "full_suite": {
+      "junit": "/tmp/besttime-p6-g2r-full.xml",
+      "junit_sha256": "8ff916c7b7d35b089bac4c2ec0d41ef0ddfd79db70818c6133078b6282af66d6",
+      "frozen_failures": [
+        "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+        "tests/test_etf_integration_audit.py::test_integration_json_schema",
+        "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+        "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+      ],
+      "new_failures": 0
+    }
+  },
+  "final_gates": {
+    "Artifact identity": "PASS",
+    "Manifest integrity": "PASS",
+    "Historical provenance": "D3",
+    "Feature schema": "PASS",
+    "Feature ordering": "PASS",
+    "Model metadata": "PASS",
+    "Preprocessing metadata": "PASS",
+    "Calibration contract": "PASS",
+    "Static validation": "PASS",
+    "Dynamic validation": "PASS",
+    "Negative fail-closed matrix": "PASS",
+    "No-inference-on-failure": "PASS",
+    "Valid artifact parity": "PASS",
+    "Live/replay parity": "PASS",
+    "P1-P5 regression": "PASS",
+    "Full suite new regression": 0,
+    "GitNexus impact": "REVIEWED_LOW_RISK_NO_AFFECTED_PROCESSES"
+  },
+  "governance": {
+    "P6-G2": "PASS",
+    "P6": "IN_PROGRESS",
+    "P6-G3": "READY_TO_RESUME",
+    "selected_runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+    "selected_runtime_release_reason": "no active runtime/evidence epoch",
+    "successor_research": "NOT_AUTHORIZED"
+  }
+}
