@@ -282,6 +282,10 @@ def test_meta_prediction_identity_survives_final_decision(monkeypatch):
         "signal_id": "sig-p2",
         "decision_context": "entry",
         "caller_context": "p2-test",
+        "return_8": 0.01,
+        "return_32": 0.02,
+        "return_72": -0.03,
+        "abs_move_72": 0.04,
     }
     prediction = predict_meta_confidence(
         analysis,

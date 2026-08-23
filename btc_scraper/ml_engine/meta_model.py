@@ -45,6 +45,10 @@ from btc_scraper.ml_engine.inference_contract import (
     normalize_inference_symbol,
     predict as predict_explicit_inference,
 )
+from btc_scraper.ml_engine.schema_contracts import (
+    CANONICAL_MODEL_FEATURES,
+    build_model_feature_vector,
+)
 from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 
 BASE = Path(__file__).parent.parent.parent
@@ -1333,7 +1337,15 @@ def predict_meta_confidence(
             feature_names = artifact.feature_names
 
         feat = build_meta_features_v2(analysis_info)
-        row = [float(feat.get(k, 0.0)) for k in feature_names]
+        if tuple(feature_names) == CANONICAL_MODEL_FEATURES:
+            feature_vector = build_model_feature_vector(
+                feat,
+                feature_names=feature_names,
+                source_map=analysis_info,
+            )
+            row = list(feature_vector.values)
+        else:
+            row = [float(feat.get(k, 0.0)) for k in feature_names]
         inference_result = predict_explicit_inference(
             symbol=prediction_symbol,
             features=row,

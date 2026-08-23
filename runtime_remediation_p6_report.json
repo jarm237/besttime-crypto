@@ -1,15 +1,15 @@
 {
   "phase": "P6",
-  "status": "IN_PROGRESS_G2_CLOSED",
+  "status": "IN_PROGRESS_G3_CLOSED",
   "base_commit": "4edcf727d5f78ff32fa8a659a351e2a96ef0e106",
   "base_tree": "a84484bda17bf9266fecb30ac330a6cba8691a5d",
   "scope": "artifact/schema/warm-up/provenance/regression closure",
-  "implemented": ["immutable ArtifactContract", "deterministic SchemaContract fingerprint and order hash", "explicit ReadinessState/WarmupContract", "strict EvaluationProvenance round-trip", "P6 boundary unit tests"],
+  "implemented": ["immutable ArtifactContract", "deterministic SchemaContract fingerprint and order hash", "explicit ReadinessState/WarmupContract", "strict EvaluationProvenance round-trip", "P6 boundary unit tests", "P6-G2 artifact compatibility manifest/runtime closure", "P6-G3 canonical schema and model feature-vector closure"],
   "stop_conditions": [
     {"id": "SC-1", "status": "RESOLVED_BY_P6_PROV_DATA", "reason": "immutable raw BTC/ETH/BNB dataset identity recovered from git-anchored historical manifest and linked to exact V5 training-input reconstruction"},
     {"id": "SC-4", "status": "TRIGGERED_AND_ROLLED_BACK", "reason": "integration before manifest closure broke four P1-P5 production fixtures"}
   ],
-  "gates": {"P6-G0": "PASS", "P6-G1": "PASS", "P6-PROV": "PROVENANCE_RECOVERED", "P6-PROV-DATA": "DATASET_PROVENANCE_RECOVERED", "P6-G2": "PASS", "P6-G3": "READY_TO_RESUME", "P6-G4": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G5": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G6": "NOT_RUN_UNTIL_G2_INTEGRATION", "P6-G7": "NOT_AUTHORIZED"},
+  "gates": {"P6-G0": "PASS", "P6-G1": "PASS", "P6-PROV": "PROVENANCE_RECOVERED", "P6-PROV-DATA": "DATASET_PROVENANCE_RECOVERED", "P6-G2": "PASS", "P6-G3": "PASS", "P6-G4": "READY_TO_RESUME", "P6-G5": "FOUNDATION_PASS_NOT_INTEGRATED", "P6-G6": "NOT_RUN_UNTIL_G2_INTEGRATION", "P6-G7": "NOT_AUTHORIZED"},
   "governance": {"economic_semantics_changed": false, "model_tuning": false, "runtime_release_selected": false, "runtime_evidence_epoch": "NOT_ACTIVE", "selected_runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY", "selected_runtime_release_reason": "no active runtime/evidence epoch", "successor_research": "NOT_AUTHORIZED"},
-  "final_verdict": "P6_G2_CLOSED_P6_IN_PROGRESS"
+  "final_verdict": "P6_G3_CLOSED_P6_IN_PROGRESS"
 }

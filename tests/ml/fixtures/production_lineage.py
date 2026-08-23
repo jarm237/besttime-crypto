@@ -59,6 +59,10 @@ def build_smoke_analysis() -> dict[str, Any]:
         "volume": 1_000_000.0,
         "rsi": 30.0,
         "atr": 2.0,
+        "return_8": 0.001,
+        "return_32": 0.002,
+        "return_72": 0.003,
+        "abs_move_72": 0.003,
         "tp_sl": {
             "entry": 100.0,
             "sl": 98.0,

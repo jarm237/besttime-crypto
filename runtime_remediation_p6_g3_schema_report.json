@@ -1,0 +1,170 @@
+{
+  "phase": "P6-G3",
+  "status": "PASS",
+  "base_checkpoint": {
+    "head": "21ed34a1cf3d2b452012074de8f4e7f39a79c80e",
+    "tree": "11f1d7fcde971b7830b83516ffb8c2f894c26a4b",
+    "working_tree": "clean_at_start"
+  },
+  "schema_inventory": {
+    "canonical_candle": {
+      "producer": "canonical_window_from_rows",
+      "consumer": "CanonicalCandleWindow",
+      "schema_version": "canonical-candle/v1",
+      "fingerprint": "cc23a53fae2dfa1f207f9d7133ba79ea606e4eba2d3ed65479fbd90f24b5c070",
+      "timestamp_fields": ["open_time", "close_time"],
+      "numeric_fields": ["open", "high", "low", "close", "volume"]
+    },
+    "canonical_window": {
+      "producer": "canonical_window_from_rows",
+      "consumer": "MarketEvaluationInput",
+      "schema_version": "canonical-window/v1",
+      "fingerprint": "95ad64f86515026672bcc6012e73c9bdbb9322e62355095cf78489d4c1fd70c4"
+    },
+    "model_feature_vector": {
+      "producer": "build_meta_features_v2 + build_model_feature_vector",
+      "consumer": "predict_explicit_inference",
+      "schema_version": "model-feature-vector/v1",
+      "fingerprint": "408a240e4e502100191dcd7cb488cea064e0187149b65e15df174ec703d31770",
+      "feature_order_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+      "ordered_features": ["return_8", "return_32", "return_72", "abs_move_72"]
+    },
+    "inference_result": {
+      "producer": "predict_explicit_inference / predict_meta_confidence",
+      "consumer": "InferenceCoordinator / decision pipeline",
+      "schema_version": "inference-result/v1",
+      "required_identity_fields": [
+        "symbol",
+        "artifact_version",
+        "artifact_hash",
+        "feature_schema_hash",
+        "model_family",
+        "prediction"
+      ]
+    },
+    "evaluation_result": {
+      "producer": "evaluate_market",
+      "consumer": "EvaluationPersistence",
+      "schema_version": "evaluation-result/v1",
+      "semantic_hash": "MarketEvaluationResult.canonical_hash"
+    },
+    "persisted_representation": {
+      "current_policy": "feature_schema_hash + feature_schema_version reconstruct schema identity",
+      "legacy_policy": "LEGACY_UNVERIFIED_SCHEMA"
+    }
+  },
+  "canonical_schemas": {
+    "contract_version": "runtime-schema/v1",
+    "model_feature_vector": {
+      "fields": [
+        {"name": "return_8", "dtype": "float", "required": true, "nullable": false},
+        {"name": "return_32", "dtype": "float", "required": true, "nullable": false},
+        {"name": "return_72", "dtype": "float", "required": true, "nullable": false},
+        {"name": "abs_move_72", "dtype": "float", "required": true, "nullable": false}
+      ],
+      "allow_extra_source_fields": true,
+      "source_proof_required": true
+    }
+  },
+  "feature_contract": {
+    "runtime_feature_schema_hash": "408a240e4e502100191dcd7cb488cea064e0187149b65e15df174ec703d31770",
+    "runtime_feature_order_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+    "g2_manifest_order_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+    "artifact_manifest_linkage": "PASS"
+  },
+  "numeric_policy": {
+    "accepted": ["int", "float", "numpy real scalar"],
+    "normalized_to": "float",
+    "rejected": ["bool", "string", "list", "None", "NaN", "+Inf", "-Inf"],
+    "silent_zero_fill": "FORBIDDEN_FOR_CANONICAL_4_FEATURE_VECTOR"
+  },
+  "timestamp_policy": {
+    "canonical_representation": "UTC aware ISO-8601 instant",
+    "equivalent_offsets": "canonicalize_identically",
+    "naive_datetime": "TIMESTAMP_NAIVE",
+    "malformed": "TIMESTAMP_INVALID",
+    "no_lookahead_owner": "P5 common evaluator"
+  },
+  "serialization": {
+    "schema_contracts": "canonical_json + sha256",
+    "model_feature_vector_round_trip": "PASS",
+    "semantic_hash_stable": "PASS",
+    "non_semantic_fields_excluded": ["host", "pid", "mtime", "runtime timestamp"]
+  },
+  "negative_matrix": {
+    "missing_feature": "MISSING_REQUIRED_FIELD",
+    "wrong_feature_order": "FEATURE_ORDER_MISMATCH",
+    "none": "NULL_NOT_ALLOWED",
+    "nan": "NON_FINITE_VALUE",
+    "inf": "NON_FINITE_VALUE",
+    "string": "DTYPE_MISMATCH",
+    "bool": "DTYPE_MISMATCH",
+    "naive_timestamp": "TIMESTAMP_NAIVE",
+    "malformed_timestamp": "TIMESTAMP_INVALID",
+    "invalid_schema_inference_calls": 0,
+    "economic_substitution": "ABSENT"
+  },
+  "runtime_integration": {
+    "seam": "predict_meta_confidence canonical 4-feature vector assembly before predict_explicit_inference",
+    "changed_files": [
+      "btc_scraper/ml_engine/schema_contracts.py",
+      "btc_scraper/ml_engine/meta_model.py",
+      "tests/ml/test_p6_schema_contracts.py",
+      "tests/ml/test_p2_explicit_inference_contract.py",
+      "tests/ml/fixtures/production_lineage.py"
+    ],
+    "critical_impact_expected": true,
+    "critical_impact_reason": "predict_meta_confidence is the production inference boundary"
+  },
+  "live_replay_parity": {
+    "shared_validator": "build_model_feature_vector",
+    "valid_schema_behavior": "PASS",
+    "invalid_schema_behavior": "INVALID_INPUT_BEFORE_INFERENCE",
+    "separate_live_replay_policy": "ABSENT"
+  },
+  "persistence": {
+    "current_schema_identity": "feature_schema_hash + feature_schema_version",
+    "legacy_record_policy": "LEGACY_UNVERIFIED_SCHEMA",
+    "retroactive_fabrication": "ABSENT"
+  },
+  "regression": {
+    "g3_focused_plus_p2_smoke": "30/30 PASS",
+    "p6_g2_g3": "37/37 PASS",
+    "p5_p6_g3_non_evidence": "83/83 PASS",
+    "autotrader_probability": "26/26 PASS",
+    "seal_critical_expanded": "103/103 PASS",
+    "p1_p5_targeted": "147/147 PASS",
+    "full_suite": {
+      "junit": "/tmp/besttime-p6-g3-full.xml",
+      "junit_sha256": "71478be9e45daa288f98516352054f26b0d662485a671db4b423ea24cc7b8b38",
+      "frozen_failures": [
+        "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+        "tests/test_etf_integration_audit.py::test_integration_json_schema",
+        "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+        "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+      ],
+      "new_failures": 0
+    }
+  },
+  "gitnexus": {
+    "pre_edit": {
+      "evaluate_market": "LOW",
+      "MarketEvaluationAdapter": "MEDIUM",
+      "InferenceArtifact": "HIGH_NOT_MODIFIED",
+      "SchemaContract": "LOW",
+      "predict_meta_confidence": "CRITICAL_EXPECTED",
+      "build_meta_features_v2": "CRITICAL_NOT_MODIFIED"
+    },
+    "post_edit": "REVIEWED_STAGED_DETECT_CHANGES"
+  },
+  "governance": {
+    "P6-G3": "PASS",
+    "P6": "IN_PROGRESS",
+    "P6-G4": "READY_TO_RESUME",
+    "model_or_training_change": false,
+    "scoring_change": false,
+    "risk_sizing_change": false,
+    "runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+    "successor_research": "NOT_AUTHORIZED"
+  }
+}

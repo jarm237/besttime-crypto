@@ -682,7 +682,8 @@ P6-PROV PROVENANCE RECOVERY        PROVENANCE_RECOVERED
 P6-PRE-PD0 BASELINE DETERMINISM    CLOSED
 P6-PROV-DATA                       DATASET_PROVENANCE_RECOVERED
 P6-G2 ARTIFACT CONTRACT CLOSURE    PASS
-P6-G3 REGRESSION/PARITY CLOSURE     READY_TO_RESUME
+P6-G3 SCHEMA CONTRACT CLOSURE      PASS
+P6-G4 WARM-UP/READINESS CLOSURE    READY_TO_RESUME
 P6                                 IN_PROGRESS
 ```
 
@@ -717,6 +718,26 @@ P1-P5 targeted `147/147 PASS`, and full suite returns the exact four approved
 frozen failures with zero new failures. The full-suite JUnit is
 `/tmp/besttime-p6-g2r-full.xml` with SHA256
 `8ff916c7b7d35b089bac4c2ec0d41ef0ddfd79db70818c6133078b6282af66d6`.
+
+P6-G3 is closed. Runtime schema contracts now explicitly define the canonical
+candle/window boundary and the production `meta_model` 4-feature vector:
+`return_8`, `return_32`, `return_72`, `abs_move_72`. The model feature-vector
+schema fingerprint is
+`408a240e4e502100191dcd7cb488cea064e0187149b65e15df174ec703d31770`; its
+feature-order hash is
+`b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc`, matching
+the G2 artifact manifest order identity. `predict_meta_confidence` now validates
+that canonical features are present and finite before calling model inference;
+missing/malformed schema returns an explicit pre-inference failure and does not
+invoke inference, scoring, decision, or sizing.
+
+G3 regression evidence: G3 focused plus P2 smoke `30/30 PASS`, P6/G2/G3
+`37/37 PASS`, P5/P6/G3 plus non-evidence smoke `83/83 PASS`,
+AutoTrader/probability `26/26 PASS`, seal-critical expanded `103/103 PASS`,
+P1-P5 targeted `147/147 PASS`, and full suite returns the exact four approved
+frozen failures with zero new failures. The full-suite JUnit is
+`/tmp/besttime-p6-g3-full.xml` with SHA256
+`71478be9e45daa288f98516352054f26b0d662485a671db4b423ea24cc7b8b38`.
 
 A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
 contract gaps. Per stop condition SC-4, those integration edits were rolled
