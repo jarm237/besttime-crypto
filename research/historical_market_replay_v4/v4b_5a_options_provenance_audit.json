@@ -23,12 +23,12 @@
   "deribit_instruments_probe": {
     "url": "https://www.deribit.com/api/v2/public/get_instruments?currency=BTC&kind=option&expired=true",
     "status_code": 200,
-    "count": 42
+    "count": 94
   },
   "deribit_summary_probe": {
     "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option",
     "status_code": 200,
-    "count": 818
+    "count": 996
   },
   "verdict": "REJECT_INSUFFICIENT_CHAIN_COVERAGE"
 }

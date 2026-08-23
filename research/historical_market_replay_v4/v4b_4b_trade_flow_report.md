@@ -24,39 +24,39 @@
 
 | Horizon | Raw Spread | R1 (Period) | R2 (Breadth) | R3 (Boot. P) | R4 (Months) | R5 (Winsor.) | Incremental | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| `8h` | 0.73 bps | **PASS** | **PASS** | 95.0% | 8/12 | 0.73 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `18h` | 0.55 bps | **FAIL** | **PASS** | 88.5% | 8/12 | 0.55 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `48h` | 0.13 bps | **FAIL** | **PASS** | 64.0% | 6/12 | 0.13 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `8h` | 0.73 bps | **PASS** | **PASS** | 96.5% | 8/12 | 0.73 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `18h` | 0.55 bps | **FAIL** | **PASS** | 94.0% | 8/12 | 0.55 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `48h` | 0.13 bps | **FAIL** | **PASS** | 59.5% | 6/12 | 0.13 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
 
 ### Feature: `TF2_taker_imbalance_1h`
 
 | Horizon | Raw Spread | R1 (Period) | R2 (Breadth) | R3 (Boot. P) | R4 (Months) | R5 (Winsor.) | Incremental | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| `8h` | -0.25 bps | **FAIL** | **FAIL** | 28.5% | 6/12 | -0.25 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `18h` | 0.17 bps | **FAIL** | **FAIL** | 56.5% | 9/12 | 0.17 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `48h` | 1.02 bps | **FAIL** | **PASS** | 91.0% | 9/12 | 1.03 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `8h` | -0.25 bps | **FAIL** | **FAIL** | 24.0% | 6/12 | -0.25 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `18h` | 0.17 bps | **FAIL** | **FAIL** | 61.0% | 9/12 | 0.17 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `48h` | 1.02 bps | **FAIL** | **PASS** | 94.0% | 9/12 | 1.03 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
 
 ### Feature: `TF3_signed_notional_zscore`
 
 | Horizon | Raw Spread | R1 (Period) | R2 (Breadth) | R3 (Boot. P) | R4 (Months) | R5 (Winsor.) | Incremental | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | `8h` | 1.11 bps | **PASS** | **PASS** | 100.0% | 9/12 | 1.10 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `18h` | 1.05 bps | **PASS** | **PASS** | 99.5% | 8/12 | 1.04 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `48h` | -0.45 bps | **FAIL** | **FAIL** | 15.0% | 5/12 | -0.45 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `18h` | 1.05 bps | **PASS** | **PASS** | 100.0% | 8/12 | 1.04 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `48h` | -0.45 bps | **FAIL** | **FAIL** | 20.0% | 5/12 | -0.45 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
 
 ### Feature: `TF4_aggressive_volume_percentile_30d`
 
 | Horizon | Raw Spread | R1 (Period) | R2 (Breadth) | R3 (Boot. P) | R4 (Months) | R5 (Winsor.) | Incremental | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| `8h` | 0.24 bps | **FAIL** | **PASS** | 65.5% | 5/12 | 0.24 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `18h` | 0.39 bps | **FAIL** | **PASS** | 65.0% | 5/12 | 0.39 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `48h` | 2.16 bps | **FAIL** | **PASS** | 91.5% | 7/12 | 2.16 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `8h` | 0.24 bps | **FAIL** | **PASS** | 70.5% | 5/12 | 0.24 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `18h` | 0.39 bps | **FAIL** | **PASS** | 65.5% | 5/12 | 0.39 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `48h` | 2.16 bps | **FAIL** | **PASS** | 84.0% | 7/12 | 2.16 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
 
 ### Feature: `TF5_flow_acceleration_1h`
 
 | Horizon | Raw Spread | R1 (Period) | R2 (Breadth) | R3 (Boot. P) | R4 (Months) | R5 (Winsor.) | Incremental | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| `8h` | 0.12 bps | **FAIL** | **FAIL** | 73.0% | 6/12 | 0.12 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `18h` | 0.23 bps | **PASS** | **PASS** | 65.0% | 7/12 | 0.23 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
-| `48h` | -0.02 bps | **FAIL** | **FAIL** | 45.5% | 6/12 | -0.02 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `8h` | 0.12 bps | **FAIL** | **FAIL** | 62.0% | 6/12 | 0.12 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `18h` | 0.23 bps | **PASS** | **PASS** | 70.5% | 7/12 | 0.23 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
+| `48h` | -0.02 bps | **FAIL** | **FAIL** | 54.5% | 6/12 | -0.02 bps | 0.00 bps | **REJECT_NO_ECONOMIC_INFORMATION** |
 
