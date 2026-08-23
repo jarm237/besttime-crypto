@@ -679,6 +679,8 @@ P6-G0 BASELINE PIN                 PASS
 P6-G1 CONTRACT INVENTORY           PASS
 P6 ARTIFACT/SCHEMA/WARMUP FOUNDATION PASS
 P6-PROV PROVENANCE RECOVERY        PARTIAL_PROVENANCE_ONLY
+P6-PRE-PD0 BASELINE DETERMINISM    CLOSED
+P6-PROV-DATA                       READY_TO_RETRY_PD0
 P6-G2 ARTIFACT CONTRACT CLOSURE    BLOCKED_ARTIFACT_PROVENANCE
 P6                                 IN_PROGRESS / BLOCKED
 ```
@@ -697,7 +699,17 @@ blocked, and no replacement identity or contract hash is inferred.
 A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
 contract gaps. Per stop condition SC-4, those integration edits were rolled
 back and the affected P5/canary/AutoTrader regression set returned to
-`98/98 PASS`. The reusable P6 contract foundation remains covered by
+`98/98 PASS`.
+
+P6-PRE-PD0 closed an accidental seal-baseline dependency on ambient MongoDB
+risk availability. The affected AutoTrader and probability-contract tests now
+declare deterministic risk state at the test boundary, while a dedicated
+fail-closed test preserves `risk DB unavailable -> NEUTRAL + position size 0`.
+The expanded seal-critical set is `103/103 PASS` with Mongo unavailable, and
+full-suite status is back to the exact four frozen failures with no new
+regressions.
+
+The reusable P6 contract foundation remains covered by
 `15/15 PASS` tests, but it is not production-authoritative until artifact
 provenance is resolved.
 

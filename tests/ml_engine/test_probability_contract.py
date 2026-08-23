@@ -2,7 +2,22 @@ import pytest
 from btc_scraper.ml_engine.signal_score import score_signal
 from btc_scraper.ml_engine.decision_engine import MetaDecisionEngine
 
-def test_buy_preserves_win_probability():
+
+def _healthy_risk_metrics():
+    return {
+        "status": "HEALTHY",
+        "failure_reason": None,
+        "risk_multiplier": 1.0,
+        "blocked": False,
+        "drawdown_pct": 0.0,
+    }
+
+
+def test_buy_preserves_win_probability(monkeypatch):
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.signal_score._get_cached_risk_metrics",
+        _healthy_risk_metrics,
+    )
     meta = {
         "probability": 0.80,
         "expected_return": 0.10,
@@ -20,7 +35,12 @@ def test_buy_preserves_win_probability():
     assert res["meta_probability"] == 0.80
     assert res["meta_decision"]["execution_probability"] == 0.80
 
-def test_sell_preserves_win_probability():
+
+def test_sell_preserves_win_probability(monkeypatch):
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.signal_score._get_cached_risk_metrics",
+        _healthy_risk_metrics,
+    )
     meta = {
         "probability": 0.80,
         "expected_return": 0.10,
@@ -38,7 +58,12 @@ def test_sell_preserves_win_probability():
     assert res["meta_probability"] == 0.80
     assert res["meta_decision"]["execution_probability"] == 0.80
 
-def test_sell_does_not_invert_win_probability():
+
+def test_sell_does_not_invert_win_probability(monkeypatch):
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.signal_score._get_cached_risk_metrics",
+        _healthy_risk_metrics,
+    )
     meta = {
         "probability": 0.20,
         "expected_return": 0.10,
@@ -59,4 +84,3 @@ def test_fallback_execution_probability():
     # Under P(up) default fallback semantics, SELL execution prob is inverted:
     assert MetaDecisionEngine._execution_probability("SELL", 0.75) == 0.25
     assert MetaDecisionEngine._execution_probability("BUY", 0.75) == 0.75
-

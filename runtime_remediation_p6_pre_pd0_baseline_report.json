@@ -1,0 +1,153 @@
+{
+  "phase": "P6-PRE-PD0",
+  "status": "CLOSED",
+  "title": "Baseline Determinism Audit and Recovery",
+  "checkpoint": {
+    "base_commit": "42bfc71d1549a3a43a42a74ea620114b31ca1930",
+    "base_tree": "835834b0c182aa68504cba0c694f00ef87d712df",
+    "working_tree_at_start": "clean"
+  },
+  "observed_failure": {
+    "expected_seal_critical": "98/98 PASS",
+    "actual_at_start": "96/98 PASS",
+    "failed_node_ids": [
+      "tests/test_auto_trader.py::test_signal_score_parses_primary_action",
+      "tests/test_auto_trader.py::test_dynamic_position_sizing"
+    ],
+    "failure_signatures": [
+      "score_signal returned action NEUTRAL instead of SELL",
+      "high-volatility and normal-volatility position sizes both returned 0.0"
+    ],
+    "root_runtime_state": {
+      "risk_status": "UNAVAILABLE",
+      "risk_failure_reason": "risk_database_unavailable:ServerSelectionTimeoutError",
+      "risk_multiplier": 0.0,
+      "risk_blocked": true
+    }
+  },
+  "dependency": {
+    "risk_path": [
+      "tests call score_signal()",
+      "score_signal() calls _get_cached_risk_metrics()",
+      "_get_cached_risk_metrics() calls btc_scraper.trading.risk_manager.calculate_risk_metrics()",
+      "calculate_risk_metrics() reads closed_positions_col from MongoDB",
+      "MongoDB unavailable returns fail-closed UNAVAILABLE metrics"
+    ],
+    "db_access_point": "btc_scraper.trading.risk_manager.calculate_risk_metrics",
+    "mockable_seam": "btc_scraper.ml_engine.signal_score._get_cached_risk_metrics",
+    "fail_closed_path": "UNAVAILABLE risk metrics set risk_multiplier=0.0, blocked=true, action=NEUTRAL, position_size=0.0"
+  },
+  "test_intent": {
+    "tests/test_auto_trader.py::test_signal_score_parses_primary_action": {
+      "intended_behavior": "primary signal action parsing and display mapping",
+      "classification": "UNIT_CONTRACT",
+      "external_db_expected": false,
+      "risk_state_part_of_assertion": false
+    },
+    "tests/test_auto_trader.py::test_dynamic_position_sizing": {
+      "intended_behavior": "volatility sizing arithmetic and std_dev/ATR multiplier behavior",
+      "classification": "UNIT_CONTRACT",
+      "external_db_expected": false,
+      "risk_state_part_of_assertion": false
+    },
+    "tests/ml_engine/test_probability_contract.py": {
+      "intended_behavior": "P(win_given_proposed_trade) probability preservation",
+      "classification": "UNIT_CONTRACT",
+      "external_db_expected": false,
+      "risk_state_part_of_assertion": false
+    }
+  },
+  "historical_analysis": {
+    "previous_98_pass_reason": "H2_TEST_ACCIDENTALLY_DEPENDED_ON_AVAILABLE_MONGO_OR_AMBIENT_RISK_STATE",
+    "evidence": [
+      "checkpoint commit/tree were unchanged and working tree was clean",
+      "same tests failed deterministically while Mongo risk state was unavailable",
+      "existing tests in tests/test_auto_trader.py and tests/ml use monkeypatch on _get_cached_risk_metrics for score_signal unit contracts",
+      "commit 56a2971 introduced fail-closed unavailable-risk semantics in risk_manager without changing these unit tests to declare risk state"
+    ]
+  },
+  "determinism_matrix": {
+    "mongo_unavailable_original": {
+      "result": "FAIL",
+      "failures": 2,
+      "reason": "ambient risk state unavailable gated score_signal output"
+    },
+    "fixed_risk_mock": {
+      "result": "PASS",
+      "targeted": "26/26 PASS"
+    },
+    "explicit_unavailable_risk_mock": {
+      "result": "PASS",
+      "asserted_contract": "UNAVAILABLE risk returns NEUTRAL action and zero position size"
+    },
+    "mongo_available": {
+      "result": "NOT_RUN",
+      "reason": "not required after deterministic mock proved the dependency path and production fail-closed behavior remained covered"
+    }
+  },
+  "classification": "ACCIDENTAL_TEST_DEPENDENCY",
+  "remediation": {
+    "files_changed": [
+      "tests/test_auto_trader.py",
+      "tests/ml_engine/test_probability_contract.py"
+    ],
+    "production_semantics_changed": false,
+    "runtime_code_changed": false,
+    "test_isolation_mechanism": "unit/contract tests monkeypatch _get_cached_risk_metrics to explicit healthy risk metrics",
+    "fail_closed_coverage": "tests/test_auto_trader.py::test_signal_score_fails_closed_when_risk_unavailable"
+  },
+  "validation": {
+    "targeted_tests": "26/26 PASS",
+    "auto_trader_suite": "22/22 PASS",
+    "seal_critical_expanded": "103/103 PASS",
+    "p5_p6_focused": "56/56 PASS",
+    "full_suite": {
+      "result": "4 failed, 1275 passed, 117 warnings, 5 subtests passed",
+      "duration": "488.25s",
+      "junit_path": "/tmp/besttime-p6-pre-pd0-full-rerun.xml",
+      "junit_sha256": "4c6c1853c010f8643c87bc508c38894740b5d1fc7739241d7868facd18fae424",
+      "frozen_failures": [
+        "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+        "tests/test_etf_integration_audit.py::test_integration_json_schema",
+        "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+        "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+      ],
+      "new_regressions": 0
+    }
+  },
+  "gitnexus": {
+    "startup": "gitnexus-ensure-fresh PASS",
+    "production_symbol_impacts_reviewed": [
+      {
+        "symbol": "score_signal",
+        "risk": "CRITICAL",
+        "impacted_symbols": 32,
+        "affected_processes": 7,
+        "changed": false
+      },
+      {
+        "symbol": "_get_cached_risk_metrics",
+        "risk": "CRITICAL",
+        "impacted_symbols": 19,
+        "affected_processes": 6,
+        "changed": false
+      }
+    ]
+  },
+  "governance": {
+    "score_signal_fail_closed_behavior_changed": false,
+    "risk_multiplier_semantics_changed": false,
+    "risk_blocked_semantics_changed": false,
+    "artifact_provenance_claims_changed": false,
+    "runtime_release_selected": false,
+    "successor_research": "NOT_AUTHORIZED",
+    "p6_g2": "BLOCKED_ARTIFACT_PROVENANCE"
+  },
+  "verdict": "BASELINE_DETERMINISM_RESTORED",
+  "next_state": {
+    "P6-PRE-PD0": "CLOSED",
+    "P6-PROV-DATA": "READY_TO_RETRY_PD0",
+    "P6-G2": "BLOCKED_ARTIFACT_PROVENANCE",
+    "P6": "IN_PROGRESS / BLOCKED"
+  }
+}

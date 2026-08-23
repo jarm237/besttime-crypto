@@ -5,6 +5,27 @@ from pathlib import Path
 from btc_scraper.trading.auto_trader import AutoTrader, _load_circuit, _save_circuit, CIRCUIT_BREAKER_STATE
 from btc_scraper.ml_engine.signal_score import score_signal, _primary_signal_action
 
+
+def _healthy_risk_metrics():
+    return {
+        "status": "HEALTHY",
+        "failure_reason": None,
+        "risk_multiplier": 1.0,
+        "blocked": False,
+        "drawdown_pct": 0.0,
+    }
+
+
+def _unavailable_risk_metrics():
+    return {
+        "status": "UNAVAILABLE",
+        "failure_reason": "risk_database_unavailable:ServerSelectionTimeoutError",
+        "risk_multiplier": 0.0,
+        "blocked": True,
+        "drawdown_pct": None,
+    }
+
+
 def test_should_trade(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.85")
     monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
@@ -215,13 +236,33 @@ def test_compute_position_size(monkeypatch):
     assert size.final_notional == 100.0
 
 
-def test_signal_score_parses_primary_action():
+def test_signal_score_parses_primary_action(monkeypatch):
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.signal_score._get_cached_risk_metrics",
+        _healthy_risk_metrics,
+    )
     raw_signal = "SELL (Break-SMA50) [BUY 52% LOW] | Meta: 60%"
     assert _primary_signal_action(raw_signal) == "SELL"
     res = score_signal(raw_signal, {"close": 1574.19}, {"disable_ml": True})
     assert res["action"] == "SELL"
     assert res["display_label"] == "SELL 70%"
     assert res["strength"] == res["display_score"]
+
+
+def test_signal_score_fails_closed_when_risk_unavailable(monkeypatch):
+    monkeypatch.setattr(
+        "btc_scraper.ml_engine.signal_score._get_cached_risk_metrics",
+        _unavailable_risk_metrics,
+    )
+
+    res = score_signal("BUY", {"close": 100.0}, {"disable_ml": True})
+
+    assert res["risk_status"] == "UNAVAILABLE"
+    assert res["risk_blocked"] is True
+    assert res["risk_multiplier"] == 0.0
+    assert res["action"] == "NEUTRAL"
+    assert res["position_size"] == 0.0
+
 
 def test_adaptive_model_blends_with_rule_score(monkeypatch):
     from btc_scraper.ml_engine import signal_score as score_mod
@@ -300,61 +341,65 @@ def test_circuit_breaker(monkeypatch):
 
 def test_dynamic_position_sizing():
     from btc_scraper.ml_engine.signal_score import _load_position_sizing_params, score_signal
+    import btc_scraper.ml_engine.signal_score as score_mod
+    from unittest.mock import patch
+
+    with patch.object(score_mod, "_get_cached_risk_metrics", _healthy_risk_metrics):
     
-    # 1. Test loading params
-    params = _load_position_sizing_params()
-    assert "method" in params
-    assert "target_std_dev_pct" in params
-    assert "target_atr_pct" in params
-    assert "min_vol_mult" in params
-    assert "max_vol_mult" in params
+        # 1. Test loading params
+        params = _load_position_sizing_params()
+        assert "method" in params
+        assert "target_std_dev_pct" in params
+        assert "target_atr_pct" in params
+        assert "min_vol_mult" in params
+        assert "max_vol_mult" in params
 
-    # 2. Test score_signal with std_dev method and Bollinger Bands
-    # bb_upper = 104, bb_lower = 96, close = 100 -> bb_width_pct = 8.0%, std_dev_pct = 2.0%
-    # If target_std_dev_pct = 2.0%, vol_mult should be 1.0
-    data = {
-        "strategy": "DUMMY_STRATEGY",
-        "close": 100.0,
-        "bb_upper": 104.0,
-        "bb_lower": 96.0,
-        "atr": 2.0
-    }
-    context = {
-        "regime": "RANGING"
-    }
+        # 2. Test score_signal with std_dev method and Bollinger Bands
+        # bb_upper = 104, bb_lower = 96, close = 100 -> bb_width_pct = 8.0%, std_dev_pct = 2.0%
+        # If target_std_dev_pct = 2.0%, vol_mult should be 1.0
+        data = {
+            "strategy": "DUMMY_STRATEGY",
+            "close": 100.0,
+            "bb_upper": 104.0,
+            "bb_lower": 96.0,
+            "atr": 2.0
+        }
+        context = {
+            "regime": "RANGING"
+        }
     
-    # Force std_dev method using environment variable
-    os.environ["AUTO_TRADE_POSITION_SIZING_METHOD"] = "std_dev"
-    res = score_signal("BUY", data, context)
-    assert res["position_sizing_method"] == "std_dev"
-    assert res["std_dev_pct"] == 2.0
-    assert abs(res["volatility_multiplier"] - 1.0) < 1e-4
+        # Force std_dev method using environment variable
+        os.environ["AUTO_TRADE_POSITION_SIZING_METHOD"] = "std_dev"
+        res = score_signal("BUY", data, context)
+        assert res["position_sizing_method"] == "std_dev"
+        assert res["std_dev_pct"] == 2.0
+        assert abs(res["volatility_multiplier"] - 1.0) < 1e-4
 
-    # Now make it highly volatile: bb_upper = 108, bb_lower = 92 -> bb_width_pct = 16%, std_dev_pct = 4.0%
-    # With target_std_dev_pct = 2.0, vol_mult = 2.0 / 4.0 = 0.5
-    data_high_vol = {
-        "strategy": "DUMMY_STRATEGY",
-        "close": 100.0,
-        "bb_upper": 108.0,
-        "bb_lower": 92.0,
-        "atr": 4.0
-    }
-    res_high_vol = score_signal("BUY", data_high_vol, context)
-    assert res_high_vol["std_dev_pct"] == 4.0
-    assert abs(res_high_vol["volatility_multiplier"] - 0.5) < 1e-4
-    # Size should be scaled down compared to normal vol
-    assert res_high_vol["position_size"] < res["position_size"]
+        # Now make it highly volatile: bb_upper = 108, bb_lower = 92 -> bb_width_pct = 16%, std_dev_pct = 4.0%
+        # With target_std_dev_pct = 2.0, vol_mult = 2.0 / 4.0 = 0.5
+        data_high_vol = {
+            "strategy": "DUMMY_STRATEGY",
+            "close": 100.0,
+            "bb_upper": 108.0,
+            "bb_lower": 92.0,
+            "atr": 4.0
+        }
+        res_high_vol = score_signal("BUY", data_high_vol, context)
+        assert res_high_vol["std_dev_pct"] == 4.0
+        assert abs(res_high_vol["volatility_multiplier"] - 0.5) < 1e-4
+        # Size should be scaled down compared to normal vol
+        assert res_high_vol["position_size"] < res["position_size"]
 
-    # 3. Test fallback to ATR
-    data_no_bb = {
-        "strategy": "DUMMY_STRATEGY",
-        "close": 100.0,
-        "atr": 4.0 # atr_pct = 4.0%
-    }
-    # With target_atr_pct = 1.0, vol_mult = 1.0 / 4.0 = 0.25
-    res_atr = score_signal("BUY", data_no_bb, context)
-    assert res_atr["std_dev_pct"] == 4.0
-    assert abs(res_atr["volatility_multiplier"] - 0.25) < 1e-4
+        # 3. Test fallback to ATR
+        data_no_bb = {
+            "strategy": "DUMMY_STRATEGY",
+            "close": 100.0,
+            "atr": 4.0 # atr_pct = 4.0%
+        }
+        # With target_atr_pct = 1.0, vol_mult = 1.0 / 4.0 = 0.25
+        res_atr = score_signal("BUY", data_no_bb, context)
+        assert res_atr["std_dev_pct"] == 4.0
+        assert abs(res_atr["volatility_multiplier"] - 0.25) < 1e-4
 
     # Clean up env
     if "AUTO_TRADE_POSITION_SIZING_METHOD" in os.environ:
