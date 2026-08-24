@@ -1,0 +1,49 @@
+{
+  "artifact": "runtime_activation_p7_r4_failure_classification",
+  "created_at": "2026-08-24T17:17:46.203877+00:00",
+  "evidence": {
+    "activation_plumbing": "G7 spawned once; G8-A identity established; G8-B failed before heartbeat",
+    "artifact_metadata_supported_symbols_count": 22,
+    "model_route_file": "scripts/hmr_v5_d2_r1_real_runtime_parity.py",
+    "model_route_supported_symbols": [
+      "BNB",
+      "BTC",
+      "ETH"
+    ],
+    "stderr_exception": "RuntimeError: inference_symbol_unsupported:SOL"
+  },
+  "failure": "inference_symbol_unsupported:SOL",
+  "failure_class": "INFERENCE_SYMBOL_COVERAGE_GAP",
+  "implicit_fallback_allowed": false,
+  "model_route_symbols_count": 3,
+  "new_preflight_gate": "RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY",
+  "next_authorization": "BLOCKED_UNTIL_UNSUPPORTED_SYMBOLS_EMPTY",
+  "operational_config_only_fix_allowed": false,
+  "preflight_gap": "Previous preflight smoked BTC only and did not assert runtime_symbols subset of actual model_route_supported_symbols",
+  "remediation_boundary": "MODEL_ARTIFACT_RUNTIME_CONTRACT",
+  "runtime_release_fix_required": true,
+  "runtime_symbols_count": 22,
+  "sol_provenance": "btc_scraper.core.config.DEFAULT_ANALYSIS_UNIVERSE -> main.RUNTIME_UNIVERSE.analysis_symbols -> MarketAnalystAgent/SignalGeneratorAgent -> InferenceCoordinator.predict_once -> predict_meta_confidence -> V5FilterModelClassifier.predict_proba",
+  "unsupported_count": 19,
+  "unsupported_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "DOGE",
+    "ENA",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "TRX",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP",
+    "ZEC"
+  ]
+}

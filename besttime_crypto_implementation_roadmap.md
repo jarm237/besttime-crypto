@@ -840,9 +840,14 @@ P7-R2 EVIDENCE EPOCH PROVISIONING        PASS_OPERATIONAL_STATE_PROVISIONED
 P7-R3 POST-EPOCH STARTUP EXIT FORENSICS  PASS_OBSERVABILITY_GAP_CLASSIFIED
 P7-R3A SUPERVISED EXIT OBSERVABILITY     PASS_SUPERVISED_EXIT_OBSERVABILITY
 P7-G6#3 FRESH PREFLIGHT                  PASS_READY_FOR_G6_AUTHORIZATION_3
+P7-G6#3 AUTHORIZATION                    CONSUMED_FAILED
+P7-G7#3 CONTROLLED SUPERVISED START      PASS_SPAWNED_ONCE
+P7-G8-A IDENTITY ESTABLISHMENT           PASS_IDENTITY_ESTABLISHED
+P7-G8-B SUSTAINED SEMANTIC LIVENESS      FAIL_NOT_SUSTAINED
+P7-R4 UNSUPPORTED RUNTIME SYMBOL         PASS_FORENSICS_PREFLIGHT_GATE_ADDED
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    BLOCKED_NOT_ACTIVE
 P7-G10 OBSERVATION HANDOFF               BLOCKED_NOT_ACTIVE
-P7                                     IN_PROGRESS_READY_TO_MINT_AUTHORIZATION_3
+P7                                     BLOCKED_AFTER_ACTIVATION_ATTEMPT_3
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -1410,6 +1415,130 @@ release, launcher SHA, supervisor SHA, manifest/artifact hashes, ACTIVE epoch,
 attempt #3 evidence paths, G8-A/G8-B contracts, `spawn_budget = 1`,
 `restart_budget = 0`, and `automatic_retry = false`. Do not combine
 authorization minting with G7 launch.
+
+P7-G6 authorization #3 was minted and consumed by exactly one supervised
+activation attempt. The activation plumbing worked: the child spawned once,
+acquired the runtime lock, and passed G8-A identity establishment. G8-B failed
+because no persisted `RuntimePauseController.heartbeat()` was observed before
+the child exited.
+
+Attempt #3 final state:
+
+```text
+authorization_3        CONSUMED_FAILED
+P7-G7#3                PASS_SPAWNED_ONCE
+P7-G8-A                PASS_IDENTITY_ESTABLISHED
+P7-G8-B                FAIL_NOT_SUSTAINED
+runtime_activation     NOT_ACTIVE
+paper_canary           NOT_ACTIVE
+spawn_attempt_count    1
+restart_count          0
+automatic_retry        0
+immutable_inputs       UNCHANGED
+P7-G9                  BLOCKED_NOT_ACTIVE
+P7-G10                 BLOCKED_NOT_ACTIVE
+```
+
+The concrete startup exception captured by supervised stderr was:
+
+```text
+RuntimeError: inference_symbol_unsupported:SOL
+```
+
+P7-R4 traced this from the pinned runtime release:
+
+```text
+DEFAULT_ANALYSIS_UNIVERSE
+  -> main.RUNTIME_UNIVERSE.analysis_symbols
+  -> MarketAnalystAgent / SignalGeneratorAgent
+  -> InferenceCoordinator.predict_once(symbol="SOL")
+  -> predict_meta_confidence
+  -> V5FilterModelClassifier.predict_proba(symbol="SOL")
+  -> inference_symbol_unsupported:SOL
+```
+
+The full symbol compatibility matrix showed that the runtime universe contains
+22 symbols, artifact metadata advertises those 22 symbols, but the actual V5
+model route supports only:
+
+```text
+BTC
+ETH
+BNB
+```
+
+Unsupported runtime symbols by actual model route:
+
+```text
+AEVO
+AR
+AVAX
+DOGE
+ENA
+IOTA
+NEAR
+SOL
+SOPH
+TAO
+TRB
+TRUMP
+TRX
+WLD
+XAUT
+XLM
+XPL
+XRP
+ZEC
+```
+
+R4 classification:
+
+```text
+failure_class              INFERENCE_SYMBOL_COVERAGE_GAP
+remediation_boundary       MODEL_ARTIFACT_RUNTIME_CONTRACT
+runtime_release_fix_needed true
+operational_config_only    false
+implicit_fallback_allowed  false
+```
+
+This is not a one-symbol SOL typo and not an observability gap. R3A remains
+`PASS_SUPERVISED_EXIT_OBSERVABILITY`; stderr captured the concrete exception.
+
+R4 added a preflight gate:
+
+```text
+RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY
+```
+
+The gate requires:
+
+```text
+runtime_symbols ⊆ actual_model_route_supported_symbols
+unsupported_symbols = []
+```
+
+If unsupported symbols are present, preflight returns:
+
+```text
+BLOCKED_INFERENCE_SYMBOL_UNSUPPORTED
+```
+
+and no activation authorization may be minted.
+
+R4 evidence:
+
+```text
+runtime_activation_p7_r4_symbol_compatibility.json
+sha256 = b910b69f4cb15d4d5e81aed82324b14f7e7838bc997984f3e997afcf3e61d843
+
+runtime_activation_p7_r4_failure_classification.json
+sha256 = 90a90711f65bdf231162b0ae551edfb6e66949d4c7c73f7e81e49d969f05cf91
+```
+
+No attempt #4 is authorized. A future remediation must either align the runtime
+universe with the actual model route under an explicit contract or provide
+explicit model/artifact routes for every runtime symbol. It must not silently
+fallback unsupported symbols to another model.
 
 ---
 

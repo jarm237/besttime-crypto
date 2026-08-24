@@ -203,6 +203,76 @@ print(json.dumps({
     return run_python_with_pinned_import(root, code)
 
 
+def symbol_universe_compatibility(root: Path) -> dict[str, Any]:
+    """Compare runtime symbols with artifact metadata and actual model routes."""
+    code = r'''
+import json
+from btc_scraper.core.config import DEFAULT_ANALYSIS_UNIVERSE, get_runtime_universe
+from btc_scraper.ml_engine.meta_model import get_meta_inference_artifact, load_model
+
+artifact = get_meta_inference_artifact()
+runtime = get_runtime_universe()
+model_bundle = load_model()
+model = model_bundle.get("model") if isinstance(model_bundle, dict) else model_bundle
+estimator = getattr(model, "_estimator", model)
+model_route_symbols = tuple(sorted(getattr(estimator, "model_params", {}).keys()))
+
+runtime_symbols = tuple(runtime.analysis_symbols)
+artifact_symbols = tuple(sorted(artifact.supported_symbols))
+model_symbols = tuple(str(symbol).strip().upper() for symbol in model_route_symbols)
+unsupported_by_artifact = tuple(sorted(set(runtime_symbols) - set(artifact_symbols)))
+unsupported_by_model_route = tuple(sorted(set(runtime_symbols) - set(model_symbols)))
+
+matrix = []
+for symbol in runtime_symbols:
+    artifact_supported = symbol in artifact_symbols
+    model_route_supported = symbol in model_symbols
+    matrix.append({
+        "symbol": symbol,
+        "runtime_enabled": True,
+        "artifact_metadata_supported": artifact_supported,
+        "model_route_supported": model_route_supported,
+        "artifact_route": "explicit" if model_route_supported else "absent",
+        "verdict": "PASS" if artifact_supported and model_route_supported else "FAIL",
+    })
+
+print(json.dumps({
+    "runtime_symbols": list(runtime_symbols),
+    "runtime_execution_symbols": list(runtime.execution_symbols),
+    "default_analysis_universe": list(DEFAULT_ANALYSIS_UNIVERSE),
+    "artifact_supported_symbols": list(artifact_symbols),
+    "model_route_supported_symbols": list(model_symbols),
+    "unsupported_by_artifact_metadata": list(unsupported_by_artifact),
+    "unsupported_by_model_route": list(unsupported_by_model_route),
+    "unsupported_symbols": list(unsupported_by_model_route),
+    "matrix": matrix,
+    "artifact": {
+        "artifact_version": artifact.artifact_version,
+        "artifact_hash": artifact.artifact_hash,
+        "feature_names": list(artifact.feature_names),
+        "feature_schema_hash": artifact.feature_schema_hash,
+    },
+    "model_route": {
+        "model_type": type(estimator).__name__,
+        "requires_explicit_symbol": bool(getattr(estimator, "requires_explicit_symbol", False)),
+        "model_dir_path": str(getattr(estimator, "model_dir_path", "")),
+    },
+}, sort_keys=True))
+'''
+    result = run_python_with_pinned_import(root, code)
+    payload = result.get("json") or {}
+    unsupported = list(payload.get("unsupported_symbols") or [])
+    return {
+        "status": "PASS" if result["returncode"] == 0 and not unsupported else "FAIL",
+        "returncode": result["returncode"],
+        "stdout": result["stdout"],
+        "stderr": result["stderr"],
+        "json": payload,
+        "unsupported_symbols": unsupported,
+        "verdict": "PASS" if result["returncode"] == 0 and not unsupported else "BLOCKED_INFERENCE_SYMBOL_UNSUPPORTED",
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
@@ -255,6 +325,7 @@ def main() -> int:
     manifest_sha = write_json(repo_root / "runtime_activation_p7_manifest.json", manifest)
 
     smoke = pinned_smoke(pinned_root)
+    symbol_compatibility = symbol_universe_compatibility(pinned_root)
     smoke_json = smoke.get("json") or {}
     import_path_ok = (
         smoke["returncode"] == 0
@@ -310,10 +381,12 @@ def main() -> int:
                 "error_type": type(exc).__name__,
                 "error": str(exc),
             }
+    symbol_compatibility_ok = symbol_compatibility["status"] == "PASS"
+    activation_ready = safe_launcher_ready and symbol_compatibility_ok
     preflight = {
         "contract": "paper-canary-preflight/v1",
-        "status": "PASS" if safe_launcher_ready else "PASS_WITH_ACTIVATION_BLOCKER",
-        "ready_to_arm": safe_launcher_ready,
+        "status": "PASS" if activation_ready else "PASS_WITH_ACTIVATION_BLOCKER",
+        "ready_to_arm": activation_ready,
         "release_sha256": release_sha,
         "manifest_sha256": manifest_sha,
         "checks": {
@@ -325,10 +398,12 @@ def main() -> int:
             "PREFLIGHT_RUNTIME_STATE": "PASS_READ_ONLY_NO_ACTIVE_RUNNER_CHECK",
             "PREFLIGHT_PAPER_MODE": "PASS_SAFE_EXTERNAL_LAUNCHER" if safe_launcher_ready else "BLOCKED_NO_SAFE_NON_MUTATING_LAUNCHER",
             "PREFLIGHT_LAUNCHER_CONTRACT": "PASS" if safe_launcher_ready else "FAIL",
+            "RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY": symbol_compatibility["status"],
             "PREFLIGHT_STORAGE": "NOT_MUTATED_READ_ONLY_PREFLIGHT",
             "PREFLIGHT_EVALUATOR": "PASS" if inference_ok else "FAIL",
         },
         "pinned_smoke": smoke,
+        "symbol_universe_compatibility": symbol_compatibility,
         "unsafe_activation_findings": unsafe_activation_findings,
         "safe_launcher": {
             "contract": "paper-canary-launcher/v1",
@@ -385,14 +460,15 @@ def main() -> int:
             "P7-G4": "PASS" if import_path_ok else "FAIL",
             "P7-G5": "PASS" if safe_launcher_ready else "PASS_WITH_ACTIVATION_BLOCKER",
             "P7-G5A": "PASS" if safe_launcher_ready else "READY_TO_RESUME",
-            "P7-G6": "READY_TO_ARM" if safe_launcher_ready else "BLOCKED_NOT_ARMED",
+            "P7-R4-SYMBOL-UNIVERSE": "PASS" if symbol_compatibility_ok else "BLOCKED_INFERENCE_SYMBOL_UNSUPPORTED",
+            "P7-G6": "READY_TO_ARM" if activation_ready else "BLOCKED_NOT_ARMED",
             "P7-G7": "NOT_RUN",
             "P7-G8": "NOT_RUN",
             "P7-G9": "NOT_RUN",
             "P7-G10": "NOT_RUN",
             "P7": (
                 "IN_PROGRESS_READY_FOR_G6_AUTHORIZATION"
-                if safe_launcher_ready
+                if activation_ready
                 else "IN_PROGRESS_BLOCKED_BEFORE_ACTIVATION"
             ),
         },
@@ -407,7 +483,7 @@ def main() -> int:
         },
         "preflight": {
             "path": "runtime_activation_p7_preflight.json",
-            "ready_to_arm": safe_launcher_ready,
+            "ready_to_arm": activation_ready,
         },
         "safe_launcher": preflight["safe_launcher"],
         "governance": {
