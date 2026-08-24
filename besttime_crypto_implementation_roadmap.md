@@ -835,8 +835,9 @@ P7-G5A SAFE LAUNCHER CONTRACT            PASS
 P7-G6 ACTIVATION AUTHORIZATION FREEZE    ARMED_CONSUMED
 P7-G7 CONTROLLED PAPER-CANARY START      PASS_SPAWNED_ONCE
 P7-G8 POST-START READ-BACK               ACTIVATION_NOT_ESTABLISHED
-P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    NOT_RUN
-P7-G10 OBSERVATION HANDOFF               NOT_RUN
+P7-R1 EARLY CHILD EXIT FORENSICS         PASS_OPERATIONAL_PRECONDITION
+P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    BLOCKED_NOT_ACTIVE
+P7-G10 OBSERVATION HANDOFF               BLOCKED_NOT_ACTIVE
 P7                                     BLOCKED_AFTER_ACTIVATION_ATTEMPT
 ```
 
@@ -928,6 +929,69 @@ within the same startup attempt. No retry is authorized under the consumed G6
 authorization. The next valid step is forensic/remediation planning followed by
 a new G6 authorization if another attempt is desired.
 
+P7-R1 completed the early child-exit forensic classification without a second
+runtime activation. Attempt #1 is frozen as non-retriable and authorization
+`6978972d7b026598cf82a4f4bc0949ded78464430cabfc0bf960755507bfb150` remains
+permanently `CONSUMED`.
+
+R1 startup timeline:
+
+```text
+T0 launcher invoked                         CONFIRMED
+T1 validation PASS                          CONFIRMED
+T2 spawn syscall succeeded                  CONFIRMED
+T3 child PID existed transiently            CONFIRMED_TRANSIENT
+T4 Python entrypoint entered                INFERRED
+T5 runtime lock acquisition attempted       INFERRED
+T6 runtime lock acquired                    CONFIRMED
+T7 runtime evidence epoch setup             FIRST_FAILED_OR_REJECTED_STAGE
+T8 runtime pause state initialized          NOT_REACHED
+T9 async_main entered                       NOT_REACHED
+T10 sustained scheduler loop entered        NOT_REACHED
+T11 lock released                           CONFIRMED
+T12 process exited                          CONFIRMED
+T13 G8 observed runner_count = 0            CONFIRMED
+```
+
+The failure class is:
+
+```text
+failure_class                 STARTUP_PRECONDITION_REJECTION
+remediation_boundary          OPERATIONAL
+runtime_release_change_needed false
+P6 seal                       REMAINS_APPLICABLE
+P7-G5A safe launcher          REMAINS_PASS
+```
+
+Supporting evidence: pinned `main.py` acquires `RuntimeLock`, then calls
+`get_runtime_evidence_store().assert_runtime_epoch_ready(require_active=
+runtime_evidence_eligible())` before `asyncio.run(async_main())`. The G7 child
+environment set `BTC_EVIDENCE_ELIGIBLE=true`, making an ACTIVE runtime evidence
+epoch mandatory. The paper deployment logs contain no runtime evidence SQLite
+partition/ACTIVE epoch, while the runtime lock was acquired and released within
+the same startup attempt. This places the first failed/missing stage before
+`async_main()` and before the scheduler loop, not in model artifact loading,
+decision semantics, or launcher immutability.
+
+R1 evidence:
+
+```text
+runtime_activation_p7_r1_startup_timeline.json
+sha256 = 9948ac1f95619fd88b0bbb9e08ccdc70bf6c9fbf901b21afaae23d563f60e698
+
+runtime_activation_p7_r1_failure_classification.json
+sha256 = a231d56a3697dd19903d34571da9273b9be082e91815ae8833cb4a94e8ee053f
+
+runtime_activation_p7_r1_remediation_report.json
+sha256 = c25cda589d593e41eb80e3e4fd5a5ddc7875161df21c19f45c481040e745c983
+```
+
+The next valid step is an operational remediation gate that creates/activates
+the deployment-specific evidence epoch, or explicitly changes the paper-startup
+evidence policy, without mutating the pinned runtime source or canonical P6
+artifact inputs. Any second activation attempt requires a fresh preflight and a
+new G6 authorization SHA.
+
 Evidence artifacts:
 
 ```text
@@ -944,12 +1008,18 @@ runtime_activation_p7_g7_invocation.json
 runtime_activation_p7_g7_invocation.json.sha256
 runtime_activation_p7_g8_readback.json
 runtime_activation_p7_g8_readback.json.sha256
+runtime_activation_p7_r1_startup_timeline.json
+runtime_activation_p7_r1_startup_timeline.json.sha256
+runtime_activation_p7_r1_failure_classification.json
+runtime_activation_p7_r1_failure_classification.json.sha256
+runtime_activation_p7_r1_remediation_report.json
+runtime_activation_p7_r1_remediation_report.json.sha256
 ```
 
 The next authorized step is not another launch. The consumed authorization
-cannot be reused. The next step is to diagnose the early child exit, decide the
-minimum remediation scope, then generate a fresh G6 authorization before any
-second activation attempt.
+cannot be reused. The next step is operational remediation for the missing
+ACTIVE evidence epoch/startup precondition, then a fresh G6 authorization before
+any second activation attempt.
 
 ---
 
