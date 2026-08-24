@@ -1,0 +1,125 @@
+{
+  "activation_attempt": 3,
+  "artifact": "runtime_activation_p7_g7_attempt3_invocation",
+  "authorization_3": "CONSUMED_FAILED",
+  "authorization_sha256": "5989e631a683899468554076700be37bae23a283f3258d8ddc93c734369dc8d0",
+  "automatic_retry": 0,
+  "baseline_lock_event_count": 4,
+  "baseline_runtime_pause_state": null,
+  "budgets": {
+    "automatic_retry": false,
+    "restart_budget": 0,
+    "spawn_budget": 1
+  },
+  "child_pid": 43050,
+  "created_at": "2026-08-24T17:04:54.430328+00:00",
+  "evidence_paths": {
+    "contract": "p7-supervised-child/v1",
+    "exit_code_capture": "READY",
+    "g7_invocation_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/g7_invocation.json",
+    "g8_a_report_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/g8_a_identity.json",
+    "g8_b_report_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/g8_b_liveness.json",
+    "lifecycle_capture": "READY",
+    "signal_capture": "READY",
+    "stderr_capture": "READY",
+    "stderr_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/child.stderr.log",
+    "stdout_capture": "READY",
+    "stdout_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/child.stdout.log",
+    "supervision_report_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/supervision.json"
+  },
+  "launch_request": {
+    "argv": [
+      "/home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python",
+      "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+    ],
+    "automatic_retry": false,
+    "cwd": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798",
+    "environment_overrides": {
+      "AUTO_TRADE_BINANCE_TESTNET": "true",
+      "AUTO_TRADE_DRY_RUN": "true",
+      "BTC_DEPLOYMENT_ID": "paper-canary-20260824-01",
+      "BTC_EVIDENCE_ELIGIBLE": "true",
+      "BTC_PAPER_RUN_ID": "paper-canary-20260824-01",
+      "BTC_RUNTIME_ENVIRONMENT": "paper",
+      "LIVE_TRADING_ENABLED": "false",
+      "P7_ARTIFACT_SHA256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "P7_LAUNCHER_CONTRACT": "paper-canary-launcher/v1",
+      "P7_MANIFEST_PATH": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime_activation_p7_manifest.json",
+      "P7_MANIFEST_SHA256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+      "P7_RELEASE_COMMIT_SHA": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+      "P7_RELEASE_TREE_SHA": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONPATH": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798"
+    },
+    "restart_budget": 0,
+    "spawn_budget": 1
+  },
+  "post_attempt_state": "G8B_FAIL_NOT_SUSTAINED",
+  "pre_spawn": {
+    "active_epochs": [
+      {
+        "activated_at": "2026-08-24T04:41:15.723151+00:00",
+        "analysis_universe": "[\"BTC\",\"ETH\",\"BNB\",\"SOL\",\"ZEC\",\"XRP\",\"DOGE\",\"WLD\",\"XLM\",\"NEAR\",\"AVAX\",\"TAO\",\"TRB\",\"AEVO\",\"ENA\",\"AR\",\"IOTA\",\"XPL\",\"SOPH\",\"XAUT\",\"TRX\",\"TRUMP\"]",
+        "analysis_universe_hash": "9cbf387f6762a2b76ca96f51f1f6c9bcc836ebc64a9fa67773d70a48bb90fedd",
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "code_commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "deployment_id": "paper-canary-20260824-01",
+        "epoch_id": "canary-p6-sealed-v1-20260824-01",
+        "evidence_policy_version": "evidence-v4",
+        "feature_schema_version": "meta-v3.1-43f",
+        "model_version": "v3.1",
+        "paper_run_id": "paper-canary-20260824-01",
+        "release_manifest": "{\"analysis_universe\":\"BTC,ETH,BNB,SOL,ZEC,XRP,DOGE,WLD,XLM,NEAR,AVAX,TAO,TRB,AEVO,ENA,AR,IOTA,XPL,SOPH,XAUT,TRX,TRUMP\",\"artifact_sha256\":\"dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c\",\"decision_contract\":\"side-probability-v2\",\"deployment_id\":\"paper-canary-20260824-01\",\"feature_schema_version\":\"meta-v3.1-43f\",\"manifest_schema_version\":\"evidence-manifest-v1\",\"metadata_sha256\":\"6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591\",\"paper_run_id\":\"paper-canary-20260824-01\",\"probability_semantics\":\"P(up)\",\"registry_sha256\":\"445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a\",\"release_sha\":\"5e8d798e4d06d6abd21ade99c79caaa93307dd5b\"}",
+        "release_manifest_sha256": "88f4796604468c949b82477861066f42e1a405cfaf82e49853258174f7f95c5b",
+        "risk_policy_version": "risk-fail-closed-v1",
+        "runtime_pause_policy": "{\"dependency_health_policy\":\"REQUIRED_DEPENDENCIES_FAIL_CLOSED\",\"dependency_probe_backoff_seconds\":[5.0,15.0,30.0,60.0],\"incomplete_cycle_behavior\":\"RECOVER_OR_INTERRUPT_EXTERNAL\",\"lease_behavior_on_pause\":\"REACQUIRE_AFTER_CLOCK_GAP\",\"maximum_clock_gap_before_recovery_seconds\":90.0,\"maximum_pause_duration_seconds\":null,\"pausable_reason_codes\":[\"RUNTIME_PAUSED_NETWORK_UNAVAILABLE\",\"RUNTIME_PAUSED_DNS_UNAVAILABLE\",\"RUNTIME_PAUSED_MONGODB_UNAVAILABLE\",\"RUNTIME_PAUSED_MARKET_PROVIDER_UNAVAILABLE\",\"RUNTIME_PAUSED_EXTERNAL_API_UNAVAILABLE\",\"RUNTIME_PAUSED_SYSTEM_SLEEP_DETECTED\",\"RUNTIME_PAUSED_CLOCK_GAP_DETECTED\"],\"policy_version\":\"runtime-pause-v1\",\"recovery_stabilization_seconds\":30.0,\"recovery_success_threshold\":3,\"resume_catch_up_policy\":\"CURRENT_SESSION_ONLY\",\"resume_policy_version\":\"runtime-resume-v1\",\"terminal_reason_codes\":[\"MODEL_ARTIFACT_HASH_MISMATCH\",\"DECISION_CONTRACT_MISMATCH\",\"CANONICAL_EVIDENCE_CONFLICT\",\"DEPLOYMENT_LINEAGE_MISMATCH\",\"EXECUTION_FINAL_DECISION_MISMATCH\",\"DUPLICATE_CONFLICTING_ECONOMIC_EVIDENCE\",\"EPOCH_TERMINAL_RISK_POLICY_BREACH\",\"MANUAL_INVALIDATION_AUTHORIZED\"]}",
+        "runtime_schema_version": 6,
+        "started_at": "2026-08-24T04:41:15.697998+00:00",
+        "status": "ACTIVE",
+        "updated_at": "2026-08-24T04:41:15.723151+00:00"
+      }
+    ],
+    "active_runner_lines": [],
+    "authorization_sha256": "5989e631a683899468554076700be37bae23a283f3258d8ddc93c734369dc8d0",
+    "checked_at": "2026-08-24T17:04:52.783712+00:00",
+    "git_head": "b4d5b3ef7610fdf68aa08a58c94b8116ae564548",
+    "git_status": [
+      "M runtime_activation_p7_attempt3_preflight.json",
+      " M runtime_activation_p7_attempt3_preflight.json.sha256",
+      "?? runtime_activation_p7_g6_attempt3_authorization.json",
+      "?? runtime_activation_p7_g6_attempt3_authorization.json.sha256"
+    ],
+    "git_tree": "a5ffb4a0643b712a10aeef9d188d774682cc4f5a",
+    "immutable_hashes": {
+      "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+      "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+      "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+      "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+      "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+      "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+      "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+    },
+    "runtime_head": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "runtime_lock_exists": false,
+    "runtime_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+    "sidecar_check": "runtime_activation_p7_g6_attempt3_authorization.json: OK",
+    "startup_probe": {
+      "json": {
+        "deployment_id": "paper-canary-20260824-01",
+        "epoch_id": "canary-p6-sealed-v1-20260824-01",
+        "evidence_eligible": true,
+        "paper_run_id": "paper-canary-20260824-01",
+        "status": "ACTIVE"
+      },
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"deployment_id\": \"paper-canary-20260824-01\", \"epoch_id\": \"canary-p6-sealed-v1-20260824-01\", \"evidence_eligible\": true, \"paper_run_id\": \"paper-canary-20260824-01\", \"status\": \"ACTIVE\"}"
+    }
+  },
+  "preflight_sha256": "825e8e8b0afdaf4578440b41beb799e3fd664c3ebe54f30fb3500c18b8dd3bb6",
+  "restart_count": 0,
+  "spawn_attempt_count": 1,
+  "spawn_result": "SPAWNED",
+  "status": "READY_TO_SPAWN"
+}

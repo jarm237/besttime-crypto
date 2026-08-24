@@ -1,0 +1,60 @@
+{
+  "artifact": "runtime_activation_p7_g8a_attempt3_identity",
+  "child_pid": 43050,
+  "g8_a_pass_alone_is_active": false,
+  "immutable_hashes": {
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+    "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+    "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+    "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+    "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+  },
+  "lock_acquired": {
+    "deployment_id": "paper-canary-20260824-01",
+    "environment": "paper",
+    "event_type": "runtime_lock_acquired",
+    "lock": {
+      "acquired_at": "2026-08-24T17:04:59.791995+00:00",
+      "data_root": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/data",
+      "deployment_id": "paper-canary-20260824-01",
+      "environment": "paper",
+      "hostname": "FV-LT2024-0002",
+      "lock_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/state/runtime.lock",
+      "log_root": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/logs",
+      "ownership_revision": "a8377127167940a49db039c553a0ca51",
+      "process_id": 43050,
+      "runtime_id": "20260824T170454Z-43050",
+      "started_at": "2026-08-24T17:04:54.792635+00:00"
+    },
+    "process_id": 43050,
+    "runtime_id": "20260824T170454Z-43050",
+    "written_at": "2026-08-24T17:04:59.793108+00:00"
+  },
+  "observed_at": "2026-08-24T17:05:00.588183+00:00",
+  "paper_canary": "NOT_YET_ACTIVE",
+  "runner_lines": [
+    "43050 /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python /home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+  ],
+  "runtime_activation": "ESTABLISHING",
+  "runtime_pause_state": {
+    "consecutive_healthy_probes": 0,
+    "epoch_state": "ACTIVE",
+    "failed_probes": 0,
+    "healthy_since": null,
+    "last_monotonic_heartbeat": 17033.708195124,
+    "last_wall_heartbeat": "2026-08-24T17:04:59.810315+00:00",
+    "pause_intervals": [],
+    "paused_at": null,
+    "policy_version": "runtime-pause-v1",
+    "reason_code": null,
+    "reason_detail": "startup_preflight_complete",
+    "resume_policy_version": "runtime-resume-v1",
+    "runtime_state": "RUNNING",
+    "scheduled_cycle_missed_external_pause": 0,
+    "updated_at": "2026-08-24T17:04:59.813475+00:00"
+  },
+  "status": "PASS_IDENTITY_ESTABLISHED"
+}

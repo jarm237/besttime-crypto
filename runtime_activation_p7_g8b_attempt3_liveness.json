@@ -1,0 +1,38 @@
+{
+  "artifact": "runtime_activation_p7_g8b_attempt3_liveness",
+  "child_pid": 43050,
+  "corrected_at": "2026-08-24T17:11:25.815517+00:00",
+  "exit_status_observation": "UNAVAILABLE_OBSERVER_WAIT_HANDLE_RELEASED",
+  "failure_summary": "inference_symbol_unsupported:SOL",
+  "heartbeat_validation": {
+    "baseline_event_count": 2,
+    "event_count": 2,
+    "observed_at": "2026-08-24T17:10:56.282818+00:00",
+    "pid_alive": false,
+    "post_baseline_events": [],
+    "runtime_pause_state": {
+      "consecutive_healthy_probes": 0,
+      "epoch_state": "ACTIVE",
+      "failed_probes": 0,
+      "healthy_since": null,
+      "last_monotonic_heartbeat": 17033.708195124,
+      "last_wall_heartbeat": "2026-08-24T17:04:59.810315+00:00",
+      "pause_intervals": [],
+      "paused_at": null,
+      "policy_version": "runtime-pause-v1",
+      "reason_code": null,
+      "reason_detail": "startup_preflight_complete",
+      "resume_policy_version": "runtime-resume-v1",
+      "runtime_state": "RUNNING",
+      "scheduled_cycle_missed_external_pause": 0,
+      "updated_at": "2026-08-24T17:04:59.813475+00:00"
+    },
+    "status": "FAIL_NOT_SUSTAINED"
+  },
+  "not_arbitrary_survival": true,
+  "observed_at": "2026-08-24T17:10:56.282818+00:00",
+  "paper_canary": "NOT_ACTIVE",
+  "runtime_activation": "NOT_ACTIVE",
+  "semantic_marker": "RuntimePauseController.heartbeat persisted after scheduler loop entry",
+  "status": "FAIL_NOT_SUSTAINED"
+}

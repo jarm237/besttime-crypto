@@ -1,0 +1,236 @@
+{
+  "artifact": "runtime_activation_p7_attempt3_supervision",
+  "automatic_retry": false,
+  "child_pid": 43050,
+  "contract": "p7-supervised-child/v1",
+  "failure_summary": "inference_symbol_unsupported:SOL",
+  "last_observed_stage": "FIRST_RUNTIME_HEARTBEAT",
+  "late_exit_observed_at": "2026-08-24T17:11:25.816168+00:00",
+  "observations_tail": [
+    {
+      "alive": true,
+      "at": "2026-08-24T17:04:56.514552+00:00",
+      "attempt_lock_events": [],
+      "immutable_hashes": {
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+        "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+        "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+      },
+      "returncode": null,
+      "runner_lines": [
+        "43050 /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python /home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+      ],
+      "state": null
+    },
+    {
+      "alive": true,
+      "at": "2026-08-24T17:04:57.533723+00:00",
+      "attempt_lock_events": [],
+      "immutable_hashes": {
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+        "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+        "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+      },
+      "returncode": null,
+      "runner_lines": [
+        "43050 /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python /home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+      ],
+      "state": null
+    },
+    {
+      "alive": true,
+      "at": "2026-08-24T17:04:58.550382+00:00",
+      "attempt_lock_events": [],
+      "immutable_hashes": {
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+        "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+        "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+      },
+      "returncode": null,
+      "runner_lines": [
+        "43050 /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python /home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+      ],
+      "state": null
+    },
+    {
+      "alive": true,
+      "at": "2026-08-24T17:04:59.570346+00:00",
+      "attempt_lock_events": [],
+      "immutable_hashes": {
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+        "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+        "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+      },
+      "returncode": null,
+      "runner_lines": [
+        "43050 /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python /home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+      ],
+      "state": null
+    },
+    {
+      "alive": true,
+      "at": "2026-08-24T17:05:00.588162+00:00",
+      "attempt_lock_events": [
+        {
+          "deployment_id": "paper-canary-20260824-01",
+          "environment": "paper",
+          "event_type": "runtime_lock_acquired",
+          "lock": {
+            "acquired_at": "2026-08-24T17:04:59.791995+00:00",
+            "data_root": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/data",
+            "deployment_id": "paper-canary-20260824-01",
+            "environment": "paper",
+            "hostname": "FV-LT2024-0002",
+            "lock_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/state/runtime.lock",
+            "log_root": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/logs",
+            "ownership_revision": "a8377127167940a49db039c553a0ca51",
+            "process_id": 43050,
+            "runtime_id": "20260824T170454Z-43050",
+            "started_at": "2026-08-24T17:04:54.792635+00:00"
+          },
+          "process_id": 43050,
+          "runtime_id": "20260824T170454Z-43050",
+          "written_at": "2026-08-24T17:04:59.793108+00:00"
+        }
+      ],
+      "immutable_hashes": {
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+        "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "runtime_release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "runtime_release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+        "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+      },
+      "returncode": null,
+      "runner_lines": [
+        "43050 /home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python /home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+      ],
+      "state": {
+        "consecutive_healthy_probes": 0,
+        "epoch_state": "ACTIVE",
+        "failed_probes": 0,
+        "healthy_since": null,
+        "last_monotonic_heartbeat": 17033.708195124,
+        "last_wall_heartbeat": "2026-08-24T17:04:59.810315+00:00",
+        "pause_intervals": [],
+        "paused_at": null,
+        "policy_version": "runtime-pause-v1",
+        "reason_code": null,
+        "reason_detail": "startup_preflight_complete",
+        "resume_policy_version": "runtime-resume-v1",
+        "runtime_state": "RUNNING",
+        "scheduled_cycle_missed_external_pause": 0,
+        "updated_at": "2026-08-24T17:04:59.813475+00:00"
+      }
+    }
+  ],
+  "process_result": {
+    "classification": "OBSERVABILITY_FAILURE_EXIT_STATUS_UNAVAILABLE",
+    "detail": "process exited after initial observer released Popen wait handle",
+    "exit_code": null,
+    "signal_name": null,
+    "signal_number": null
+  },
+  "restart_attempt_count": 0,
+  "spawn": {
+    "authorization_3": "CONSUMED",
+    "automatic_retry": 0,
+    "child_pid": 43050,
+    "restart_count": 0,
+    "spawn_attempt_count": 1,
+    "spawn_finished_at": "2026-08-24T17:04:54.441864+00:00",
+    "spawn_started_at": "2026-08-24T17:04:54.441088+00:00",
+    "status": "SPAWNED"
+  },
+  "spawn_attempt_count": 1,
+  "startup_stages": [
+    {
+      "code": "S0",
+      "evidence_type": "DIRECT",
+      "source": "subprocess_pid",
+      "stage": "CHILD_SPAWNED",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S1",
+      "evidence_type": "DIRECT",
+      "source": "poll_observation",
+      "stage": "PROCESS_VISIBLE",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S2",
+      "evidence_type": "DIRECT",
+      "source": "runtime_lock_log",
+      "stage": "RUNTIME_LOCK_ACQUIRED",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S3",
+      "evidence_type": "DERIVED",
+      "source": "runtime_evidence_store",
+      "stage": "ACTIVE_EPOCH_OBSERVED",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S4",
+      "evidence_type": "DIRECT",
+      "source": "runtime_pause_state",
+      "stage": "RUNTIME_MARKED_RUNNING",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S5",
+      "evidence_type": "UNOBSERVED",
+      "source": null,
+      "stage": "ASYNC_MAIN_EVIDENCE",
+      "status": "UNOBSERVED"
+    },
+    {
+      "code": "S6",
+      "evidence_type": "DIRECT",
+      "source": "scheduler_marker",
+      "stage": "SCHEDULER_STARTED_EVIDENCE",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S7",
+      "evidence_type": "DIRECT",
+      "source": "heartbeat",
+      "stage": "FIRST_RUNTIME_HEARTBEAT",
+      "status": "CONFIRMED"
+    },
+    {
+      "code": "S8",
+      "evidence_type": "UNOBSERVED",
+      "source": null,
+      "stage": "FIRST_CYCLE_EVIDENCE",
+      "status": "UNOBSERVED"
+    }
+  ],
+  "status": "EXITED_OBSERVED_LATE",
+  "stderr_sha256": "90230ea5be45bf14fbe2a197b4a2e8ed775596e60b6a7d00c9b9c0fbe1ddb07a",
+  "stdout_sha256": "9263276f8ecbf17986e42a47a3a42d573d0616f4be6d3564f223e3441ea253d0"
+}

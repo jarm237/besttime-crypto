@@ -1,0 +1,130 @@
+{
+  "activation_attempt": 3,
+  "activation_subject": {
+    "active_epoch_count": 1,
+    "deployment_id": "paper-canary-20260824-01",
+    "epoch_id": "canary-p6-sealed-v1-20260824-01",
+    "execution_mode": "PAPER",
+    "paper_run_id": "paper-canary-20260824-01",
+    "startup_precondition": "PASS"
+  },
+  "artifact": "runtime_activation_p7_g6_attempt3_authorization",
+  "attempt_3": "AUTHORIZED_NOT_EXECUTED",
+  "authorized": true,
+  "budgets": {
+    "automatic_retry": false,
+    "restart_budget": 0,
+    "spawn_budget": 1
+  },
+  "contract": "p7-activation-authorization/v1",
+  "created_at": "2026-08-24T14:55:23.249372+00:00",
+  "dynamic_recheck_before_mint": {
+    "active_epoch_count": 1,
+    "active_runner_count": 0,
+    "active_runner_lines": [],
+    "runtime_conflict": false,
+    "runtime_lock_exists": false,
+    "startup_precondition": "PASS"
+  },
+  "expiry_conditions": [
+    "governance HEAD changed",
+    "governance tree changed",
+    "runtime release changed",
+    "manifest SHA changed",
+    "artifact SHA changed",
+    "launcher SHA changed",
+    "supervisor SHA changed",
+    "ACTIVE epoch count != 1",
+    "startup precondition fails",
+    "active runner exists",
+    "runtime lock conflict exists",
+    "authorization already consumed"
+  ],
+  "g8": {
+    "g8_a_contract": "IDENTITY_ESTABLISHMENT",
+    "g8_a_pass_alone_is_active": false,
+    "g8_b_contract": "SUSTAINED_SEMANTIC_LIVENESS",
+    "g8_b_marker": "RuntimePauseController.heartbeat persisted after scheduler loop entry"
+  },
+  "governance": {
+    "allowed_operational_evidence_dirty": [
+      "runtime_activation_p7_attempt3_preflight.json",
+      "runtime_activation_p7_attempt3_preflight.json.sha256"
+    ],
+    "clean_source_state": true,
+    "commit": "b4d5b3ef7610fdf68aa08a58c94b8116ae564548",
+    "tree": "a5ffb4a0643b712a10aeef9d188d774682cc4f5a"
+  },
+  "identities": {
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "launcher_sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+    "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+    "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+    "post_seal_preflight_sha256": "825e8e8b0afdaf4578440b41beb799e3fd664c3ebe54f30fb3500c18b8dd3bb6",
+    "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea"
+  },
+  "launch_request": {
+    "argv": [
+      "/home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python",
+      "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+    ],
+    "automatic_retry": false,
+    "cwd": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798",
+    "environment_overrides": {
+      "AUTO_TRADE_BINANCE_TESTNET": "true",
+      "AUTO_TRADE_DRY_RUN": "true",
+      "BTC_DEPLOYMENT_ID": "paper-canary-20260824-01",
+      "BTC_EVIDENCE_ELIGIBLE": "true",
+      "BTC_PAPER_RUN_ID": "paper-canary-20260824-01",
+      "BTC_RUNTIME_ENVIRONMENT": "paper",
+      "LIVE_TRADING_ENABLED": "false",
+      "P7_ARTIFACT_SHA256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "P7_LAUNCHER_CONTRACT": "paper-canary-launcher/v1",
+      "P7_MANIFEST_PATH": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime_activation_p7_manifest.json",
+      "P7_MANIFEST_SHA256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+      "P7_RELEASE_COMMIT_SHA": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+      "P7_RELEASE_TREE_SHA": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONPATH": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798"
+    },
+    "restart_budget": 0,
+    "spawn_budget": 1
+  },
+  "lineage": {
+    "attempt_1": {
+      "authorization": "CONSUMED",
+      "result": "ACTIVATION_NOT_ESTABLISHED"
+    },
+    "attempt_2": {
+      "authorization": "CONSUMED_FAILED",
+      "result": "ACTIVATION_NOT_SUSTAINED_AFTER_G8"
+    },
+    "attempt_3": {
+      "authorization": "ARMED",
+      "result": "NOT_YET_EXECUTED"
+    }
+  },
+  "mandatory_stop_after_mint": true,
+  "paper_canary": "NOT_ACTIVE",
+  "runtime_release": {
+    "commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+    "worktree": "runtime/worktrees/pinned-5e8d798"
+  },
+  "runtime_spawn_count": 0,
+  "status": "ARMED",
+  "supervision": {
+    "contract": "p7-supervised-child/v1",
+    "exit_code_capture": "READY",
+    "g8_a_report_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/g8_a_identity.json",
+    "g8_b_report_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/g8_b_liveness.json",
+    "lifecycle_capture": "READY",
+    "signal_capture": "READY",
+    "stderr_capture": "READY",
+    "stderr_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/child.stderr.log",
+    "stdout_capture": "READY",
+    "stdout_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/child.stdout.log",
+    "supervision_report_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/activation_attempt_3/supervision.json"
+  }
+}
