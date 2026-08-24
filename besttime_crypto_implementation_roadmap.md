@@ -2242,3 +2242,500 @@ attempt #3 manifest
 attempt #3 preflight
 attempt #3 authorization
 ```
+
+## Model Coverage Program Governance Detail
+
+Current MC state:
+
+```text
+MC0              AWAITING_AUTHORIZATION
+MC1..MC9         NOT_STARTED
+
+authorization_4  NOT_CREATED
+attempt_4        NOT_AUTHORIZED
+paper_canary     NOT_ACTIVE
+active_runner_count = 0
+```
+
+MC0 is not model work. It only decides whether the 22-symbol coverage program may begin.
+
+The only valid MC0 verdicts are:
+
+```text
+AUTHORIZED
+NOT_AUTHORIZED
+```
+
+If MC0 is not authorized:
+
+```text
+P7 remains BLOCKED_ON_MODEL_COVERAGE
+MC1..MC9 remain NOT_STARTED
+technical workaround = FORBIDDEN
+```
+
+If MC0 is authorized, the authorized subject must be exact:
+
+```text
+AUTHORIZE_FULL_22_SYMBOL_MODEL_COVERAGE
+```
+
+Authorized scope after MC0 approval:
+
+```text
+per-symbol feasibility audit
+per-symbol data readiness audit
+training/retraining only after feasibility PASS
+calibration when required
+explicit inference routes
+artifact packaging
+artifact metadata correction
+compatibility matrix
+targeted P2/P5/P6 regression
+new runtime/artifact release seal
+```
+
+Not authorized by MC0:
+
+```text
+implicit fallback
+BTC-model-for-every-symbol shortcut
+silent skip unsupported symbols
+reducing canonical universe to unblock P7
+threshold tuning unrelated to coverage
+strategy redesign
+real-money deployment
+P7 attempt #4 before MC9
+```
+
+### MC1 — Coverage Contract
+
+MC1 can start only after MC0 is explicitly authorized.
+
+MC1 freezes:
+
+```text
+model-coverage/v1
+canonical 22-symbol list
+coverage semantics
+fallback forbidden
+route requirements explicit
+shared-model policy explicit
+```
+
+For each symbol, support means:
+
+```text
+symbol
+→ explicit inference route
+→ artifact/model identity
+→ schema identity
+→ calibration semantics
+→ supported inference output
+```
+
+Shared artifacts are allowed only when support is explicitly validated for each symbol in the shared set. Unknown-symbol fallback to a shared BTC/ETH/BNB route is not coverage.
+
+Artifact:
+
+```text
+model_coverage_mc1_contract.json
+```
+
+### MC2 — Per-Symbol Feasibility Audit
+
+MC2 audits feasibility before training.
+
+For each missing-route symbol:
+
+```text
+historical data range
+15m bar count
+missing-data ratio
+market availability
+feature availability
+label availability
+training sample count
+positive/negative class balance
+walk-forward feasibility
+temporal validity
+no-lookahead feasibility
+```
+
+Each symbol is classified as one of:
+
+```text
+FEASIBLE
+INSUFFICIENT_DATA
+INSUFFICIENT_LABEL_SUPPORT
+TEMPORAL_COVERAGE_INSUFFICIENT
+FEATURE_DATA_INCOMPLETE
+NON_TRANSPORTABLE
+```
+
+If any canonical symbol cannot support valid coverage:
+
+```text
+MC2 = BLOCKED_FULL_COVERAGE_INFEASIBLE
+MODEL_COVERAGE_PROGRAM = MODEL_COVERAGE_INFEASIBLE
+P7 remains BLOCKED_ON_MODEL_COVERAGE
+```
+
+No symbol may be silently dropped from the canonical 22.
+
+Artifact:
+
+```text
+model_coverage_mc2_feasibility.json
+```
+
+### MC3 — Training/Data Readiness
+
+MC3 opens only for symbols marked `FEASIBLE` by MC2. If the program requires 22/22 and any canonical symbol is not feasible, MC3 does not start.
+
+For each symbol, freeze:
+
+```text
+source
+date range
+sampling
+feature schema
+label definition
+split method
+training rows
+validation rows
+test rows
+dataset_sha256
+feature_schema_fingerprint
+label_contract_hash
+```
+
+Required audits:
+
+```text
+deterministic dataset build
+no future candles
+no target leakage
+no post-outcome fields
+no cross-split contamination
+```
+
+Exit:
+
+```text
+all 22 symbols training/data ready
+```
+
+or STOP.
+
+Artifact:
+
+```text
+model_coverage_mc3_data_readiness.json
+```
+
+### MC4 — Explicit Route Implementation
+
+MC4 is the first implementation phase for model coverage.
+
+Training protocol must be frozen before training:
+
+```text
+model family
+hyperparameter search budget
+calibration
+evaluation metric
+promotion threshold
+random seed
+```
+
+Per-symbol support requires evidence:
+
+```text
+training completed
+validation completed
+OOS evaluated
+artifact load PASS
+schema PASS
+inference smoke PASS
+explicit route PASS
+```
+
+Unknown symbol behavior remains:
+
+```text
+UNKNOWN → inference_symbol_unsupported:<symbol>
+```
+
+Exit:
+
+```text
+actual_inference_route_symbols = 22
+```
+
+Artifact:
+
+```text
+model_coverage_mc4_routes.json
+```
+
+### MC5 — Artifact Coverage Closure
+
+MC5 proves the artifact bundle tells the truth.
+
+Required:
+
+```text
+artifact_declared_symbols = 22
+actual_routes             = 22
+```
+
+For each route:
+
+```text
+symbol
+artifact_sha
+schema_fingerprint
+model_version
+calibration_identity
+training_contract
+```
+
+Bundle identity:
+
+```text
+coverage_bundle_sha256
+```
+
+All 22 symbols must pass:
+
+```text
+load
+schema validate
+canonical feature vector inference smoke
+```
+
+Artifact:
+
+```text
+model_coverage_mc5_artifact_closure.json
+```
+
+### MC6 — 22-Symbol Compatibility Matrix
+
+Define:
+
+```text
+I = canonical intended symbols
+R = runtime symbols
+M = artifact metadata symbols
+A = actual inference routes
+```
+
+Required:
+
+```text
+I == R == M == A
+count = 22
+```
+
+All set differences must be empty:
+
+```text
+I - R = []
+R - I = []
+R - A = []
+A - R = []
+M - A = []
+A - M = []
+```
+
+R4 regression:
+
+```text
+RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY = PASS
+unsupported_symbols = []
+```
+
+Negative test remains required:
+
+```text
+inject unsupported symbol
+→ BLOCKED_INFERENCE_SYMBOL_UNSUPPORTED
+```
+
+Artifact:
+
+```text
+model_coverage_mc6_compatibility_matrix.json
+```
+
+### MC7 — P2/P5/P6 Regression
+
+Coverage closure must preserve prior contracts:
+
+```text
+P2 explicit symbol routing
+P2 no implicit fallback
+P2 artifact identity propagation
+P2 unsupported unknown symbol fail closed
+
+P5 live == replay evaluator semantics
+
+P6 artifact provenance
+P6 schema fingerprint
+P6 exact 4-feature vector
+P6 72 -> WARMING_UP
+P6 73 -> READY
+P6 no downstream on precondition failure
+```
+
+All 22 symbols must obey the same readiness contract unless a new versioned contract explicitly changes and reseals P6.
+
+Full suite expectation:
+
+```text
+new failures = 0
+replacement failures = 0
+```
+
+Artifact:
+
+```text
+model_coverage_mc7_regression_report.json
+```
+
+### MC8 — New Runtime/Artifact Release Seal
+
+MC8 is mandatory because deployable identities will change.
+
+Old release:
+
+```text
+5e8d798...
+```
+
+must not be automatically reused.
+
+Freeze:
+
+```text
+new runtime commit
+new runtime tree
+new artifact/bundle SHA
+new schema fingerprint
+coverage contract
+release manifest binding 22 canonical/declared/actual-route symbols
+P1-P6 contract identities
+MC coverage contract identity
+```
+
+Post-seal reproduction:
+
+```text
+coverage matrix
+P2/P5/P6 subset
+P7 preflight symbol gate
+artifact load matrix
+worktree = clean
+```
+
+Exit:
+
+```text
+MC8 = PASS_NEW_22_SYMBOL_RELEASE_SEALED
+```
+
+Artifact:
+
+```text
+model_coverage_mc8_release_report.json
+```
+
+### MC9 — Handoff Back to P7
+
+MC9 does not activate anything.
+
+Required:
+
+```text
+RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY = PASS
+unsupported_symbols = []
+```
+
+Assess existing evidence epoch binding against the new MC8 release:
+
+```text
+compatible_transition
+```
+
+or:
+
+```text
+REPROVISION_REQUIRED
+```
+
+MC9 final state:
+
+```text
+MODEL_COVERAGE_PROGRAM = CLOSED
+P7 = READY_FOR_ATTEMPT_4_PREFLIGHT
+authorization_4 = NOT_CREATED
+attempt_4 = NOT_AUTHORIZED
+paper_canary = NOT_ACTIVE
+```
+
+Artifact:
+
+```text
+model_coverage_mc9_handoff.json
+```
+
+### Model Coverage Program Stop Conditions
+
+Stop if any occurs:
+
+```text
+MC2 infeasibility for any canonical symbol
+training not explicitly authorized by MC0
+label leakage
+temporal leakage
+insufficient provenance
+model quality insufficient
+artifact metadata/routes mismatch
+P2/P5/P6 regression
+new model family/objective required beyond authorized contract
+```
+
+If solving coverage requires a new model family/objective beyond MC0:
+
+```text
+STOP
+NEW_RESEARCH_AUTHORIZATION_REQUIRED
+```
+
+### Whole Program Definition of Done
+
+The program closes only when:
+
+```text
+[1] MC0 explicit authorization exists.
+[2] Canonical 22 symbols frozen.
+[3] All 22 feasible.
+[4] All 22 have data/training readiness.
+[5] All 22 have explicit inference routes.
+[6] Artifact metadata truthfully declares all 22.
+[7] No unsupported symbols remain.
+[8] No implicit fallback exists.
+[9] Full 22-symbol compatibility matrix passes.
+[10] P2 regression passes.
+[11] P5 regression passes.
+[12] P6 artifact/schema/readiness regression passes.
+[13] Full suite has no new regressions.
+[14] New runtime/artifact release is sealed.
+[15] P7 compatibility preflight is capable of passing.
+[16] Evidence epoch compatibility is assessed.
+[17] No paper runtime was launched during MC0-MC9.
+[18] authorization #4 still does not exist.
+[19] attempt #4 still not authorized.
+```
