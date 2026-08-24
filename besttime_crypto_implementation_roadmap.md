@@ -832,12 +832,12 @@ P7-G3 DEPLOYMENT MANIFEST                PASS
 P7-G4 PINNED RUNTIME ENVIRONMENT         PASS
 P7-G5 ACTIVATION PREFLIGHT               PASS
 P7-G5A SAFE LAUNCHER CONTRACT            PASS
-P7-G6 ACTIVATION AUTHORIZATION FREEZE    READY_TO_ARM
+P7-G6 ACTIVATION AUTHORIZATION FREEZE    TOOLING_READY
 P7-G7 CONTROLLED PAPER-CANARY START      NOT_RUN
 P7-G8 POST-START READ-BACK               NOT_RUN
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    NOT_RUN
 P7-G10 OBSERVATION HANDOFF               NOT_RUN
-P7                                     IN_PROGRESS_READY_FOR_G6_AUTHORIZATION
+P7                                     IN_PROGRESS_G6_AUTHORIZATION_TOOLING_READY
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -891,6 +891,22 @@ real_money_production  NOT_AUTHORIZED
 successor_research     NOT_AUTHORIZED
 ```
 
+P7-G6 authorization is implemented as a read-only snapshot generator,
+`scripts/p7_g6_authorization_snapshot.py`, with tests in
+`tests/ml/test_p7_g6_authorization_snapshot.py`. The generator re-verifies the
+governance checkout identity, pinned runtime identity, immutable input hashes,
+process-conflict snapshot, paper-only child argv/env, and launcher
+`--validate-only` before writing a canonical
+`runtime_activation_p7_g6_authorization.json` plus `.sha256` sidecar. It does
+not call `launch()` and must not spawn a child process.
+
+Important governance nuance: the authorization artifact binds to the current
+governance `HEAD` and tree. Therefore the tooling/roadmap checkpoint is
+committed first, and the G6 authorization artifact is generated after that
+commit. Committing the generated authorization artifact would change
+governance `HEAD` and make that authorization stale; it is operational
+evidence for the next P7-G7 launch seam rather than a runtime-release change.
+
 Evidence artifacts:
 
 ```text
@@ -901,11 +917,13 @@ runtime_activation_p7_readback.json
 runtime_activation_p7_first_cycle.json
 runtime_activation_p7_report.json
 runtime_activation_p7_g5a_launcher_report.json
+runtime_activation_p7_g6_authorization.json
+runtime_activation_p7_g6_authorization.json.sha256
 ```
 
-The next authorized step is P7-G6: take a final read-only authorization snapshot
-and freeze the exact launch command. G6 may arm activation, but must still not
-start the runtime. The actual one-shot start remains P7-G7.
+The next authorized step is to run the G6 snapshot generator after this
+governance tooling commit is sealed. A passing G6 snapshot may arm activation,
+but must still not start the runtime. The actual one-shot start remains P7-G7.
 
 ---
 
