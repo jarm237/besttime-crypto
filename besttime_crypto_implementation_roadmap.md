@@ -834,12 +834,13 @@ P7-G5 ACTIVATION PREFLIGHT               PASS
 P7-G5A SAFE LAUNCHER CONTRACT            PASS
 P7-G6 ACTIVATION AUTHORIZATION FREEZE    ARMED_CONSUMED
 P7-G7 CONTROLLED PAPER-CANARY START      PASS_SPAWNED_ONCE
-P7-G8 POST-START READ-BACK               ACTIVATION_NOT_ESTABLISHED
+P7-G8 POST-START READ-BACK               PASS_ACTIVE_IMMEDIATE_NOT_SUSTAINED
 P7-R1 EARLY CHILD EXIT FORENSICS         PASS_OPERATIONAL_PRECONDITION
 P7-R2 EVIDENCE EPOCH PROVISIONING        PASS_OPERATIONAL_STATE_PROVISIONED
+P7-R3 POST-EPOCH STARTUP EXIT FORENSICS  READY
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    BLOCKED_NOT_ACTIVE
 P7-G10 OBSERVATION HANDOFF               BLOCKED_NOT_ACTIVE
-P7                                     READY_FOR_FRESH_PREFLIGHT_AND_NEW_G6
+P7                                     BLOCKED_AFTER_ACTIVATION_ATTEMPT_2
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -887,8 +888,9 @@ The current status is therefore:
 
 ```text
 ready_to_arm           false
-activation_authorized  consumed
-runtime_activation     NOT_PERFORMED_AFTER_R2
+activation_authorized  consumed_success_attempt_2
+runtime_activation     NOT_SUSTAINED_AFTER_G8
+paper_canary           NOT_ACTIVE
 real_money_production  NOT_AUTHORIZED
 successor_research     NOT_AUTHORIZED
 ```
@@ -1033,6 +1035,88 @@ sha256 = f4b2527f760edfee0eaa730a7f17d1a2a0e534b7001ee63080475037c8a3a186
 Any second activation attempt still requires a fresh P7 preflight and a new G6
 authorization SHA.
 
+Fresh preflight and controlled activation attempt #2 completed after R2. The
+attempt #2 preflight proved the intended delta from attempt #1 was limited to
+the ACTIVE evidence epoch remediation:
+
+```text
+attempt_1 active evidence epoch       absent
+attempt_1 startup precondition        FAIL
+attempt_1 result                      ACTIVATION_NOT_ESTABLISHED
+
+attempt_2 active evidence epoch       present
+attempt_2 startup precondition        PASS
+attempt_2 active runner before launch 0
+
+unchanged                             runtime release, runtime tree, artifact,
+                                      sidecar, registry, manifest, launcher,
+                                      execution_mode = PAPER
+```
+
+G6 authorization #2 was generated as a distinct single-use authorization:
+
+```text
+authorization_sha256 =
+22792ca76f119230e5f3ee8c9de77caec6b41a46733111bc36c8d31d10ed73a8
+
+activation_attempt = 2
+spawn_budget       = 1
+automatic_retry    = false
+previous_attempt   = ACTIVATION_NOT_ESTABLISHED
+```
+
+G7 attempt #2 consumed that authorization exactly once. The launcher returned
+`SPAWNED` with child PID `839623`, spawn attempts `1`, and automatic retries
+`0`. Immediate G8 authoritative read-back found:
+
+```text
+active_runner_count        1
+runner_pid                 839623
+epoch_identity             PASS
+runtime_identity           PASS
+immutable_inputs           UNCHANGED
+decision_matrix_verdict    ACTIVATION_PASS
+runtime_activation         ACTIVE
+paper_canary               ACTIVE
+```
+
+The active runner command is the pinned release entrypoint:
+
+```text
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python
+/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py
+```
+
+No G9 synthetic cycle was run. The next valid gate is P7-G9: observe the first
+natural scheduler cycle and validate lineage/readiness/decision semantics.
+
+However, the post-G8 liveness check before checkpoint commit found PID `839623`
+was no longer active. Runtime lock events show attempt #2 acquired and released
+the paper runtime lock:
+
+```text
+runtime_id = 20260824T064257Z-839623
+lock_acquired_at = 2026-08-24T06:43:09.500367+00:00
+lock_released_at = 2026-08-24T06:43:09.510542+00:00
+```
+
+Therefore the refined activation state is:
+
+```text
+immediate_g8_verdict        ACTIVATION_PASS
+post_g8_liveness            ACTIVATION_NOT_SUSTAINED_AFTER_G8
+current_active_runner_count 0
+runtime_activation          NOT_SUSTAINED_AFTER_G8
+paper_canary                NOT_ACTIVE
+authorization_2             CONSUMED_FAILED
+```
+
+This proves R2 crossed the attempt #1 blocker, because the ACTIVE epoch
+precondition passed and the child reached runtime lock acquisition. The new
+failure is later in startup lifecycle, after the evidence epoch gate. Do not
+retry authorization #2. The next valid gate is P7-R3 post-epoch startup exit
+forensics.
+
 Evidence artifacts:
 
 ```text
@@ -1059,12 +1143,26 @@ runtime_activation_p7_r2_dry_run_report.json
 runtime_activation_p7_r2_dry_run_report.json.sha256
 runtime_activation_p7_r2_provisioning_report.json
 runtime_activation_p7_r2_provisioning_report.json.sha256
+runtime_activation_p7_attempt2_preflight_delta.json
+runtime_activation_p7_attempt2_preflight_delta.json.sha256
+runtime_activation_p7_attempt2_preflight.json
+runtime_activation_p7_attempt2_preflight.json.sha256
+runtime_activation_p7_g6_attempt2_authorization.json
+runtime_activation_p7_g6_attempt2_authorization.json.sha256
+runtime_activation_p7_g7_attempt2_invocation.json
+runtime_activation_p7_g7_attempt2_invocation.json.sha256
+runtime_activation_p7_g8_attempt2_readback.json
+runtime_activation_p7_g8_attempt2_readback.json.sha256
+runtime_activation_p7_attempt2_report.json
+runtime_activation_p7_attempt2_report.json.sha256
+runtime_activation_p7_attempt2_post_g8_liveness.json
+runtime_activation_p7_attempt2_post_g8_liveness.json.sha256
 ```
 
-The next authorized step is not another launch. The consumed authorization
-cannot be reused. The next step is a fresh read-only P7 preflight that includes
-the ACTIVE epoch precondition, followed by a new G6 authorization before any
-second activation attempt.
+The next authorized step is not another launch. Authorization #2 is consumed.
+The next step is P7-R3 post-epoch startup exit forensics. Do not force a
+synthetic cycle, lower thresholds, inject a trade, or retry without a new
+forensic/remediation gate and fresh G6 authorization.
 
 ---
 
