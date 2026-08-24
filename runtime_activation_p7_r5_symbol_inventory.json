@@ -1,0 +1,44 @@
+{
+  "artifact": "runtime_activation_p7_r5_symbol_inventory",
+  "contract": "p7-r5-symbol-provenance-inventory/v1",
+  "created_at": "2026-08-25T00:00:00+07:00",
+  "provenance_sources": {
+    "actual_route": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.model_route_supported_symbols; underlying estimator V5FilterModelClassifier.model_params keys",
+    "artifact_metadata": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.artifact_supported_symbols; InferenceArtifact.__post_init__ defaults empty supported_symbols to get_analysis_universe()",
+    "canonical_contract": "runtime_activation_p7_r5_canonical_universe_decision.json",
+    "runtime_config": "btc_scraper.core.config.DEFAULT_ANALYSIS_UNIVERSE -> get_analysis_universe() -> get_runtime_universe()"
+  },
+  "resolved": true,
+  "symbols": [
+    {"symbol": "BTC", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": true, "verdict": "PASS"},
+    {"symbol": "ETH", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": true, "verdict": "PASS"},
+    {"symbol": "BNB", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": true, "verdict": "PASS"},
+    {"symbol": "SOL", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "ZEC", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "XRP", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "DOGE", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "WLD", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "XLM", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "NEAR", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "AVAX", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "TAO", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "TRB", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "AEVO", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "ENA", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "AR", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "IOTA", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "XPL", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "SOPH", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "XAUT", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "TRX", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"},
+    {"symbol": "TRUMP", "intended": true, "runtime_config": true, "artifact_metadata": true, "actual_route": false, "verdict": "FAIL_MISSING_ROUTE"}
+  ],
+  "summary": {
+    "actual_route_count": 3,
+    "artifact_metadata_count": 22,
+    "canonical_count": 22,
+    "missing_route_count": 19,
+    "runtime_config_count": 22
+  },
+  "verdict": "FAIL_MODEL_ROUTE_COVERAGE_INCOMPLETE"
+}

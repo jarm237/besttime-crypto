@@ -1,0 +1,47 @@
+{
+  "artifact": "runtime_activation_p7_r5_contract_impact",
+  "contract": "p7-r5-contract-impact/v1",
+  "created_at": "2026-08-25T00:00:00+07:00",
+  "affected_contracts": [
+    {
+      "contract": "P2 explicit-inference/v1",
+      "impact": "Actual inference remains fail-closed and explicit, but coverage is only BTC/ETH/BNB while canonical runtime requires 22.",
+      "status": "COVERAGE_GAP_EXPOSED"
+    },
+    {
+      "contract": "P5 common-evaluator/v1",
+      "impact": "No evaluator semantic change performed in R5 evidence phase.",
+      "status": "UNCHANGED"
+    },
+    {
+      "contract": "P6 artifact identity/schema/readiness",
+      "impact": "Artifact bytes/schema/readiness remain sealed; symbol coverage is a successor contract gap rather than a schema/readiness byte mutation.",
+      "status": "REMAINS_CLOSED_WITH_SYMBOL_COVERAGE_SUCCESSOR_GAP"
+    },
+    {
+      "contract": "P7 deployment manifest and evidence epoch",
+      "impact": "Existing P7 activation line is bound to a 22-symbol runtime universe and cannot proceed with only 3 actual inference routes.",
+      "status": "BLOCKED"
+    },
+    {
+      "contract": "P7 R4 runtime symbol universe compatibility preflight",
+      "impact": "R4 gate correctly blocks the 22-runtime/3-route mismatch.",
+      "status": "PASS_AS_BLOCKING_GATE"
+    },
+    {
+      "contract": "symbol-coverage/v1",
+      "impact": "New successor coverage contract is required before any fresh authorization #4.",
+      "status": "REQUIRED_NOT_CLOSED"
+    }
+  ],
+  "gitnexus_impact_summary": {
+    "InferenceArtifact": {"risk": "HIGH", "impacted_count": 114, "direct": 11},
+    "_inference_artifact_for_model": {"risk": "CRITICAL", "impacted_count": 23, "processes_affected": 10},
+    "get_analysis_universe": {"risk": "CRITICAL", "impacted_count": 86, "processes_affected": 18},
+    "parse_runtime_symbols": {"risk": "CRITICAL", "impacted_count": 37, "processes_affected": 17},
+    "symbol_universe_compatibility": {"risk": "LOW", "impacted_count": 2, "processes_affected": 1}
+  },
+  "r5_g3_status": "PASS_CONTRACT_IMPACT_ENUMERATED",
+  "runtime_semantics_changed": false,
+  "verdict": "P7_R5_BLOCKED_MODEL_COVERAGE_INCOMPLETE"
+}

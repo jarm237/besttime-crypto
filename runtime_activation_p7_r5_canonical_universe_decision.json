@@ -1,0 +1,58 @@
+{
+  "artifact": "runtime_activation_p7_r5_canonical_universe_decision",
+  "contract": "p7-r5-canonical-universe-decision/v1",
+  "created_at": "2026-08-25T00:00:00+07:00",
+  "decision": "CANONICAL_22_SYMBOL",
+  "decision_basis": [
+    {
+      "claim": "The runtime source-of-truth default universe is 22 symbols.",
+      "evidence": "btc_scraper/core/config.py DEFAULT_ANALYSIS_UNIVERSE contains BTC, ETH, BNB, SOL, ZEC, XRP, DOGE, WLD, XLM, NEAR, AVAX, TAO, TRB, AEVO, ENA, AR, IOTA, XPL, SOPH, XAUT, TRX, TRUMP."
+    },
+    {
+      "claim": "P7/R4 evidence shows the current runtime analysis/execution symbols are the same 22-symbol universe.",
+      "evidence": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.runtime_symbols and compatibility.runtime_execution_symbols each contain 22 symbols."
+    },
+    {
+      "claim": "Artifact metadata advertises the same 22-symbol support set.",
+      "evidence": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.artifact_supported_symbols contains 22 symbols and unsupported_by_artifact_metadata is empty."
+    },
+    {
+      "claim": "Actual inference routes are only BTC, ETH, and BNB.",
+      "evidence": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.model_route_supported_symbols is [BNB, BTC, ETH], with 19 unsupported runtime symbols."
+    },
+    {
+      "claim": "Shrinking runtime to 3 symbols would modify a CRITICAL shared runtime contract rather than merely correcting activation plumbing.",
+      "evidence": "GitNexus CLI impact for get_analysis_universe/parse_runtime_symbols reports CRITICAL risk across runtime, diagnostics, backtests, baseline scripts, evidence epoch management, and tests."
+    }
+  ],
+  "forbidden_inference": [
+    "Do not treat the observed 3-symbol model route as canonical merely because it is the only working path.",
+    "Do not silently downgrade the already-bound 22-symbol runtime/manifest/epoch contract to 3 symbols.",
+    "Do not create fallback aliases such as SOL -> BTC.",
+    "Do not skip unsupported runtime symbols while leaving them canonical."
+  ],
+  "missing_routes": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "DOGE",
+    "ENA",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "TRX",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP",
+    "ZEC"
+  ],
+  "r5_g1_status": "PASS_CANONICAL_22_SYMBOL",
+  "runtime_semantics_changed": false,
+  "successor_effect": "P7 remains blocked until explicit model/artifact coverage exists for every canonical runtime symbol or governance separately authorizes a new canonical universe contract."
+}

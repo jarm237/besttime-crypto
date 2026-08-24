@@ -2068,3 +2068,177 @@ LIVE-READINESS REVIEW
 ```
 
 `LIVE-READINESS REVIEW` is intentionally outside the scope of this roadmap. Passing research validation does not automatically authorize real-money execution.
+
+---
+
+# Implementation Progress — P7-R5 Inference Coverage Contract Closure
+
+Status as of 2026-08-25:
+
+```text
+P7-R5-G0 BASELINE_FREEZE                 PASS
+P7-R5-G1 CANONICAL_UNIVERSE_DECISION     PASS_CANONICAL_22_SYMBOL
+P7-R5-G2 SYMBOL_PROVENANCE_INVENTORY     PASS_WITH_ROUTE_GAP
+P7-R5-G3 CONTRACT_IMPACT_ASSESSMENT      PASS
+P7-R4                                     PASS_FORENSICS_PREFLIGHT_GATE_ADDED
+P7-R5                                     CLOSED_AS_BLOCKED_MODEL_COVERAGE_INCOMPLETE
+P7                                       BLOCKED_ON_MODEL_COVERAGE
+canonical_runtime_symbols                22
+artifact_declared_symbols                22
+actual_inference_routes                  3
+unsupported_symbols                      19
+authorization_4                          NOT_CREATED
+attempt_4                                NOT_AUTHORIZED
+paper_canary                             NOT_ACTIVE
+runtime_semantics_changed                NO
+```
+
+Evidence artifacts:
+
+```text
+runtime_activation_p7_r5_baseline.json
+runtime_activation_p7_r5_canonical_universe_decision.json
+runtime_activation_p7_r5_symbol_inventory.json
+runtime_activation_p7_r5_contract_impact.json
+```
+
+R5-G1 decision:
+
+```text
+canonical_runtime_universe = 22 symbols
+actual_inference_routes    = BTC, ETH, BNB
+missing_routes             = 19
+```
+
+Rationale:
+
+```text
+btc_scraper.core.config.DEFAULT_ANALYSIS_UNIVERSE binds the runtime default to 22 symbols.
+P7/R4 evidence shows runtime_symbols and runtime_execution_symbols are 22.
+Artifact metadata currently advertises the same 22 symbols.
+Actual V5FilterModelClassifier routes only BTC/ETH/BNB.
+Shrinking the runtime universe to 3 would be a CRITICAL shared contract change, not a small activation remediation.
+```
+
+Missing route symbols:
+
+```text
+AEVO, AR, AVAX, DOGE, ENA, IOTA, NEAR, SOL, SOPH, TAO,
+TRB, TRUMP, TRX, WLD, XAUT, XLM, XPL, XRP, ZEC
+```
+
+R5 stop condition reached:
+
+```text
+22-symbol target selected
+but actual model coverage missing
+```
+
+Therefore R5 must not:
+
+```text
+create authorization #4
+run attempt #4
+fallback unsupported symbols to BTC/ETH/BNB
+skip unsupported canonical symbols silently
+train or introduce 19 new model routes without explicit authorization
+mutate attempt #3 manifest or reuse attempt #3 identities
+```
+
+Contract impact:
+
+```text
+P6 artifact/schema/readiness seal remains closed.
+P7 R4 compatibility gate remains valid and correctly blocks activation.
+A successor symbol-coverage/v1 closure or explicitly authorized model coverage program is required before fresh preflight #4.
+```
+
+R5 is closed as blocked, not unfinished implementation. P7 has reached the valid limit of activation remediation; continuing P7 before model coverage closure would only reproduce the same failure through another activation path.
+
+The 3-symbol route set is not a valid unblock strategy for the current P7 line. The canonical contract is 22 symbols, so reducing runtime coverage to BTC/ETH/BNB would be a separate governance/product contract change, not P7 remediation.
+
+## Successor Workstream — Model Coverage Program
+
+This workstream is separate from P7 activation. It must not start training or route implementation implicitly.
+
+```text
+MC0  Model Coverage Authorization
+MC1  Coverage contract
+MC2  Per-symbol feasibility audit
+MC3  Training/data readiness
+MC4  Explicit route implementation
+MC5  Artifact coverage closure
+MC6  22-symbol compatibility matrix
+MC7  P2/P5/P6 regression
+MC8  New runtime/artifact release seal
+MC9  Handoff back to P7
+```
+
+MC0 is a hard authorization gate:
+
+```text
+AUTHORIZED:
+build actual inference coverage for all 22 canonical symbols
+
+NOT AUTHORIZED:
+keep P7 blocked
+```
+
+Coverage program close condition:
+
+```text
+canonical_runtime_symbols
+  =
+artifact_declared_symbols
+  =
+actual_inference_route_symbols
+
+count = 22
+unsupported_symbols = []
+implicit_fallback = 0
+```
+
+Each canonical symbol requires explicit evidence:
+
+```text
+symbol
+→ model/artifact identity
+→ schema compatibility
+→ calibration/inference semantics
+→ explicit route
+```
+
+Adding route entries without model/artifact evidence is not sufficient. If feasibility audit finds insufficient data/model readiness for any canonical symbol, the program must stop at:
+
+```text
+MODEL_COVERAGE_INFEASIBLE
+```
+
+Shared fallback models, alias routes, or BTC/ETH/BNB fallback are not allowed to produce a nominal 22/22 matrix.
+
+After the coverage program seals a new release, handoff back to P7 is:
+
+```text
+new 22-symbol release
+↓
+RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY PASS
+↓
+fresh preflight #4
+↓
+new ACTIVE epoch compatibility assessment
+↓
+G6 authorization #4
+↓
+STOP
+↓
+controlled attempt #4
+```
+
+If artifact/runtime identities change, P7 must not reuse:
+
+```text
+release 5e8d798...
+attempt #3 manifest
+attempt #3 preflight
+attempt #3 authorization
+```

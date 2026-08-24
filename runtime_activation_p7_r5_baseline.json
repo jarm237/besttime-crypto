@@ -1,0 +1,40 @@
+{
+  "active_runner_count": 0,
+  "artifact": "runtime_activation_p7_r5_baseline",
+  "attempt_4": "NOT_AUTHORIZED",
+  "authorization_4": "NOT_CREATED",
+  "baseline_source": {
+    "failure_classification": "runtime_activation_p7_r4_failure_classification.json",
+    "symbol_compatibility": "runtime_activation_p7_r4_symbol_compatibility.json"
+  },
+  "contract": "p7-r5-baseline/v1",
+  "created_at": "2026-08-25T00:00:00+07:00",
+  "failure_boundary": "MODEL_ARTIFACT_RUNTIME_CONTRACT",
+  "failure_class": "INFERENCE_SYMBOL_COVERAGE_GAP",
+  "git": {
+    "head": "8a220a41cc0d108e513235f149bdbe6e1403fb40",
+    "tree": "0623f9f825d9c1c3a0af65354943563016c96ad5",
+    "worktree_clean_before_r5": true
+  },
+  "paper_canary": "NOT_ACTIVE",
+  "p7_state": "BLOCKED_AFTER_ATTEMPT_3",
+  "r5_authorized_scope": [
+    "symbol coverage analysis",
+    "canonical universe decision",
+    "symbol provenance inventory",
+    "contract impact assessment",
+    "preflight gate assessment",
+    "roadmap progress update"
+  ],
+  "r5_not_authorized_scope": [
+    "authorization #4",
+    "attempt #4",
+    "paper canary activation",
+    "implicit fallback",
+    "silent unsupported-symbol skip",
+    "outcome/PnL evaluation",
+    "unapproved training or research for 19 missing symbol routes"
+  ],
+  "r5_status": "BASELINE_FROZEN",
+  "runtime_semantics_changed": false
+}
