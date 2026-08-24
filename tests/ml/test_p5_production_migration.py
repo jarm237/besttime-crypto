@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import ast
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
+from btc_scraper.ml_engine.evaluation_contracts import EvaluationContractError
 from btc_scraper.ml_engine.production_evaluator import (
     evaluate_historical_market,
     evaluate_live_market,
@@ -88,14 +91,14 @@ def analysis(symbol: str, action: str = "BUY", probability: float = 0.9) -> dict
         "model_family": "fixture",
         "history": [
             {
-                "time": (NOW.replace(minute=15 * index)).isoformat(),
+                "time": (NOW - timedelta(minutes=15 * (72 - index))).isoformat(),
                 "open": 100.0 + index,
                 "high": 101.0 + index,
                 "low": 99.0 + index,
                 "close": 100.0 + index,
                 "volume": 10.0,
             }
-            for index in range(4)
+            for index in range(73)
         ],
         "signal_score": {
             "action": action,
@@ -149,6 +152,23 @@ def test_rejection_parity_has_one_decision_and_zero_sizing_pass():
     assert live.result.sizing["final_position_size"] == 0
     assert (live_owner.decision_calls, live_owner.sizing_calls) == (1, 0)
     assert (replay_owner.decision_calls, replay_owner.sizing_calls) == (1, 0)
+
+
+def test_production_readiness_warming_up_does_not_call_decision_owner():
+    owner = OwnerFixture()
+    payload = analysis("BTC")
+    payload["history"] = payload["history"][:72]
+    with pytest.raises(EvaluationContractError, match="WARMING_UP"):
+        evaluate_live_market(
+            analysis=payload,
+            coin=payload["coin"],
+            trader=owner,
+            current_balance=500.0,
+            var_cap=100.0,
+            exposure_cap=100.0,
+            evaluation_time=NOW.replace(minute=45),
+        )
+    assert (owner.decision_calls, owner.sizing_calls) == (0, 0)
 
 
 def test_cross_symbol_concurrency_isolated():

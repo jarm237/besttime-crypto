@@ -16,6 +16,9 @@ from typing import Any, Mapping, Sequence
 
 
 P6_CONTRACT_VERSION = "evaluation-boundary/v1"
+READINESS_CONTRACT_VERSION = "readiness-boundary/v1"
+CANONICAL_ENTRY_TIMEFRAME = "15m"
+CANONICAL_ENTRY_INTERVAL_SECONDS = 900
 
 
 class EvaluationContractError(ValueError):
@@ -145,6 +148,75 @@ class ReadinessState(str, Enum):
 
 
 @dataclass(frozen=True)
+class ReadinessDependency:
+    name: str
+    timeframe: str
+    lookback_offset: int
+    minimum_observations: int
+    source: str
+    required: bool = True
+
+
+CANONICAL_MODEL_READINESS_DEPENDENCIES: tuple[ReadinessDependency, ...] = (
+    ReadinessDependency(
+        "return_8", CANONICAL_ENTRY_TIMEFRAME, 8, 9,
+        "btc_scraper.analysis.core:generate_signal_score_input",
+    ),
+    ReadinessDependency(
+        "return_32", CANONICAL_ENTRY_TIMEFRAME, 32, 33,
+        "btc_scraper.analysis.core:generate_signal_score_input",
+    ),
+    ReadinessDependency(
+        "return_72", CANONICAL_ENTRY_TIMEFRAME, 72, 73,
+        "btc_scraper.analysis.core:generate_signal_score_input",
+    ),
+    ReadinessDependency(
+        "abs_move_72", CANONICAL_ENTRY_TIMEFRAME, 72, 73,
+        "btc_scraper.analysis.core:generate_signal_score_input",
+    ),
+)
+
+
+def canonical_readiness_minimum_observations(
+    dependencies: Sequence[ReadinessDependency] = CANONICAL_MODEL_READINESS_DEPENDENCIES,
+) -> int:
+    values = tuple(
+        int(item.minimum_observations)
+        for item in dependencies
+        if item.required and item.timeframe == CANONICAL_ENTRY_TIMEFRAME
+    )
+    if not values or min(values) < 1:
+        raise EvaluationContractError("readiness_dependency_invalid")
+    return max(values)
+
+
+@dataclass(frozen=True)
+class ReadinessDiagnosis:
+    status: ReadinessState
+    reason_code: str
+    required_observations: int
+    available_observations: int
+    first_valid_timestamp: str | None
+    blocking_dependency: str | None
+    contract_version: str = READINESS_CONTRACT_VERSION
+
+    @property
+    def ready(self) -> bool:
+        return self.status is ReadinessState.READY
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status.value,
+            "reason_code": self.reason_code,
+            "required_observations": self.required_observations,
+            "available_observations": self.available_observations,
+            "first_valid_timestamp": self.first_valid_timestamp,
+            "blocking_dependency": self.blocking_dependency,
+            "contract_version": self.contract_version,
+        }
+
+
+@dataclass(frozen=True)
 class WarmupContract:
     minimum_bars: Mapping[str, int]
     expected_interval_seconds: int | None = None
@@ -157,23 +229,81 @@ class WarmupContract:
             raise EvaluationContractError("warmup_dependency_invalid")
         return max(values)
 
-    def evaluate(self, candles: Sequence[Any], evaluation_time: datetime) -> ReadinessState:
+    @property
+    def blocking_dependency(self) -> str | None:
+        required = self.required_bars
+        blockers = sorted(
+            str(name) for name, value in self.minimum_bars.items()
+            if int(value) == required
+        )
+        return blockers[0] if blockers else None
+
+    def diagnose(self, candles: Sequence[Any], evaluation_time: datetime) -> ReadinessDiagnosis:
+        required = self.required_bars
+        available = len(candles)
         if evaluation_time.tzinfo is None:
-            return ReadinessState.INVALID_INPUT
-        if len(candles) < self.required_bars:
-            return ReadinessState.WARMING_UP
+            return ReadinessDiagnosis(
+                ReadinessState.INVALID_INPUT, "EVALUATION_TIME_NOT_UTC_AWARE",
+                required, available, None, None,
+            )
+        if available < required:
+            return ReadinessDiagnosis(
+                ReadinessState.WARMING_UP, "INSUFFICIENT_CANONICAL_HISTORY",
+                required, available, None, self.blocking_dependency,
+            )
         prior = None
         for candle in candles:
-            if not candle.closed or candle.close_time > evaluation_time:
-                return ReadinessState.INVALID_INPUT
+            if not candle.closed:
+                return ReadinessDiagnosis(
+                    ReadinessState.INVALID_INPUT, "PARTIAL_CANDLE",
+                    required, available, None, None,
+                )
+            if candle.close_time > evaluation_time:
+                return ReadinessDiagnosis(
+                    ReadinessState.INVALID_INPUT, "FUTURE_OBSERVATION",
+                    required, available, None, None,
+                )
             if prior is not None:
                 delta = (candle.open_time - prior).total_seconds()
-                if delta <= 0:
-                    return ReadinessState.INVALID_INPUT
-                if self.expected_interval_seconds and not self.allow_sparse and delta != self.expected_interval_seconds:
-                    return ReadinessState.INVALID_INPUT
+                if delta == 0:
+                    return ReadinessDiagnosis(
+                        ReadinessState.INVALID_INPUT, "DUPLICATE_OBSERVATION",
+                        required, available, None, None,
+                    )
+                if delta < 0:
+                    return ReadinessDiagnosis(
+                        ReadinessState.INVALID_INPUT, "OUT_OF_ORDER_OBSERVATION",
+                        required, available, None, None,
+                    )
+                if (
+                    self.expected_interval_seconds
+                    and not self.allow_sparse
+                    and delta != self.expected_interval_seconds
+                ):
+                    return ReadinessDiagnosis(
+                        ReadinessState.INVALID_INPUT, "NON_CONTIGUOUS_CANONICAL_HISTORY",
+                        required, available, None, None,
+                    )
             prior = candle.open_time
-        return ReadinessState.READY
+        first_valid = candles[required - 1].close_time.isoformat()
+        return ReadinessDiagnosis(
+            ReadinessState.READY, "READY",
+            required, available, first_valid, None,
+        )
+
+    def evaluate(self, candles: Sequence[Any], evaluation_time: datetime) -> ReadinessState:
+        return self.diagnose(candles, evaluation_time).status
+
+
+def canonical_entry_readiness_contract() -> WarmupContract:
+    return WarmupContract(
+        {
+            item.name: item.minimum_observations
+            for item in CANONICAL_MODEL_READINESS_DEPENDENCIES
+            if item.required and item.timeframe == CANONICAL_ENTRY_TIMEFRAME
+        },
+        expected_interval_seconds=CANONICAL_ENTRY_INTERVAL_SECONDS,
+    )
 
 
 @dataclass(frozen=True)

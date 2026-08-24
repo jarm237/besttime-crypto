@@ -18,6 +18,7 @@ from .common_evaluator import (
     MarketEvaluationResult,
     NoOpPersistence,
 )
+from .evaluation_contracts import canonical_entry_readiness_contract
 
 
 @dataclass(frozen=True)
@@ -159,7 +160,12 @@ def evaluate_resolved_market(
             "rejection_reason": entry.rejection_reason.value if entry.rejection_reason else None,
         }
 
-    pipeline = EvaluationPipeline(technical, features, inference, score, decision)
+    readiness_contract = canonical_entry_readiness_contract()
+
+    def readiness(item):
+        return readiness_contract.diagnose(item.window.candles, item.evaluation_time)
+
+    pipeline = EvaluationPipeline(technical, features, inference, score, decision, readiness)
     adapter_type = HistoricalEvaluationAdapter if str(environment).lower() == "historical" else LiveEvaluationAdapter
     adapter = adapter_type(pipeline, FixedClock(timestamp), NoOpPersistence())
     result = adapter.evaluate(

@@ -16,6 +16,7 @@ from types import MappingProxyType
 from typing import Any, Callable, Iterable, Mapping, Protocol
 
 from .economic_contract import EV_CONTRACT_VERSION
+from .evaluation_contracts import EvaluationContractError, ReadinessDiagnosis, ReadinessState
 from .inference_contract import INFERENCE_CONTRACT_VERSION
 from .pure_scoring import SCORING_CONTRACT_VERSION
 from .s3_thresholds import S3_THRESHOLD_CONTRACT_VERSION
@@ -287,6 +288,8 @@ DecisionEvaluator = Callable[
     [MarketEvaluationInput, Mapping[str, Any], Mapping[str, Any], Mapping[str, Any]],
     Mapping[str, Any],
 ]
+PreconditionEvaluator = Callable[[MarketEvaluationInput], None]
+ReadinessEvaluator = Callable[[MarketEvaluationInput], ReadinessDiagnosis]
 
 
 @dataclass(frozen=True)
@@ -296,6 +299,8 @@ class EvaluationPipeline:
     inference: InferenceEvaluator
     score: ScoreEvaluator
     decision: DecisionEvaluator
+    readiness: ReadinessEvaluator | None = None
+    preconditions: tuple[PreconditionEvaluator, ...] = ()
 
 
 def decision_contract_hash(context: Mapping[str, Any] | None = None) -> str:
@@ -318,6 +323,17 @@ def evaluate_market(
     pipeline: EvaluationPipeline,
 ) -> MarketEvaluationResult:
     """Execute every decision stage exactly once from explicit input."""
+    for precondition in pipeline.preconditions:
+        precondition(evaluation_input)
+
+    if pipeline.readiness is not None:
+        readiness = pipeline.readiness(evaluation_input)
+        if readiness.status is not ReadinessState.READY:
+            raise EvaluationContractError(
+                "readiness_not_ready:"
+                f"{readiness.status.value}:{readiness.reason_code}"
+            )
+
     technical = dict(pipeline.technical(evaluation_input))
     features = dict(pipeline.features(evaluation_input, technical))
     inference = dict(pipeline.inference(evaluation_input, features))

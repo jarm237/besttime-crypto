@@ -1,9 +1,27 @@
 import pytest
 import os
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from btc_scraper.trading.auto_trader import AutoTrader, _load_circuit, _save_circuit, CIRCUIT_BREAKER_STATE
 from btc_scraper.ml_engine.signal_score import score_signal, _primary_signal_action
+
+
+NOW = datetime(2026, 8, 21, 12, 0, tzinfo=timezone.utc)
+
+
+def _readiness_history(count: int = 73) -> list[dict]:
+    return [
+        {
+            "time": (NOW - timedelta(minutes=15 * (count - 1 - index))).isoformat(),
+            "open": 100.0 + index * 0.01,
+            "high": 100.1 + index * 0.01,
+            "low": 99.9 + index * 0.01,
+            "close": 100.0 + index * 0.01,
+            "volume": 1_000.0,
+        }
+        for index in range(count)
+    ]
 
 
 def _healthy_risk_metrics():
@@ -148,6 +166,7 @@ def test_process_signal_blocks_zero_signal_kelly(monkeypatch):
         "signal": "STRONG SELL (Confirmed Reversal)",
         "close": 558.38,
         "tp_sl": {"entry": 558.38, "sl": 566.759, "tp1": 545.3445, "rr1": 1.55},
+        "history": _readiness_history(),
         "signal_score": {
             "score": 21,
             "strength": 79,
@@ -937,6 +956,7 @@ def test_process_signal_emits_decision_breakdown_logs(monkeypatch):
     # 1. Skipped log case (low RR -> rejected at eligibility stage, but logs a skip entry)
     analysis_skipped = {
         "signal": "STRONG BUY",
+        "history": _readiness_history(),
         "signal_score": {
             "score": 90,
             "action": "BUY",
@@ -960,6 +980,7 @@ def test_process_signal_emits_decision_breakdown_logs(monkeypatch):
     analysis_placed = {
         "signal": "STRONG BUY",
         "close": 100.0,
+        "history": _readiness_history(),
         "signal_score": {
             "score": 90,
             "action": "BUY",

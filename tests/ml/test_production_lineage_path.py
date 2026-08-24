@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 import numpy as np
@@ -14,6 +15,23 @@ from btc_scraper.ml_engine.multi_agent import AgentOrchestrator, SignalGenerator
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 from btc_scraper.trading import position_tracker
 from btc_scraper.trading.auto_trader import AutoTrader
+
+
+NOW = datetime(2026, 7, 30, 21, 0, tzinfo=timezone.utc)
+
+
+def _readiness_history(count: int = 73) -> list[dict]:
+    return [
+        {
+            "time": (NOW - timedelta(minutes=15 * (count - 1 - index))).isoformat(),
+            "open": 100.0 + index * 0.01,
+            "high": 100.1 + index * 0.01,
+            "low": 99.9 + index * 0.01,
+            "close": 100.0 + index * 0.01,
+            "volume": 1_000.0,
+        }
+        for index in range(count)
+    ]
 
 
 class _MemoryCollection:
@@ -154,7 +172,7 @@ def test_real_entry_components_propagate_prediction_to_outcome(monkeypatch, tmp_
                 "rr1": 2.0,
                 "rr2": 3.0,
             },
-            "history": [{"time": "2026-07-30T03:00:00+00:00", "close": 100.0}],
+            "history": _readiness_history(),
         }
     }
     # Exercise the real orchestrator boundary while replacing only unrelated

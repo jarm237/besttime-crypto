@@ -4,9 +4,27 @@ import pandas as pd
 import os
 import json
 import tempfile
+from datetime import datetime, timedelta, timezone
 from btc_scraper.analysis.correlation import CorrelationEngine, SECTOR_MAP
 from btc_scraper.trading.exposure_manager import ExposureManager
 from btc_scraper.trading.auto_trader import AutoTrader
+
+
+NOW = datetime(2026, 8, 21, 12, 0, tzinfo=timezone.utc)
+
+
+def _readiness_history(count: int = 73) -> list[dict]:
+    return [
+        {
+            "time": (NOW - timedelta(minutes=15 * (count - 1 - index))).isoformat(),
+            "open": 100.0 + index * 0.01,
+            "high": 100.1 + index * 0.01,
+            "low": 99.9 + index * 0.01,
+            "close": 100.0 + index * 0.01,
+            "volume": 1_000.0,
+        }
+        for index in range(count)
+    ]
 
 
 class MockCollection:
@@ -255,6 +273,7 @@ def test_autotrader_correlation_and_sizing_filters(mock_cov_corr, monkeypatch):
             # Test signal for NEAR (should fail correlation filter due to SOL)
             mock_ana_near = {
                 "signal": "BUY",
+                "history": _readiness_history(),
                 "signal_score": {"score": 80, "meta_confidence": 0.8, "position_size": 1.0},
                 "tp_sl": {"entry": 5.0, "sl": 4.5, "rr1": 2.0}
             }
@@ -270,6 +289,7 @@ def test_autotrader_correlation_and_sizing_filters(mock_cov_corr, monkeypatch):
             # So remaining caps are large enough to fit 100 USDT.
             mock_ana_eth = {
                 "signal": "BUY",
+                "history": _readiness_history(),
                 "signal_score": {"score": 80, "meta_confidence": 0.8, "position_size": 1.0},
                 "tp_sl": {"entry": 100.0, "sl": 80.0, "rr1": 2.0}
             }

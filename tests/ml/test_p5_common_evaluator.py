@@ -22,6 +22,11 @@ from btc_scraper.ml_engine.common_evaluator import (
     decision_contract_hash,
     evaluate_market,
 )
+from btc_scraper.ml_engine.evaluation_contracts import (
+    EvaluationContractError,
+    ReadinessState,
+    canonical_entry_readiness_contract,
+)
 from btc_scraper.ml_engine.pure_scoring import score_signal_pure
 from btc_scraper.ml_engine.s3_thresholds import evaluate_s3_threshold
 from btc_scraper.trading.risk_sizing_contract import (
@@ -281,6 +286,67 @@ def test_common_evaluator_is_deterministic():
     )
     results = [evaluate_market(item, pipeline()) for _ in range(10)]
     assert len({value.canonical_hash for value in results}) == 1
+
+
+def test_warming_up_short_circuits_before_any_semantic_stage():
+    calls = {"technical": 0, "features": 0, "inference": 0, "score": 0, "decision": 0}
+
+    def readiness(item):
+        return canonical_entry_readiness_contract().diagnose(
+            item.window.candles,
+            item.evaluation_time,
+        )
+
+    def counted(name):
+        def inner(*_args):
+            calls[name] += 1
+            return {}
+        return inner
+
+    gated = EvaluationPipeline(
+        counted("technical"),
+        counted("features"),
+        counted("inference"),
+        counted("score"),
+        counted("decision"),
+        readiness,
+    )
+    with pytest.raises(EvaluationContractError, match="WARMING_UP"):
+        LiveEvaluationAdapter(gated, FixedClock(EVALUATION_TIME)).evaluate(
+            rows=rows(count=72),
+            symbol="BTCUSDT",
+            timeframe="15m",
+            artifact=ARTIFACT,
+        )
+    assert calls == {"technical": 0, "features": 0, "inference": 0, "score": 0, "decision": 0}
+
+
+def test_readiness_gate_has_live_replay_parity_at_boundary():
+    gated = EvaluationPipeline(
+        pipeline().technical,
+        pipeline().features,
+        pipeline().inference,
+        pipeline().score,
+        pipeline().decision,
+        lambda item: canonical_entry_readiness_contract().diagnose(
+            item.window.candles,
+            item.evaluation_time,
+        ),
+    )
+    live, replay = adapters(gated)
+    kwargs = dict(
+        rows=rows(count=73),
+        symbol="BTCUSDT",
+        timeframe="15m",
+        artifact=ARTIFACT,
+        context={"minimum_ev": 0.0005},
+    )
+    assert live.evaluate(**kwargs) == replay.evaluate(**kwargs)
+
+    short = {**kwargs, "rows": rows(count=72)}
+    for adapter in adapters(gated):
+        with pytest.raises(EvaluationContractError, match=ReadinessState.WARMING_UP.value):
+            adapter.evaluate(**short)
 
 
 def test_persistence_is_outside_and_cannot_change_result():

@@ -1,0 +1,40 @@
+{
+  "contract": "p6-g5-regression-baseline/v1",
+  "source_junit": "/tmp/besttime-p6-g4-full.xml",
+  "source_junit_sha256": "1471164b86a9102404c17b042e05550fee1964f3c41aea26a699b3a90a35529b",
+  "expected_failure_count": 4,
+  "new_failure_budget": 0,
+  "replacement_failure_budget": 0,
+  "unexpected_skip_budget": 0,
+  "unexpected_xfail_budget": 0,
+  "failures": [
+    {
+      "nodeid": "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+      "classname": "tests.ml.test_ml_engine_static_safety",
+      "name": "test_ml_engine_static_safety_gates",
+      "failure_category": "AssertionError",
+      "stable_signature": "direct model deserialization"
+    },
+    {
+      "nodeid": "tests/test_etf_integration_audit.py::test_integration_json_schema",
+      "classname": "tests.test_etf_integration_audit",
+      "name": "test_integration_json_schema",
+      "failure_category": "AssertionError",
+      "stable_signature": "INTEGRATION_NOT_PROVEN != INTEGRATION_PROMOTED"
+    },
+    {
+      "nodeid": "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+      "classname": "tests.test_validate_alternative_history",
+      "name": "test_generate_artifacts_writes_research_only_contract",
+      "failure_category": "KeyError",
+      "stable_signature": "hard_rule"
+    },
+    {
+      "nodeid": "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence",
+      "classname": "tests.test_validate_alternative_history",
+      "name": "test_probe_results_are_not_marked_as_evidence",
+      "failure_category": "AssertionError",
+      "stable_signature": "H1_HISTORICAL H2_AS_OF_RECONSTRUCTABLE"
+    }
+  ]
+}

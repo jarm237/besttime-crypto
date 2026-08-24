@@ -20,6 +20,21 @@ DEPLOYMENT = "paper-canary-test-08"
 CYCLE = "cycle-test-08"
 PREDICTION = "prediction-test-08"
 DECISION = "decision-test-08"
+NOW = datetime(2026, 8, 21, 12, 0, tzinfo=timezone.utc)
+
+
+def _readiness_history(count: int = 73) -> list[dict]:
+    return [
+        {
+            "time": (NOW - timedelta(minutes=15 * (count - 1 - index))).isoformat(),
+            "open": 100.0 + index * 0.01,
+            "high": 100.1 + index * 0.01,
+            "low": 99.9 + index * 0.01,
+            "close": 100.0 + index * 0.01,
+            "volume": 1_000.0,
+        }
+        for index in range(count)
+    ]
 
 
 def _production_evidence(monkeypatch) -> None:
@@ -76,6 +91,7 @@ def _analysis(final_decision: dict | None) -> dict:
             "feature_schema_version": "schema-test",
         },
         "tp_sl": {"entry": 100.0, "sl": 102.0, "tp1": 96.0, "rr1": 2.0},
+        "history": _readiness_history(),
     }
     if final_decision is not None:
         row["causal_decision"] = final_decision

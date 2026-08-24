@@ -683,8 +683,9 @@ P6-PRE-PD0 BASELINE DETERMINISM    CLOSED
 P6-PROV-DATA                       DATASET_PROVENANCE_RECOVERED
 P6-G2 ARTIFACT CONTRACT CLOSURE    PASS
 P6-G3 SCHEMA CONTRACT CLOSURE      PASS
-P6-G4 WARM-UP/READINESS CLOSURE    READY_TO_RESUME
-P6                                 IN_PROGRESS
+P6-G4 WARM-UP/READINESS CLOSURE    PASS
+P6-G5 REGRESSION CLOSURE           PASS
+P6                                 CLOSED
 ```
 
 The canonical `meta_model` wrapper is byte-reproducible and its model/scaler
@@ -739,6 +740,60 @@ frozen failures with zero new failures. The full-suite JUnit is
 `/tmp/besttime-p6-g3-full.xml` with SHA256
 `71478be9e45daa288f98516352054f26b0d662485a671db4b423ea24cc7b8b38`.
 
+P6-G4 is closed. Runtime readiness is now an explicit pre-semantic contract:
+the canonical 15m model path derives its required history from the actual V5
+feature dependencies (`return_8`, `return_32`, `return_72`, `abs_move_72`),
+where the 72-bar dependency requires 73 completed observations. `READY` is
+emitted only for structurally valid, contiguous, closed, point-in-time windows
+with sufficient canonical history. Short-but-valid windows return
+`WARMING_UP`; gaps, duplicate/out-of-order observations, partial candles, and
+future observations return explicit `INVALID_INPUT` diagnoses. The common
+live/replay evaluator runs this readiness gate before technical/features,
+inference, scoring, decision, or sizing, and the production live/historical
+entrypoints use the same canonical contract. `WARMING_UP` is not substituted
+with HOLD/NEUTRAL and does not create an economic decision.
+
+G4 regression evidence: baseline full suite returned the exact four approved
+frozen failures with zero new failures; the baseline JUnit is
+`/tmp/besttime-p6-g4-baseline-full.xml` with SHA256
+`5176650a1d18499fce20ed737d304b1e7653337a7985f72a51f0608bb42f3c82`.
+Focused G4/P5/P6 readiness coverage is `72/72 PASS`, P5/P6/G4 plus artifact,
+schema and non-evidence smoke is `99/99 PASS`, seal-critical expanded is
+`119/119 PASS`, P1-P5 targeted is `150/150 PASS`, the portfolio sizing fixture
+correction is `1/1 PASS`, and the post-change full suite returns the same exact
+four frozen failures with zero new failures. The post-change full-suite JUnit is
+`/tmp/besttime-p6-g4-full.xml` with SHA256
+`1471164b86a9102404c17b042e05550fee1964f3c41aea26a699b3a90a35529b`. The
+detailed evidence report is `runtime_remediation_p6_g4_readiness_report.json`.
+
+P6-G5 is closed. Regression closure now freezes the exact four full-suite
+baseline failure identities from `/tmp/besttime-p6-g4-full.xml` rather than
+checking only failure count. The frozen baseline is recorded in
+`runtime_remediation_p6_g5_regression_baseline.json`, and
+`scripts/compare_p6_g5_junit.py` compares node identity, failure category, and
+stable signatures while ignoring volatile traceback details. G5 also adds
+contract-composition tests that lock precondition precedence before readiness,
+assert no downstream calls on artifact/schema/readiness failure, verify the
+0/1/8/9/32/33/71/72/73/74/100 readiness matrix, lock completed-candle
+semantics, and prove live/replay parity and determinism at the first ready
+point.
+
+G5 regression evidence: focused G5/P6/P5 suite `116/116 PASS`
+(`/tmp/besttime-p6-g5-focused.xml`, SHA256
+`523bab30cd198751ea9aaed551d27e37827e96c2b4e473b4ec5f07e8b4bbb798`);
+seal-critical expanded `136/136 PASS` (`/tmp/besttime-p6-g5-seal-critical.xml`,
+SHA256 `135ad6dfa5e2ac86141aeb30e55c353f588038b2efe358b4e51238e7d82df38e`);
+P1-P5 targeted `150/150 PASS` (`/tmp/besttime-p6-g5-p1-p5.xml`, SHA256
+`1dab800c848a0aebae5cb38c5dd96bd6fdac592b6be801202e731e74b9680f4e`);
+portfolio fixture regression `1/1 PASS` (`/tmp/besttime-p6-g5-portfolio.xml`,
+SHA256 `995e3c6fc749766488e65403123ce37c86571daca8208e8cc0030bea36360c7f`);
+and full suite returns the same exact four frozen failures with zero new or
+replacement failures (`/tmp/besttime-p6-g5-full.xml`, SHA256
+`b76ad35ba66601b03dd8bd71a30c4a74d5dfd8caed2b1bf4ac61ea0eba5392e4`).
+The full-suite comparison artifact is
+`/tmp/besttime-p6-g5-full-comparison.json` with status `PASS`. The detailed
+closure report is `runtime_remediation_p6_g5_regression_report.json`.
+
 A trial fail-closed integration correctly exposed four P1–P5 fixture/runtime
 contract gaps. Per stop condition SC-4, those integration edits were rolled
 back and the affected P5/canary/AutoTrader regression set returned to
@@ -752,9 +807,9 @@ The expanded seal-critical set is `103/103 PASS` with Mongo unavailable, and
 full-suite status is back to the exact four frozen failures with no new
 regressions.
 
-The reusable P6 contract foundation remains covered by
-`15/15 PASS` tests, but it is not production-authoritative until artifact
-provenance is resolved.
+The reusable P6 contract foundation is now production-authoritative for the
+closed G2/G3/G4 boundaries: artifact compatibility, canonical schema, and
+canonical 15m readiness. P6 regression closure is sealed by G5; P6 is closed.
 
 ```text
 selected_runtime_release = UNRESOLVED / NOT_APPLICABLE_CURRENTLY

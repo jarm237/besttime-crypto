@@ -1,0 +1,124 @@
+{
+  "phase": "P6-G4",
+  "title": "Warm-Up and Readiness Contract Closure",
+  "status": "PASS",
+  "base_commit": "fc18b3bc4b06d93a25b5b8f1f967e403ef26d5b9",
+  "base_tree": "4a75a4bc6972b221b062109a3e02b7ccf79684af",
+  "scope": "readiness and warm-up boundary only",
+  "governance": {
+    "economic_semantics_changed": false,
+    "scoring_semantics_changed": false,
+    "risk_sizing_semantics_changed": false,
+    "artifact_compatibility_changed": false,
+    "model_tuning": false,
+    "runtime_release_selected": false,
+    "runtime_evidence_epoch": "NOT_ACTIVE",
+    "selected_runtime_release": "UNRESOLVED / NOT_APPLICABLE_CURRENTLY",
+    "selected_runtime_release_reason": "no active runtime/evidence epoch",
+    "successor_research": "NOT_AUTHORIZED"
+  },
+  "readiness_contract": {
+    "contract_version": "readiness-boundary/v1",
+    "canonical_timeframe": "15m",
+    "canonical_interval_seconds": 900,
+    "canonical_dependencies": [
+      {"feature": "return_8", "lookback_offset": 8, "minimum_observations": 9},
+      {"feature": "return_32", "lookback_offset": 32, "minimum_observations": 33},
+      {"feature": "return_72", "lookback_offset": 72, "minimum_observations": 73},
+      {"feature": "abs_move_72", "lookback_offset": 72, "minimum_observations": 73}
+    ],
+    "effective_minimum_observations": 73,
+    "minimum_derivation": "max dependency minimum from current V5 feature implementation; 72-bar lookback offset requires current observation plus i-72 denominator, therefore 73 completed observations",
+    "mtf_scope": "not applicable to the canonical 4-feature model path; broader MTF indicators remain outside P6-G4"
+  },
+  "runtime_integration": {
+    "common_evaluator": "EvaluationPipeline accepts an optional readiness gate executed before technical/features/inference/scoring/decision",
+    "production_evaluator": "live and historical production entrypoints use the same canonical entry readiness contract",
+    "warming_up_behavior": "raises explicit EvaluationContractError readiness_not_ready:WARMING_UP:* before semantic stages",
+    "invalid_input_behavior": "raises explicit EvaluationContractError readiness_not_ready:INVALID_INPUT:* before semantic stages",
+    "hold_neutral_substitution": false,
+    "downstream_on_warming_up": {
+      "technical": false,
+      "features": false,
+      "inference": false,
+      "score": false,
+      "decision": false,
+      "sizing": false
+    }
+  },
+  "boundary_coverage": {
+    "min_minus_one": "WARMING_UP",
+    "min": "READY",
+    "min_plus_one": "READY",
+    "zero_observations": "WARMING_UP",
+    "gap": "INVALID_INPUT:NON_CONTIGUOUS_CANONICAL_HISTORY",
+    "duplicate": "INVALID_INPUT:DUPLICATE_OBSERVATION",
+    "out_of_order": "INVALID_INPUT:OUT_OF_ORDER_OBSERVATION",
+    "partial_candle": "INVALID_INPUT:PARTIAL_CANDLE",
+    "future_observation": "INVALID_INPUT:FUTURE_OBSERVATION",
+    "restart_reconstruction_parity": "PASS",
+    "live_replay_parity": "PASS"
+  },
+  "baseline": {
+    "full_suite_result": "exact four frozen failures; zero new failures",
+    "full_suite_junit": "/tmp/besttime-p6-g4-baseline-full.xml",
+    "full_suite_junit_sha256": "5176650a1d18499fce20ed737d304b1e7653337a7985f72a51f0608bb42f3c82",
+    "frozen_failures": [
+      "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+      "tests/test_etf_integration_audit.py::test_integration_json_schema",
+      "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+      "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+    ]
+  },
+  "post_change_full_suite": {
+    "result": "exact four frozen failures; zero new failures",
+    "junit": "/tmp/besttime-p6-g4-full.xml",
+    "junit_sha256": "1471164b86a9102404c17b042e05550fee1964f3c41aea26a699b3a90a35529b",
+    "frozen_failures": [
+      "tests/ml/test_ml_engine_static_safety.py::test_ml_engine_static_safety_gates",
+      "tests/test_etf_integration_audit.py::test_integration_json_schema",
+      "tests/test_validate_alternative_history.py::test_generate_artifacts_writes_research_only_contract",
+      "tests/test_validate_alternative_history.py::test_probe_results_are_not_marked_as_evidence"
+    ]
+  },
+  "regression_evidence": [
+    {
+      "command": ".venv/bin/pytest -q tests/ml/test_p6_evaluation_contracts.py tests/ml/test_p5_common_evaluator.py tests/ml/test_p5_production_migration.py",
+      "result": "72/72 PASS"
+    },
+    {
+      "command": ".venv/bin/pytest -q tests/ml/test_p6_evaluation_contracts.py tests/ml/test_p6_artifact_compatibility.py tests/ml/test_p6_schema_contracts.py tests/ml/test_p5_common_evaluator.py tests/ml/test_p5_production_migration.py tests/ml/test_non_evidence_inference_smoke.py",
+      "result": "99/99 PASS"
+    },
+    {
+      "command": ".venv/bin/pytest -q tests/ml/test_p6_evaluation_contracts.py tests/ml/test_p5_common_evaluator.py tests/ml/test_p5_production_migration.py tests/ml/test_production_lineage_path.py tests/ml/test_canary_execution_invariants.py tests/test_auto_trader.py tests/ml_engine/test_probability_contract.py",
+      "result": "119/119 PASS"
+    },
+    {
+      "command": ".venv/bin/pytest -q tests/test_portfolio.py::test_autotrader_correlation_and_sizing_filters",
+      "result": "1/1 PASS"
+    },
+    {
+      "command": ".venv/bin/pytest -q tests/ml/test_p1_decision_correctness.py tests/ml/test_p2_explicit_inference_contract.py tests/ml/test_p3_pure_scoring.py tests/ml/test_p4_risk_sizing_contract.py tests/ml/test_p5_common_evaluator.py tests/ml/test_p5_production_migration.py",
+      "result": "150/150 PASS"
+    },
+    {
+      "command": ".venv/bin/pytest --junitxml=/tmp/besttime-p6-g4-full.xml -q",
+      "result": "exact four frozen failures; zero new failures"
+    }
+  ],
+  "gitnexus": {
+    "startup": "./scripts/gitnexus-ensure-fresh.sh PASS",
+    "context_symbols": [
+      "WarmupContract",
+      "WarmupContract.evaluate",
+      "EvaluationPipeline",
+      "evaluate_market",
+      "MarketEvaluationAdapter",
+      "evaluate_resolved_market",
+      "_observation_rows"
+    ],
+    "impact_fallback": "MCP namespace exposed context/detect_changes but not impact; upstream callers/imports were inspected via GitNexus context before editing"
+  },
+  "final_verdict": "P6_G4_CLOSED_P6_IN_PROGRESS_P6_G5_READY_TO_RESUME"
+}

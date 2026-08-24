@@ -8,6 +8,8 @@ import pytest
 from btc_scraper.ml_engine.common_evaluator import CanonicalCandle
 from btc_scraper.ml_engine.evaluation_contracts import (
     ArtifactContract,
+    CANONICAL_MODEL_READINESS_DEPENDENCIES,
+    CANONICAL_ENTRY_INTERVAL_SECONDS,
     EvaluationContractError,
     EvaluationProvenance,
     FieldContract,
@@ -15,6 +17,8 @@ from btc_scraper.ml_engine.evaluation_contracts import (
     SchemaContract,
     WarmupContract,
     canonical_hash,
+    canonical_entry_readiness_contract,
+    canonical_readiness_minimum_observations,
 )
 
 
@@ -108,6 +112,87 @@ def test_gap_partial_future_and_restart_are_deterministic():
     before = contract.evaluate(ready, NOW + timedelta(hours=1))
     after_restart = WarmupContract({"resolved": 3}, 900).evaluate(tuple(ready), NOW + timedelta(hours=1))
     assert before is after_restart is ReadinessState.READY
+
+
+def test_canonical_readiness_minimum_is_derived_from_declared_dependencies():
+    dependencies = {item.name: item for item in CANONICAL_MODEL_READINESS_DEPENDENCIES}
+    assert set(dependencies) == {"return_8", "return_32", "return_72", "abs_move_72"}
+    assert dependencies["return_8"].minimum_observations == 9
+    assert dependencies["return_32"].minimum_observations == 33
+    assert dependencies["return_72"].minimum_observations == 73
+    assert dependencies["abs_move_72"].minimum_observations == 73
+    assert canonical_readiness_minimum_observations() == 73
+
+
+@pytest.mark.parametrize("count", [0, 1, 71, 72])
+def test_canonical_readiness_short_history_is_warming_up_not_invalid(count):
+    contract = canonical_entry_readiness_contract()
+    diagnosis = contract.diagnose(
+        [candle(index) for index in range(count)],
+        NOW + timedelta(days=2),
+    )
+    assert diagnosis.status is ReadinessState.WARMING_UP
+    assert diagnosis.reason_code == "INSUFFICIENT_CANONICAL_HISTORY"
+    assert diagnosis.required_observations == 73
+    assert diagnosis.available_observations == count
+    assert diagnosis.first_valid_timestamp is None
+    assert diagnosis.blocking_dependency == "abs_move_72"
+
+
+@pytest.mark.parametrize("count", [73, 74])
+def test_canonical_readiness_ready_boundary_and_first_valid_timestamp(count):
+    contract = canonical_entry_readiness_contract()
+    candles = [candle(index) for index in range(count)]
+    diagnosis = contract.diagnose(candles, NOW + timedelta(days=2))
+    assert diagnosis.status is ReadinessState.READY
+    assert diagnosis.reason_code == "READY"
+    assert diagnosis.required_observations == 73
+    assert diagnosis.available_observations == count
+    assert diagnosis.first_valid_timestamp == candles[72].close_time.isoformat()
+
+
+def test_canonical_readiness_rejects_count_only_windows_with_gaps():
+    contract = canonical_entry_readiness_contract()
+    gap = [
+        *[candle(index) for index in range(40)],
+        *[candle(index) for index in range(41, 74)],
+    ]
+    diagnosis = contract.diagnose(gap, NOW + timedelta(days=2))
+    assert diagnosis.status is ReadinessState.INVALID_INPUT
+    assert diagnosis.reason_code == "NON_CONTIGUOUS_CANONICAL_HISTORY"
+    assert CANONICAL_ENTRY_INTERVAL_SECONDS == 900
+
+
+@pytest.mark.parametrize(
+    ("mutate", "reason"),
+    [
+        (lambda items: [*items[:3], candle(2), *items[4:]], "DUPLICATE_OBSERVATION"),
+        (lambda items: [*items[:3], candle(1), *items[4:]], "OUT_OF_ORDER_OBSERVATION"),
+        (lambda items: [*items[:-1], candle(72, closed=False)], "PARTIAL_CANDLE"),
+        (lambda items: items, "FUTURE_OBSERVATION"),
+    ],
+)
+def test_canonical_readiness_invalid_inputs_are_not_warmup(mutate, reason):
+    contract = canonical_entry_readiness_contract()
+    candles = mutate([candle(index) for index in range(73)])
+    evaluation_time = (
+        NOW + timedelta(minutes=30)
+        if reason == "FUTURE_OBSERVATION"
+        else NOW + timedelta(days=2)
+    )
+    diagnosis = contract.diagnose(candles, evaluation_time)
+    assert diagnosis.status is ReadinessState.INVALID_INPUT
+    assert diagnosis.reason_code == reason
+
+
+def test_canonical_readiness_restart_reconstruction_parity():
+    contract = canonical_entry_readiness_contract()
+    left = [candle(index) for index in range(73)]
+    reconstructed = tuple([*left[:36], *left[36:]])
+    assert contract.diagnose(left, NOW + timedelta(days=2)) == contract.diagnose(
+        reconstructed,
+        NOW + timedelta(days=2),
+    )
 
 
 def test_provenance_round_trip_and_unknown_schema_fail_closed():
