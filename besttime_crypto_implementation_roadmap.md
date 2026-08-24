@@ -28,6 +28,7 @@ P3  Pure scoring + side semantics
 P4  Risk/sizing/gating cleanup
 P5  Common live/historical evaluator
 P6  Artifact + warm-up + full regression
+P7  Governed paper-canary activation
              ↓
       SUBSTRATE_READY
              ↓
@@ -816,6 +817,95 @@ selected_runtime_release = UNRESOLVED / NOT_APPLICABLE_CURRENTLY
 reason = no active runtime/evidence epoch
 successor research = NOT_AUTHORIZED
 ```
+
+---
+
+# P7 — Governed Paper-Canary Activation
+
+## P7 Implementation Progress
+
+```text
+P7-G0 SCOPE & SEAL-POINT FREEZE          PASS
+P7-G1 RUNTIME RELEASE RESOLUTION         PASS
+P7-G2 ARTIFACT/RUNTIME CONTRACT          PASS
+P7-G3 DEPLOYMENT MANIFEST                PASS
+P7-G4 PINNED RUNTIME ENVIRONMENT         PASS
+P7-G5 ACTIVATION PREFLIGHT               PASS
+P7-G5A SAFE LAUNCHER CONTRACT            PASS
+P7-G6 ACTIVATION AUTHORIZATION FREEZE    READY_TO_ARM
+P7-G7 CONTROLLED PAPER-CANARY START      NOT_RUN
+P7-G8 POST-START READ-BACK               NOT_RUN
+P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    NOT_RUN
+P7-G10 OBSERVATION HANDOFF               NOT_RUN
+P7                                     IN_PROGRESS_READY_FOR_G6_AUTHORIZATION
+```
+
+P7 has pinned the runtime release to the P6 canonical seal:
+
+```text
+release_commit = 5e8d798e4d06d6abd21ade99c79caaa93307dd5b
+release_tree   = 48ef10b27488468d294a5e223cb95a4aebfc3f01
+source         = P6_CANONICAL_SEAL
+```
+
+The pinned worktree is `runtime/worktrees/pinned-5e8d798`, verified at the
+release commit/tree with a clean worktree. The current runtime artifact bytes
+were provisioned into that pinned worktree without regeneration:
+`logs/meta_model.joblib` SHA256
+`dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c`.
+
+P7 preflight verified pinned imports resolve from the pinned worktree, the
+canonical 4-feature vector is exactly `return_8`, `return_32`, `return_72`,
+`abs_move_72`, readiness returns `WARMING_UP` at 72 completed 15m observations
+and `READY` at 73, and explicit inference smoke returns a bounded prediction
+for `BTC` from the pinned artifact. The deployment manifest is
+`runtime_activation_p7_manifest.json` with SHA256
+`9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894`.
+
+P7 remains deliberately not armed, but the activation-mechanics blocker has
+been closed by P7-G5A. The existing `scripts/activate_v5_canary.py` remains
+disqualified for governed P7 activation because it mutates
+`logs/meta_model.joblib`, `logs/meta_model.json`, `logs/model_registry.json`,
+and deletes/recreates a fixed evidence epoch. That would violate P7's
+no-retraining/no-artifact-regeneration/no-implicit-activation boundary.
+
+P7-G5A introduced an external governance launcher,
+`scripts/p7_safe_paper_canary_launcher.py`, with contract
+`paper-canary-launcher/v1` and SHA256
+`1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90`. The
+launcher consumes the frozen P7 manifest and pinned runtime worktree, validates
+release/artifact/manifest/registry identity, enforces paper-only child
+environment, blocks duplicate runner/deployment/epoch state, and permits only
+deployment-specific operational writes. It does not mutate canonical inputs.
+Validate-only evidence is `/tmp/p7-g5a-launcher-validate.json` with SHA256
+`e8619312a8044103b8938a9aa246bb68406955db0c3fbdd3dea9b460cd6879b4`, and the
+launcher contract tests are `14/14 PASS`.
+
+The current status is therefore:
+
+```text
+ready_to_arm           true
+activation_authorized  false
+runtime_activation     NOT_PERFORMED
+real_money_production  NOT_AUTHORIZED
+successor_research     NOT_AUTHORIZED
+```
+
+Evidence artifacts:
+
+```text
+runtime_activation_p7_release.json
+runtime_activation_p7_manifest.json
+runtime_activation_p7_preflight.json
+runtime_activation_p7_readback.json
+runtime_activation_p7_first_cycle.json
+runtime_activation_p7_report.json
+runtime_activation_p7_g5a_launcher_report.json
+```
+
+The next authorized step is P7-G6: take a final read-only authorization snapshot
+and freeze the exact launch command. G6 may arm activation, but must still not
+start the runtime. The actual one-shot start remains P7-G7.
 
 ---
 

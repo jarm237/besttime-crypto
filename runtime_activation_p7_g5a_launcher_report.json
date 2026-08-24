@@ -1,0 +1,79 @@
+{
+  "contract": "p7-g5a-safe-launcher-closure/v1",
+  "status": "PASS",
+  "blocker_closed": "NO_SAFE_NON_MUTATING_PAPER_CANARY_LAUNCHER_PROVEN",
+  "launcher": {
+    "contract": "paper-canary-launcher/v1",
+    "path": "scripts/p7_safe_paper_canary_launcher.py",
+    "sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+    "boundary": "external governance launcher; runtime application code remains pinned to release 5e8d798e4d06d6abd21ade99c79caaa93307dd5b"
+  },
+  "disqualified_launcher": {
+    "path": "scripts/activate_v5_canary.py",
+    "blocker": "NO_SAFE_NON_MUTATING_PAPER_CANARY_LAUNCHER_PROVEN",
+    "violations": [
+      "MUTATES_RUNTIME_ARTIFACT",
+      "MUTATES_ARTIFACT_SIDECAR",
+      "MUTATES_MODEL_REGISTRY",
+      "USES_FIXED_RUNTIME_EVIDENCE_EPOCH"
+    ],
+    "status": "DISQUALIFIED_FOR_P7_GOVERNED_ACTIVATION"
+  },
+  "allowed_writes": [
+    "create deployment-specific operational state",
+    "create process lease",
+    "capture child PID/runtime identity",
+    "append startup audit record",
+    "start one child process"
+  ],
+  "forbidden_writes": [
+    "rewrite logs/meta_model.joblib",
+    "rewrite logs/meta_model.json",
+    "modify logs/model_registry.json",
+    "retrain or repackage artifact",
+    "change schema metadata",
+    "change thresholds",
+    "rewrite release manifest",
+    "reuse or fix previous epoch"
+  ],
+  "validate_only": {
+    "command": ".venv/bin/python scripts/p7_safe_paper_canary_launcher.py --manifest-path runtime_activation_p7_manifest.json --expected-manifest-sha256 9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894 --pinned-root runtime/worktrees/pinned-5e8d798 --validate-only",
+    "result": "PASS",
+    "output": "/tmp/p7-g5a-launcher-validate.json",
+    "output_sha256": "e8619312a8044103b8938a9aa246bb68406955db0c3fbdd3dea9b460cd6879b4"
+  },
+  "immutable_inputs_before": {
+    "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+    "release_commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "release_tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01"
+  },
+  "tests": {
+    "command": ".venv/bin/pytest -q tests/ml/test_p7_safe_launcher_contract.py",
+    "result": "14/14 PASS",
+    "test_file_sha256": "35d303b11a1634369a952a8fbe27f70ea95321e22d32db8da15a6d5724fa43b7"
+  },
+  "acceptance": {
+    "launcher_contract_defined": "PASS",
+    "external_orchestration_boundary": "PASS",
+    "artifact_immutable": "PASS",
+    "registry_immutable": "PASS",
+    "manifest_immutable": "PASS",
+    "release_immutable": "PASS",
+    "paper_only_execution": "PASS",
+    "duplicate_runner_protection": "PASS",
+    "exactly_once_spawn_boundary": "PASS",
+    "automatic_retry_disabled": "PASS",
+    "pinned_child_import_path": "PASS",
+    "launcher_identity_frozen": "PASS"
+  },
+  "governance": {
+    "runtime_activation": "NOT_PERFORMED",
+    "activation_authorization": "NOT_ARMED",
+    "real_money_production": "NOT_AUTHORIZED",
+    "successor_research": "NOT_AUTHORIZED"
+  },
+  "next_gate": "P7-G6 READY_TO_ARM"
+}

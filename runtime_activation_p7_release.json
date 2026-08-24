@@ -1,0 +1,19 @@
+{
+  "mutable": false,
+  "release_commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+  "release_contract": "runtime-release/v1",
+  "release_tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+  "source": "P6_CANONICAL_SEAL",
+  "status": "PASS",
+  "verification": {
+    "g5_pass": true,
+    "p6_closed": true,
+    "pinned_head": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "pinned_status_clean": true,
+    "pinned_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+    "repo_head": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "repo_status_clean": false,
+    "repo_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01"
+  },
+  "verified_at": "2026-08-24T02:47:07.801257+00:00"
+}

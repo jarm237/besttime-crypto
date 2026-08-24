@@ -1,0 +1,10 @@
+{
+  "contract": "paper-canary-readback/v1",
+  "expected_release_commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+  "expected_release_tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+  "identity_readback": "NOT_AVAILABLE",
+  "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+  "reason": "activation not armed because no safe non-mutating paper launcher was proven",
+  "runtime_started": false,
+  "status": "NOT_STARTED"
+}

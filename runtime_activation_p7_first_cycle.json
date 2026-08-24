@@ -1,0 +1,6 @@
+{
+  "contract": "paper-canary-first-cycle/v1",
+  "first_cycle_sanity": "NOT_AVAILABLE",
+  "reason": "paper-canary runtime not started",
+  "status": "NOT_RUN"
+}

@@ -1,0 +1,95 @@
+{
+  "blocked_reason": null,
+  "contract": "p7-governed-paper-canary-activation/v1",
+  "gates": {
+    "P7": "IN_PROGRESS_READY_FOR_G6_AUTHORIZATION",
+    "P7-G0": "PASS",
+    "P7-G1": "PASS",
+    "P7-G10": "NOT_RUN",
+    "P7-G2": "PASS",
+    "P7-G3": "PASS",
+    "P7-G4": "PASS",
+    "P7-G5": "PASS",
+    "P7-G5A": "PASS",
+    "P7-G6": "READY_TO_ARM",
+    "P7-G7": "NOT_RUN",
+    "P7-G8": "NOT_RUN",
+    "P7-G9": "NOT_RUN"
+  },
+  "governance": {
+    "activation_authorization": "NOT_ARMED",
+    "artifact_promotion": "NOT_PERFORMED",
+    "model_retraining": "NOT_PERFORMED",
+    "real_money_production": "NOT_AUTHORIZED",
+    "runtime_activation": "NOT_PERFORMED",
+    "successor_research": "NOT_AUTHORIZED"
+  },
+  "manifest": {
+    "path": "runtime_activation_p7_manifest.json",
+    "sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894"
+  },
+  "preflight": {
+    "path": "runtime_activation_p7_preflight.json",
+    "ready_to_arm": true
+  },
+  "release": {
+    "commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "release_file": "runtime_activation_p7_release.json",
+    "tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01"
+  },
+  "safe_launcher": {
+    "contract": "paper-canary-launcher/v1",
+    "path": "scripts/p7_safe_paper_canary_launcher.py",
+    "sha256": "1d6fe208a6c527529be71fa1216f78ed51f3e24db893838ad45616c6797a1f90",
+    "validation": {
+      "immutable_inputs_before": {
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "artifact_sidecar_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "model_registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "release_commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "release_tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01"
+      },
+      "launcher_contract": "paper-canary-launcher/v1",
+      "request": {
+        "argv": [
+          "/home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python",
+          "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/main.py"
+        ],
+        "artifact_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798/logs/meta_model.joblib",
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "cwd": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798",
+        "deployment_id": "paper-canary-20260824-01",
+        "environment": {
+          "AUTO_TRADE_BINANCE_TESTNET": "true",
+          "AUTO_TRADE_DRY_RUN": "true",
+          "BTC_DEPLOYMENT_ID": "paper-canary-20260824-01",
+          "BTC_EVIDENCE_ELIGIBLE": "true",
+          "BTC_PAPER_RUN_ID": "paper-canary-20260824-01",
+          "BTC_RUNTIME_ENVIRONMENT": "paper",
+          "LIVE_TRADING_ENABLED": "false",
+          "P7_ARTIFACT_SHA256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+          "P7_LAUNCHER_CONTRACT": "paper-canary-launcher/v1",
+          "P7_MANIFEST_PATH": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime_activation_p7_manifest.json",
+          "P7_MANIFEST_SHA256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+          "P7_RELEASE_COMMIT_SHA": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+          "P7_RELEASE_TREE_SHA": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONPATH": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798"
+        },
+        "epoch_id": "canary-p6-sealed-v1-20260824-01",
+        "executable": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/.venv/bin/python",
+        "execution_mode": "PAPER",
+        "expected_manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+        "launcher_contract": "paper-canary-launcher/v1",
+        "manifest_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime_activation_p7_manifest.json",
+        "paper_run_id": "paper-canary-20260824-01",
+        "pinned_root": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-5e8d798",
+        "release_commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+        "release_tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01"
+      },
+      "status": "PASS"
+    }
+  },
+  "status": "READY_TO_ARM_PENDING_G6_AUTHORIZATION"
+}
