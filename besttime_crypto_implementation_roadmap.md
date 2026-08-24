@@ -839,9 +839,10 @@ P7-R1 EARLY CHILD EXIT FORENSICS         PASS_OPERATIONAL_PRECONDITION
 P7-R2 EVIDENCE EPOCH PROVISIONING        PASS_OPERATIONAL_STATE_PROVISIONED
 P7-R3 POST-EPOCH STARTUP EXIT FORENSICS  PASS_OBSERVABILITY_GAP_CLASSIFIED
 P7-R3A SUPERVISED EXIT OBSERVABILITY     PASS_SUPERVISED_EXIT_OBSERVABILITY
+P7-G6#3 FRESH PREFLIGHT                  PASS_READY_FOR_G6_AUTHORIZATION_3
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    BLOCKED_NOT_ACTIVE
 P7-G10 OBSERVATION HANDOFF               BLOCKED_NOT_ACTIVE
-P7                                     IN_PROGRESS_READY_FOR_ATTEMPT_3_PREFLIGHT
+P7                                     IN_PROGRESS_READY_TO_MINT_AUTHORIZATION_3
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -1341,6 +1342,74 @@ G8_SUSTAINED_LIVENESS_CONTRACT
 
 Only after those gates pass may a new single-use P7-G6 authorization #3 be
 generated. Authorization #1 and #2 remain consumed.
+
+Fresh preflight #3 completed read-only and is bound to the R3A governance seal:
+
+```text
+governance_commit = a8358102b8ec18557e14fd547397acd224c41961
+governance_tree   = c68fde9ccfa3f4a7ed9ec1fb18f80a47cec15dd8
+```
+
+The preflight did not create authorization #3 and did not spawn a runtime.
+
+Preflight #3 result:
+
+```text
+verdict             PASS_READY_FOR_G6_AUTHORIZATION_3
+authorization_3     NOT_CREATED
+runtime_spawn_count 0
+paper_canary        NOT_ACTIVE
+runtime_runner      NONE
+```
+
+Gate results:
+
+```text
+governance_identity       PASS
+runtime_release           PASS
+immutable_inputs          PASS
+evidence_epoch            PASS
+startup_precondition      PASS
+runtime_conflict          PASS
+safe_launcher             PASS
+r3a_supervisor_readiness  PASS
+attempt3_evidence_paths   PASS
+g8_a_contract             PASS
+g8_b_contract             PASS
+attempt2_regression       PASS
+```
+
+G8-B semantic liveness for attempt #3 is explicitly bound to the strongest
+existing runtime semantic marker: `RuntimePauseController.heartbeat()` persisted
+to runtime pause state/events after scheduler loop entry. This is not an
+arbitrary process-survived-N-seconds gate. G8-A remains identity establishment
+only and cannot mark `runtime_activation = ACTIVE` by itself.
+
+Attempt #3 evidence paths are predeclared and non-colliding:
+
+```text
+runtime/worktrees/pinned-5e8d798/runtime/paper/paper-canary-20260824-01/
+  activation_attempt_3/
+    child.stdout.log
+    child.stderr.log
+    supervision.json
+    g8_identity_readback.json
+    g8_liveness_readback.json
+```
+
+Preflight #3 evidence:
+
+```text
+runtime_activation_p7_attempt3_preflight.json
+sha256 = 3a7b239460fb2d8836576e2cd7fbc135e6285561110213dc9eed00e771ae6f9a
+```
+
+The next valid seam is to mint P7-G6 authorization #3 as a separate
+single-use authorization bound to the R3A governance commit/tree, pinned runtime
+release, launcher SHA, supervisor SHA, manifest/artifact hashes, ACTIVE epoch,
+attempt #3 evidence paths, G8-A/G8-B contracts, `spawn_budget = 1`,
+`restart_budget = 0`, and `automatic_retry = false`. Do not combine
+authorization minting with G7 launch.
 
 ---
 
