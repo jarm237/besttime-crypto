@@ -1,0 +1,81 @@
+{
+  "gate": "P7-R3A",
+  "contract": "p7-supervised-child/v1",
+  "status": "DEFINED",
+  "runtime_semantics_changed": false,
+  "real_runtime_spawn_count": 0,
+  "scope": {
+    "authorized": [
+      "external child supervision",
+      "stdout capture",
+      "stderr capture",
+      "exit code capture",
+      "signal classification",
+      "lifecycle timestamps",
+      "external startup-stage inference",
+      "G8-A/G8-B separation",
+      "dummy subprocess tests"
+    ],
+    "not_authorized": [
+      "runtime source changes",
+      "main.py changes",
+      "scheduler changes",
+      "artifact changes",
+      "schema changes",
+      "evidence policy changes",
+      "threshold changes",
+      "model changes",
+      "ACTIVE epoch recreation",
+      "real runtime activation",
+      "G6 authorization creation"
+    ]
+  },
+  "supervision": {
+    "spawn_budget": 1,
+    "restart_budget": 0,
+    "automatic_retry": false,
+    "stdout_destination": "file",
+    "stderr_destination": "file",
+    "captures_exit_code": true,
+    "captures_signal": true,
+    "captures_stdout_sha256": true,
+    "captures_stderr_sha256": true,
+    "captures_lifecycle_timestamps": true,
+    "state_machine": [
+      "NOT_STARTED",
+      "SPAWNED",
+      "RUNNING_OBSERVED",
+      "STILL_RUNNING",
+      "NORMAL_EXIT",
+      "NONZERO_EXIT",
+      "SIGNAL_EXIT",
+      "OBSERVABILITY_FAILURE"
+    ],
+    "forbidden_states": [
+      "RESTARTING",
+      "RETRYING",
+      "RESPAWN"
+    ]
+  },
+  "startup_stage_model": [
+    "S0 CHILD_SPAWNED",
+    "S1 PROCESS_VISIBLE",
+    "S2 RUNTIME_LOCK_ACQUIRED",
+    "S3 ACTIVE_EPOCH_OBSERVED",
+    "S4 RUNTIME_MARKED_RUNNING",
+    "S5 ASYNC_MAIN_EVIDENCE",
+    "S6 SCHEDULER_STARTED_EVIDENCE",
+    "S7 FIRST_RUNTIME_HEARTBEAT",
+    "S8 FIRST_CYCLE_EVIDENCE"
+  ],
+  "g8_contract": {
+    "contract": "p7-g8-identity-and-sustained-liveness/v1",
+    "g8_a": "identity establishment",
+    "g8_b": "sustained semantic liveness",
+    "overall_active_requires": [
+      "G8-A PASS",
+      "G8-B PASS"
+    ],
+    "transient_identity_only": "ACTIVATION_NOT_SUSTAINED"
+  }
+}

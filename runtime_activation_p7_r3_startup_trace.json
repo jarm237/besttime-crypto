@@ -1,0 +1,80 @@
+{
+  "artifact": "runtime_activation_p7_r3_startup_trace",
+  "version": 1,
+  "created_at": "2026-08-24T00:00:00+07:00",
+  "scope": "P7-R3 POST-EPOCH STARTUP EXIT FORENSICS",
+  "activation_attempt": 2,
+  "authorization_sha256": "22792ca76f119230e5f3ee8c9de77caec6b41a46733111bc36c8d31d10ed73a8",
+  "authorization_status": "CONSUMED_FAILED",
+  "no_restart_performed": true,
+  "no_activation_attempt_3": true,
+  "pinned_runtime": {
+    "release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+    "worktree": "runtime/worktrees/pinned-5e8d798"
+  },
+  "attempt_2_evidence": {
+    "child_pid": 839623,
+    "runtime_id": "20260824T064257Z-839623",
+    "lock_acquired_at": "2026-08-24T06:43:09.500367+00:00",
+    "lock_released_at": "2026-08-24T06:43:09.510542+00:00",
+    "lock_hold_duration_observed": "approximately_10ms",
+    "post_g8_active_runner_count": 0,
+    "runtime_pause_state_file_present": false,
+    "runtime_pause_events_file_present": false
+  },
+  "source_trace": [
+    {
+      "stage": "runtime_lock_acquire",
+      "status": "CONFIRMED_ATTEMPT_2",
+      "evidence": "runtime_lock_events.jsonl"
+    },
+    {
+      "stage": "active_epoch_gate",
+      "status": "INFERRED_PASSED",
+      "evidence": "attempt #2 reached post-R2 lock acquisition; isolated pinned probe proves ACTIVE epoch is accepted"
+    },
+    {
+      "stage": "runtime_pause_policy_from_epoch",
+      "status": "PASS_ISOLATED_PROBE"
+    },
+    {
+      "stage": "runtime_pause_controller_init",
+      "status": "PASS_ISOLATED_PROBE",
+      "probe_runtime_state": "STARTING"
+    },
+    {
+      "stage": "runtime_pause_mark_running",
+      "status": "PASS_ISOLATED_PROBE",
+      "probe_runtime_state": "RUNNING"
+    },
+    {
+      "stage": "runtime_pause_state_persisted_in_attempt_2",
+      "status": "MISSING_ATTEMPT_2",
+      "evidence": "no runtime_pause_state.json or runtime_pause_events.jsonl in deployment state root"
+    },
+    {
+      "stage": "async_main_entered",
+      "status": "UNOBSERVED"
+    },
+    {
+      "stage": "scheduler_loop_sustained",
+      "status": "NOT_CONFIRMED"
+    }
+  ],
+  "isolated_probe": {
+    "description": "Pinned release modules were loaded in a temporary runtime root with copied attempt #2 evidence databases. The probe executed only the post-lock startup segment through RuntimePauseController.mark_running and did not launch the live runtime loop.",
+    "returncode": 0,
+    "stages": [
+      "assert_runtime_epoch_ready PASS ACTIVE canary-p6-sealed-v1-20260824-01",
+      "RuntimePausePolicy.from_mapping PASS",
+      "RuntimePauseController init PASS STARTING",
+      "mark_running PASS RUNNING",
+      "runtime_pause_state.json created PASS",
+      "runtime_pause_events.jsonl created PASS"
+    ]
+  },
+  "last_confirmed_stage_in_real_attempt": "runtime_lock_acquired",
+  "first_missing_stage_in_real_attempt": "runtime_pause_state_persisted",
+  "narrowest_supported_conclusion": "The attempt #2 child accepted enough startup preconditions to acquire and release the runtime lock after R2, but the available evidence does not capture child stderr, exit code, or stage-level startup markers. The runtime pause segment passes in isolation, so R3 cannot support a runtime-code root cause from current artifacts."
+}

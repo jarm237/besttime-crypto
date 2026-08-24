@@ -1,0 +1,39 @@
+{
+  "artifact": "runtime_activation_p7_r3_failure_classification",
+  "version": 1,
+  "created_at": "2026-08-24T00:00:00+07:00",
+  "scope": "P7-R3 POST-EPOCH STARTUP EXIT FORENSICS",
+  "classification": {
+    "failure_class": "OBSERVABILITY_GAP_AFTER_ACTIVE_EPOCH",
+    "remediation_boundary": "TOOLING_OBSERVABILITY",
+    "runtime_release_change_needed": false,
+    "p6_seal_status": "REMAINS_APPLICABLE",
+    "p7_g5a_launcher_contract": "REMAINS_PASS",
+    "p7_r1_blocker": "RESOLVED_BY_R2",
+    "activation_authorization_2": "CONSUMED_FAILED",
+    "activation_authorization_3": "NOT_AUTHORIZED"
+  },
+  "evidence_supported_findings": [
+    "Attempt #2 crossed the original R1 missing ACTIVE epoch blocker.",
+    "Attempt #2 acquired and released the paper runtime lock under PID 839623.",
+    "Immediate G8 saw the runner active, but post-G8 liveness found active_runner_count = 0.",
+    "The deployment state root contains runtime_lock_events.jsonl but lacks runtime_pause_state.json and runtime_pause_events.jsonl.",
+    "An isolated pinned-release probe with copied evidence databases passes active epoch validation, pause policy construction, RuntimePauseController initialization, and mark_running persistence."
+  ],
+  "unsupported_claims": [
+    "A specific runtime exception caused the child exit.",
+    "async_main failed before scheduler entry.",
+    "the scheduler loop failed after entry.",
+    "model artifact loading, decision semantics, or threshold policy caused the exit."
+  ],
+  "required_before_next_activation_attempt": [
+    "supervised child stdout capture",
+    "supervised child stderr capture",
+    "child exit code capture",
+    "stage-level startup marker before and after active epoch validation",
+    "stage-level startup marker before and after RuntimePauseController.mark_running",
+    "stage-level startup marker before asyncio.run(async_main())",
+    "sustained liveness window distinct from immediate G8 identity read-back"
+  ],
+  "decision": "P7-R3 closes the post-epoch forensic pass as an observability-gap classification, not as runtime activation success. A future activation attempt requires an observability remediation gate and fresh P7-G6 authorization."
+}

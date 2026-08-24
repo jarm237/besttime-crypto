@@ -1,0 +1,38 @@
+{
+  "artifact": "runtime_activation_p7_r3_remediation_report",
+  "version": 1,
+  "created_at": "2026-08-24T00:00:00+07:00",
+  "scope": "P7-R3 POST-EPOCH STARTUP EXIT FORENSICS",
+  "status": "PASS_OBSERVABILITY_GAP_CLASSIFIED",
+  "actions_performed": [
+    "Verified repository and GitNexus index freshness.",
+    "Inspected GitNexus context for main, async_main, and RuntimePauseController.mark_running.",
+    "Ran upstream impact analysis for the inspected runtime startup symbols.",
+    "Read pinned runtime startup source and deployment state artifacts.",
+    "Ran a non-activation isolated startup-segment probe in a temporary runtime root using copied evidence databases.",
+    "Generated immutable R3 evidence artifacts and roadmap update."
+  ],
+  "actions_not_performed": [
+    "No activation attempt #3.",
+    "No runtime restart.",
+    "No synthetic scheduler cycle.",
+    "No threshold lowering.",
+    "No trade/order injection.",
+    "No pinned runtime source change.",
+    "No canonical artifact or manifest mutation."
+  ],
+  "next_gate": {
+    "name": "P7-R3A SUPERVISED EXIT OBSERVABILITY",
+    "purpose": "Add external child exit/stderr/stdout/stage capture and a sustained-liveness distinction before any new authorization is minted.",
+    "must_complete_before": "fresh P7-G6 authorization #3"
+  },
+  "current_authorization_state": {
+    "authorization_2": "CONSUMED_FAILED",
+    "authorization_3": "NOT_AUTHORIZED"
+  },
+  "current_runtime_state": {
+    "paper_canary": "NOT_ACTIVE",
+    "active_runner_count": 0,
+    "runtime_activation": "NOT_SUSTAINED_AFTER_G8"
+  }
+}

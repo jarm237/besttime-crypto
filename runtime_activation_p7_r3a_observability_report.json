@@ -1,0 +1,82 @@
+{
+  "gate": "P7-R3A",
+  "status": "PASS_SUPERVISED_EXIT_OBSERVABILITY",
+  "runtime_semantics_changed": false,
+  "runtime_release_changed": false,
+  "real_runtime_spawn_count": 0,
+  "attempt_3": "NOT_AUTHORIZED",
+  "authorization_3_created": false,
+  "paper_canary": "NOT_ACTIVE",
+  "runtime_runner": "NONE",
+  "runtime_identity": {
+    "release_commit": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
+    "release_tree": "48ef10b27488468d294a5e223cb95a4aebfc3f01",
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "manifest_sha256": "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894",
+    "evidence_epoch_id": "canary-p6-sealed-v1-20260824-01",
+    "deployment_id": "paper-canary-20260824-01",
+    "paper_run_id": "paper-canary-20260824-01"
+  },
+  "supervision": {
+    "contract": "p7-supervised-child/v1",
+    "supervisor_path": "scripts/p7_r3a_supervised_child.py",
+    "supervisor_sha256": "d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea",
+    "spawn_budget": 1,
+    "restart_budget": 0,
+    "automatic_retry": false,
+    "captures_exit_code": true,
+    "captures_signal": true,
+    "captures_stdout": true,
+    "captures_stderr": true,
+    "captures_timestamps": true,
+    "stdout_stderr_capture_mode": "direct_file_redirection",
+    "last_stage_inference": true
+  },
+  "g8": {
+    "contract": "p7-g8-identity-and-sustained-liveness/v1",
+    "identity_establishment_separated": true,
+    "sustained_liveness_required": true,
+    "attempt_2_retrospective": {
+      "g8_a": "PASS",
+      "g8_b": "FAIL",
+      "overall": "ACTIVATION_NOT_SUSTAINED"
+    }
+  },
+  "test_matrix": {
+    "r3a_supervisor_tests": "12/12 PASS",
+    "p7_seal_critical_subset": "32/32 PASS",
+    "cases": [
+      "clean_exit_0",
+      "clean_exit_nonzero",
+      "uncaught_exception_to_stderr",
+      "SIGTERM_exit",
+      "fast_exit_race",
+      "long_running_child",
+      "large_stdout_stderr",
+      "exact_argv_env",
+      "no_retry",
+      "no_restart",
+      "transient_g8_not_active",
+      "sustained_g8_active"
+    ]
+  },
+  "immutability": {
+    "runtime_release_head_unchanged": true,
+    "runtime_release_tree_unchanged": true,
+    "artifact_unchanged": true,
+    "manifest_unchanged": true,
+    "runtime_lock_event_count_after_r3a": 4,
+    "active_pinned_runner_count_after_r3a": 0
+  },
+  "next_gate": {
+    "name": "fresh P7 preflight #3",
+    "requires_before_authorization_3": [
+      "OBSERVABILITY_SUPERVISOR_READY",
+      "STDOUT_CAPTURE_READY",
+      "STDERR_CAPTURE_READY",
+      "EXIT_STATUS_CAPTURE_READY",
+      "SIGNAL_CAPTURE_READY",
+      "G8_SUSTAINED_LIVENESS_CONTRACT"
+    ]
+  }
+}

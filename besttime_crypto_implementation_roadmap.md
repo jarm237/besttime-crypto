@@ -837,10 +837,11 @@ P7-G7 CONTROLLED PAPER-CANARY START      PASS_SPAWNED_ONCE
 P7-G8 POST-START READ-BACK               PASS_ACTIVE_IMMEDIATE_NOT_SUSTAINED
 P7-R1 EARLY CHILD EXIT FORENSICS         PASS_OPERATIONAL_PRECONDITION
 P7-R2 EVIDENCE EPOCH PROVISIONING        PASS_OPERATIONAL_STATE_PROVISIONED
-P7-R3 POST-EPOCH STARTUP EXIT FORENSICS  READY
+P7-R3 POST-EPOCH STARTUP EXIT FORENSICS  PASS_OBSERVABILITY_GAP_CLASSIFIED
+P7-R3A SUPERVISED EXIT OBSERVABILITY     PASS_SUPERVISED_EXIT_OBSERVABILITY
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    BLOCKED_NOT_ACTIVE
 P7-G10 OBSERVATION HANDOFF               BLOCKED_NOT_ACTIVE
-P7                                     BLOCKED_AFTER_ACTIVATION_ATTEMPT_2
+P7                                     IN_PROGRESS_READY_FOR_ATTEMPT_3_PREFLIGHT
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -1163,6 +1164,183 @@ The next authorized step is not another launch. Authorization #2 is consumed.
 The next step is P7-R3 post-epoch startup exit forensics. Do not force a
 synthetic cycle, lower thresholds, inject a trade, or retry without a new
 forensic/remediation gate and fresh G6 authorization.
+
+P7-R3 completed post-epoch startup exit forensics without a restart and without
+minting or consuming authorization #3. Attempt #2 remains frozen as
+`CONSUMED_FAILED`.
+
+R3 refined startup trace:
+
+```text
+T0 launcher validation and spawn           CONFIRMED
+T1 immediate G8 active runner identity     CONFIRMED
+T2 post-G8 active runner count             0 CONFIRMED
+T3 runtime lock acquired                   CONFIRMED
+T4 runtime lock released                   CONFIRMED
+T5 ACTIVE epoch gate                       INFERRED_PASSED
+T6 pause policy construction               PASS_ISOLATED_PROBE
+T7 RuntimePauseController init             PASS_ISOLATED_PROBE
+T8 RuntimePauseController.mark_running     PASS_ISOLATED_PROBE
+T9 runtime_pause_state persisted attempt2  MISSING
+T10 async_main entered                     UNOBSERVED
+T11 scheduler loop sustained               NOT_CONFIRMED
+```
+
+The critical R3 finding is that the post-R2 ACTIVE epoch blocker from R1 was
+crossed, but the attempt #2 evidence does not include child stdout, stderr,
+exit code, or stage-level startup markers. A temporary-root pinned-release
+probe using copied attempt #2 evidence databases passed
+`assert_runtime_epoch_ready`, `RuntimePausePolicy.from_mapping`,
+`RuntimePauseController` initialization, and `mark_running` persistence. That
+means current evidence is insufficient to assign a specific runtime-code root
+cause to the child exit.
+
+R3 classification:
+
+```text
+failure_class                 OBSERVABILITY_GAP_AFTER_ACTIVE_EPOCH
+remediation_boundary          TOOLING_OBSERVABILITY
+runtime_release_change_needed false
+P6 seal                       REMAINS_APPLICABLE
+P7-G5A safe launcher          REMAINS_PASS
+authorization_2               CONSUMED_FAILED
+authorization_3               NOT_AUTHORIZED
+runtime_activation            NOT_SUSTAINED_AFTER_G8
+paper_canary                  NOT_ACTIVE
+```
+
+Unsupported claims remain explicitly blocked:
+
+```text
+specific runtime exception caused exit     UNSUPPORTED
+async_main failed before scheduler         UNSUPPORTED
+scheduler loop failed after entry          UNSUPPORTED
+artifact/decision/threshold caused exit    UNSUPPORTED
+```
+
+Before any third activation attempt, P7 requires a new observability seam,
+`P7-R3A SUPERVISED EXIT OBSERVABILITY`, that captures child stdout, stderr,
+exit code, and stage-level startup markers, and separates immediate identity
+read-back from a sustained-liveness window. Only after that seam passes may a
+fresh preflight and new single-use P7-G6 authorization #3 be considered.
+
+R3 evidence:
+
+```text
+runtime_activation_p7_r3_startup_trace.json
+sha256 = ad66e155d8c7b1e7a4bec66efda8760e9c49ee79adef62201f8f42a606f2a1b7
+
+runtime_activation_p7_r3_failure_classification.json
+sha256 = b5864639967bb0b09aee71d1b5de9501b905983f6960baa22a6ab162aa4cd01f
+
+runtime_activation_p7_r3_remediation_report.json
+sha256 = 6a46e0f2cdb26556145ed1312d79b2c6ff365223d7bb87b9028b8facb8658d71
+```
+
+P7-R3A closed the observability gap identified by R3 without changing pinned
+runtime semantics and without launching attempt #3. The new supervisor is
+external governance tooling, `scripts/p7_r3a_supervised_child.py`, with
+contract `p7-supervised-child/v1` and SHA256
+`d9f012bce258483cd54894d0b0d18734c122c0de0e1ffeb67eda08ef971183ea`.
+
+R3A supervision contract:
+
+```text
+spawn_budget        1
+restart_budget      0
+automatic_retry     false
+stdout_capture      direct_file_redirection
+stderr_capture      direct_file_redirection
+exit_code_capture   true
+signal_capture      true
+lifecycle_timestamps true
+startup_stage_model external_observation_only
+real_runtime_spawn_count 0
+```
+
+R3A also splits the old G8 read-back into:
+
+```text
+G8-A Identity Establishment
+  child spawned exactly once
+  expected PID/runtime identity observed
+  expected epoch/deployment/release/artifact observed
+  immutable inputs unchanged
+
+G8-B Sustained Liveness
+  semantic progress marker required
+  transient process survival is not sufficient
+```
+
+Attempt #2 is therefore retained historically as:
+
+```text
+immediate G8 identity        PASS
+retrospective G8-A           PASS
+retrospective G8-B           FAIL
+overall                      ACTIVATION_NOT_SUSTAINED
+```
+
+It is not rewritten into a simple G8 failure, because the race between identity
+establishment and sustained liveness is the important finding.
+
+R3A validation:
+
+```text
+R3A supervisor dummy matrix        12/12 PASS
+P7 seal-critical regression subset 32/32 PASS
+
+clean exit 0                       PASS
+nonzero exit                       PASS
+uncaught exception stderr capture  PASS
+SIGTERM classification             PASS
+fast-exit race capture             PASS
+long-running child observation     PASS
+large stdout/stderr capture        PASS
+exact argv/env preservation        PASS
+no retry                           PASS
+no restart                         PASS
+transient G8 not ACTIVE            PASS
+sustained semantic progress ACTIVE PASS
+```
+
+Immutable runtime verification after R3A:
+
+```text
+runtime_release_head  5e8d798e4d06d6abd21ade99c79caaa93307dd5b
+runtime_release_tree  48ef10b27488468d294a5e223cb95a4aebfc3f01
+manifest_sha256       9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894
+artifact_sha256       dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c
+runtime_lock_events   unchanged at 4 lines
+active_pinned_runner  0
+authorization_3       NOT_CREATED
+attempt_3             NOT_AUTHORIZED
+paper_canary          NOT_ACTIVE
+```
+
+R3A evidence:
+
+```text
+runtime_activation_p7_r3a_observability_contract.json
+sha256 = e574bcecdbdfb2ecc87266cab3216beccb65d872fd158567e395eacdbe29c8b0
+
+runtime_activation_p7_r3a_observability_report.json
+sha256 = 08a4866efd0fc796dfea9f421ddef18edc38f8e8bc3dc1ff13ea7400aec3ef3e
+```
+
+The next valid step is not G7. It is fresh P7 preflight #3, which must add:
+
+```text
+OBSERVABILITY_SUPERVISOR_READY
+STDOUT_CAPTURE_READY
+STDERR_CAPTURE_READY
+EXIT_STATUS_CAPTURE_READY
+SIGNAL_CAPTURE_READY
+G8_SUSTAINED_LIVENESS_CONTRACT
+```
+
+Only after those gates pass may a new single-use P7-G6 authorization #3 be
+generated. Authorization #1 and #2 remain consumed.
 
 ---
 
