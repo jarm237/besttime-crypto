@@ -832,12 +832,12 @@ P7-G3 DEPLOYMENT MANIFEST                PASS
 P7-G4 PINNED RUNTIME ENVIRONMENT         PASS
 P7-G5 ACTIVATION PREFLIGHT               PASS
 P7-G5A SAFE LAUNCHER CONTRACT            PASS
-P7-G6 ACTIVATION AUTHORIZATION FREEZE    TOOLING_READY
-P7-G7 CONTROLLED PAPER-CANARY START      NOT_RUN
-P7-G8 POST-START READ-BACK               NOT_RUN
+P7-G6 ACTIVATION AUTHORIZATION FREEZE    ARMED_CONSUMED
+P7-G7 CONTROLLED PAPER-CANARY START      PASS_SPAWNED_ONCE
+P7-G8 POST-START READ-BACK               ACTIVATION_NOT_ESTABLISHED
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    NOT_RUN
 P7-G10 OBSERVATION HANDOFF               NOT_RUN
-P7                                     IN_PROGRESS_G6_AUTHORIZATION_TOOLING_READY
+P7                                     BLOCKED_AFTER_ACTIVATION_ATTEMPT
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -884,9 +884,9 @@ launcher contract tests are `14/14 PASS`.
 The current status is therefore:
 
 ```text
-ready_to_arm           true
-activation_authorized  false
-runtime_activation     NOT_PERFORMED
+ready_to_arm           false
+activation_authorized  consumed
+runtime_activation     NOT_ESTABLISHED
 real_money_production  NOT_AUTHORIZED
 successor_research     NOT_AUTHORIZED
 ```
@@ -907,6 +907,27 @@ commit. Committing the generated authorization artifact would change
 governance `HEAD` and make that authorization stale; it is operational
 evidence for the next P7-G7 launch seam rather than a runtime-release change.
 
+P7-G7 consumed authorization SHA256
+`6978972d7b026598cf82a4f4bc0949ded78464430cabfc0bf960755507bfb150` exactly
+once. The launcher returned `SPAWNED` with child PID `611136`, spawn attempts
+`1`, automatic retries `0`, and immutable runtime inputs unchanged. G7 evidence
+is `runtime_activation_p7_g7_invocation.json` with SHA256
+`9dfc0ccdff14eedbac4b731200394f905a09949af5d4c0b64f5d96443da3e661`.
+
+P7-G8 authoritative read-back found `active_runner_count = 0`; the child had
+already exited by read-back time. Immutable inputs remained unchanged and no
+second launch was attempted. The resulting decision-matrix verdict is
+`ACTIVATION_FAILED`, with `runtime_activation = NOT_ESTABLISHED` and
+`paper_canary = NOT_ACTIVE`. G8 evidence is
+`runtime_activation_p7_g8_readback.json` with SHA256
+`2cf2341b3994275ebe146943ac318f60fda9646ca32f94dd59d5adb27bc7240c`.
+
+Observed operational state from the pinned runtime shows the child acquired and
+released the paper runtime lock for deployment `paper-canary-20260824-01`
+within the same startup attempt. No retry is authorized under the consumed G6
+authorization. The next valid step is forensic/remediation planning followed by
+a new G6 authorization if another attempt is desired.
+
 Evidence artifacts:
 
 ```text
@@ -919,11 +940,16 @@ runtime_activation_p7_report.json
 runtime_activation_p7_g5a_launcher_report.json
 runtime_activation_p7_g6_authorization.json
 runtime_activation_p7_g6_authorization.json.sha256
+runtime_activation_p7_g7_invocation.json
+runtime_activation_p7_g7_invocation.json.sha256
+runtime_activation_p7_g8_readback.json
+runtime_activation_p7_g8_readback.json.sha256
 ```
 
-The next authorized step is to run the G6 snapshot generator after this
-governance tooling commit is sealed. A passing G6 snapshot may arm activation,
-but must still not start the runtime. The actual one-shot start remains P7-G7.
+The next authorized step is not another launch. The consumed authorization
+cannot be reused. The next step is to diagnose the early child exit, decide the
+minimum remediation scope, then generate a fresh G6 authorization before any
+second activation attempt.
 
 ---
 
