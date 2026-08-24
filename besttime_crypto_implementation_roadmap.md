@@ -836,9 +836,10 @@ P7-G6 ACTIVATION AUTHORIZATION FREEZE    ARMED_CONSUMED
 P7-G7 CONTROLLED PAPER-CANARY START      PASS_SPAWNED_ONCE
 P7-G8 POST-START READ-BACK               ACTIVATION_NOT_ESTABLISHED
 P7-R1 EARLY CHILD EXIT FORENSICS         PASS_OPERATIONAL_PRECONDITION
+P7-R2 EVIDENCE EPOCH PROVISIONING        PASS_OPERATIONAL_STATE_PROVISIONED
 P7-G9 FIRST-CYCLE SEMANTIC VALIDATION    BLOCKED_NOT_ACTIVE
 P7-G10 OBSERVATION HANDOFF               BLOCKED_NOT_ACTIVE
-P7                                     BLOCKED_AFTER_ACTIVATION_ATTEMPT
+P7                                     READY_FOR_FRESH_PREFLIGHT_AND_NEW_G6
 ```
 
 P7 has pinned the runtime release to the P6 canonical seal:
@@ -887,7 +888,7 @@ The current status is therefore:
 ```text
 ready_to_arm           false
 activation_authorized  consumed
-runtime_activation     NOT_ESTABLISHED
+runtime_activation     NOT_PERFORMED_AFTER_R2
 real_money_production  NOT_AUTHORIZED
 successor_research     NOT_AUTHORIZED
 ```
@@ -986,11 +987,51 @@ runtime_activation_p7_r1_remediation_report.json
 sha256 = c25cda589d593e41eb80e3e4fd5a5ddc7875161df21c19f45c481040e745c983
 ```
 
-The next valid step is an operational remediation gate that creates/activates
-the deployment-specific evidence epoch, or explicitly changes the paper-startup
-evidence policy, without mutating the pinned runtime source or canonical P6
-artifact inputs. Any second activation attempt requires a fresh preflight and a
-new G6 authorization SHA.
+P7-R2 provisioned the deployment-specific ACTIVE evidence epoch required by
+pinned `main.py` when `BTC_EVIDENCE_ELIGIBLE=true`. The remediation used the
+pinned runtime release modules from `runtime/worktrees/pinned-5e8d798` and
+wrote only deployment-specific operational evidence state:
+
+```text
+runtime/paper/paper-canary-20260824-01/logs/global_evidence_index.sqlite
+runtime/paper/paper-canary-20260824-01/logs/runtime_evidence_2026-08-24.sqlite
+```
+
+R2 authoritative read-back:
+
+```text
+evidence_epoch                      ACTIVE
+active_epoch_count                  1
+epoch_id                            canary-p6-sealed-v1-20260824-01
+deployment_id                       paper-canary-20260824-01
+paper_run_id                        paper-canary-20260824-01
+runtime_release                     5e8d798e4d06d6abd21ade99c79caaa93307dd5b
+runtime_release_tree                48ef10b27488468d294a5e223cb95a4aebfc3f01
+artifact_sha256                     dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c
+execution_mode                      PAPER
+evidence_eligible                   true
+startup_precondition_probe          PASS
+immutable_inputs                    UNCHANGED
+runtime_activation                  NOT_PERFORMED_AFTER_R2
+```
+
+R2 did not change the pinned runtime source, the manifest, the artifact, the
+artifact sidecar, the model registry, thresholds, schema, or policy. P6 remains
+applicable and P7-G5A remains PASS. The old authorization remains consumed and
+cannot be reused.
+
+R2 evidence:
+
+```text
+runtime_activation_p7_r2_dry_run_report.json
+sha256 = 9909b1e6ac3b8471ae09090bc5d2ba33ff9fb8fe4a2fc746401728053582992c
+
+runtime_activation_p7_r2_provisioning_report.json
+sha256 = f4b2527f760edfee0eaa730a7f17d1a2a0e534b7001ee63080475037c8a3a186
+```
+
+Any second activation attempt still requires a fresh P7 preflight and a new G6
+authorization SHA.
 
 Evidence artifacts:
 
@@ -1014,12 +1055,16 @@ runtime_activation_p7_r1_failure_classification.json
 runtime_activation_p7_r1_failure_classification.json.sha256
 runtime_activation_p7_r1_remediation_report.json
 runtime_activation_p7_r1_remediation_report.json.sha256
+runtime_activation_p7_r2_dry_run_report.json
+runtime_activation_p7_r2_dry_run_report.json.sha256
+runtime_activation_p7_r2_provisioning_report.json
+runtime_activation_p7_r2_provisioning_report.json.sha256
 ```
 
 The next authorized step is not another launch. The consumed authorization
-cannot be reused. The next step is operational remediation for the missing
-ACTIVE evidence epoch/startup precondition, then a fresh G6 authorization before
-any second activation attempt.
+cannot be reused. The next step is a fresh read-only P7 preflight that includes
+the ACTIVE epoch precondition, followed by a new G6 authorization before any
+second activation attempt.
 
 ---
 
