@@ -1,0 +1,88 @@
+{
+  "artifact": "model_coverage_mc9_p7_failure_closure",
+  "generated_at": "2026-08-25T07:28:08Z",
+  "scope": "MC9 closes KNOWN failure classes. Does not claim ALL_P7_FAILURE_MODES_IMPOSSIBLE.",
+  "failure_matrix": [
+    {
+      "attempt": "#1",
+      "failure_class": "NO_ACTIVE_EVIDENCE_EPOCH",
+      "failure_description": "P7 startup precondition rejected: no ACTIVE evidence epoch present.",
+      "historical_remediation": "R2 \u2014 provision evidence epoch",
+      "current_evidence": "R2 epoch provisioning tooling exists (scripts/p7_r2_provision_evidence_epoch.py). Fresh epoch required before P7 Attempt #4.",
+      "closure_owner": "P7 pre-activation (not MC9)",
+      "status": "PREREQUISITE",
+      "notes": "MC9-D confirms FRESH_EVIDENCE_EPOCH_REQUIRED=true. Not created by MC9."
+    },
+    {
+      "attempt": "#2",
+      "failure_class": "LIVENESS_NOT_SUSTAINED",
+      "failure_description": "Immediate activation succeeded but sustained liveness was not maintained.",
+      "historical_remediation": "R3/R3A \u2014 supervised child launcher with heartbeat/liveness",
+      "current_evidence": "scripts/p7_r3a_supervised_child.py present. Supervised child contract version verified in MC9-D.",
+      "closure_owner": "P7 supervised spawn (G7/G8)",
+      "status": "PREREQUISITE",
+      "notes": "Tooling exists. MC9 verifies it is present and importable. Actual liveness test requires runtime spawn (P7 Attempt #4)."
+    },
+    {
+      "attempt": "#3",
+      "failure_class": "INFERENCE_SYMBOL_UNSUPPORTED_SOL",
+      "failure_description": "RuntimeError: inference_symbol_unsupported:SOL \u2014 SOL was not registered in the model registry at runtime.",
+      "historical_remediation": "MC1\u2013MC8 \u2014 model coverage workstream",
+      "current_evidence": "MC9-B explicit SOL read-back: PASS. SOL model sha256 verified: 7407eab3514d. SOL in MC7 authorized_symbols: True. SOL artifact_verified: True.",
+      "closure_owner": "MC9",
+      "status": "CLOSED",
+      "closing_evidence": {
+        "mc9_b_sol_explicit": {
+          "runtime_enabled": true,
+          "route_authorized": true,
+          "model_load": "PASS",
+          "calibrator_load": "PASS",
+          "sha256_verified": true,
+          "calibrator_sha256_verified": true,
+          "overall": "PASS"
+        },
+        "mc7_authorized": true,
+        "mc9_a_artifact_verified": true
+      }
+    },
+    {
+      "attempt": "#3 (root cause classification)",
+      "failure_class": "P7_R4_INFERENCE_SYMBOL_COVERAGE_GAP",
+      "failure_description": "BLOCKED_MODEL_COVERAGE_INCOMPLETE \u2014 runtime universe contained symbols without qualified model routes.",
+      "historical_remediation": "MC1\u2013MC8 full remediation: audit \u2192 gap registry \u2192 readiness \u2192 build \u2192 calibration \u2192 registry \u2192 routing \u2192 release",
+      "current_evidence": "effective_runtime_symbols=9, authorized_routes=9, resolvable_release_routes=9, gap={}.",
+      "closure_owner": "MC9",
+      "status": "CLOSED",
+      "coverage_closure_invariant": {
+        "effective_runtime_symbols": 9,
+        "authorized_routes": 9,
+        "resolvable_release_routes": 9,
+        "gap": [],
+        "invariant_holds": true
+      }
+    }
+  ],
+  "summary": {
+    "known_closed_classes": [
+      "INFERENCE_SYMBOL_UNSUPPORTED_SOL",
+      "P7_R4_INFERENCE_SYMBOL_COVERAGE_GAP"
+    ],
+    "prerequisite_classes": [
+      "NO_ACTIVE_EVIDENCE_EPOCH",
+      "LIVENESS_NOT_SUSTAINED"
+    ],
+    "total_historical_failures_documented": 4,
+    "closed_by_mc9": 2,
+    "remain_as_prerequisites": 2
+  },
+  "coverage_closure_invariant": {
+    "effective_runtime_symbols": 9,
+    "authorized_routes": 9,
+    "resolvable_release_routes": 9,
+    "gap": [],
+    "verdict": "CLOSED"
+  },
+  "p7_r4_failure_class": "CLOSED",
+  "all_p7_failure_modes_impossible": false,
+  "overall_verdict": "PASS"
+}

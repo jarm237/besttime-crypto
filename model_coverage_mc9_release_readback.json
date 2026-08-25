@@ -1,0 +1,208 @@
+{
+  "artifact": "model_coverage_mc9_release_readback",
+  "generated_at": "2026-08-25T07:27:14Z",
+  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3",
+  "release_bundle": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/releases/model-coverage-v1",
+  "import_provenance": {
+    "all_in_pinned_worktree": true,
+    "modules": {
+      "btc_scraper": {
+        "file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/btc_scraper/__init__.py",
+        "in_pinned": true
+      },
+      "btc_scraper.ml_engine.meta_model": {
+        "file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/btc_scraper/ml_engine/meta_model.py",
+        "in_pinned": true
+      },
+      "btc_scraper.ml_engine.inference_router": {
+        "file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/btc_scraper/ml_engine/inference_router.py",
+        "in_pinned": true
+      },
+      "btc_scraper.ml_engine.runtime_symbol_policy": {
+        "file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/btc_scraper/ml_engine/runtime_symbol_policy.py",
+        "in_pinned": true
+      },
+      "btc_scraper.ml_engine.governed_artifact_loader": {
+        "file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/btc_scraper/ml_engine/governed_artifact_loader.py",
+        "in_pinned": true
+      },
+      "btc_scraper.ml_engine.inference_coordinator": {
+        "file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/btc_scraper/ml_engine/inference_coordinator.py",
+        "in_pinned": true
+      }
+    },
+    "leaks": []
+  },
+  "routes_requested": 9,
+  "routes_resolved": 9,
+  "model_load_failures": 0,
+  "hash_failures": 0,
+  "repo_research_fallback_reads": 0,
+  "route_results": {
+    "BNB": {
+      "symbol": "BNB",
+      "route_type": "LEGACY",
+      "model_load": "PASS",
+      "calibrator_load": "GRANDFATHERED",
+      "hash_check": "GRANDFATHERED",
+      "overall": "PASS"
+    },
+    "BTC": {
+      "symbol": "BTC",
+      "route_type": "LEGACY",
+      "model_load": "PASS",
+      "calibrator_load": "GRANDFATHERED",
+      "hash_check": "GRANDFATHERED",
+      "overall": "PASS"
+    },
+    "DOGE": {
+      "symbol": "DOGE",
+      "route_type": "MC5_QUALIFIED",
+      "model_load": "PASS",
+      "calibrator_load": "PASS",
+      "model_sha256_verified": true,
+      "calibrator_sha256_verified": true,
+      "overall": "PASS"
+    },
+    "ETH": {
+      "symbol": "ETH",
+      "route_type": "LEGACY",
+      "model_load": "PASS",
+      "calibrator_load": "GRANDFATHERED",
+      "hash_check": "GRANDFATHERED",
+      "overall": "PASS"
+    },
+    "IOTA": {
+      "symbol": "IOTA",
+      "route_type": "MC5_QUALIFIED",
+      "model_load": "PASS",
+      "calibrator_load": "PASS",
+      "model_sha256_verified": true,
+      "calibrator_sha256_verified": true,
+      "overall": "PASS"
+    },
+    "NEAR": {
+      "symbol": "NEAR",
+      "route_type": "MC5_QUALIFIED",
+      "model_load": "PASS",
+      "calibrator_load": "PASS",
+      "model_sha256_verified": true,
+      "calibrator_sha256_verified": true,
+      "overall": "PASS"
+    },
+    "SOL": {
+      "symbol": "SOL",
+      "route_type": "MC5_QUALIFIED",
+      "model_load": "PASS",
+      "calibrator_load": "PASS",
+      "model_sha256_verified": true,
+      "calibrator_sha256_verified": true,
+      "overall": "PASS"
+    },
+    "TRX": {
+      "symbol": "TRX",
+      "route_type": "MC5_QUALIFIED",
+      "model_load": "PASS",
+      "calibrator_load": "PASS",
+      "model_sha256_verified": true,
+      "calibrator_sha256_verified": true,
+      "overall": "PASS"
+    },
+    "ZEC": {
+      "symbol": "ZEC",
+      "route_type": "MC5_QUALIFIED",
+      "model_load": "PASS",
+      "calibrator_load": "PASS",
+      "model_sha256_verified": true,
+      "calibrator_sha256_verified": true,
+      "overall": "PASS"
+    }
+  },
+  "sol_explicit": {
+    "runtime_enabled": true,
+    "route_authorized": true,
+    "model_load": "PASS",
+    "calibrator_load": "PASS",
+    "sha256_verified": true,
+    "calibrator_sha256_verified": true,
+    "overall": "PASS"
+  },
+  "disabled_results": {
+    "AEVO": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "AR": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "AVAX": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "ENA": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "SOPH": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "TAO": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "TRB": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "TRUMP": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "WLD": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "XAUT": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "XLM": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "XPL": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    },
+    "XRP": {
+      "runtime_enabled": false,
+      "pre_dispatch_rejected": true
+    }
+  },
+  "disabled_rejected_count": 13,
+  "gates": {
+    "MC9-B-G1": {
+      "gate": "MC9-B-G1",
+      "result": "PASS"
+    },
+    "MC9-B-G2": {
+      "gate": "MC9-B-G2",
+      "result": "PASS"
+    },
+    "MC9-B-G3": {
+      "gate": "MC9-B-G3",
+      "result": "PASS"
+    },
+    "MC9-B-G4": {
+      "gate": "MC9-B-G4",
+      "result": "PASS"
+    },
+    "MC9-B-G5": {
+      "gate": "MC9-B-G5",
+      "result": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}
