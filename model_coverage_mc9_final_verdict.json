@@ -1,0 +1,70 @@
+{
+  "artifact": "model_coverage_mc9_final_verdict",
+  "generated_at": "2026-08-25T07:35:55Z",
+  "mc9_verdict": "CLOSED",
+  "model_coverage_release": "SEALED",
+  "release_id": "model-coverage-v1",
+  "release_identity": "IMMUTABLE",
+  "canonical_universe": 22,
+  "authorized_routable_symbols": 9,
+  "inference_disabled_symbols": 13,
+  "effective_runtime_symbols": 9,
+  "unsupported_enabled_symbols": 0,
+  "pinned_runtime": "PASS",
+  "release_readback": "PASS",
+  "sol_coverage": "PASS",
+  "bundle_integrity": "PASS",
+  "p7_r4_failure_class": "CLOSED",
+  "p7_preactivation_preflight": "PASS",
+  "p7_reactivation": "AUTHORIZED",
+  "authorization": "FRESH / ARMED",
+  "spawn_budget": 1,
+  "restart_budget": 0,
+  "runtime_started": "NO",
+  "authorization_consumed": "NO",
+  "evidence_fingerprints": {
+    "model_coverage_mc9_release_identity.json": "1baf853f203c1d415b32b7912336c187b2dd9b97b3e59309c2d4b30e8fedcfd6",
+    "model_coverage_mc9_release_readback.json": "d89511aec22b3569ce280e6ba49e9d369ab291726b810919c37de08efadd6af0",
+    "model_coverage_mc9_p7_failure_closure.json": "80d11e2dc727d03fa793ac39ca457b6e3478ede8a02f05bee6a5c00841ec3c6a",
+    "model_coverage_mc9_p7_preactivation_report.json": "c220ce338dc9088d0ad574922d2313632504e4c14bf451e1009ad0daab2c943e",
+    "model_coverage_mc9_p7_authorization.json": "e632603b8fcc12130f5dc48698c83fd5f3aa7ee1b5fc9b9ce190c75258bfcc1a"
+  },
+  "gates": {
+    "MC9-A": {
+      "title": "Release Identity Freeze",
+      "result": "PASS"
+    },
+    "MC9-B": {
+      "title": "Pinned Release Read-Back",
+      "result": "PASS"
+    },
+    "MC9-C": {
+      "title": "P7 Failure Closure Matrix",
+      "result": "PASS"
+    },
+    "MC9-D": {
+      "title": "Pre-activation Preflight",
+      "result": "PASS"
+    },
+    "MC9-E": {
+      "title": "Fresh P7 Authorization Contract",
+      "result": "PASS"
+    },
+    "MC9-F": {
+      "title": "Authorization Consumption Dry Validation",
+      "result": "PASS"
+    },
+    "MC9-G": {
+      "title": "Seal-Critical Regression (518 passed, 6 skipped)",
+      "result": "PASS"
+    },
+    "MC9-H": {
+      "title": "GitNexus Impact Review (no changes vs d857d0c)",
+      "result": "PASS"
+    },
+    "MC9-I": {
+      "title": "Repository/Release Cleanliness Gate",
+      "result": "PASS"
+    }
+  }
+}
