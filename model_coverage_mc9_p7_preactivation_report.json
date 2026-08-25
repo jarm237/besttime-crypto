@@ -1,0 +1,66 @@
+{
+  "artifact": "model_coverage_mc9_p7_preactivation_report",
+  "generated_at": "2026-08-25T07:31:12Z",
+  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3",
+  "pinned_worktree_head": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+  "pinned_worktree_clean": true,
+  "release_bundle": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/releases/model-coverage-v1",
+  "release_manifest_sha256_matches": true,
+  "inference_coverage": {
+    "routes_resolved": 9,
+    "model_load_failures": 0,
+    "hash_failures": 0
+  },
+  "supervised_launcher_tooling": {
+    "launcher_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/p7_safe_paper_canary_launcher.py",
+    "launcher_contract_version": "paper-canary-launcher/v1",
+    "supervised_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/scripts/p7_r3a_supervised_child.py",
+    "supervised_contract_version": "p7-supervised-child/v1"
+  },
+  "evidence_infrastructure": {
+    "runtime_evidence_schema": 6,
+    "global_index_schema": 6,
+    "runtime_root": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/runtime/test/local-test",
+    "evidence_eligible": false
+  },
+  "spawn_controls": {
+    "LAUNCHER_CONTRACT_VERSION": "paper-canary-launcher/v1",
+    "LaunchRequest_exists": true,
+    "LauncherContractError_exists": true
+  },
+  "no_active_epochs": true,
+  "active_epochs_found": [],
+  "fresh_evidence_epoch_required": true,
+  "runtime_activation_performed": false,
+  "gates": {
+    "MC9-D-G1": {
+      "gate": "MC9-D-G1",
+      "result": "PASS"
+    },
+    "MC9-D-G2": {
+      "gate": "MC9-D-G2",
+      "result": "PASS"
+    },
+    "MC9-D-G3": {
+      "gate": "MC9-D-G3",
+      "result": "PASS"
+    },
+    "MC9-D-G4": {
+      "gate": "MC9-D-G4",
+      "result": "PASS"
+    },
+    "MC9-D-G5": {
+      "gate": "MC9-D-G5",
+      "result": "PASS"
+    },
+    "MC9-D-G6": {
+      "gate": "MC9-D-G6",
+      "result": "PASS"
+    },
+    "MC9-D-G7": {
+      "gate": "MC9-D-G7",
+      "result": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}
