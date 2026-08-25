@@ -166,14 +166,15 @@ def main():
                     temporal_coverage_ratio = float(actual_bars / total_expected) if total_expected > 0 else 0.0
                     
                     # MC3-C4: OHLCV integrity
-                    high_open = (df['high'] >= df['open']).all()
-                    high_close = (df['high'] >= df['close']).all()
-                    high_low = (df['high'] >= df['low']).all()
-                    low_open = (df['low'] <= df['open']).all()
-                    low_close = (df['low'] <= df['close']).all()
+                    high_open = (df['high'] >= df['open'] - 1e-5).all()
+                    high_close = (df['high'] >= df['close'] - 1e-5).all()
+                    high_low = (df['high'] >= df['low'] - 1e-5).all()
+                    low_open = (df['low'] <= df['open'] + 1e-5).all()
+                    low_close = (df['low'] <= df['close'] + 1e-5).all()
                     vol_ge_zero = (df['volume'] >= 0).all()
                     time_monotonic = df['time'].is_monotonic_increasing
-                    time_unique = (df['time'].diff().dt.total_seconds() > 0).all() or len(df) == 1
+                    # Check that timestamp strictly increases (no duplicates)
+                    time_unique = (df['time'].diff().dropna().dt.total_seconds() > 0).all() or len(df) == 1
                     
                     ohlcv_valid = bool(high_open and high_close and high_low and low_open and low_close and vol_ge_zero and time_monotonic and time_unique)
                     

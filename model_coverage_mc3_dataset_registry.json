@@ -1,4 +1,113 @@
 {
   "artifact": "model_coverage_mc3_dataset_registry",
-  "dataset_versions": []
+  "dataset_versions": [
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "cfa7a369bf0c5c17e4a617cf120be83b0dec4fcda205ee753dd36f08301b9d68",
+      "symbol": "AEVO"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "9c49122509c17b0fd5ab3f4796d32d9555f5f4d2b8a02afa55b7110714cff69b",
+      "symbol": "AR"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "1fef1b0286fac8ef3e9904bc0e4d111021cd68b286f7eccf2844b6983a4e616c",
+      "symbol": "AVAX"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "b9728b7e56e19833d331f72964c8fc103aa444ce997499eb032ef6004e47223a",
+      "symbol": "DOGE"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "fcec054588afbc57ac9fc9a7fa0b2e9ce6d8e16cd7b9def01f6facc3a9435334",
+      "symbol": "ENA"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "d33421153fcff388987f87700829c64ea0adbafdfee524cfe132121dd02205de",
+      "symbol": "IOTA"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "5094b08dfa1e9c8bf655eb62a1fb06c801a4298c84d30f2f4846c2d700f512fa",
+      "symbol": "NEAR"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "70135c77eaf419dab37e8996cc80d30669a5e7a19064ef658b1f6840fd23fb03",
+      "symbol": "SOL"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "1f100155c1ab08e94296d4a7aa9f7ec17af2e2697e078da9d72c115177032057",
+      "symbol": "SOPH"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "fdf3ecba10136483e67dfe2d793098cfcb086e1dca5c5bef6f06d6e66fe355cd",
+      "symbol": "TAO"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "07769e3355429a4db059cfb5aa27d6cc2c9be81fa6698ad7add5b1be8e28557b",
+      "symbol": "TRB"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "0873830e9f53d25d561b6aad7504f468df5d547cf0fe5fffc165b572fc2abe20",
+      "symbol": "TRUMP"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "36b0d114bf3e1a634e211d5b72e1399db51cf6840f445f69146e58420c102414",
+      "symbol": "TRX"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "766527a5ad6c9f555facac9efc79fe34657638a61f059e307eb203da4e933f58",
+      "symbol": "WLD"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "df6123dde6909d6680203610f4d8616bebea1ac1ee2e25a00cd2e15689216949",
+      "symbol": "XLM"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "281ae5211c31545af927d12393e783c9e8ee0b159fc86cfb297373de0f354863",
+      "symbol": "XPL"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "540c63cc1c645eec5ae624fb0bfcc9742961d21ce3fe24e459ece5e007265f43",
+      "symbol": "XRP"
+    },
+    {
+      "dataset_version": "mc3_v1_remediated",
+      "row_count": 122592,
+      "sha256": "d4c0c8f2fd8fb362b4ccb695bfaf6a969dfd82dd66f1be04dab94e4ff497645f",
+      "symbol": "ZEC"
+    }
+  ]
 }

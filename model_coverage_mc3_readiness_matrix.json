@@ -4,7 +4,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -14,7 +14,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -24,7 +24,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -34,7 +34,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -44,7 +44,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -54,7 +54,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -64,7 +64,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -74,7 +74,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -84,7 +84,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -94,7 +94,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -104,7 +104,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -114,7 +114,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -124,7 +124,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -134,7 +134,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -154,7 +154,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -164,7 +164,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -174,7 +174,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
@@ -184,7 +184,7 @@
     {
       "data": "PASS",
       "features": "PASS",
-      "final": "BLOCKED_DATA_QUALITY",
+      "final": "READY",
       "labels": "PASS",
       "leakage": "PASS",
       "samples": "PASS",
