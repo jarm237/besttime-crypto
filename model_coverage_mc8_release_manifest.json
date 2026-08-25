@@ -492,5 +492,5 @@
     ],
     "unknown_symbol_policy": "FAIL_CLOSED"
   },
-  "source_commit": "08a2aa56ffffb4b226e9ec2e6233cb4832af4aef"
+  "source_commit": "cdecf751781f0ff50e8369ffedc7c236c21325c0"
 }
