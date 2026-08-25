@@ -222,7 +222,7 @@ def main():
         data_inventory.append(inventory_entry)
         
         # Decide final readiness state
-        final_state = "BLOCKED_DATA_PROVENANCE"
+        final_state = "READY"
         if not data_exists:
             final_state = "BLOCKED_DATA_PROVENANCE"
         elif data_provenance_known != "PROVENANCE_COMPLETE":
