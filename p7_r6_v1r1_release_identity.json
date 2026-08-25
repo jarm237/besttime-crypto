@@ -1,0 +1,49 @@
+{
+  "artifact_inventory_sha256": "17203886c257dbed1a3c1a07accb3f98aab04f4276ae775ba727e60f7050acba",
+  "authorized_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "disabled_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "ENA",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP"
+  ],
+  "legacy_symbols": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "mc5_qualified_symbols": [
+    "DOGE",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "pinned_worktree": "runtime/worktrees/pinned-97a9704",
+  "registry_sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04",
+  "release_bundle": "runtime/releases/model-coverage-v1-r1",
+  "release_id": "model-coverage-v1-r1",
+  "release_manifest_sha256": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+  "runtime_binding_sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52",
+  "source_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9"
+}
