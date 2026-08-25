@@ -1,0 +1,26 @@
+{
+  "activation": "NOT_AUTHORIZED",
+  "artifact": "model_coverage_mc4_final_verdict",
+  "calibration": "NOT_STARTED",
+  "candidate_built_count": 15,
+  "final_oos_qualification": "NOT_STARTED",
+  "mc4_state": "CLOSED",
+  "runtime_routing": "UNCHANGED",
+  "verified_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "DOGE",
+    "ENA",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TAO",
+    "TRB",
+    "TRX",
+    "WLD",
+    "XLM",
+    "XRP",
+    "ZEC"
+  ]
+}

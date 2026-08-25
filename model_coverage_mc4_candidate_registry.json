@@ -1,0 +1,215 @@
+{
+  "artifact": "model_coverage_mc4_candidate_registry",
+  "candidates": [
+    {
+      "artifact_id": "AEVO_candidate_v1",
+      "artifact_sha256": "c0f1ebf3b9fdf0b3c72b085b27a3e09602e176fcb2a17ec23e7cd08073e40603",
+      "dataset_sha256": "c832c0a4841f78f2768f8c62d550ec29ccca08034ac29601cfcd1be11da964d6",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "AEVO",
+      "training_run_id": "candidate_et_AEVO_9",
+      "validation_metrics": {
+        "log_loss": 0.36065814254909945,
+        "roc_auc": 0.9713943876441157
+      }
+    },
+    {
+      "artifact_id": "AR_candidate_v1",
+      "artifact_sha256": "8f58e342ed4c8016b14fa62662b0cd5ceb5726d62ff002de19700899967c7528",
+      "dataset_sha256": "bf776474d8dfb58f540f40017b76329eb0a49ed2b81e09301c2f1cd99d4fe070",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "AR",
+      "training_run_id": "candidate_et_AR_3",
+      "validation_metrics": {
+        "log_loss": 0.36077699260332335,
+        "roc_auc": 0.9562709992533599
+      }
+    },
+    {
+      "artifact_id": "AVAX_candidate_v1",
+      "artifact_sha256": "f212099b306c0fafdc9b809677375728ed124cd0415d1b971adaf131dc3696a4",
+      "dataset_sha256": "e8ef8e7746506b11b1095e5d8bdc73013eb896e31ca668fbc06f2fee37a1dd6b",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "AVAX",
+      "training_run_id": "candidate_rf_AVAX_14",
+      "validation_metrics": {
+        "log_loss": 0.3954464268613211,
+        "roc_auc": 0.8868722265105933
+      }
+    },
+    {
+      "artifact_id": "DOGE_candidate_v1",
+      "artifact_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+      "dataset_sha256": "d086f903ba948a1bb0ee07d442b77a6bfc2e1776b25f2915c9ae4fdd939d06ea",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "DOGE",
+      "training_run_id": "candidate_rf_DOGE_6",
+      "validation_metrics": {
+        "log_loss": 0.5007768111069081,
+        "roc_auc": 0.8604745036333014
+      }
+    },
+    {
+      "artifact_id": "ENA_candidate_v1",
+      "artifact_sha256": "dcb830ae3b3788b03072f2af4819b08efbc81b16533eb62ea71134ba60abfacf",
+      "dataset_sha256": "8e0c671b4617b1752bdc661fe8db8118ced5a0c9914ce74d8a811bcc8518013f",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "ENA",
+      "training_run_id": "candidate_et_ENA_1",
+      "validation_metrics": {
+        "log_loss": 0.41093215559674,
+        "roc_auc": 0.966358511905842
+      }
+    },
+    {
+      "artifact_id": "IOTA_candidate_v1",
+      "artifact_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+      "dataset_sha256": "504b3aecdfb138c31f9488c3a10dad1290362910f78463719efe470ba9ecb449",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "IOTA",
+      "training_run_id": "candidate_rf_IOTA_14",
+      "validation_metrics": {
+        "log_loss": 0.45799507581604376,
+        "roc_auc": 0.8752843565563274
+      }
+    },
+    {
+      "artifact_id": "NEAR_candidate_v1",
+      "artifact_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+      "dataset_sha256": "6af6520d8418d197e210c9a8d0d6cfcb081ce08754db2ebbc6e90c22a0fb446e",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "NEAR",
+      "training_run_id": "candidate_rf_NEAR_14",
+      "validation_metrics": {
+        "log_loss": 0.42502070731518843,
+        "roc_auc": 0.8768805179677672
+      }
+    },
+    {
+      "artifact_id": "SOL_candidate_v1",
+      "artifact_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+      "dataset_sha256": "9ea9be31ffe39543c9aee66b4334ee1be8f2d95434646712a183dda0abf49c1a",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "SOL",
+      "training_run_id": "candidate_rf_SOL_14",
+      "validation_metrics": {
+        "log_loss": 0.4499842477645964,
+        "roc_auc": 0.8643674662535636
+      }
+    },
+    {
+      "artifact_id": "TAO_candidate_v1",
+      "artifact_sha256": "3771414a3e80ff99418ff2e1306216122c75fe2ec132cbab088be7cd722989cc",
+      "dataset_sha256": "a2538f7eb7b552d902a0fec64303f68b9cbd08c5221a225676ee0058b6b4f4b2",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "TAO",
+      "training_run_id": "candidate_et_TAO_7",
+      "validation_metrics": {
+        "log_loss": 0.10319639492676994,
+        "roc_auc": 0.9891862489120974
+      }
+    },
+    {
+      "artifact_id": "TRB_candidate_v1",
+      "artifact_sha256": "9d88f3681a52c0672f016087b2b0142a53693ba7a50854b7a6fdc3bbce4ce943",
+      "dataset_sha256": "860989b296615f76bf1661d9775704e176b32605d2995738600b48aa9ec1d1bf",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "TRB",
+      "training_run_id": "candidate_et_TRB_15",
+      "validation_metrics": {
+        "log_loss": 0.3833850580966741,
+        "roc_auc": 0.909138674220609
+      }
+    },
+    {
+      "artifact_id": "TRX_candidate_v1",
+      "artifact_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+      "dataset_sha256": "386c1aba55188814e2dd87cee9d986a4896eb19b427ee33a625de1c864a61817",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "TRX",
+      "training_run_id": "candidate_et_TRX_5",
+      "validation_metrics": {
+        "log_loss": 0.4428468300102591,
+        "roc_auc": 0.8713942971754565
+      }
+    },
+    {
+      "artifact_id": "WLD_candidate_v1",
+      "artifact_sha256": "476bee054697ccd0474ee320cd8fdfa76c6a9021aaf58d3ac446476647ac4c5b",
+      "dataset_sha256": "9092787cac5b8df82329607a9ba5a080fd3185d126853e9e6c3c1660494f0f3f",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "WLD",
+      "training_run_id": "candidate_et_WLD_11",
+      "validation_metrics": {
+        "log_loss": 0.36445447487000776,
+        "roc_auc": 0.9401258409037334
+      }
+    },
+    {
+      "artifact_id": "XLM_candidate_v1",
+      "artifact_sha256": "9c08e681da4b45867c50877045159d5b8792b2f0bc687c65e3b7bfd5f5a7671c",
+      "dataset_sha256": "7dd9de85581139cf64ee88ca17db1b8a0bad034d225ae617170655cf337fd1ab",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "XLM",
+      "training_run_id": "candidate_et_XLM_7",
+      "validation_metrics": {
+        "log_loss": 0.3424246382011333,
+        "roc_auc": 0.9481565120322313
+      }
+    },
+    {
+      "artifact_id": "XRP_candidate_v1",
+      "artifact_sha256": "37832f39da0329a1de968d61d5b1d3ccb9eb6e80e6cf326ba1f9dee22115dd67",
+      "dataset_sha256": "d3bd1b11bd9d79a3e6ecab3a2a538f7cf5f4f7403328d59f6d5e97345f7caf35",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "XRP",
+      "training_run_id": "candidate_et_XRP_1",
+      "validation_metrics": {
+        "log_loss": 0.2966886140868213,
+        "roc_auc": 0.934619908516663
+      }
+    },
+    {
+      "artifact_id": "ZEC_candidate_v1",
+      "artifact_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+      "dataset_sha256": "cdd4285e3d4a86cf5cfe3c4ca7e669b23baa00c45a3e8f8890c1bb251d500bcd",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_state": "CANDIDATE_BUILT",
+      "mc5_qualification": "NOT_STARTED",
+      "symbol": "ZEC",
+      "training_run_id": "candidate_rf_ZEC_14",
+      "validation_metrics": {
+        "log_loss": 0.46064586500674337,
+        "roc_auc": 0.864783467607519
+      }
+    }
+  ]
+}

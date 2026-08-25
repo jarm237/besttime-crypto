@@ -1,0 +1,13 @@
+{
+  "artifact_status": "CANDIDATE",
+  "build_commit": "9c5717d",
+  "dataset_sha256": "cdd4285e3d4a86cf5cfe3c4ca7e669b23baa00c45a3e8f8890c1bb251d500bcd",
+  "feature_schema_fingerprint": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+  "model_family": "random_forest",
+  "model_version": "mc4_v1_random_forest",
+  "qualification_status": "NOT_EVALUATED_MC5",
+  "symbol_scope": [
+    "ZEC"
+  ],
+  "training_contract_sha256": "f1a0cb41439971d62aa5c1a7ebf5e37dfab8923c57c9bb6b82d98d45eb4f10c5"
+}
