@@ -21,7 +21,7 @@
     },
     {
       "rel_path": "model_coverage_mc8_release_manifest.json",
-      "sha256": "f77fabc85f5b3d43b21d666347620add7d274c358c627a193128e213466fa940",
+      "sha256": "6f79cd6b52bfb4083c1af2b258cbc7ef465ed07ebb383d4729e4d923500cd64b",
       "status": "COPIED",
       "type": "metadata"
     },
@@ -45,7 +45,7 @@
     },
     {
       "rel_path": "logs/meta_model.json",
-      "sha256": "20ccdfacd30f1a8b16c6728ec95869bf618ed8e99b542d36248e2d9bd0a1e0e6",
+      "sha256": "ea4e9ab0e3206c68daea67c9c93c7e0059b147dbecd8b4955641a94a13ac9d88",
       "status": "COPIED",
       "type": "legacy_model_artifact"
     },
