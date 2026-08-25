@@ -1,0 +1,48 @@
+{
+  "attempt_id": "p7-attempt-5",
+  "gates": {
+    "A5-G2-1": {
+      "epoch_id": "canary-mc9-v1-a5-20260825-01",
+      "gate": "fresh_epoch_active",
+      "result": "PASS",
+      "status": "ACTIVE"
+    },
+    "A5-G2-2": {
+      "consumed": false,
+      "gate": "authorization_armed",
+      "result": "PASS",
+      "state": "ARMED"
+    },
+    "A5-G2-3": {
+      "gate": "release_and_commit_exact",
+      "release_id": "model-coverage-v1-r1",
+      "result": "PASS",
+      "source_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9"
+    },
+    "A5-G2-4": {
+      "gate": "effective_symbols_exact",
+      "result": "PASS",
+      "symbols": [
+        "BNB",
+        "BTC",
+        "DOGE",
+        "ETH",
+        "IOTA",
+        "NEAR",
+        "SOL",
+        "TRX",
+        "ZEC"
+      ]
+    },
+    "A5-G2-5": {
+      "gate": "route_class_report_pass",
+      "result": "PASS"
+    },
+    "A5-G2-6": {
+      "gate": "runtime_lock_absent",
+      "lock_file": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/paper/paper-canary-a5-20260825-01/state/runtime.lock",
+      "result": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}
