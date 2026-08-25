@@ -1,0 +1,21 @@
+{
+  "artifact": "model_coverage_mc4_build_authorization",
+  "build_authorization": "PASS",
+  "contract": "model-coverage-mc4-authorization/v1",
+  "created_at": "2026-08-25T02:34:33.130922+00:00",
+  "gates": {
+    "MC4-C0_MC3_LINEAGE_VERIFIED": "PASS",
+    "MC4-C1_BUILD_POPULATION_FROZEN": "PASS",
+    "MC4-C2_MODEL_TOPOLOGY_FROZEN": "PASS",
+    "MC4-C3_TRAINING_CONTRACT_FROZEN": "PASS",
+    "MC4-C4_DATASET_IDENTITY_FROZEN": "PASS",
+    "MC4-C5_BASELINE_CONTRACT_FROZEN": "PASS",
+    "MC4-C6_SEARCH_SPACE_FROZEN": "PASS",
+    "MC4-C7_SELECTION_RULE_FROZEN": "PASS",
+    "MC4-C8_REPRODUCIBILITY_CONTRACT_FROZEN": "PASS",
+    "MC4-C9_ARTIFACT_FORMAT_FROZEN": "PASS"
+  },
+  "mc3_contract_hash": "47aac884d24eafbc8011322eecacca92734ae5997f359f544d586027db1d84e9",
+  "mc3_readiness_hash": "7d96f0b653b8f94bf792eca52a5029c46b0f73898e8d85e4318940afd674b504",
+  "mc4_base_commit": "73633f3"
+}

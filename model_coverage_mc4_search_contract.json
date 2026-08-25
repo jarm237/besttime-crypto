@@ -1,0 +1,18 @@
+{
+  "artifact": "model_coverage_mc4_search_contract",
+  "seed": 42,
+  "tuning_parameters": {
+    "max_depth": [
+      5,
+      10
+    ],
+    "min_samples_leaf": [
+      4,
+      8
+    ],
+    "n_estimators": [
+      100,
+      300
+    ]
+  }
+}

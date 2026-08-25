@@ -1,0 +1,32 @@
+{
+  "artifact": "model_coverage_mc4_architecture_contract",
+  "authorized_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "DOGE",
+    "ENA",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "TRX",
+    "WLD",
+    "XLM",
+    "XPL",
+    "XRP",
+    "ZEC"
+  ],
+  "decision_basis": [
+    "symbol_population_heterogeneity",
+    "per_symbol_sample_sufficiency"
+  ],
+  "decision_contract_version": "mc4-v1",
+  "forbidden_topologies": [
+    "SHARED_MULTI_SYMBOL"
+  ],
+  "topology": "DEDICATED_PER_SYMBOL"
+}

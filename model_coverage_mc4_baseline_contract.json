@@ -1,0 +1,19 @@
+{
+  "artifact": "model_coverage_mc4_baseline_contract",
+  "baseline_algorithm": "LogisticRegression",
+  "baseline_params": {
+    "C": 1.0,
+    "max_iter": 400,
+    "random_state": 42
+  },
+  "features": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "seed": 42,
+  "selection_metrics": [
+    "validation_roc_auc"
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "artifact": "model_coverage_mc4_build_population",
+  "mc3_ready_subset": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "DOGE",
+    "ENA",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "TRX",
+    "WLD",
+    "XLM",
+    "XPL",
+    "XRP",
+    "ZEC"
+  ],
+  "population": [
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "AEVO"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "AR"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "AVAX"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "DOGE"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "ENA"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "IOTA"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "NEAR"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "SOL"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "SOPH"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "TAO"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "TRB"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "TRUMP"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "TRX"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "WLD"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "XLM"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "XPL"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "XRP"
+    },
+    {
+      "dataset_id": "mc3_v1_remediated",
+      "feature_contract_sha256": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+      "label_contract_sha256": "d9575e4a9b20c93ae28436aa723fbe7023f0fb8eee45c3d811fb771b9c71e12a",
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_state": "READY_FOR_BUILD",
+      "mc4_build_authorized": true,
+      "split_contract_sha256": "b5fd7be0bca1fc5c2104c644805828ec3a7368b634bbcff4a8c0f7fc6c3bf88b",
+      "symbol": "ZEC"
+    }
+  ]
+}

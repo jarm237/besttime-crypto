@@ -1,0 +1,22 @@
+{
+  "artifact": "model_coverage_mc4_artifact_contract",
+  "default_artifact_status": "CANDIDATE",
+  "default_qualification_status": "NOT_EVALUATED_MC5",
+  "required_keys": [
+    "model",
+    "features",
+    "config",
+    "metadata"
+  ],
+  "required_metadata_keys": [
+    "artifact_status",
+    "symbol_scope",
+    "model_family",
+    "model_version",
+    "feature_schema_fingerprint",
+    "dataset_sha256",
+    "training_contract_sha256",
+    "build_commit",
+    "qualification_status"
+  ]
+}

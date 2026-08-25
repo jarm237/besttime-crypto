@@ -1,0 +1,24 @@
+{
+  "algorithm": "RandomForestClassifier + ExtraTreesClassifier",
+  "artifact": "model_coverage_mc4_training_contract",
+  "class_weight": "balanced",
+  "feature_dtype": "float64",
+  "feature_ordering": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "features": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "missing_value_policy": "median_imputation",
+  "model_family": "ensemble_binary",
+  "normalization_policy": "StandardScaler",
+  "optimization_objective": "validation_roc_auc",
+  "random_seed_policy": "fixed_42",
+  "target": "result"
+}
