@@ -21,7 +21,7 @@
     },
     {
       "rel_path": "model_coverage_mc8_release_manifest.json",
-      "sha256": "d479eef6ccf0a6deb741dece17486db95a38bf6300801c7821180f5ce909070f",
+      "sha256": "a3c838f18885f5e0e6366c64a97d7467a966751a14643a1745f9a7726b2c64cb",
       "status": "COPIED",
       "type": "metadata"
     },
