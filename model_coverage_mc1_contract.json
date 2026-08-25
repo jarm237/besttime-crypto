@@ -1,0 +1,134 @@
+{
+  "artifact": "model_coverage_mc1_contract",
+  "contract": "model-coverage/v1",
+  "created_at": "2026-08-25T00:00:00+07:00",
+  "branch": "model-coverage/22-symbol-v1",
+  "base_commit": "dee77078f5f4558adb8f3798553a45f60937d35d",
+  "base_tree": "f2901807fb949f838ff3d5061c87feb637d378bb",
+  "objective": "Freeze the definition of true 22-symbol model coverage before feasibility, training, artifact construction, or routing implementation.",
+  "canonical_symbol_source": "btc_scraper.core.config.DEFAULT_ANALYSIS_UNIVERSE",
+  "canonical_symbol_count": 22,
+  "canonical_symbols": [
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "ZEC",
+    "XRP",
+    "DOGE",
+    "WLD",
+    "XLM",
+    "NEAR",
+    "AVAX",
+    "TAO",
+    "TRB",
+    "AEVO",
+    "ENA",
+    "AR",
+    "IOTA",
+    "XPL",
+    "SOPH",
+    "XAUT",
+    "TRX",
+    "TRUMP"
+  ],
+  "supported_symbol_definition": {
+    "expression": "SUPPORTED(symbol) := canonical symbol AND explicit inference route AND artifact/model identity AND feature schema identity AND preprocessing identity AND training/data provenance AND calibration semantics AND successful bounded inference output",
+    "required_predicates": [
+      "symbol_in_canonical_symbols",
+      "explicit_route_exists",
+      "artifact_identity_resolves",
+      "model_family_defined",
+      "feature_schema_identity_resolves",
+      "preprocessing_identity_resolves",
+      "training_data_provenance_known",
+      "calibration_semantics_explicit",
+      "bounded_inference_smoke_passes"
+    ],
+    "metadata_only_support": false,
+    "schema_compatibility_only_support": false
+  },
+  "fail_closed_policy": {
+    "unknown_symbol": "inference_symbol_unsupported:<symbol>",
+    "unsupported_canonical_symbol": "explicit_coverage_failure",
+    "pre_semantic_failure": true,
+    "forbidden_substitutions": [
+      "HOLD",
+      "NEUTRAL"
+    ]
+  },
+  "forbidden_semantics": {
+    "implicit_fallback": "FORBIDDEN",
+    "silent_skip": "FORBIDDEN",
+    "universe_reduction": "FORBIDDEN",
+    "metadata_only_support": "FORBIDDEN",
+    "unknown_symbol_alias": "FORBIDDEN",
+    "default_artifact_route": "FORBIDDEN",
+    "paper_activation": "FORBIDDEN",
+    "authorization_4": "FORBIDDEN",
+    "attempt_4": "FORBIDDEN"
+  },
+  "invalid_examples": [
+    "SOL -> BTC model",
+    "XRP -> ETH model",
+    "unknown -> default artifact",
+    "unsupported -> silently continue",
+    "unsupported -> HOLD",
+    "unsupported -> NEUTRAL"
+  ],
+  "shared_artifact_policy": {
+    "allowed": true,
+    "conditions": [
+      "artifact explicitly declares support for each symbol in the shared set",
+      "training evidence covers each symbol in the shared set",
+      "validation evidence covers each symbol in the shared set",
+      "calibration semantics are explicit for each symbol in the shared set",
+      "each symbol has an explicit route identity"
+    ],
+    "forbidden_claim": "A shared feature schema implies shared model coverage."
+  },
+  "initial_route_state": {
+    "existing_routes": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "missing_routes": [
+      "AEVO",
+      "AR",
+      "AVAX",
+      "DOGE",
+      "ENA",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "SOPH",
+      "TAO",
+      "TRB",
+      "TRUMP",
+      "TRX",
+      "WLD",
+      "XAUT",
+      "XLM",
+      "XPL",
+      "XRP",
+      "ZEC"
+    ],
+    "existing_route_count": 3,
+    "missing_route_count": 19
+  },
+  "mc1_exit_gate": {
+    "MC1-C1_CANONICAL_UNIVERSE_FROZEN": "PASS",
+    "MC1-C2_SUPPORT_DEFINITION_FROZEN": "PASS",
+    "MC1-C3_FAIL_CLOSED_POLICY": "PASS",
+    "MC1-C4_SHARED_ARTIFACT_POLICY": "PASS",
+    "MC1-C5_SYMBOL_REGISTRY_COMPLETE": "PASS",
+    "MC1": "CLOSED",
+    "MC2": "READY_TO_START"
+  },
+  "runtime_semantics_changed": false,
+  "training": "NOT_STARTED",
+  "artifact_build": "NOT_STARTED",
+  "routing_changes": "NOT_STARTED",
+  "runtime_changes": "NONE"
+}

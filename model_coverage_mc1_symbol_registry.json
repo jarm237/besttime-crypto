@@ -1,0 +1,47 @@
+{
+  "artifact": "model_coverage_mc1_symbol_registry",
+  "contract": "model-coverage/v1",
+  "created_at": "2026-08-25T00:00:00+07:00",
+  "branch": "model-coverage/22-symbol-v1",
+  "base_commit": "dee77078f5f4558adb8f3798553a45f60937d35d",
+  "provenance_sources": {
+    "canonical": "btc_scraper.core.config.DEFAULT_ANALYSIS_UNIVERSE",
+    "runtime_enabled": "runtime_activation_p7_r5_symbol_inventory.json symbols[].runtime_config",
+    "artifact_declared": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.artifact_supported_symbols",
+    "actual_route_exists": "runtime_activation_p7_r4_symbol_compatibility.json compatibility.model_route_supported_symbols",
+    "route_identity": "V5FilterModelClassifier.model_params explicit symbol keys"
+  },
+  "summary": {
+    "canonical_count": 22,
+    "runtime_enabled_count": 22,
+    "artifact_declared_count": 22,
+    "actual_route_count": 3,
+    "missing_route_count": 19,
+    "metadata_only_count": 19
+  },
+  "symbols": [
+    {"symbol": "BTC", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": true, "route_identity": "V5FilterModelClassifier.model_params.BTC", "artifact_identity": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c", "coverage_state": "EXISTING_ROUTE"},
+    {"symbol": "ETH", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": true, "route_identity": "V5FilterModelClassifier.model_params.ETH", "artifact_identity": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c", "coverage_state": "EXISTING_ROUTE"},
+    {"symbol": "BNB", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": true, "route_identity": "V5FilterModelClassifier.model_params.BNB", "artifact_identity": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c", "coverage_state": "EXISTING_ROUTE"},
+    {"symbol": "SOL", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "ZEC", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "XRP", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "DOGE", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "WLD", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "XLM", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "NEAR", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "AVAX", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "TAO", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "TRB", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "AEVO", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "ENA", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "AR", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "IOTA", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "XPL", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "SOPH", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "XAUT", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "TRX", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"},
+    {"symbol": "TRUMP", "canonical": true, "runtime_enabled": true, "artifact_declared": true, "actual_route_exists": false, "route_identity": null, "artifact_identity": null, "coverage_state": "MISSING_ROUTE"}
+  ],
+  "verdict": "MC1_SYMBOL_REGISTRY_COMPLETE_ROUTE_GAP_RECORDED"
+}
