@@ -1,0 +1,177 @@
+{
+  "artifact": "model_coverage_mc8_artifact_inventory",
+  "copied_items": [
+    {
+      "rel_path": "model_coverage_mc6_inference_registry.json",
+      "sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04",
+      "status": "COPIED",
+      "type": "metadata"
+    },
+    {
+      "rel_path": "model_coverage_mc7_runtime_binding_contract.json",
+      "sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52",
+      "status": "COPIED",
+      "type": "metadata"
+    },
+    {
+      "rel_path": "model_coverage_mc8_release_contract.json",
+      "sha256": "a782b5a3560d04c176421c973e731b11f5e8c3e48a9e5454fdafb7f235a2a525",
+      "status": "COPIED",
+      "type": "metadata"
+    },
+    {
+      "rel_path": "model_coverage_mc8_release_manifest.json",
+      "sha256": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+      "status": "COPIED",
+      "type": "metadata"
+    },
+    {
+      "rel_path": "config/model_artifacts.yaml",
+      "sha256": "81f5be3dcdf138b8d681c06bd9181ff3df564854ce36ad21becedda26081afa2",
+      "status": "COPIED",
+      "type": "metadata"
+    },
+    {
+      "rel_path": "config/artifact_compatibility/meta_model.compatibility.json",
+      "sha256": "3dc8ae85bc6e308a23b7ebbbde1a5813cbea75969f36fe5ab0975675fe66bbe8",
+      "status": "COPIED",
+      "type": "metadata"
+    },
+    {
+      "rel_path": "logs/meta_model.joblib",
+      "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "status": "COPIED",
+      "type": "legacy_model_artifact"
+    },
+    {
+      "rel_path": "logs/meta_model.json",
+      "sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+      "status": "COPIED",
+      "type": "legacy_model_artifact"
+    },
+    {
+      "rel_path": "logs/model_registry.json",
+      "sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+      "status": "COPIED",
+      "type": "legacy_model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc4/candidates/SOL/model.joblib",
+      "sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+      "status": "COPIED",
+      "symbol": "SOL",
+      "type": "model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc5/SOL/calibrator.joblib",
+      "sha256": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
+      "status": "COPIED",
+      "symbol": "SOL",
+      "type": "calibrator_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc4/candidates/ZEC/model.joblib",
+      "sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+      "status": "COPIED",
+      "symbol": "ZEC",
+      "type": "model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc5/ZEC/calibrator.joblib",
+      "sha256": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a",
+      "status": "COPIED",
+      "symbol": "ZEC",
+      "type": "calibrator_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc4/candidates/DOGE/model.joblib",
+      "sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+      "status": "COPIED",
+      "symbol": "DOGE",
+      "type": "model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc5/DOGE/calibrator.joblib",
+      "sha256": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
+      "status": "COPIED",
+      "symbol": "DOGE",
+      "type": "calibrator_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc4/candidates/NEAR/model.joblib",
+      "sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+      "status": "COPIED",
+      "symbol": "NEAR",
+      "type": "model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc5/NEAR/calibrator.joblib",
+      "sha256": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
+      "status": "COPIED",
+      "symbol": "NEAR",
+      "type": "calibrator_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc4/candidates/IOTA/model.joblib",
+      "sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+      "status": "COPIED",
+      "symbol": "IOTA",
+      "type": "model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc5/IOTA/calibrator.joblib",
+      "sha256": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
+      "status": "COPIED",
+      "symbol": "IOTA",
+      "type": "calibrator_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc4/candidates/TRX/model.joblib",
+      "sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+      "status": "COPIED",
+      "symbol": "TRX",
+      "type": "model_artifact"
+    },
+    {
+      "rel_path": "research/model_coverage_mc5/TRX/calibrator.joblib",
+      "sha256": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
+      "status": "COPIED",
+      "symbol": "TRX",
+      "type": "calibrator_artifact"
+    }
+  ],
+  "gates": {
+    "MC8-D-G1": {
+      "gate": "release_directory_created",
+      "result": "PASS"
+    },
+    "MC8-D-G2": {
+      "gate": "legacy_grandfathered_copied",
+      "result": "PASS"
+    },
+    "MC8-D-G3": {
+      "actual_mc5_models": 6,
+      "expected_mc5_models": 6,
+      "gate": "mc5_candidates_copied",
+      "result": "PASS"
+    },
+    "MC8-D-G4": {
+      "actual_mc5_calibrators": 6,
+      "expected_mc5_calibrators": 6,
+      "gate": "mc5_calibrators_copied",
+      "result": "PASS"
+    },
+    "MC8-D-G5": {
+      "gate": "hash_integrity_revalidated",
+      "hash_mismatches": 0,
+      "result": "PASS"
+    },
+    "MC8-D-G6": {
+      "gate": "zero_missing_dependencies",
+      "missing_artifacts": 0,
+      "result": "PASS"
+    }
+  },
+  "overall_verdict": "PASS",
+  "release_id": "model-coverage-v1"
+}
