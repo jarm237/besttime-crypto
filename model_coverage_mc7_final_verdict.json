@@ -1,0 +1,71 @@
+{
+  "artifact": "model_coverage_mc7_final_verdict",
+  "branch": "model-coverage/22-symbol-v1",
+  "mc6_seal": "506ae19ba4d325dacf71cb535d616a82385938d3",
+  "canonical_universe": 22,
+  "authorized_routes": 9,
+  "inference_disabled": 13,
+  "effective_runtime_universe": 9,
+  "authorized_symbols": ["BNB", "BTC", "DOGE", "ETH", "IOTA", "NEAR", "SOL", "TRX", "ZEC"],
+  "disabled_symbols": ["AEVO", "AR", "AVAX", "ENA", "SOPH", "TAO", "TRB", "TRUMP", "WLD", "XAUT", "XLM", "XPL", "XRP"],
+  "gates": {
+    "MC7-A": {
+      "title": "Runtime Universe Binding Contract",
+      "gates_passed": 6,
+      "result": "PASS"
+    },
+    "MC7-B": {
+      "title": "RuntimeSymbolPolicy + Config Binding",
+      "runtime_default_universe": 9,
+      "inference_entry_points_guarded": ["predict_meta_confidence", "predict_once"],
+      "env_disabled_symbol_protection": "ACTIVE",
+      "result": "PASS"
+    },
+    "MC7-C": {
+      "title": "Inference Route Parity",
+      "tests_passed": 101,
+      "tests_skipped": 6,
+      "legacy_parity": "PASS",
+      "mc5_qualified_parity": "PASS",
+      "negative_parity_disabled_13": "PASS",
+      "result": "PASS"
+    },
+    "MC7-D": {
+      "title": "Runtime Startup Compatibility Preflight",
+      "gates_passed": 6,
+      "result": "PASS"
+    },
+    "MC7-E": {
+      "title": "Runtime Path Coverage Audit",
+      "paths_audited": 10,
+      "unbound_paths": 0,
+      "audit_verdict": "ALL_PATHS_BOUND",
+      "result": "PASS"
+    },
+    "MC7-F": {
+      "title": "Disabled Symbol Re-Enable Protection",
+      "tests_passed": 71,
+      "model_load_barrier": "ACTIVE",
+      "env_re_enable_barrier": "ACTIVE",
+      "result": "PASS"
+    },
+    "MC7-G": {
+      "title": "Full Regression Suite",
+      "mc1_through_mc7_tests_passed": 404,
+      "skipped": 6,
+      "failures": 0,
+      "result": "PASS"
+    }
+  },
+  "unsupported_enabled_symbols": 0,
+  "legacy_parity": "PASS",
+  "new_route_parity": "PASS",
+  "runtime_symbol_binding": "PASS",
+  "startup_compatibility": "PASS",
+  "disabled_symbol_protection": "PASS",
+  "artifact_integrity": "PASS",
+  "schema_compatibility": "PASS",
+  "runtime_path_audit": "PASS",
+  "regression": "PASS",
+  "mc7_verdict": "CLOSED"
+}
