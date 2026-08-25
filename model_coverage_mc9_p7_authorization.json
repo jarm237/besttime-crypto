@@ -1,0 +1,39 @@
+{
+  "authorization_type": "P7_REACTIVATION",
+  "authorization_version": "mc9-p7-authorization/v1",
+  "release_id": "model-coverage-v1",
+  "release_identity_sha256": "1baf853f203c1d415b32b7912336c187b2dd9b97b3e59309c2d4b30e8fedcfd6",
+  "release_manifest_sha256": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+  "mc8_seal_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+  "source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+  "effective_runtime_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "effective_runtime_count": 9,
+  "spawn_budget": 1,
+  "restart_budget": 0,
+  "authorization_state": "ARMED",
+  "runtime_activation_performed": false,
+  "authorization_consumed": false,
+  "issued_by": "MC9-E",
+  "issued_at": "2026-08-25T07:32:31Z",
+  "upstream_preactivation_sha256": "c220ce338dc9088d0ad574922d2313632504e4c14bf451e1009ad0daab2c943e",
+  "upstream_mc8_verdict_sha256": "d370a7701224f09a5798785bde02c4d1e07581d7440b120cca4def4de55829ea",
+  "prohibitions": [
+    "different_source_commit",
+    "different_release_bundle",
+    "different_registry",
+    "different_effective_universe",
+    "second_spawn",
+    "automatic_retry",
+    "restart_on_failure"
+  ]
+}
