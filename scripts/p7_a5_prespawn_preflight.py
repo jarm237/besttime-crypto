@@ -18,7 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 AUTH_PATH            = REPO_ROOT / "p7_attempt5_authorization.json"
-IDENTITY_PATH        = REPO_ROOT / "p7_r6_v1r1_release_identity.json"
+IDENTITY_PATH        = REPO_ROOT / "model_coverage_mc9_release_identity.json"
 EPOCH_PROVISION_PATH = REPO_ROOT / "p7_attempt5_epoch_provision.json"
 EPOCH_READBACK_PATH  = REPO_ROOT / "p7_attempt5_epoch_readback.json"
 RESUME_CONTRACT_PATH = REPO_ROOT / "p7_attempt5_resume_contract.json"
@@ -82,7 +82,7 @@ def main() -> int:
     # Check G2-3: release ID and commit exact
     g2_3_pass = (
         auth["release_id"] == "model-coverage-v1-r1"
-        and auth["source_commit"] == "97a97040d2d3f75b32ce45f948558beead5b2aa9"
+        and auth["source_commit"] == "1b4d2965d0a374660278a61b80dea8443f61382f"
     )
     gates["A5-G2-3"] = {
         "gate": "release_and_commit_exact",

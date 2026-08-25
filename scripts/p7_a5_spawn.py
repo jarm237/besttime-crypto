@@ -21,7 +21,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-PINNED          = ROOT / "runtime" / "worktrees" / "pinned-97a9704"
+PINNED          = ROOT / "runtime" / "worktrees" / "pinned-1b4d296"
 AUTH_PATH       = ROOT / "p7_attempt5_authorization.json"
 AUTH_SHA_PATH   = ROOT / "p7_attempt5_authorization.json.sha256"
 MANIFEST_PATH   = ROOT / "model_coverage_mc8_release_manifest.json"
@@ -35,7 +35,7 @@ ATTEMPT_ID     = "p7-attempt-5"
 DEPLOYMENT_ID  = "paper-canary-a5-20260825-01"
 PAPER_RUN_ID   = "paper-canary-a5-20260825-01"
 EPOCH_ID       = "canary-mc9-v1-a5-20260825-01"
-SOURCE_COMMIT  = "97a97040d2d3f75b32ce45f948558beead5b2aa9"
+SOURCE_COMMIT  = "1b4d2965d0a374660278a61b80dea8443f61382f"
 
 
 def fail(msg: str) -> None:

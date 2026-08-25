@@ -17,13 +17,13 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 AUTH_PATH     = REPO_ROOT / "p7_attempt5_authorization.json"
-IDENTITY_PATH = REPO_ROOT / "p7_r6_v1r1_release_identity.json"
+IDENTITY_PATH = REPO_ROOT / "model_coverage_mc9_release_identity.json"
 MANIFEST_PATH = REPO_ROOT / "model_coverage_mc8_release_manifest.json"
 OUTPUT_PATH   = REPO_ROOT / "p7_attempt5_resume_contract.json"
 
 ATTEMPT_ID             = "p7-attempt-5"
-SOURCE_COMMIT          = "97a97040d2d3f75b32ce45f948558beead5b2aa9"
-PINNED_WORKTREE        = "runtime/worktrees/pinned-97a9704"
+SOURCE_COMMIT          = "1b4d2965d0a374660278a61b80dea8443f61382f"
+PINNED_WORKTREE        = "runtime/worktrees/pinned-1b4d296"
 EXPECTED_SYMBOL_COUNT  = 9
 EXPECTED_SYMBOLS       = sorted(["BNB", "BTC", "DOGE", "ETH", "IOTA", "NEAR", "SOL", "TRX", "ZEC"])
 

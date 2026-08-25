@@ -2,7 +2,7 @@
   "attempt": 5,
   "authorization_type": "P7_REACTIVATION",
   "consumed": true,
-  "consumed_at": "2026-08-25T09:28:19Z",
+  "consumed_at": "2026-08-25T09:35:27Z",
   "consumed_by_attempt": "p7-attempt-5",
   "effective_runtime_symbols": [
     "BNB",
@@ -17,11 +17,11 @@
   ],
   "registry_sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04",
   "release_id": "model-coverage-v1-r1",
-  "release_identity_sha256": "10e2487d8ba72c290001e85e0c2a220d3ff604649b726fc2eaee850c1a084c2e",
-  "release_manifest_sha256": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+  "release_identity_sha256": "cf5bb85127d8c357592e81220f8cb79f4eb495923d2007e7ec3d92fe38a08040",
+  "release_manifest_sha256": "ef30ca0ff584ca1882221833db370322cd8faaa3ec8c882a72c95f9ffbe5daf6",
   "restart_budget": 0,
   "runtime_activation_performed": false,
-  "source_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+  "source_commit": "1b4d2965d0a374660278a61b80dea8443f61382f",
   "spawn_budget": 1,
   "state": "CONSUMED"
 }

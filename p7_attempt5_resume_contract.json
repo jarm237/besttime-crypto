@@ -2,7 +2,7 @@
   "artifact": "p7_attempt5_resume_contract",
   "attempt_id": "p7-attempt-5",
   "authorization_consumed": false,
-  "authorization_sha256": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7",
+  "authorization_sha256": "63552b6f23de4853422c0a606f0140b4d553af2d282fb3716f5eea7a07fb7503",
   "authorization_state": "ARMED",
   "contract_version": "p7-a5-resume-contract/v1",
   "effective_runtime_count": 9,
@@ -30,22 +30,22 @@
       "result": "PASS"
     },
     "A5-G0-2": {
-      "auth_sha": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7",
+      "auth_sha": "63552b6f23de4853422c0a606f0140b4d553af2d282fb3716f5eea7a07fb7503",
       "gate": "authorization_hash_matches_sidecar",
       "result": "PASS",
-      "sidecar_sha": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7"
+      "sidecar_sha": "63552b6f23de4853422c0a606f0140b4d553af2d282fb3716f5eea7a07fb7503"
     },
     "A5-G0-3": {
       "gate": "release_manifest_hash_matches_authorization",
-      "manifest_sha_auth": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
-      "manifest_sha_disk": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+      "manifest_sha_auth": "ef30ca0ff584ca1882221833db370322cd8faaa3ec8c882a72c95f9ffbe5daf6",
+      "manifest_sha_disk": "ef30ca0ff584ca1882221833db370322cd8faaa3ec8c882a72c95f9ffbe5daf6",
       "result": "PASS"
     },
     "A5-G0-4": {
-      "auth_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
-      "expected": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+      "auth_commit": "1b4d2965d0a374660278a61b80dea8443f61382f",
+      "expected": "1b4d2965d0a374660278a61b80dea8443f61382f",
       "gate": "source_commit_exact",
-      "pinned_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+      "pinned_commit": "1b4d2965d0a374660278a61b80dea8443f61382f",
       "result": "PASS"
     },
     "A5-G0-5": {
@@ -86,7 +86,7 @@
       "sol_explicit": true
     }
   },
-  "generated_at": "2026-08-25T09:26:03Z",
+  "generated_at": "2026-08-25T09:31:35Z",
   "historical_attempt_ids": [
     "p7-attempt-1",
     "p7-attempt-2",
@@ -94,13 +94,13 @@
     "p7-attempt-4"
   ],
   "overall_verdict": "PASS",
-  "pinned_worktree": "runtime/worktrees/pinned-97a9704",
+  "pinned_worktree": "runtime/worktrees/pinned-1b4d296",
   "release_id": "model-coverage-v1-r1",
-  "release_identity_sha256": "10e2487d8ba72c290001e85e0c2a220d3ff604649b726fc2eaee850c1a084c2e",
-  "release_manifest_sha256": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+  "release_identity_sha256": "cf5bb85127d8c357592e81220f8cb79f4eb495923d2007e7ec3d92fe38a08040",
+  "release_manifest_sha256": "ef30ca0ff584ca1882221833db370322cd8faaa3ec8c882a72c95f9ffbe5daf6",
   "restart_budget": 0,
   "runtime_activation": "NOT_PERFORMED",
   "sol_explicit": true,
-  "source_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+  "source_commit": "1b4d2965d0a374660278a61b80dea8443f61382f",
   "spawn_budget": 1
 }
