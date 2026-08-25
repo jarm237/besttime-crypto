@@ -1,0 +1,170 @@
+{
+  "artifact": "model_coverage_mc5_qualification_registry",
+  "candidates": [
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "AEVO_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_STATISTICAL",
+      "mc4_artifact_id": "AEVO_candidate_v1",
+      "oos_dataset_id": "split-AEVO-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "FAIL",
+      "symbol": "AEVO"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "AR_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_ECONOMIC",
+      "mc4_artifact_id": "AR_candidate_v1",
+      "oos_dataset_id": "split-AR-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "AR"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "AVAX_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_ECONOMIC",
+      "mc4_artifact_id": "AVAX_candidate_v1",
+      "oos_dataset_id": "split-AVAX-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "AVAX"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "DOGE_calibrator_v1",
+      "economic_verdict": "PASS",
+      "final_verdict": "QUALIFIED",
+      "mc4_artifact_id": "DOGE_candidate_v1",
+      "oos_dataset_id": "split-DOGE-oos",
+      "routing_eligibility": "QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "DOGE"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "ENA_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_STATISTICAL",
+      "mc4_artifact_id": "ENA_candidate_v1",
+      "oos_dataset_id": "split-ENA-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "FAIL",
+      "symbol": "ENA"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "IOTA_calibrator_v1",
+      "economic_verdict": "PASS",
+      "final_verdict": "QUALIFIED",
+      "mc4_artifact_id": "IOTA_candidate_v1",
+      "oos_dataset_id": "split-IOTA-oos",
+      "routing_eligibility": "QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "IOTA"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "NEAR_calibrator_v1",
+      "economic_verdict": "PASS",
+      "final_verdict": "QUALIFIED",
+      "mc4_artifact_id": "NEAR_candidate_v1",
+      "oos_dataset_id": "split-NEAR-oos",
+      "routing_eligibility": "QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "NEAR"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "SOL_calibrator_v1",
+      "economic_verdict": "PASS",
+      "final_verdict": "QUALIFIED",
+      "mc4_artifact_id": "SOL_candidate_v1",
+      "oos_dataset_id": "split-SOL-oos",
+      "routing_eligibility": "QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "SOL"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "TAO_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_STATISTICAL",
+      "mc4_artifact_id": "TAO_candidate_v1",
+      "oos_dataset_id": "split-TAO-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "FAIL",
+      "symbol": "TAO"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "TRB_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_ECONOMIC",
+      "mc4_artifact_id": "TRB_candidate_v1",
+      "oos_dataset_id": "split-TRB-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "TRB"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "TRX_calibrator_v1",
+      "economic_verdict": "PASS",
+      "final_verdict": "QUALIFIED",
+      "mc4_artifact_id": "TRX_candidate_v1",
+      "oos_dataset_id": "split-TRX-oos",
+      "routing_eligibility": "QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "TRX"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "WLD_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_STATISTICAL",
+      "mc4_artifact_id": "WLD_candidate_v1",
+      "oos_dataset_id": "split-WLD-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "FAIL",
+      "symbol": "WLD"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "XLM_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_STATISTICAL",
+      "mc4_artifact_id": "XLM_candidate_v1",
+      "oos_dataset_id": "split-XLM-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "FAIL",
+      "symbol": "XLM"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "XRP_calibrator_v1",
+      "economic_verdict": "FAIL",
+      "final_verdict": "REJECTED_STATISTICAL",
+      "mc4_artifact_id": "XRP_candidate_v1",
+      "oos_dataset_id": "split-XRP-oos",
+      "routing_eligibility": "NOT_QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "FAIL",
+      "symbol": "XRP"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "calibrator_id": "ZEC_calibrator_v1",
+      "economic_verdict": "PASS",
+      "final_verdict": "QUALIFIED",
+      "mc4_artifact_id": "ZEC_candidate_v1",
+      "oos_dataset_id": "split-ZEC-oos",
+      "routing_eligibility": "QUALIFIED_FOR_ROUTING",
+      "statistical_verdict": "PASS",
+      "symbol": "ZEC"
+    }
+  ]
+}

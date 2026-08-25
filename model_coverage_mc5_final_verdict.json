@@ -1,0 +1,18 @@
+{
+  "activation": "NOT_AUTHORIZED",
+  "artifact": "model_coverage_mc5_final_verdict",
+  "calibration": "CALIBRATED_PLATT",
+  "final_oos_qualification": "COMPLETED",
+  "mc5_state": "CLOSED",
+  "qualification_population_count": 15,
+  "qualified_count": 6,
+  "qualified_symbols": [
+    "DOGE",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "runtime_routing": "UNCHANGED"
+}
