@@ -21,7 +21,7 @@
     },
     {
       "rel_path": "model_coverage_mc8_release_manifest.json",
-      "sha256": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+      "sha256": "832962ed83d2ebde446675c8e1706a36c737f8af77b73768f7d29d20ce051f34",
       "status": "COPIED",
       "type": "metadata"
     },
@@ -173,5 +173,5 @@
     }
   },
   "overall_verdict": "PASS",
-  "release_id": "model-coverage-v1"
+  "release_id": "model-coverage-v1-r1"
 }

@@ -1,34 +1,9 @@
 {
   "artifact": "model_coverage_mc9_release_identity",
-  "generated_at": "2026-08-25T07:13:54Z",
-  "release_id": "model-coverage-v1",
-  "branch": "model-coverage/22-symbol-v1",
-  "mc7_seal_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
-  "mc8_seal_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
-  "source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
-  "release_manifest": {
-    "path": "model_coverage_mc8_release_manifest.json",
-    "sha256": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650"
-  },
-  "inference_registry": {
-    "path": "model_coverage_mc6_inference_registry.json",
-    "sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04"
-  },
-  "runtime_binding_contract": {
-    "path": "model_coverage_mc7_runtime_binding_contract.json",
-    "sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52"
-  },
   "artifact_inventory": {
     "path": "model_coverage_mc8_artifact_inventory.json",
-    "sha256": "a0d641887e5801031a798c58f8c6cfb19359ad576c67e5cb2c9f3afb2b3ec4c1"
+    "sha256": "249e57db2859bb0e30b2203a0e9d693a32c036aaf0dfce5fad40638538dee45d"
   },
-  "mc8_final_verdict": {
-    "path": "model_coverage_mc8_final_verdict.json",
-    "sha256": "d370a7701224f09a5798785bde02c4d1e07581d7440b120cca4def4de55829ea"
-  },
-  "canonical_universe_count": 22,
-  "effective_runtime_count": 9,
-  "disabled_symbol_count": 13,
   "authorized_symbols": [
     "BNB",
     "BTC",
@@ -40,6 +15,9 @@
     "TRX",
     "ZEC"
   ],
+  "branch": "model-coverage/22-symbol-v1",
+  "canonical_universe_count": 22,
+  "disabled_symbol_count": 13,
   "disabled_symbols": [
     "AEVO",
     "AR",
@@ -55,143 +33,7 @@
     "XPL",
     "XRP"
   ],
-  "route_identities": {
-    "BNB": {
-      "symbol": "BNB",
-      "route_type": "LEGACY",
-      "model_sha256": "grandfathered_global",
-      "calibrator_sha256": "grandfathered_none",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "LEGACY_GRANDFATHERED",
-      "artifact_verified": true
-    },
-    "BTC": {
-      "symbol": "BTC",
-      "route_type": "LEGACY",
-      "model_sha256": "grandfathered_global",
-      "calibrator_sha256": "grandfathered_none",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "LEGACY_GRANDFATHERED",
-      "artifact_verified": true
-    },
-    "DOGE": {
-      "symbol": "DOGE",
-      "route_type": "MC5_QUALIFIED",
-      "model_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
-      "calibrator_sha256": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "QUALIFIED",
-      "artifact_verified": true
-    },
-    "ETH": {
-      "symbol": "ETH",
-      "route_type": "LEGACY",
-      "model_sha256": "grandfathered_global",
-      "calibrator_sha256": "grandfathered_none",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "LEGACY_GRANDFATHERED",
-      "artifact_verified": true
-    },
-    "IOTA": {
-      "symbol": "IOTA",
-      "route_type": "MC5_QUALIFIED",
-      "model_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
-      "calibrator_sha256": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "QUALIFIED",
-      "artifact_verified": true
-    },
-    "NEAR": {
-      "symbol": "NEAR",
-      "route_type": "MC5_QUALIFIED",
-      "model_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
-      "calibrator_sha256": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "QUALIFIED",
-      "artifact_verified": true
-    },
-    "SOL": {
-      "symbol": "SOL",
-      "route_type": "MC5_QUALIFIED",
-      "model_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
-      "calibrator_sha256": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "QUALIFIED",
-      "artifact_verified": true
-    },
-    "TRX": {
-      "symbol": "TRX",
-      "route_type": "MC5_QUALIFIED",
-      "model_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
-      "calibrator_sha256": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "QUALIFIED",
-      "artifact_verified": true
-    },
-    "ZEC": {
-      "symbol": "ZEC",
-      "route_type": "MC5_QUALIFIED",
-      "model_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
-      "calibrator_sha256": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a",
-      "feature_schema_version": "features_v5_4f",
-      "feature_schema": [
-        "return_8",
-        "return_32",
-        "return_72",
-        "abs_move_72"
-      ],
-      "qualification_verdict": "QUALIFIED",
-      "artifact_verified": true
-    }
-  },
+  "effective_runtime_count": 9,
   "gates": {
     "MC9-A-G1": {
       "gate": "MC9-A-G1",
@@ -226,5 +68,163 @@
       "result": "PASS"
     }
   },
-  "overall_verdict": "PASS"
+  "generated_at": "2026-08-25T07:13:54Z",
+  "inference_registry": {
+    "path": "model_coverage_mc6_inference_registry.json",
+    "sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04"
+  },
+  "mc7_seal_commit": "08a2aa56ffffb4b226e9ec2e6233cb4832af4aef",
+  "mc8_final_verdict": {
+    "path": "model_coverage_mc8_final_verdict.json",
+    "sha256": "d370a7701224f09a5798785bde02c4d1e07581d7440b120cca4def4de55829ea"
+  },
+  "mc8_seal_commit": "08a2aa56ffffb4b226e9ec2e6233cb4832af4aef",
+  "overall_verdict": "PASS",
+  "release_id": "model-coverage-v1-r1",
+  "release_manifest": {
+    "path": "model_coverage_mc8_release_manifest.json",
+    "sha256": "832962ed83d2ebde446675c8e1706a36c737f8af77b73768f7d29d20ce051f34"
+  },
+  "route_identities": {
+    "BNB": {
+      "artifact_verified": true,
+      "calibrator_sha256": "grandfathered_none",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "grandfathered_global",
+      "qualification_verdict": "LEGACY_GRANDFATHERED",
+      "route_type": "LEGACY",
+      "symbol": "BNB"
+    },
+    "BTC": {
+      "artifact_verified": true,
+      "calibrator_sha256": "grandfathered_none",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "grandfathered_global",
+      "qualification_verdict": "LEGACY_GRANDFATHERED",
+      "route_type": "LEGACY",
+      "symbol": "BTC"
+    },
+    "DOGE": {
+      "artifact_verified": true,
+      "calibrator_sha256": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "symbol": "DOGE"
+    },
+    "ETH": {
+      "artifact_verified": true,
+      "calibrator_sha256": "grandfathered_none",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "grandfathered_global",
+      "qualification_verdict": "LEGACY_GRANDFATHERED",
+      "route_type": "LEGACY",
+      "symbol": "ETH"
+    },
+    "IOTA": {
+      "artifact_verified": true,
+      "calibrator_sha256": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "symbol": "IOTA"
+    },
+    "NEAR": {
+      "artifact_verified": true,
+      "calibrator_sha256": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "symbol": "NEAR"
+    },
+    "SOL": {
+      "artifact_verified": true,
+      "calibrator_sha256": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "symbol": "SOL"
+    },
+    "TRX": {
+      "artifact_verified": true,
+      "calibrator_sha256": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "symbol": "TRX"
+    },
+    "ZEC": {
+      "artifact_verified": true,
+      "calibrator_sha256": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "symbol": "ZEC"
+    }
+  },
+  "runtime_binding_contract": {
+    "path": "model_coverage_mc7_runtime_binding_contract.json",
+    "sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52"
+  },
+  "source_commit": "08a2aa56ffffb4b226e9ec2e6233cb4832af4aef"
 }

@@ -220,7 +220,7 @@
       }
     ]
   },
-  "release_version": "model-coverage-v1",
+  "release_version": "model-coverage-v1-r1",
   "routes": {
     "BNB": {
       "calibrator_sha256": null,
@@ -492,5 +492,5 @@
     ],
     "unknown_symbol_policy": "FAIL_CLOSED"
   },
-  "source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9"
+  "source_commit": "08a2aa56ffffb4b226e9ec2e6233cb4832af4aef"
 }
