@@ -51,7 +51,9 @@
     },
     "MC7-G": {
       "title": "Full Regression Suite",
-      "mc1_through_mc7_tests_passed": 404,
+      "regression_suite_passed": 404,
+      "mc7_specific_tests_passed": 18,
+      "total_tests_passed": 422,
       "skipped": 6,
       "failures": 0,
       "result": "PASS"

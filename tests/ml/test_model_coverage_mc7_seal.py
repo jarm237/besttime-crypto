@@ -93,7 +93,9 @@ def test_mc7_verdict_unsupported_enabled_zero(verdict: dict) -> None:
 def test_mc7_regression_gate_pass_count(verdict: dict) -> None:
     g = verdict["gates"]["MC7-G"]
     assert g["failures"] == 0
-    assert g["mc1_through_mc7_tests_passed"] >= 400
+    assert g["regression_suite_passed"] >= 400
+    assert g["mc7_specific_tests_passed"] == 18
+    assert g["total_tests_passed"] == 422
 
 
 # ── Cross-consistency with prior artifacts ────────────────────────────────────
