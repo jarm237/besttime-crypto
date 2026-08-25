@@ -1,0 +1,84 @@
+{
+  "artifact": "p7_attempt4_epoch_readback",
+  "attempt_id": "p7-attempt-4",
+  "db_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3/runtime/paper/paper-canary-a4-20260825-01/logs/global_evidence_index.sqlite",
+  "db_record": {
+    "analysis_universe": [
+      "BNB",
+      "BTC",
+      "DOGE",
+      "ETH",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ],
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "code_commit_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+    "deployment_id": "paper-canary-a4-20260825-01",
+    "epoch_id": "canary-mc9-v1-a4-20260825-01",
+    "paper_run_id": "paper-canary-a4-20260825-01",
+    "release_manifest_sha256": "213aff3cfc6edfa8339dc0ccec31f2bab99aba3e2c400bebac6a36b67d60538a",
+    "status": "ACTIVE"
+  },
+  "deployment_id": "paper-canary-a4-20260825-01",
+  "epoch_id": "canary-mc9-v1-a4-20260825-01",
+  "gates": {
+    "A4-G1-1": {
+      "epoch_id": "canary-mc9-v1-a4-20260825-01",
+      "gate": "epoch_exists",
+      "result": "PASS"
+    },
+    "A4-G1-2": {
+      "gate": "status_active",
+      "result": "PASS",
+      "status": "ACTIVE"
+    },
+    "A4-G1-3": {
+      "deployment_id": "paper-canary-a4-20260825-01",
+      "epoch_id": "canary-mc9-v1-a4-20260825-01",
+      "gate": "identity_matches_resume_contract",
+      "paper_run_id": "paper-canary-a4-20260825-01",
+      "result": "PASS"
+    },
+    "A4-G1-4": {
+      "gate": "deployment_identity_matches_manifest",
+      "manifest_artifact_sha": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "manifest_deployment_id": "paper-canary-a4-20260825-01",
+      "result": "PASS"
+    },
+    "A4-G1-5": {
+      "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "db_code_commit_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "db_manifest_sha256": "213aff3cfc6edfa8339dc0ccec31f2bab99aba3e2c400bebac6a36b67d60538a",
+      "expected_dynamic_manifest_sha256": "213aff3cfc6edfa8339dc0ccec31f2bab99aba3e2c400bebac6a36b67d60538a",
+      "gate": "release_identity_matches_authorization",
+      "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+      "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+      "release_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "result": "PASS"
+    },
+    "A4-G1-6": {
+      "gate": "sol_explicit_in_universe",
+      "result": "PASS",
+      "sol_explicit": true,
+      "universe": [
+        "BNB",
+        "BTC",
+        "DOGE",
+        "ETH",
+        "IOTA",
+        "NEAR",
+        "SOL",
+        "TRX",
+        "ZEC"
+      ]
+    }
+  },
+  "generated_at": "2026-08-25T07:58:05Z",
+  "overall_verdict": "PASS",
+  "paper_run_id": "paper-canary-a4-20260825-01",
+  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3",
+  "source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9"
+}

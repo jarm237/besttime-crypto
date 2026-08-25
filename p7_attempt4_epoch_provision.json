@@ -1,0 +1,125 @@
+{
+  "a4_manifest_sha256": "50a702089d6c44b23e7c2b9fdef94eb54a0904037396b67d5dcff528dc1853a8",
+  "active_epoch_count": 1,
+  "artifact": "p7_attempt4_epoch_provision",
+  "attempt_id": "p7-attempt-4",
+  "deployment_id": "paper-canary-a4-20260825-01",
+  "epoch_id": "canary-mc9-v1-a4-20260825-01",
+  "epoch_identity": {
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "deployment_id": "paper-canary-a4-20260825-01",
+    "epoch_id": "canary-mc9-v1-a4-20260825-01",
+    "evidence_eligible": true,
+    "execution_mode": "PAPER",
+    "paper_run_id": "paper-canary-a4-20260825-01",
+    "release_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+    "release_tree": "fb816e7194dcd2af35f69d77e155bbf24de04347"
+  },
+  "generated_at": "2026-08-25T07:56:42Z",
+  "logs_copied": {
+    "meta_model.joblib": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "meta_model.json": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "model_registry.json": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a"
+  },
+  "overall_verdict": "PASS",
+  "paper_run_id": "paper-canary-a4-20260825-01",
+  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-94407d3",
+  "provision_status": "PASS_OPERATIONAL_STATE_PROVISIONED",
+  "release_bundle": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/releases/model-coverage-v1",
+  "release_manifest": {
+    "analysis_universe": "BNB,BTC,DOGE,ETH,IOTA,NEAR,SOL,TRX,ZEC",
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "decision_contract": "side-probability-v2",
+    "deployment_id": "paper-canary-a4-20260825-01",
+    "feature_schema_version": "meta-v3.1-43f",
+    "manifest_schema_version": "evidence-manifest-v1",
+    "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "paper_run_id": "paper-canary-a4-20260825-01",
+    "probability_semantics": "P(up)",
+    "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+    "release_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9"
+  },
+  "source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+  "startup_precondition_probe": {
+    "active_epoch": {
+      "activated_at": "2026-08-25T07:56:43.627383+00:00",
+      "analysis_universe": [
+        "BNB",
+        "BTC",
+        "DOGE",
+        "ETH",
+        "IOTA",
+        "NEAR",
+        "SOL",
+        "TRX",
+        "ZEC"
+      ],
+      "analysis_universe_hash": "c965c9e001020849c1390553023d8259253fd28728c2679f7f52fb4fda66d2e3",
+      "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "code_commit_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "deployment_id": "paper-canary-a4-20260825-01",
+      "epoch_id": "canary-mc9-v1-a4-20260825-01",
+      "evidence_policy_version": "evidence-v4",
+      "feature_schema_version": "meta-v3.1-43f",
+      "model_version": "v3.1",
+      "paper_run_id": "paper-canary-a4-20260825-01",
+      "release_manifest": {
+        "analysis_universe": "BNB,BTC,DOGE,ETH,IOTA,NEAR,SOL,TRX,ZEC",
+        "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+        "decision_contract": "side-probability-v2",
+        "deployment_id": "paper-canary-a4-20260825-01",
+        "feature_schema_version": "meta-v3.1-43f",
+        "manifest_schema_version": "evidence-manifest-v1",
+        "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "paper_run_id": "paper-canary-a4-20260825-01",
+        "probability_semantics": "P(up)",
+        "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+        "release_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9"
+      },
+      "release_manifest_sha256": "213aff3cfc6edfa8339dc0ccec31f2bab99aba3e2c400bebac6a36b67d60538a",
+      "risk_policy_version": "risk-fail-closed-v1",
+      "runtime_pause_policy": {
+        "dependency_health_policy": "REQUIRED_DEPENDENCIES_FAIL_CLOSED",
+        "dependency_probe_backoff_seconds": [
+          5.0,
+          15.0,
+          30.0,
+          60.0
+        ],
+        "incomplete_cycle_behavior": "RECOVER_OR_INTERRUPT_EXTERNAL",
+        "lease_behavior_on_pause": "REACQUIRE_AFTER_CLOCK_GAP",
+        "maximum_clock_gap_before_recovery_seconds": 90.0,
+        "maximum_pause_duration_seconds": null,
+        "pausable_reason_codes": [
+          "RUNTIME_PAUSED_NETWORK_UNAVAILABLE",
+          "RUNTIME_PAUSED_DNS_UNAVAILABLE",
+          "RUNTIME_PAUSED_MONGODB_UNAVAILABLE",
+          "RUNTIME_PAUSED_MARKET_PROVIDER_UNAVAILABLE",
+          "RUNTIME_PAUSED_EXTERNAL_API_UNAVAILABLE",
+          "RUNTIME_PAUSED_SYSTEM_SLEEP_DETECTED",
+          "RUNTIME_PAUSED_CLOCK_GAP_DETECTED"
+        ],
+        "policy_version": "runtime-pause-v1",
+        "recovery_stabilization_seconds": 30.0,
+        "recovery_success_threshold": 3,
+        "resume_catch_up_policy": "CURRENT_SESSION_ONLY",
+        "resume_policy_version": "runtime-resume-v1",
+        "terminal_reason_codes": [
+          "MODEL_ARTIFACT_HASH_MISMATCH",
+          "DECISION_CONTRACT_MISMATCH",
+          "CANONICAL_EVIDENCE_CONFLICT",
+          "DEPLOYMENT_LINEAGE_MISMATCH",
+          "EXECUTION_FINAL_DECISION_MISMATCH",
+          "DUPLICATE_CONFLICTING_ECONOMIC_EVIDENCE",
+          "EPOCH_TERMINAL_RISK_POLICY_BREACH",
+          "MANUAL_INVALIDATION_AUTHORIZED"
+        ]
+      },
+      "runtime_schema_version": 6,
+      "started_at": "2026-08-25T07:56:43.609236+00:00",
+      "status": "ACTIVE"
+    },
+    "runtime_evidence_eligible": true,
+    "status": "PASS"
+  }
+}

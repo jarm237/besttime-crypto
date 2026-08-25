@@ -1,0 +1,57 @@
+{
+  "artifact": {
+    "artifact_version": "v3.1",
+    "calibration": {
+      "status": "PROVEN_NOT_APPLICABLE"
+    },
+    "compatibility_hash": "750c86ad0a1ed5992c5b97904941c927c860f3594015d85f3749f21b13a1e949",
+    "feature_names": [
+      "return_8",
+      "return_32",
+      "return_72",
+      "abs_move_72"
+    ],
+    "feature_order_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+    "inference_feature_schema_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+    "manifest_sha256": "3dc8ae85bc6e308a23b7ebbbde1a5813cbea75969f36fe5ab0975675fe66bbe8",
+    "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "model_family": "meta_model",
+    "path": "logs/meta_model.joblib",
+    "schema_fingerprint": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
+    "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c"
+  },
+  "contract": "paper-canary-deployment/v1",
+  "contracts": {
+    "artifact_compatibility": "artifact-compatibility/v1",
+    "common_evaluator": "common-evaluator/v1",
+    "decision_composition": "decision-composition/v1",
+    "expected_value": "expected-return-fraction-v1",
+    "inference": "explicit-inference/v1",
+    "p6_evaluation": "evaluation-boundary/v1",
+    "pure_scoring": "pure-scoring/v1",
+    "readiness": "readiness-boundary/v1",
+    "readiness_required_observations": 73,
+    "risk_sizing": "risk-sizing/v1",
+    "s3_threshold": "s3-per-symbol-v1",
+    "schema": "runtime-schema/v1"
+  },
+  "deployment_id": "paper-canary-a4-20260825-01",
+  "epoch_id": "canary-mc9-v1-a4-20260825-01",
+  "manifest_sha256": "187005e4b50882c2c12e5ebab56844c9ba3e039f6412e4b5279b0413efd2d88e",
+  "observation": {
+    "production_promotion": "NOT_AUTHORIZED",
+    "successor_research": "NOT_AUTHORIZED"
+  },
+  "paper_run_id": "paper-canary-a4-20260825-01",
+  "release": {
+    "commit_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+    "source": "MC9_SEALED_RELEASE",
+    "tree_sha": "fb816e7194dcd2af35f69d77e155bbf24de04347"
+  },
+  "runtime": {
+    "automatic_retry": "FORBIDDEN",
+    "mode": "PAPER",
+    "paper_execution_required": true,
+    "real_money_enabled": false
+  }
+}
