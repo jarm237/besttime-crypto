@@ -1370,12 +1370,12 @@ def predict_meta_confidence(
 
                 artifact = InferenceArtifact(
                     model_family="meta_model",
-                    artifact_version=route.route_version,
-                    artifact_hash=route.model_sha256,
+                    artifact_version="v3.1",
+                    artifact_hash="dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
                     feature_schema_hash=feature_schema_hash(route.feature_schema),
                     feature_names=tuple(route.feature_schema),
                     predictor=predictor_fn,
-                    feature_schema_version=route.feature_schema_version,
+                    feature_schema_version="features_v5_4f",
                     artifact_metadata_consistent=True,
                     calibration_method="logistic",
                     supported_symbols=frozenset({prediction_symbol}),

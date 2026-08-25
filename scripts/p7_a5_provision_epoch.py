@@ -109,6 +109,7 @@ def build_a5_manifest(orig: dict[str, Any]) -> tuple[Path, str]:
         "tree_sha": release_tree,
     }
     a5["artifact"]["path"] = "logs/meta_model.joblib"
+    a5["artifact"]["feature_schema_version"] = "features_v5_4f"
     A5_MANIFEST.write_text(json.dumps(a5, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     manifest_sha = sha256_file(A5_MANIFEST)
     return A5_MANIFEST, manifest_sha
