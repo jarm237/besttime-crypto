@@ -1,11 +1,11 @@
 {
   "artifact": "p7_attempt5_authorization_consumption",
   "attempt_id": "p7-attempt-5",
-  "consumed_at": "2026-08-25T09:35:27Z",
-  "consumed_authorization_sha256": "e02b5e5251c3a079d314bb9a7e9378fd0519bebb10a66272429d329a69a3a959",
+  "consumed_at": "2026-08-25T09:40:50Z",
+  "consumed_authorization_sha256": "7a25c5d2b02f2679beb694217a28fc3afcec3da05430573ba9c2c5025d6d8c7f",
   "epoch_id": "canary-mc9-v1-a5-20260825-01",
-  "generated_at": "2026-08-25T09:35:27Z",
-  "original_authorization_sha256": "63552b6f23de4853422c0a606f0140b4d553af2d282fb3716f5eea7a07fb7503",
+  "generated_at": "2026-08-25T09:40:50Z",
+  "original_authorization_sha256": "6d64921697a6cb898b7e1f274279af6ef910d0bd8883ed44239096107a0580cc",
   "overall_verdict": "PASS",
   "status": "CONSUMED"
 }

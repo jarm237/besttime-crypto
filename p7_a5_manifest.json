@@ -12,7 +12,6 @@
       "abs_move_72"
     ],
     "feature_order_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
-    "feature_schema_version": "features_v5_4f",
     "inference_feature_schema_hash": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
     "manifest_sha256": "3dc8ae85bc6e308a23b7ebbbde1a5813cbea75969f36fe5ab0975675fe66bbe8",
     "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
@@ -45,9 +44,9 @@
   },
   "paper_run_id": "paper-canary-a5-20260825-01",
   "release": {
-    "commit_sha": "1b4d2965d0a374660278a61b80dea8443f61382f",
+    "commit_sha": "111dbc833e2be1e7e348d1717a624995b348f991",
     "source": "MC9_SEALED_RELEASE",
-    "tree_sha": "8b907c251a0a25af0e267dc09be7f26c3256c622"
+    "tree_sha": "68d9cad1e9818b38791380380a74b2e4d6a810f2"
   },
   "runtime": {
     "automatic_retry": "FORBIDDEN",

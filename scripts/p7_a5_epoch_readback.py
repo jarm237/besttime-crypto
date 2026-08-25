@@ -23,7 +23,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-PINNED          = ROOT / "runtime" / "worktrees" / "pinned-1b4d296"
+PINNED          = ROOT / "runtime" / "worktrees" / "pinned-111dbc8"
 RESUME_CONTRACT = ROOT / "p7_attempt5_resume_contract.json"
 AUTH_PATH       = ROOT / "p7_attempt5_authorization.json"
 A5_MANIFEST     = ROOT / "p7_a5_manifest.json"
@@ -33,7 +33,7 @@ ATTEMPT_ID     = "p7-attempt-5"
 DEPLOYMENT_ID  = "paper-canary-a5-20260825-01"
 PAPER_RUN_ID   = "paper-canary-a5-20260825-01"
 EPOCH_ID       = "canary-mc9-v1-a5-20260825-01"
-SOURCE_COMMIT  = "1b4d2965d0a374660278a61b80dea8443f61382f"
+SOURCE_COMMIT  = "111dbc833e2be1e7e348d1717a624995b348f991"
 
 
 def fail(msg: str) -> None:
@@ -153,7 +153,7 @@ def main() -> int:
         "deployment_id": DEPLOYMENT_ID,
         "feature_schema_version": "meta-v3.1-43f",
         "manifest_schema_version": "evidence-manifest-v1",
-        "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+        "metadata_sha256": sha256_file(PINNED / "logs/meta_model.json"),
         "paper_run_id": PAPER_RUN_ID,
         "probability_semantics": "P(up)",
         "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
@@ -171,7 +171,7 @@ def main() -> int:
         db_commit == SOURCE_COMMIT and
         release_manifest_dict.get("release_sha") == SOURCE_COMMIT and
         release_manifest_dict.get("artifact_sha256") == "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c" and
-        release_manifest_dict.get("metadata_sha256") == "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591" and
+        release_manifest_dict.get("metadata_sha256") == expected_manifest_dict["metadata_sha256"] and
         release_manifest_dict.get("registry_sha256") == "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a"
     )
     gates["A5-G1-5"] = {

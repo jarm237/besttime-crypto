@@ -1375,7 +1375,7 @@ def predict_meta_confidence(
                     feature_schema_hash=feature_schema_hash(route.feature_schema),
                     feature_names=tuple(route.feature_schema),
                     predictor=predictor_fn,
-                    feature_schema_version="features_v5_4f",
+                    feature_schema_version="meta-v3.1-43f",
                     artifact_metadata_consistent=True,
                     calibration_method="logistic",
                     supported_symbols=frozenset({prediction_symbol}),

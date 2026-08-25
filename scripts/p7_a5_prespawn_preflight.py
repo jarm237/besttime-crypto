@@ -82,7 +82,7 @@ def main() -> int:
     # Check G2-3: release ID and commit exact
     g2_3_pass = (
         auth["release_id"] == "model-coverage-v1-r1"
-        and auth["source_commit"] == "1b4d2965d0a374660278a61b80dea8443f61382f"
+        and auth["source_commit"] == "111dbc833e2be1e7e348d1717a624995b348f991"
     )
     gates["A5-G2-3"] = {
         "gate": "release_and_commit_exact",

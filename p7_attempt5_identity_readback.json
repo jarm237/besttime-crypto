@@ -1,0 +1,25 @@
+{
+  "artifact": "p7_attempt5_identity_readback",
+  "gates": {
+    "A5-G8-A-1": {
+      "gate": "correct_budgets",
+      "restart_budget": 0,
+      "result": "PASS",
+      "spawn_budget": 1
+    },
+    "A5-G8-A-2": {
+      "cwd": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704",
+      "gate": "cwd_matches_pinned",
+      "pinned": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704",
+      "result": "PASS"
+    },
+    "A5-G8-A-3": {
+      "gate": "env_variables_correct",
+      "live_trading": "false",
+      "pythonpath": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704",
+      "result": "PASS"
+    }
+  },
+  "generated_at": "2026-08-25T09:28:48Z",
+  "overall_verdict": "PASS"
+}
