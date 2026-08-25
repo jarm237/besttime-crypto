@@ -1,0 +1,106 @@
+{
+  "artifact": "p7_attempt5_resume_contract",
+  "attempt_id": "p7-attempt-5",
+  "authorization_consumed": false,
+  "authorization_sha256": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7",
+  "authorization_state": "ARMED",
+  "contract_version": "p7-a5-resume-contract/v1",
+  "effective_runtime_count": 9,
+  "effective_runtime_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "gates": {
+    "A5-G0-1": {
+      "attempt_id": "p7-attempt-5",
+      "gate": "attempt_id_unique",
+      "historical_attempts": [
+        "p7-attempt-1",
+        "p7-attempt-2",
+        "p7-attempt-3",
+        "p7-attempt-4"
+      ],
+      "result": "PASS"
+    },
+    "A5-G0-2": {
+      "auth_sha": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7",
+      "gate": "authorization_hash_matches_sidecar",
+      "result": "PASS",
+      "sidecar_sha": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7"
+    },
+    "A5-G0-3": {
+      "gate": "release_manifest_hash_matches_authorization",
+      "manifest_sha_auth": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+      "manifest_sha_disk": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+      "result": "PASS"
+    },
+    "A5-G0-4": {
+      "auth_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+      "expected": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+      "gate": "source_commit_exact",
+      "pinned_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+      "result": "PASS"
+    },
+    "A5-G0-5": {
+      "authorization_state": "ARMED",
+      "gate": "authorization_state_armed",
+      "result": "PASS"
+    },
+    "A5-G0-6": {
+      "authorization_consumed": false,
+      "gate": "authorization_not_consumed",
+      "result": "PASS"
+    },
+    "A5-G0-7": {
+      "actual": [
+        "BNB",
+        "BTC",
+        "DOGE",
+        "ETH",
+        "IOTA",
+        "NEAR",
+        "SOL",
+        "TRX",
+        "ZEC"
+      ],
+      "expected": [
+        "BNB",
+        "BTC",
+        "DOGE",
+        "ETH",
+        "IOTA",
+        "NEAR",
+        "SOL",
+        "TRX",
+        "ZEC"
+      ],
+      "gate": "effective_symbols_exact_with_sol",
+      "result": "PASS",
+      "sol_explicit": true
+    }
+  },
+  "generated_at": "2026-08-25T09:26:03Z",
+  "historical_attempt_ids": [
+    "p7-attempt-1",
+    "p7-attempt-2",
+    "p7-attempt-3",
+    "p7-attempt-4"
+  ],
+  "overall_verdict": "PASS",
+  "pinned_worktree": "runtime/worktrees/pinned-97a9704",
+  "release_id": "model-coverage-v1-r1",
+  "release_identity_sha256": "10e2487d8ba72c290001e85e0c2a220d3ff604649b726fc2eaee850c1a084c2e",
+  "release_manifest_sha256": "37537c81e8e38872aa7d1ccfffaa81a526e078efc7bdf276f95be33a69d5691a",
+  "restart_budget": 0,
+  "runtime_activation": "NOT_PERFORMED",
+  "sol_explicit": true,
+  "source_commit": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+  "spawn_budget": 1
+}
