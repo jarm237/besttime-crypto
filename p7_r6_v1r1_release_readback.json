@@ -1,0 +1,20 @@
+{
+  "checks": {
+    "artifact_hashes_match": "PASS",
+    "disabled_count_is_13": "PASS",
+    "doge_qualified": "PASS",
+    "pinned_source_exists": "PASS",
+    "registry_hash_match": "PASS",
+    "release_bundle_exists": "PASS",
+    "release_id_match": "PASS",
+    "research_fallback_reads": "PASS",
+    "routes_count_is_9": "PASS",
+    "runtime_binding_hash_match": "PASS",
+    "sol_qualified": "PASS",
+    "source_commit_match": "PASS",
+    "working_tree_leakage": "PASS"
+  },
+  "overall_verdict": "PASS",
+  "release_id": "model-coverage-v1-r1",
+  "source_commit": "2ed1660296a5193cd5766f8ac72238c7b0c5fceb"
+}
