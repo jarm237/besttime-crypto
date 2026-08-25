@@ -4,11 +4,38 @@ import hashlib
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable
 from dotenv import load_dotenv
 
 # Tải cấu hình từ file .env nếu có
 load_dotenv()
+
+_CONFIG_ROOT = Path(__file__).resolve().parents[2]
+_MC6_REGISTRY = _CONFIG_ROOT / "model_coverage_mc6_inference_registry.json"
+_FALLBACK_AUTHORIZED: tuple[str, ...] = (
+    "BNB", "BTC", "DOGE", "ETH", "IOTA", "NEAR", "SOL", "TRX", "ZEC"
+)
+
+
+def get_authorized_symbols() -> tuple[str, ...]:
+    """Return the MC6-authorized inference symbols (9 routable routes).
+
+    Truth is read from the sealed MC6 inference registry.  Falls back to a
+    hardcoded tuple only if the registry file is unavailable (e.g. early
+    test bootstrap before the artifact is on disk).
+    """
+    if _MC6_REGISTRY.exists():
+        try:
+            data = json.loads(_MC6_REGISTRY.read_text(encoding="utf-8"))
+            syms = tuple(
+                sorted(str(r["symbol"]).strip().upper() for r in data.get("routes", []))
+            )
+            if syms:
+                return syms
+        except Exception:
+            pass
+    return _FALLBACK_AUTHORIZED
 
 # Danh sách coin được hỗ trợ (tự động ghép cặp USDT/USDT-spot).
 DEFAULT_ANALYSIS_UNIVERSE = (
@@ -63,10 +90,25 @@ def parse_runtime_symbols(
 
 
 def get_analysis_universe() -> tuple[str, ...]:
+    """Return the effective runtime analysis universe.
+
+    Defaults to the 9 MC6-authorized symbols (not the full canonical 22).
+    If BTC_ANALYSIS_UNIVERSE is set via env, every symbol in it must be in
+    the authorized list; any unauthorized symbol raises immediately with
+    RUNTIME_UNIVERSE_NOT_AUTHORIZED:<symbol>.
+    """
+    authorized = get_authorized_symbols()
     raw = os.getenv("BTC_ANALYSIS_UNIVERSE")
     if raw is None or not raw.strip():
-        return DEFAULT_ANALYSIS_UNIVERSE
-    return parse_runtime_symbols(raw, field_name="BTC_ANALYSIS_UNIVERSE")
+        return authorized
+    # Validate against canonical universe first (catches typos / unknown coins)
+    symbols = parse_runtime_symbols(raw, field_name="BTC_ANALYSIS_UNIVERSE")
+    # Then validate against the MC6 authorized list
+    auth_set = set(authorized)
+    for sym in symbols:
+        if sym not in auth_set:
+            raise ValueError(f"RUNTIME_UNIVERSE_NOT_AUTHORIZED:{sym}")
+    return symbols
 
 
 def get_execution_universe(

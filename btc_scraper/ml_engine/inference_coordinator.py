@@ -100,7 +100,12 @@ class InferenceCoordinator:
         from .economic_contract import EV_CONTRACT_VERSION, EXPECTED_RETURN_UNIT
         from .meta_model import get_meta_inference_artifact, predict_meta_confidence
         from .runtime_evidence_store import get_runtime_evidence_store
+        from .runtime_symbol_policy import runtime_symbol_policy
         from .s3_thresholds import S3_PROBABILITY_SEMANTICS, evaluate_s3_threshold
+
+        # MC7-B: Symbol policy guard — must be the first operation, before any
+        # artifact resolution or model loading.
+        runtime_symbol_policy.assert_enabled(symbol)
 
         normalized_symbol = normalize_inference_symbol(
             symbol,

@@ -8,11 +8,13 @@ from btc_scraper.core.config import (
     DEFAULT_ANALYSIS_UNIVERSE,
     analysis_universe_hash,
     get_analysis_universe,
+    get_authorized_symbols,
     get_runtime_universe,
     parse_runtime_symbols,
 )
 from btc_scraper.ml_engine.multi_agent import MarketAnalystAgent, SignalGeneratorAgent
 from btc_scraper.ml_engine.inference_coordinator import InferenceCoordinator
+from btc_scraper.ml_engine.runtime_symbol_policy import RuntimeSymbolNotAuthorized
 
 
 def test_analysis_universe_parses_normalized_symbols(monkeypatch):
@@ -31,12 +33,18 @@ def test_analysis_universe_rejects_invalid_values(raw, match):
 
 
 @pytest.mark.parametrize("value", [None, "", "   "])
-def test_analysis_universe_falls_back_to_default(monkeypatch, value):
+def test_analysis_universe_falls_back_to_authorized_9(monkeypatch, value):
+    """MC7-B: Default runtime universe is the 9 authorized symbols, not the 22 canonical."""
     if value is None:
         monkeypatch.delenv("BTC_ANALYSIS_UNIVERSE", raising=False)
     else:
         monkeypatch.setenv("BTC_ANALYSIS_UNIVERSE", value)
-    assert get_analysis_universe() == DEFAULT_ANALYSIS_UNIVERSE
+    authorized = get_authorized_symbols()
+    assert get_analysis_universe() == authorized
+    assert len(authorized) == 9
+    # DEFAULT_ANALYSIS_UNIVERSE (22 symbols) is still accessible but is NOT the runtime default
+    assert len(DEFAULT_ANALYSIS_UNIVERSE) == 22
+    assert set(authorized).issubset(set(DEFAULT_ANALYSIS_UNIVERSE))
 
 
 def test_execution_universe_must_be_analysis_subset(monkeypatch):
@@ -125,10 +133,25 @@ def test_analysis_and_inference_run_only_for_configured_universe(monkeypatch):
     }
 
 
-def test_inference_boundary_rejects_symbol_outside_runtime_universe(monkeypatch):
+def test_inference_boundary_rejects_disabled_symbol_with_policy_error(monkeypatch):
+    """MC7-B: Disabled symbols raise RuntimeSymbolNotAuthorized before inference dispatch."""
     monkeypatch.setenv("BTC_ANALYSIS_UNIVERSE", "BTC,ETH,BNB")
-    with pytest.raises(ValueError, match="inference_symbol_unsupported"):
+    with pytest.raises(RuntimeSymbolNotAuthorized):
         InferenceCoordinator().predict_once(
             {"observed_at": "2026-07-30T08:00:00+00:00", "signal": "BUY"},
             symbol="WLD",
         )
+
+
+def test_env_disabled_symbol_causes_runtime_universe_not_authorized(monkeypatch):
+    """MC7-F: Configuring a disabled symbol via BTC_ANALYSIS_UNIVERSE raises immediately."""
+    monkeypatch.setenv("BTC_ANALYSIS_UNIVERSE", "BTC,XRP")
+    with pytest.raises(ValueError, match="RUNTIME_UNIVERSE_NOT_AUTHORIZED:XRP"):
+        get_analysis_universe()
+
+
+def test_env_unknown_symbol_causes_runtime_universe_not_authorized(monkeypatch):
+    """MC7-F: Configuring a canonical-but-excluded symbol raises immediately."""
+    monkeypatch.setenv("BTC_ANALYSIS_UNIVERSE", "BTC,AEVO")
+    with pytest.raises(ValueError, match="RUNTIME_UNIVERSE_NOT_AUTHORIZED:AEVO"):
+        get_analysis_universe()

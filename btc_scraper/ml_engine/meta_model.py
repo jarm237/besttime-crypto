@@ -1318,6 +1318,12 @@ def predict_meta_confidence(
 ) -> dict:
     """Predict from an explicit symbol and the artifact actually loaded."""
     from btc_scraper.ml_engine.feature_extractor import build_meta_features_v2
+    from btc_scraper.ml_engine.runtime_symbol_policy import runtime_symbol_policy
+
+    # MC7-B: Symbol policy guard — must be the first operation, before any
+    # model loading or artifact resolution.  Raises RuntimeSymbolNotAuthorized
+    # immediately for any symbol that is not in the authorized runtime universe.
+    runtime_symbol_policy.assert_enabled(symbol)
 
     try:
         prediction_symbol = normalize_inference_symbol(symbol)
