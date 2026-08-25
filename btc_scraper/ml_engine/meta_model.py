@@ -1326,7 +1326,19 @@ def predict_meta_confidence(
     runtime_symbol_policy.assert_enabled(symbol)
 
     try:
-        prediction_symbol = normalize_inference_symbol(symbol)
+        from btc_scraper.ml_engine.inference_router import InferenceRouter
+        from btc_scraper.core.paths import build_repo_path
+
+        # Resolve route
+        try:
+            registry_path = build_repo_path("model_coverage_mc6_inference_registry.json")
+            router = InferenceRouter(registry_path, build_repo_path())
+            route = router.resolve(symbol)
+            prediction_symbol = route.symbol
+        except Exception:
+            prediction_symbol = normalize_inference_symbol(symbol)
+            route = None
+
         for key in ("coin", "symbol", "ticker"):
             observed = analysis_info.get(key)
             if observed is None:
@@ -1337,7 +1349,39 @@ def predict_meta_confidence(
                 )
 
         if artifact is None:
-            artifact = get_meta_inference_artifact()
+            if route is not None and route.route_type == "MC5_QUALIFIED":
+                import joblib
+                import numpy as np
+                from btc_scraper.ml_engine.inference_contract import (
+                    feature_schema_hash,
+                    InferenceArtifact,
+                )
+
+                model_dict = joblib.load(route.model_artifact_path)
+                calibrator_dict = joblib.load(route.calibrator_artifact_path)
+                inner_model = model_dict["model"]
+                inner_calibrator = calibrator_dict["calibrator"]
+
+                def predictor_fn(symbol_str: str, feature_vector: tuple[float, ...]) -> float:
+                    feats = np.array(feature_vector).reshape(1, -1)
+                    raw = inner_model.predict_proba(feats)[0, 1]
+                    cal = inner_calibrator.predict_proba(np.array([[raw]]))[0, 1]
+                    return float(cal)
+
+                artifact = InferenceArtifact(
+                    model_family="meta_model",
+                    artifact_version=route.route_version,
+                    artifact_hash=route.model_sha256,
+                    feature_schema_hash=feature_schema_hash(route.feature_schema),
+                    feature_names=tuple(route.feature_schema),
+                    predictor=predictor_fn,
+                    feature_schema_version=route.feature_schema_version,
+                    artifact_metadata_consistent=True,
+                    calibration_method="logistic",
+                    supported_symbols=frozenset({prediction_symbol}),
+                )
+            else:
+                artifact = get_meta_inference_artifact()
             feature_names = artifact.feature_names
         else:
             feature_names = artifact.feature_names
