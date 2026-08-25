@@ -2,7 +2,7 @@
   "artifact": "model_coverage_mc9_release_identity",
   "artifact_inventory": {
     "path": "model_coverage_mc8_artifact_inventory.json",
-    "sha256": "4ee4fd54736db8dbcdbcccc6f5072f2c2b5fda7bdce2584b3c943fb17aae3cc8"
+    "sha256": "51c94058d5a8e4b03e50ff25ff9f770bcadedb4cf5faba93924efb3f0bac2430"
   },
   "authorized_symbols": [
     "BNB",
@@ -73,17 +73,17 @@
     "path": "model_coverage_mc6_inference_registry.json",
     "sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04"
   },
-  "mc7_seal_commit": "de6d9d06314ba7a3eb70e69a85df39a0dabaf3c5",
+  "mc7_seal_commit": "9cc1e1b796ae53774e1294d391bc5021a1a3352c",
   "mc8_final_verdict": {
     "path": "model_coverage_mc8_final_verdict.json",
     "sha256": "d370a7701224f09a5798785bde02c4d1e07581d7440b120cca4def4de55829ea"
   },
-  "mc8_seal_commit": "de6d9d06314ba7a3eb70e69a85df39a0dabaf3c5",
+  "mc8_seal_commit": "9cc1e1b796ae53774e1294d391bc5021a1a3352c",
   "overall_verdict": "PASS",
   "release_id": "model-coverage-v1-r1",
   "release_manifest": {
     "path": "model_coverage_mc8_release_manifest.json",
-    "sha256": "3dda89de2f5a4431254c9daf6327cda94a5b0e8247017ba738e7d46351f1ffd0"
+    "sha256": "4e5c36c36c52ea37b5b987060325bb4ddc99560445c05471ee08e76824a077f8"
   },
   "route_identities": {
     "BNB": {
@@ -226,5 +226,5 @@
     "path": "model_coverage_mc7_runtime_binding_contract.json",
     "sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52"
   },
-  "source_commit": "de6d9d06314ba7a3eb70e69a85df39a0dabaf3c5"
+  "source_commit": "9cc1e1b796ae53774e1294d391bc5021a1a3352c"
 }
