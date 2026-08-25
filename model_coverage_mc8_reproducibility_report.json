@@ -1,0 +1,20 @@
+{
+  "artifact": "model_coverage_mc8_reproducibility_report",
+  "gates": {
+    "MC8-G-G1": {
+      "gate": "rebuild_completed",
+      "result": "PASS"
+    },
+    "MC8-G-G2": {
+      "gate": "manifest_sha_matches",
+      "original_sha": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+      "rebuilt_sha": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+      "result": "PASS"
+    },
+    "MC8-G-G3": {
+      "gate": "manifest_content_identical",
+      "result": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}
