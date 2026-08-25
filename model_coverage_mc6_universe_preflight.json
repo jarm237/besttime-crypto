@@ -1,0 +1,133 @@
+{
+  "accounted_symbols": 22,
+  "ambiguous_routes": 0,
+  "artifact": "model_coverage_mc6_universe_preflight",
+  "artifact_integrity_failures": 0,
+  "excluded_symbols": 13,
+  "preflight_verdict": "PASS",
+  "results": [
+    {
+      "route_type": "LEGACY",
+      "route_version": "legacy-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "BTC"
+    },
+    {
+      "route_type": "LEGACY",
+      "route_version": "legacy-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "ETH"
+    },
+    {
+      "route_type": "LEGACY",
+      "route_version": "legacy-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "BNB"
+    },
+    {
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "SOL"
+    },
+    {
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "ZEC"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "XRP"
+    },
+    {
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "DOGE"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "WLD"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "XLM"
+    },
+    {
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "NEAR"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "AVAX"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "TAO"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "TRB"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "AEVO"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "ENA"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "AR"
+    },
+    {
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "IOTA"
+    },
+    {
+      "exclusion_class": "MC4_BUILD_FAILURE",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "XPL"
+    },
+    {
+      "exclusion_class": "MC4_BUILD_FAILURE",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "SOPH"
+    },
+    {
+      "exclusion_class": "MC3_DATA_PROVENANCE_FAILURE",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "XAUT"
+    },
+    {
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "status": "ROUTABLE_OK",
+      "symbol": "TRX"
+    },
+    {
+      "exclusion_class": "MC4_BUILD_FAILURE",
+      "status": "EXCLUDED_VERIFIED",
+      "symbol": "TRUMP"
+    }
+  ],
+  "routable_enabled_symbols": 9,
+  "runtime_symbols": 22,
+  "schema_failures": 0,
+  "unsupported_enabled_symbols": 0
+}
