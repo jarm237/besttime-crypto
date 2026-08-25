@@ -1,0 +1,140 @@
+{
+  "artifact": "model_coverage_mc5_qualification_population",
+  "population": [
+    {
+      "calibration_split_id": "split-AEVO-calibration",
+      "dataset_id": "ingest-AEVO-15m",
+      "mc4_artifact_id": "AEVO_candidate_v1",
+      "mc4_artifact_sha256": "c0f1ebf3b9fdf0b3c72b085b27a3e09602e176fcb2a17ec23e7cd08073e40603",
+      "mc5_authorized": true,
+      "oos_split_id": "split-AEVO-oos",
+      "symbol": "AEVO"
+    },
+    {
+      "calibration_split_id": "split-AR-calibration",
+      "dataset_id": "ingest-AR-15m",
+      "mc4_artifact_id": "AR_candidate_v1",
+      "mc4_artifact_sha256": "8f58e342ed4c8016b14fa62662b0cd5ceb5726d62ff002de19700899967c7528",
+      "mc5_authorized": true,
+      "oos_split_id": "split-AR-oos",
+      "symbol": "AR"
+    },
+    {
+      "calibration_split_id": "split-AVAX-calibration",
+      "dataset_id": "ingest-AVAX-15m",
+      "mc4_artifact_id": "AVAX_candidate_v1",
+      "mc4_artifact_sha256": "f212099b306c0fafdc9b809677375728ed124cd0415d1b971adaf131dc3696a4",
+      "mc5_authorized": true,
+      "oos_split_id": "split-AVAX-oos",
+      "symbol": "AVAX"
+    },
+    {
+      "calibration_split_id": "split-DOGE-calibration",
+      "dataset_id": "ingest-DOGE-15m",
+      "mc4_artifact_id": "DOGE_candidate_v1",
+      "mc4_artifact_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+      "mc5_authorized": true,
+      "oos_split_id": "split-DOGE-oos",
+      "symbol": "DOGE"
+    },
+    {
+      "calibration_split_id": "split-ENA-calibration",
+      "dataset_id": "ingest-ENA-15m",
+      "mc4_artifact_id": "ENA_candidate_v1",
+      "mc4_artifact_sha256": "dcb830ae3b3788b03072f2af4819b08efbc81b16533eb62ea71134ba60abfacf",
+      "mc5_authorized": true,
+      "oos_split_id": "split-ENA-oos",
+      "symbol": "ENA"
+    },
+    {
+      "calibration_split_id": "split-IOTA-calibration",
+      "dataset_id": "ingest-IOTA-15m",
+      "mc4_artifact_id": "IOTA_candidate_v1",
+      "mc4_artifact_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+      "mc5_authorized": true,
+      "oos_split_id": "split-IOTA-oos",
+      "symbol": "IOTA"
+    },
+    {
+      "calibration_split_id": "split-NEAR-calibration",
+      "dataset_id": "ingest-NEAR-15m",
+      "mc4_artifact_id": "NEAR_candidate_v1",
+      "mc4_artifact_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+      "mc5_authorized": true,
+      "oos_split_id": "split-NEAR-oos",
+      "symbol": "NEAR"
+    },
+    {
+      "calibration_split_id": "split-SOL-calibration",
+      "dataset_id": "ingest-SOL-15m",
+      "mc4_artifact_id": "SOL_candidate_v1",
+      "mc4_artifact_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+      "mc5_authorized": true,
+      "oos_split_id": "split-SOL-oos",
+      "symbol": "SOL"
+    },
+    {
+      "calibration_split_id": "split-TAO-calibration",
+      "dataset_id": "ingest-TAO-15m",
+      "mc4_artifact_id": "TAO_candidate_v1",
+      "mc4_artifact_sha256": "3771414a3e80ff99418ff2e1306216122c75fe2ec132cbab088be7cd722989cc",
+      "mc5_authorized": true,
+      "oos_split_id": "split-TAO-oos",
+      "symbol": "TAO"
+    },
+    {
+      "calibration_split_id": "split-TRB-calibration",
+      "dataset_id": "ingest-TRB-15m",
+      "mc4_artifact_id": "TRB_candidate_v1",
+      "mc4_artifact_sha256": "9d88f3681a52c0672f016087b2b0142a53693ba7a50854b7a6fdc3bbce4ce943",
+      "mc5_authorized": true,
+      "oos_split_id": "split-TRB-oos",
+      "symbol": "TRB"
+    },
+    {
+      "calibration_split_id": "split-TRX-calibration",
+      "dataset_id": "ingest-TRX-15m",
+      "mc4_artifact_id": "TRX_candidate_v1",
+      "mc4_artifact_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+      "mc5_authorized": true,
+      "oos_split_id": "split-TRX-oos",
+      "symbol": "TRX"
+    },
+    {
+      "calibration_split_id": "split-WLD-calibration",
+      "dataset_id": "ingest-WLD-15m",
+      "mc4_artifact_id": "WLD_candidate_v1",
+      "mc4_artifact_sha256": "476bee054697ccd0474ee320cd8fdfa76c6a9021aaf58d3ac446476647ac4c5b",
+      "mc5_authorized": true,
+      "oos_split_id": "split-WLD-oos",
+      "symbol": "WLD"
+    },
+    {
+      "calibration_split_id": "split-XLM-calibration",
+      "dataset_id": "ingest-XLM-15m",
+      "mc4_artifact_id": "XLM_candidate_v1",
+      "mc4_artifact_sha256": "9c08e681da4b45867c50877045159d5b8792b2f0bc687c65e3b7bfd5f5a7671c",
+      "mc5_authorized": true,
+      "oos_split_id": "split-XLM-oos",
+      "symbol": "XLM"
+    },
+    {
+      "calibration_split_id": "split-XRP-calibration",
+      "dataset_id": "ingest-XRP-15m",
+      "mc4_artifact_id": "XRP_candidate_v1",
+      "mc4_artifact_sha256": "37832f39da0329a1de968d61d5b1d3ccb9eb6e80e6cf326ba1f9dee22115dd67",
+      "mc5_authorized": true,
+      "oos_split_id": "split-XRP-oos",
+      "symbol": "XRP"
+    },
+    {
+      "calibration_split_id": "split-ZEC-calibration",
+      "dataset_id": "ingest-ZEC-15m",
+      "mc4_artifact_id": "ZEC_candidate_v1",
+      "mc4_artifact_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+      "mc5_authorized": true,
+      "oos_split_id": "split-ZEC-oos",
+      "symbol": "ZEC"
+    }
+  ]
+}

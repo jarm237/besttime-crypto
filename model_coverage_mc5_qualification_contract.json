@@ -1,0 +1,29 @@
+{
+  "artifact": "model_coverage_mc5_qualification_contract",
+  "calibration_settings": {
+    "max_iter": 100,
+    "method": "PLATT_SIGMOID",
+    "random_state": 42,
+    "solver": "lbfgs"
+  },
+  "economic_acceptance_thresholds": {
+    "minimum_net_ev": 0.0,
+    "minimum_trade_count": 10
+  },
+  "economic_assumptions": {
+    "fee_bps": 5.0,
+    "slippage_bps": 5.0
+  },
+  "oos_access_policy": "QUALIFICATION_ONLY",
+  "reproducibility": {
+    "Python_version": "3.12.3 (main, Jun 19 2026, 12:46:00) [GCC 13.3.0]",
+    "seed": 42
+  },
+  "statistical_acceptance_thresholds": {
+    "maximum_brier": 0.25,
+    "maximum_ece": 0.05,
+    "minimum_oos_samples": 500,
+    "minimum_pr_auc": 0.1,
+    "minimum_roc_auc": 0.7
+  }
+}

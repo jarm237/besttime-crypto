@@ -1,0 +1,25 @@
+{
+  "artifact": "model_coverage_mc5_qualification_authorization",
+  "contract": "model-coverage-mc5-authorization/v1",
+  "created_at": "2026-08-25T03:35:51.609202+00:00",
+  "gates": {
+    "MC5-C0_MC4_LINEAGE_VERIFIED": "PASS",
+    "MC5-C10_ECONOMIC_GATES_FROZEN": "PASS",
+    "MC5-C11_REJECTION_SEMANTICS_FROZEN": "PASS",
+    "MC5-C12_HARD_STOP_POLICY_FROZEN": "PASS",
+    "MC5-C13_REPRODUCIBILITY_FROZEN": "PASS",
+    "MC5-C1_QUALIFICATION_POPULATION_FROZEN": "PASS",
+    "MC5-C2_CANDIDATE_IDENTITIES_FROZEN": "PASS",
+    "MC5-C3_CALIBRATION_SPLIT_FROZEN": "PASS",
+    "MC5-C4_FINAL_OOS_IDENTITY_FROZEN": "PASS",
+    "MC5-C5_CALIBRATION_METHOD_FROZEN": "PASS",
+    "MC5-C6_CALIBRATION_GATES_FROZEN": "PASS",
+    "MC5-C7_STATISTICAL_GATES_FROZEN": "PASS",
+    "MC5-C8_PER_SYMBOL_GATES_FROZEN": "PASS",
+    "MC5-C9_AGGREGATE_RULES_FROZEN": "PASS"
+  },
+  "mc4_registry_hash": "fd3d81a57e6eb323a6d464f6ae3b1d246cbbd955602779353397dd2cd0dbe92b",
+  "mc4_verdict_hash": "df4b7f73ef76fa8e6c59955dc7138fa74dc753303c73f8a501afb3b24c468195",
+  "mc5_base_commit": "e31e73abb1b99d47ea6879f6b3ab5943e548b81e",
+  "qualification_authorization": "PASS"
+}
