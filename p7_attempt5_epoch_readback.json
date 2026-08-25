@@ -1,7 +1,7 @@
 {
   "artifact": "p7_attempt5_epoch_readback",
   "attempt_id": "p7-attempt-5",
-  "db_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-111dbc8/runtime/paper/paper-canary-a5-20260825-01/logs/global_evidence_index.sqlite",
+  "db_path": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3/runtime/paper/paper-canary-a5-20260825-01/logs/global_evidence_index.sqlite",
   "db_record": {
     "analysis_universe": [
       "BNB",
@@ -15,11 +15,11 @@
       "ZEC"
     ],
     "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
-    "code_commit_sha": "111dbc833e2be1e7e348d1717a624995b348f991",
+    "code_commit_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
     "deployment_id": "paper-canary-a5-20260825-01",
     "epoch_id": "canary-mc9-v1-a5-20260825-01",
     "paper_run_id": "paper-canary-a5-20260825-01",
-    "release_manifest_sha256": "20190c6a4b50eb9fd9c972dabbbfac0b5f5a99711e8568822b723dc1393d1dc2",
+    "release_manifest_sha256": "acbdd327263f905e793279bc4ff853f7e319da6da0701beedbb2854c611ed546",
     "status": "ACTIVE"
   },
   "deployment_id": "paper-canary-a5-20260825-01",
@@ -50,13 +50,13 @@
     },
     "A5-G1-5": {
       "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
-      "db_code_commit_sha": "111dbc833e2be1e7e348d1717a624995b348f991",
-      "db_manifest_sha256": "20190c6a4b50eb9fd9c972dabbbfac0b5f5a99711e8568822b723dc1393d1dc2",
-      "expected_dynamic_manifest_sha256": "20190c6a4b50eb9fd9c972dabbbfac0b5f5a99711e8568822b723dc1393d1dc2",
+      "db_code_commit_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
+      "db_manifest_sha256": "acbdd327263f905e793279bc4ff853f7e319da6da0701beedbb2854c611ed546",
+      "expected_dynamic_manifest_sha256": "acbdd327263f905e793279bc4ff853f7e319da6da0701beedbb2854c611ed546",
       "gate": "release_identity_matches_authorization",
-      "metadata_sha256": "20ccdfacd30f1a8b16c6728ec95869bf618ed8e99b542d36248e2d9bd0a1e0e6",
+      "metadata_sha256": "ea4e9ab0e3206c68daea67c9c93c7e0059b147dbecd8b4955641a94a13ac9d88",
       "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
-      "release_sha": "111dbc833e2be1e7e348d1717a624995b348f991",
+      "release_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
       "result": "PASS"
     },
     "A5-G1-6": {
@@ -76,9 +76,9 @@
       ]
     }
   },
-  "generated_at": "2026-08-25T09:40:42Z",
+  "generated_at": "2026-08-25T09:44:24Z",
   "overall_verdict": "PASS",
   "paper_run_id": "paper-canary-a5-20260825-01",
-  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-111dbc8",
-  "source_commit": "111dbc833e2be1e7e348d1717a624995b348f991"
+  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3",
+  "source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
 }

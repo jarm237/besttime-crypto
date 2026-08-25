@@ -1,0 +1,91 @@
+{
+  "activation_state": "SUSTAINED",
+  "artifact": "p7_attempt5_final_verdict",
+  "attempt": 5,
+  "evidence": {
+    "authorized_symbols": 9,
+    "cycles_observed": 15,
+    "doge_inference_confirmed": true,
+    "fatal_stderr_from_b284ad3": 0,
+    "final_decisions_written": 18,
+    "observed_authorized_symbols": 9,
+    "predictions_written": 19,
+    "symbols_covered": [
+      "BNB",
+      "BTC",
+      "DOGE",
+      "ETH",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ]
+  },
+  "gates": {
+    "G0_resume_contract": "PASS",
+    "G10_lineage": "PASS",
+    "G1_epoch_provision": "PASS",
+    "G1_epoch_readback": "PASS",
+    "G2_prespawn_preflight": "PASS",
+    "G3_authorization_consumed": "PASS",
+    "G4_supervised_spawn": "PASS",
+    "G8A_process_identity": "PASS",
+    "G8B_release_identity": "PASS",
+    "G8C_sustained_liveness": "PASS",
+    "G9_first_cycle_sanity": "PASS"
+  },
+  "generated_at": "2026-08-25T10:09:08Z",
+  "identity_chain": {
+    "binding_chain_integrity": "INTACT",
+    "future_recommendation": "Lock MC8 manifest before creating authorization, never rebuild after G3",
+    "mc8_manifest_divergence_cause": "rebuild-after-auth (same source), evidence-manifest correctly pins b284ad3",
+    "mc8_manifest_sha_divergence": "NON_BREAKING",
+    "release_identity_sha_match": true,
+    "source_commit_match": true
+  },
+  "legacy_parity": {
+    "bnb_parity": "PASS",
+    "btc_parity": "PASS",
+    "eth_parity": "PASS",
+    "method": "sha256_identity",
+    "note": "meta_model.joblib SHA identical pre/post-R6; V5FilterModelClassifier was routing wrapper, not base artifact",
+    "result": "PASS"
+  },
+  "lineage": {
+    "final_decision_lineage_mismatches": 0,
+    "old_epoch_contamination": 0,
+    "prediction_lineage_mismatches": 0
+  },
+  "prior_failure": {
+    "attempt": 4,
+    "failure_class": "EMBEDDED_META_MODEL_SYMBOL_COVERAGE_GAP",
+    "regression_closed": true
+  },
+  "release": {
+    "model_artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "release_id": "model-coverage-v1-r1",
+    "release_identity_sha256": "d8dcafb2aef0010926acfa19114eb2c2b827517bae8f45be2a7e849b6643c14a",
+    "running_source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+  },
+  "runtime": "ACTIVE",
+  "schema": {
+    "all_9_routes_canonical": true,
+    "canonical_features": [
+      "return_8",
+      "return_32",
+      "return_72",
+      "abs_move_72"
+    ],
+    "feature_schema_version_uniform": "meta-v3.1-43f",
+    "features_v5_4f_alias_only": true,
+    "mc5_schema_equivalence": "PASS"
+  },
+  "spawn": {
+    "authorization_state": "CONSUMED",
+    "pid": 770821,
+    "restart_count": 0,
+    "spawn_count": 1
+  },
+  "verdict": "PASS"
+}

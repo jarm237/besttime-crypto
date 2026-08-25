@@ -1,0 +1,128 @@
+{
+  "alias_source": "features_v5_4f",
+  "alias_source_n_features": null,
+  "alias_target": "meta-v3.1-43f",
+  "alias_target_n_features": 43,
+  "all_routes_feature_canonical": true,
+  "all_routes_n_features_correct": true,
+  "canonical_features": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "feature_count_mismatches": [],
+  "feature_name_mismatches": [],
+  "note": "meta-v3.1-43f: version string for model v3.1; suffix 43f is a feature hash abbreviation, NOT a feature count (actual n_features=4, not 43). features_v5_4f: version string for v5 schema; suffix 4f = 4 features. BOTH versions describe identical canonical 4-feature vector: [return_8, return_32, return_72, abs_move_72] in identical order. Alias-only: name differs, semantics identical.",
+  "result": "PASS",
+  "routes_audited": [
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "BTC"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "ETH"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "BNB"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "SOL"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "ZEC"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "DOGE"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "NEAR"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "IOTA"
+    },
+    {
+      "declared_fsv": "features_v5_4f",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "features_match_canonical": true,
+      "n_features": 4,
+      "symbol": "TRX"
+    }
+  ]
+}

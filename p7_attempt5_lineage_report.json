@@ -1,0 +1,23 @@
+{
+  "all_9_symbols": true,
+  "artifact": "p7_attempt5_lineage_report",
+  "final_decision_lineage_mismatches": 0,
+  "gate": "A5-G10",
+  "generated_at": "2026-08-25T10:05:40Z",
+  "old_epoch_contamination": 0,
+  "prediction_lineage_mismatches": 0,
+  "result": "PASS",
+  "symbols_covered": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "total_final_decisions": 18,
+  "total_predictions": 19
+}

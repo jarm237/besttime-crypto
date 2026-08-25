@@ -22,8 +22,8 @@ MANIFEST_PATH = REPO_ROOT / "model_coverage_mc8_release_manifest.json"
 OUTPUT_PATH   = REPO_ROOT / "p7_attempt5_resume_contract.json"
 
 ATTEMPT_ID             = "p7-attempt-5"
-SOURCE_COMMIT          = "111dbc833e2be1e7e348d1717a624995b348f991"
-PINNED_WORKTREE        = "runtime/worktrees/pinned-111dbc8"
+SOURCE_COMMIT          = "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+PINNED_WORKTREE        = "runtime/worktrees/pinned-b284ad3"
 EXPECTED_SYMBOL_COUNT  = 9
 EXPECTED_SYMBOLS       = sorted(["BNB", "BTC", "DOGE", "ETH", "IOTA", "NEAR", "SOL", "TRX", "ZEC"])
 

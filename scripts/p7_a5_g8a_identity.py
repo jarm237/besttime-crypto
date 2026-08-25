@@ -19,7 +19,7 @@ SPAWN_PATH      = ROOT / "p7_attempt5_spawn_record.json"
 RESUME_CONTRACT = ROOT / "p7_attempt5_resume_contract.json"
 OUTPUT          = ROOT / "p7_attempt5_identity_readback.json"
 
-PINNED_PATH = "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704"
+PINNED_PATH = "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3"
 
 
 def fail(msg: str) -> None:

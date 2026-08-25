@@ -17,7 +17,7 @@
       "gate": "release_and_commit_exact",
       "release_id": "model-coverage-v1-r1",
       "result": "PASS",
-      "source_commit": "111dbc833e2be1e7e348d1717a624995b348f991"
+      "source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
     },
     "A5-G2-4": {
       "gate": "effective_symbols_exact",

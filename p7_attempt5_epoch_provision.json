@@ -1,5 +1,5 @@
 {
-  "a5_manifest_sha256": "a18ed764cee948d9d2a0b4ff7b4cd8911e7e7c31d539d10d941546353fdab255",
+  "a5_manifest_sha256": "f50fe2e53e3cdee70a01915039e77d4565615fcd45c5dce4a8bd4223ed40a9ca",
   "active_epoch_count": 1,
   "artifact": "p7_attempt5_epoch_provision",
   "attempt_id": "p7-attempt-5",
@@ -12,18 +12,18 @@
     "evidence_eligible": true,
     "execution_mode": "PAPER",
     "paper_run_id": "paper-canary-a5-20260825-01",
-    "release_commit": "111dbc833e2be1e7e348d1717a624995b348f991",
-    "release_tree": "68d9cad1e9818b38791380380a74b2e4d6a810f2"
+    "release_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
+    "release_tree": "689eca50d7fb98ecfb80fffbc3180f41b23ce525"
   },
-  "generated_at": "2026-08-25T09:40:07Z",
+  "generated_at": "2026-08-25T09:44:15Z",
   "logs_copied": {
     "meta_model.joblib": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
-    "meta_model.json": "20ccdfacd30f1a8b16c6728ec95869bf618ed8e99b542d36248e2d9bd0a1e0e6",
+    "meta_model.json": "ea4e9ab0e3206c68daea67c9c93c7e0059b147dbecd8b4955641a94a13ac9d88",
     "model_registry.json": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a"
   },
   "overall_verdict": "PASS",
   "paper_run_id": "paper-canary-a5-20260825-01",
-  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-111dbc8",
+  "pinned_worktree": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3",
   "provision_status": "PASS_OPERATIONAL_STATE_PROVISIONED",
   "release_bundle": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/releases/model-coverage-v1-r1",
   "release_manifest": {
@@ -31,18 +31,18 @@
     "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
     "decision_contract": "side-probability-v2",
     "deployment_id": "paper-canary-a5-20260825-01",
-    "feature_schema_version": "features_v5_4f",
+    "feature_schema_version": "meta-v3.1-43f",
     "manifest_schema_version": "evidence-manifest-v1",
-    "metadata_sha256": "20ccdfacd30f1a8b16c6728ec95869bf618ed8e99b542d36248e2d9bd0a1e0e6",
+    "metadata_sha256": "ea4e9ab0e3206c68daea67c9c93c7e0059b147dbecd8b4955641a94a13ac9d88",
     "paper_run_id": "paper-canary-a5-20260825-01",
     "probability_semantics": "P(up)",
     "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
-    "release_sha": "111dbc833e2be1e7e348d1717a624995b348f991"
+    "release_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
   },
-  "source_commit": "111dbc833e2be1e7e348d1717a624995b348f991",
+  "source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
   "startup_precondition_probe": {
     "active_epoch": {
-      "activated_at": "2026-08-25T09:40:09.567200+00:00",
+      "activated_at": "2026-08-25T09:44:17.262982+00:00",
       "analysis_universe": [
         "BNB",
         "BTC",
@@ -56,11 +56,11 @@
       ],
       "analysis_universe_hash": "c965c9e001020849c1390553023d8259253fd28728c2679f7f52fb4fda66d2e3",
       "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
-      "code_commit_sha": "111dbc833e2be1e7e348d1717a624995b348f991",
+      "code_commit_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
       "deployment_id": "paper-canary-a5-20260825-01",
       "epoch_id": "canary-mc9-v1-a5-20260825-01",
       "evidence_policy_version": "evidence-v4",
-      "feature_schema_version": "features_v5_4f",
+      "feature_schema_version": "meta-v3.1-43f",
       "model_version": "v3.1",
       "paper_run_id": "paper-canary-a5-20260825-01",
       "release_manifest": {
@@ -68,15 +68,15 @@
         "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
         "decision_contract": "side-probability-v2",
         "deployment_id": "paper-canary-a5-20260825-01",
-        "feature_schema_version": "features_v5_4f",
+        "feature_schema_version": "meta-v3.1-43f",
         "manifest_schema_version": "evidence-manifest-v1",
-        "metadata_sha256": "20ccdfacd30f1a8b16c6728ec95869bf618ed8e99b542d36248e2d9bd0a1e0e6",
+        "metadata_sha256": "ea4e9ab0e3206c68daea67c9c93c7e0059b147dbecd8b4955641a94a13ac9d88",
         "paper_run_id": "paper-canary-a5-20260825-01",
         "probability_semantics": "P(up)",
         "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
-        "release_sha": "111dbc833e2be1e7e348d1717a624995b348f991"
+        "release_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
       },
-      "release_manifest_sha256": "20190c6a4b50eb9fd9c972dabbbfac0b5f5a99711e8568822b723dc1393d1dc2",
+      "release_manifest_sha256": "acbdd327263f905e793279bc4ff853f7e319da6da0701beedbb2854c611ed546",
       "risk_policy_version": "risk-fail-closed-v1",
       "runtime_pause_policy": {
         "dependency_health_policy": "REQUIRED_DEPENDENCIES_FAIL_CLOSED",
@@ -116,7 +116,7 @@
         ]
       },
       "runtime_schema_version": 6,
-      "started_at": "2026-08-25T09:40:09.542368+00:00",
+      "started_at": "2026-08-25T09:44:17.243941+00:00",
       "status": "ACTIVE"
     },
     "runtime_evidence_eligible": true,

@@ -8,18 +8,18 @@
       "spawn_budget": 1
     },
     "A5-G8-A-2": {
-      "cwd": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704",
+      "cwd": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3",
       "gate": "cwd_matches_pinned",
-      "pinned": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704",
+      "pinned": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3",
       "result": "PASS"
     },
     "A5-G8-A-3": {
       "gate": "env_variables_correct",
       "live_trading": "false",
-      "pythonpath": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-97a9704",
+      "pythonpath": "/home/tran-huynh/Workspaces/Personal/besttime-crypto/runtime/worktrees/pinned-b284ad3",
       "result": "PASS"
     }
   },
-  "generated_at": "2026-08-25T09:28:48Z",
+  "generated_at": "2026-08-25T09:48:54Z",
   "overall_verdict": "PASS"
 }

@@ -17,7 +17,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-PINNED          = ROOT / "runtime" / "worktrees" / "pinned-97a9704"
+PINNED          = ROOT / "runtime" / "worktrees" / "pinned-b284ad3"
 RESUME_CONTRACT = ROOT / "p7_attempt5_resume_contract.json"
 OUTPUT          = ROOT / "p7_attempt5_release_readback.json"
 
@@ -38,6 +38,9 @@ def import_pinned_modules(pinned_root: Path) -> dict[str, Any]:
     return {"RuntimeEvidenceStore": RuntimeEvidenceStore}
 
 
+DEPLOYMENT_ID = "paper-canary-a5-20260825-01"
+
+
 def main() -> int:
     print("P7-A5-G8-B: Running Release Identity Read-Back")
     print("=" * 50)
@@ -45,11 +48,10 @@ def main() -> int:
     if not RESUME_CONTRACT.exists():
         fail("Resume contract missing")
 
-    modules = import_pinned_modules(PINNED)
-    store = modules["RuntimeEvidenceStore"]()
-    evidence_db = store.global_index_path
+    # Directly resolve the global evidence index inside the pinned runtime directory
+    evidence_db = PINNED / "runtime" / "paper" / DEPLOYMENT_ID / "logs" / "global_evidence_index.sqlite"
     if not evidence_db.exists():
-        fail("Global index database missing")
+        fail(f"Global index database missing: {evidence_db}")
 
     with sqlite3.connect(evidence_db) as db:
         row = db.execute(
@@ -66,8 +68,8 @@ def main() -> int:
     g8b_1_pass = (
         db_epoch_id == EPOCH_ID and
         db_status == "ACTIVE" and
-        db_commit == "1b4d2965d0a374660278a61b80dea8443f61382f" and
-        db_manifest_sha == "86f83986d4f7a2ac8f5a077abad24ceb47b0e0a4e4f3f061738b5b12cc13f583"
+        db_commit == "b284ad36f311c5cbf4986c6dfe7f47e8aee01062" and
+        db_manifest_sha == "acbdd327263f905e793279bc4ff853f7e319da6da0701beedbb2854c611ed546"
     )
 
     gates["A5-G8-B-1"] = {

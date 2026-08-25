@@ -54,7 +54,7 @@ def main() -> int:
 
     # Check if any progress was made (prediction files created, database entries populated)
     # Check if any predictions exist for this deployment in the runtime evidence database
-    evidence_db = ROOT / "runtime/worktrees/pinned-1b4d296/runtime/paper/paper-canary-a5-20260825-01/logs/runtime_evidence.sqlite"
+    evidence_db = ROOT / "runtime/worktrees/pinned-b284ad3/runtime/paper/paper-canary-a5-20260825-01/logs/runtime_evidence.sqlite"
     
     predictions_count = 0
     if evidence_db.exists():

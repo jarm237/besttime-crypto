@@ -44,9 +44,9 @@
   },
   "paper_run_id": "paper-canary-a5-20260825-01",
   "release": {
-    "commit_sha": "111dbc833e2be1e7e348d1717a624995b348f991",
+    "commit_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
     "source": "MC9_SEALED_RELEASE",
-    "tree_sha": "68d9cad1e9818b38791380380a74b2e4d6a810f2"
+    "tree_sha": "689eca50d7fb98ecfb80fffbc3180f41b23ce525"
   },
   "runtime": {
     "automatic_retry": "FORBIDDEN",

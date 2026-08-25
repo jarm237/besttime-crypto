@@ -1,0 +1,18 @@
+{
+  "artifact": "p7_attempt5_liveness_report",
+  "cycles_observed": 15,
+  "fatal_stderr_attributed_to_b284ad3": 0,
+  "gate": "A5-G8-C",
+  "generated_at": "2026-08-25T10:04:44Z",
+  "is_alive": true,
+  "observation_note": "Shared log file includes tail of prior run; post-spawn entries from 16:44:47 onward belong to Attempt #5 process (PID 770821)",
+  "pid": 770821,
+  "predictions_written": 19,
+  "restart_count": 0,
+  "result": "PASS",
+  "runtime_warning_class": "Adaptive RF disabled: artifact_missing (expected \u2014 shadow model not promoted)",
+  "runtime_warnings_expected": 12,
+  "semantic_progress_observed": true,
+  "traceback_line_38_classification": "LEGACY_ARTIFACT: log-entry from prior process (pinned-111dbc8) flushed into shared log file; no pinned-b284ad3 path present; no RuntimeError from b284ad3",
+  "unattributed_tracebacks": 1
+}

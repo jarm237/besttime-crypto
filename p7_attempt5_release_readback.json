@@ -2,14 +2,14 @@
   "artifact": "p7_attempt5_release_readback",
   "gates": {
     "A5-G8-B-1": {
-      "code_commit_sha": "97a97040d2d3f75b32ce45f948558beead5b2aa9",
+      "code_commit_sha": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
       "epoch_id": "canary-mc9-v1-a5-20260825-01",
       "gate": "running_release_matches_authorization",
-      "release_manifest_sha256": "05f31bd9498b2b9fa4593d07f57755404d310634f50940a6c20feece5ff35918",
+      "release_manifest_sha256": "acbdd327263f905e793279bc4ff853f7e319da6da0701beedbb2854c611ed546",
       "result": "PASS",
       "status": "ACTIVE"
     }
   },
-  "generated_at": "2026-08-25T09:29:02Z",
+  "generated_at": "2026-08-25T09:48:54Z",
   "overall_verdict": "PASS"
 }
