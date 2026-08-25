@@ -1,0 +1,161 @@
+{
+  "artifact": "model_coverage_mc8_final_verdict",
+  "branch": "model-coverage/22-symbol-v1",
+  "mc7_seal_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+  "mc8_source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+  "release_version": "model-coverage-v1",
+  "generated_at": "2026-08-25T06:38:15Z",
+  "canonical_universe": 22,
+  "authorized_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "authorized_count": 9,
+  "disabled_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "ENA",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP"
+  ],
+  "disabled_count": 13,
+  "model_fingerprints": {
+    "BNB": "grandfathered_global",
+    "BTC": "grandfathered_global",
+    "DOGE": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+    "ETH": "grandfathered_global",
+    "IOTA": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+    "NEAR": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+    "SOL": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+    "TRX": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+    "ZEC": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b"
+  },
+  "calibrator_fingerprints": {
+    "BNB": "grandfathered_none",
+    "BTC": "grandfathered_none",
+    "DOGE": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
+    "ETH": "grandfathered_none",
+    "IOTA": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
+    "NEAR": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
+    "SOL": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
+    "TRX": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
+    "ZEC": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a"
+  },
+  "gates": {
+    "MC8-A": {
+      "title": "Release Construction Contract Frozen",
+      "source_commit_pinned": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "mc6_registry_sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04",
+      "mc7_verdict_sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52",
+      "authorized_symbols": 9,
+      "disabled_symbols": 13,
+      "result": "PASS"
+    },
+    "MC8-B": {
+      "title": "Pinned Git Worktree Created",
+      "worktree_path": "runtime/worktrees/pinned-94407d3",
+      "worktree_head": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "worktree_clean": true,
+      "result": "PASS"
+    },
+    "MC8-C": {
+      "title": "Release Manifest Generated",
+      "manifest_sha256": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+      "result": "PASS"
+    },
+    "MC8-D": {
+      "title": "Self-Contained Bundle Assembly",
+      "release_dir": "runtime/releases/model-coverage-v1",
+      "total_items_copied": 21,
+      "hash_mismatches": 0,
+      "missing_artifacts": 0,
+      "result": "PASS"
+    },
+    "MC8-E": {
+      "title": "Bundle Self-Containment Verified",
+      "pythonpath_isolation": "PASS",
+      "root_monkeypatching": "PASS",
+      "result": "PASS"
+    },
+    "MC8-F": {
+      "title": "Deterministic Reproducible Rebuild",
+      "rebuild_sha_matches_original": true,
+      "result": "PASS"
+    },
+    "MC8-G": {
+      "title": "Full-Universe Preflight (9 routes)",
+      "routes_verified": 9,
+      "authorized_symbols": [
+        "BNB",
+        "BTC",
+        "DOGE",
+        "ETH",
+        "IOTA",
+        "NEAR",
+        "SOL",
+        "TRX",
+        "ZEC"
+      ],
+      "result": "PASS"
+    },
+    "MC8-H": {
+      "title": "Fail-Closed Negative Tests",
+      "missing_model_blocked": true,
+      "corrupt_hash_blocked": true,
+      "schema_mismatch_blocked": true,
+      "unauthorized_symbol_blocked": true,
+      "result": "PASS"
+    },
+    "MC8-I": {
+      "title": "Full MC1-MC8 Regression Suite",
+      "mc1_mc5_passed": 51,
+      "mc6_mc7_passed": 358,
+      "mc6_mc7_skipped": 6,
+      "mc8_a_h_passed": 24,
+      "mc8_seal_passed": 11,
+      "total_passed": 444,
+      "total_skipped": 6,
+      "total_failed": 0,
+      "result": "PASS"
+    },
+    "MC8-K": {
+      "title": "GitNexus Change Detection vs 94407d3",
+      "base_ref": "94407d3",
+      "runtime_changes_detected": 0,
+      "execution_flow_changes": 0,
+      "verdict": "No changes detected",
+      "result": "PASS"
+    },
+    "MC8-SEAL": {
+      "title": "Seal Tests (11 invariants)",
+      "seal_tests_passed": 11,
+      "seal_tests_failed": 0,
+      "result": "PASS"
+    }
+  },
+  "release_contract_frozen": true,
+  "pinned_worktree_matches_source": true,
+  "bundle_self_contained": true,
+  "reproducible_build": true,
+  "fail_closed_verified": true,
+  "full_regression_pass": true,
+  "gitnexus_no_runtime_changes": true,
+  "canonical_universe_accounting": true,
+  "seal_tests_pass": true,
+  "mc8_verdict": "CLOSED"
+}
