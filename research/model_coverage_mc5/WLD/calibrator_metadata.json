@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "9092787cac5b8df82329607a9ba5a080fd3185d126853e9e6c3c1660494f0f3f",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "476bee054697ccd0474ee320cd8fdfa76c6a9021aaf58d3ac446476647ac4c5b",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "WLD"
+}

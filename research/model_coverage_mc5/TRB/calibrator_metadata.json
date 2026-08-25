@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "860989b296615f76bf1661d9775704e176b32605d2995738600b48aa9ec1d1bf",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "9d88f3681a52c0672f016087b2b0142a53693ba7a50854b7a6fdc3bbce4ce943",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "TRB"
+}

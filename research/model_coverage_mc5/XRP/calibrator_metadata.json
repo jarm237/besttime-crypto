@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "d3bd1b11bd9d79a3e6ecab3a2a538f7cf5f4f7403328d59f6d5e97345f7caf35",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "37832f39da0329a1de968d61d5b1d3ccb9eb6e80e6cf326ba1f9dee22115dd67",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "XRP"
+}

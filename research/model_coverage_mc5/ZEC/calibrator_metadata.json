@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "cdd4285e3d4a86cf5cfe3c4ca7e669b23baa00c45a3e8f8890c1bb251d500bcd",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "ZEC"
+}

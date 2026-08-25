@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "386c1aba55188814e2dd87cee9d986a4896eb19b427ee33a625de1c864a61817",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "TRX"
+}

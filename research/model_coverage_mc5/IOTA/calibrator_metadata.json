@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "504b3aecdfb138c31f9488c3a10dad1290362910f78463719efe470ba9ecb449",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "IOTA"
+}

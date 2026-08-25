@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "7dd9de85581139cf64ee88ca17db1b8a0bad034d225ae617170655cf337fd1ab",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "9c08e681da4b45867c50877045159d5b8792b2f0bc687c65e3b7bfd5f5a7671c",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "XLM"
+}

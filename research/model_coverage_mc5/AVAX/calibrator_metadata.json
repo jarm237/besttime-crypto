@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "e8ef8e7746506b11b1095e5d8bdc73013eb896e31ca668fbc06f2fee37a1dd6b",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "f212099b306c0fafdc9b809677375728ed124cd0415d1b971adaf131dc3696a4",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "AVAX"
+}

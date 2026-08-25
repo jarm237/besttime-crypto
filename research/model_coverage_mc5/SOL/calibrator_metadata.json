@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "9ea9be31ffe39543c9aee66b4334ee1be8f2d95434646712a183dda0abf49c1a",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "SOL"
+}

@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "6af6520d8418d197e210c9a8d0d6cfcb081ce08754db2ebbc6e90c22a0fb446e",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "NEAR"
+}

@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "d086f903ba948a1bb0ee07d442b77a6bfc2e1776b25f2915c9ae4fdd939d06ea",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "DOGE"
+}

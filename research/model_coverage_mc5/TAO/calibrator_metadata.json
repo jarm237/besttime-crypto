@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "a2538f7eb7b552d902a0fec64303f68b9cbd08c5221a225676ee0058b6b4f4b2",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "3771414a3e80ff99418ff2e1306216122c75fe2ec132cbab088be7cd722989cc",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "TAO"
+}

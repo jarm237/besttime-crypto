@@ -1,0 +1,170 @@
+{
+  "artifact": "model_coverage_mc5_calibration_runs",
+  "runs": [
+    {
+      "calibration_dataset_sha256": "c832c0a4841f78f2768f8c62d550ec29ccca08034ac29601cfcd1be11da964d6",
+      "calibrator_sha256": "2063e40ec9ab020aade6a2c19459a6141ebb9cc369f5a7539cf70c00f4729eaa",
+      "candidate_artifact_sha256": "c0f1ebf3b9fdf0b3c72b085b27a3e09602e176fcb2a17ec23e7cd08073e40603",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18388,
+      "positive_count": 1,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "AEVO"
+    },
+    {
+      "calibration_dataset_sha256": "bf776474d8dfb58f540f40017b76329eb0a49ed2b81e09301c2f1cd99d4fe070",
+      "calibrator_sha256": "644262968bcd352aaba55f307d01f59402401426f05365f4d7d7123dc6778b30",
+      "candidate_artifact_sha256": "8f58e342ed4c8016b14fa62662b0cd5ceb5726d62ff002de19700899967c7528",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18368,
+      "positive_count": 21,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "AR"
+    },
+    {
+      "calibration_dataset_sha256": "e8ef8e7746506b11b1095e5d8bdc73013eb896e31ca668fbc06f2fee37a1dd6b",
+      "calibrator_sha256": "a11525bb71c756ea2ae0fb0ce158c73ae23513128c31bdc73980be4037183e1b",
+      "candidate_artifact_sha256": "f212099b306c0fafdc9b809677375728ed124cd0415d1b971adaf131dc3696a4",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 16689,
+      "positive_count": 1700,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "AVAX"
+    },
+    {
+      "calibration_dataset_sha256": "d086f903ba948a1bb0ee07d442b77a6bfc2e1776b25f2915c9ae4fdd939d06ea",
+      "calibrator_sha256": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
+      "candidate_artifact_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 14329,
+      "positive_count": 4060,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "DOGE"
+    },
+    {
+      "calibration_dataset_sha256": "8e0c671b4617b1752bdc661fe8db8118ced5a0c9914ce74d8a811bcc8518013f",
+      "calibrator_sha256": "e9847e955e3f9b651cff1e801e11146dc5157bcd1c9377dd8472efc758f7df5b",
+      "candidate_artifact_sha256": "dcb830ae3b3788b03072f2af4819b08efbc81b16533eb62ea71134ba60abfacf",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18371,
+      "positive_count": 18,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "ENA"
+    },
+    {
+      "calibration_dataset_sha256": "504b3aecdfb138c31f9488c3a10dad1290362910f78463719efe470ba9ecb449",
+      "calibrator_sha256": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
+      "candidate_artifact_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 15330,
+      "positive_count": 3059,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "IOTA"
+    },
+    {
+      "calibration_dataset_sha256": "6af6520d8418d197e210c9a8d0d6cfcb081ce08754db2ebbc6e90c22a0fb446e",
+      "calibrator_sha256": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
+      "candidate_artifact_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 4899,
+      "positive_count": 13490,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "NEAR"
+    },
+    {
+      "calibration_dataset_sha256": "9ea9be31ffe39543c9aee66b4334ee1be8f2d95434646712a183dda0abf49c1a",
+      "calibrator_sha256": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
+      "candidate_artifact_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 7492,
+      "positive_count": 10897,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "SOL"
+    },
+    {
+      "calibration_dataset_sha256": "a2538f7eb7b552d902a0fec64303f68b9cbd08c5221a225676ee0058b6b4f4b2",
+      "calibrator_sha256": "5653beecde46bd0de97e371dc54c8865fc0c3670bfa6cb5e0ac2720a0f1ce5b7",
+      "candidate_artifact_sha256": "3771414a3e80ff99418ff2e1306216122c75fe2ec132cbab088be7cd722989cc",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18384,
+      "positive_count": 5,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "TAO"
+    },
+    {
+      "calibration_dataset_sha256": "860989b296615f76bf1661d9775704e176b32605d2995738600b48aa9ec1d1bf",
+      "calibrator_sha256": "d6d22706624a87c173f74207d79c8450225faf325e1178c7d61f00eb7b90a5aa",
+      "candidate_artifact_sha256": "9d88f3681a52c0672f016087b2b0142a53693ba7a50854b7a6fdc3bbce4ce943",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18192,
+      "positive_count": 197,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "TRB"
+    },
+    {
+      "calibration_dataset_sha256": "386c1aba55188814e2dd87cee9d986a4896eb19b427ee33a625de1c864a61817",
+      "calibrator_sha256": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
+      "candidate_artifact_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 4871,
+      "positive_count": 13518,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "TRX"
+    },
+    {
+      "calibration_dataset_sha256": "9092787cac5b8df82329607a9ba5a080fd3185d126853e9e6c3c1660494f0f3f",
+      "calibrator_sha256": "4d353a59cbf10bd5350a629401987160f31b063f2eab259dc5a16021d74924e1",
+      "candidate_artifact_sha256": "476bee054697ccd0474ee320cd8fdfa76c6a9021aaf58d3ac446476647ac4c5b",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18383,
+      "positive_count": 6,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "WLD"
+    },
+    {
+      "calibration_dataset_sha256": "7dd9de85581139cf64ee88ca17db1b8a0bad034d225ae617170655cf337fd1ab",
+      "calibrator_sha256": "a38ae6dfe292ed9a22f26e91983875e6ee5ea199868f0383ae7f2e133bec06c0",
+      "candidate_artifact_sha256": "9c08e681da4b45867c50877045159d5b8792b2f0bc687c65e3b7bfd5f5a7671c",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18338,
+      "positive_count": 51,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "XLM"
+    },
+    {
+      "calibration_dataset_sha256": "d3bd1b11bd9d79a3e6ecab3a2a538f7cf5f4f7403328d59f6d5e97345f7caf35",
+      "calibrator_sha256": "3be6b1838938a2b9801d5c2557744dc3cea36c7ec7931360d9f9504c735326d2",
+      "candidate_artifact_sha256": "37832f39da0329a1de968d61d5b1d3ccb9eb6e80e6cf326ba1f9dee22115dd67",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 18364,
+      "positive_count": 25,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "XRP"
+    },
+    {
+      "calibration_dataset_sha256": "cdd4285e3d4a86cf5cfe3c4ca7e669b23baa00c45a3e8f8890c1bb251d500bcd",
+      "calibrator_sha256": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a",
+      "candidate_artifact_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+      "method": "PLATT_SIGMOID",
+      "negative_count": 9983,
+      "positive_count": 8406,
+      "sample_count": 18389,
+      "status": "CALIBRATED",
+      "symbol": "ZEC"
+    }
+  ]
+}

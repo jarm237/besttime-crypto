@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "8e0c671b4617b1752bdc661fe8db8118ced5a0c9914ce74d8a811bcc8518013f",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "dcb830ae3b3788b03072f2af4819b08efbc81b16533eb62ea71134ba60abfacf",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "ENA"
+}

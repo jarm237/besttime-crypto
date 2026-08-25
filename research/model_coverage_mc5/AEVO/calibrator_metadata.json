@@ -1,0 +1,8 @@
+{
+  "calibration_dataset_sha256": "c832c0a4841f78f2768f8c62d550ec29ccca08034ac29601cfcd1be11da964d6",
+  "method": "PLATT_SIGMOID",
+  "model_artifact_sha256": "c0f1ebf3b9fdf0b3c72b085b27a3e09602e176fcb2a17ec23e7cd08073e40603",
+  "qualification": "NOT_STARTED",
+  "status": "CANDIDATE_CALIBRATOR",
+  "symbol": "AEVO"
+}
