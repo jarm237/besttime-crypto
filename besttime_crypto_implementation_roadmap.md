@@ -2157,31 +2157,139 @@ R5 is closed as blocked, not unfinished implementation. P7 has reached the valid
 
 The 3-symbol route set is not a valid unblock strategy for the current P7 line. The canonical contract is 22 symbols, so reducing runtime coverage to BTC/ETH/BNB would be a separate governance/product contract change, not P7 remediation.
 
-## Successor Workstream — Model Coverage Program
+## Branch Workstream — Model Coverage Program
 
-This workstream is separate from P7 activation. It must not start training or route implementation implicitly.
+This workstream is separate from P7 activation and must run on a dedicated branch. P7 remains frozen at the current blocked checkpoint until a sealed 22-symbol runtime/artifact release is handed back.
 
 ```text
-MC0  Model Coverage Authorization
-MC1  Coverage contract
+branch = model-coverage/22-symbol-v1
+
+MC1  Coverage Contract
 MC2  Per-symbol feasibility audit
-MC3  Training/data readiness
-MC4  Explicit route implementation
+MC3  Data / training readiness
+MC4  Explicit inference coverage
 MC5  Artifact coverage closure
-MC6  22-symbol compatibility matrix
-MC7  P2/P5/P6 regression
-MC8  New runtime/artifact release seal
-MC9  Handoff back to P7
+MC6  22-symbol compatibility closure
+MC7  P2 / P5 / P6 regression closure
+MC8  New runtime / artifact release seal
+MC9  Handoff Back to P7
 ```
 
-MC0 is a hard authorization gate:
+MC0 is removed. Creating and working on `model-coverage/22-symbol-v1` is the explicit boundary that opens the model coverage scope. There is no `MC0 AWAITING_AUTHORIZATION` state and no `model_coverage_mc0_authorization.json`.
+
+Historical P7 governance checkpoint before this roadmap-only seal:
 
 ```text
-AUTHORIZED:
-build actual inference coverage for all 22 canonical symbols
+governance_commit = b813c868c42fff3fef3ba2b345a4a229ae980a5c
+governance_tree   = 15e5d208b5e2be0b1fdcd33713303a6e556160f7
+worktree          = CLEAN
 
-NOT AUTHORIZED:
-keep P7 blocked
+P7-R5             = CLOSED_AS_BLOCKED_MODEL_COVERAGE_INCOMPLETE
+P7                = BLOCKED_ON_MODEL_COVERAGE
+authorization_4   = NOT_CREATED
+attempt_4         = NOT_AUTHORIZED
+paper_canary      = NOT_ACTIVE
+```
+
+The coverage branch must fork from the new roadmap seal commit that contains
+this dedicated-branch architecture, not directly from the historical
+`b813c868...` checkpoint.
+
+Create the branch from the current P7 line after committing this roadmap-only
+change:
+
+```text
+git switch -c model-coverage/22-symbol-v1
+```
+
+Topology:
+
+```text
+                   <new roadmap seal commit>
+                              │
+             ┌────────────────┴────────────────┐
+             │                                 │
+      P7 activation line              model-coverage/22-symbol-v1
+             │                                 │
+       FROZEN/BLOCKED                       MC1 → MC9
+             │                                 │
+             │                            sealed release
+             │                                 │
+             └──────────── MC9 handoff ────────┘
+                              │
+                              ↓
+                     resume P7 preflight #4
+```
+
+Branch boundary:
+
+```text
+P7 branch:
+    activation governance only
+
+model-coverage branch:
+    model/data/artifact/routing/release work only
+```
+
+### Branch Bootstrap
+
+Before MC1, verify the branch starts from the new roadmap seal commit on the
+frozen P7 line. This bootstrap does not modify runtime behavior.
+
+Capture:
+
+```text
+branch_name
+base_commit
+base_tree
+working_tree_status
+P7 frozen state
+canonical symbol count
+current artifact SHA
+current actual route set
+```
+
+Expected:
+
+```text
+base_commit              = <new roadmap seal commit>
+base_tree                = <new roadmap seal tree>
+canonical_symbols        = 22
+artifact_declared        = 22
+actual_routes            = 3
+unsupported              = 19
+```
+
+### MC-B0 — GitNexus Index Health
+
+After creating `model-coverage/22-symbol-v1` and before impact-sensitive model
+coverage work, repair/rebuild the GitNexus index if needed. The FTS
+inconsistency observed during the roadmap-only commit is acceptable for
+documentation sealing, but must not be carried into MC implementation.
+
+Required:
+
+```text
+GitNexus refresh          PASS
+GitNexus query/context    usable
+GitNexus impact           usable
+GitNexus detect-changes   clean baseline
+```
+
+`MC-B0` is a tooling prerequisite, not a formal MC phase. MC1 starts only after
+GitNexus is usable on the coverage branch.
+
+Optional artifact:
+
+```text
+model_coverage_branch_baseline.json
+```
+
+Exit:
+
+```text
+BRANCH_BASELINE = PASS
+MC1             = READY_TO_START
 ```
 
 Coverage program close condition:
@@ -2208,7 +2316,7 @@ symbol
 → explicit route
 ```
 
-Adding route entries without model/artifact evidence is not sufficient. If feasibility audit finds insufficient data/model readiness for any canonical symbol, the program must stop at:
+Adding route entries without model/artifact evidence is not sufficient. If the feasibility audit finds insufficient data/model readiness for any canonical symbol, the program stops at:
 
 ```text
 MODEL_COVERAGE_INFEASIBLE
@@ -2216,101 +2324,7 @@ MODEL_COVERAGE_INFEASIBLE
 
 Shared fallback models, alias routes, or BTC/ETH/BNB fallback are not allowed to produce a nominal 22/22 matrix.
 
-After the coverage program seals a new release, handoff back to P7 is:
-
-```text
-new 22-symbol release
-↓
-RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY PASS
-↓
-fresh preflight #4
-↓
-new ACTIVE epoch compatibility assessment
-↓
-G6 authorization #4
-↓
-STOP
-↓
-controlled attempt #4
-```
-
-If artifact/runtime identities change, P7 must not reuse:
-
-```text
-release 5e8d798...
-attempt #3 manifest
-attempt #3 preflight
-attempt #3 authorization
-```
-
-## Model Coverage Program Governance Detail
-
-Current MC state:
-
-```text
-MC0              AWAITING_AUTHORIZATION
-MC1..MC9         NOT_STARTED
-
-authorization_4  NOT_CREATED
-attempt_4        NOT_AUTHORIZED
-paper_canary     NOT_ACTIVE
-active_runner_count = 0
-```
-
-MC0 is not model work. It only decides whether the 22-symbol coverage program may begin.
-
-The only valid MC0 verdicts are:
-
-```text
-AUTHORIZED
-NOT_AUTHORIZED
-```
-
-If MC0 is not authorized:
-
-```text
-P7 remains BLOCKED_ON_MODEL_COVERAGE
-MC1..MC9 remain NOT_STARTED
-technical workaround = FORBIDDEN
-```
-
-If MC0 is authorized, the authorized subject must be exact:
-
-```text
-AUTHORIZE_FULL_22_SYMBOL_MODEL_COVERAGE
-```
-
-Authorized scope after MC0 approval:
-
-```text
-per-symbol feasibility audit
-per-symbol data readiness audit
-training/retraining only after feasibility PASS
-calibration when required
-explicit inference routes
-artifact packaging
-artifact metadata correction
-compatibility matrix
-targeted P2/P5/P6 regression
-new runtime/artifact release seal
-```
-
-Not authorized by MC0:
-
-```text
-implicit fallback
-BTC-model-for-every-symbol shortcut
-silent skip unsupported symbols
-reducing canonical universe to unblock P7
-threshold tuning unrelated to coverage
-strategy redesign
-real-money deployment
-P7 attempt #4 before MC9
-```
-
 ### MC1 — Coverage Contract
-
-MC1 can start only after MC0 is explicitly authorized.
 
 MC1 freezes:
 
@@ -2323,18 +2337,32 @@ route requirements explicit
 shared-model policy explicit
 ```
 
-For each symbol, support means:
+A symbol is supported only if it has actual explicit inference coverage, not because metadata lists it.
+
+For each symbol, support requires:
 
 ```text
 symbol
 → explicit inference route
-→ artifact/model identity
-→ schema identity
-→ calibration semantics
+→ artifact identity
+→ model family
+→ feature schema identity
+→ preprocessing identity
+→ training contract
+→ calibration contract
 → supported inference output
 ```
 
-Shared artifacts are allowed only when support is explicitly validated for each symbol in the shared set. Unknown-symbol fallback to a shared BTC/ETH/BNB route is not coverage.
+Hard rules:
+
+```text
+implicit_fallback       = forbidden
+silent_skip             = forbidden
+metadata_only_support   = forbidden
+unknown-symbol alias    = forbidden
+```
+
+Shared artifacts are allowed only when the artifact explicitly declares symbol support and training/validation evidence covers that symbol. `SOL -> BTC model` because the input shape is the same is not coverage.
 
 Artifact:
 
@@ -2342,46 +2370,56 @@ Artifact:
 model_coverage_mc1_contract.json
 ```
 
-### MC2 — Per-Symbol Feasibility Audit
-
-MC2 audits feasibility before training.
-
-For each missing-route symbol:
+MC1 DoD:
 
 ```text
-historical data range
-15m bar count
-missing-data ratio
-market availability
-feature availability
-label availability
+canonical_symbol_count = 22
+coverage_definition    = frozen
+fallback_policy        = FAIL_CLOSED
+MC1                    = PASS
+```
+
+### MC2 — Per-Symbol Feasibility Audit
+
+MC2 audits feasibility before training. Do not immediately train 19 models.
+
+For each canonical symbol, audit:
+
+```text
+historical data availability
+time span
+15m continuity
+missing ratio
+feature computability
+label computability
 training sample count
-positive/negative class balance
-walk-forward feasibility
+class balance
+walk-forward windows
+OOS feasibility
 temporal validity
 no-lookahead feasibility
 ```
 
-Each symbol is classified as one of:
+Allowed verdicts:
 
 ```text
 FEASIBLE
-INSUFFICIENT_DATA
+INSUFFICIENT_HISTORY
+INSUFFICIENT_FEATURE_DATA
 INSUFFICIENT_LABEL_SUPPORT
 TEMPORAL_COVERAGE_INSUFFICIENT
-FEATURE_DATA_INCOMPLETE
-NON_TRANSPORTABLE
+OOS_DESIGN_INFEASIBLE
+PROVENANCE_UNRESOLVED
 ```
 
-If any canonical symbol cannot support valid coverage:
+Critical stop condition:
 
 ```text
-MC2 = BLOCKED_FULL_COVERAGE_INFEASIBLE
-MODEL_COVERAGE_PROGRAM = MODEL_COVERAGE_INFEASIBLE
-P7 remains BLOCKED_ON_MODEL_COVERAGE
+if any canonical symbol != FEASIBLE:
+    MC2 = BLOCKED_FULL_22_SYMBOL_COVERAGE_INFEASIBLE
 ```
 
-No symbol may be silently dropped from the canonical 22.
+Do not remove, skip, or fallback that symbol to continue. If MC2 blocks, the coverage branch closes with evidence and P7 remains blocked.
 
 Artifact:
 
@@ -2389,44 +2427,66 @@ Artifact:
 model_coverage_mc2_feasibility.json
 ```
 
-### MC3 — Training/Data Readiness
+### MC3 — Data / Training Readiness
 
-MC3 opens only for symbols marked `FEASIBLE` by MC2. If the program requires 22/22 and any canonical symbol is not feasible, MC3 does not start.
+MC3 opens only if MC2 returns `22/22 FEASIBLE`.
 
-For each symbol, freeze:
+The canonical V5 feature schema remains:
 
 ```text
-source
-date range
-sampling
-feature schema
-label definition
-split method
-training rows
-validation rows
-test rows
-dataset_sha256
-feature_schema_fingerprint
-label_contract_hash
+return_8
+return_32
+return_72
+abs_move_72
 ```
 
-Required audits:
+For each symbol, prove:
 
 ```text
+same ordered feature schema
+finite values
+same preprocessing semantics
 deterministic dataset build
-no future candles
-no target leakage
-no post-outcome fields
-no cross-split contamination
+no future leakage
 ```
 
-Exit:
+Freeze per symbol:
 
 ```text
-all 22 symbols training/data ready
+raw source identity
+raw source SHA
+normalized dataset SHA
+training matrix SHA
+date range
+feature contract
+label contract
+split contract
+random seed
+sample_count
+train_count
+validation_count
+test_count
+label_balance
+feature_schema_hash
+verdict
 ```
 
-or STOP.
+MC3 DoD:
+
+```text
+22/22 TRAINING_READY
+dataset provenance complete
+schema compatibility PASS
+leakage audit PASS
+```
+
+If a symbol lacks provenance:
+
+```text
+MC3 = BLOCKED_DATA_PROVENANCE
+```
+
+Do not train.
 
 Artifact:
 
@@ -2434,32 +2494,64 @@ Artifact:
 model_coverage_mc3_data_readiness.json
 ```
 
-### MC4 — Explicit Route Implementation
+### MC4 — Explicit Inference Coverage
 
 MC4 is the first implementation phase for model coverage.
 
-Training protocol must be frozen before training:
+Internal stages:
+
+```text
+MC4-A Training
+MC4-B Validation
+MC4-C Calibration
+MC4-D Artifact construction
+MC4-E Explicit routing
+```
+
+Training protocol freezes before training:
 
 ```text
 model family
-hyperparameter search budget
-calibration
-evaluation metric
-promotion threshold
-random seed
+hyperparameters
+search budget
+random seeds
+training metric
+validation metric
+promotion criterion
 ```
 
 Per-symbol support requires evidence:
 
 ```text
+dataset valid
 training completed
 validation completed
 OOS evaluated
+probability output bounded
+deterministic reproduction valid
 artifact load PASS
 schema PASS
 inference smoke PASS
 explicit route PASS
 ```
+
+If the quality gate fails:
+
+```text
+symbol = MODEL_COVERAGE_NOT_ACCEPTABLE
+MC4 = BLOCKED
+```
+
+No fallback is allowed.
+
+Calibration must be explicit:
+
+```text
+APPLICABLE
+PROVEN_NOT_APPLICABLE
+```
+
+It must not remain `UNKNOWN`.
 
 Unknown symbol behavior remains:
 
@@ -2467,10 +2559,11 @@ Unknown symbol behavior remains:
 UNKNOWN → inference_symbol_unsupported:<symbol>
 ```
 
-Exit:
+MC4 DoD:
 
 ```text
 actual_inference_route_symbols = 22
+unsupported canonical symbols  = []
 ```
 
 Artifact:
@@ -2481,7 +2574,14 @@ model_coverage_mc4_routes.json
 
 ### MC5 — Artifact Coverage Closure
 
-MC5 proves the artifact bundle tells the truth.
+MC4 proves models/routes. MC5 proves the artifact bundle tells the truth.
+
+Current inconsistency:
+
+```text
+metadata says 22
+actual routes = 3
+```
 
 Required:
 
@@ -2490,15 +2590,21 @@ artifact_declared_symbols = 22
 actual_routes             = 22
 ```
 
+Metadata must not be copied from the runtime universe and treated as model coverage.
+
 For each route:
 
 ```text
 symbol
-artifact_sha
-schema_fingerprint
+artifact_sha256
 model_version
-calibration_identity
+model_family
+schema_fingerprint
+preprocessing_contract
+training_dataset_identity
 training_contract
+calibration_contract
+route_identity
 ```
 
 Bundle identity:
@@ -2507,13 +2613,23 @@ Bundle identity:
 coverage_bundle_sha256
 ```
 
-All 22 symbols must pass:
+MC5 load matrix:
 
 ```text
-load
-schema validate
-canonical feature vector inference smoke
+for all canonical symbols:
+    load artifact
+    validate manifest
+    validate schema
+    run controlled inference
 ```
+
+Expected:
+
+```text
+22/22 PASS
+```
+
+If artifact packaging changes, old artifact SHA and new artifact SHA must differ and be treated as an ordinary identity change. Do not mutate the old artifact while preserving the old identity.
 
 Artifact:
 
@@ -2521,22 +2637,22 @@ Artifact:
 model_coverage_mc5_artifact_closure.json
 ```
 
-### MC6 — 22-Symbol Compatibility Matrix
+### MC6 — 22-Symbol Compatibility Closure
 
 Define:
 
 ```text
-I = canonical intended symbols
-R = runtime symbols
-M = artifact metadata symbols
-A = actual inference routes
+I = intended canonical universe
+R = runtime universe
+M = artifact declared universe
+A = actual inference route universe
 ```
 
 Required:
 
 ```text
 I == R == M == A
-count = 22
+|I| = |R| = |M| = |A| = 22
 ```
 
 All set differences must be empty:
@@ -2544,23 +2660,25 @@ All set differences must be empty:
 ```text
 I - R = []
 R - I = []
+
 R - A = []
 A - R = []
+
 M - A = []
 A - M = []
 ```
 
-R4 regression:
+R4 gate must pass:
 
 ```text
 RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY = PASS
 unsupported_symbols = []
 ```
 
-Negative test remains required:
+Negative regression remains required:
 
 ```text
-inject unsupported symbol
+inject symbol unsupported by route
 → BLOCKED_INFERENCE_SYMBOL_UNSUPPORTED
 ```
 
@@ -2570,34 +2688,60 @@ Artifact:
 model_coverage_mc6_compatibility_matrix.json
 ```
 
-### MC7 — P2/P5/P6 Regression
+### MC7 — Cross-Contract Regression Closure
 
-Coverage closure must preserve prior contracts:
+MC7 protects P2/P5/P6, not only the new coverage tests.
+
+P2 must preserve:
 
 ```text
-P2 explicit symbol routing
-P2 no implicit fallback
-P2 artifact identity propagation
-P2 unsupported unknown symbol fail closed
-
-P5 live == replay evaluator semantics
-
-P6 artifact provenance
-P6 schema fingerprint
-P6 exact 4-feature vector
-P6 72 -> WARMING_UP
-P6 73 -> READY
-P6 no downstream on precondition failure
+explicit symbol input
+no stack/caller inference
+no mutable current_symbol dependency
+artifact identity propagated
+missing/unsupported symbol fail closed
 ```
 
-All 22 symbols must obey the same readiness contract unless a new versioned contract explicitly changes and reseals P6.
+P5 must prove coverage expansion does not create live/replay drift:
+
+```text
+same symbol
+same candle window
+same artifact
+same evaluation timestamp
+=
+same evaluation result
+```
+
+P6 must rerun:
+
+```text
+artifact compatibility
+schema fingerprint
+4-feature schema
+readiness
+live/replay precedence
+no-downstream failures
+determinism
+```
+
+Warm-up remains:
+
+```text
+72 completed observations → WARMING_UP
+73 completed observations → READY
+```
+
+Readiness must occur before inference.
 
 Full suite expectation:
 
 ```text
-new failures = 0
+new failures         = 0
 replacement failures = 0
 ```
+
+If artifact architecture changes expected baselines, classify and reseal the change explicitly. Do not reset baselines silently.
 
 Artifact:
 
@@ -2605,9 +2749,9 @@ Artifact:
 model_coverage_mc7_regression_report.json
 ```
 
-### MC8 — New Runtime/Artifact Release Seal
+### MC8 — New Runtime / Artifact Release Seal
 
-MC8 is mandatory because deployable identities will change.
+Coverage branch must hand off a sealed release candidate, not just source code that passed tests.
 
 Old release:
 
@@ -2620,27 +2764,45 @@ must not be automatically reused.
 Freeze:
 
 ```text
-new runtime commit
-new runtime tree
-new artifact/bundle SHA
-new schema fingerprint
-coverage contract
-release manifest binding 22 canonical/declared/actual-route symbols
-P1-P6 contract identities
-MC coverage contract identity
+release_commit
+release_tree
+artifact_bundle_sha256
+artifact_manifest_sha256
+schema_fingerprint
+coverage_contract_hash
+canonical_symbols
 ```
 
-Post-seal reproduction:
+Expected:
 
 ```text
-coverage matrix
-P2/P5/P6 subset
-P7 preflight symbol gate
-artifact load matrix
-worktree = clean
+canonical_symbols = 22
+actual_routes      = 22
+unsupported        = []
 ```
 
-Exit:
+Create a new pinned worktree such as:
+
+```text
+runtime/worktrees/pinned-<new-sha>
+```
+
+Do not reuse `runtime/worktrees/pinned-5e8d798` as the candidate release if source or artifact identities changed.
+
+Post-seal reproduction from a clean checkout of the MC8 commit:
+
+```text
+artifact load 22/22
+compatibility matrix PASS
+P2 regression PASS
+P5 regression PASS
+P6 regression PASS
+R4 P7 preflight universe gate PASS
+git diff --check PASS
+worktree clean
+```
+
+Final:
 
 ```text
 MC8 = PASS_NEW_22_SYMBOL_RELEASE_SEALED
@@ -2654,64 +2816,218 @@ model_coverage_mc8_release_report.json
 
 ### MC9 — Handoff Back to P7
 
-MC9 does not activate anything.
+MC9 is the interface between branches. It does not activate anything.
 
-Required:
+Handoff artifact:
 
 ```text
-RUNTIME_SYMBOL_UNIVERSE_COMPATIBILITY = PASS
+model_coverage_mc9_p7_handoff.json
+```
+
+Minimum contents:
+
+```text
+source_branch
+coverage_release_commit
+coverage_release_tree
+
+artifact_bundle_sha256
+artifact_manifest_sha256
+
+canonical_symbol_count = 22
+runtime_symbol_count   = 22
+declared_symbol_count  = 22
+actual_route_count     = 22
+
 unsupported_symbols = []
+
+P2_regression = PASS
+P5_regression = PASS
+P6_regression = PASS
+
+paper_runtime_spawned_during_MC = false
 ```
 
-Assess existing evidence epoch binding against the new MC8 release:
+MC9 DoD:
 
 ```text
-compatible_transition
-```
-
-or:
-
-```text
-REPROVISION_REQUIRED
-```
-
-MC9 final state:
-
-```text
+coverage branch sealed
+handoff immutable
+P7 compatible in principle
 MODEL_COVERAGE_PROGRAM = CLOSED
-P7 = READY_FOR_ATTEMPT_4_PREFLIGHT
-authorization_4 = NOT_CREATED
-attempt_4 = NOT_AUTHORIZED
-paper_canary = NOT_ACTIVE
 ```
 
-Artifact:
+### Return To P7
+
+Only after MC9, return to the activation line:
 
 ```text
-model_coverage_mc9_handoff.json
+MC9 handoff
+    ↓
+P7 consumes new sealed release identity
+    ↓
+new pinned worktree
+    ↓
+new deployment manifest
+    ↓
+existing evidence epoch compatibility assessment
+    ↓
+fresh preflight #4
+    ↓
+G6 authorization #4
+    ↓
+STOP
 ```
 
-### Model Coverage Program Stop Conditions
+Existing evidence epochs were bound to release `5e8d798...`; do not silently reuse them if the contract pins release identity.
+
+The evidence epoch compatibility outcome must be one of:
+
+```text
+EPOCH_COMPATIBLE
+EPOCH_REPROVISION_REQUIRED
+```
+
+If reprovision is required, perform a P7-R6 evidence epoch rebind/reprovision as operational-only remediation, following the same spirit as R2.
+
+Activation attempt #4 is a later seam after authorization #4, not part of MC9.
+
+### Branch Handoff Strategy
+
+Two handoff shapes are allowed:
+
+```text
+Option A — merge full branch
+model-coverage branch → merge → P7 consumes resulting release
+
+Option B — release-oriented handoff
+coverage branch → seal release commit/tree/artifact → P7 consumes identities
+```
+
+Option B is preferred if training/audit history is large. P7 does not need to carry every exploratory training commit, only the sealed release identity and handoff evidence.
+
+### Commit Strategy
+
+Use semantic commits instead of one mega-commit:
+
+```text
+C1  define 22-symbol coverage contract
+C2  audit per-symbol feasibility
+C3  freeze per-symbol training datasets
+C4  implement explicit model coverage
+C5  seal artifact coverage bundle
+C6  close 22-symbol compatibility
+C7  close P2/P5/P6 regressions
+C8  seal 22-symbol runtime release
+C9  record P7 handoff
+```
+
+If MC2 fails:
+
+```text
+commit feasibility verdict
+close branch as infeasible
+STOP
+```
+
+### GitNexus Strategy
+
+Before MC4, inspect impact of:
+
+```text
+parse_runtime_symbols
+get_analysis_universe
+InferenceArtifact
+_inference_artifact_for_model
+predict_meta_confidence
+V5FilterModelClassifier.predict_proba
+```
+
+After each semantic group:
+
+```text
+refresh
+detect-changes
+impact
+```
+
+High/critical impact at inference boundaries is not automatically a blocker, but it must be bounded by regression. If changes spread into decision semantics, risk semantics, execution, fills, or ledger, stop and classify scope drift.
+
+### Branch Stop Conditions
 
 Stop if any occurs:
 
 ```text
-MC2 infeasibility for any canonical symbol
-training not explicitly authorized by MC0
-label leakage
-temporal leakage
-insufficient provenance
-model quality insufficient
-artifact metadata/routes mismatch
-P2/P5/P6 regression
-new model family/objective required beyond authorized contract
+MC2 finds one canonical symbol infeasible
+MC3 cannot prove dataset provenance
+MC4 model fails acceptance criteria
+solution requires implicit fallback
+solution requires silently dropping a symbol
+model architecture must change beyond frozen scope
+P2 explicit routing regression
+P5 parity regression
+P6 schema/readiness regression
+full suite introduces new unexplained failures
 ```
 
-If solving coverage requires a new model family/objective beyond MC0:
+If solving coverage requires a new model family/objective beyond the coverage branch contract:
 
 ```text
 STOP
 NEW_RESEARCH_AUTHORIZATION_REQUIRED
+```
+
+There is no `19/22 is close enough` state while the canonical contract remains 22 symbols.
+
+### Branch Failure Outcome
+
+If the program is not feasible, that is a valid closed outcome:
+
+```text
+MODEL_COVERAGE_PROGRAM = CLOSED_INFEASIBLE
+blocking_symbols       = [...]
+reason                 = INSUFFICIENT_DATA / MODEL_ACCEPTANCE_FAILURE / ...
+P7                     = BLOCKED_ON_MODEL_COVERAGE
+```
+
+Do not return to attempt #4.
+
+### Branch Success Outcome
+
+Target at MC9:
+
+```text
+BRANCH
+model-coverage/22-symbol-v1
+
+MC1 Coverage contract                PASS
+MC2 Per-symbol feasibility           PASS
+MC3 Data/training readiness          PASS
+MC4 Explicit inference coverage      PASS
+MC5 Artifact coverage                PASS
+MC6 22-symbol compatibility          PASS
+MC7 P2/P5/P6 regression              PASS
+MC8 New release seal                 PASS
+MC9 P7 handoff                       PASS
+
+canonical_runtime_symbols            22
+artifact_declared_symbols            22
+actual_inference_routes              22
+unsupported_symbols                  []
+
+new_runtime_release                  SEALED
+new_artifact_bundle                  SEALED
+
+paper_canary                         NOT_ACTIVE
+authorization_4                      NOT_CREATED
+attempt_4                            NOT_AUTHORIZED
+```
+
+Then and only then:
+
+```text
+resume P7
+→ preflight #4
 ```
 
 ### Whole Program Definition of Done
@@ -2719,7 +3035,7 @@ NEW_RESEARCH_AUTHORIZATION_REQUIRED
 The program closes only when:
 
 ```text
-[1] MC0 explicit authorization exists.
+[1] Dedicated model-coverage/22-symbol-v1 branch exists from the new roadmap seal commit.
 [2] Canonical 22 symbols frozen.
 [3] All 22 feasible.
 [4] All 22 have data/training readiness.
@@ -2735,7 +3051,61 @@ The program closes only when:
 [14] New runtime/artifact release is sealed.
 [15] P7 compatibility preflight is capable of passing.
 [16] Evidence epoch compatibility is assessed.
-[17] No paper runtime was launched during MC0-MC9.
+[17] No paper runtime was launched during MC1-MC9.
 [18] authorization #4 still does not exist.
 [19] attempt #4 still not authorized.
 ```
+
+### Complete Implementation Sequence
+
+```text
+new roadmap seal commit — frozen P7 checkpoint with branch architecture
+        │
+        ↓
+create model-coverage/22-symbol-v1
+        │
+        ↓
+repair/verify GitNexus index health
+        │
+        ↓
+branch baseline verification
+        │
+        ↓
+MC1 coverage contract
+        │
+        ↓
+MC2 per-symbol feasibility
+        │
+        ├── any infeasible
+        │       ↓
+        │   CLOSED_INFEASIBLE
+        │   P7 remains blocked
+        │
+        └── 22/22 feasible
+                ↓
+MC3 data/training readiness
+                ↓
+MC4 train/validate/build explicit routes
+                ↓
+MC5 artifact bundle closure
+                ↓
+MC6 exact 22/22 compatibility
+                ↓
+MC7 P2/P5/P6/full regression
+                ↓
+MC8 new runtime/artifact release seal
+                ↓
+MC9 immutable handoff
+                ↓
+return to P7
+                ↓
+assess evidence epoch compatibility
+                ↓
+fresh preflight #4
+                ↓
+G6 authorization #4
+                ↓
+STOP
+```
+
+The key governance boundary is that P7 no longer carries model development. P7 records that the old release is blocked by incomplete coverage. The `model-coverage/22-symbol-v1` branch proves whether a real 22-symbol release can exist; only a sealed release can be handed back to P7.
