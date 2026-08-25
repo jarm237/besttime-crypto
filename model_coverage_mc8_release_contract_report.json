@@ -1,0 +1,39 @@
+{
+  "artifact": "model_coverage_mc8_release_contract_report",
+  "gates": {
+    "MC8-A-G1": {
+      "actual": "CLOSED",
+      "expected": "CLOSED",
+      "gate": "MC7 CLOSED Check",
+      "result": "PASS"
+    },
+    "MC8-A-G2": {
+      "clean": true,
+      "gate": "Worktree Clean check",
+      "result": "PASS"
+    },
+    "MC8-A-G3": {
+      "actual": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "expected": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "gate": "Exact Source Commit Pinned",
+      "result": "PASS"
+    },
+    "MC8-A-G4": {
+      "gate": "Registry Identity Pinned",
+      "registry_sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04",
+      "result": "PASS"
+    },
+    "MC8-A-G5": {
+      "calibrator_fingerprints_count": 9,
+      "gate": "All Route Artifacts Pinned",
+      "model_fingerprints_count": 9,
+      "result": "PASS"
+    },
+    "MC8-A-G6": {
+      "gate": "No Unresolved Dependency",
+      "missing_dependencies": [],
+      "result": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}
