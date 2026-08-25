@@ -1,0 +1,7 @@
+{
+  "artifact": "p7_attempt4_first_cycle_report",
+  "error_observed": "inference_symbol_unsupported:DOGE",
+  "first_cycle_completed": false,
+  "generated_at": "2026-08-25T08:18:06Z",
+  "overall_verdict": "FAIL"
+}
