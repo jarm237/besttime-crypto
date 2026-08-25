@@ -1,0 +1,15 @@
+{
+  "artifact": "p7_attempt4_release_readback",
+  "gates": {
+    "A4-G8-B-1": {
+      "code_commit_sha": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "epoch_id": "canary-mc9-v1-a4-20260825-01",
+      "gate": "running_release_matches_authorization",
+      "release_manifest_sha256": "213aff3cfc6edfa8339dc0ccec31f2bab99aba3e2c400bebac6a36b67d60538a",
+      "result": "PASS",
+      "status": "ACTIVE"
+    }
+  },
+  "generated_at": "2026-08-25T08:17:11Z",
+  "overall_verdict": "PASS"
+}

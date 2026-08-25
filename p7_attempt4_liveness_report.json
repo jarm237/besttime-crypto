@@ -1,0 +1,19 @@
+{
+  "artifact": "p7_attempt4_liveness_report",
+  "child_exited_before_liveness": true,
+  "child_pid": 641490,
+  "g8_evaluation": {
+    "contract": "p7-g8-identity-and-sustained-liveness/v1",
+    "g8_a": "PASS",
+    "g8_b": "FAIL",
+    "identity_establishment_separated": true,
+    "paper_canary": "NOT_ACTIVE",
+    "runtime_activation": "ACTIVATION_NOT_SUSTAINED",
+    "sustained_liveness_required": true
+  },
+  "generated_at": "2026-08-25T08:17:41Z",
+  "is_alive": false,
+  "overall_verdict": "FAIL",
+  "predictions_logged": 0,
+  "semantic_progress_observed": false
+}
