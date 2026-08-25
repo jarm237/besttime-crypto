@@ -1,0 +1,41 @@
+{
+  "artifact": "model_coverage_mc7_runtime_binding_report",
+  "authorized_routes": 9,
+  "canonical_universe": 22,
+  "effective_runtime_universe": 9,
+  "gates": {
+    "MC7-A-G1": {
+      "actual": 22,
+      "expected": 22,
+      "gate": "canonical_universe_integrity",
+      "result": "PASS"
+    },
+    "MC7-A-G2": {
+      "gate": "all_22_symbols_classified",
+      "result": "PASS",
+      "unclassified": []
+    },
+    "MC7-A-G3": {
+      "gate": "authorized_disabled_disjoint",
+      "overlap": [],
+      "result": "PASS"
+    },
+    "MC7-A-G4": {
+      "authorized_routes": 9,
+      "gate": "effective_universe_equals_authorized_routes",
+      "result": "PASS"
+    },
+    "MC7-A-G5": {
+      "gate": "runtime_symbol_sources_inventoried",
+      "result": "PASS",
+      "source_count": 10
+    },
+    "MC7-A-G6": {
+      "gate": "no_unknown_symbol_source",
+      "policy_binding_required": "MC7-B",
+      "result": "PASS"
+    }
+  },
+  "inference_disabled": 13,
+  "overall_verdict": "PASS"
+}

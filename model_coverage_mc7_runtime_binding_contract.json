@@ -1,0 +1,134 @@
+{
+  "artifact": "model_coverage_mc7_runtime_binding_contract",
+  "authorized_routes": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "authorized_routes_count": 9,
+  "binding_policy": "AUTHORIZED_ROUTES_ONLY",
+  "canonical_universe": [
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "ZEC",
+    "XRP",
+    "DOGE",
+    "WLD",
+    "XLM",
+    "NEAR",
+    "AVAX",
+    "TAO",
+    "TRB",
+    "AEVO",
+    "ENA",
+    "AR",
+    "IOTA",
+    "XPL",
+    "SOPH",
+    "XAUT",
+    "TRX",
+    "TRUMP"
+  ],
+  "canonical_universe_count": 22,
+  "disabled_symbol_policy": "REJECT_BEFORE_DISPATCH",
+  "effective_runtime_universe": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "effective_runtime_universe_count": 9,
+  "inference_disabled_count": 13,
+  "inference_disabled_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "ENA",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP"
+  ],
+  "mc6_registry_seal": "506ae19ba4d325dacf71cb535d616a82385938d3",
+  "runtime_symbol_sources": [
+    {
+      "description": "ANALYSIS_SYMBOLS = RUNTIME_UNIVERSE.analysis_symbols (from get_runtime_universe())",
+      "path": "main.py:68",
+      "policy_binding": "post-MC7-B",
+      "source_type": "config.get_runtime_universe"
+    },
+    {
+      "description": "MarketAnalystAgent.__init__ defaults to get_analysis_universe()",
+      "path": "btc_scraper/ml_engine/multi_agent.py:38",
+      "policy_binding": "post-MC7-B",
+      "source_type": "config.get_analysis_universe"
+    },
+    {
+      "description": "AgentOrchestrator.__init__ defaults to get_analysis_universe()",
+      "path": "btc_scraper/ml_engine/multi_agent.py:476",
+      "policy_binding": "post-MC7-B",
+      "source_type": "config.get_analysis_universe"
+    },
+    {
+      "description": "predict_once: normalize_inference_symbol uses get_analysis_universe()",
+      "path": "btc_scraper/ml_engine/inference_coordinator.py:107",
+      "policy_binding": "post-MC7-B",
+      "source_type": "config.get_analysis_universe"
+    },
+    {
+      "description": "predict_meta_confidence: inference entry point",
+      "path": "btc_scraper/ml_engine/meta_model.py:1313",
+      "policy_binding": "post-MC7-B",
+      "source_type": "meta_model.predict_meta_confidence"
+    },
+    {
+      "description": "allowed_coins via get_runtime_universe().execution_symbols",
+      "path": "btc_scraper/trading/auto_trader.py:209",
+      "policy_binding": "post-MC7-B",
+      "source_type": "config.get_execution_universe"
+    },
+    {
+      "description": "runtime_evidence_store uses get_runtime_universe() for universe hash",
+      "path": "btc_scraper/ml_engine/runtime_evidence_store.py",
+      "policy_binding": "post-MC7-B",
+      "source_type": "config.get_runtime_universe"
+    },
+    {
+      "description": "DecisionEngine.decide: calls predict_meta_confidence",
+      "path": "btc_scraper/ml_engine/decision_engine.py:286",
+      "policy_binding": "post-MC7-B",
+      "source_type": "meta_model.predict_meta_confidence"
+    },
+    {
+      "description": "position_tracker: calls predict_meta_confidence for open-position monitoring",
+      "path": "btc_scraper/trading/position_tracker.py:1121",
+      "policy_binding": "post-MC7-B",
+      "source_type": "meta_model.predict_meta_confidence"
+    },
+    {
+      "description": "dashboard: calls predict_meta_confidence",
+      "path": "btc_scraper/ui/dashboard.py:150",
+      "policy_binding": "post-MC7-B",
+      "source_type": "meta_model.predict_meta_confidence"
+    }
+  ],
+  "unknown_symbol_policy": "FAIL_CLOSED"
+}
