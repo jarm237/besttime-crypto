@@ -1,0 +1,195 @@
+{
+  "artifact": "model_coverage_mc3_readiness_matrix",
+  "readiness_matrix": [
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "AEVO"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "AR"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "AVAX"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "DOGE"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "ENA"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "IOTA"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "NEAR"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "SOL"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "SOPH"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "TAO"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "TRB"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "TRUMP"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "TRX"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "WLD"
+    },
+    {
+      "data": "FAIL",
+      "features": "FAIL",
+      "final": "BLOCKED_DATA_PROVENANCE",
+      "labels": "FAIL",
+      "leakage": "PASS",
+      "samples": "FAIL",
+      "split": "FAIL",
+      "symbol": "XAUT"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "XLM"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "XPL"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "XRP"
+    },
+    {
+      "data": "PASS",
+      "features": "PASS",
+      "final": "BLOCKED_DATA_QUALITY",
+      "labels": "PASS",
+      "leakage": "PASS",
+      "samples": "PASS",
+      "split": "PASS",
+      "symbol": "ZEC"
+    }
+  ]
+}

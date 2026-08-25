@@ -1,0 +1,15 @@
+{
+  "artifact": "model_coverage_mc3_split_contract",
+  "split_contract": {
+    "embargo": "embargo 48 bars before fold boundary",
+    "fold_definitions": "walk-forward folds",
+    "minimum_gap": "96 bars between train and validate/calibration/OOS",
+    "purge": "purge 48 bars after fold boundary",
+    "splits": {
+      "OOS": "holdout",
+      "calibration": 0.15,
+      "train": 0.7,
+      "validation": 0.15
+    }
+  }
+}

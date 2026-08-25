@@ -1,0 +1,16 @@
+{
+  "artifact": "model_coverage_mc3_label_contract",
+  "label_contract": {
+    "boundary_behavior": "horizon exit or vertical barrier hit",
+    "cost_treatment": "slippage and trading fee adjusted",
+    "direction": "LONG",
+    "economic_meaning": "WIN or LOSS label derived from triple barrier method",
+    "entry_timestamp": "entry_time",
+    "exit_timestamp": "exit_time",
+    "forward_horizon": "48 bars",
+    "missing_forward_data_policy": "discard if incomplete",
+    "no_lookahead_rule": "feature_time <= t, label uses t+1 onwards strictly",
+    "price_basis": "close",
+    "target_name": "result"
+  }
+}

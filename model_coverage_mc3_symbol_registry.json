@@ -1,0 +1,127 @@
+{
+  "artifact": "model_coverage_mc3_symbol_registry",
+  "base_commit": "dfed30d",
+  "contract": "model-coverage-mc3-symbol-registry/v1",
+  "created_at": "2026-08-25T02:17:01.486684+00:00",
+  "gates": {
+    "MC3-C1_REQUIRED_BUILD_UNIVERSE_FROZEN": "PASS"
+  },
+  "mc3_required_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "DOGE",
+    "ENA",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "TRX",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP",
+    "ZEC"
+  ],
+  "symbols": [
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "AEVO"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "AR"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "AVAX"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "DOGE"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "ENA"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "IOTA"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "NEAR"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "SOL"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "SOPH"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "TAO"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "TRB"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "TRUMP"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "TRX"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "WLD"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "XAUT"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "XLM"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "XPL"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "XRP"
+    },
+    {
+      "mc2_state": "MISSING_ARTIFACT",
+      "mc3_required": true,
+      "symbol": "ZEC"
+    }
+  ]
+}
