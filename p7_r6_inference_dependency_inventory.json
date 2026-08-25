@@ -1,0 +1,145 @@
+{
+  "artifact": "p7_r6_inference_dependency_inventory",
+  "inventory": [
+    {
+      "component": "Legacy Ensemble Meta-Model",
+      "class": "EnsembleMetaModel",
+      "source_module": "btc_scraper.ml_engine.meta_model",
+      "artifact_path": "logs/meta_model.joblib",
+      "config_dependency": "logs/meta_model.json",
+      "supported_symbols": ["BTC", "ETH", "BNB"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "Legacy Aux Filter Classifier",
+      "class": "V5FilterModelClassifier",
+      "source_module": "scripts.hmr_v5_d2_r1_real_runtime_parity",
+      "artifact_path": "logs/meta_model.joblib",
+      "config_dependency": "research/historical_market_replay_v5/v5_filter_model/model.json",
+      "supported_symbols": ["BTC", "ETH", "BNB"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "SOL Candidate Model",
+      "class": "Pipeline",
+      "source_module": "sklearn.pipeline",
+      "artifact_path": "research/model_coverage_mc4/candidates/SOL/model.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["SOL"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "SOL Calibrator",
+      "class": "LogisticRegression",
+      "source_module": "sklearn.linear_model._logistic",
+      "artifact_path": "research/model_coverage_mc5/SOL/calibrator.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["SOL"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "ZEC Candidate Model",
+      "class": "Pipeline",
+      "source_module": "sklearn.pipeline",
+      "artifact_path": "research/model_coverage_mc4/candidates/ZEC/model.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["ZEC"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "ZEC Calibrator",
+      "class": "LogisticRegression",
+      "source_module": "sklearn.linear_model._logistic",
+      "artifact_path": "research/model_coverage_mc5/ZEC/calibrator.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["ZEC"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "DOGE Candidate Model",
+      "class": "Pipeline",
+      "source_module": "sklearn.pipeline",
+      "artifact_path": "research/model_coverage_mc4/candidates/DOGE/model.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["DOGE"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "DOGE Calibrator",
+      "class": "LogisticRegression",
+      "source_module": "sklearn.linear_model._logistic",
+      "artifact_path": "research/model_coverage_mc5/DOGE/calibrator.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["DOGE"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "NEAR Candidate Model",
+      "class": "Pipeline",
+      "source_module": "sklearn.pipeline",
+      "artifact_path": "research/model_coverage_mc4/candidates/NEAR/model.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["NEAR"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "NEAR Calibrator",
+      "class": "LogisticRegression",
+      "source_module": "sklearn.linear_model._logistic",
+      "artifact_path": "research/model_coverage_mc5/NEAR/calibrator.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["NEAR"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "IOTA Candidate Model",
+      "class": "Pipeline",
+      "source_module": "sklearn.pipeline",
+      "artifact_path": "research/model_coverage_mc4/candidates/IOTA/model.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["IOTA"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "IOTA Calibrator",
+      "class": "LogisticRegression",
+      "source_module": "sklearn.linear_model._logistic",
+      "artifact_path": "research/model_coverage_mc5/IOTA/calibrator.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["IOTA"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "TRX Candidate Model",
+      "class": "Pipeline",
+      "source_module": "sklearn.pipeline",
+      "artifact_path": "research/model_coverage_mc4/candidates/TRX/model.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["TRX"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    },
+    {
+      "component": "TRX Calibrator",
+      "class": "LogisticRegression",
+      "source_module": "sklearn.linear_model._logistic",
+      "artifact_path": "research/model_coverage_mc5/TRX/calibrator.joblib",
+      "config_dependency": "model_coverage_mc6_inference_registry.json",
+      "supported_symbols": ["TRX"],
+      "symbol_sensitive": true,
+      "runtime_reachable": true
+    }
+  ]
+}
