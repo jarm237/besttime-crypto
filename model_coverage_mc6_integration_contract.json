@@ -1,0 +1,60 @@
+{
+  "artifact": "model_coverage_mc6_integration_contract",
+  "calibration_method": "PLATT_SIGMOID",
+  "excluded_symbols": [
+    "XRP",
+    "WLD",
+    "XLM",
+    "AVAX",
+    "TAO",
+    "TRB",
+    "AEVO",
+    "ENA",
+    "AR",
+    "XPL",
+    "SOPH",
+    "XAUT",
+    "TRUMP"
+  ],
+  "feature_schema": {
+    "features": [
+      "return_8",
+      "return_32",
+      "return_72",
+      "abs_move_72"
+    ],
+    "version": "features_v5_4f"
+  },
+  "legacy_routes": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "mc5_qualified_routes": [
+    "DOGE",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "mc6a_state": "CLOSED",
+  "routable_symbols": [
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "ZEC",
+    "DOGE",
+    "NEAR",
+    "IOTA",
+    "TRX"
+  ],
+  "routing_semantics": {
+    "default_artifact_route": "FORBIDDEN",
+    "excluded_symbol_behavior": "RAISE_InferenceSymbolUnsupported",
+    "policy": "FAIL_CLOSED",
+    "silent_fallback": "FORBIDDEN",
+    "unknown_symbol_behavior": "RAISE_InferenceSymbolUnsupported"
+  }
+}

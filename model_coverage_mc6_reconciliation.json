@@ -1,0 +1,295 @@
+{
+  "artifact": "model_coverage_mc6_reconciliation",
+  "canonical_symbols": [
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "ZEC",
+    "XRP",
+    "DOGE",
+    "WLD",
+    "XLM",
+    "NEAR",
+    "AVAX",
+    "TAO",
+    "TRB",
+    "AEVO",
+    "ENA",
+    "AR",
+    "IOTA",
+    "XPL",
+    "SOPH",
+    "XAUT",
+    "TRX",
+    "TRUMP"
+  ],
+  "canonical_universe_count": 22,
+  "classifications": [
+    {
+      "category": "LEGACY_ROUTE",
+      "reason": "Existing inference route from pre-MC pipeline",
+      "routable": true,
+      "symbol": "BTC"
+    },
+    {
+      "category": "LEGACY_ROUTE",
+      "reason": "Existing inference route from pre-MC pipeline",
+      "routable": true,
+      "symbol": "ETH"
+    },
+    {
+      "category": "LEGACY_ROUTE",
+      "reason": "Existing inference route from pre-MC pipeline",
+      "routable": true,
+      "symbol": "BNB"
+    },
+    {
+      "category": "MC5_QUALIFIED_ROUTE",
+      "mc5_verdict": "QUALIFIED",
+      "reason": "Passed all statistical, calibration, and economic OOS gates",
+      "routable": true,
+      "symbol": "SOL"
+    },
+    {
+      "category": "MC5_QUALIFIED_ROUTE",
+      "mc5_verdict": "QUALIFIED",
+      "reason": "Passed all statistical, calibration, and economic OOS gates",
+      "routable": true,
+      "symbol": "ZEC"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_STATISTICAL",
+      "reason": "OOS qualification failed: REJECTED_STATISTICAL",
+      "routable": false,
+      "statistical_verdict": "FAIL",
+      "symbol": "XRP"
+    },
+    {
+      "category": "MC5_QUALIFIED_ROUTE",
+      "mc5_verdict": "QUALIFIED",
+      "reason": "Passed all statistical, calibration, and economic OOS gates",
+      "routable": true,
+      "symbol": "DOGE"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_STATISTICAL",
+      "reason": "OOS qualification failed: REJECTED_STATISTICAL",
+      "routable": false,
+      "statistical_verdict": "FAIL",
+      "symbol": "WLD"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_STATISTICAL",
+      "reason": "OOS qualification failed: REJECTED_STATISTICAL",
+      "routable": false,
+      "statistical_verdict": "FAIL",
+      "symbol": "XLM"
+    },
+    {
+      "category": "MC5_QUALIFIED_ROUTE",
+      "mc5_verdict": "QUALIFIED",
+      "reason": "Passed all statistical, calibration, and economic OOS gates",
+      "routable": true,
+      "symbol": "NEAR"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_ECONOMIC",
+      "reason": "OOS qualification failed: REJECTED_ECONOMIC",
+      "routable": false,
+      "statistical_verdict": "PASS",
+      "symbol": "AVAX"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_STATISTICAL",
+      "reason": "OOS qualification failed: REJECTED_STATISTICAL",
+      "routable": false,
+      "statistical_verdict": "FAIL",
+      "symbol": "TAO"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_ECONOMIC",
+      "reason": "OOS qualification failed: REJECTED_ECONOMIC",
+      "routable": false,
+      "statistical_verdict": "PASS",
+      "symbol": "TRB"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_STATISTICAL",
+      "reason": "OOS qualification failed: REJECTED_STATISTICAL",
+      "routable": false,
+      "statistical_verdict": "FAIL",
+      "symbol": "AEVO"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_STATISTICAL",
+      "reason": "OOS qualification failed: REJECTED_STATISTICAL",
+      "routable": false,
+      "statistical_verdict": "FAIL",
+      "symbol": "ENA"
+    },
+    {
+      "calibration_verdict": "PASS",
+      "category": "MC5_REJECTED",
+      "economic_verdict": "FAIL",
+      "mc5_verdict": "REJECTED_ECONOMIC",
+      "reason": "OOS qualification failed: REJECTED_ECONOMIC",
+      "routable": false,
+      "statistical_verdict": "PASS",
+      "symbol": "AR"
+    },
+    {
+      "category": "MC5_QUALIFIED_ROUTE",
+      "mc5_verdict": "QUALIFIED",
+      "reason": "Passed all statistical, calibration, and economic OOS gates",
+      "routable": true,
+      "symbol": "IOTA"
+    },
+    {
+      "category": "MC4_NO_CANDIDATE",
+      "reason": "MC4 skipped due to class imbalance; no candidate artifact built",
+      "routable": false,
+      "symbol": "XPL"
+    },
+    {
+      "category": "MC4_NO_CANDIDATE",
+      "reason": "MC4 skipped due to class imbalance; no candidate artifact built",
+      "routable": false,
+      "symbol": "SOPH"
+    },
+    {
+      "category": "MC3_BLOCKED_DATA_PROVENANCE",
+      "reason": "Data provenance check failed at MC3; no training data available",
+      "routable": false,
+      "symbol": "XAUT"
+    },
+    {
+      "category": "MC5_QUALIFIED_ROUTE",
+      "mc5_verdict": "QUALIFIED",
+      "reason": "Passed all statistical, calibration, and economic OOS gates",
+      "routable": true,
+      "symbol": "TRX"
+    },
+    {
+      "category": "MC4_NO_CANDIDATE",
+      "reason": "MC4 skipped due to class imbalance; no candidate artifact built",
+      "routable": false,
+      "symbol": "TRUMP"
+    }
+  ],
+  "excluded_count": 13,
+  "excluded_symbols": [
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_STATISTICAL",
+      "symbol": "XRP"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_STATISTICAL",
+      "symbol": "WLD"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_STATISTICAL",
+      "symbol": "XLM"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_ECONOMIC",
+      "symbol": "AVAX"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_STATISTICAL",
+      "symbol": "TAO"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_ECONOMIC",
+      "symbol": "TRB"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_STATISTICAL",
+      "symbol": "AEVO"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_STATISTICAL",
+      "symbol": "ENA"
+    },
+    {
+      "exclusion_class": "MC5_OOS_REJECTION",
+      "exclusion_reason": "REJECTED_ECONOMIC",
+      "symbol": "AR"
+    },
+    {
+      "exclusion_class": "MC4_BUILD_FAILURE",
+      "exclusion_reason": "NO_MC4_CANDIDATE",
+      "symbol": "XPL"
+    },
+    {
+      "exclusion_class": "MC4_BUILD_FAILURE",
+      "exclusion_reason": "NO_MC4_CANDIDATE",
+      "symbol": "SOPH"
+    },
+    {
+      "exclusion_class": "MC3_DATA_PROVENANCE_FAILURE",
+      "exclusion_reason": "BLOCKED_DATA_PROVENANCE",
+      "symbol": "XAUT"
+    },
+    {
+      "exclusion_class": "MC4_BUILD_FAILURE",
+      "exclusion_reason": "NO_MC4_CANDIDATE",
+      "symbol": "TRUMP"
+    }
+  ],
+  "gates": {
+    "G1_runtime_universe_accounted": "PASS",
+    "G2_every_enabled_symbol_has_model": "PASS",
+    "G3_every_enabled_symbol_has_calibrator": "PASS",
+    "G4_artifact_schema_fingerprints_valid": "DEFERRED_TO_MC6B",
+    "G5_duplicate_ambiguous_routes_absent": "PASS",
+    "G6_fallback_to_wrong_model_impossible": "PASS"
+  },
+  "mc5_seal_commit": "a59df4a82d9f78774e94847625ac148d12a760d1",
+  "reconciliation_verdict": "PASS",
+  "routable_count": 9,
+  "routable_symbols": [
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "ZEC",
+    "DOGE",
+    "NEAR",
+    "IOTA",
+    "TRX"
+  ],
+  "unresolved_count": 0
+}
