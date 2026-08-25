@@ -1,0 +1,11 @@
+{
+  "artifact": "p7_attempt5_authorization_consumption",
+  "attempt_id": "p7-attempt-5",
+  "consumed_at": "2026-08-25T09:28:19Z",
+  "consumed_authorization_sha256": "67586a35e1192972ed8414c203f2c37c688ece5d56555a969bac4f36446b0b64",
+  "epoch_id": "canary-mc9-v1-a5-20260825-01",
+  "generated_at": "2026-08-25T09:28:19Z",
+  "original_authorization_sha256": "0efb87b14efb6ec5c97021ff474aa79b19c7fb7c5dde7568b82dc5bf7576cda7",
+  "overall_verdict": "PASS",
+  "status": "CONSUMED"
+}
