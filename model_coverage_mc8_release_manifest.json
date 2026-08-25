@@ -1,0 +1,496 @@
+{
+  "canonical_universe": 22,
+  "contracts": {
+    "feature_contract_version": "features_v5_4f",
+    "inference_contract_version": "explicit-inference/v1"
+  },
+  "disabled_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "ENA",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP"
+  ],
+  "effective_runtime_universe": 9,
+  "provenance": {
+    "mc6_registry_seal": "506ae19ba4d325dacf71cb535d616a82385938d3",
+    "mc6_registry_sha256": "9e5f227e847dab4b01f68b1d6f75dad68a6c4185779ff9c87026e0d26bb36c04",
+    "mc7_verdict_sha256": "cfdf3c77ffdae30230b8a569383868e17f0e27fc2827e9ff3bfcf3bc2a0f5d52"
+  },
+  "registry": {
+    "artifact": "model_coverage_mc6_inference_registry",
+    "feature_schema_sha256": "116b099445e722ccd8502be665ccc441a7f4b327333a7e50f77f56fe414269bb",
+    "integrity_failures": [],
+    "legacy_count": 3,
+    "mc5_qualified_count": 6,
+    "registry_sha256": "22c5bab4be40f31220485f49f16abe8e28e3a4ee0a7a4b1a036612ab4abdc196",
+    "registry_version": "mc6-v1",
+    "routable_count": 9,
+    "routes": [
+      {
+        "calibrator_artifact_path": null,
+        "calibrator_sha256": null,
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "model_artifact_path": null,
+        "model_sha256": null,
+        "qualification_contract": "pre-mc-pipeline",
+        "qualification_verdict": "LEGACY_GRANDFATHERED",
+        "route_type": "LEGACY",
+        "route_version": "legacy-v1",
+        "symbol": "BTC",
+        "training_contract": "pre-mc-pipeline"
+      },
+      {
+        "calibrator_artifact_path": null,
+        "calibrator_sha256": null,
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "model_artifact_path": null,
+        "model_sha256": null,
+        "qualification_contract": "pre-mc-pipeline",
+        "qualification_verdict": "LEGACY_GRANDFATHERED",
+        "route_type": "LEGACY",
+        "route_version": "legacy-v1",
+        "symbol": "ETH",
+        "training_contract": "pre-mc-pipeline"
+      },
+      {
+        "calibrator_artifact_path": null,
+        "calibrator_sha256": null,
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "model_artifact_path": null,
+        "model_sha256": null,
+        "qualification_contract": "pre-mc-pipeline",
+        "qualification_verdict": "LEGACY_GRANDFATHERED",
+        "route_type": "LEGACY",
+        "route_version": "legacy-v1",
+        "symbol": "BNB",
+        "training_contract": "pre-mc-pipeline"
+      },
+      {
+        "calibrator_artifact_path": "research/model_coverage_mc5/SOL/calibrator.joblib",
+        "calibrator_sha256": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "mc4_artifact_id": "SOL_candidate_v1",
+        "mc5_calibrator_id": "SOL_calibrator_v1",
+        "model_artifact_path": "research/model_coverage_mc4/candidates/SOL/model.joblib",
+        "model_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+        "qualification_contract": "model-coverage-mc5/v1",
+        "qualification_verdict": "QUALIFIED",
+        "route_type": "MC5_QUALIFIED",
+        "route_version": "mc5-v1",
+        "symbol": "SOL",
+        "training_contract": "model-coverage-mc4/v1"
+      },
+      {
+        "calibrator_artifact_path": "research/model_coverage_mc5/ZEC/calibrator.joblib",
+        "calibrator_sha256": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a",
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "mc4_artifact_id": "ZEC_candidate_v1",
+        "mc5_calibrator_id": "ZEC_calibrator_v1",
+        "model_artifact_path": "research/model_coverage_mc4/candidates/ZEC/model.joblib",
+        "model_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+        "qualification_contract": "model-coverage-mc5/v1",
+        "qualification_verdict": "QUALIFIED",
+        "route_type": "MC5_QUALIFIED",
+        "route_version": "mc5-v1",
+        "symbol": "ZEC",
+        "training_contract": "model-coverage-mc4/v1"
+      },
+      {
+        "calibrator_artifact_path": "research/model_coverage_mc5/DOGE/calibrator.joblib",
+        "calibrator_sha256": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "mc4_artifact_id": "DOGE_candidate_v1",
+        "mc5_calibrator_id": "DOGE_calibrator_v1",
+        "model_artifact_path": "research/model_coverage_mc4/candidates/DOGE/model.joblib",
+        "model_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+        "qualification_contract": "model-coverage-mc5/v1",
+        "qualification_verdict": "QUALIFIED",
+        "route_type": "MC5_QUALIFIED",
+        "route_version": "mc5-v1",
+        "symbol": "DOGE",
+        "training_contract": "model-coverage-mc4/v1"
+      },
+      {
+        "calibrator_artifact_path": "research/model_coverage_mc5/NEAR/calibrator.joblib",
+        "calibrator_sha256": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "mc4_artifact_id": "NEAR_candidate_v1",
+        "mc5_calibrator_id": "NEAR_calibrator_v1",
+        "model_artifact_path": "research/model_coverage_mc4/candidates/NEAR/model.joblib",
+        "model_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+        "qualification_contract": "model-coverage-mc5/v1",
+        "qualification_verdict": "QUALIFIED",
+        "route_type": "MC5_QUALIFIED",
+        "route_version": "mc5-v1",
+        "symbol": "NEAR",
+        "training_contract": "model-coverage-mc4/v1"
+      },
+      {
+        "calibrator_artifact_path": "research/model_coverage_mc5/IOTA/calibrator.joblib",
+        "calibrator_sha256": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "mc4_artifact_id": "IOTA_candidate_v1",
+        "mc5_calibrator_id": "IOTA_calibrator_v1",
+        "model_artifact_path": "research/model_coverage_mc4/candidates/IOTA/model.joblib",
+        "model_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+        "qualification_contract": "model-coverage-mc5/v1",
+        "qualification_verdict": "QUALIFIED",
+        "route_type": "MC5_QUALIFIED",
+        "route_version": "mc5-v1",
+        "symbol": "IOTA",
+        "training_contract": "model-coverage-mc4/v1"
+      },
+      {
+        "calibrator_artifact_path": "research/model_coverage_mc5/TRX/calibrator.joblib",
+        "calibrator_sha256": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
+        "feature_schema": [
+          "return_8",
+          "return_32",
+          "return_72",
+          "abs_move_72"
+        ],
+        "feature_schema_version": "features_v5_4f",
+        "mc4_artifact_id": "TRX_candidate_v1",
+        "mc5_calibrator_id": "TRX_calibrator_v1",
+        "model_artifact_path": "research/model_coverage_mc4/candidates/TRX/model.joblib",
+        "model_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+        "qualification_contract": "model-coverage-mc5/v1",
+        "qualification_verdict": "QUALIFIED",
+        "route_type": "MC5_QUALIFIED",
+        "route_version": "mc5-v1",
+        "symbol": "TRX",
+        "training_contract": "model-coverage-mc4/v1"
+      }
+    ]
+  },
+  "release_version": "model-coverage-v1",
+  "routes": {
+    "BNB": {
+      "calibrator_sha256": null,
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": null,
+      "qualification_verdict": "LEGACY_GRANDFATHERED",
+      "route_type": "LEGACY",
+      "route_version": "legacy-v1",
+      "symbol": "BNB"
+    },
+    "BTC": {
+      "calibrator_sha256": null,
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": null,
+      "qualification_verdict": "LEGACY_GRANDFATHERED",
+      "route_type": "LEGACY",
+      "route_version": "legacy-v1",
+      "symbol": "BTC"
+    },
+    "DOGE": {
+      "calibrator_sha256": "6242c303c4e580e4f94d6fc13d72d872ca28f64704d78fd8287c6cb08d571c6d",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "5b61234ba1f0c40c8706741aacc0c71692d3c63fd14b83ef733e8ffe6b9573b1",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "symbol": "DOGE"
+    },
+    "ETH": {
+      "calibrator_sha256": null,
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": null,
+      "qualification_verdict": "LEGACY_GRANDFATHERED",
+      "route_type": "LEGACY",
+      "route_version": "legacy-v1",
+      "symbol": "ETH"
+    },
+    "IOTA": {
+      "calibrator_sha256": "1fda088eda0f2d2bf0f0d411559027dd5e872cfc408a444153f7acf1cfa10b48",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "cfe63e3edd7025280eff6d209c809121232bcffdb513ff7114340eb2b08a573c",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "symbol": "IOTA"
+    },
+    "NEAR": {
+      "calibrator_sha256": "c11d17c60b664534295a272843f78e377f8b8dc24b13e0005798db1ee594bd00",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "42e4fa0edeb2ef43bc4f45555daacd87f3a73085b5c3b2dcc86dfeaeb843c835",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "symbol": "NEAR"
+    },
+    "SOL": {
+      "calibrator_sha256": "d15c7019d7f933d89359993f5707732382dc018f38dca8a606731456fefd367e",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "7407eab3514d3552d40ceb7371b68ac6c2de9ed5d0a649fbdc7116860c4f2317",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "symbol": "SOL"
+    },
+    "TRX": {
+      "calibrator_sha256": "a909a13288780553aa2e83202e3ec67a7ef47ee0f29e6f46ad2dc99596f0c290",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "8995ed7d48f013123117874dd27076dfe21b55eeb2f1762687b48f49518ad7f8",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "symbol": "TRX"
+    },
+    "ZEC": {
+      "calibrator_sha256": "c457de38289cc71e1c2921cdb7247e7adead62938e4c3c47f8412d91ac0f7b8a",
+      "feature_schema": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "feature_schema_version": "features_v5_4f",
+      "model_sha256": "262ef9c0e590a092a3eb9892e6e01d95accc4154b72d4e4518a7bd9e378f297b",
+      "qualification_verdict": "QUALIFIED",
+      "route_type": "MC5_QUALIFIED",
+      "route_version": "mc5-v1",
+      "symbol": "ZEC"
+    }
+  },
+  "runtime_binding": {
+    "artifact": "model_coverage_mc7_runtime_binding_contract",
+    "authorized_routes": [
+      "BNB",
+      "BTC",
+      "DOGE",
+      "ETH",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ],
+    "authorized_routes_count": 9,
+    "binding_policy": "AUTHORIZED_ROUTES_ONLY",
+    "canonical_universe": [
+      "BTC",
+      "ETH",
+      "BNB",
+      "SOL",
+      "ZEC",
+      "XRP",
+      "DOGE",
+      "WLD",
+      "XLM",
+      "NEAR",
+      "AVAX",
+      "TAO",
+      "TRB",
+      "AEVO",
+      "ENA",
+      "AR",
+      "IOTA",
+      "XPL",
+      "SOPH",
+      "XAUT",
+      "TRX",
+      "TRUMP"
+    ],
+    "canonical_universe_count": 22,
+    "disabled_symbol_policy": "REJECT_BEFORE_DISPATCH",
+    "effective_runtime_universe": [
+      "BNB",
+      "BTC",
+      "DOGE",
+      "ETH",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ],
+    "effective_runtime_universe_count": 9,
+    "inference_disabled_count": 13,
+    "inference_disabled_symbols": [
+      "AEVO",
+      "AR",
+      "AVAX",
+      "ENA",
+      "SOPH",
+      "TAO",
+      "TRB",
+      "TRUMP",
+      "WLD",
+      "XAUT",
+      "XLM",
+      "XPL",
+      "XRP"
+    ],
+    "mc6_registry_seal": "506ae19ba4d325dacf71cb535d616a82385938d3",
+    "runtime_symbol_sources": [
+      {
+        "description": "ANALYSIS_SYMBOLS = RUNTIME_UNIVERSE.analysis_symbols (from get_runtime_universe())",
+        "path": "main.py:68",
+        "policy_binding": "post-MC7-B",
+        "source_type": "config.get_runtime_universe"
+      },
+      {
+        "description": "MarketAnalystAgent.__init__ defaults to get_analysis_universe()",
+        "path": "btc_scraper/ml_engine/multi_agent.py:38",
+        "policy_binding": "post-MC7-B",
+        "source_type": "config.get_analysis_universe"
+      },
+      {
+        "description": "AgentOrchestrator.__init__ defaults to get_analysis_universe()",
+        "path": "btc_scraper/ml_engine/multi_agent.py:476",
+        "policy_binding": "post-MC7-B",
+        "source_type": "config.get_analysis_universe"
+      },
+      {
+        "description": "predict_once: normalize_inference_symbol uses get_analysis_universe()",
+        "path": "btc_scraper/ml_engine/inference_coordinator.py:107",
+        "policy_binding": "post-MC7-B",
+        "source_type": "config.get_analysis_universe"
+      },
+      {
+        "description": "predict_meta_confidence: inference entry point",
+        "path": "btc_scraper/ml_engine/meta_model.py:1313",
+        "policy_binding": "post-MC7-B",
+        "source_type": "meta_model.predict_meta_confidence"
+      },
+      {
+        "description": "allowed_coins via get_runtime_universe().execution_symbols",
+        "path": "btc_scraper/trading/auto_trader.py:209",
+        "policy_binding": "post-MC7-B",
+        "source_type": "config.get_execution_universe"
+      },
+      {
+        "description": "runtime_evidence_store uses get_runtime_universe() for universe hash",
+        "path": "btc_scraper/ml_engine/runtime_evidence_store.py",
+        "policy_binding": "post-MC7-B",
+        "source_type": "config.get_runtime_universe"
+      },
+      {
+        "description": "DecisionEngine.decide: calls predict_meta_confidence",
+        "path": "btc_scraper/ml_engine/decision_engine.py:286",
+        "policy_binding": "post-MC7-B",
+        "source_type": "meta_model.predict_meta_confidence"
+      },
+      {
+        "description": "position_tracker: calls predict_meta_confidence for open-position monitoring",
+        "path": "btc_scraper/trading/position_tracker.py:1121",
+        "policy_binding": "post-MC7-B",
+        "source_type": "meta_model.predict_meta_confidence"
+      },
+      {
+        "description": "dashboard: calls predict_meta_confidence",
+        "path": "btc_scraper/ui/dashboard.py:150",
+        "policy_binding": "post-MC7-B",
+        "source_type": "meta_model.predict_meta_confidence"
+      }
+    ],
+    "unknown_symbol_policy": "FAIL_CLOSED"
+  },
+  "source_commit": "94407d3483bb01eccf0e86882cef258dcbb646e9"
+}

@@ -1,0 +1,22 @@
+{
+  "artifact": "model_coverage_mc8_pinned_runtime_report",
+  "gates": {
+    "MC8-B-G1": {
+      "gate": "worktree_created",
+      "path": "runtime/worktrees/pinned-94407d3",
+      "result": "PASS"
+    },
+    "MC8-B-G2": {
+      "actual": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "expected": "94407d3483bb01eccf0e86882cef258dcbb646e9",
+      "gate": "exact_head_commit",
+      "result": "PASS"
+    },
+    "MC8-B-G3": {
+      "gate": "worktree_clean_no_modifications",
+      "result": "PASS"
+    }
+  },
+  "manifest_sha256": "6265e41454354fecae1382679abf1ab4f3173c366627a9bc7936fa6af3b1b650",
+  "overall_verdict": "PASS"
+}
