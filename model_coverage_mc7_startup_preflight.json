@@ -1,0 +1,154 @@
+{
+  "artifact": "model_coverage_mc7_startup_preflight",
+  "authorized_count": 9,
+  "authorized_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "feature_schema": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "gates": {
+    "MC7-D-G1": {
+      "analysis_count": 9,
+      "authorized_count": 9,
+      "authorized_eq_analysis": true,
+      "gate": "config_binds_to_authorized_9",
+      "result": "PASS"
+    },
+    "MC7-D-G2": {
+      "gate": "inference_registry_sealed_and_valid",
+      "registry_sha256": "9e5f227e847dab4b\u2026",
+      "result": "PASS",
+      "route_count": 9
+    },
+    "MC7-D-G3": {
+      "gate": "all_authorized_symbols_resolve",
+      "resolved": [
+        {
+          "route_type": "LEGACY",
+          "symbol": "BNB"
+        },
+        {
+          "route_type": "LEGACY",
+          "symbol": "BTC"
+        },
+        {
+          "route_type": "MC5_QUALIFIED",
+          "symbol": "DOGE"
+        },
+        {
+          "route_type": "LEGACY",
+          "symbol": "ETH"
+        },
+        {
+          "route_type": "MC5_QUALIFIED",
+          "symbol": "IOTA"
+        },
+        {
+          "route_type": "MC5_QUALIFIED",
+          "symbol": "NEAR"
+        },
+        {
+          "route_type": "MC5_QUALIFIED",
+          "symbol": "SOL"
+        },
+        {
+          "route_type": "MC5_QUALIFIED",
+          "symbol": "TRX"
+        },
+        {
+          "route_type": "MC5_QUALIFIED",
+          "symbol": "ZEC"
+        }
+      ],
+      "result": "PASS"
+    },
+    "MC7-D-G4": {
+      "canonical_features": [
+        "return_8",
+        "return_32",
+        "return_72",
+        "abs_move_72"
+      ],
+      "gate": "feature_schema_v5_canonical",
+      "result": "PASS",
+      "routes_checked": 9
+    },
+    "MC7-D-G5": {
+      "disabled_count": 13,
+      "gate": "disabled_symbols_rejected_before_dispatch",
+      "rejected": [
+        {
+          "result": "REJECTED_OK",
+          "symbol": "AEVO"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "AR"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "AVAX"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "ENA"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "SOPH"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "TAO"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "TRB"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "TRUMP"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "WLD"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "XAUT"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "XLM"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "XPL"
+        },
+        {
+          "result": "REJECTED_OK",
+          "symbol": "XRP"
+        }
+      ],
+      "result": "PASS"
+    },
+    "MC7-D-G6": {
+      "gate": "no_runtime_writes_during_preflight",
+      "result": "PASS",
+      "verification": "structural \u2014 preflight is read-only by design"
+    }
+  },
+  "overall_verdict": "PASS"
+}

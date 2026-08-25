@@ -1,0 +1,92 @@
+{
+  "artifact": "model_coverage_mc7_runtime_path_inventory",
+  "description": "MC7-E — Static audit of all runtime paths that load or dispatch inference symbols",
+  "policy": "All paths bind symbol through get_analysis_universe() or predict_meta_confidence(). MC7-B guards both entry points.",
+  "paths": [
+    {
+      "id": "P01",
+      "path": "main.py:68",
+      "description": "ANALYSIS_SYMBOLS = RUNTIME_UNIVERSE.analysis_symbols — primary analysis loop symbol list",
+      "source_function": "get_runtime_universe",
+      "policy_binding": "get_analysis_universe() → authorized 9 symbols",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P02",
+      "path": "btc_scraper/ml_engine/meta_model.py:predict_meta_confidence",
+      "description": "Primary inference entry point — now guarded with runtime_symbol_policy.assert_enabled()",
+      "source_function": "predict_meta_confidence",
+      "policy_binding": "runtime_symbol_policy.assert_enabled before normalize_inference_symbol",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P03",
+      "path": "btc_scraper/ml_engine/inference_coordinator.py:predict_once",
+      "description": "InferenceCoordinator.predict_once — secondary inference entry point",
+      "source_function": "predict_once",
+      "policy_binding": "runtime_symbol_policy.assert_enabled before normalize_inference_symbol",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P04",
+      "path": "btc_scraper/ml_engine/multi_agent.py:MarketAnalystAgent.__init__",
+      "description": "MarketAnalystAgent defaults to get_analysis_universe()",
+      "source_function": "get_analysis_universe",
+      "policy_binding": "get_analysis_universe() → authorized 9 symbols",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P05",
+      "path": "btc_scraper/ml_engine/multi_agent.py:AgentOrchestrator.__init__",
+      "description": "AgentOrchestrator defaults to get_analysis_universe()",
+      "source_function": "get_analysis_universe",
+      "policy_binding": "get_analysis_universe() → authorized 9 symbols",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P06",
+      "path": "btc_scraper/ml_engine/decision_engine.py:DecisionEngine.decide",
+      "description": "Calls predict_meta_confidence — guarded via P02",
+      "source_function": "predict_meta_confidence",
+      "policy_binding": "inherits P02 guard",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P07",
+      "path": "btc_scraper/trading/position_tracker.py:open-position monitor",
+      "description": "Calls predict_meta_confidence for open-position urgency evaluation",
+      "source_function": "predict_meta_confidence",
+      "policy_binding": "inherits P02 guard",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P08",
+      "path": "btc_scraper/ui/dashboard.py",
+      "description": "Calls predict_meta_confidence for dashboard display",
+      "source_function": "predict_meta_confidence",
+      "policy_binding": "inherits P02 guard",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P09",
+      "path": "btc_scraper/trading/auto_trader.py:AutoTrader.__init__",
+      "description": "allowed_coins via get_execution_universe() — constrained to subset of get_analysis_universe()",
+      "source_function": "get_execution_universe",
+      "policy_binding": "get_execution_universe() validates subset of get_analysis_universe()",
+      "mc7_status": "BOUND"
+    },
+    {
+      "id": "P10",
+      "path": "btc_scraper/ml_engine/runtime_evidence_store.py",
+      "description": "universe_hash computed from get_runtime_universe() → analysis_symbols",
+      "source_function": "get_runtime_universe",
+      "policy_binding": "get_analysis_universe() → authorized 9 symbols",
+      "mc7_status": "BOUND"
+    }
+  ],
+  "unbound_paths": [],
+  "unbound_count": 0,
+  "bound_count": 10,
+  "total_paths_audited": 10,
+  "audit_verdict": "ALL_PATHS_BOUND"
+}
