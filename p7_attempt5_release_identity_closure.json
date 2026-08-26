@@ -1,0 +1,13 @@
+{
+  "artifact": "p7_attempt5_release_identity_closure",
+  "bootstrap_loop_invariants": {
+    "manifest_rebuilt": false,
+    "release_identity_changed": false,
+    "runtime_source_commit_changed": false
+  },
+  "generated_at": "2026-08-25T13:39:39Z",
+  "overall_verdict": "PASS",
+  "release_identity_sha256": "d8dcafb2aef0010926acfa19114eb2c2b827517bae8f45be2a7e849b6643c14a",
+  "release_manifest_sha256": "6f79cd6b52bfb4083c1af2b258cbc7ef465ed07ebb383d4729e4d923500cd64b",
+  "runtime_code_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+}

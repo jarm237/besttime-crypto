@@ -1,0 +1,8 @@
+{
+  "artifact": "p7_evidence_integrity_report",
+  "contamination_records_found": 0,
+  "duplicate_identity_records_found": 0,
+  "generated_at": "2026-08-25T16:52:04Z",
+  "orphan_records_found": 0,
+  "overall_verdict": "PASS"
+}

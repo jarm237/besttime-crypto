@@ -1,13 +1,13 @@
 {
-  "all_9_symbols": true,
+  "all_symbols_covered": true,
   "artifact": "p7_attempt5_lineage_report",
-  "final_decision_lineage_mismatches": 0,
-  "gate": "A5-G10",
-  "generated_at": "2026-08-25T10:05:40Z",
-  "old_epoch_contamination": 0,
-  "prediction_lineage_mismatches": 0,
-  "result": "PASS",
-  "symbols_covered": [
+  "contamination_records_found": 0,
+  "generated_at": "2026-08-25T13:38:55Z",
+  "lineage_records_found": 28,
+  "mismatch_count": 0,
+  "mismatches_found": false,
+  "overall_verdict": "PASS",
+  "symbols_represented": [
     "BNB",
     "BTC",
     "DOGE",
@@ -17,7 +17,5 @@
     "SOL",
     "TRX",
     "ZEC"
-  ],
-  "total_final_decisions": 18,
-  "total_predictions": 19
+  ]
 }

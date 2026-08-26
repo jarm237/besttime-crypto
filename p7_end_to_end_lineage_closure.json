@@ -1,0 +1,42 @@
+{
+  "artifact": "p7_end_to_end_lineage_closure",
+  "baseline_sha256": "acd22357a21874592a98da6b54349bd8967d92c9b83094db990eee2a76fe5c93",
+  "blockers": [],
+  "chain": {
+    "decision_id": null,
+    "execution_decision_id": null,
+    "fill_id": null,
+    "fill_order_id": null,
+    "order_id": null,
+    "position_fill_id": null,
+    "position_id": null,
+    "prediction_id": null
+  },
+  "end_to_end_execution_lineage": "WAITING_FOR_NATURAL_EVENT",
+  "generated_at": "2026-08-26T02:03:19Z",
+  "mixed_trade_evidence_rejected": true,
+  "observation_mode": "EVENT_DRIVEN",
+  "overall_verdict": "READY",
+  "report_sha256": {
+    "O3": "fddb85585807f71582068955a32991aa3264298c16d01c487925de88886f4de4",
+    "O4": "2f508927711e2a35088c93e92566a0285c23688790fc45f83b8aabc41291e8c7",
+    "O5": "aa8d1aca1a1a48978aeb34b896de14db09e1dee10b5d6b415219bf7c7cc954b4",
+    "O6": "990a6dc093559d70ef041ed13e7c0998786ba2d48ac450edf74ffaf5160541e0"
+  },
+  "report_statuses": {
+    "O3": "WAITING_FOR_NATURAL_EVENT",
+    "O4": "WAITING_FOR_NATURAL_EVENT",
+    "O5": "WAITING_FOR_NATURAL_EVENT",
+    "O6": "WAITING_FOR_NATURAL_EVENT"
+  },
+  "runtime_change_policy": "FROZEN",
+  "same_causal_chain_required": true,
+  "status": "WAITING_FOR_NATURAL_EVENT",
+  "synthetic_trades": "NOT_AUTHORIZED",
+  "waiting_for": [
+    "O3",
+    "O4",
+    "O5",
+    "O6"
+  ]
+}

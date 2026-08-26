@@ -1,0 +1,12 @@
+{
+  "artifact": "p7_long_run_stability_report",
+  "artifact_drift": 0,
+  "disabled_symbol_leaks": false,
+  "generated_at": "2026-08-25T14:28:43Z",
+  "lineage_mismatches": 0,
+  "overall_verdict": "PASS",
+  "release_identity_drift": false,
+  "schema_drift": 0,
+  "unexpected_restart": false,
+  "unsupported_enabled_errors": false
+}

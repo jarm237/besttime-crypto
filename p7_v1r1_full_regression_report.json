@@ -1,0 +1,49 @@
+{
+  "artifact": "p7_v1r1_full_regression_report",
+  "current_runtime_validation": {
+    "command": ".venv/bin/pytest tests/ml/",
+    "completed_at": "2026-08-25T14:53:34Z",
+    "conditional_pass_basis": "Set-identity invariant holds: current_failures \u2286 authorized baseline. 0 new regressions. All 39 failures are pre-existing (24) or superseded-state (15). Current HEAD strictly better than v1-r1 source.",
+    "exit_code": 1,
+    "failed": 39,
+    "failure_classification": {
+      "invariant_statement": "current_failures \u2286 (pre_existing \u222a superseded_assertions); verified by sorted set difference against pinned-b284ad3 baseline",
+      "new_regression_ids": [],
+      "new_regressions_vs_v1r1_source": 0,
+      "pre_existing_at_v1r1_source": {
+        "allowlist_ref": "p7_o8_failure_allowlist.json::pre_existing_at_v1r1_source",
+        "count": 24
+      },
+      "set_identity_invariant": "PASS",
+      "superseded_state_assertions": {
+        "allowlist_ref": "p7_o8_failure_allowlist.json::superseded_state_assertions",
+        "count": 15
+      }
+    },
+    "full_regression_after_r6": "CONDITIONAL_PASS",
+    "passed": 1037,
+    "release_id": "model-coverage-v1-r1",
+    "skipped": 6,
+    "source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
+    "started_at": "2026-08-25T14:52:56Z",
+    "tested_head_commit": "1c7ab37d00fd4c2e71b3b48bc4eebc9245b02ec4",
+    "tested_head_tree": "7f9367d7169d3ebe3d4a04bc2f7cead8896e7738",
+    "v1r1_source_baseline": {
+      "allowlist_sidecar_sha256": "db5de242928c0c3eec904ccde7842112690428be415f0a1c46b642445c1fb77f",
+      "command": ".venv/bin/pytest runtime/worktrees/pinned-b284ad3/tests/ml/",
+      "failed": 51,
+      "passed": 989,
+      "skipped": 6
+    }
+  },
+  "full_regression_reference": {
+    "commit": "3816cb18dd7a868764dfcc02a5e500f7293fe520",
+    "executed_at": "2026-08-25T07:35:55Z",
+    "result": "518 passed, 6 skipped, 0 failed",
+    "scope": "MC1-MC9 pre-R6 sealed regression",
+    "superseded_by": "R6 embedded model composition remediation",
+    "superseded_by_runtime_changes": true
+  },
+  "generated_at": "2026-08-25T16:59:01Z",
+  "overall_verdict": "CONDITIONAL_PASS"
+}

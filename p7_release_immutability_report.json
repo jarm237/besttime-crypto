@@ -1,0 +1,10 @@
+{
+  "artifact": "p7_release_immutability_report",
+  "artifact_inventory_drift": 0,
+  "generated_at": "2026-08-25T16:52:04Z",
+  "manifest_hash_drift": 0,
+  "overall_verdict": "PASS",
+  "registry_hash_drift": 0,
+  "release_id_drift": 0,
+  "runtime_source_drift": 0
+}

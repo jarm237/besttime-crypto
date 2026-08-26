@@ -1,0 +1,7 @@
+{
+  "artifact": "p7_incident_summary",
+  "generated_at": "2026-08-25T16:52:04Z",
+  "incidents": [],
+  "overall_verdict": "PASS",
+  "unresolved_critical_incidents": 0
+}

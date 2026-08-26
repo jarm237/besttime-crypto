@@ -1,0 +1,42 @@
+{
+  "artifact": "p7_attempt5_runtime_identity_contract",
+  "attempt_id": 5,
+  "authorization_sha256": "f892bb91cb5a85ea34a220e5386bde6a19dd726462df059f0040eab9c105a42c",
+  "authorized_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "child_pid": 770821,
+  "deployment_id": "paper-canary-a5-20260825-01",
+  "disabled_symbols": [
+    "AEVO",
+    "AR",
+    "AVAX",
+    "ENA",
+    "SOPH",
+    "TAO",
+    "TRB",
+    "TRUMP",
+    "WLD",
+    "XAUT",
+    "XLM",
+    "XPL",
+    "XRP"
+  ],
+  "epoch_id": "canary-mc9-v1-a5-20260825-01",
+  "feature_schema_version": "meta-v3.1-43f",
+  "generated_at": "2026-08-25T13:38:05Z",
+  "overall_verdict": "PASS",
+  "paper_run_id": "paper-canary-a5-20260825-01",
+  "release_id": "model-coverage-v1-r1",
+  "release_identity_sha256": "d8dcafb2aef0010926acfa19114eb2c2b827517bae8f45be2a7e849b6643c14a",
+  "release_manifest_sha256": "6f79cd6b52bfb4083c1af2b258cbc7ef465ed07ebb383d4729e4d923500cd64b",
+  "runtime_source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+}

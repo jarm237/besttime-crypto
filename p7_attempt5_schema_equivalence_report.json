@@ -1,0 +1,18 @@
+{
+  "artifact": "p7_attempt5_schema_equivalence_report",
+  "canonical_mc5_features": [
+    "return_8",
+    "return_32",
+    "return_72",
+    "abs_move_72"
+  ],
+  "dtype_match": "PASS",
+  "evidence_fingerprint": "b866c5e78d7f6f02cb74fe52cbe1d8a5f69752d60acc2c5fe2e5ddf6e5fbc0dc",
+  "feature_names_match_mc5": "PASS",
+  "feature_order_match_mc5": "PASS",
+  "generated_at": "2026-08-25T13:39:03Z",
+  "overall_verdict": "PASS",
+  "preprocessing_match": "PASS",
+  "schema_fingerprint_match": "PASS",
+  "schema_version_alias_only": true
+}

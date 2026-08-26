@@ -1,0 +1,55 @@
+{
+  "contract_id": "p8_economic_evaluation_contract_v1",
+  "population": "Natural decisions of sealed runtime",
+  "runtime": "model-coverage-v1-r1",
+  "active_symbols": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "routes": {
+    "LEGACY": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "MC5_QUALIFIED": [
+      "DOGE",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ]
+  },
+  "constraints": {
+    "synthetic_trades": "FORBIDDEN",
+    "interventions": "NONE",
+    "outcome_leakage": "FORBIDDEN",
+    "tuning_before_threshold": "FORBIDDEN"
+  },
+  "metrics": {
+    "primary_unit": "Closed natural trade",
+    "primary_metric": "Realized Net EV / trade",
+    "costs": "Actual fee + realized slippage if available",
+    "primary_objective": "Positive net economic value",
+    "secondary_metrics": [
+      "Profit Factor (PF)",
+      "Win Rate (WR)",
+      "Max Drawdown",
+      "Route contribution",
+      "Symbol contribution"
+    ]
+  },
+  "maturity_levels": {
+    "PRELIMINARY": "N < 30",
+    "DIAGNOSTIC": "30 <= N < 100",
+    "PRIMARY_REVIEW": "N >= 100"
+  }
+}

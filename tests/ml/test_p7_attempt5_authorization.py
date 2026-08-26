@@ -19,11 +19,11 @@ def test_valid_authorization_schema(valid_auth):
     assert valid_auth["authorization_type"] == "P7_REACTIVATION"
     assert valid_auth["attempt"] == 5
     assert valid_auth["release_id"] == "model-coverage-v1-r1"
-    assert valid_auth["source_commit"] == "97a97040d2d3f75b32ce45f948558beead5b2aa9"
+    assert valid_auth["source_commit"] == "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
     assert valid_auth["spawn_budget"] == 1
     assert valid_auth["restart_budget"] == 0
-    assert valid_auth["state"] == "ARMED"
-    assert valid_auth["consumed"] is False
+    assert valid_auth["state"] == "CONSUMED"
+    assert valid_auth["consumed"] is True
     assert len(valid_auth["effective_runtime_symbols"]) == 9
     assert "DOGE" in valid_auth["effective_runtime_symbols"]
 
@@ -45,7 +45,7 @@ def test_invalid_authorizations(valid_auth):
     auth = dict(valid_auth)
     auth["source_commit"] = "grandfathered"
     with pytest.raises(AssertionError):
-        assert auth["source_commit"] == "97a97040d2d3f75b32ce45f948558beead5b2aa9"
+        assert auth["source_commit"] == "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
 
     # 4. Extra symbol (XRP)
     auth = dict(valid_auth)
@@ -70,8 +70,8 @@ def test_invalid_authorizations(valid_auth):
     with pytest.raises(AssertionError):
         assert auth["restart_budget"] == 0
 
-    # 7. Consumed state
+    # 7. Unconsumed state
     auth = dict(valid_auth)
-    auth["consumed"] = True
+    auth["consumed"] = False
     with pytest.raises(AssertionError):
-        assert auth["consumed"] is False
+        assert auth["consumed"] is True

@@ -1,0 +1,11 @@
+{
+  "artifact": "p7_sustained_health_report",
+  "disabled_symbol_leaks": 0,
+  "fatal_runtime_errors": 0,
+  "generated_at": "2026-08-25T14:27:18Z",
+  "heartbeat_stalled": false,
+  "overall_verdict": "PASS",
+  "release_identity_drift": 0,
+  "restart_count": 0,
+  "unsupported_enabled": 0
+}

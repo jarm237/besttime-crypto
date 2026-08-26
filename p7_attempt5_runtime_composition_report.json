@@ -1,0 +1,69 @@
+{
+  "artifact": "p7_attempt5_runtime_composition_report",
+  "generated_at": "2026-08-25T13:38:47Z",
+  "negative_invariants": {
+    "disabled_symbol_inference": 0,
+    "legacy_symbol_through_mc5_path": 0,
+    "mc5_symbol_through_legacy_path": 0,
+    "silent_fallbacks": 0,
+    "symbol_substitutions": 0,
+    "unsupported_enabled_symbols": 0
+  },
+  "overall_verdict": "PASS",
+  "symbol_mapping": {
+    "BNB": {
+      "expected_route": "LEGACY",
+      "observed_running_route": "LEGACY",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "BTC": {
+      "expected_route": "LEGACY",
+      "observed_running_route": "LEGACY",
+      "predictions_count": 4,
+      "verified_path_diff": 0.0
+    },
+    "DOGE": {
+      "expected_route": "MC5_QUALIFIED",
+      "observed_running_route": "MC5_QUALIFIED",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "ETH": {
+      "expected_route": "LEGACY",
+      "observed_running_route": "LEGACY",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "IOTA": {
+      "expected_route": "MC5_QUALIFIED",
+      "observed_running_route": "MC5_QUALIFIED",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "NEAR": {
+      "expected_route": "MC5_QUALIFIED",
+      "observed_running_route": "MC5_QUALIFIED",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "SOL": {
+      "expected_route": "MC5_QUALIFIED",
+      "observed_running_route": "MC5_QUALIFIED",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "TRX": {
+      "expected_route": "MC5_QUALIFIED",
+      "observed_running_route": "MC5_QUALIFIED",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    },
+    "ZEC": {
+      "expected_route": "MC5_QUALIFIED",
+      "observed_running_route": "MC5_QUALIFIED",
+      "predictions_count": 3,
+      "verified_path_diff": 0.0
+    }
+  }
+}

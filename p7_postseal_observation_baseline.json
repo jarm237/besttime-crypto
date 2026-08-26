@@ -1,0 +1,42 @@
+{
+  "artifact": "p7_postseal_observation_baseline",
+  "artifact_hashes": {
+    "allowlist_o8": "db5de242928c0c3eec904ccde7842112690428be415f0a1c46b642445c1fb77f",
+    "final_seal_verdict": "a75cfc8153a7bd432449c050cf31c153002e0ef8ffe27d5da0a4a33b148350a1",
+    "runtime_evidence_partition": "1d32689764c75b92a0db0ea037eb8a729038c4e2d9d97f9036fba026b24debd7",
+    "runtime_identity_contract": "7382cc8575d2f396cee8c5bd9e1dd485a61d1090f79a2b19bf83a77970e1df25"
+  },
+  "baseline_state": "FROZEN",
+  "blockers": [],
+  "gate": "N0_POST_SEAL_BASELINE",
+  "generated_at": "2026-08-25T17:35:36Z",
+  "git": {
+    "branch": "(detached HEAD)",
+    "commit": "1c7ab37d00fd4c2e71b3b48bc4eebc9245b02ec4",
+    "tree": "7f9367d7169d3ebe3d4a04bc2f7cead8896e7738",
+    "worktree_status": "M p7_attempt5_final_verdict.json\n M p7_attempt5_final_verdict.json.sha256\n M p7_attempt5_legacy_parity_report.json\n M p7_attempt5_legacy_parity_report.json.sha256\n M p7_attempt5_lineage_report.json\n M p7_attempt5_lineage_report.json.sha256\n M p7_attempt5_liveness_report.json\n M p7_attempt5_liveness_report.json.sha256\n M tests/ml/test_p7_attempt5_authorization.py\n?? p7_attempt5_final_activation_verdict.json\n?? p7_attempt5_final_activation_verdict.json.sha256\n?? p7_attempt5_release_identity_closure.json\n?? p7_attempt5_release_identity_closure.json.sha256\n?? p7_attempt5_runtime_composition_report.json\n?? p7_attempt5_runtime_composition_report.json.sha256\n?? p7_attempt5_runtime_identity_contract.json\n?? p7_attempt5_runtime_identity_contract.json.sha256\n?? p7_attempt5_schema_equivalence_report.json\n?? p7_attempt5_schema_equivalence_report.json.sha256\n?? p7_end_to_end_lineage_closure.json\n?? p7_end_to_end_lineage_closure.json.sha256\n?? p7_evidence_integrity_report.json\n?? p7_evidence_integrity_report.json.sha256\n?? p7_final_seal_readiness.json\n?? p7_final_seal_readiness.json.sha256\n?? p7_final_verdict.json\n?? p7_final_verdict.json.sha256\n?? p7_first_actionable_decision_report.json\n?? p7_first_actionable_decision_report.json.sha256\n?? p7_first_execution_attempt_report.json\n?? p7_first_execution_attempt_report.json.sha256\n?? p7_first_fill_report.json\n?? p7_first_fill_report.json.sha256\n?? p7_first_outcome_report.json\n?? p7_first_outcome_report.json.sha256\n?? p7_gitnexus_audit_report.json\n?? p7_gitnexus_audit_report.json.sha256\n?? p7_incident_summary.json\n?? p7_incident_summary.json.sha256\n?? p7_long_run_stability_report.json\n?? p7_long_run_stability_report.json.sha256\n?? p7_o8_failure_allowlist.json\n?? p7_o8_failure_allowlist.json.sha256\n?? p7_prediction_evidence_report.json\n?? p7_prediction_evidence_report.json.sha256\n?? p7_release_immutability_report.json\n?? p7_release_immutability_report.json.sha256\n?? p7_sustained_health_report.json\n?? p7_sustained_health_report.json.sha256\n?? p7_v1r1_full_regression_report.json\n?? p7_v1r1_full_regression_report.json.sha256\n?? scripts/p7_a5_decision_lineage.py\n?? scripts/p7_a5_evidence_integrity.py\n?? scripts/p7_a5_execution_lineage.py\n?? scripts/p7_a5_fill_lineage.py\n?? scripts/p7_a5_final_seal.py\n?? scripts/p7_a5_final_seal_readiness.py\n?? scripts/p7_a5_freeze_identity.py\n?? scripts/p7_a5_g10_lineage.py\n?? scripts/p7_a5_g8c_sustained_liveness.py\n?? scripts/p7_a5_g8d_runtime_composition.py\n?? scripts/p7_a5_g9_gitnexus_audit.py\n?? scripts/p7_a5_incident_review.py\n?? scripts/p7_a5_legacy_parity.py\n?? scripts/p7_a5_long_run_stability.py\n?? scripts/p7_a5_outcome_lineage.py\n?? scripts/p7_a5_prediction_evidence.py\n?? scripts/p7_a5_release_identity.py\n?? scripts/p7_a5_release_immutability.py\n?? scripts/p7_a5_schema_equivalence.py\n?? scripts/p7_a5_sustained_health.py\n?? scripts/p7_a5_v1r1_full_regression.py\n?? scripts/p7_end_to_end_lineage_closure.py\n?? scripts/p7_postseal_observation_baseline.py\n?? tests/ml/test_p7_attempt5_final_seal.py\n?? tests/ml/test_p7_attempt5_legacy_parity.py\n?? tests/ml/test_p7_attempt5_lineage.py\n?? tests/ml/test_p7_attempt5_release_identity.py\n?? tests/ml/test_p7_attempt5_runtime_composition.py\n?? tests/ml/test_p7_attempt5_schema_equivalence.py\n?? tests/ml/test_p7_attempt5_sustained_liveness.py\n?? tests/ml/test_p7_decision_lineage.py\n?? tests/ml/test_p7_end_to_end_lineage_closure.py\n?? tests/ml/test_p7_evidence_integrity.py\n?? tests/ml/test_p7_execution_lineage.py\n?? tests/ml/test_p7_fill_lineage.py\n?? tests/ml/test_p7_final_seal_readiness.py\n?? tests/ml/test_p7_final_verdict.py\n?? tests/ml/test_p7_long_run_stability.py\n?? tests/ml/test_p7_outcome_lineage.py\n?? tests/ml/test_p7_postseal_observation_baseline.py\n?? tests/ml/test_p7_prediction_evidence.py\n?? tests/ml/test_p7_sustained_health.py\n?? tests/ml/test_p7_v1r1_full_regression_contract.py"
+  },
+  "identity": {
+    "authorization_sha256": "f892bb91cb5a85ea34a220e5386bde6a19dd726462df059f0040eab9c105a42c",
+    "child_pid": 770821,
+    "deployment_id": "paper-canary-a5-20260825-01",
+    "epoch_id": "canary-mc9-v1-a5-20260825-01",
+    "feature_schema_version": "meta-v3.1-43f",
+    "release_id": "model-coverage-v1-r1",
+    "release_identity_sha256": "d8dcafb2aef0010926acfa19114eb2c2b827517bae8f45be2a7e849b6643c14a",
+    "release_manifest_sha256": "6f79cd6b52bfb4083c1af2b258cbc7ef465ed07ebb383d4729e4d923500cd64b",
+    "runtime_source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+  },
+  "natural_event_gates": {
+    "O3": "WAITING_FOR_NATURAL_EVENT",
+    "O4": "WAITING_FOR_NATURAL_EVENT",
+    "O5": "WAITING_FOR_NATURAL_EVENT",
+    "O6": "WAITING_FOR_NATURAL_EVENT"
+  },
+  "observation_mode": "EVENT_DRIVEN",
+  "overall_verdict": "PASS",
+  "p7": "OPEN",
+  "p7_final_seal": "PASS",
+  "runtime_change_policy": "FROZEN",
+  "synthetic_trades": "NOT_AUTHORIZED"
+}

@@ -1,0 +1,19 @@
+{
+  "all_symbols_covered": true,
+  "artifact": "p7_prediction_evidence_report",
+  "generated_at": "2026-08-25T14:27:44Z",
+  "mismatches_found": 0,
+  "overall_verdict": "PASS",
+  "prediction_count_delta": 28,
+  "symbols_covered": {
+    "BNB": 3,
+    "BTC": 4,
+    "DOGE": 3,
+    "ETH": 3,
+    "IOTA": 3,
+    "NEAR": 3,
+    "SOL": 3,
+    "TRX": 3,
+    "ZEC": 3
+  }
+}

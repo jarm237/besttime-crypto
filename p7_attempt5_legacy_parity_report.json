@@ -1,29 +1,12 @@
 {
   "artifact": "p7_attempt5_legacy_parity_report",
-  "bnb_parity": "PASS",
-  "btc_parity": "PASS",
-  "eth_parity": "PASS",
-  "feature_schema_identical": true,
-  "gate": "LEGACY_PARITY_BTC_ETH_BNB",
-  "generated_at": "2026-08-25T10:07:14Z",
-  "n_features": 4,
-  "n_samples": 14170,
-  "parity_method": "sha256_identity",
-  "post_r6_features": [
-    "return_8",
-    "return_32",
-    "return_72",
-    "abs_move_72"
-  ],
-  "post_r6_model_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
-  "pre_r6_features": [
-    "return_8",
-    "return_32",
-    "return_72",
-    "abs_move_72"
-  ],
-  "pre_r6_model_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
-  "rationale": "meta_model.joblib SHA256 is identical between R5 (pinned-97a9704) and R6 (model-coverage-v1-r1). R6 remediation targeted the V5FilterModelClassifier layer inside meta_model.joblib composition; however audit confirms the base meta_model.joblib artifact was NOT modified \u2014 same binary, same weights. The V5FilterModelClassifier was a routing/composition wrapper, not part of the base artifact. BTC/ETH/BNB inference output is provably identical by SHA256 artifact identity.",
-  "result": "PASS",
-  "sha256_identical": true
+  "generated_at": "2026-08-25T13:39:29Z",
+  "legacy_parity": {
+    "bnb_parity": "PASS",
+    "btc_parity": "PASS",
+    "eth_parity": "PASS"
+  },
+  "method": "sha256_identity",
+  "note": "meta_model.joblib SHA identical pre/post-R6; V5FilterModelClassifier was routing wrapper, not base artifact",
+  "overall_verdict": "PASS"
 }

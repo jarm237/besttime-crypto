@@ -1,0 +1,29 @@
+{
+  "artifact": "p7_postseal_verifier_remediation",
+  "evidence_impact": "OBSERVABILITY_ONLY",
+  "evidence_loss": "NO",
+  "failure_class": "O3_STALE_PARTITION_DISCOVERY",
+  "failure_evidence": {
+    "expected_observable_total": 54,
+    "o3_observed_decisions": 27,
+    "partition_decision_counts": {
+      "runtime_evidence_2026-08-25.sqlite": 27,
+      "runtime_evidence_2026-08-26.sqlite": 27
+    },
+    "verdict": "FAIL_STALE_PARTITION"
+  },
+  "generated_at": "2026-08-26T02:02:54Z",
+  "model_impact": "NONE",
+  "model_runtime_mutation": "NO",
+  "overall_verdict": "PASS",
+  "remediation": {
+    "helper": "scripts/p7_evidence_partitions.py",
+    "partition_strategy": "CROSS_PARTITION",
+    "scope": "VERIFIER_ONLY"
+  },
+  "runtime_impact": "NONE",
+  "runtime_incident": "NO",
+  "sealed_runtime_source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
+  "source_commit": "1c7ab37d00fd4c2e71b3b48bc4eebc9245b02ec4",
+  "verifier_coverage_gap": "YES"
+}

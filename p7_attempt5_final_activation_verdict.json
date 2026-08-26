@@ -1,0 +1,44 @@
+{
+  "ACTIVATION_STATE": "SUSTAINED",
+  "AUTHORIZATION_5": "CONSUMED",
+  "AUTHORIZED_SYMBOLS": 9,
+  "COMPLETE_RUNTIME_CYCLE": "PASS",
+  "DISABLED_SYMBOL_LEAKS": 0,
+  "EVIDENCE_ACCUMULATION": "ACTIVE",
+  "FRESH_EVIDENCE_EPOCH": "PASS",
+  "LEGACY_FALLBACKS": 0,
+  "LEGACY_PARITY": "PASS",
+  "LINEAGE": "PASS",
+  "MC5_SCHEMA_EQUIVALENCE": "PASS",
+  "OBSERVED_AUTHORIZED_SYMBOLS": 9,
+  "P7_ATTEMPT_5": "PASS",
+  "PROCESS_IDENTITY": "PASS",
+  "RELEASE": "model-coverage-v1-r1",
+  "RELEASE_IDENTITY_CLOSURE": "PASS",
+  "RESTART_COUNT": 0,
+  "RUNNING_RELEASE_IDENTITY": "PASS",
+  "RUNNING_SOURCE": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062",
+  "RUNTIME": "ACTIVE",
+  "SPAWN_COUNT": 1,
+  "SUSTAINED_LIVENESS": "PASS",
+  "UNSUPPORTED_ENABLED_SYMBOLS": 0,
+  "artifact": "p7_attempt5_final_activation_verdict",
+  "current_runtime_validation": {
+    "attempt5_closure_tests": {
+      "failed": 0,
+      "passed": 16
+    },
+    "full_regression_after_r6": "NOT_RUN",
+    "release_id": "model-coverage-v1-r1",
+    "source_commit": "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+  },
+  "full_regression_reference": {
+    "commit": "3816cb18dd7a868764dfcc02a5e500f7293fe520",
+    "executed_at": "2026-08-25T07:35:55Z",
+    "result": "518 passed, 6 skipped, 0 failed",
+    "scope": "MC1-MC9 pre-R6 sealed regression",
+    "superseded_by": "R6 embedded model composition remediation",
+    "superseded_by_runtime_changes": true
+  },
+  "generated_at": "2026-08-25T13:59:56Z"
+}
