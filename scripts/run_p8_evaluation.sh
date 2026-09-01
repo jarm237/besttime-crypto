@@ -15,10 +15,14 @@ if [ ! -d ".venv" ]; then
     exit 1
 fi
 
+EVIDENCE_DB="$PROJECT_ROOT/logs/runtime_evidence.sqlite"
+RESERVATION_DB="$PROJECT_ROOT/runtime/production/local-production/data/execution/reservations.db"
+
 echo "Running P8 Economic Effectiveness Evaluation..."
 PYTHONPATH=. .venv/bin/python3 scripts/p8_economic_report.py \
-    --evidence-db logs/runtime_evidence.sqlite \
-    --reservation-db runtime/production/local-production/data/execution/reservations.db
+    --evidence-db "$EVIDENCE_DB" \
+    --reservation-db "$RESERVATION_DB" \
+    --output-dir "$PROJECT_ROOT"
 
 echo "P8 Evaluation reports generated successfully!"
 echo "- JSON: p8_economic_effectiveness_report.json"

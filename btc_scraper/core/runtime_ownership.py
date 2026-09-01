@@ -122,6 +122,8 @@ class RuntimeLock:
         return current
 
     def release(self) -> bool:
+        if not self._acquired:
+            return False
         current = self._read_lock()
         if not current:
             self._acquired = False
@@ -300,6 +302,8 @@ def _pid_alive(lock: Mapping[str, Any]) -> bool:
         return False
     except PermissionError:
         return True
+    except OSError:
+        return False
 
 
 def _read_owner_sidecar(path: Path) -> dict[str, Any] | None:

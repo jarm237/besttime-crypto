@@ -11,6 +11,7 @@ import pytest
 
 from btc_scraper.core.operational_resilience import service_health
 from btc_scraper.core.paths import REPO_ROOT, get_runtime_paths, runtime_evidence_eligible
+from btc_scraper.core import runtime_ownership
 from btc_scraper.core.runtime_ownership import (
     RuntimeLock,
     RuntimeLockError,
@@ -95,6 +96,57 @@ def test_runtime_lock_blocks_same_deployment_and_recovers_stale_lock(monkeypatch
     assert recovered["runtime_id"] == "runtime-lock-a"
     audit = (get_runtime_paths().state_root / "runtime_lock_events.jsonl").read_text(encoding="utf-8")
     assert "stale_lock_recovered" in audit
+
+
+def test_runtime_lock_recovers_when_pid_probe_raises_oserror(monkeypatch, tmp_path):
+    _clear_path_overrides(monkeypatch)
+    monkeypatch.setenv("BTC_RUNTIME_ENVIRONMENT", "paper")
+    monkeypatch.setenv("BTC_DEPLOYMENT_ID", "lock-windows-stale-pid")
+    monkeypatch.setenv("BTC_RUNTIME_ID", "runtime-lock-windows-stale-pid")
+    monkeypatch.setenv(
+        "BTC_RUNTIME_ROOT",
+        str(tmp_path / "runtime" / "paper" / "lock-windows-stale-pid"),
+    )
+
+    lock = RuntimeLock()
+    lock.lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock.lock_path.write_text(
+        json.dumps({"runtime_id": "dead-runtime", "process_id": 27772}),
+        encoding="utf-8",
+    )
+
+    def raise_invalid_parameter(pid, signal):
+        raise OSError(87, "The parameter is incorrect")
+
+    monkeypatch.setattr(runtime_ownership.os, "kill", raise_invalid_parameter)
+
+    recovered = RuntimeLock().acquire()
+
+    assert recovered["runtime_id"] == "runtime-lock-windows-stale-pid"
+    audit = (get_runtime_paths().state_root / "runtime_lock_events.jsonl").read_text(
+        encoding="utf-8"
+    )
+    assert "stale_lock_recovered" in audit
+
+
+def test_unacquired_runtime_lock_release_is_noop(monkeypatch, tmp_path):
+    _clear_path_overrides(monkeypatch)
+    monkeypatch.setenv("BTC_RUNTIME_ENVIRONMENT", "paper")
+    monkeypatch.setenv("BTC_DEPLOYMENT_ID", "lock-release-noop")
+    monkeypatch.setenv("BTC_RUNTIME_ID", "runtime-lock-release-noop")
+    monkeypatch.setenv(
+        "BTC_RUNTIME_ROOT", str(tmp_path / "runtime" / "paper" / "lock-release-noop")
+    )
+
+    lock = RuntimeLock()
+    lock.lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock.lock_path.write_text(
+        json.dumps({"runtime_id": "other-runtime", "process_id": os.getpid()}),
+        encoding="utf-8",
+    )
+
+    assert lock.release() is False
+    assert lock.lock_path.exists()
 
 
 def test_clock_gap_reacquire_invalidates_old_lease_revision(monkeypatch, tmp_path):

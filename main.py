@@ -753,6 +753,7 @@ async def async_main():
     global shutdown_event_async
     shutdown_event_async = asyncio.Event()
 
+    import os
     import signal
     loop = asyncio.get_running_loop()
     def _signal_handler():
@@ -760,8 +761,9 @@ async def async_main():
         shutdown_event_async.set()
         shutdown_event.set()
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, _signal_handler)
+    if os.name != 'nt':
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, _signal_handler)
 
     parser = argparse.ArgumentParser(
         description="Multi-coin OHLCV Scraper & Analyzer"
@@ -850,7 +852,7 @@ async def async_main():
 
     # Hiển thị trạng thái Meta Model khi khởi động
     try:
-        import os, json as _json
+        import json as _json
         meta_metric_path = str(build_logs_path("meta_model.json"))
 
         # Meta Model status

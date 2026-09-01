@@ -234,10 +234,45 @@ def generate_report(
     output_dir: Path | str | None = None
 ) -> None:
     if output_dir is None:
-        output_dir = Path("/home/tran-huynh/Workspaces/Personal/besttime-crypto")
+        output_dir = Path(__file__).resolve().parents[1]
     else:
         output_dir = Path(output_dir)
-        
+
+    # Resolve explicit paths and enforce fail-closed check
+    if evidence_store_path is not None:
+        evidence_logical_path = Path(evidence_store_path)
+    else:
+        from btc_scraper.core.paths import get_runtime_paths
+        evidence_logical_path = Path(get_runtime_paths().runtime_evidence_path)
+
+    global_index_path = evidence_logical_path.parent / "global_evidence_index.sqlite"
+    pattern = f"{evidence_logical_path.stem}_????-??-??{evidence_logical_path.suffix}"
+    partition_files = list(evidence_logical_path.parent.glob(pattern))
+
+    evidence_exists = (
+        evidence_logical_path.exists() or 
+        global_index_path.exists() or 
+        len(partition_files) > 0
+    )
+
+    if not evidence_exists:
+        print(f"ERROR: Expected evidence database not found at logical path: {evidence_logical_path}", file=sys.stderr)
+        print(f"Verified missing files:", file=sys.stderr)
+        print(f"  - Logical path: {evidence_logical_path}", file=sys.stderr)
+        print(f"  - Global index: {global_index_path}", file=sys.stderr)
+        print(f"  - Partitions: None found matching {evidence_logical_path.parent}/{pattern}", file=sys.stderr)
+        sys.exit(1)
+
+    if reservation_db_path is not None:
+        res_path = Path(reservation_db_path)
+    else:
+        from btc_scraper.core.paths import get_runtime_paths
+        res_path = Path(get_runtime_paths().reservation_db_path)
+
+    if not res_path.exists():
+        print(f"ERROR: Expected reservation database not found at: {res_path}", file=sys.stderr)
+        sys.exit(1)
+
     store = RuntimeEvidenceStore(evidence_store_path)
     
     # 1. Extract Trades
@@ -273,6 +308,13 @@ def generate_report(
     else:
         maturity_stage = "ECONOMIC_REVIEW_READY"
 
+    is_windows = os.name == 'nt'
+    data_source = "LOCAL_WINDOWS_WORKSPACE" if is_windows else "CANONICAL_PRODUCTION"
+    if canary_n == 0 and is_windows:
+        canonical_evidence_status = "NOT_PRESENT (ACCUMULATING locally)"
+    else:
+        canonical_evidence_status = "PRESENT" if canary_n > 0 else "ACCUMULATING"
+
     # Compiling JSON Report
     report_json = {
         "report_generated_at": datetime.now(timezone.utc).isoformat(),
@@ -281,6 +323,8 @@ def generate_report(
         "p8_population_reconciliation": "PASS",
         "p8_accounting_reconciliation": "PASS",
         "primary_population": "CURRENT_CANARY",
+        "data_source": data_source,
+        "canonical_runtime_evidence": canonical_evidence_status,
         "current_closed_trades": canary_n,
         "current_fills": funnel["counts"]["fills"],
         "current_closure_rate": funnel["rates"]["closure_rate"],
@@ -346,6 +390,8 @@ def generate_markdown_report_string(report: dict[str, Any]) -> str:
 > - Population Reconciliation: **{report["p8_population_reconciliation"]}**
 > - Accounting Reconciliation: **{report["p8_accounting_reconciliation"]}**
 > - Primary Population: **{report["primary_population"]}**
+> - Data Source: **{report.get("data_source", "UNKNOWN")}**
+> - Canonical Runtime Evidence: **{report.get("canonical_runtime_evidence", "UNKNOWN")}**
 > - Current Closed Trades: **{report["current_closed_trades"]}**
 > - Current Fills: **{report["current_fills"]}**
 > - Current Closure Rate: **{report["current_closure_rate"]*100:.2f}%**
