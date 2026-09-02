@@ -1,0 +1,32 @@
+{
+  "audit": "R19_PROCESS_PROVENANCE_FORENSIC_READBACK",
+  "timestamp": "2026-09-02T14:28:30+00:00",
+  "total_spawn_attempts": 2,
+  "attempts": [
+    {
+      "attempt": 1,
+      "pid": 26412,
+      "creation_timestamp": "2026-09-02T11:24:54.686584+00:00",
+      "exit_reason": "PIPE_BUFFER_OVERFLOW",
+      "exit_detail": "subprocess.PIPE buffer limit exceeded on Windows unconsumed stdout stream",
+      "status": "TERMINATED"
+    },
+    {
+      "attempt": 2,
+      "pid": 18916,
+      "creation_timestamp": "2026-09-02T11:44:45.000000+00:00",
+      "parent_pid": 15480,
+      "command_line": "python main.py",
+      "worktree_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01",
+      "release_sha": "043c56d2a1296c18687d47ed05448c34812b71ab",
+      "exit_reason": "INCOMPATIBLE_ARTIFACT_HASH_MISMATCH",
+      "exit_detail": "governed_artifact_loader rejected untracked 8781aeee... against compatibility manifest expecting dbf0a082...",
+      "status": "TERMINATED"
+    }
+  ],
+  "provenance_classification": "CASE_B_DOCUMENTED_OPERATIONAL_RESTART",
+  "unauthorized_restarts": 0,
+  "process_provenance_status": "EXCEPTIONS_DOCUMENTED",
+  "current_runner_count": 0,
+  "next_action": "FORENSIC_CLASSIFICATION_REPORT"
+}

@@ -1,0 +1,17 @@
+{
+  "phase": "R20_IMMEDIATE_LIVENESS_AND_IDENTITY",
+  "timestamp": "2026-09-02T11:44:49.640787+00:00",
+  "pid": 18916,
+  "runner_alive": true,
+  "runner_count": 1,
+  "process_identity": "PASS",
+  "worktree_identity": "PASS",
+  "worktree_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01",
+  "release_identity": "PASS",
+  "release_sha": "043c56d2a1296c18687d47ed05448c34812b71ab",
+  "artifact_identity": "PASS",
+  "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "evidence_store": "CANONICAL",
+  "evidence_store_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
+  "verdict": "PASS"
+}

@@ -3,7 +3,7 @@
   "artifact": {
     "model_family": "meta_model",
     "artifact_path": "logs/meta_model.joblib",
-    "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
     "artifact_version": "v3.1",
     "metadata_path": "logs/meta_model.json"
   },
@@ -98,5 +98,5 @@
       "v3.1/43f"
     ]
   },
-  "compatibility_hash": "750c86ad0a1ed5992c5b97904941c927c860f3594015d85f3749f21b13a1e949"
+  "compatibility_hash": "ea1dc2e6b7f11a829f61986a64d0e039cb6631e4a939da5f76ade831454c6e9c"
 }

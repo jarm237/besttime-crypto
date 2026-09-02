@@ -1,0 +1,34 @@
+{
+  "incident_id": "P8_STARTUP_REMEDIATION_INCIDENT_S0",
+  "timestamp": "2026-09-02T15:21:30+00:00",
+  "attempts": [
+    {
+      "attempt": 1,
+      "pid": 26412,
+      "spawn_timestamp": "2026-09-02T11:24:54.686584+00:00",
+      "exit_reason": "PIPE_BUFFER_OVERFLOW",
+      "command_line": "python main.py",
+      "working_directory": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01",
+      "stdout_mode": "subprocess.PIPE (unconsumed)",
+      "stderr_mode": "subprocess.PIPE (unconsumed)"
+    },
+    {
+      "attempt": 2,
+      "pid": 18916,
+      "spawn_timestamp": "2026-09-02T11:44:45.000000+00:00",
+      "exit_reason": "INCOMPATIBLE_ARTIFACT_HASH_MISMATCH",
+      "runtime_artifact_path": "logs/meta_model.joblib",
+      "runtime_artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+      "expected_artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+      "compatibility_manifest_path": "config/artifact_compatibility/meta_model.compatibility.json",
+      "release_sha": "043c56d2a1296c18687d47ed05448c34812b71ab",
+      "epoch_id": "p8-readiness-r1-20260902-01"
+    }
+  ],
+  "defect_classification": {
+    "defect_1": "73_CANDLE_TRUNCATION (CODE FIX PASS / LIVE ACCEPTANCE PENDING)",
+    "defect_2": "LAUNCHER_PIPE_BUFFER_OVERFLOW (OPEN)",
+    "defect_3": "ARTIFACT_COMPATIBILITY_HASH_MISMATCH (OPEN)"
+  },
+  "acceptance": "S0_PASS"
+}

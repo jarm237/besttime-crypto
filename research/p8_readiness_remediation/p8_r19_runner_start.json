@@ -1,0 +1,14 @@
+{
+  "phase": "R19_START_RUNNER_EXACTLY_ONCE",
+  "spawn_timestamp": "2026-09-02T11:44:47.634899+00:00",
+  "pid": 18916,
+  "parent_pid": 25952,
+  "working_directory": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01",
+  "command_line": "C:\\Users\\admin\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe main.py",
+  "release_sha": "043c56d2a1296c18687d47ed05448c34812b71ab",
+  "epoch_id": "p8-readiness-r1-20260902-01",
+  "deployment_id": "paper-canary-win-tsfix-20260901-01",
+  "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "evidence_store_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
+  "status": "SUCCESS"
+}

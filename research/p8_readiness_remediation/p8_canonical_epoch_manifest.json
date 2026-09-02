@@ -1,0 +1,34 @@
+{
+  "canonical_store_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
+  "epoch_id": "p8-readiness-r1-20260902-01",
+  "deployment_id": "paper-canary-win-tsfix-20260901-01",
+  "status": "ACTIVE",
+  "started_at": "2026-09-02T10:18:32.322611+00:00",
+  "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "code_commit_sha": "043c56d2a1296c18687d47ed05448c34812b71ab",
+  "analysis_universe": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "invalidated_epoch_id": "canary-win-v5-tsfix-20260901-01",
+  "release_manifest": {
+    "analysis_universe": "BNB,BTC,DOGE,ETH,IOTA,NEAR,SOL,TRX,ZEC",
+    "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+    "decision_contract": "side-probability-v2",
+    "deployment_id": "paper-canary-win-tsfix-20260901-01",
+    "feature_schema_version": "meta-v3.1-43f",
+    "manifest_schema_version": "evidence-manifest-v1",
+    "metadata_sha256": "c87dda729b71f140d739d414ee5714834c6f0e8b468f957e48493efb36967739",
+    "paper_run_id": "paper-canary-win-tsfix-20260901-01",
+    "probability_semantics": "P(up)",
+    "registry_sha256": "977e643ba1df0ce22d1d489f1c7a05377b9198dbd375f7f5d8f2a78cebff0f1a",
+    "release_sha": "043c56d2a1296c18687d47ed05448c34812b71ab"
+  }
+}

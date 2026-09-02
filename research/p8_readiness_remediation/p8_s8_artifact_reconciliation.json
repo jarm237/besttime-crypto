@@ -1,0 +1,12 @@
+{
+  "audit": "PHASES_S4_S8_ARTIFACT_IDENTITY_RECONCILIATION",
+  "timestamp": "2026-09-02T15:22:41.507608+00:00",
+  "canonical_decision": "CASE_A_RECONCILE_COMPATIBILITY_MANIFEST",
+  "canonical_artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "artifact_bytes_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "compatibility_manifest_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "compatibility_hash": "ea1dc2e6b7f11a829f61986a64d0e039cb6631e4a939da5f76ade831454c6e9c",
+  "metadata_sidecar_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "artifact_identity_cardinality": 1,
+  "status": "PASS_RECONCILED"
+}

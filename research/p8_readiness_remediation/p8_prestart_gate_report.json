@@ -1,0 +1,17 @@
+{
+  "gate": "R18_PRE_START_EXECUTABLE_IDENTITY_GATE",
+  "timestamp": "2026-09-02T10:18:32.322611+00:00",
+  "worktree_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01",
+  "worktree_head": "043c56d2a1296c18687d47ed05448c34812b71ab",
+  "worktree_dirty": false,
+  "core_history_source": "canonical_readiness_minimum_observations()",
+  "model_artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "active_epoch": "p8-readiness-r1-20260902-01",
+  "active_epoch_release_sha": "043c56d2a1296c18687d47ed05448c34812b71ab",
+  "runner_pids": [
+    "2040",
+    "14448"
+  ],
+  "runner_count": 2,
+  "verdict": "PASS_ARMED_FOR_START"
+}
