@@ -1,9 +1,9 @@
 {
   "gate": "S16_PRE_START_GATE_V2",
   "timestamp": "2026-09-02T15:23:13.300985+00:00",
-  "worktree_head": "c82ecdf478adbc6df668bad738e0a8e302c0a080",
+  "worktree_head": "33e405cf034781cb7b7c2984231ab6b8a8ea15ce",
   "worktree_dirty": false,
-  "release_sha": "c82ecdf478adbc6df668bad738e0a8e302c0a080",
+  "release_sha": "33e405cf034781cb7b7c2984231ab6b8a8ea15ce",
   "artifact_path_exists": true,
   "artifact_bytes_sha": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
   "compatibility_manifest_sha": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",

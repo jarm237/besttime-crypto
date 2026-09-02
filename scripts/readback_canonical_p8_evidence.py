@@ -37,10 +37,10 @@ def readback_canonical_evidence():
     store_path = worktree_path / "runtime" / "paper" / "paper-canary-win-tsfix-20260901-01" / "logs" / "runtime_evidence.sqlite"
     logs_dir = store_path.parent
     
-    target_pid = 11260
+    target_pid = 5052
     is_alive = check_process_alive(target_pid)
     
-    sealed_commit = "c82ecdf478adbc6df668bad738e0a8e302c0a080"
+    sealed_commit = "33e405cf034781cb7b7c2984231ab6b8a8ea15ce"
     sealed_artifact = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
     target_epoch = "p8-readiness-r2-20260902-01"
 

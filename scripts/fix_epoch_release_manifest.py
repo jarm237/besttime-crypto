@@ -6,7 +6,7 @@ from pathlib import Path
 import sqlite3
 
 def fix_epoch_manifest():
-    target_sha = "c82ecdf478adbc6df668bad738e0a8e302c0a080"
+    target_sha = "33e405cf034781cb7b7c2984231ab6b8a8ea15ce"
     epoch_id = "p8-readiness-r2-20260902-01"
     
     logs_dir = Path("runtime/worktrees/timestamp-remediation-20260901-01/runtime/paper/paper-canary-win-tsfix-20260901-01/logs")
