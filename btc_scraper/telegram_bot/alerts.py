@@ -184,12 +184,20 @@ def send_signals_alert(analysis_results: dict[str, dict], mtf_analysis: dict | N
         else:
             neutral_signals.append(line)
             
-    # Gửi từng phần tin nhắn riêng biệt để tránh gộp chung gây rối mắt
     def _send_section(title: str, items: list[str]) -> int | None:
         if not items:
             return None
-            
-        header = f"🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO]</b> 🔔\nKhung nến: <b>15m</b>{alternative_reference_line}\n{title}"
+
+        epoch_info = ""
+        try:
+            from btc_scraper.ml_engine.runtime_evidence_store import get_runtime_evidence_store
+            epoch = get_runtime_evidence_store().get_active_evidence_epoch()
+            if epoch:
+                epoch_info = f"\n🎯 Epoch: <code>{epoch.epoch_id}</code> | Commit: <code>{epoch.code_commit_sha[:8]}</code>"
+        except Exception:
+            pass
+
+        header = f"🔔 <b>[BÁO CÁO THỊ TRƯỜNG CRYPTO]</b> 🔔\nKhung nến: <b>15m</b>{epoch_info}{alternative_reference_line}\n{title}"
         chunk_text = header
         first_msg_id = None
         

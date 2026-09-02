@@ -60,6 +60,9 @@ def launch_r24_sealed_runner():
     # 2. Phase S17 Spawn under R24 Authorization
     universe_str = "BNB,BTC,DOGE,ETH,IOTA,NEAR,SOL,TRX,ZEC"
     
+    from dotenv import load_dotenv
+    load_dotenv(repo_root / ".env")
+
     env = os.environ.copy()
     env["BTC_DEPLOYMENT_ID"] = deployment_id
     env["BTC_PAPER_RUN_ID"] = deployment_id
@@ -70,6 +73,12 @@ def launch_r24_sealed_runner():
     env["LIVE_TRADING_ENABLED"] = "false"
     env["AUTO_TRADE_DRY_RUN"] = "true"
     env["PYTHONPATH"] = str(worktree_path)
+    if os.getenv("TELEGRAM_BOT_TOKEN"):
+        env["TELEGRAM_BOT_TOKEN"] = os.getenv("TELEGRAM_BOT_TOKEN")
+    if os.getenv("TELEGRAM_CHAT_ID"):
+        env["TELEGRAM_CHAT_ID"] = os.getenv("TELEGRAM_CHAT_ID")
+    if os.getenv("TELEGRAM_ALLOWED_CHAT_IDS"):
+        env["TELEGRAM_ALLOWED_CHAT_IDS"] = os.getenv("TELEGRAM_ALLOWED_CHAT_IDS")
 
     cmd = [sys.executable, "main.py"]
     spawn_time = datetime.now(timezone.utc).isoformat()
