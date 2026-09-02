@@ -1,0 +1,17 @@
+{
+  "phase": "S18_IMMEDIATE_STARTUP_ACCEPTANCE",
+  "timestamp": "2026-09-02T15:23:51.114094+00:00",
+  "pid": 24904,
+  "runner_alive": true,
+  "runner_count": 1,
+  "launcher_pipe_handling": "CLOSED",
+  "artifact_compatibility": "CLOSED",
+  "startup_provenance": "PASS",
+  "worktree_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01",
+  "release_sha": "34d646113e76ea5ee155b449a45bdc3291e02147",
+  "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "epoch_id": "p8-readiness-r2-20260902-01",
+  "deployment_id": "paper-canary-win-tsfix-20260901-01",
+  "evidence_store_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
+  "verdict": "PASS_SUSTAINED_STARTUP"
+}

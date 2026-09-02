@@ -1,0 +1,11 @@
+{
+  "authorization_id": "R24_NEW_START_AUTHORIZATION",
+  "timestamp": "2026-09-02T15:23:13.300985+00:00",
+  "release_sha": "34d646113e76ea5ee155b449a45bdc3291e02147",
+  "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "epoch_id": "p8-readiness-r2-20260902-01",
+  "deployment_id": "paper-canary-win-tsfix-20260901-01",
+  "spawn_budget": 1,
+  "restart_budget": 0,
+  "status": "ARMED"
+}
