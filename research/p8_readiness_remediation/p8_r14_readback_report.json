@@ -1,0 +1,52 @@
+{
+  "epoch": "p8-readiness-r1-20260902-01",
+  "deployment": "paper-canary-readiness-r1-20260902-01",
+  "timestamp": "2026-09-02T09:51:51.478417+00:00",
+  "live_first_cycle_acceptance": "PASS",
+  "live_history_supplied": "PASS_73_CANDLES",
+  "live_readiness_result": "PASS_READY",
+  "symbol_readbacks": [
+    {
+      "symbol": "BTC",
+      "epoch": "p8-readiness-r1-20260902-01",
+      "available_history": 100,
+      "history_supplied_to_evaluator": 73,
+      "readiness_status": "READY",
+      "readiness_failure_reason": null,
+      "lookahead_detected": false,
+      "timestamp_validation": "PASS",
+      "prediction_persisted": true,
+      "final_decision_persisted": true,
+      "final_action": "NEUTRAL",
+      "lineage": "PASS"
+    },
+    {
+      "symbol": "ETH",
+      "epoch": "p8-readiness-r1-20260902-01",
+      "available_history": 100,
+      "history_supplied_to_evaluator": 73,
+      "readiness_status": "READY",
+      "readiness_failure_reason": null,
+      "lookahead_detected": false,
+      "timestamp_validation": "PASS",
+      "prediction_persisted": true,
+      "final_decision_persisted": true,
+      "final_action": "NEUTRAL",
+      "lineage": "PASS"
+    },
+    {
+      "symbol": "SOL",
+      "epoch": "p8-readiness-r1-20260902-01",
+      "available_history": 100,
+      "history_supplied_to_evaluator": 73,
+      "readiness_status": "READY",
+      "readiness_failure_reason": null,
+      "lookahead_detected": false,
+      "timestamp_validation": "PASS",
+      "prediction_persisted": true,
+      "final_decision_persisted": true,
+      "final_action": "NEUTRAL",
+      "lineage": "PASS"
+    }
+  ]
+}

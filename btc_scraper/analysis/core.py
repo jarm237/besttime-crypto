@@ -7,6 +7,7 @@ from btc_scraper.core.sentiment import (
     get_sentiment_trend,
 )
 from btc_scraper.core.filters import atr_shock_filter
+from btc_scraper.ml_engine.evaluation_contracts import canonical_readiness_minimum_observations
 from btc_scraper.ml_engine.signal_score import score_signal
 from btc_scraper.regime.market_regime import regime_from_values, stabilize_regime_sequence
 from btc_scraper.regime.config import load_runtime_regime_config, regime_enforcement_mode, regime_tp_sl_enabled
@@ -868,7 +869,8 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
     current_sig, current_reason, current_tp_sl, current_data, trend_context = _evaluate_candle_signal(-1)
 
     history = []
-    for c in candles[-8:]:
+    required_history = canonical_readiness_minimum_observations()
+    for c in candles[-required_history:]:
         history.append({
             "time": c["time"], "time_utc": c.get("time_utc"),
             "open": c["open"], "high": c["high"],

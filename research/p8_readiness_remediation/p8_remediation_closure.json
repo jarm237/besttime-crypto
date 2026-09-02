@@ -1,0 +1,53 @@
+{
+  "governance_status_matrix": {
+    "code_remediation": "PASS",
+    "contract_regression": "PASS",
+    "integration_regression": "PASS",
+    "gitnexus_change_detection": "PASS",
+    "defective_epoch": "CLOSED_INVALID",
+    "fresh_epoch": "ACTIVE",
+    "live_first_cycle_acceptance": "PASS",
+    "live_history_supplied": "PASS_73_CANDLES",
+    "live_readiness_result": "PASS_READY",
+    "p8_readiness_remediation": "CLOSED",
+    "p8_state": "ACCUMULATING",
+    "natural_evidence_accumulating": true,
+    "canonical_n": 0
+  },
+  "sealed_release": "runtime-readiness-73-window-v1",
+  "fresh_epoch_id": "p8-readiness-r1-20260902-01",
+  "deployment_id": "paper-canary-readiness-r1-20260902-01",
+  "frozen_contracts": {
+    "model_changed": false,
+    "feature_contract_changed": false,
+    "s3_changed": false,
+    "ev_changed": false,
+    "risk_changed": false,
+    "universe_changed": false
+  },
+  "live_readback_evidence": {
+    "report_path": "research/p8_readiness_remediation/p8_r14_readback_report.json",
+    "symbols_tested": ["BTC", "ETH", "SOL"],
+    "available_history": 100,
+    "history_supplied_to_evaluator": 73,
+    "readiness_status": "READY",
+    "readiness_failure_reason": null,
+    "lookahead_detected": false,
+    "timestamp_validation": "PASS",
+    "prediction_persisted": true,
+    "final_decision_persisted": true,
+    "lineage": "PASS"
+  },
+  "phase_governance_breakdown": {
+    "R10_change_impact_audit": "PASS",
+    "R11_seal_remediation_release": "PASS",
+    "R12_close_defective_epoch": "PASS",
+    "R13_create_fresh_epoch": "PASS",
+    "R14_live_first_cycle_acceptance": "PASS",
+    "R15_short_live_stability_observation": "PASS",
+    "R16_remediation_closure": "CLOSED",
+    "R17_resume_economic_accumulation": "ACTIVE"
+  },
+  "next_action": "EVENT_DRIVEN_OBSERVATION",
+  "technical_remediation": "STOP"
+}

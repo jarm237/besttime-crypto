@@ -1,0 +1,26 @@
+{
+  "epoch_id": "p8-readiness-r1-20260902-01",
+  "deployment_id": "paper-canary-readiness-r1-20260902-01",
+  "status": "ACTIVE",
+  "started_at": "2026-09-02T09:49:09.195472+00:00",
+  "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+  "analysis_universe": [
+    "BTC",
+    "ETH",
+    "SOL"
+  ],
+  "code_commit_sha": "1d4da42",
+  "release_manifest": {
+    "analysis_universe": "BTC,ETH,SOL",
+    "artifact_sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+    "decision_contract": "side-probability-v2",
+    "deployment_id": "paper-canary-readiness-r1-20260902-01",
+    "feature_schema_version": "meta-v3.1-43f",
+    "manifest_schema_version": "evidence-manifest-v1",
+    "metadata_sha256": "6d1bba532b090af90e3e2761e3b85633b0e0b82e6bf9544b43daf8fe4e070591",
+    "paper_run_id": "paper-canary-readiness-r1-20260902-01",
+    "probability_semantics": "P(up)",
+    "registry_sha256": "445a38a625d0a56aa416192d46cae417e4ff62ffcf7ea249a7ee1b376829346a",
+    "release_sha": "1d4da42"
+  }
+}

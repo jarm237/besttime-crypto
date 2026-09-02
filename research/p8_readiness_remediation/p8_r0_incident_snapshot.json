@@ -1,0 +1,21 @@
+{
+  "epoch": "P8_DEFECTIVE_EPOCH_INITIAL",
+  "deployment": "production_autotrader",
+  "release_commit": "1d4da42",
+  "model_artifact_hash": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+  "autotrader_attempts": 522,
+  "blocked_attempts": 522,
+  "block_reason_counts": {
+    "INSUFFICIENT_CANONICAL_HISTORY": 522
+  },
+  "required_history": 73,
+  "observed_history_lengths": [8],
+  "final_decision_count": 0,
+  "s3_pass_count": 0,
+  "positive_ev_count": 0,
+  "execution_count": 0,
+  "fill_count": 0,
+  "outcome_count": 0,
+  "canonical_n": 0,
+  "status": "R0_INCIDENT_EVIDENCE_FREEZE_PASS"
+}
