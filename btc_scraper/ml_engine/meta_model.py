@@ -1369,10 +1369,11 @@ def predict_meta_confidence(
                     cal = inner_calibrator.predict_proba(np.array([[raw]]))[0, 1]
                     return float(cal)
 
+                meta_art = get_meta_inference_artifact()
                 artifact = InferenceArtifact(
                     model_family="meta_model",
-                    artifact_version="v3.1",
-                    artifact_hash=sha256_file(route.model_artifact_path),
+                    artifact_version=meta_art.artifact_version,
+                    artifact_hash=meta_art.artifact_hash,
                     feature_schema_hash=feature_schema_hash(route.feature_schema),
                     feature_names=tuple(route.feature_schema),
                     predictor=predictor_fn,
