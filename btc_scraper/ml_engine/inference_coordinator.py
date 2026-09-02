@@ -147,6 +147,7 @@ class InferenceCoordinator:
                 InferenceArtifact,
             )
 
+            from btc_scraper.ml_engine.artifact_resolver import sha256_file
             model_dict = joblib.load(route.model_artifact_path)
             calibrator_dict = joblib.load(route.calibrator_artifact_path)
             inner_model = model_dict["model"]
@@ -161,7 +162,7 @@ class InferenceCoordinator:
             artifact = InferenceArtifact(
                 model_family="meta_model",
                 artifact_version="v3.1",
-                artifact_hash="dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c",
+                artifact_hash=sha256_file(route.model_artifact_path),
                 feature_schema_hash=feature_schema_hash(route.feature_schema),
                 feature_names=tuple(route.feature_schema),
                 predictor=predictor_fn,
