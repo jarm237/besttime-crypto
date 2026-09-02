@@ -35,7 +35,7 @@ def launch_r24_sealed_runner():
     logs_dir = store_path.parent
     logs_dir.mkdir(parents=True, exist_ok=True)
     
-    sealed_commit = "34d646113e76ea5ee155b449a45bdc3291e02147"
+    sealed_commit = "c82ecdf478adbc6df668bad738e0a8e302c0a080"
     sealed_artifact = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
     active_epoch_id = "p8-readiness-r2-20260902-01"
     deployment_id = "paper-canary-win-tsfix-20260901-01"

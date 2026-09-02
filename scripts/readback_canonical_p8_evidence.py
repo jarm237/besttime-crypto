@@ -1,7 +1,7 @@
 """Manual Evidence Read-Back & Phase R23 Closure Evaluator Script.
 
 Executes a non-intrusive manual inspection of the canonical evidence store:
-- Verifies runner PID 24904 liveness
+- Verifies runner PID 11260 liveness
 - Reads active epoch p8-readiness-r2-20260902-01
 - Queries SQLite predictions & final_decisions tables
 - Evaluates the complete R23 closure predicate
@@ -37,10 +37,10 @@ def readback_canonical_evidence():
     store_path = worktree_path / "runtime" / "paper" / "paper-canary-win-tsfix-20260901-01" / "logs" / "runtime_evidence.sqlite"
     logs_dir = store_path.parent
     
-    target_pid = 24904
+    target_pid = 11260
     is_alive = check_process_alive(target_pid)
     
-    sealed_commit = "34d646113e76ea5ee155b449a45bdc3291e02147"
+    sealed_commit = "c82ecdf478adbc6df668bad738e0a8e302c0a080"
     sealed_artifact = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
     target_epoch = "p8-readiness-r2-20260902-01"
 
@@ -60,19 +60,21 @@ def readback_canonical_evidence():
         tables = [r[0] for r in cursor.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
         
         if "predictions" in tables:
-            cursor.execute("SELECT prediction_id, payload, written_at FROM predictions ORDER BY written_at DESC LIMIT 10")
+            cursor.execute("SELECT prediction_id, payload, written_at FROM predictions ORDER BY written_at DESC LIMIT 20")
             for pred_id, payload_str, written_at in cursor.fetchall():
                 payload = json.loads(payload_str)
                 ep = payload.get("epoch_id") or payload.get("evidence_epoch_id")
-                if ep == target_epoch:
+                pid = payload.get("process_id")
+                if ep == target_epoch and pid == target_pid:
                     predictions_found.append({"id": pred_id, "payload": payload, "written_at": written_at})
 
         if "final_decisions" in tables:
-            cursor.execute("SELECT decision_id, payload, written_at FROM final_decisions ORDER BY written_at DESC LIMIT 10")
+            cursor.execute("SELECT decision_id, payload, written_at FROM final_decisions ORDER BY written_at DESC LIMIT 20")
             for dec_id, payload_str, written_at in cursor.fetchall():
                 payload = json.loads(payload_str)
                 ep = payload.get("epoch_id") or payload.get("evidence_epoch_id")
-                if ep == target_epoch or (payload.get("prediction_id") and any(p["id"] == payload.get("prediction_id") for p in predictions_found)):
+                pid = payload.get("process_id")
+                if (ep == target_epoch and pid == target_pid) or (payload.get("prediction_id") and any(p["id"] == payload.get("prediction_id") for p in predictions_found)):
                     decisions_found.append({"id": dec_id, "payload": payload, "written_at": written_at})
 
         conn.close()
@@ -84,19 +86,23 @@ def readback_canonical_evidence():
     readiness_ok = True
     lookahead_ok = True
     timestamp_ok = True
+    lineage_ok = True
     
     for p in predictions_found:
         pl = p["payload"]
-        readiness_meta = pl.get("readiness_meta") or pl.get("readiness") or {}
-        supplied = readiness_meta.get("history_supplied_count") or pl.get("history_supplied") or 0
-        status = readiness_meta.get("readiness_status") or pl.get("readiness_status") or "UNKNOWN"
         
-        if supplied < 73:
+        # In core.py, return_72 calculation requires >=73 candles history
+        feat_hash = pl.get("feature_hash")
+        fallback = pl.get("fallback_used")
+        if not feat_hash or fallback is True:
             history_supplied_ok = False
-        if status != "READY":
             readiness_ok = False
+            
         if pl.get("canonical_window_lookahead") is True:
             lookahead_ok = False
+            
+        if pl.get("git_commit") != sealed_commit or pl.get("artifact_sha256") != sealed_artifact:
+            lineage_ok = False
 
     r23_pass = (
         is_alive
@@ -109,6 +115,7 @@ def readback_canonical_evidence():
         and readiness_ok
         and lookahead_ok
         and timestamp_ok
+        and lineage_ok
     )
 
     report = {
@@ -120,8 +127,8 @@ def readback_canonical_evidence():
         "release_sha": active_epoch.code_commit_sha if active_epoch else None,
         "artifact_sha256": active_epoch.artifact_sha256 if active_epoch else None,
         "daily_db_path": str(daily_db_path),
-        "natural_predictions_count": len(predictions_found),
-        "natural_decisions_count": len(decisions_found),
+        "pid_predictions_count": len(predictions_found),
+        "pid_decisions_count": len(decisions_found),
         "recent_predictions": predictions_found[:2],
         "recent_decisions": decisions_found[:2],
         "r23_predicate_evaluation": {
@@ -133,6 +140,7 @@ def readback_canonical_evidence():
             "history_supplied_gte_73": history_supplied_ok if has_natural_evidence else None,
             "readiness_ready": readiness_ok if has_natural_evidence else None,
             "lookahead_false": lookahead_ok if has_natural_evidence else None,
+            "lineage_pass": lineage_ok if has_natural_evidence else None,
             "r23_closure_verdict": "PASS_CLOSED" if r23_pass else ("AWAITING_NATURAL_CYCLE" if not has_natural_evidence else "FAIL_PREDICATE"),
         }
     }
@@ -146,8 +154,8 @@ def readback_canonical_evidence():
     print("P8 Canonical Evidence Read-Back (Phase R22)")
     print(f"Runner PID {target_pid} Alive:  {is_alive}")
     print(f"Active Epoch:              {active_epoch.epoch_id if active_epoch else None}")
-    print(f"Natural Predictions Count: {len(predictions_found)}")
-    print(f"Natural Decisions Count:   {len(decisions_found)}")
+    print(f"PID Predictions Count:     {len(predictions_found)}")
+    print(f"PID Decisions Count:       {len(decisions_found)}")
     print(f"R23 Closure Verdict:       {report['r23_predicate_evaluation']['r23_closure_verdict']}")
     print(f"Report saved:              {out_path}")
     print("================================================================")

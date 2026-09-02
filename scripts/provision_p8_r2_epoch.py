@@ -21,7 +21,7 @@ def provision_r2_epoch():
     canonical_store_path = Path("runtime/worktrees/timestamp-remediation-20260901-01/runtime/paper/paper-canary-win-tsfix-20260901-01/logs/runtime_evidence.sqlite")
     deployment_id = "paper-canary-win-tsfix-20260901-01"
     universe_str = "BNB,BTC,DOGE,ETH,IOTA,NEAR,SOL,TRX,ZEC"
-    release_sha = "34d646113e76ea5ee155b449a45bdc3291e02147"
+    release_sha = "c82ecdf478adbc6df668bad738e0a8e302c0a080"
     artifact_sha = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
     metadata_sha = "c87dda729b71f140d739d414ee5714834c6f0e8b468f957e48493efb36967739"
     registry_sha = "977e643ba1df0ce22d1d489f1c7a05377b9198dbd375f7f5d8f2a78cebff0f1a"
