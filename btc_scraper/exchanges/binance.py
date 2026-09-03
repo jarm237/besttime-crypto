@@ -12,7 +12,53 @@ MTF_INTERVALS = {
     "1d":  30,   # 30 nến 1d (~1 tháng)
 }
 
-BASE_URL = "https://api.binance.com"
+import os
+import socket
+
+class SyncResolver(aiohttp.abc.AbstractResolver):
+    """Custom aiohttp DNS resolver using system socket.getaddrinfo in threadpool executor.
+    Fixes Windows Python async DNS resolution failures ([Could not contact DNS servers]).
+    """
+    async def resolve(self, host, port=0, family=socket.AF_INET):
+        loop = asyncio.get_running_loop()
+        infos = await loop.run_in_executor(
+            None, socket.getaddrinfo, host, port, family, socket.SOCK_STREAM
+        )
+        hosts = []
+        for family, type, proto, canonname, sockaddr in infos:
+            hosts.append({
+                'hostname': host,
+                'host': sockaddr[0],
+                'port': sockaddr[1],
+                'family': family,
+                'proto': proto,
+                'flags': 0
+            })
+        return hosts
+
+    async def close(self):
+        pass
+
+
+def create_robust_client_session(**kwargs) -> aiohttp.ClientSession:
+    """Tạo aiohttp ClientSession với SyncResolver chống lỗi DNS trên Windows."""
+    if "connector" not in kwargs:
+        connector = aiohttp.TCPConnector(resolver=SyncResolver(), family=socket.AF_INET)
+        kwargs["connector"] = connector
+    return aiohttp.ClientSession(**kwargs)
+
+
+BASE_URL = os.getenv("BINANCE_BASE_URL", "https://api.binance.com").rstrip("/")
+_ALT_DOMAINS = [
+    BASE_URL,
+    "https://api1.binance.com",
+    "https://api2.binance.com",
+    "https://api3.binance.com",
+    "https://api4.binance.com",
+    "https://api.binance.gapi.tech",
+]
+_seen_domains = set()
+BINANCE_DOMAINS = [d for d in _ALT_DOMAINS if not (d in _seen_domains or _seen_domains.add(d))]
 
 
 def _utc_candle_time(timestamp_ms: int | float) -> str:
@@ -25,41 +71,136 @@ def _utc_candle_time(timestamp_ms: int | float) -> str:
     )
 
 
+BYBIT_TF_MAP = {
+    "15m": "15",
+    "1h": "60",
+    "4h": "240",
+    "1d": "D",
+}
+
+OKX_TF_MAP = {
+    "15m": "15m",
+    "1h": "1H",
+    "4h": "4H",
+    "1d": "1D",
+}
+
+
+async def _fetch_from_bybit(symbol: str, interval: str, limit: int, sess: aiohttp.ClientSession) -> list[dict]:
+    url = "https://api.bybit.com/v5/market/kline"
+    params = {
+        "category": "spot",
+        "symbol": symbol,
+        "interval": BYBIT_TF_MAP.get(interval, "15"),
+        "limit": limit,
+    }
+    async with sess.get(url, params=params, timeout=8) as resp:
+        resp.raise_for_status()
+        data = await resp.json()
+        if data.get("retCode") == 0 and data.get("result", {}).get("list"):
+            raw = data["result"]["list"]
+            candles = []
+            for k in raw:
+                ts = int(k[0])
+                candles.append({
+                    "time": datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d %H:%M"),
+                    "time_utc": _utc_candle_time(ts),
+                    "open": float(k[1]),
+                    "high": float(k[2]),
+                    "low": float(k[3]),
+                    "close": float(k[4]),
+                    "volume": float(k[5]),
+                })
+            return list(reversed(candles))
+    raise RuntimeError("Bybit kline data empty or error")
+
+
+async def _fetch_from_okx(coin: str, interval: str, limit: int, sess: aiohttp.ClientSession) -> list[dict]:
+    symbol = f"{coin}-USDT"
+    url = "https://www.okx.com/api/v5/market/candles"
+    params = {
+        "instId": symbol,
+        "bar": OKX_TF_MAP.get(interval, "15m"),
+        "limit": limit,
+    }
+    async with sess.get(url, params=params, timeout=8) as resp:
+        resp.raise_for_status()
+        data = await resp.json()
+        if data.get("code") == "0" and data.get("data"):
+            raw = data["data"]
+            candles = []
+            for k in raw:
+                ts = int(k[0])
+                candles.append({
+                    "time": datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d %H:%M"),
+                    "time_utc": _utc_candle_time(ts),
+                    "open": float(k[1]),
+                    "high": float(k[2]),
+                    "low": float(k[3]),
+                    "close": float(k[4]),
+                    "volume": float(k[5]),
+                })
+            return list(reversed(candles))
+    raise RuntimeError("OKX kline data empty or error")
+
+
+async def _fetch_from_domains(symbol: str, interval: str, limit: int, sess: aiohttp.ClientSession) -> list[dict]:
+    """Thử lấy klines từ lần lượt các Binance domain, nếu lỗi DNS/mạng chuyển sang Bybit & OKX fallback."""
+    params = {
+        "symbol": symbol,
+        "interval": interval,
+        "limit": limit,
+    }
+    last_err = None
+    for domain in BINANCE_DOMAINS:
+        url = f"{domain}/api/v3/klines"
+        try:
+            async with sess.get(url, params=params, timeout=5) as resp:
+                resp.raise_for_status()
+                raw = await resp.json()
+                candles = []
+                for k in raw:
+                    candles.append({
+                        "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
+                        "time_utc": _utc_candle_time(k[0]),
+                        "open":   float(k[1]),
+                        "high":   float(k[2]),
+                        "low":    float(k[3]),
+                        "close":  float(k[4]),
+                        "volume": float(k[5]),
+                    })
+                return candles
+        except Exception as e:
+            last_err = e
+            continue
+
+    # Fallback sang Bybit
+    try:
+        return await _fetch_from_bybit(symbol, interval, limit, sess)
+    except Exception as bybit_exc:
+        last_err = bybit_exc
+
+    # Fallback sang OKX
+    coin_name = symbol.replace("USDT", "")
+    try:
+        return await _fetch_from_okx(coin_name, interval, limit, sess)
+    except Exception as okx_exc:
+        last_err = okx_exc
+
+    raise last_err or RuntimeError("All exchange REST endpoints unreachable")
+
+
 async def fetch_ohlcv(coin: str, session: aiohttp.ClientSession = None) -> list[dict]:
     """
     Lấy dữ liệu nến OHLCV từ Binance cho một coin cụ thể.
     Trả về danh sách dict với các trường: time, open, high, low, close, volume.
     """
     symbol = f"{coin}USDT"
-    url = f"{BASE_URL}/api/v3/klines"
-    params = {
-        "symbol": symbol,
-        "interval": INTERVAL,
-        "limit": LIMIT,
-    }
-    
-    async def _fetch(sess):
-        async with sess.get(url, params=params, timeout=10) as resp:
-            resp.raise_for_status()
-            raw = await resp.json()
-            candles = []
-            for k in raw:
-                candles.append({
-                    "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
-                    "time_utc": _utc_candle_time(k[0]),
-                    "open":   float(k[1]),
-                    "high":   float(k[2]),
-                    "low":    float(k[3]),
-                    "close":  float(k[4]),
-                    "volume": float(k[5]),
-                })
-            return candles
-
     try:
         if session is None:
-            async with aiohttp.ClientSession() as sess:
-                return await _fetch(sess)
-        return await _fetch(session)
+            async with create_robust_client_session() as sess:
+                return await _fetch_from_domains(symbol, INTERVAL, LIMIT, sess)
+        return await _fetch_from_domains(symbol, INTERVAL, LIMIT, session)
     except Exception as e:
         return [{"error": str(e)}]
 
@@ -69,35 +210,11 @@ async def fetch_ohlcv_tf(coin: str, interval: str, limit: int, session: aiohttp.
     Lấy dữ liệu nến OHLCV từ Binance cho một coin và một khung thời gian cụ thể.
     """
     symbol = f"{coin}USDT"
-    url = f"{BASE_URL}/api/v3/klines"
-    params = {
-        "symbol": symbol,
-        "interval": interval,
-        "limit": limit,
-    }
-    
-    async def _fetch(sess):
-        async with sess.get(url, params=params, timeout=10) as resp:
-            resp.raise_for_status()
-            raw = await resp.json()
-            candles = []
-            for k in raw:
-                candles.append({
-                    "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
-                    "time_utc": _utc_candle_time(k[0]),
-                    "open":   float(k[1]),
-                    "high":   float(k[2]),
-                    "low":    float(k[3]),
-                    "close":  float(k[4]),
-                    "volume": float(k[5]),
-                })
-            return candles
-
     try:
         if session is None:
-            async with aiohttp.ClientSession() as sess:
-                return await _fetch(sess)
-        return await _fetch(session)
+            async with create_robust_client_session() as sess:
+                return await _fetch_from_domains(symbol, interval, limit, sess)
+        return await _fetch_from_domains(symbol, interval, limit, session)
     except Exception as e:
         return [{"error": str(e)}]
 
@@ -117,7 +234,7 @@ async def fetch_ohlcv_multi_tf(coin: str, session: aiohttp.ClientSession = None)
         
     try:
         if session is None:
-            async with aiohttp.ClientSession() as sess:
+            async with create_robust_client_session() as sess:
                 return await _fetch(sess)
         return await _fetch(session)
     except Exception as e:

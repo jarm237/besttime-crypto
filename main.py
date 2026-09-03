@@ -28,7 +28,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 from btc_scraper.exchanges import binance, bybit, okx
-from btc_scraper.exchanges.binance import fetch_ohlcv_multi_tf
+from btc_scraper.exchanges.binance import fetch_ohlcv_multi_tf, create_robust_client_session
 from btc_scraper.analysis import analyze_market
 from btc_scraper.ui.display import print_all
 from btc_scraper.telegram_bot import send_signals_alert, send_ai_reply, send_position_recommendations, start_telegram_listener
@@ -379,7 +379,7 @@ async def fetch_and_display():
     raw_candles_dict = {}
     mtf_candles_dict = {}
 
-    async with aiohttp.ClientSession() as session:
+    async with create_robust_client_session() as session:
         tasks_15m = []
         for coin in ANALYSIS_SYMBOLS:
             tasks_15m.append(_get_candles_for_coin(coin, "15m", session))
@@ -565,7 +565,7 @@ async def fetch_and_analyze_open_positions_only():
     
     analysis = {}
     
-    async with aiohttp.ClientSession() as session:
+    async with create_robust_client_session() as session:
         tasks = []
         for coin in coins_to_check:
             tasks.append(_get_candles_for_coin(coin, "15m", session))
@@ -680,7 +680,7 @@ async def run_scheduler():
                     )
                     await asyncio.to_thread(mongo_client.admin.command, "ping")
                     timeout = aiohttp.ClientTimeout(total=5.0)
-                    async with aiohttp.ClientSession(timeout=timeout) as session:
+                    async with create_robust_client_session(timeout=timeout) as session:
                         async with session.get("https://api.binance.com/api/v3/time") as response:
                             response.raise_for_status()
                     healthy = True

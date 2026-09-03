@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import fcntl
 import hashlib
+import threading
+import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,20 +32,27 @@ def default_registry_path() -> Path:
 
 
 class ModelRegistry:
-    def __init__(self, path: Path | str | None = None, promotion_guard_path: Path | str | None = None) -> None:
+    def __init__(self, path: Path | str | None = None, promotion_guard_path: Path | str | None = None,
+                 approved_root: Path | str | None = None) -> None:
+        self.approved_root = Path(approved_root).resolve() if approved_root is not None else ROOT
         self.path = Path(path) if path is not None else default_registry_path()
         self.lock_path = self.path.with_suffix(self.path.suffix + ".lock")
-        self.promotion_guard_path = Path(promotion_guard_path) if promotion_guard_path is not None else ROOT / "config" / "ml_engine_readiness.json"
+        self.promotion_guard_path = Path(promotion_guard_path) if promotion_guard_path is not None else self.approved_root / "config" / "ml_engine_readiness.json"
+        self._thread_lock = threading.RLock()
 
     @contextmanager
     def _locked(self, *, exclusive: bool):
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.lock_path.open("a+") as lock_file:
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
-            try:
-                yield
-            finally:
-                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+        with self._thread_lock:
+            with self.lock_path.open("a+") as lock_file:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+                try:
+                    yield
+                finally:
+                    try:
+                        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                    except Exception:
+                        pass
 
     def _read(self) -> dict[str, list[dict[str, Any]]]:
         if not self.path.exists():
@@ -59,17 +69,29 @@ class ModelRegistry:
 
     def _write(self, data: dict[str, list[dict[str, Any]]]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(self.path.suffix + f".{os.getpid()}.tmp")
-        with tmp.open("w", encoding="utf-8") as handle:
-            handle.write(json.dumps(data, ensure_ascii=False, indent=2))
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(tmp, self.path)
-        directory_fd = os.open(self.path.parent, os.O_RDONLY)
+        unique_suffix = f".{os.getpid()}_{threading.get_ident()}_{uuid.uuid4().hex}.tmp"
+        tmp = self.path.with_suffix(self.path.suffix + unique_suffix)
         try:
-            os.fsync(directory_fd)
+            with tmp.open("w", encoding="utf-8") as handle:
+                handle.write(json.dumps(data, ensure_ascii=False, indent=2))
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(tmp, self.path)
+            if sys.platform != "win32":
+                try:
+                    directory_fd = os.open(self.path.parent, os.O_RDONLY)
+                    try:
+                        os.fsync(directory_fd)
+                    finally:
+                        os.close(directory_fd)
+                except Exception:
+                    pass
         finally:
-            os.close(directory_fd)
+            if tmp.exists():
+                try:
+                    tmp.unlink()
+                except Exception:
+                    pass
 
     def _assert_promotion_unfrozen(self) -> None:
         if not self.promotion_guard_path.exists() or os.getenv("ML_MODEL_PROMOTION_OVERRIDE", "false").lower() in {"1", "true", "yes"}:
@@ -103,10 +125,11 @@ class ModelRegistry:
         result = dict(record)
         artifact_path = result.get("artifact_path")
         if artifact_path:
-            artifact = (ROOT / artifact_path).resolve() if not Path(artifact_path).is_absolute() else Path(artifact_path)
+            root = getattr(self, "approved_root", ROOT)
+            artifact = (root / artifact_path).resolve() if not Path(artifact_path).is_absolute() else Path(artifact_path)
             if not artifact.exists():
                 raise FileNotFoundError(f"cannot register missing artifact: {artifact}")
-            result["artifact_path"] = str(artifact.relative_to(ROOT))
+            result["artifact_path"] = str(artifact.relative_to(root))
             result.setdefault("sha256", sha256_file(artifact))
         result.setdefault("registered_at", datetime.now(timezone.utc).isoformat())
         if status == "production":

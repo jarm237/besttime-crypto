@@ -46,8 +46,10 @@ class GovernedArtifactLoader:
     def __init__(self, resolver: ArtifactResolver | None = None, registry: ModelRegistry | None = None,
                  approved_root: Path | str = ROOT) -> None:
         self.resolver = resolver or ArtifactResolver()
-        self.registry = registry or ModelRegistry()
         self.approved_root = Path(approved_root).resolve()
+        self.registry = registry or ModelRegistry(approved_root=self.approved_root)
+        if hasattr(self.registry, "approved_root"):
+            self.registry.approved_root = self.approved_root
 
     def load_production(
         self,

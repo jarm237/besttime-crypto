@@ -25,7 +25,7 @@ def _setup(tmp_path, monkeypatch, *, registered=True, metadata_hash=None, schema
         "demo:\n  production_path: model.joblib\n  metadata_path: metadata.json\n"
         "  schema_version: schema-v1\n  status: production\n"
     )
-    registry = ModelRegistry(tmp_path / "registry.json")
+    registry = ModelRegistry(tmp_path / "registry.json", approved_root=tmp_path)
     if registered:
         registry.register({"model_name": "demo", "version": "1", "status": "production", "artifact_path": "model.joblib"})
     return GovernedArtifactLoader(ArtifactResolver(config), registry, approved_root=tmp_path), artifact

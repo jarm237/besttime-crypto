@@ -30,7 +30,7 @@ def verify_preflight_v2():
     worktree_path = repo_root / "runtime" / "worktrees" / "timestamp-remediation-20260901-01"
     store_path = worktree_path / "runtime" / "paper" / "paper-canary-win-tsfix-20260901-01" / "logs" / "runtime_evidence.sqlite"
     
-    sealed_commit = "33e405cf034781cb7b7c2984231ab6b8a8ea15ce"
+    sealed_commit = "4efed1fd43e1f014b61d7d74d3ed574ddb010aab"
     sealed_artifact = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
     
     # 1. Worktree HEAD

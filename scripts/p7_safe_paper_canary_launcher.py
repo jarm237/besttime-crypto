@@ -64,6 +64,7 @@ class LaunchRequest:
     execution_mode: str
     python_executable: Path = Path(sys.executable)
     entrypoint: str = "main.py"
+    source_artifact: Path | None = None
 
     @classmethod
     def from_manifest(
@@ -73,6 +74,7 @@ class LaunchRequest:
         expected_manifest_sha256: str,
         pinned_root: Path,
         python_executable: Path | None = None,
+        source_artifact: Path | None = None,
     ) -> "LaunchRequest":
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         artifact = manifest["artifact"]
@@ -91,6 +93,7 @@ class LaunchRequest:
             paper_run_id=str(manifest["paper_run_id"]),
             execution_mode=str(runtime.get("mode") or ""),
             python_executable=python_executable or Path(sys.executable),
+            source_artifact=source_artifact,
         )
 
     def command(self) -> tuple[str, ...]:
@@ -134,6 +137,7 @@ class LaunchRequest:
             "argv": list(self.command()),
             "cwd": str(self.pinned_root),
             "environment": self.child_environment(),
+            "source_artifact": str(self.source_artifact) if self.source_artifact else None,
         }
 
 
@@ -167,6 +171,20 @@ def validate_launch_request(
         raise LauncherContractError("release_tree_mismatch")
     if _git(request.pinned_root, "status", "--short"):
         raise LauncherContractError("pinned_worktree_dirty")
+
+    if request.source_artifact:
+        if not request.source_artifact.is_file():
+            raise LauncherContractError("source_artifact_missing")
+        source_sha = sha256_file(request.source_artifact)
+        if source_sha != request.artifact_sha256:
+            raise LauncherContractError("source_artifact_sha256_mismatch")
+        # Perform atomic copy to artifact_path
+        import shutil
+        request.artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_target = request.artifact_path.with_suffix(".tmp_copy")
+        shutil.copyfile(request.source_artifact, tmp_target)
+        os.replace(tmp_target, request.artifact_path)
+
     if not request.artifact_path.is_file():
         raise LauncherContractError("artifact_missing")
     if sha256_file(request.artifact_path) != request.artifact_sha256:
@@ -245,12 +263,14 @@ def main() -> int:
     parser.add_argument("--manifest-path", type=Path, required=True)
     parser.add_argument("--expected-manifest-sha256", required=True)
     parser.add_argument("--pinned-root", type=Path, required=True)
+    parser.add_argument("--source-artifact", type=Path, default=None, help="Trusted source artifact path for atomic replacement")
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()
     request = LaunchRequest.from_manifest(
         manifest_path=args.manifest_path.resolve(),
         expected_manifest_sha256=args.expected_manifest_sha256,
         pinned_root=args.pinned_root.resolve(),
+        source_artifact=args.source_artifact.resolve() if args.source_artifact else None,
     )
     if args.validate_only:
         result = validate_launch_request(request)

@@ -25,7 +25,9 @@ from btc_scraper.exchanges.binance import (
     MTF_INTERVALS,
     LIMIT,
     _utc_candle_time,
+    create_robust_client_session,
 )
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +147,7 @@ class BinanceWebSocketManager:
             except Exception as e:
                 print(f"    ✗ {coin}/{interval}: Exception — {e}", flush=True)
 
-        async with aiohttp.ClientSession() as session:
+        async with create_robust_client_session() as session:
             tasks = []
             for coin in self.coins:
                 for interval in self.intervals:
