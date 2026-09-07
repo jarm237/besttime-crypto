@@ -11,21 +11,53 @@ import math
 import os
 import sys
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 # Ensure btc_scraper is in import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
+from btc_scraper.ml_engine.p8_governance import (
+    ABSOLUTE_USD_TOLERANCE,
+    MIN_COST_COVERAGE_RATIO,
+    MIN_RATE_COVERAGE_RATIO,
+    EXPECTED_DEPLOYMENT_ID,
+    EXPECTED_EPOCH_ID,
+    EXPECTED_PAPER_RUN_ID,
+    EXPECTED_UNIVERSE_HASH,
+    SEALED_ARTIFACT_SHA,
+    SEALED_COMMIT_SHA,
+    AttestationResult,
+    GovernanceError,
+    P8AttestationPolicy,
+    P8CostPolicy,
+    calculate_store_content_hash,
+    calculate_store_manifest_hash,
+    check_runtime_lock_owner,
+    get_cost_policy_metadata,
+)
 from btc_scraper.ml_engine.p8_economic_extractor import (
     ACTIVE_SYMBOLS,
     extract_closed_trades,
     run_funnel_analysis,
 )
+from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
+
+AUTHORIZED_ECONOMIC_VERDICTS = {
+    "ECONOMICALLY_PROMISING",
+    "CONTINUE_OBSERVATION",
+    "ALPHA_FAILURE",
+    "ECONOMIC_INFEASIBILITY_UNDER_CURRENT_EXECUTION",
+    "MODEL_ROUTE_REVIEW",
+    "DECISION_POLICY_REVIEW",
+    "UNIVERSE_REVIEW",
+}
+
 
 def safe_mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
+
 
 def safe_median(values: list[float]) -> float:
     if not values:
@@ -36,188 +68,119 @@ def safe_median(values: list[float]) -> float:
         return sorted_vals[n // 2]
     return (sorted_vals[n // 2 - 1] + sorted_vals[n // 2]) / 2.0
 
+
 def calculate_metrics(trades: list[dict[str, Any]]) -> dict[str, Any]:
-    """Calculate key economic metrics for a subset of trades."""
+    """Calculate key economic metrics separating Rate metrics (bps) and Accounting metrics (USD)."""
     if not trades:
         return {
-            "trade_count": 0,
+            "sample_size": 0,
+            "rate_coverage_n": 0,
+            "cost_coverage_n": 0,
+            "mean_net_return_bps": 0.0,
+            "median_net_return_bps": 0.0,
+            "mean_gross_return_bps": 0.0,
             "win_rate": 0.0,
-            "gross_ev_bps": 0.0,
-            "net_ev_bps": 0.0,
-            "avg_win_bps": 0.0,
-            "avg_loss_bps": 0.0,
             "profit_factor": 0.0,
-            "total_gross_pnl": 0.0,
-            "total_fees": 0.0,
-            "total_net_pnl": 0.0,
-            "max_drawdown_usd": 0.0,
-            "max_drawdown_bps": 0.0,
-            "median_holding_time_seconds": 0.0
+            "total_net_pnl_usd": 0.0,
+            "total_gross_pnl_usd": 0.0,
+            "total_fees_usd": 0.0,
         }
 
-    net_returns = [t["net_return_bps"] for t in trades]
-    gross_returns = [t["gross_return_bps"] for t in trades]
-    
-    wins = [r for r in net_returns if r > 0]
-    losses = [r for r in net_returns if r < 0]
-    
-    win_count = len(wins)
-    trade_count = len(trades)
-    win_rate = win_count / trade_count if trade_count > 0 else 0.0
+    # 1. Rate Metrics (bps)
+    rate_trades = [t for t in trades if isinstance(t.get("net_return_bps"), (int, float))]
+    rate_coverage_n = len(rate_trades)
 
-    avg_win = safe_mean(wins)
-    avg_loss = safe_mean(losses)
+    net_bps_list = [float(t["net_return_bps"]) for t in rate_trades]
+    gross_bps_list = [float(t.get("gross_return_bps", t["net_return_bps"])) for t in rate_trades]
 
-    # PF calculation: sum of absolute wins / sum of absolute losses
-    sum_wins = sum(wins)
-    sum_losses = sum(losses)
-    profit_factor = sum_wins / abs(sum_losses) if sum_losses != 0 else float("inf")
-    if math.isinf(profit_factor):
-        profit_factor = 999.0  # Safe default representable in json
+    wins = [r for r in net_bps_list if r > 0]
+    losses = [abs(r) for r in net_bps_list if r < 0]
+    win_rate = len(wins) / len(net_bps_list) if net_bps_list else 0.0
+    profit_factor = sum(wins) / sum(losses) if sum(losses) > 0 else (999.0 if sum(wins) > 0 else 0.0)
 
-    total_gross = sum(t["gross_pnl"] for t in trades if isinstance(t["gross_pnl"], (int, float)))
-    total_fees = sum(t["fees"] for t in trades if isinstance(t["fees"], (int, float)))
-    total_net = sum(t["net_pnl"] for t in trades if isinstance(t["net_pnl"], (int, float)))
+    # 2. Accounting Metrics (USD using Decimal)
+    cost_trades = [t for t in trades if t.get("cost_coverage_complete") is True and isinstance(t.get("actual_net_pnl_usd"), (int, float))]
+    cost_coverage_n = len(cost_trades)
 
-    # Holding times
-    holding_times = [t["holding_time"] for t in trades if isinstance(t["holding_time"], (int, float))]
-    median_hold = safe_median(holding_times)
+    total_net_usd = Decimal("0.00")
+    total_gross_usd = Decimal("0.00")
+    total_fees_usd = Decimal("0.00")
 
-    # Max drawdown calculation
-    cum_bps = 0.0
-    peak_bps = 0.0
-    max_dd_bps = 0.0
-
-    cum_usd = 0.0
-    peak_usd = 0.0
-    max_dd_usd = 0.0
-
-    # Sort by exit_timestamp to follow trade sequence
-    sorted_trades = sorted(trades, key=lambda x: x.get("exit_timestamp") or "")
-    for t in sorted_trades:
-        cum_bps += t["net_return_bps"]
-        if cum_bps > peak_bps:
-            peak_bps = cum_bps
-        dd_bps = peak_bps - cum_bps
-        if dd_bps > max_dd_bps:
-            max_dd_bps = dd_bps
-
-        net_p = t["net_pnl"]
-        if isinstance(net_p, (int, float)):
-            cum_usd += net_p
-            if cum_usd > peak_usd:
-                peak_usd = cum_usd
-            dd_usd = peak_usd - cum_usd
-            if dd_usd > max_dd_usd:
-                max_dd_usd = dd_usd
+    for t in cost_trades:
+        if t.get("actual_net_pnl_usd") is not None:
+            total_net_usd += Decimal(str(t["actual_net_pnl_usd"]))
+        if t.get("actual_gross_pnl_usd") is not None:
+            total_gross_usd += Decimal(str(t["actual_gross_pnl_usd"]))
+        if t.get("actual_fee_usd") is not None:
+            total_fees_usd += Decimal(str(t["actual_fee_usd"]))
 
     return {
-        "trade_count": trade_count,
+        "sample_size": len(trades),
+        "rate_coverage_n": rate_coverage_n,
+        "cost_coverage_n": cost_coverage_n,
+        "mean_net_return_bps": safe_mean(net_bps_list),
+        "median_net_return_bps": safe_median(net_bps_list),
+        "mean_gross_return_bps": safe_mean(gross_bps_list),
         "win_rate": win_rate,
-        "gross_ev_bps": safe_mean(gross_returns),
-        "net_ev_bps": safe_mean(net_returns),
-        "avg_win_bps": avg_win,
-        "avg_loss_bps": avg_loss,
         "profit_factor": profit_factor,
-        "total_gross_pnl": total_gross,
-        "total_fees": total_fees,
-        "total_net_pnl": total_net,
-        "max_drawdown_usd": max_dd_usd,
-        "max_drawdown_bps": max_dd_bps,
-        "median_holding_time_seconds": median_hold
+        "total_net_pnl_usd": float(total_net_usd),
+        "total_gross_pnl_usd": float(total_gross_usd),
+        "total_fees_usd": float(total_fees_usd),
     }
+
 
 def bucket_trades(trades: list[dict[str, Any]], num_buckets: int = 5) -> dict[str, list[dict[str, Any]]]:
     if not trades:
         return {}
     
-    # Filter out trades with no score
-    scored_trades = [t for t in trades if isinstance(t["model_score"], (int, float))]
-    if not scored_trades:
+    valid_trades = [t for t in trades if isinstance(t.get("model_score"), (int, float))]
+    if not valid_trades:
         return {}
-    
-    sorted_trades = sorted(scored_trades, key=lambda t: t["model_score"])
+
+    sorted_trades = sorted(valid_trades, key=lambda x: x["model_score"])
     n = len(sorted_trades)
-    
-    if n < num_buckets:
-        return {f"Q{i+1}": [sorted_trades[i]] for i in range(n)}
-        
+    bucket_size = math.ceil(n / num_buckets)
+
     buckets = {}
-    chunk_size = n / num_buckets
     for i in range(num_buckets):
-        start = int(i * chunk_size)
-        end = int((i + 1) * chunk_size) if i < num_buckets - 1 else n
-        buckets[f"Q{i+1}"] = sorted_trades[start:end]
+        start_idx = i * bucket_size
+        end_idx = min((i + 1) * bucket_size, n)
+        if start_idx >= n:
+            break
+        b_name = f"bucket_{i+1}"
+        buckets[b_name] = sorted_trades[start_idx:end_idx]
+
     return buckets
 
-def determine_verdict(n: int, metrics: dict[str, Any], route_metrics: dict[str, Any], funnel: dict[str, Any]) -> tuple[str, str]:
-    if n < 30:
-        return "P8_DATA_VALIDATION_REQUIRED", "ECONOMIC_VERDICT_NOT_AUTHORIZED_YET"
-
-    net_ev = metrics["net_ev_bps"]
-    gross_ev = metrics["gross_ev_bps"]
-    pf = metrics["profit_factor"]
-    max_dd = metrics["max_drawdown_bps"]
-    
-    legacy_net = route_metrics.get("LEGACY", {}).get("net_ev_bps", 0.0)
-    mc5_net = route_metrics.get("MC5_QUALIFIED", {}).get("net_ev_bps", 0.0)
-    
-    if n < 100:
-        stage = "DIAGNOSTIC"
-    else:
-        stage = "ECONOMIC_REVIEW_READY"
-
-    # Verdict criteria
-    if gross_ev <= 0:
-        return "STOP", "ALPHA_FAILURE"
-    if gross_ev > 0 and net_ev < 0:
-        return "STOP", "ECONOMIC_INFEASIBILITY_UNDER_CURRENT_EXECUTION"
-    
-    # Performance review
-    if legacy_net > 0 and mc5_net < 0:
-        return "MODIFY", "MODEL_ROUTE_REVIEW"
-    
-    # Check if single trade concentration is high or drawdown is pathological
-    if max_dd > 1000.0:  # 10% drawdown
-        return "MODIFY", "DECISION_POLICY_REVIEW"
-        
-    if net_ev > 0 and pf > 1:
-        return "CONTINUE", "ECONOMICALLY_PROMISING" if stage == "ECONOMIC_REVIEW_READY" else "CONTINUE_OBSERVATION"
-    
-    return "MODIFY", "UNIVERSE_REVIEW"
 
 def calculate_population_report(trades: list[dict[str, Any]]) -> dict[str, Any]:
     overall = calculate_metrics(trades)
     
-    # Route breakdown
     routes = ["LEGACY", "MC5_QUALIFIED"]
     route_metrics = {}
     for r in routes:
         route_trades = [t for t in trades if t["route"] == r]
         route_metrics[r] = calculate_metrics(route_trades)
 
-    # Symbol breakdown
     symbol_metrics = {}
     for sym in ACTIVE_SYMBOLS:
         sym_trades = [t for t in trades if t["symbol"].split("/")[0].split("USDT")[0] == sym]
         symbol_metrics[sym] = calculate_metrics(sym_trades)
 
-    # Side breakdown
     side_metrics = {}
     for side in ["LONG", "SHORT"]:
         side_trades = [t for t in trades if t["side"] == side]
         side_metrics[side] = calculate_metrics(side_trades)
 
-    # Confidence Buckets
     buckets = bucket_trades(trades, 5)
     bucket_summary = {}
     for b_name, b_trades in buckets.items():
         bucket_summary[b_name] = {
             "trade_count": len(b_trades),
-            "mean_net_return_bps": safe_mean([t["net_return_bps"] for t in b_trades]),
-            "median_net_return_bps": safe_median([t["net_return_bps"] for t in b_trades]),
+            "mean_net_return_bps": safe_mean([t["net_return_bps"] for t in b_trades if isinstance(t.get("net_return_bps"), (int, float))]),
+            "median_net_return_bps": safe_median([t["net_return_bps"] for t in b_trades if isinstance(t.get("net_return_bps"), (int, float))]),
             "win_rate": calculate_metrics(b_trades)["win_rate"],
-            "profit_factor": calculate_metrics(b_trades)["profit_factor"]
+            "profit_factor": calculate_metrics(b_trades)["profit_factor"],
         }
         
     return {
@@ -225,29 +188,91 @@ def calculate_population_report(trades: list[dict[str, Any]]) -> dict[str, Any]:
         "route_attribution": route_metrics,
         "symbol_attribution": symbol_metrics,
         "side_attribution": side_metrics,
-        "confidence_buckets": bucket_summary
+        "confidence_buckets": bucket_summary,
     }
+
+
+def attest_canonical_store(
+    evidence_path: Path,
+    reservation_path: Path | None = None,
+) -> AttestationResult:
+    """Expose structured attestation result."""
+    policy = P8AttestationPolicy()
+    return policy.attest_store(evidence_path, reservation_path)
+
+
+def validate_canonical_store_identity(
+    evidence_path: Path,
+    store: RuntimeEvidenceStore | None = None,
+    reservation_path: Path | None = None,
+) -> bool:
+    """Backward compatibility wrapper delegating to P8AttestationPolicy returning boolean."""
+    policy = P8AttestationPolicy()
+    if not policy.validate_store_paths(evidence_path, reservation_path):
+        return False
+    att = policy.attest_store(evidence_path, reservation_path)
+    return att.is_valid
+
+
+def determine_verdict(
+    canary_n: int,
+    overall_metrics: dict[str, Any],
+    route_attribution: dict[str, Any],
+    funnel: dict[str, Any],
+    *,
+    allow_non_eligible: bool = False,
+) -> tuple[str, str]:
+    if not allow_non_eligible:
+        return "DIAGNOSTIC", "UNAUTHORIZED_POPULATION_VERDICT_NOT_PERMITTED"
+
+    if canary_n < 30:
+        return "CONTINUE", "CANARY_POPULATION_ACCUMULATING"
+
+    mean_net_bps = overall_metrics.get("mean_net_return_bps", 0.0)
+    win_rate = overall_metrics.get("win_rate", 0.0)
+
+    if mean_net_bps > 10.0 and win_rate >= 0.52:
+        return "CONTINUE", "ECONOMICALLY_PROMISING"
+
+    if mean_net_bps < -20.0:
+        return "STOP", "ALPHA_FAILURE"
+
+    if mean_net_bps < 0.0:
+        return "MODIFY", "ECONOMIC_INFEASIBILITY_UNDER_CURRENT_EXECUTION"
+
+    return "CONTINUE", "CONTINUE_OBSERVATION"
+
 
 def generate_report(
     evidence_store_path: Path | str | None = None,
     reservation_db_path: Path | str | None = None,
-    output_dir: Path | str | None = None
-) -> None:
+    output_dir: Path | str | None = None,
+    *,
+    require_evidence_eligible: bool = True,
+    governed_mode: bool = False,
+) -> dict[str, Any]:
     if output_dir is None:
         output_dir = Path(__file__).resolve().parents[1]
     else:
         output_dir = Path(output_dir)
 
-    # Resolve explicit paths and enforce fail-closed check
     if evidence_store_path is not None:
         evidence_logical_path = Path(evidence_store_path)
     else:
         from btc_scraper.core.paths import get_runtime_paths
         evidence_logical_path = Path(get_runtime_paths().runtime_evidence_path)
 
-    global_index_path = evidence_logical_path.parent / "global_evidence_index.sqlite"
+    logs_dir = evidence_logical_path.parent
+
+    if governed_mode:
+        check_runtime_lock_owner(logs_dir)
+
+    pre_manifest_hash = calculate_store_manifest_hash(logs_dir)
+    pre_content_hash = calculate_store_content_hash(logs_dir)
+
+    global_index_path = logs_dir / "global_evidence_index.sqlite"
     pattern = f"{evidence_logical_path.stem}_????-??-??{evidence_logical_path.suffix}"
-    partition_files = list(evidence_logical_path.parent.glob(pattern))
+    partition_files = list(logs_dir.glob(pattern))
 
     evidence_exists = (
         evidence_logical_path.exists() or 
@@ -256,11 +281,10 @@ def generate_report(
     )
 
     if not evidence_exists:
-        print(f"ERROR: Expected evidence database not found at logical path: {evidence_logical_path}", file=sys.stderr)
-        print(f"Verified missing files:", file=sys.stderr)
-        print(f"  - Logical path: {evidence_logical_path}", file=sys.stderr)
-        print(f"  - Global index: {global_index_path}", file=sys.stderr)
-        print(f"  - Partitions: None found matching {evidence_logical_path.parent}/{pattern}", file=sys.stderr)
+        err_msg = f"Expected evidence database not found at logical path: {evidence_logical_path}"
+        if governed_mode:
+            raise GovernanceError(err_msg)
+        print(f"ERROR: {err_msg}", file=sys.stderr)
         sys.exit(1)
 
     if reservation_db_path is not None:
@@ -270,58 +294,187 @@ def generate_report(
         res_path = Path(get_runtime_paths().reservation_db_path)
 
     if not res_path.exists():
-        print(f"ERROR: Expected reservation database not found at: {res_path}", file=sys.stderr)
+        err_msg = f"Expected reservation database not found at: {res_path}"
+        if governed_mode:
+            raise GovernanceError(err_msg)
+        print(f"ERROR: {err_msg}", file=sys.stderr)
         sys.exit(1)
 
-    store = RuntimeEvidenceStore(evidence_store_path)
-    
+    policy = P8AttestationPolicy()
+    attestation = policy.attest_store(evidence_logical_path, res_path)
+    is_canonical = attestation.is_valid
+
+    if governed_mode and (not is_canonical or not require_evidence_eligible):
+        raise GovernanceError(
+            f"Governed P8 execution failure: attestation errors: {attestation.attestation_errors}"
+        )
+
+    store = RuntimeEvidenceStore(evidence_logical_path)
+
     # 1. Extract Trades
-    trades = extract_closed_trades(store, reservation_db_path)
-    
+    trades, rejection_info = extract_closed_trades(
+        store,
+        res_path,
+        require_evidence_eligible=require_evidence_eligible,
+        include_rejections=True,
+    )
+
+    # Post snapshot & content verification
+    post_manifest_hash = calculate_store_manifest_hash(logs_dir)
+    post_content_hash = calculate_store_content_hash(logs_dir)
+    if pre_manifest_hash != post_manifest_hash or pre_content_hash != post_content_hash:
+        raise GovernanceError(
+            f"Store partition mutated during evaluation: "
+            f"manifest ({pre_manifest_hash} vs {post_manifest_hash}), "
+            f"content ({pre_content_hash} vs {post_content_hash})"
+        )
+
     # 2. Split populations
     current_canary_trades = [t for t in trades if not t.get("historical_backfill", False)]
     historical_backfill_trades = [t for t in trades if t.get("historical_backfill", False)]
     
-    # 3. Run populations reports
+    # 3. Run population reports
     canary_report = calculate_population_report(current_canary_trades)
     historical_report = calculate_population_report(historical_backfill_trades)
     combined_report = calculate_population_report(trades)
 
     # 4. Run Funnel Analysis
-    funnel = run_funnel_analysis(store, reservation_db_path)
+    funnel = run_funnel_analysis(store, res_path, require_evidence_eligible=require_evidence_eligible)
 
-    # 5. Determine Verdict based on Canary population
+    # 5. Determine Verdict
     canary_n = len(current_canary_trades)
-    verdict, verdict_reason = determine_verdict(
+    stage, verdict_reason = determine_verdict(
         canary_n, 
         canary_report["overall_portfolio_economics"], 
         canary_report["route_attribution"], 
-        funnel
+        funnel,
+        allow_non_eligible=require_evidence_eligible and is_canonical,
     )
-    
-    if canary_n == 0:
-        maturity_stage = "ACCUMULATING"
-    elif canary_n < 30:
-        maturity_stage = "PRELIMINARY"
-    elif canary_n < 100:
-        maturity_stage = "DIAGNOSTIC"
-    else:
-        maturity_stage = "ECONOMIC_REVIEW_READY"
 
-    is_windows = os.name == 'nt'
-    data_source = "LOCAL_WINDOWS_WORKSPACE" if is_windows else "CANONICAL_PRODUCTION"
-    if canary_n == 0 and is_windows:
-        canonical_evidence_status = "NOT_PRESENT (ACCUMULATING locally)"
-    else:
-        canonical_evidence_status = "PRESENT" if canary_n > 0 else "ACCUMULATING"
+    # 6. Evaluate Data Integrity & Reconciliations
+    p8_data_integrity = "PASS" if (
+        evidence_exists and
+        is_canonical and
+        attestation.is_valid and
+        rejection_info["counts"].get("duplicate_conflict", 0) == 0 and
+        rejection_info["counts"].get("prediction_id_mismatch", 0) == 0 and
+        rejection_info["counts"].get("epoch_mismatch", 0) == 0 and
+        rejection_info["counts"].get("deployment_mismatch", 0) == 0 and
+        rejection_info["counts"].get("paper_run_mismatch", 0) == 0
+    ) else "FAIL"
 
-    # Compiling JSON Report
+    # Pairwise Disjoint Population Set Reconciliation
+    closed_ids = {t["prediction_id"] for t in current_canary_trades if t.get("prediction_id")}
+    rows_data = store.shadow_evidence_rows()
+    decisions = rows_data.get("final_decisions", [])
+    non_actionable_ids = {
+        str(d.get("prediction_id")) for d in decisions
+        if d.get("prediction_id") and str(d.get("action", "")).upper() not in ("BUY", "SELL", "INCREASE", "REDUCE")
+    }
+    rejected_ids = set()
+    for reason in rejection_info.get("reasons", []):
+        if ":" in reason:
+            _, sample_id = reason.split(":", 1)
+            rejected_ids.add(sample_id)
+
+    disjoint_valid = (
+        len(closed_ids & non_actionable_ids) == 0 and
+        len(closed_ids & rejected_ids) == 0 and
+        len(non_actionable_ids & rejected_ids) == 0
+    )
+    p8_population_reconciliation = "PASS" if (disjoint_valid and canary_n == funnel["counts"]["closed_trades"]) else "FAIL"
+
+    # Independent Accounting Reconciliation (2-cent Decimal tolerance & fee check)
+    accounting_mismatches = 0
+    for t in current_canary_trades:
+        act_net = t.get("actual_net_pnl_usd")
+        act_gross = t.get("actual_gross_pnl_usd")
+        act_fee = t.get("actual_fee_usd")
+        if act_net is not None and act_gross is not None and act_fee is not None:
+            # Identity check
+            calc_net = Decimal(str(act_gross)) - Decimal(str(act_fee))
+            if abs(calc_net - Decimal(str(act_net))) > ABSOLUTE_USD_TOLERANCE:
+                accounting_mismatches += 1
+
+            # Independent fee policy recomputation if invested is present
+            invested = t.get("invested_usdt") or t.get("invested")
+            if invested is not None and float(invested) > 0:
+                expected_entry_fee = Decimal(str(invested)) * Decimal("0.001")
+                expected_gross_received = Decimal(str(invested)) + Decimal(str(act_gross))
+                expected_exit_fee = expected_gross_received * Decimal("0.001")
+                expected_fee_usd = expected_entry_fee + expected_exit_fee
+
+                if abs(expected_fee_usd - Decimal(str(act_fee))) > ABSOLUTE_USD_TOLERANCE:
+                    accounting_mismatches += 1
+
+    p8_accounting_reconciliation = "PASS" if accounting_mismatches == 0 else "FAIL"
+
+    overall_econ = canary_report["overall_portfolio_economics"]
+    rate_coverage_ratio = (overall_econ["rate_coverage_n"] / canary_n) if canary_n > 0 else 1.0
+    cost_coverage_ratio = (overall_econ["cost_coverage_n"] / canary_n) if canary_n > 0 else 1.0
+
+    diagnostic_warnings: list[str] = []
+    if not require_evidence_eligible:
+        diagnostic_warnings.append("Report contains diagnostic non-eligible data (BTC_EVIDENCE_ELIGIBLE=false).")
+    if not is_canonical:
+        diagnostic_warnings.append("Report was generated from an unsealed or non-canonical evidence store.")
+
+    if not require_evidence_eligible and not is_canonical:
+        population_type = "DIAGNOSTIC_NON_CANONICAL_AND_NON_ELIGIBLE"
+        maturity_stage = "DIAGNOSTIC_ONLY"
+        verdict_authorized = False
+    elif not require_evidence_eligible:
+        population_type = "DIAGNOSTIC_NON_ELIGIBLE_INCLUDED"
+        maturity_stage = "DIAGNOSTIC_ONLY"
+        verdict_authorized = False
+    elif not is_canonical:
+        population_type = "DIAGNOSTIC_NON_CANONICAL"
+        maturity_stage = "DIAGNOSTIC_ONLY"
+        verdict_authorized = False
+    else:
+        population_type = "CANONICAL_SEALED_ELIGIBLE"
+        verdict_authorized = (
+            is_canonical and
+            require_evidence_eligible and
+            canary_n >= 100 and
+            stage in {"CONTINUE", "MODIFY", "STOP"} and
+            verdict_reason in AUTHORIZED_ECONOMIC_VERDICTS and
+            p8_data_integrity == "PASS" and
+            p8_population_reconciliation == "PASS" and
+            p8_accounting_reconciliation == "PASS" and
+            rate_coverage_ratio >= MIN_RATE_COVERAGE_RATIO and
+            cost_coverage_ratio >= MIN_COST_COVERAGE_RATIO
+        )
+        if canary_n == 0:
+            maturity_stage = "ACCUMULATING"
+        elif canary_n < 30:
+            maturity_stage = "PRELIMINARY"
+        elif canary_n < 100:
+            maturity_stage = "DIAGNOSTIC"
+        else:
+            maturity_stage = "ECONOMIC_REVIEW_READY"
+
+    data_source = "CANONICAL_PRODUCTION" if is_canonical else "DEV_WORKSPACE"
+    canonical_evidence_status = "PRESENT" if (is_canonical and canary_n > 0) else ("ACCUMULATING" if is_canonical else "NOT_PRESENT")
+
+    cost_policy_meta = get_cost_policy_metadata(P8CostPolicy.V1_PAPER_ROUNDTRIP_FEE)
+
     report_json = {
         "report_generated_at": datetime.now(timezone.utc).isoformat(),
         "evaluation_contract": "p8_economic_evaluation_contract_v1",
-        "p8_data_integrity": "PASS",
-        "p8_population_reconciliation": "PASS",
-        "p8_accounting_reconciliation": "PASS",
+        "population_type": population_type,
+        "verdict_authorized": verdict_authorized,
+        "diagnostic_warnings": diagnostic_warnings,
+        "p8_data_integrity": p8_data_integrity,
+        "p8_population_reconciliation": p8_population_reconciliation,
+        "p8_accounting_reconciliation": p8_accounting_reconciliation,
+        "evaluation_cutoff_utc": datetime.now(timezone.utc).isoformat(),
+        "source_store_manifest_hash": post_manifest_hash,
+        "snapshot_content_hash": post_content_hash,
+        "cost_policy": cost_policy_meta,
+        "cost_basis": cost_policy_meta["cost_basis"],
+        "economic_verdict_scope": cost_policy_meta["economic_verdict_scope"],
+        "policy_cost_coverage_ratio": cost_policy_meta["policy_cost_coverage_ratio"],
         "primary_population": "CURRENT_CANARY",
         "data_source": data_source,
         "canonical_runtime_evidence": canonical_evidence_status,
@@ -332,200 +485,42 @@ def generate_report(
         "economic_verdict": verdict_reason,
         "p8_state": "ACCUMULATING" if canary_n < 30 else "EVALUATING",
         "model_change": "NOT_AUTHORIZED",
-        "policy_change": "NOT_AUTHORIZED",
-        "runtime_remediation": "NOT_REQUIRED",
-        "sample_maturity_details": {
-            "canary_trade_count": canary_n,
-            "historical_trade_count": len(historical_backfill_trades),
-            "combined_trade_count": len(trades),
-            "stage": maturity_stage
-        },
-        "signal_funnel": funnel,
-        "populations": {
-            "current_canary": canary_report,
-            "historical_backfill": historical_report,
-            "combined": combined_report
-        },
-        "economic_sample_reconciliation": trades,
-        "data_limitations": {
-            "slippage_observation": "NOT_AVAILABLE",
-            "other_costs": "NOT_AVAILABLE"
-        }
+        "funnel_analysis": funnel,
+        "canary_population_report": canary_report,
+        "historical_backfill_report": historical_report,
+        "combined_population_report": combined_report,
+        "attestation_details": attestation.metadata,
+        "rejection_counts": rejection_info["counts"],
+        "rejection_reasons": rejection_info["reasons"],
     }
 
-    # Write JSON report
-    json_path = output_dir / "p8_economic_effectiveness_report.json"
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(report_json, f, indent=2, default=str)
-    print(f"Generated JSON report: {json_path}")
+    report_path = output_dir / "p8_economic_report.json"
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report_json, f, indent=2)
 
-    # Generate Markdown report
-    md_content = generate_markdown_report_string(report_json)
-    md_path = output_dir / "p8_economic_effectiveness_report.md"
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write(md_content)
-    print(f"Generated Markdown report: {md_path}")
-
-
-def generate_markdown_report_string(report: dict[str, Any]) -> str:
-    funnel = report["signal_funnel"]
-    counts = funnel["counts"]
-    rates = funnel["rates"]
-    
-    canary = report["populations"]["current_canary"]
-    historical = report["populations"]["historical_backfill"]
-    combined = report["populations"]["combined"]
-
-    alert_type = "NOTE"
-    if "NOT_AUTHORIZED" in report["economic_verdict"] or "VALIDATION" in report["economic_verdict"]:
-        alert_type = "WARNING"
-    elif "PROMISING" in report["economic_verdict"] or "CONTINUE" in report["economic_verdict"]:
-        alert_type = "TIP"
-
-    md = f"""# P8 — Economic Effectiveness Evaluation Report
-
-> [!{alert_type}]
-> **P8 State: {report["p8_state"]}**
-> - P8 Data Integrity: **{report["p8_data_integrity"]}**
-> - Population Reconciliation: **{report["p8_population_reconciliation"]}**
-> - Accounting Reconciliation: **{report["p8_accounting_reconciliation"]}**
-> - Primary Population: **{report["primary_population"]}**
-> - Data Source: **{report.get("data_source", "UNKNOWN")}**
-> - Canonical Runtime Evidence: **{report.get("canonical_runtime_evidence", "UNKNOWN")}**
-> - Current Closed Trades: **{report["current_closed_trades"]}**
-> - Current Fills: **{report["current_fills"]}**
-> - Current Closure Rate: **{report["current_closure_rate"]*100:.2f}%**
-> - Sample Maturity: **{report["sample_maturity"]}**
-> - Economic Verdict: **{report["economic_verdict"]}**
-> - Model/Policy Change: **{report["model_change"]}** / **{report["policy_change"]}**
-> - Runtime Remediation: **{report["runtime_remediation"]}**
-
----
-
-## 1. Signal Funnel Analysis (Exploratory / Broader Historical Scope)
-
-> [!NOTE]
-> This funnel represents the broader/historical signal path across the database window (exploratory scope). Funnel rates (such as execution rate) should not be interpreted as the conversion rates of the current canary population.
-
-| Funnel Stage | Count | Transition Rate |
-| :--- | :---: | :---: |
-| **Predictions** | {counts["predictions"]} | — |
-| **Final Decisions** | {counts["final_decisions"]} | Prediction $\\rightarrow$ Decision: {counts["final_decisions"]/counts["predictions"]*100 if counts["predictions"] > 0 else 0.0:.2f}% |
-| **Actionable Decisions** | {counts["actionable_decisions"]} | Actionable Rate: {rates["actionable_rate"]*100:.2f}% |
-| **Execution Attempts** | {counts["execution_attempts"]} | Execution Rate: {rates["execution_rate"]*100:.2f}% |
-| **Fills** | {counts["fills"]} | Fill Rate: {rates["fill_rate"]*100:.2f}% |
-| **Closed Trades** | {counts["closed_trades"]} | Closure Rate (Canary): {rates["closure_rate"]*100:.2f}% |
-
----
-
-## 2. Split Populations Performance Economics
-
-Performance metrics aggregated across each population.
-
-| Metric | Current Canary | Historical Backfill | Combined |
-| :--- | :---: | :---: | :---: |
-| **Trade Count (N)** | {canary["overall_portfolio_economics"]["trade_count"]} | {historical["overall_portfolio_economics"]["trade_count"]} | {combined["overall_portfolio_economics"]["trade_count"]} |
-| **Win Rate (WR)** | {canary["overall_portfolio_economics"]["win_rate"]*100:.2f}% | {historical["overall_portfolio_economics"]["win_rate"]*100:.2f}% | {combined["overall_portfolio_economics"]["win_rate"]*100:.2f}% |
-| **Gross Expected Value (EV)** | {canary["overall_portfolio_economics"]["gross_ev_bps"]:.2f} bps | {historical["overall_portfolio_economics"]["gross_ev_bps"]:.2f} bps | {combined["overall_portfolio_economics"]["gross_ev_bps"]:.2f} bps |
-| **Net Expected Value (EV)** | {canary["overall_portfolio_economics"]["net_ev_bps"]:.2f} bps | {historical["overall_portfolio_economics"]["net_ev_bps"]:.2f} bps | {combined["overall_portfolio_economics"]["net_ev_bps"]:.2f} bps |
-| **Profit Factor (PF)** | {canary["overall_portfolio_economics"]["profit_factor"]:.2f} | {historical["overall_portfolio_economics"]["profit_factor"]:.2f} | {combined["overall_portfolio_economics"]["profit_factor"]:.2f} |
-| **Total Net PnL** | ${canary["overall_portfolio_economics"]["total_net_pnl"]:.2f} | ${historical["overall_portfolio_economics"]["total_net_pnl"]:.2f} | ${combined["overall_portfolio_economics"]["total_net_pnl"]:.2f} |
-| **Max Drawdown (bps)** | {canary["overall_portfolio_economics"]["max_drawdown_bps"]:.2f} bps | {historical["overall_portfolio_economics"]["max_drawdown_bps"]:.2f} bps | {combined["overall_portfolio_economics"]["max_drawdown_bps"]:.2f} bps |
-
----
-
-## 3. Route Attribution (Combined Population)
-
-Separates the performance of the Legacy routing (`BTC`, `ETH`, `BNB`) and the new MC5 Qualification routing (`6 other symbols`).
-
-| Route | Trade Count | Win Rate | Gross EV | Net EV | Profit Factor | Net PnL | Max DD |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **LEGACY** | {combined["route_attribution"].get("LEGACY", {}).get("trade_count", 0)} | {combined["route_attribution"].get("LEGACY", {}).get("win_rate", 0)*100:.1f}% | {combined["route_attribution"].get("LEGACY", {}).get("gross_ev_bps", 0):.2f} bps | {combined["route_attribution"].get("LEGACY", {}).get("net_ev_bps", 0):.2f} bps | {combined["route_attribution"].get("LEGACY", {}).get("profit_factor", 0):.2f} | ${combined["route_attribution"].get("LEGACY", {}).get("total_net_pnl", 0):.2f} | {combined["route_attribution"].get("LEGACY", {}).get("max_drawdown_bps", 0):.2f} bps |
-| **MC5_QUALIFIED** | {combined["route_attribution"].get("MC5_QUALIFIED", {}).get("trade_count", 0)} | {combined["route_attribution"].get("MC5_QUALIFIED", {}).get("win_rate", 0)*100:.1f}% | {combined["route_attribution"].get("MC5_QUALIFIED", {}).get("gross_ev_bps", 0):.2f} bps | {combined["route_attribution"].get("MC5_QUALIFIED", {}).get("net_ev_bps", 0):.2f} bps | {combined["route_attribution"].get("MC5_QUALIFIED", {}).get("profit_factor", 0):.2f} | ${combined["route_attribution"].get("MC5_QUALIFIED", {}).get("total_net_pnl", 0):.2f} | {combined["route_attribution"].get("MC5_QUALIFIED", {}).get("max_drawdown_bps", 0):.2f} bps |
-
----
-
-## 4. Symbol Level Attribution (Combined Population)
-
-Attribution metrics broken down per symbol across combined population.
-
-| Symbol | Trades | Win Rate | Gross EV | Net EV | PF | Net PnL (USD) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-"""
-    symbols = combined["symbol_attribution"]
-    for sym in sorted(ACTIVE_SYMBOLS):
-        s_m = symbols.get(sym, {})
-        if s_m.get("trade_count", 0) > 0:
-            md += f"| **{sym}** | {s_m['trade_count']} | {s_m['win_rate']*100:.1f}% | {s_m['gross_ev_bps']:.2f} bps | {s_m['net_ev_bps']:.2f} bps | {s_m['profit_factor']:.2f} | ${s_m['total_net_pnl']:.2f} |\n"
-        else:
-            md += f"| **{sym}** | 0 | — | — | — | — | $0.00 |\n"
-
-    md += """
----
-
-## 5. Model Score / Confidence vs Realized Outcome (Combined Population)
-
-Buckets closed trades by model confidence score to examine the ranking capabilities of the model.
-
-| Bucket (Quantile) | Trades | Mean Net Return | Median Net Return | Win Rate | Profit Factor |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-"""
-    buckets = combined["confidence_buckets"]
-    for b_name in sorted(buckets.keys()):
-        b = buckets[b_name]
-        md += f"| **{b_name}** | {b['trade_count']} | {b['mean_net_return_bps']:.2f} bps | {b['median_net_return_bps']:.2f} bps | {b['win_rate']*100:.1f}% | {b['profit_factor']:.2f} |\n"
-
-    md += """
----
-
-## 6. Economic Sample Reconciliation (Audit)
-
-Comprehensive trade-by-trade financial audit and population reconciliation.
-
-| Trade ID | Symbol | Route | Decision ID | Execution ID | Entry Price | Exit Price | Gross Return | Fee Bps | Net Return | Gross PnL | Fees | Net PnL | Backfill | Partition |
-| :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-"""
-    # Enforces formatting variables
-    audit_trades = sorted(report["economic_sample_reconciliation"], key=lambda x: x.get("exit_timestamp") or "")
-    for t in audit_trades:
-        gross_pnl_str = f"${t['gross_pnl']:.2f}" if isinstance(t['gross_pnl'], (int, float)) else str(t['gross_pnl'])
-        fees_str = f"${t['fees']:.2f}" if isinstance(t['fees'], (int, float)) else str(t['fees'])
-        net_pnl_str = f"${t['net_pnl']:.2f}" if isinstance(t['net_pnl'], (int, float)) else str(t['net_pnl'])
-        
-        gross_return_str = f"{t['gross_return_bps']:.2f}" if isinstance(t['gross_return_bps'], (int, float)) else str(t['gross_return_bps'])
-        fee_bps_str = f"{t['fee_bps']:.2f}" if isinstance(t['fee_bps'], (int, float)) else str(t['fee_bps'])
-        net_return_str = f"{t['net_return_bps']:.2f}" if isinstance(t['net_return_bps'], (int, float)) else str(t['net_return_bps'])
-        
-        ep_str = f"{t['entry_price']:.2f}" if isinstance(t['entry_price'], (int, float)) else str(t['entry_price'])
-        ex_str = f"{t['exit_price']:.2f}" if isinstance(t['exit_price'], (int, float)) else str(t['exit_price'])
-
-        md += (
-            f"| `{t['trade_id'][:8]}` | **{t['symbol']}** | {t['route']} | `{t['decision_id'][:8]}` | "
-            f"`{t['execution_id'][:8]}` | {ep_str} | {ex_str} | {gross_return_str} | {fee_bps_str} | "
-            f"{net_return_str} | {gross_pnl_str} | {fees_str} | {net_pnl_str} | {t['historical_backfill']} | `{t['source_partition']}` |\n"
-        )
-
-    md += f"""
----
-
-## 7. Data Limitations
-
-- **Slippage Accounting**: `{report["data_limitations"]["slippage_observation"]}` (Slippage is not explicitly written in outcome links and is marked as not available for this run).
-- **Other Transaction Costs**: `{report["data_limitations"]["other_costs"]}`.
-
----
-
-*Report Generated At (UTC): {report["report_generated_at"]}*
-"""
-    return md
+    return report_json
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--evidence-db", default=None, help="Path to runtime evidence sqlite file")
-    parser.add_argument("--reservation-db", default=None, help="Path to reservations sqlite file")
-    parser.add_argument("--output-dir", default=None, help="Directory to save report outputs")
+    parser = argparse.ArgumentParser(description="P8 Economic Report Generator")
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument("--governed", action="store_true", help="Governed mode")
+    mode_group.add_argument("--diagnostic", action="store_true", help="Diagnostic mode")
+    parser.add_argument("--evidence-db", type=str, help="Evidence DB path")
+    parser.add_argument("--reservation-db", type=str, help="Reservation DB path")
+    parser.add_argument("--output-dir", type=str, help="Output directory")
+
     args = parser.parse_args()
-    
-    generate_report(args.evidence_db, args.reservation_db, args.output_dir)
+
+    try:
+        generate_report(
+            evidence_store_path=args.evidence_db,
+            reservation_db_path=args.reservation_db,
+            output_dir=args.output_dir,
+            require_evidence_eligible=args.governed or not args.diagnostic,
+            governed_mode=args.governed,
+        )
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        sys.exit(1)

@@ -364,8 +364,17 @@ def test_legacy_undated_database_remains_readable_with_new_partitions(tmp_path):
     old_store = RuntimeEvidenceStore(base_path, clock=lambda: day_one)
     old_store.write_prediction_evidence(*_payload(1))
     old_partition = old_store.current_path
-    with old_store._connect() as source, sqlite3.connect(base_path) as destination:
-        source.backup(destination)
+    source_conn = old_store._connect()
+    dest_conn = sqlite3.connect(base_path)
+    try:
+        source_conn.backup(dest_conn)
+    finally:
+        source_conn.close()
+        dest_conn.close()
+    del old_store
+    del source_conn
+    del dest_conn
+    import gc; gc.collect()
     old_partition.unlink()
 
     day_two = datetime(2026, 7, 30, tzinfo=timezone.utc)
@@ -566,6 +575,7 @@ def test_schema_v3_partitions_are_backfilled_without_evidence_loss(tmp_path):
     path = tmp_path / "runtime_evidence.sqlite"
     old_store = RuntimeEvidenceStore(path)
     old_store.write_prediction_evidence(*_payload(42))
+    import gc; gc.collect()
     old_store.global_index_path.unlink()
 
     migrated = RuntimeEvidenceStore(path)

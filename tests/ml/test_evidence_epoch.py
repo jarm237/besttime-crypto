@@ -11,6 +11,7 @@ import pytest
 from btc_scraper.core.config import (
     DEFAULT_ANALYSIS_UNIVERSE,
     analysis_universe_hash,
+    get_analysis_universe,
 )
 from btc_scraper.ml_engine.evidence_epoch import EvidenceEpoch
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
@@ -26,6 +27,7 @@ def _epoch_runtime_identity(monkeypatch):
 
 
 def _epoch(epoch_id="epoch-canary-1", **overrides):
+    eff_universe = get_analysis_universe()
     lookup_manifest = {
         "manifest_schema_version": "evidence-manifest-v1",
         "release_sha": "c42b802",
@@ -35,7 +37,7 @@ def _epoch(epoch_id="epoch-canary-1", **overrides):
         "deployment_id": "paper-shadow-20260730-01",
         "paper_run_id": "paper-shadow-20260730-01",
         "feature_schema_version": "schema-v3",
-        "analysis_universe": ",".join(DEFAULT_ANALYSIS_UNIVERSE),
+        "analysis_universe": ",".join(eff_universe),
         "decision_contract": "side-probability-v2",
         "probability_semantics": "P(up)",
     }
@@ -47,7 +49,7 @@ def _epoch(epoch_id="epoch-canary-1", **overrides):
         "model_version": "meta-v3",
         "artifact_sha256": "artifact-v3",
         "feature_schema_version": "schema-v3",
-        "analysis_universe": DEFAULT_ANALYSIS_UNIVERSE,
+        "analysis_universe": eff_universe,
         "paper_run_id": "paper-shadow-20260730-01",
         "release_manifest": dict(lookup_manifest),
     }
