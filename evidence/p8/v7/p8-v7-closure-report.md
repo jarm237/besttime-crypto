@@ -6,10 +6,11 @@
 
 ## Executive Summary
 
-The P8 Governance and Economic Report V7 remediation & hardening sequence is complete. All 14 technical release gates (G1 through G14) have been satisfied.
+The P8 Governance and Economic Report V7 remediation & hardening sequence is complete. All 14 technical release gates (G1 through G14) have been satisfied and verified on the final release source.
 
-- **Implementation Commit**: `a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5`
-- **Implementation Tree**: `e26c6a51a36f72a62588c12ce4e58fb43d7d3293`
+- **Initial Implementation Checkpoint**: `a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5`
+- **Effective Release Source Commit**: `27c1ff035d3b8255125853571389347175733e15`
+- **Effective Release Tree SHA**: `06f8a2a02d471f291502721a23e96965fb82c4c1`
 - **Active Epoch**: `p8-readiness-r2-20260902-01`
 - **Active Deployment**: `paper-canary-win-tsfix-20260901-01`
 - **Canonical Model Artifact SHA**: `8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26`
@@ -19,7 +20,7 @@ The P8 Governance and Economic Report V7 remediation & hardening sequence is com
 | Gate | Description | Status | Verification Detail |
 | --- | --- | --- | --- |
 | **G1A** | P8 Focused Regression | **PASS** | 140 / 140 Pytest Suite Passed |
-| **G1B** | Broader ML Regression | **PASS** | Baseline Verified (Zero New Regressions) |
+| **G1B** | Broader ML Regression | **PASS** | 1025 / 1127 Passed (Zero New Regressions) |
 | **G2** | Python Compilation | **PASS** | `py_compile` Passed Cleanly |
 | **G3** | Git Formatting & Inventory | **PASS** | `git diff --check` Passed (Zero Warnings) |
 | **G4** | Governed Preflight | **PASS** | Worktree & Commit 4efed1fd Verified |

@@ -1,0 +1,17 @@
+{
+  "initial_implementation_checkpoint": "a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5",
+  "effective_release_source_commit": "27c1ff035d3b8255125853571389347175733e15",
+  "effective_release_tree": "06f8a2a02d471f291502721a23e96965fb82c4c1",
+  "final_py_compile": "PASS",
+  "final_governed_preflight": "PASS",
+  "focused_regression": "140/140 PASS",
+  "broader_regression": {
+    "total_ml_tests": 1127,
+    "passed": 1025,
+    "skipped": 6,
+    "known_preexisting_historical_sidecar_failures": 96,
+    "new_p8_regressions": 0,
+    "status": "PASS (ZERO_NEW_REGRESSIONS)"
+  },
+  "release_provenance": "PASS"
+}

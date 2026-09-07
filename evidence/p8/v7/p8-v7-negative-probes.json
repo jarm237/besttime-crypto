@@ -2,8 +2,8 @@
   "probe_1_live_runtime_lock": {
     "status": "PASS",
     "error_code": "LIVE_RUNNER_ACTIVE_CONFLICT",
-    "pid": 32196,
-    "message": "LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at C:\\Users\\admin\\AppData\\Local\\Temp\\tmpb8a097so\\state\\runtime.lock held by live PID 32196."
+    "pid": 7116,
+    "message": "LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at C:\\Users\\admin\\AppData\\Local\\Temp\\tmpup3i0xaf\\state\\runtime.lock held by live PID 7116."
   },
   "probe_2_corrupted_payload_sha256": {
     "status": "PASS",
@@ -34,7 +34,7 @@
       "Attestation mandatory field 'risk_policy_version' is missing or empty in active epoch metadata",
       "Attestation mandatory field 'runtime_schema_version' is missing or empty in active epoch metadata",
       "Attestation mandatory field 'release_manifest_sha256' is missing or empty in active epoch metadata",
-      "Sealed artifact file not found at canonical location C:\\Users\\admin\\AppData\\Local\\Temp\\tmpit4fh3__\\logs\\meta_model.joblib"
+      "Sealed artifact file not found at canonical location C:\\Users\\admin\\AppData\\Local\\Temp\\tmpfc077oo9\\logs\\meta_model.joblib"
     ]
   },
   "probe_6_missing_artifact_file": {
@@ -51,7 +51,7 @@
       "Attestation field 'risk_policy_version' mismatch: expected 'risk-fail-closed-v1', got 'r1'",
       "Attestation field 'runtime_schema_version' mismatch: expected '6', got 'rt1'",
       "Attestation field 'release_manifest_sha256' mismatch: expected '00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e', got 'rel1'",
-      "Sealed artifact file not found at canonical location C:\\Users\\admin\\AppData\\Local\\Temp\\tmpqdkf9kim\\logs\\meta_model.joblib"
+      "Sealed artifact file not found at canonical location C:\\Users\\admin\\AppData\\Local\\Temp\\tmp5rb3a4u7\\logs\\meta_model.joblib"
     ]
   }
 }
