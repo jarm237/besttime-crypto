@@ -1,10 +1,10 @@
 {
-  "reported_total_gross_usd": "0.0",
-  "reported_total_fee_usd": "0.0",
-  "reported_total_net_usd": "0.0",
-  "recomputed_total_fee_usd": "0.0",
-  "fee_diff": "0.0",
-  "net_pnl_diff": "0.0",
-  "fee_coverage_ratio": "1.0",
-  "status": "PASS"
+  "status": "PASS",
+  "reported_total_gross_usd": "0.00000000",
+  "reported_total_fee_usd": "0.00000000",
+  "reported_total_net_usd": "0.00000000",
+  "recomputed_total_fee_usd": "0.00000000",
+  "fee_diff": "0.00000000",
+  "net_pnl_diff": "0.00000000",
+  "fee_coverage_ratio": "1.00000000"
 }

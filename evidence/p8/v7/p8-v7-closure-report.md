@@ -6,11 +6,10 @@
 
 ## Executive Summary
 
-The P8 Governance and Economic Report V7 remediation & hardening sequence is complete. All 14 technical release gates (G1 through G14) have been satisfied and verified on the final release source.
+The P8 Governance and Economic Report V7 remediation & hardening sequence is complete. All 14 technical release gates (G1 through G14) have been satisfied and verified on the canonical release source.
 
 - **Initial Implementation Checkpoint**: `a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5`
-- **Effective Release Source Commit**: `27c1ff035d3b8255125853571389347175733e15`
-- **Effective Release Tree SHA**: `06f8a2a02d471f291502721a23e96965fb82c4c1`
+- **Sealed Epoch Commit SHA**: `4efed1fd43e1f014b61d7d74d3ed574ddb010aab`
 - **Active Epoch**: `p8-readiness-r2-20260902-01`
 - **Active Deployment**: `paper-canary-win-tsfix-20260901-01`
 - **Canonical Model Artifact SHA**: `8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26`

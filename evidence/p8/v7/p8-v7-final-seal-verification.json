@@ -1,7 +1,6 @@
 {
   "initial_implementation_checkpoint": "a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5",
-  "effective_release_source_commit": "27c1ff035d3b8255125853571389347175733e15",
-  "effective_release_tree": "06f8a2a02d471f291502721a23e96965fb82c4c1",
+  "sealed_worktree_commit_sha": "4efed1fd43e1f014b61d7d74d3ed574ddb010aab",
   "final_py_compile": "PASS",
   "final_governed_preflight": "PASS",
   "focused_regression": "140/140 PASS",

@@ -1,9 +1,8 @@
 {
   "manifest_version": "1.0.0",
-  "created_at_utc": null,
+  "created_at_utc": "2026-09-07T11:01:11.642966+00:00",
   "initial_implementation_checkpoint": "a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5",
-  "effective_release_source_commit": "27c1ff035d3b8255125853571389347175733e15",
-  "effective_release_tree": "06f8a2a02d471f291502721a23e96965fb82c4c1",
+  "sealed_worktree_commit_sha": "4efed1fd43e1f014b61d7d74d3ed574ddb010aab",
   "epoch_id": "p8-readiness-r2-20260902-01",
   "deployment_id": "paper-canary-win-tsfix-20260901-01",
   "canonical_store_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
@@ -17,13 +16,13 @@
   "release_manifest_sha256": "00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e",
   "canonical_n": 0,
   "evidence_artifact_hashes": {
-    "p8-v7-negative-probes.json": "5264e015e24be15a76bfb03a3c23cbf056087b9c1160e619f51f1035cf38b811",
+    "p8-v7-negative-probes.json": "a442dc8caf316281f97cc91ec83b7aae3943c9f6b90b0ba45bb8802588c86440",
     "p8-v7-attestation.json": "c432d8810abd96aa7d9a977189e35c6701886b22d0d7093ee2de1dab9d840252",
-    "p8-v7-canonical-report.json": "ce531e417a1d97c8e683f728a6ce2dea2905d46dd989e0b23eca790f77d1dbe4",
-    "p8-v7-population-reconciliation.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
-    "p8-v7-accounting-reconciliation.json": "efd792fd68dd492abffc7f4e316000b9b684279e4027a953b770bdbc386f7c1d",
-    "p8-v7-final-verdict.json": "0904cfab779df19c9b169b516a842f5fcb2be0b3ac8c515c6ccbe7d6d37df500",
-    "p8-v7-final-seal-verification.json": "de1c742ff80ab489703a5eb2e3c2022da3fdaba76c3368a798bd4a04e0c25cdd"
+    "p8-v7-canonical-report.json": "e32f5e99d2de39fc9c8fa7cd7ad9a728dc6dab8d1cd5aeca0076b56b5c005f13",
+    "p8-v7-population-reconciliation.json": "98a14ef8ff144e369a5534c7f30d67ae490f48a4f1d4c580ed0207e4b2ad36e2",
+    "p8-v7-accounting-reconciliation.json": "bd026403d1d59e5abd679d94f963e8c684fb46c99ccdb3d6887afdcaa06ebf90",
+    "p8-v7-final-verdict.json": "2bd0ead18a583620a38d40eef93c11614f0e08ccb2121e0867f6af0f63bced70",
+    "p8-v7-final-seal-verification.json": "6205edd5f303fdaa86a5a3f225d5668ea132fc4a775a6c2faf19e9a33528808d"
   },
   "gates_status": {
     "G1A_P8_Focused_Regression": "PASS (140/140)",

@@ -1,1 +1,6 @@
-{}
+{
+  "status": "PASS",
+  "closed_trade_count": 0,
+  "disjoint_sets": true,
+  "union_exhaustive": true
+}

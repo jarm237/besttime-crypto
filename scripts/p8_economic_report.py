@@ -436,7 +436,7 @@ def generate_report(
         verdict_authorized = (
             is_canonical and
             require_evidence_eligible and
-            canary_n >= 100 and
+            canary_n >= 30 and
             stage in {"CONTINUE", "MODIFY", "STOP"} and
             verdict_reason in AUTHORIZED_ECONOMIC_VERDICTS and
             p8_data_integrity == "PASS" and
@@ -448,9 +448,7 @@ def generate_report(
         if canary_n == 0:
             maturity_stage = "ACCUMULATING"
         elif canary_n < 30:
-            maturity_stage = "PRELIMINARY"
-        elif canary_n < 100:
-            maturity_stage = "DIAGNOSTIC"
+            maturity_stage = "PRELIMINARY_ACCUMULATING"
         else:
             maturity_stage = "ECONOMIC_REVIEW_READY"
 

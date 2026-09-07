@@ -4,6 +4,6 @@
   "canonical_n": 0,
   "minimum_required_n": 30,
   "economic_verdict_authorized": false,
-  "verdict_reason": null,
+  "verdict_reason": "CANARY_POPULATION_ACCUMULATING",
   "implementation_status": "SEALED"
 }
