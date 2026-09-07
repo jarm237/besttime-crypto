@@ -485,3 +485,98 @@ def test_mandatory_attestation_version_missing(tmp_path):
     att = policy.attest_store(logs_dir / "runtime_evidence.sqlite")
     assert att.is_valid is False
     assert any("missing or empty" in err for err in att.attestation_errors)
+
+
+# ---------------------------------------------------------------------------
+# V7 Remediation Tests: hash boundary and N=29/30 authorization boundary
+# ---------------------------------------------------------------------------
+
+def test_store_content_hash_includes_reservation_db(tmp_path):
+    """Mutations to reservations.db MUST change the boundary hash when path is supplied."""
+    logs_dir = tmp_path / "logs"
+    logs_dir.mkdir()
+    db_file = logs_dir / "runtime_evidence_2026-08-26.sqlite"
+    db_file.write_bytes(b"evidence_payload_v1")
+
+    res_db = tmp_path / "reservations.db"
+    res_db.write_bytes(b"initial_reservation_state")
+
+    h1 = calculate_store_content_hash(logs_dir, reservation_db_path=res_db)
+
+    # Mutate reservations.db — same size, different content
+    res_db.write_bytes(b"mutated_reservation_stX")
+
+    h2 = calculate_store_content_hash(logs_dir, reservation_db_path=res_db)
+
+    assert h1 != h2, (
+        "calculate_store_content_hash must detect mutations in reservations.db "
+        "when reservation_db_path is supplied."
+    )
+
+
+def test_store_content_hash_without_reservation_db_unchanged_by_res(tmp_path):
+    """Without reservation_db_path the hash must NOT change when only reservations.db is mutated.
+    This preserves backward-compat for callers that don't extend the boundary."""
+    logs_dir = tmp_path / "logs"
+    logs_dir.mkdir()
+    db_file = logs_dir / "runtime_evidence_2026-08-26.sqlite"
+    db_file.write_bytes(b"evidence_payload_v1")
+
+    res_db = tmp_path / "reservations.db"
+    res_db.write_bytes(b"initial_reservation_state")
+
+    h1 = calculate_store_content_hash(logs_dir)  # no reservation_db_path
+    res_db.write_bytes(b"mutated_reservation_stX")
+    h2 = calculate_store_content_hash(logs_dir)  # still no reservation_db_path
+
+    assert h1 == h2, (
+        "Without reservation_db_path the hash must not change when only reservations.db mutates "
+        "(backward-compat guarantee)."
+    )
+
+
+def test_store_content_hash_fails_closed_on_missing_reservation_db(tmp_path):
+    """Supplying a non-existent path for reservation_db_path MUST raise GovernanceError."""
+    logs_dir = tmp_path / "logs"
+    logs_dir.mkdir()
+    db_file = logs_dir / "runtime_evidence_2026-08-26.sqlite"
+    db_file.write_bytes(b"evidence_payload_v1")
+
+    missing_res_db = tmp_path / "nonexistent" / "reservations.db"
+
+    with pytest.raises(GovernanceError, match="reservation_db_path supplied"):
+        calculate_store_content_hash(logs_dir, reservation_db_path=missing_res_db)
+
+
+def test_verdict_not_authorized_at_n29():
+    """N=29 is one trade below the minimum threshold of 30.
+    determine_verdict must return population-accumulating, not an economic verdict."""
+    canary_n = 29
+    metrics = {"mean_net_return_bps": 15.0, "win_rate": 0.60}
+
+    v_type, v_reason = determine_verdict(canary_n, metrics, {}, {}, allow_non_eligible=True)
+    assert v_type == "CONTINUE", (
+        f"N={canary_n} (< 30) must return CONTINUE (accumulating), got {v_type!r}"
+    )
+    assert v_reason == "CANARY_POPULATION_ACCUMULATING", (
+        f"Expected CANARY_POPULATION_ACCUMULATING at N={canary_n}, got {v_reason!r}"
+    )
+
+
+def test_verdict_authorized_exactly_at_n30():
+    """N=30 meets the minimum threshold — with positive metrics verdict MUST be ECONOMICALLY_PROMISING."""
+    canary_n = 30
+    metrics = {
+        "mean_net_return_bps": 15.0,
+        "win_rate": 0.60,
+    }
+
+    v_type, v_reason = determine_verdict(canary_n, metrics, {}, {}, allow_non_eligible=True)
+    # At N=30 with mean_net_bps>10 and win_rate>=0.52, we expect economic continuation signal
+    assert v_type == "CONTINUE", (
+        f"N={canary_n} (== MIN_CANARY_N) with positive metrics must produce CONTINUE, "
+        f"got v_type={v_type!r}, reason={v_reason!r}"
+    )
+    assert v_reason == "ECONOMICALLY_PROMISING", (
+        f"Expected ECONOMICALLY_PROMISING at N=30 with strong metrics, got {v_reason!r}"
+    )

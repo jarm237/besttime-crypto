@@ -310,8 +310,23 @@ def check_runtime_lock_owner(logs_dir: Path) -> None:
                 pass
 
 
-def calculate_store_content_hash(logs_dir: Path) -> str:
-    """Compute byte-level SHA256 digest across all database and WAL files for snapshot immutability."""
+def calculate_store_content_hash(
+    logs_dir: Path,
+    reservation_db_path: Path | None = None,
+) -> str:
+    """Compute byte-level SHA256 digest across all database and WAL files for snapshot immutability.
+
+    The hash boundary covers:
+      - runtime_evidence*.sqlite  (evidence partitions)
+      - global_evidence_index.sqlite
+      - *.sqlite-wal              (WAL segments, if any)
+      - reservation_db_path       (reservations.db — included when supplied)
+
+    Pass ``reservation_db_path`` to extend the boundary to the canonical
+    reservation store.  Callers that omit it retain backward-compatible
+    behaviour (reservations excluded), but governed closure evidence MUST
+    supply the path so that reservation mutations are detectable.
+    """
     if not logs_dir.exists():
         return "empty"
 
@@ -327,6 +342,20 @@ def calculate_store_content_hash(logs_dir: Path) -> str:
             continue
         hasher.update(db_file.name.encode("utf-8"))
         with open(db_file, "rb") as f:
+            while chunk := f.read(65536):
+                hasher.update(chunk)
+
+    # Extend boundary to include reservations.db when provided.
+    if reservation_db_path is not None:
+        res_path = Path(reservation_db_path)
+        if not res_path.is_file():
+            raise GovernanceError(
+                f"reservation_db_path supplied to calculate_store_content_hash "
+                f"but file does not exist: {res_path}. "
+                "Cannot include a missing reservations.db in the hash boundary."
+            )
+        hasher.update(res_path.name.encode("utf-8"))
+        with open(res_path, "rb") as f:
             while chunk := f.read(65536):
                 hasher.update(chunk)
 

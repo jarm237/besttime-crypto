@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """Run governed P8 Economic Report V7 generation and produce verified release closure evidence artifacts."""
 import sys
-import os
 import json
 import sqlite3
-import hashlib
-from decimal import Decimal
 from pathlib import Path
 
 # Add project root to sys.path
@@ -19,6 +16,8 @@ from btc_scraper.ml_engine.p8_governance import (
     EXPECTED_EPOCH_ID,
     SEALED_COMMIT_SHA,
     SEALED_ARTIFACT_SHA,
+    GovernanceError,
+    calculate_store_content_hash,
     compute_file_sha256,
     check_runtime_lock_owner,
 )
@@ -44,17 +43,34 @@ def main():
     logs_dir = policy.canonical_evidence_log.parent
     res_db = policy.canonical_reservation_db
 
-    # Ensure canonical reservations.db exists
-    res_db.parent.mkdir(parents=True, exist_ok=True)
+    # Fail-closed: the canonical reservations.db MUST already exist and be provisioned
+    # with the correct schema.  This generator must NEVER create or mutate the canonical
+    # store — doing so would be an evidence boundary violation.
     if not res_db.exists():
-        conn = sqlite3.connect(res_db)
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS reservations ("
-            "reservation_id TEXT PRIMARY KEY, entry_decision_id TEXT, symbol TEXT, "
-            "side TEXT, allocated_usd REAL, status TEXT, created_at TEXT)"
+        raise RuntimeError(
+            f"FAIL_CLOSED: canonical reservations.db does not exist at expected path:\n"
+            f"  {res_db}\n"
+            "Provision the reservations.db with the correct schema before running "
+            "closure evidence generation.  This script must not mutate the canonical store."
         )
-        conn.commit()
-        conn.close()
+
+    # Verify the schema is correct (must have the 'reservations' table)
+    try:
+        uri = f"file:{res_db.resolve().as_posix()}?mode=ro"
+        _chk = sqlite3.connect(uri, uri=True)
+        _tables = {r[0] for r in _chk.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        _chk.close()
+        if "reservations" not in _tables:
+            raise RuntimeError(
+                f"FAIL_CLOSED: canonical reservations.db at {res_db} is missing the "
+                "'reservations' table.  Re-provision the store with the correct schema."
+            )
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        raise RuntimeError(
+            f"FAIL_CLOSED: Could not open or validate canonical reservations.db at {res_db}: {exc}"
+        ) from exc
 
     # Lock inspection
     lock_status = check_runtime_lock_owner(logs_dir)
@@ -75,13 +91,18 @@ def main():
         json.dump(attestation_data, f, indent=2)
 
     # Step 3: Read-Only Store Hashing (H_store_before vs H_store_after) (G12)
+    # Hash boundary now includes reservations.db to detect any mutation.
     print("[3/5] Hashing database store before report execution...")
+    h_store_before_hex = calculate_store_content_hash(logs_dir, reservation_db_path=res_db)
+    h_res_before = compute_file_sha256(res_db)
+
     db_files = sorted(
         list(logs_dir.glob("runtime_evidence*.sqlite")) +
         list(logs_dir.glob("global_evidence_index.sqlite")) +
         list(logs_dir.glob("*.sqlite-wal"))
     )
     h_before = {db_f.name: compute_file_sha256(db_f) for db_f in db_files if db_f.is_file()}
+    h_before[res_db.name] = h_res_before
 
     # Run Governed P8 Report
     print("Executing P8 Economic Report on canonical frozen evidence store (governed_mode=True)...")
@@ -92,10 +113,22 @@ def main():
     )
 
     print("Hashing database store after report execution...")
+    h_store_after_hex = calculate_store_content_hash(logs_dir, reservation_db_path=res_db)
+    h_res_after = compute_file_sha256(res_db)
     h_after = {db_f.name: compute_file_sha256(db_f) for db_f in db_files if db_f.is_file()}
+    h_after[res_db.name] = h_res_after
 
-    store_readonly_pass = (h_before == h_after)
-    report_res["store_readonly_verified"] = store_readonly_pass
+    store_readonly_pass = (h_store_before_hex == h_store_after_hex)
+    if not store_readonly_pass:
+        raise RuntimeError(
+            "FAIL_CLOSED (G12): Store boundary hash changed during report execution. "
+            "Evidence store is NOT read-only. Report execution must not mutate the canonical store.\n"
+            f"  before: {h_store_before_hex}\n"
+            f"  after:  {h_store_after_hex}"
+        )
+    report_res["store_readonly_verified"] = True
+    report_res["store_boundary_hash_before"] = h_store_before_hex
+    report_res["store_boundary_hash_after"] = h_store_after_hex
     report_res["store_hashes_before"] = h_before
     report_res["store_hashes_after"] = h_after
 
@@ -103,24 +136,32 @@ def main():
         json.dump(report_res, f, indent=2)
 
     # Step 4: Population & Accounting Reconciliation (G10-G11)
+    # Strict extraction — NO fallback dicts.  Missing keys are fatal: a fallback
+    # PASS would mask a real reconciliation failure or a vacuous N=0 population.
     print("[4/5] Running mathematical population & accounting reconciliation...")
-    canary_report = report_res.get("canary_population_report", {})
-    pop_rec = canary_report.get("population_reconciliation", {
-        "status": report_res.get("p8_population_reconciliation", "PASS"),
-        "closed_trade_count": report_res.get("current_closed_trades", 0),
-        "disjoint_sets": True,
-        "union_exhaustive": True,
-    })
-    acct_rec = canary_report.get("accounting_reconciliation", {
-        "status": report_res.get("p8_accounting_reconciliation", "PASS"),
-        "reported_total_gross_usd": "0.00000000",
-        "reported_total_fee_usd": "0.00000000",
-        "reported_total_net_usd": "0.00000000",
-        "recomputed_total_fee_usd": "0.00000000",
-        "fee_diff": "0.00000000",
-        "net_pnl_diff": "0.00000000",
-        "fee_coverage_ratio": "1.00000000",
-    })
+    canary_report = report_res.get("canary_population_report")
+    if canary_report is None:
+        raise RuntimeError(
+            "FAIL_CLOSED: generate_report() did not return 'canary_population_report'. "
+            "Cannot produce reconciliation evidence without the actual report output. "
+            "Refusing to fall back to a synthetic PASS."
+        )
+
+    pop_rec = canary_report.get("population_reconciliation")
+    if pop_rec is None:
+        raise RuntimeError(
+            "FAIL_CLOSED: 'canary_population_report' does not contain "
+            "'population_reconciliation'. Cannot produce G10 evidence without the "
+            "actual reconciliation structure from generate_report()."
+        )
+
+    acct_rec = canary_report.get("accounting_reconciliation")
+    if acct_rec is None:
+        raise RuntimeError(
+            "FAIL_CLOSED: 'canary_population_report' does not contain "
+            "'accounting_reconciliation'. Cannot produce G11 evidence without the "
+            "actual reconciliation structure from generate_report()."
+        )
 
     with open(evidence_dir / "p8-v7-population-reconciliation.json", "w", encoding="utf-8") as f:
         json.dump(pop_rec, f, indent=2)
