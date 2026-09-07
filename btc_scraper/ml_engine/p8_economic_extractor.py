@@ -380,6 +380,7 @@ def extract_closed_trades(
             "actual_fee_usd": fee_usd_val,
             "known_cost_net_pnl_usd": known_cost_net_pnl_usd,
             "actual_net_pnl_usd": actual_net_pnl_usd,
+            "invested_usdt": invested,
             "cost_coverage_complete": cost_coverage_complete,
             "gross_pnl": actual_gross_pnl_usd if actual_gross_pnl_usd is not None else "NOT_AVAILABLE",
             "fees": fee_usd_val if fee_usd_val is not None else "NOT_AVAILABLE",

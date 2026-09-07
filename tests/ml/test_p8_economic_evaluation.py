@@ -27,6 +27,7 @@ from btc_scraper.ml_engine.p8_governance import (
     EXPECTED_RELEASE_MANIFEST_SHA256,
     SEALED_ARTIFACT_SHA,
     SEALED_COMMIT_SHA,
+    REQUIRED_RESERVATION_COLUMNS,
     GovernanceError,
     P8AttestationPolicy,
     P8CostPolicy,
@@ -36,16 +37,22 @@ from btc_scraper.ml_engine.p8_governance import (
     calculate_store_manifest_hash,
     check_runtime_lock_owner,
     get_cost_policy_metadata,
+    validate_reservation_db_schema,
 )
+from btc_scraper.execution.reservation_store import ReservationStore
 from btc_scraper.ml_engine.p8_economic_extractor import (
     extract_closed_trades,
     run_funnel_analysis,
 )
 from btc_scraper.ml_engine.runtime_evidence_store import RuntimeEvidenceStore
 from scripts.p8_economic_report import (
+    MIN_CANARY_N,
+    calculate_accounting_reconciliation,
     calculate_metrics,
+    calculate_population_reconciliation,
     determine_verdict,
     generate_report,
+    is_economic_verdict_authorized,
     validate_canonical_store_identity,
 )
 from scripts.run_manual_runner import SEALED_WORKTREE_PATH, validate_governed_preflight
@@ -118,7 +125,7 @@ def _seed_basic_evidence(store: RuntimeEvidenceStore, epoch_id="p8-readiness-r2-
             "entry_price": 50000.0,
             "sell_price": 51000.0,
             "pnl_usd_actual": 20.0,
-            "fee_usd": 2.0,
+            "fee_usd": 2.02,
             "invested_usdt": 1000.0,
             "net_return_bps": 180.0,
             "net_pnl_pct": 1.8,
@@ -154,9 +161,11 @@ def test_inherited_epoch_lineage(tmp_path):
     t = trades[0]
     assert t["prediction_id"] == "pred-001"
     assert t["actual_gross_pnl_usd"] == 20.0
-    assert t["actual_fee_usd"] == 2.0
-    assert t["actual_net_pnl_usd"] == 18.0
+    assert t["actual_fee_usd"] == 2.02
+    assert t["actual_net_pnl_usd"] == 17.98
+    assert t["invested_usdt"] == 1000.0
     assert t["cost_coverage_complete"] is True
+    assert calculate_accounting_reconciliation(trades)["status"] == "PASS"
 
 
 def test_explicit_child_epoch_mismatch_rejected(tmp_path):
@@ -306,6 +315,16 @@ def test_portable_mock_preflight(tmp_path):
     evidence_path = sealed_logs / "runtime_evidence.sqlite"
     store = RuntimeEvidenceStore(evidence_path)
     global_index = store.global_index_path
+    reservation_path = (
+        mock_sealed
+        / "runtime"
+        / "paper"
+        / EXPECTED_DEPLOYMENT_ID
+        / "data"
+        / "execution"
+        / "reservations.db"
+    )
+    ReservationStore(reservation_path)
 
     with store._global_transaction() as db:
         db.execute(
@@ -548,35 +567,135 @@ def test_store_content_hash_fails_closed_on_missing_reservation_db(tmp_path):
         calculate_store_content_hash(logs_dir, reservation_db_path=missing_res_db)
 
 
-def test_verdict_not_authorized_at_n29():
-    """N=29 is one trade below the minimum threshold of 30.
-    determine_verdict must return population-accumulating, not an economic verdict."""
-    canary_n = 29
-    metrics = {"mean_net_return_bps": 15.0, "win_rate": 0.60}
+def _authorized_gate(canary_n: int) -> bool:
+    return is_economic_verdict_authorized(
+        canary_n,
+        "CONTINUE",
+        "ECONOMICALLY_PROMISING",
+        is_canonical=True,
+        require_evidence_eligible=True,
+        data_integrity_status="PASS",
+        population_reconciliation_status="PASS",
+        accounting_reconciliation_status="PASS",
+        rate_coverage_ratio=1.0,
+        cost_coverage_ratio=1.0,
+    )
 
-    v_type, v_reason = determine_verdict(canary_n, metrics, {}, {}, allow_non_eligible=True)
-    assert v_type == "CONTINUE", (
-        f"N={canary_n} (< 30) must return CONTINUE (accumulating), got {v_type!r}"
-    )
-    assert v_reason == "CANARY_POPULATION_ACCUMULATING", (
-        f"Expected CANARY_POPULATION_ACCUMULATING at N={canary_n}, got {v_reason!r}"
-    )
+
+def test_verdict_not_authorized_at_n29():
+    """The complete authorization gate must remain closed at N=29."""
+    assert MIN_CANARY_N == 30
+    assert _authorized_gate(29) is False
 
 
 def test_verdict_authorized_exactly_at_n30():
-    """N=30 meets the minimum threshold — with positive metrics verdict MUST be ECONOMICALLY_PROMISING."""
-    canary_n = 30
-    metrics = {
-        "mean_net_return_bps": 15.0,
-        "win_rate": 0.60,
+    """The complete authorization gate may open exactly at N=30."""
+    assert _authorized_gate(30) is True
+
+
+def test_reservation_schema_validation_accepts_runtime_schema(tmp_path):
+    reservation_path = tmp_path / "reservations.db"
+    ReservationStore(reservation_path)
+
+    columns = validate_reservation_db_schema(reservation_path)
+
+    assert REQUIRED_RESERVATION_COLUMNS <= set(columns)
+
+
+def test_reservation_schema_validation_rejects_placeholder_schema(tmp_path):
+    reservation_path = tmp_path / "reservations.db"
+    with sqlite3.connect(reservation_path) as db:
+        db.execute(
+            "CREATE TABLE reservations ("
+            "reservation_id TEXT PRIMARY KEY, entry_decision_id TEXT, symbol TEXT, "
+            "side TEXT, allocated_usd REAL, status TEXT, created_at TEXT)"
+        )
+
+    with pytest.raises(GovernanceError, match="missing required columns"):
+        validate_reservation_db_schema(reservation_path)
+
+
+def _decision(prediction_id: str, action: str) -> dict[str, object]:
+    return {
+        "prediction_id": prediction_id,
+        "action": action,
+        "evidence_eligible": True,
+        "epoch_id": EXPECTED_EPOCH_ID,
+        "deployment_id": EXPECTED_DEPLOYMENT_ID,
+        "paper_run_id": EXPECTED_PAPER_RUN_ID,
+        "historical_backfill": False,
     }
 
-    v_type, v_reason = determine_verdict(canary_n, metrics, {}, {}, allow_non_eligible=True)
-    # At N=30 with mean_net_bps>10 and win_rate>=0.52, we expect economic continuation signal
-    assert v_type == "CONTINUE", (
-        f"N={canary_n} (== MIN_CANARY_N) with positive metrics must produce CONTINUE, "
-        f"got v_type={v_type!r}, reason={v_reason!r}"
+
+def test_non_empty_population_reconciliation_is_disjoint_and_exhaustive():
+    decisions = [
+        _decision("pred-closed", "BUY"),
+        _decision("pred-ignore", "IGNORE"),
+        _decision("pred-open", "SELL"),
+    ]
+    trades = [{"prediction_id": "pred-closed"}]
+
+    reconciliation = calculate_population_reconciliation(
+        trades,
+        decisions,
+        epoch_id=EXPECTED_EPOCH_ID,
+        deployment_id=EXPECTED_DEPLOYMENT_ID,
+        paper_run_id=EXPECTED_PAPER_RUN_ID,
+        require_evidence_eligible=True,
+        funnel_closed_trades=1,
     )
-    assert v_reason == "ECONOMICALLY_PROMISING", (
-        f"Expected ECONOMICALLY_PROMISING at N=30 with strong metrics, got {v_reason!r}"
+
+    assert reconciliation["status"] == "PASS"
+    assert reconciliation["decision_universe_count"] == 3
+    assert reconciliation["closed_prediction_count"] == 1
+    assert reconciliation["non_actionable_count"] == 1
+    assert reconciliation["not_closed_actionable_count"] == 1
+    assert reconciliation["disjoint_sets"] is True
+    assert reconciliation["union_exhaustive"] is True
+
+
+def test_population_reconciliation_rejects_closed_non_actionable_overlap():
+    reconciliation = calculate_population_reconciliation(
+        [{"prediction_id": "pred-ignore"}],
+        [_decision("pred-ignore", "IGNORE")],
+        epoch_id=EXPECTED_EPOCH_ID,
+        deployment_id=EXPECTED_DEPLOYMENT_ID,
+        paper_run_id=EXPECTED_PAPER_RUN_ID,
+        require_evidence_eligible=True,
+        funnel_closed_trades=1,
     )
+
+    assert reconciliation["status"] == "FAIL"
+    assert reconciliation["overlap_counts"]["closed_vs_non_actionable"] == 1
+
+
+def test_non_empty_decimal_accounting_reconciliation_passes():
+    reconciliation = calculate_accounting_reconciliation([
+        {
+            "trade_id": "trade-001",
+            "invested_usdt": "1000.00",
+            "actual_gross_pnl_usd": "20.00",
+            "actual_fee_usd": "2.02",
+            "actual_net_pnl_usd": "17.98",
+        }
+    ])
+
+    assert reconciliation["status"] == "PASS"
+    assert reconciliation["vacuous"] is False
+    assert reconciliation["recomputed_total_fee_usd"] == "2.02000000"
+    assert reconciliation["net_pnl_diff"] == "0.00000000"
+
+
+def test_decimal_accounting_reconciliation_rejects_fee_mismatch():
+    reconciliation = calculate_accounting_reconciliation([
+        {
+            "trade_id": "trade-001",
+            "invested_usdt": "1000.00",
+            "actual_gross_pnl_usd": "20.00",
+            "actual_fee_usd": "1.00",
+            "actual_net_pnl_usd": "19.00",
+        }
+    ])
+
+    assert reconciliation["status"] == "FAIL"
+    assert reconciliation["fee_mismatch_ids"] == ["trade-001"]

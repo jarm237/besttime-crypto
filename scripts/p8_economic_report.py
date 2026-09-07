@@ -6,6 +6,7 @@ reports based on the frozen contract.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -53,6 +54,7 @@ AUTHORIZED_ECONOMIC_VERDICTS = {
     "DECISION_POLICY_REVIEW",
     "UNIVERSE_REVIEW",
 }
+MIN_CANARY_N = 30
 
 
 def safe_mean(values: list[float]) -> float:
@@ -192,6 +194,218 @@ def calculate_population_report(trades: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _identifier_set_sha256(values: set[str]) -> str:
+    payload = "\n".join(sorted(values)).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def calculate_population_reconciliation(
+    current_canary_trades: list[dict[str, Any]],
+    decisions: list[dict[str, Any]],
+    *,
+    epoch_id: str,
+    deployment_id: str,
+    paper_run_id: str,
+    require_evidence_eligible: bool,
+    funnel_closed_trades: int,
+) -> dict[str, Any]:
+    """Reconcile disjoint decision populations against the canonical universe."""
+    actionable_actions = {"BUY", "SELL", "INCREASE", "REDUCE"}
+
+    def is_current_decision(decision: dict[str, Any]) -> bool:
+        if bool(decision.get("historical_backfill", False)):
+            return False
+        if not require_evidence_eligible:
+            return True
+        return (
+            decision.get("evidence_eligible") is True
+            and str(decision.get("epoch_id") or "") == epoch_id
+            and str(decision.get("deployment_id") or "") == deployment_id
+            and str(decision.get("paper_run_id") or "") == paper_run_id
+        )
+
+    current_decisions = [
+        decision
+        for decision in decisions
+        if decision.get("prediction_id") and is_current_decision(decision)
+    ]
+    decision_id_list = [str(decision["prediction_id"]) for decision in current_decisions]
+    decision_universe_ids = set(decision_id_list)
+    actionable_ids = {
+        str(decision["prediction_id"])
+        for decision in current_decisions
+        if str(decision.get("action") or "").upper() in actionable_actions
+    }
+    non_actionable_ids = decision_universe_ids - actionable_ids
+
+    closed_id_list = [
+        str(trade["prediction_id"])
+        for trade in current_canary_trades
+        if trade.get("prediction_id")
+    ]
+    closed_ids = set(closed_id_list)
+    not_closed_actionable_ids = actionable_ids - closed_ids
+
+    populations = (closed_ids, non_actionable_ids, not_closed_actionable_ids)
+    overlap_counts = {
+        "closed_vs_non_actionable": len(closed_ids & non_actionable_ids),
+        "closed_vs_not_closed_actionable": len(closed_ids & not_closed_actionable_ids),
+        "non_actionable_vs_not_closed_actionable": len(
+            non_actionable_ids & not_closed_actionable_ids
+        ),
+    }
+    disjoint_sets = all(count == 0 for count in overlap_counts.values())
+    population_union = set().union(*populations)
+    union_exhaustive = population_union == decision_universe_ids
+    decision_ids_unique = len(decision_id_list) == len(decision_universe_ids)
+    closed_trade_ids_unique = len(closed_id_list) == len(closed_ids)
+    funnel_count_matches = len(current_canary_trades) == int(funnel_closed_trades)
+
+    status = "PASS" if (
+        disjoint_sets
+        and union_exhaustive
+        and decision_ids_unique
+        and closed_trade_ids_unique
+        and funnel_count_matches
+    ) else "FAIL"
+
+    return {
+        "status": status,
+        "decision_universe_count": len(decision_universe_ids),
+        "closed_trade_count": len(current_canary_trades),
+        "closed_prediction_count": len(closed_ids),
+        "non_actionable_count": len(non_actionable_ids),
+        "not_closed_actionable_count": len(not_closed_actionable_ids),
+        "disjoint_sets": disjoint_sets,
+        "union_exhaustive": union_exhaustive,
+        "decision_ids_unique": decision_ids_unique,
+        "closed_trade_ids_unique": closed_trade_ids_unique,
+        "funnel_count_matches": funnel_count_matches,
+        "overlap_counts": overlap_counts,
+        "set_sha256": {
+            "decision_universe": _identifier_set_sha256(decision_universe_ids),
+            "closed": _identifier_set_sha256(closed_ids),
+            "non_actionable": _identifier_set_sha256(non_actionable_ids),
+            "not_closed_actionable": _identifier_set_sha256(not_closed_actionable_ids),
+        },
+    }
+
+
+def calculate_accounting_reconciliation(
+    current_canary_trades: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Independently reconcile reported PnL and V1 round-trip fees with Decimal."""
+    total_gross = Decimal("0")
+    total_fee = Decimal("0")
+    total_net = Decimal("0")
+    total_recomputed_fee = Decimal("0")
+    missing_trade_ids: list[str] = []
+    identity_mismatch_ids: list[str] = []
+    fee_mismatch_ids: list[str] = []
+
+    for index, trade in enumerate(current_canary_trades):
+        trade_id = str(trade.get("trade_id") or trade.get("prediction_id") or index)
+        gross_raw = trade.get("actual_gross_pnl_usd")
+        fee_raw = trade.get("actual_fee_usd")
+        net_raw = trade.get("actual_net_pnl_usd")
+        invested_raw = trade.get("invested_usdt")
+        if invested_raw is None:
+            invested_raw = trade.get("invested")
+
+        if any(value is None for value in (gross_raw, fee_raw, net_raw, invested_raw)):
+            missing_trade_ids.append(trade_id)
+            continue
+
+        gross = Decimal(str(gross_raw))
+        fee = Decimal(str(fee_raw))
+        net = Decimal(str(net_raw))
+        invested = Decimal(str(invested_raw))
+        if invested <= 0:
+            missing_trade_ids.append(trade_id)
+            continue
+
+        recomputed_fee = (
+            invested * Decimal("0.001")
+            + (invested + gross) * Decimal("0.001")
+        )
+        identity_diff = net - (gross - fee)
+        fee_diff = fee - recomputed_fee
+
+        total_gross += gross
+        total_fee += fee
+        total_net += net
+        total_recomputed_fee += recomputed_fee
+        if abs(identity_diff) > ABSOLUTE_USD_TOLERANCE:
+            identity_mismatch_ids.append(trade_id)
+        if abs(fee_diff) > ABSOLUTE_USD_TOLERANCE:
+            fee_mismatch_ids.append(trade_id)
+
+    trade_count = len(current_canary_trades)
+    accounted_trade_count = trade_count - len(missing_trade_ids)
+    coverage_ratio = (
+        Decimal(accounted_trade_count) / Decimal(trade_count)
+        if trade_count
+        else Decimal("1")
+    )
+    aggregate_fee_diff = total_fee - total_recomputed_fee
+    aggregate_net_diff = total_net - (total_gross - total_fee)
+    status = "PASS" if (
+        not missing_trade_ids
+        and not identity_mismatch_ids
+        and not fee_mismatch_ids
+        and abs(aggregate_fee_diff) <= ABSOLUTE_USD_TOLERANCE
+        and abs(aggregate_net_diff) <= ABSOLUTE_USD_TOLERANCE
+    ) else "FAIL"
+
+    def decimal_string(value: Decimal) -> str:
+        return f"{value:.8f}"
+
+    return {
+        "status": status,
+        "vacuous": trade_count == 0,
+        "trade_count": trade_count,
+        "accounted_trade_count": accounted_trade_count,
+        "reported_total_gross_usd": decimal_string(total_gross),
+        "reported_total_fee_usd": decimal_string(total_fee),
+        "reported_total_net_usd": decimal_string(total_net),
+        "recomputed_total_fee_usd": decimal_string(total_recomputed_fee),
+        "fee_diff": decimal_string(aggregate_fee_diff),
+        "net_pnl_diff": decimal_string(aggregate_net_diff),
+        "fee_coverage_ratio": decimal_string(coverage_ratio),
+        "missing_trade_ids": missing_trade_ids,
+        "identity_mismatch_ids": identity_mismatch_ids,
+        "fee_mismatch_ids": fee_mismatch_ids,
+    }
+
+
+def is_economic_verdict_authorized(
+    canary_n: int,
+    stage: str,
+    verdict_reason: str,
+    *,
+    is_canonical: bool,
+    require_evidence_eligible: bool,
+    data_integrity_status: str,
+    population_reconciliation_status: str,
+    accounting_reconciliation_status: str,
+    rate_coverage_ratio: float,
+    cost_coverage_ratio: float,
+) -> bool:
+    """Apply the complete governed authorization gate at the sample boundary."""
+    return (
+        is_canonical
+        and require_evidence_eligible
+        and canary_n >= MIN_CANARY_N
+        and stage in {"CONTINUE", "MODIFY", "STOP"}
+        and verdict_reason in AUTHORIZED_ECONOMIC_VERDICTS
+        and data_integrity_status == "PASS"
+        and population_reconciliation_status == "PASS"
+        and accounting_reconciliation_status == "PASS"
+        and rate_coverage_ratio >= MIN_RATE_COVERAGE_RATIO
+        and cost_coverage_ratio >= MIN_COST_COVERAGE_RATIO
+    )
+
+
 def attest_canonical_store(
     evidence_path: Path,
     reservation_path: Path | None = None,
@@ -225,7 +439,7 @@ def determine_verdict(
     if not allow_non_eligible:
         return "DIAGNOSTIC", "UNAUTHORIZED_POPULATION_VERDICT_NOT_PERMITTED"
 
-    if canary_n < 30:
+    if canary_n < MIN_CANARY_N:
         return "CONTINUE", "CANARY_POPULATION_ACCUMULATING"
 
     mean_net_bps = overall_metrics.get("mean_net_return_bps", 0.0)
@@ -250,6 +464,7 @@ def generate_report(
     *,
     require_evidence_eligible: bool = True,
     governed_mode: bool = False,
+    write_output: bool = True,
 ) -> dict[str, Any]:
     if output_dir is None:
         output_dir = Path(__file__).resolve().parents[1]
@@ -266,9 +481,6 @@ def generate_report(
 
     if governed_mode:
         check_runtime_lock_owner(logs_dir)
-
-    pre_manifest_hash = calculate_store_manifest_hash(logs_dir)
-    pre_content_hash = calculate_store_content_hash(logs_dir)
 
     global_index_path = logs_dir / "global_evidence_index.sqlite"
     pattern = f"{evidence_logical_path.stem}_????-??-??{evidence_logical_path.suffix}"
@@ -300,6 +512,12 @@ def generate_report(
         print(f"ERROR: {err_msg}", file=sys.stderr)
         sys.exit(1)
 
+    pre_manifest_hash = calculate_store_manifest_hash(logs_dir)
+    pre_content_hash = calculate_store_content_hash(
+        logs_dir,
+        reservation_db_path=res_path,
+    )
+
     policy = P8AttestationPolicy()
     attestation = policy.attest_store(evidence_logical_path, res_path)
     is_canonical = attestation.is_valid
@@ -321,7 +539,10 @@ def generate_report(
 
     # Post snapshot & content verification
     post_manifest_hash = calculate_store_manifest_hash(logs_dir)
-    post_content_hash = calculate_store_content_hash(logs_dir)
+    post_content_hash = calculate_store_content_hash(
+        logs_dir,
+        reservation_db_path=res_path,
+    )
     if pre_manifest_hash != post_manifest_hash or pre_content_hash != post_content_hash:
         raise GovernanceError(
             f"Store partition mutated during evaluation: "
@@ -363,51 +584,25 @@ def generate_report(
         rejection_info["counts"].get("paper_run_mismatch", 0) == 0
     ) else "FAIL"
 
-    # Pairwise Disjoint Population Set Reconciliation
-    closed_ids = {t["prediction_id"] for t in current_canary_trades if t.get("prediction_id")}
+    # Pairwise disjoint and exhaustive canonical decision populations.
     rows_data = store.shadow_evidence_rows()
     decisions = rows_data.get("final_decisions", [])
-    non_actionable_ids = {
-        str(d.get("prediction_id")) for d in decisions
-        if d.get("prediction_id") and str(d.get("action", "")).upper() not in ("BUY", "SELL", "INCREASE", "REDUCE")
-    }
-    rejected_ids = set()
-    for reason in rejection_info.get("reasons", []):
-        if ":" in reason:
-            _, sample_id = reason.split(":", 1)
-            rejected_ids.add(sample_id)
-
-    disjoint_valid = (
-        len(closed_ids & non_actionable_ids) == 0 and
-        len(closed_ids & rejected_ids) == 0 and
-        len(non_actionable_ids & rejected_ids) == 0
+    population_reconciliation = calculate_population_reconciliation(
+        current_canary_trades,
+        decisions,
+        epoch_id=str(attestation.metadata.get("epoch_id") or ""),
+        deployment_id=str(attestation.metadata.get("deployment_id") or ""),
+        paper_run_id=str(attestation.metadata.get("paper_run_id") or ""),
+        require_evidence_eligible=require_evidence_eligible,
+        funnel_closed_trades=int(funnel["counts"]["closed_trades"]),
     )
-    p8_population_reconciliation = "PASS" if (disjoint_valid and canary_n == funnel["counts"]["closed_trades"]) else "FAIL"
-
-    # Independent Accounting Reconciliation (2-cent Decimal tolerance & fee check)
-    accounting_mismatches = 0
-    for t in current_canary_trades:
-        act_net = t.get("actual_net_pnl_usd")
-        act_gross = t.get("actual_gross_pnl_usd")
-        act_fee = t.get("actual_fee_usd")
-        if act_net is not None and act_gross is not None and act_fee is not None:
-            # Identity check
-            calc_net = Decimal(str(act_gross)) - Decimal(str(act_fee))
-            if abs(calc_net - Decimal(str(act_net))) > ABSOLUTE_USD_TOLERANCE:
-                accounting_mismatches += 1
-
-            # Independent fee policy recomputation if invested is present
-            invested = t.get("invested_usdt") or t.get("invested")
-            if invested is not None and float(invested) > 0:
-                expected_entry_fee = Decimal(str(invested)) * Decimal("0.001")
-                expected_gross_received = Decimal(str(invested)) + Decimal(str(act_gross))
-                expected_exit_fee = expected_gross_received * Decimal("0.001")
-                expected_fee_usd = expected_entry_fee + expected_exit_fee
-
-                if abs(expected_fee_usd - Decimal(str(act_fee))) > ABSOLUTE_USD_TOLERANCE:
-                    accounting_mismatches += 1
-
-    p8_accounting_reconciliation = "PASS" if accounting_mismatches == 0 else "FAIL"
+    accounting_reconciliation = calculate_accounting_reconciliation(
+        current_canary_trades
+    )
+    canary_report["population_reconciliation"] = population_reconciliation
+    canary_report["accounting_reconciliation"] = accounting_reconciliation
+    p8_population_reconciliation = population_reconciliation["status"]
+    p8_accounting_reconciliation = accounting_reconciliation["status"]
 
     overall_econ = canary_report["overall_portfolio_economics"]
     rate_coverage_ratio = (overall_econ["rate_coverage_n"] / canary_n) if canary_n > 0 else 1.0
@@ -433,21 +628,21 @@ def generate_report(
         verdict_authorized = False
     else:
         population_type = "CANONICAL_SEALED_ELIGIBLE"
-        verdict_authorized = (
-            is_canonical and
-            require_evidence_eligible and
-            canary_n >= 30 and
-            stage in {"CONTINUE", "MODIFY", "STOP"} and
-            verdict_reason in AUTHORIZED_ECONOMIC_VERDICTS and
-            p8_data_integrity == "PASS" and
-            p8_population_reconciliation == "PASS" and
-            p8_accounting_reconciliation == "PASS" and
-            rate_coverage_ratio >= MIN_RATE_COVERAGE_RATIO and
-            cost_coverage_ratio >= MIN_COST_COVERAGE_RATIO
+        verdict_authorized = is_economic_verdict_authorized(
+            canary_n,
+            stage,
+            verdict_reason,
+            is_canonical=is_canonical,
+            require_evidence_eligible=require_evidence_eligible,
+            data_integrity_status=p8_data_integrity,
+            population_reconciliation_status=p8_population_reconciliation,
+            accounting_reconciliation_status=p8_accounting_reconciliation,
+            rate_coverage_ratio=rate_coverage_ratio,
+            cost_coverage_ratio=cost_coverage_ratio,
         )
         if canary_n == 0:
             maturity_stage = "ACCUMULATING"
-        elif canary_n < 30:
+        elif canary_n < MIN_CANARY_N:
             maturity_stage = "PRELIMINARY_ACCUMULATING"
         else:
             maturity_stage = "ECONOMIC_REVIEW_READY"
@@ -481,7 +676,7 @@ def generate_report(
         "current_closure_rate": funnel["rates"]["closure_rate"],
         "sample_maturity": maturity_stage,
         "economic_verdict": verdict_reason,
-        "p8_state": "ACCUMULATING" if canary_n < 30 else "EVALUATING",
+        "p8_state": "ACCUMULATING" if canary_n < MIN_CANARY_N else "EVALUATING",
         "model_change": "NOT_AUTHORIZED",
         "funnel_analysis": funnel,
         "canary_population_report": canary_report,
@@ -492,9 +687,10 @@ def generate_report(
         "rejection_reasons": rejection_info["reasons"],
     }
 
-    report_path = output_dir / "p8_economic_report.json"
-    with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(report_json, f, indent=2)
+    if write_output:
+        report_path = output_dir / "p8_economic_report.json"
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report_json, f, indent=2)
 
     return report_json
 

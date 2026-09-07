@@ -33,6 +33,36 @@ EXPECTED_RISK_POLICY_VERSION = "risk-fail-closed-v1"
 EXPECTED_RUNTIME_SCHEMA_VERSION = "6"
 EXPECTED_RELEASE_MANIFEST_SHA256 = "00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e"
 
+# Columns required by the runtime ReservationStore and consumed by the P8
+# economic extractor.  Attestation must reject placeholder/minimal databases:
+# an empty table can otherwise hide schema failures until the first live row.
+REQUIRED_RESERVATION_COLUMNS = frozenset({
+    "reservation_id",
+    "idempotency_key",
+    "entry_decision_id",
+    "symbol",
+    "side",
+    "reserved_notional",
+    "filled_notional",
+    "reserved_position_slots",
+    "status",
+    "exchange_order_id",
+    "client_order_id",
+    "created_at",
+    "expires_at",
+    "updated_at",
+    "signal_id",
+    "prediction_id",
+    "model_version",
+    "model_artifact_sha256",
+    "feature_schema_version",
+    "deployment_id",
+    "paper_run_id",
+    "cycle_id",
+    "decision_context",
+    "caller_context",
+})
+
 SEALED_WORKTREE_PATH = PROJECT_ROOT / "runtime" / "worktrees" / "timestamp-remediation-20260901-01"
 
 MIN_RATE_COVERAGE_RATIO = 1.0
@@ -105,6 +135,13 @@ class P8AttestationPolicy:
             errors.append(f"Store path is not canonical sealed store path: {evidence_path}")
             return AttestationResult(is_valid=False, attestation_errors=errors)
 
+        if reservation_path is not None:
+            try:
+                validate_reservation_db_schema(reservation_path)
+            except GovernanceError as exc:
+                errors.append(str(exc))
+                return AttestationResult(is_valid=False, attestation_errors=errors)
+
         res_evidence = Path(evidence_path).resolve()
         global_index = res_evidence.parent / "global_evidence_index.sqlite"
 
@@ -168,6 +205,55 @@ def compute_file_sha256(file_path: Path) -> str:
         while chunk := f.read(65536):
             h.update(chunk)
     return h.hexdigest()
+
+
+def validate_reservation_db_schema(reservation_db_path: Path | str) -> tuple[str, ...]:
+    """Validate the canonical reservation store without creating or migrating it.
+
+    The connection is explicitly read-only and the complete runtime schema is
+    required.  Returning the sorted columns gives callers auditable schema
+    evidence while keeping validation side-effect free.
+    """
+    res_path = Path(reservation_db_path)
+    if not res_path.is_file():
+        raise GovernanceError(
+            f"Canonical reservations.db does not exist at expected path: {res_path}"
+        )
+
+    conn: sqlite3.Connection | None = None
+    try:
+        uri = f"file:{res_path.resolve().as_posix()}?mode=ro"
+        conn = sqlite3.connect(uri, uri=True)
+        conn.execute("PRAGMA query_only=ON")
+        table_row = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='reservations'"
+        ).fetchone()
+        if table_row is None:
+            raise GovernanceError(
+                f"Canonical reservations.db at {res_path} is missing the reservations table"
+            )
+
+        columns = {
+            str(row[1])
+            for row in conn.execute("PRAGMA table_info(reservations)").fetchall()
+        }
+    except GovernanceError:
+        raise
+    except sqlite3.Error as exc:
+        raise GovernanceError(
+            f"Could not read canonical reservations.db schema at {res_path}: {exc}"
+        ) from exc
+    finally:
+        if conn is not None:
+            conn.close()
+
+    missing = sorted(REQUIRED_RESERVATION_COLUMNS - columns)
+    if missing:
+        raise GovernanceError(
+            f"Canonical reservations.db schema mismatch at {res_path}; "
+            f"missing required columns: {', '.join(missing)}"
+        )
+    return tuple(sorted(columns))
 
 
 def _load_active_epoch_rows(global_index_path: Path) -> list[sqlite3.Row]:
@@ -457,4 +543,3 @@ def _load_raw_partition_records(logs_dir: Path) -> list[dict[str, Any]]:
             raise GovernanceError(f"Failed raw read-only loading on partition {p_file}: {exc}") from exc
 
     return raw_records
-

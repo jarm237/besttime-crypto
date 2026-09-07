@@ -2,7 +2,6 @@
 """Run governed P8 Economic Report V7 generation and produce verified release closure evidence artifacts."""
 import sys
 import json
-import sqlite3
 from pathlib import Path
 
 # Add project root to sys.path
@@ -20,68 +19,66 @@ from btc_scraper.ml_engine.p8_governance import (
     calculate_store_content_hash,
     compute_file_sha256,
     check_runtime_lock_owner,
+    validate_reservation_db_schema,
 )
 from scripts.p8_economic_report import (
+    MIN_CANARY_N,
     generate_report,
-    determine_verdict,
 )
 from scripts.run_p8_v7_negative_probes import run_probes
 
 def main():
+    policy = P8AttestationPolicy(sealed_root=SEALED_WORKTREE_PATH)
+    logs_dir = policy.canonical_evidence_log.parent
+    res_db = policy.canonical_reservation_db
+
+    # Validate the complete canonical persistence schema before writing any
+    # closure artifact. This helper opens SQLite in read-only mode.
+    reservation_columns = validate_reservation_db_schema(res_db)
+
     evidence_dir = root_dir / "evidence" / "p8" / "v7"
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
     # Step 1: Negative Probes (G5-G7)
     print("[1/5] Running negative governance probes...")
     probe_results = run_probes()
+    failed_probes = sorted(
+        name
+        for name, result in probe_results.items()
+        if result.get("status") != "PASS"
+    )
+    if failed_probes:
+        raise RuntimeError(
+            "FAIL_CLOSED: negative governance probes failed: "
+            + ", ".join(failed_probes)
+        )
     with open(evidence_dir / "p8-v7-negative-probes.json", "w", encoding="utf-8") as f:
         json.dump(probe_results, f, indent=2)
 
     # Step 2: Canonical Store Resolution & Attestation (G8-G9)
     print("[2/5] Running canonical identity resolution & attestation...")
-    policy = P8AttestationPolicy(sealed_root=SEALED_WORKTREE_PATH)
-    logs_dir = policy.canonical_evidence_log.parent
-    res_db = policy.canonical_reservation_db
 
     # Fail-closed: the canonical reservations.db MUST already exist and be provisioned
     # with the correct schema.  This generator must NEVER create or mutate the canonical
     # store — doing so would be an evidence boundary violation.
-    if not res_db.exists():
-        raise RuntimeError(
-            f"FAIL_CLOSED: canonical reservations.db does not exist at expected path:\n"
-            f"  {res_db}\n"
-            "Provision the reservations.db with the correct schema before running "
-            "closure evidence generation.  This script must not mutate the canonical store."
-        )
-
     # Verify the schema is correct (must have the 'reservations' table)
-    try:
-        uri = f"file:{res_db.resolve().as_posix()}?mode=ro"
-        _chk = sqlite3.connect(uri, uri=True)
-        _tables = {r[0] for r in _chk.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        _chk.close()
-        if "reservations" not in _tables:
-            raise RuntimeError(
-                f"FAIL_CLOSED: canonical reservations.db at {res_db} is missing the "
-                "'reservations' table.  Re-provision the store with the correct schema."
-            )
-    except RuntimeError:
-        raise
-    except Exception as exc:
-        raise RuntimeError(
-            f"FAIL_CLOSED: Could not open or validate canonical reservations.db at {res_db}: {exc}"
-        ) from exc
-
     # Lock inspection
     lock_status = check_runtime_lock_owner(logs_dir)
 
     # 13-field Attestation
     attestation = policy.attest_store(policy.canonical_evidence_log, res_db)
+    if not attestation.is_valid:
+        raise GovernanceError(
+            "FAIL_CLOSED: canonical attestation failed: "
+            + "; ".join(attestation.attestation_errors)
+        )
     attestation_data = {
         "is_valid": attestation.is_valid,
         "active_epoch_id": attestation.active_epoch_id,
         "lock_inspection": lock_status,
         "canonical_evidence_log": str(policy.canonical_evidence_log),
+        "canonical_reservation_db": str(res_db),
+        "reservation_schema_columns": list(reservation_columns),
         "exact_artifact_path": str(policy.exact_artifact_path),
         "exact_artifact_sha256": compute_file_sha256(policy.exact_artifact_path),
         "attestation_errors": attestation.attestation_errors,
@@ -110,6 +107,7 @@ def main():
         evidence_store_path=policy.canonical_evidence_log,
         reservation_db_path=res_db,
         governed_mode=True,
+        write_output=False,
     )
 
     print("Hashing database store after report execution...")
@@ -118,7 +116,10 @@ def main():
     h_after = {db_f.name: compute_file_sha256(db_f) for db_f in db_files if db_f.is_file()}
     h_after[res_db.name] = h_res_after
 
-    store_readonly_pass = (h_store_before_hex == h_store_after_hex)
+    store_readonly_pass = (
+        h_store_before_hex == h_store_after_hex
+        and h_before == h_after
+    )
     if not store_readonly_pass:
         raise RuntimeError(
             "FAIL_CLOSED (G12): Store boundary hash changed during report execution. "
@@ -132,15 +133,12 @@ def main():
     report_res["store_hashes_before"] = h_before
     report_res["store_hashes_after"] = h_after
 
-    with open(evidence_dir / "p8-v7-canonical-report.json", "w", encoding="utf-8") as f:
-        json.dump(report_res, f, indent=2)
-
     # Step 4: Population & Accounting Reconciliation (G10-G11)
     # Strict extraction — NO fallback dicts.  Missing keys are fatal: a fallback
     # PASS would mask a real reconciliation failure or a vacuous N=0 population.
     print("[4/5] Running mathematical population & accounting reconciliation...")
     canary_report = report_res.get("canary_population_report")
-    if canary_report is None:
+    if not isinstance(canary_report, dict):
         raise RuntimeError(
             "FAIL_CLOSED: generate_report() did not return 'canary_population_report'. "
             "Cannot produce reconciliation evidence without the actual report output. "
@@ -148,7 +146,7 @@ def main():
         )
 
     pop_rec = canary_report.get("population_reconciliation")
-    if pop_rec is None:
+    if not isinstance(pop_rec, dict):
         raise RuntimeError(
             "FAIL_CLOSED: 'canary_population_report' does not contain "
             "'population_reconciliation'. Cannot produce G10 evidence without the "
@@ -156,12 +154,28 @@ def main():
         )
 
     acct_rec = canary_report.get("accounting_reconciliation")
-    if acct_rec is None:
+    if not isinstance(acct_rec, dict):
         raise RuntimeError(
             "FAIL_CLOSED: 'canary_population_report' does not contain "
             "'accounting_reconciliation'. Cannot produce G11 evidence without the "
             "actual reconciliation structure from generate_report()."
         )
+
+    if pop_rec.get("status") != "PASS":
+        raise RuntimeError(
+            f"FAIL_CLOSED (G10): population reconciliation failed: {pop_rec}"
+        )
+    if acct_rec.get("status") != "PASS":
+        raise RuntimeError(
+            f"FAIL_CLOSED (G11): accounting reconciliation failed: {acct_rec}"
+        )
+    if report_res.get("p8_data_integrity") != "PASS":
+        raise RuntimeError(
+            "FAIL_CLOSED: canonical report data-integrity gate did not pass"
+        )
+
+    with open(evidence_dir / "p8-v7-canonical-report.json", "w", encoding="utf-8") as f:
+        json.dump(report_res, f, indent=2)
 
     with open(evidence_dir / "p8-v7-population-reconciliation.json", "w", encoding="utf-8") as f:
         json.dump(pop_rec, f, indent=2)
@@ -178,7 +192,7 @@ def main():
         "p8_governance_report_v7_implementation": "CLOSED_PASS",
         "p8_economic_effectiveness": "ACCUMULATING" if not verdict_auth else report_res.get("economic_verdict"),
         "canonical_n": canary_n,
-        "minimum_required_n": 30,
+        "minimum_required_n": MIN_CANARY_N,
         "economic_verdict_authorized": verdict_auth,
         "verdict_reason": report_res.get("economic_verdict", "CANARY_POPULATION_ACCUMULATING"),
         "implementation_status": "SEALED",
@@ -216,6 +230,9 @@ def main():
         "deployment_id": EXPECTED_DEPLOYMENT_ID,
         "canonical_store_path": str(policy.canonical_evidence_log),
         "canonical_store_sha256": h_before.get("runtime_evidence.sqlite"),
+        "canonical_reservation_store_path": str(res_db),
+        "canonical_reservation_store_sha256": h_res_before,
+        "canonical_store_boundary_sha256": h_store_before_hex,
         "model_version": attestation.metadata.get("model_version"),
         "model_artifact_sha256": SEALED_ARTIFACT_SHA,
         "feature_schema_version": attestation.metadata.get("feature_schema_version"),
@@ -244,8 +261,12 @@ def main():
             "G7_Unauthorized_Verdict": "PASS (DIAGNOSTIC)",
             "G8_Canonical_Identity_Attestation": "PASS (13/13 Fields Valid)",
             "G9_Sealed_Model_Artifact_Identity": "PASS (Exact SHA Match)",
-            "G10_Population_Reconciliation": "PASS (Pairwise Disjoint & Union Exhaustive)",
-            "G11_Independent_Accounting": "PASS (Exact Decimal Reconciliation)",
+            "G10_Population_Reconciliation": (
+                f"{pop_rec['status']} (Pairwise Disjoint & Union Exhaustive)"
+            ),
+            "G11_Independent_Accounting": (
+                f"{acct_rec['status']} (Exact Decimal Reconciliation)"
+            ),
             "G12_Frozen_Readonly_Report": "PASS (H_store_before == H_store_after)",
             "G13_Release_Manifest_Reproducibility": "PASS",
             "G14_Seal_Commit_Closure": "SEALED",
@@ -260,7 +281,7 @@ def main():
 
 **Status**: P8_GOVERNANCE_REPORT_V7_IMPLEMENTATION = **CLOSED / PASS**
 **Tooling Status**: **SEALED**
-**Economic Effectiveness**: **ACCUMULATING** (N = {canary_n} / 30 required)
+**Economic Effectiveness**: **ACCUMULATING** (N = {canary_n} / {MIN_CANARY_N} required)
 
 ## Executive Summary
 
