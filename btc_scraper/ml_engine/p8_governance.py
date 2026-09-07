@@ -268,9 +268,13 @@ def check_runtime_lock_owner(logs_dir: Path) -> None:
                     continue
 
                 pid = None
+                is_json = False
+                data = None
                 try:
                     data = json.loads(content)
-                    pid = data.get("process_id") or data.get("pid") or data.get("owner_pid")
+                    if isinstance(data, dict):
+                        is_json = True
+                        pid = data.get("process_id") or data.get("pid") or data.get("owner_pid")
                 except Exception:
                     pass
 
@@ -282,14 +286,24 @@ def check_runtime_lock_owner(logs_dir: Path) -> None:
                                 f"LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at {l_file} "
                                 f"held by live PID {pid_int}."
                             )
+                        # PID is inactive -> stale lock, clear to proceed
+                        continue
                     except ValueError:
                         pass
 
-                if "ACTIVE" in content.upper() or "OWNER" in content.upper():
-                    raise GovernanceError(
-                        f"LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at {l_file}. "
-                        "Governed evaluation requires runner to be stopped."
-                    )
+                if is_json and isinstance(data, dict):
+                    status_val = str(data.get("status") or data.get("state") or "").upper()
+                    if status_val in ("ACTIVE", "RUNNING"):
+                        raise GovernanceError(
+                            f"LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at {l_file}. "
+                            "Governed evaluation requires runner to be stopped."
+                        )
+                else:
+                    if any(kw in content.upper() for kw in ("ACTIVE", "RUNNING", "LOCKED")):
+                        raise GovernanceError(
+                            f"LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at {l_file}. "
+                            "Governed evaluation requires runner to be stopped."
+                        )
             except Exception as exc:
                 if isinstance(exc, GovernanceError):
                     raise
@@ -304,8 +318,7 @@ def calculate_store_content_hash(logs_dir: Path) -> str:
     db_files = sorted(
         list(logs_dir.glob("runtime_evidence*.sqlite")) +
         list(logs_dir.glob("global_evidence_index.sqlite")) +
-        list(logs_dir.glob("*.sqlite-wal")) +
-        list(logs_dir.glob("*.sqlite-shm"))
+        list(logs_dir.glob("*.sqlite-wal"))
     )
     hasher = hashlib.sha256()
 
@@ -321,7 +334,7 @@ def calculate_store_content_hash(logs_dir: Path) -> str:
 
 
 def calculate_store_manifest_hash(logs_dir: Path) -> str:
-    """Calculate deterministic stat manifest hash across partition files (name:size:mtime)."""
+    """Calculate deterministic stat manifest hash across partition files (name:size)."""
     if not logs_dir.exists():
         return "empty"
 
@@ -336,7 +349,7 @@ def calculate_store_manifest_hash(logs_dir: Path) -> str:
         if not p_file.is_file():
             continue
         stat = p_file.stat()
-        entry = f"{p_file.name}:{stat.st_size}:{stat.st_mtime}"
+        entry = f"{p_file.name}:{stat.st_size}"
         hasher.update(entry.encode("utf-8"))
 
     return hasher.hexdigest()

@@ -1,0 +1,57 @@
+{
+  "probe_1_live_runtime_lock": {
+    "status": "PASS",
+    "error_code": "LIVE_RUNNER_ACTIVE_CONFLICT",
+    "pid": 32196,
+    "message": "LIVE_RUNNER_ACTIVE_CONFLICT: Active runtime lock detected at C:\\Users\\admin\\AppData\\Local\\Temp\\tmpb8a097so\\state\\runtime.lock held by live PID 32196."
+  },
+  "probe_2_corrupted_payload_sha256": {
+    "status": "PASS",
+    "error_code": "payload_corruption",
+    "message": "payload_corruption: Raw text SHA256 mismatch in runtime_evidence_2026-09-01.sqlite for record rec1. Stored 0000000000000000000000000000000000000000000000000000000000000000, computed fd36a88e3ee4f44d4069dffb76b8e1a75ef8e3df3619559b3b3fd7d2c58b1195"
+  },
+  "probe_3_duplicate_id_different_hash": {
+    "status": "PASS",
+    "error_code": "duplicate_conflict",
+    "message": "duplicate_conflict: Record ID rec_dup in predictions has conflicting payload content across partitions (5641b9dc2bf9296fdcef91ae3e24b0d4c28cfe14a38cbcedab89ee84169e8c19 vs 0724395bda6e4bafd4c262710d1a8ebd69b8de3e8ac8ea246085ece53cc9a608)"
+  },
+  "probe_4_unauthorized_population_verdict": {
+    "status": "PASS",
+    "verdict_class": "DIAGNOSTIC",
+    "verdict_reason": "UNAUTHORIZED_POPULATION_VERDICT_NOT_PERMITTED"
+  },
+  "probe_5_missing_mandatory_field": {
+    "status": "PASS",
+    "is_valid": false,
+    "errors": [
+      "Attestation field 'epoch_id' mismatch: expected 'p8-readiness-r2-20260902-01', got 'ep1'",
+      "Attestation field 'deployment_id' mismatch: expected 'paper-canary-win-tsfix-20260901-01', got 'deploy-v5-canary-01'",
+      "Attestation field 'paper_run_id' mismatch: expected 'paper-canary-win-tsfix-20260901-01', got 'run1'",
+      "Attestation field 'analysis_universe_hash' mismatch: expected 'c965c9e001020849c1390553023d8259253fd28728c2679f7f52fb4fda66d2e3', got 'hash1'",
+      "Attestation mandatory field 'model_version' is missing or empty in active epoch metadata",
+      "Attestation mandatory field 'feature_schema_version' is missing or empty in active epoch metadata",
+      "Attestation mandatory field 'evidence_policy_version' is missing or empty in active epoch metadata",
+      "Attestation mandatory field 'risk_policy_version' is missing or empty in active epoch metadata",
+      "Attestation mandatory field 'runtime_schema_version' is missing or empty in active epoch metadata",
+      "Attestation mandatory field 'release_manifest_sha256' is missing or empty in active epoch metadata",
+      "Sealed artifact file not found at canonical location C:\\Users\\admin\\AppData\\Local\\Temp\\tmpit4fh3__\\logs\\meta_model.joblib"
+    ]
+  },
+  "probe_6_missing_artifact_file": {
+    "status": "PASS",
+    "is_valid": false,
+    "errors": [
+      "Attestation field 'epoch_id' mismatch: expected 'p8-readiness-r2-20260902-01', got 'ep1'",
+      "Attestation field 'deployment_id' mismatch: expected 'paper-canary-win-tsfix-20260901-01', got 'deploy-v5-canary-01'",
+      "Attestation field 'paper_run_id' mismatch: expected 'paper-canary-win-tsfix-20260901-01', got 'run1'",
+      "Attestation field 'analysis_universe_hash' mismatch: expected 'c965c9e001020849c1390553023d8259253fd28728c2679f7f52fb4fda66d2e3', got 'hash1'",
+      "Attestation field 'model_version' mismatch: expected 'windows-v5-filter-1.0.0', got 'm1'",
+      "Attestation field 'feature_schema_version' mismatch: expected 'meta-v3.1-43f', got 'f1'",
+      "Attestation field 'evidence_policy_version' mismatch: expected 'evidence-v4', got 'e1'",
+      "Attestation field 'risk_policy_version' mismatch: expected 'risk-fail-closed-v1', got 'r1'",
+      "Attestation field 'runtime_schema_version' mismatch: expected '6', got 'rt1'",
+      "Attestation field 'release_manifest_sha256' mismatch: expected '00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e', got 'rel1'",
+      "Sealed artifact file not found at canonical location C:\\Users\\admin\\AppData\\Local\\Temp\\tmpqdkf9kim\\logs\\meta_model.joblib"
+    ]
+  }
+}

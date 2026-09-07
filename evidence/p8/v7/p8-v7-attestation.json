@@ -1,0 +1,30 @@
+{
+  "is_valid": true,
+  "active_epoch_id": "p8-readiness-r2-20260902-01",
+  "lock_inspection": null,
+  "canonical_evidence_log": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
+  "exact_artifact_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\logs\\meta_model.joblib",
+  "exact_artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "attestation_errors": [],
+  "metadata": {
+    "epoch_id": "p8-readiness-r2-20260902-01",
+    "deployment_id": "paper-canary-win-tsfix-20260901-01",
+    "started_at": "2026-09-02T15:23:13.300985+00:00",
+    "activated_at": "2026-09-02T15:23:13.303852+00:00",
+    "code_commit_sha": "4efed1fd43e1f014b61d7d74d3ed574ddb010aab",
+    "model_version": "windows-v5-filter-1.0.0",
+    "artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+    "feature_schema_version": "meta-v3.1-43f",
+    "analysis_universe": "[\"BNB\",\"BTC\",\"DOGE\",\"ETH\",\"IOTA\",\"NEAR\",\"SOL\",\"TRX\",\"ZEC\"]",
+    "analysis_universe_hash": "c965c9e001020849c1390553023d8259253fd28728c2679f7f52fb4fda66d2e3",
+    "evidence_policy_version": "evidence-v4",
+    "risk_policy_version": "risk-fail-closed-v1",
+    "runtime_schema_version": 6,
+    "status": "ACTIVE",
+    "paper_run_id": "paper-canary-win-tsfix-20260901-01",
+    "release_manifest": "{\"analysis_universe\":\"BNB,BTC,DOGE,ETH,IOTA,NEAR,SOL,TRX,ZEC\",\"artifact_sha256\":\"8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26\",\"decision_contract\":\"side-probability-v2\",\"deployment_id\":\"paper-canary-win-tsfix-20260901-01\",\"feature_schema_version\":\"meta-v3.1-43f\",\"manifest_schema_version\":\"evidence-manifest-v1\",\"metadata_sha256\":\"b015cd0e060a7475e6b3cc55e2ee8402b3c8d16e442e037d6b6b16f96fa4b5e0\",\"paper_run_id\":\"paper-canary-win-tsfix-20260901-01\",\"probability_semantics\":\"P(up)\",\"registry_sha256\":\"07fb32cf8fb0c6ebaf93f26ea801246b243455133583af691ded34aafd952d80\",\"release_sha\":\"4efed1fd43e1f014b61d7d74d3ed574ddb010aab\",\"model_version\":\"windows-v5-filter-1.0.0\"}",
+    "release_manifest_sha256": "00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e",
+    "runtime_pause_policy": "{\"dependency_health_policy\":\"REQUIRED_DEPENDENCIES_FAIL_CLOSED\",\"dependency_probe_backoff_seconds\":[5.0,15.0,30.0,60.0],\"incomplete_cycle_behavior\":\"RECOVER_OR_INTERRUPT_EXTERNAL\",\"lease_behavior_on_pause\":\"REACQUIRE_AFTER_CLOCK_GAP\",\"maximum_clock_gap_before_recovery_seconds\":90.0,\"maximum_pause_duration_seconds\":null,\"pausable_reason_codes\":[\"RUNTIME_PAUSED_NETWORK_UNAVAILABLE\",\"RUNTIME_PAUSED_DNS_UNAVAILABLE\",\"RUNTIME_PAUSED_MONGODB_UNAVAILABLE\",\"RUNTIME_PAUSED_MARKET_PROVIDER_UNAVAILABLE\",\"RUNTIME_PAUSED_EXTERNAL_API_UNAVAILABLE\",\"RUNTIME_PAUSED_SYSTEM_SLEEP_DETECTED\",\"RUNTIME_PAUSED_CLOCK_GAP_DETECTED\"],\"policy_version\":\"runtime-pause-v1\",\"recovery_stabilization_seconds\":30.0,\"recovery_success_threshold\":3,\"resume_catch_up_policy\":\"CURRENT_SESSION_ONLY\",\"resume_policy_version\":\"runtime-resume-v1\",\"terminal_reason_codes\":[\"MODEL_ARTIFACT_HASH_MISMATCH\",\"DECISION_CONTRACT_MISMATCH\",\"CANONICAL_EVIDENCE_CONFLICT\",\"DEPLOYMENT_LINEAGE_MISMATCH\",\"EXECUTION_FINAL_DECISION_MISMATCH\",\"DUPLICATE_CONFLICTING_ECONOMIC_EVIDENCE\",\"EPOCH_TERMINAL_RISK_POLICY_BREACH\",\"MANUAL_INVALIDATION_AUTHORIZED\"]}",
+    "updated_at": "2026-09-02T15:23:13.303852+00:00"
+  }
+}

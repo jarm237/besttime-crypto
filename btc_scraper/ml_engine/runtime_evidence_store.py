@@ -76,6 +76,7 @@ class RuntimeEvidenceStore:
         path: Path | str | None = None,
         *,
         clock: Callable[[], datetime] | None = None,
+        read_only: bool = False,
     ) -> None:
         """Create a daily-partitioned evidence store.
 
@@ -86,11 +87,13 @@ class RuntimeEvidenceStore:
         self.path = Path(path) if path is not None else get_runtime_paths().runtime_evidence_path
         self.global_index_path = self.path.parent / "global_evidence_index.sqlite"
         self._clock = clock or (lambda: datetime.now(timezone.utc))
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._initialize_path(self.current_path)
-        self._initialize_global_index()
-        self._backfill_global_index()
-        self._reconcile_global_index_locations()
+        self.read_only = read_only
+        if not self.read_only:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self._initialize_path(self.current_path)
+            self._initialize_global_index()
+            self._backfill_global_index()
+            self._reconcile_global_index_locations()
 
     def _now(self) -> datetime:
         value = self._clock()
@@ -119,6 +122,11 @@ class RuntimeEvidenceStore:
         return sorted(set(paths), key=lambda item: item.name, reverse=True)
 
     def _connect_path(self, path: Path) -> sqlite3.Connection:
+        if getattr(self, "read_only", False):
+            uri = f"file:{path.resolve().as_posix()}?mode=ro"
+            connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+            return connection
+
         last_error: sqlite3.OperationalError | None = None
         for attempt in range(8):
             connection = sqlite3.connect(path, timeout=30.0)
@@ -143,7 +151,8 @@ class RuntimeEvidenceStore:
         while allowing the store itself to route reads across all partitions.
         """
         target = path or self.current_path
-        self._initialize_path(target)
+        if not getattr(self, "read_only", False):
+            self._initialize_path(target)
         return self._connect_path(target)
 
     def _global_connect(self) -> sqlite3.Connection:

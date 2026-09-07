@@ -309,7 +309,7 @@ def generate_report(
             f"Governed P8 execution failure: attestation errors: {attestation.attestation_errors}"
         )
 
-    store = RuntimeEvidenceStore(evidence_logical_path)
+    store = RuntimeEvidenceStore(evidence_logical_path, read_only=True)
 
     # 1. Extract Trades
     trades, rejection_info = extract_closed_trades(

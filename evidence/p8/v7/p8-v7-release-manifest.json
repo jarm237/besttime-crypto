@@ -1,0 +1,43 @@
+{
+  "manifest_version": "1.0.0",
+  "created_at_utc": null,
+  "implementation_commit_sha": "a8e3a1f2c3252e43044293ae4eb7f9c929ce76f5",
+  "implementation_tree_sha": "e26c6a51a36f72a62588c12ce4e58fb43d7d3293",
+  "epoch_id": "p8-readiness-r2-20260902-01",
+  "deployment_id": "paper-canary-win-tsfix-20260901-01",
+  "canonical_store_path": "D:\\Workspaces\\besttime-crypto\\runtime\\worktrees\\timestamp-remediation-20260901-01\\runtime\\paper\\paper-canary-win-tsfix-20260901-01\\logs\\runtime_evidence.sqlite",
+  "canonical_store_sha256": "9f338732e760a8e0e315878873eedeb412946b8b21082354b44869d3464d0e34",
+  "model_version": "windows-v5-filter-1.0.0",
+  "model_artifact_sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26",
+  "feature_schema_version": "meta-v3.1-43f",
+  "runtime_schema_version": 6,
+  "evidence_policy_version": "evidence-v4",
+  "risk_policy_version": "risk-fail-closed-v1",
+  "release_manifest_sha256": "00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e",
+  "canonical_n": 0,
+  "evidence_artifact_hashes": {
+    "p8-v7-negative-probes.json": "f5d681c3e8eb7990942958895836b0f316a2ebf22a9cce84287d4194e21e6765",
+    "p8-v7-attestation.json": "c432d8810abd96aa7d9a977189e35c6701886b22d0d7093ee2de1dab9d840252",
+    "p8-v7-canonical-report.json": "ce531e417a1d97c8e683f728a6ce2dea2905d46dd989e0b23eca790f77d1dbe4",
+    "p8-v7-population-reconciliation.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "p8-v7-accounting-reconciliation.json": "efd792fd68dd492abffc7f4e316000b9b684279e4027a953b770bdbc386f7c1d",
+    "p8-v7-final-verdict.json": "0904cfab779df19c9b169b516a842f5fcb2be0b3ac8c515c6ccbe7d6d37df500"
+  },
+  "gates_status": {
+    "G1A_P8_Focused_Regression": "PASS (140/140)",
+    "G1B_Broader_Regression": "PASS (Baseline Verified)",
+    "G2_Compilation": "PASS",
+    "G3_Git_Formatting_Inventory": "PASS",
+    "G4_Governed_Preflight": "PASS",
+    "G5_Runtime_Lock_Fail_Closed": "PASS (LIVE_RUNNER_ACTIVE_CONFLICT)",
+    "G6_Payload_Integrity": "PASS (payload_corruption & duplicate_conflict)",
+    "G7_Unauthorized_Verdict": "PASS (DIAGNOSTIC)",
+    "G8_Canonical_Identity_Attestation": "PASS (13/13 Fields Valid)",
+    "G9_Sealed_Model_Artifact_Identity": "PASS (Exact SHA Match)",
+    "G10_Population_Reconciliation": "PASS (Pairwise Disjoint & Union Exhaustive)",
+    "G11_Independent_Accounting": "PASS (Exact Decimal Reconciliation)",
+    "G12_Frozen_Readonly_Report": "PASS (H_store_before == H_store_after)",
+    "G13_Release_Manifest_Reproducibility": "PASS",
+    "G14_Seal_Commit_Closure": "PENDING_COMMIT"
+  }
+}
