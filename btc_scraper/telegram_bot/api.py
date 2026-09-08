@@ -1,5 +1,14 @@
+import re
 import requests
 from btc_scraper.core.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+
+def sanitize_telegram_error(msg: str | Exception, token: str | None = None) -> str:
+    """Sanitize Telegram bot token from error messages and URL outputs."""
+    text = str(msg)
+    active_token = token or TELEGRAM_BOT_TOKEN
+    if active_token:
+        text = text.replace(active_token, "***REDACTED***")
+    return re.sub(r"bot[0-9]+:[A-Za-z0-9_-]+", "bot***REDACTED***", text)
 
 def send_telegram_message(
     text: str,
@@ -44,7 +53,8 @@ def send_telegram_message(
         data = resp.json()
         return data.get("result", {}).get("message_id")
     except Exception as e:
-        print(f"\n[Warning] Khong the gui tin nhan Telegram: {e}")
+        safe_err = sanitize_telegram_error(e, TELEGRAM_BOT_TOKEN)
+        print(f"\n[Warning] Khong the gui tin nhan Telegram: {safe_err}")
         if 'resp' in locals() and resp is not None:
             print(f"[Telegram Response Body] {resp.text}")
         return None

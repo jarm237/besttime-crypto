@@ -2,7 +2,7 @@ import os
 import time
 import requests
 from btc_scraper.core.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
-from .api import send_telegram_message
+from .api import send_telegram_message, sanitize_telegram_error
 from .commands import handle_telegram_command
 
 BOT_COMMANDS = [
@@ -35,7 +35,8 @@ def _register_bot_commands() -> None:
         if not payload.get("ok"):
             print(f"[Telegram Bot] Khong the cap nhat menu lenh: {payload}")
     except Exception as exc:
-        print(f"[Telegram Bot] Loi khi cap nhat menu lenh: {exc}")
+        safe_err = sanitize_telegram_error(exc, TELEGRAM_BOT_TOKEN)
+        print(f"[Telegram Bot] Loi khi cap nhat menu lenh: {safe_err}")
 
 
 def start_telegram_listener() -> None:
@@ -57,7 +58,8 @@ def start_telegram_listener() -> None:
             if data.get("ok") and data.get("result"):
                 offset = data["result"][0]["update_id"] + 1
     except Exception as e:
-        print(f"[Telegram Bot] Loi khi lay update_id ban dau: {e}")
+        safe_err = sanitize_telegram_error(e, TELEGRAM_BOT_TOKEN)
+        print(f"[Telegram Bot] Loi khi lay update_id ban dau: {safe_err}")
 
     print(f"[Telegram Bot] Dang lang nghe lenh voi offset = {offset}...")
 
@@ -112,5 +114,6 @@ def start_telegram_listener() -> None:
                     print(f"[Telegram Bot] Loi thuc thi lenh '{text}': {cmd_err}")
                     
         except Exception as e:
-            print(f"[Telegram Bot] Loi trong vong lap polling: {e}")
+            safe_err = sanitize_telegram_error(e, TELEGRAM_BOT_TOKEN)
+            print(f"[Telegram Bot] Loi trong vong lap polling: {safe_err}")
             time.sleep(5)

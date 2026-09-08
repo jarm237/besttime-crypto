@@ -15,35 +15,18 @@ MTF_INTERVALS = {
 import os
 import socket
 
-class SyncResolver(aiohttp.abc.AbstractResolver):
-    """Custom aiohttp DNS resolver using system socket.getaddrinfo in threadpool executor.
-    Fixes Windows Python async DNS resolution failures ([Could not contact DNS servers]).
+class SyncResolver(aiohttp.ThreadedResolver):
+    """Custom resolver alias for ThreadedResolver.
+    Fixes Windows Python async DNS resolution failures ([Could not contact DNS servers])
+    when aiodns/pycares is installed.
     """
-    async def resolve(self, host, port=0, family=socket.AF_INET):
-        loop = asyncio.get_running_loop()
-        infos = await loop.run_in_executor(
-            None, socket.getaddrinfo, host, port, family, socket.SOCK_STREAM
-        )
-        hosts = []
-        for family, type, proto, canonname, sockaddr in infos:
-            hosts.append({
-                'hostname': host,
-                'host': sockaddr[0],
-                'port': sockaddr[1],
-                'family': family,
-                'proto': proto,
-                'flags': 0
-            })
-        return hosts
-
-    async def close(self):
-        pass
+    pass
 
 
 def create_robust_client_session(**kwargs) -> aiohttp.ClientSession:
-    """Tạo aiohttp ClientSession với SyncResolver chống lỗi DNS trên Windows."""
+    """Tạo aiohttp ClientSession với ThreadedResolver chống lỗi DNS trên Windows."""
     if "connector" not in kwargs:
-        connector = aiohttp.TCPConnector(resolver=SyncResolver(), family=socket.AF_INET)
+        connector = aiohttp.TCPConnector(resolver=aiohttp.ThreadedResolver(), family=socket.AF_INET)
         kwargs["connector"] = connector
     return aiohttp.ClientSession(**kwargs)
 

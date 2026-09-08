@@ -162,7 +162,9 @@ class AlertManager:
             resp = requests.post(url, json={"chat_id": self._chat_id, "text": text}, timeout=5)
             return resp.ok
         except Exception as exc:
-            logger.error(f"[AlertManager] Telegram send failed: {exc}")
+            from btc_scraper.telegram_bot.api import sanitize_telegram_error
+            safe_err = sanitize_telegram_error(exc, self._token)
+            logger.error(f"[AlertManager] Telegram send failed: {safe_err}")
             return False
 
     def _send_log(self, severity: str, message: str) -> None:
