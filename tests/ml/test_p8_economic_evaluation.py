@@ -376,7 +376,7 @@ def test_governed_runner_preflight_only():
     assert res.returncode == 0
     assert "[PREFLIGHT PASS]" in res.stdout
     assert "Sealed Worktree:" in res.stdout
-    assert "4efed1fd43e1f014b61d7d74d3ed574ddb010aab" in res.stdout
+    assert SEALED_COMMIT_SHA in res.stdout
 
 
 def test_cross_partition_same_id_same_hash_deduplicates(tmp_path):
