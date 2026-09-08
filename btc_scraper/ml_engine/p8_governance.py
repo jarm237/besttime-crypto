@@ -19,11 +19,11 @@ from typing import Any, Mapping
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 # Immutable expected constants for P8 sealed attestation
-SEALED_COMMIT_SHA = "4efed1fd43e1f014b61d7d74d3ed574ddb010aab"
+SEALED_COMMIT_SHA = "d14e9bfdc465d6e5190579a44ecd2fa71eb2004c"
 SEALED_ARTIFACT_SHA = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
 EXPECTED_DEPLOYMENT_ID = "paper-canary-win-tsfix-20260901-01"
 EXPECTED_PAPER_RUN_ID = "paper-canary-win-tsfix-20260901-01"
-EXPECTED_EPOCH_ID = "p8-readiness-r2-20260902-01"
+EXPECTED_EPOCH_ID = "p8-readiness-r3-20260908-01"
 EXPECTED_UNIVERSE_HASH = "c965c9e001020849c1390553023d8259253fd28728c2679f7f52fb4fda66d2e3"
 
 EXPECTED_MODEL_VERSION = "windows-v5-filter-1.0.0"
@@ -31,7 +31,7 @@ EXPECTED_FEATURE_SCHEMA_VERSION = "meta-v3.1-43f"
 EXPECTED_EVIDENCE_POLICY_VERSION = "evidence-v4"
 EXPECTED_RISK_POLICY_VERSION = "risk-fail-closed-v1"
 EXPECTED_RUNTIME_SCHEMA_VERSION = "6"
-EXPECTED_RELEASE_MANIFEST_SHA256 = "00ed0667799df5157ec7fb2fb940828b1c88fafaad09b0a4e79ec6d20bff643e"
+EXPECTED_RELEASE_MANIFEST_SHA256 = "4f4ff9e48fe887723f360e7d55897b83cfe0d578ff0751bc38d96c2642e78087"
 
 # Columns required by the runtime ReservationStore and consumed by the P8
 # economic extractor.  Attestation must reject placeholder/minimal databases:
