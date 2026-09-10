@@ -17,6 +17,7 @@ from .common_evaluator import (
     LiveEvaluationAdapter,
     MarketEvaluationResult,
     NoOpPersistence,
+    _utc,
 )
 from .evaluation_contracts import canonical_entry_readiness_contract
 
@@ -27,17 +28,68 @@ class ProductionEvaluation:
     entry_decision: EntryDecision
 
 
+from datetime import datetime, timedelta, timezone
+from typing import Any, Mapping
+
+TIMEFRAME_SECONDS_MAP = {
+    "1m": 60, "3m": 180, "5m": 300, "15m": 900, "30m": 1800,
+    "1h": 3600, "2h": 7200, "4h": 14400, "6h": 21600, "8h": 28800, "12h": 43200,
+    "1d": 86400, "3d": 259200, "1w": 604800,
+}
+
+
+def _infer_candle_closed(item: Mapping[str, Any], eval_dt: datetime, timeframe: str | None = None) -> bool:
+    c_flag = item.get("closed")
+    if c_flag is None:
+        c_flag = item.get("is_closed")
+    if c_flag is not None:
+        return bool(c_flag)
+
+    close_utc_raw = item.get("close_time_utc") or item.get("close_time")
+    if close_utc_raw:
+        try:
+            return _utc(close_utc_raw) <= eval_dt
+        except Exception:
+            return False
+
+    open_raw = item.get("open_time_utc") or item.get("time_utc") or item.get("timestamp") or item.get("time")
+    if open_raw and timeframe and timeframe in TIMEFRAME_SECONDS_MAP:
+        try:
+            open_dt = _utc(open_raw)
+            duration = TIMEFRAME_SECONDS_MAP[timeframe]
+            return (open_dt + timedelta(seconds=duration)) <= eval_dt
+        except Exception:
+            return False
+
+    return False
+
+
 def _observation_rows(analysis: Mapping[str, Any], evaluation_time: datetime) -> list[dict]:
     history = analysis.get("history")
     if isinstance(history, list) and history:
         rows = []
+        eval_dt = _utc(evaluation_time)
+        tf_str = str(analysis.get("timeframe") or "15m")
         for item in history:
             if not isinstance(item, Mapping):
                 continue
-            timestamp = item.get("time") or item.get("timestamp") or item.get("time_utc")
+            timestamp = item.get("time_utc") or item.get("open_time_utc") or item.get("timestamp") or item.get("time")
             if timestamp is None:
                 continue
-            rows.append({
+
+            c_flag = _infer_candle_closed(item, eval_dt, tf_str)
+            if not c_flag:
+                continue
+
+            close_utc_raw = item.get("close_time_utc")
+            if close_utc_raw:
+                try:
+                    if _utc(close_utc_raw) > eval_dt:
+                        continue
+                except Exception:
+                    pass
+
+            row_dict = {
                 "timestamp": timestamp,
                 "open": item.get("open", item.get("close", 0.0)),
                 "high": item.get("high", item.get("close", 0.0)),
@@ -45,19 +97,20 @@ def _observation_rows(analysis: Mapping[str, Any], evaluation_time: datetime) ->
                 "close": item.get("close", 0.0),
                 "volume": item.get("volume", 0.0),
                 "closed": True,
-            })
-        if rows:
-            return rows
-    close = float(analysis.get("close") or 0.0)
-    return [{
-        "timestamp": evaluation_time.isoformat(),
-        "open": float(analysis.get("open") or close),
-        "high": float(analysis.get("high") or close),
-        "low": float(analysis.get("low") or close),
-        "close": close,
-        "volume": float(analysis.get("volume") or 0.0),
-        "closed": True,
-    }]
+            }
+            if item.get("open_time"):
+                row_dict["open_time"] = item["open_time"]
+            if item.get("close_time"):
+                row_dict["close_time"] = item["close_time"]
+            if item.get("time_utc"):
+                row_dict["time_utc"] = item["time_utc"]
+            if item.get("open_time_utc") or item.get("time_utc"):
+                row_dict["open_time_utc"] = item.get("open_time_utc") or item.get("time_utc")
+            if item.get("close_time_utc"):
+                row_dict["close_time_utc"] = item["close_time_utc"]
+            rows.append(row_dict)
+        return rows
+    return []
 
 
 def evaluate_resolved_market(

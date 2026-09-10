@@ -870,9 +870,24 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
 
     history = []
     required_history = canonical_readiness_minimum_observations()
+    if candles and not bool(candles[-1].get("closed", candles[-1].get("is_closed", True))):
+        required_history += 1
     for c in candles[-required_history:]:
+        c_closed = c.get("closed")
+        if c_closed is None:
+            c_closed = c.get("is_closed")
+        if c_closed is None:
+            c_closed = True
+
         history.append({
-            "time": c["time"], "time_utc": c.get("time_utc"),
+            "time": c["time"],
+            "time_utc": c.get("time_utc"),
+            "open_time": c.get("open_time"),
+            "close_time": c.get("close_time"),
+            "open_time_utc": c.get("open_time_utc", c.get("time_utc")),
+            "close_time_utc": c.get("close_time_utc"),
+            "closed": bool(c_closed),
+            "is_closed": bool(c_closed),
             "open": c["open"], "high": c["high"],
             "low": c["low"], "close": c["close"], "volume": c["volume"],
             "rsi": c["rsi"], "ema9": c["ema9"], "ema21": c["ema21"],

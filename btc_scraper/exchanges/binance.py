@@ -69,6 +69,22 @@ OKX_TF_MAP = {
 }
 
 
+INTERVAL_MS_MAP = {
+    "1m": 60_000,
+    "3m": 180_000,
+    "5m": 300_000,
+    "15m": 900_000,
+    "30m": 1_800_000,
+    "1h": 3_600_000,
+    "2h": 7_200_000,
+    "4h": 14_400_000,
+    "6h": 21_600_000,
+    "8h": 28_800_000,
+    "12h": 43_200_000,
+    "1d": 86_400_000,
+}
+
+
 async def _fetch_from_bybit(symbol: str, interval: str, limit: int, sess: aiohttp.ClientSession) -> list[dict]:
     url = "https://api.bybit.com/v5/market/kline"
     params = {
@@ -82,17 +98,26 @@ async def _fetch_from_bybit(symbol: str, interval: str, limit: int, sess: aiohtt
         data = await resp.json()
         if data.get("retCode") == 0 and data.get("result", {}).get("list"):
             raw = data["result"]["list"]
+            import time
+            now_ms = time.time() * 1000
+            interval_ms = INTERVAL_MS_MAP.get(interval, 900_000)
             candles = []
             for k in raw:
                 ts = int(k[0])
+                close_ts = ts + interval_ms - 1
+                is_closed = bool(close_ts <= now_ms)
                 candles.append({
                     "time": datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d %H:%M"),
                     "time_utc": _utc_candle_time(ts),
+                    "open_time_utc": _utc_candle_time(ts),
+                    "close_time_utc": _utc_candle_time(close_ts),
                     "open": float(k[1]),
                     "high": float(k[2]),
                     "low": float(k[3]),
                     "close": float(k[4]),
                     "volume": float(k[5]),
+                    "closed": is_closed,
+                    "is_closed": is_closed,
                 })
             return list(reversed(candles))
     raise RuntimeError("Bybit kline data empty or error")
@@ -111,17 +136,26 @@ async def _fetch_from_okx(coin: str, interval: str, limit: int, sess: aiohttp.Cl
         data = await resp.json()
         if data.get("code") == "0" and data.get("data"):
             raw = data["data"]
+            import time
+            now_ms = time.time() * 1000
+            interval_ms = INTERVAL_MS_MAP.get(interval, 900_000)
             candles = []
             for k in raw:
                 ts = int(k[0])
+                close_ts = ts + interval_ms - 1
+                is_closed = bool(close_ts <= now_ms)
                 candles.append({
                     "time": datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d %H:%M"),
                     "time_utc": _utc_candle_time(ts),
+                    "open_time_utc": _utc_candle_time(ts),
+                    "close_time_utc": _utc_candle_time(close_ts),
                     "open": float(k[1]),
                     "high": float(k[2]),
                     "low": float(k[3]),
                     "close": float(k[4]),
                     "volume": float(k[5]),
+                    "closed": is_closed,
+                    "is_closed": is_closed,
                 })
             return list(reversed(candles))
     raise RuntimeError("OKX kline data empty or error")
@@ -141,16 +175,24 @@ async def _fetch_from_domains(symbol: str, interval: str, limit: int, sess: aioh
             async with sess.get(url, params=params, timeout=5) as resp:
                 resp.raise_for_status()
                 raw = await resp.json()
+                import time
+                now_ms = time.time() * 1000
                 candles = []
                 for k in raw:
+                    close_ms = k[6] if len(k) > 6 else k[0]
+                    is_closed = bool(close_ms <= now_ms)
                     candles.append({
                         "time":   datetime.fromtimestamp(k[0] / 1000).strftime("%Y-%m-%d %H:%M"),
                         "time_utc": _utc_candle_time(k[0]),
+                        "open_time_utc": _utc_candle_time(k[0]),
+                        "close_time_utc": _utc_candle_time(k[6]) if len(k) > 6 else None,
                         "open":   float(k[1]),
                         "high":   float(k[2]),
                         "low":    float(k[3]),
                         "close":  float(k[4]),
                         "volume": float(k[5]),
+                        "closed": is_closed,
+                        "is_closed": is_closed,
                     })
                 return candles
         except Exception as e:

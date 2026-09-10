@@ -142,8 +142,8 @@ def canonical_window_from_rows(
     """Normalize exchange rows or replay rows without environment-specific rules."""
     normalized: list[CanonicalCandle] = []
     for row in rows:
-        open_raw = row.get("open_time", row.get("time", row.get("timestamp")))
-        close_raw = row.get("close_time", row.get("close_timestamp"))
+        open_raw = row.get("open_time_utc") or row.get("time_utc") or row.get("open_time") or row.get("timestamp") or row.get("time")
+        close_raw = row.get("close_time_utc") or row.get("close_time") or row.get("close_timestamp")
         if open_raw is None:
             raise ValueError("candle open time is required")
         open_time = _utc(open_raw)
@@ -158,6 +158,11 @@ def canonical_window_from_rows(
                 )
         else:
             close_time = _utc(close_raw)
+        c_flag = row.get("closed")
+        if c_flag is None:
+            c_flag = row.get("is_closed")
+        if c_flag is None:
+            c_flag = (close_raw is not None or close_time > open_time)
         normalized.append(CanonicalCandle(
             open_time=open_time,
             close_time=close_time,
@@ -166,7 +171,7 @@ def canonical_window_from_rows(
             low=row["low"],
             close=row["close"],
             volume=row.get("volume", 0.0),
-            closed=bool(row.get("closed", row.get("is_closed", True))),
+            closed=bool(c_flag),
         ))
     return CanonicalCandleWindow(symbol=symbol, timeframe=timeframe, candles=tuple(normalized))
 

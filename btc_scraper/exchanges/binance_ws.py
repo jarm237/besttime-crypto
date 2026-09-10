@@ -55,21 +55,26 @@ def _parse_kline_event(msg: dict) -> Optional[dict]:
         return None
 
     k = data["k"]
+    is_closed = bool(k["x"])
     return {
         "coin":     data["s"].replace("USDT", ""),  # "BTCUSDT" → "BTC"
         "interval": k["i"],
-        "is_closed": k["x"],
+        "is_closed": is_closed,
         "candle": {
             "time":   time.strftime(
                 "%Y-%m-%d %H:%M",
                 time.localtime(k["t"] / 1000),
             ),
             "time_utc": _utc_candle_time(k["t"]),
+            "open_time_utc": _utc_candle_time(k["t"]),
+            "close_time_utc": _utc_candle_time(k["T"]) if "T" in k else None,
             "open":   float(k["o"]),
             "high":   float(k["h"]),
             "low":    float(k["l"]),
             "close":  float(k["c"]),
             "volume": float(k["v"]),
+            "closed": is_closed,
+            "is_closed": is_closed,
         },
     }
 
