@@ -1084,9 +1084,18 @@ def _artifact_metadata_consistency(
         checks.append(tuple(str(name) for name in metadata["features"]) == names)
     if metadata.get("n_features") is not None:
         checks.append(int(metadata["n_features"]) == len(names))
-    suffix = str(feature_schema_version or "").rsplit("-", 1)[-1]
-    if suffix.endswith("f") and suffix[:-1].isdigit():
-        checks.append(int(suffix[:-1]) == len(names))
+
+    compat = metadata.get("artifact_compatibility")
+    if isinstance(compat, dict) and compat.get("status") is not None:
+        checks.append(str(compat["status"]).upper() == "READY")
+
+    status = (
+        metadata.get("compatibility_status")
+        or metadata.get("governed_compatibility_status")
+        or metadata.get("status")
+    )
+    if status is not None:
+        checks.append(str(status).upper() in ("READY", "PRODUCTION"))
     return all(checks) if checks else None
 
 
@@ -1247,6 +1256,8 @@ def load_model():
             if isinstance(_MODEL_CACHE, dict)
             else []
         )
+        if not feature_names and loaded_record is not None and loaded_record.metadata and loaded_record.metadata.get("features"):
+            feature_names = list(loaded_record.metadata["features"])
         if not feature_names:
             from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2
             feature_names = list(FEATURE_SCHEMA_V2)

@@ -1,0 +1,13 @@
+{
+  "run_id": "r4-20260910-135200",
+  "pid": 24188,
+  "label": "operational-soak-only",
+  "uptime_hours": 28.51,
+  "predictions": 356,
+  "decisions": 345,
+  "outcomes": 0,
+  "retroactive_evidence_eligible": false,
+  "artifact_metadata_consistent_in_run": false,
+  "evidence_eligible_in_run": false,
+  "note": "R4 operational soak evidence preserved. Not converted into retroactive release evidence due to metadata contract and heartbeat persistence bugs."
+}

@@ -331,8 +331,12 @@ class RuntimePauseController:
     def heartbeat(self) -> float:
         now = self._now()
         monotonic_now = self._monotonic()
-        previous_wall = datetime.fromisoformat(str(self._state["last_wall_heartbeat"]))
-        previous_monotonic = float(self._state["last_monotonic_heartbeat"])
+        previous_wall_str = str(self._state.get("last_wall_heartbeat") or now.isoformat())
+        previous_monotonic = float(self._state.get("last_monotonic_heartbeat") or monotonic_now)
+        previous_wall = datetime.fromisoformat(previous_wall_str)
+        if previous_wall.tzinfo is None:
+            previous_wall = previous_wall.replace(tzinfo=timezone.utc)
+
         wall_elapsed = (now - previous_wall).total_seconds()
         clock_gap = max(
             0.0,
@@ -340,12 +344,24 @@ class RuntimePauseController:
         )
         self._state["last_wall_heartbeat"] = now.isoformat()
         self._state["last_monotonic_heartbeat"] = monotonic_now
+
+        last_persisted_str = (
+            self._state.get("last_persisted_wall_heartbeat")
+            or self._state.get("updated_at")
+            or now.isoformat()
+        )
+        last_persisted = datetime.fromisoformat(str(last_persisted_str))
+        if last_persisted.tzinfo is None:
+            last_persisted = last_persisted.replace(tzinfo=timezone.utc)
+        since_last_persist = (now - last_persisted).total_seconds()
+
         if clock_gap > self.policy.maximum_clock_gap_before_recovery_seconds:
             self.pause(
                 "RUNTIME_PAUSED_SYSTEM_SLEEP_DETECTED",
                 detail=f"clock_gap_seconds={clock_gap:.3f}",
             )
-        elif wall_elapsed >= 30.0:
+        elif since_last_persist >= 30.0:
+            self._state["last_persisted_wall_heartbeat"] = now.isoformat()
             self._persist(self._state)
         return clock_gap
 

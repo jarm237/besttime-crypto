@@ -1,4 +1,6 @@
 import datetime
+import random
+import time
 from google import genai
 from btc_scraper.core.config import GEMINI_API_KEYS
 from .utils import _parse_retry_delay
@@ -86,8 +88,9 @@ class _GeminiKeyManager:
 # Singleton manager
 _key_manager = _GeminiKeyManager(GEMINI_API_KEYS)
 
+
 def call_gemini(prompt: str) -> str:
-    """Gom chung logic vong lap round-robin va try/catch 429."""
+    """Gom chung logic vong lap round-robin va try/catch 429 / 503 transient errors."""
     if not GEMINI_API_KEYS:
         return "[Warning] Chua cau hinh GEMINI_API_KEY trong file .env. Bo qua phan tich AI."
 
@@ -100,25 +103,40 @@ def call_gemini(prompt: str) -> str:
         if api_key is None:
             break
 
-        key_label = f"...{api_key[-6:]}"
-        try:
-            print(f"  [Gemini] Dùng key [{key_label}]...", flush=True)
-            client = genai.Client(api_key=api_key)
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            _key_manager.reset_key(api_key)
-            return response.text if response.text else "Khong nhan duoc phan hoi tu Gemini AI."
-
-        except Exception as api_err:
-            err_str = str(api_err)
-            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                wait_sec = _parse_retry_delay(err_str)
-                print(f"  [429] Key [{key_label}] hết quota (retry ~{wait_sec}s). Chuyển key tiếp theo...", flush=True)
-                _key_manager.mark_exhausted(api_key)
-            else:
-                raise
+        key_label = f"...{api_key[-4:]}" if api_key and len(api_key) >= 4 else "..."
+        max_503_retries = 3
+        for attempt in range(max_503_retries):
+            try:
+                if attempt == 0:
+                    print(f"  [Gemini] Dùng key [{key_label}]...", flush=True)
+                else:
+                    print(f"  [Gemini] Thử lại 503 lần {attempt}/{max_503_retries - 1}...", flush=True)
+                client = genai.Client(api_key=api_key)
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                )
+                _key_manager.reset_key(api_key)
+                return response.text if response.text else "Khong nhan duoc phan hoi tu Gemini AI."
+            except Exception as api_err:
+                err_str = str(api_err)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                    wait_sec = _parse_retry_delay(err_str)
+                    print(f"  [429] Key [{key_label}] hết quota (retry ~{wait_sec}s). Chuyển key tiếp theo...", flush=True)
+                    _key_manager.mark_exhausted(api_key)
+                    break
+                elif any(code in err_str for code in ("503", "UNAVAILABLE", "500", "502", "504", "ServiceUnavailable")):
+                    if attempt < max_503_retries - 1:
+                        backoff = (2 ** attempt) + random.uniform(0.1, 0.5)
+                        print(f"  [503] Key [{key_label}] tạm thời không khả dụng, chờ {backoff:.1f}s trước khi thử lại...", flush=True)
+                        time.sleep(backoff)
+                        continue
+                    else:
+                        print(f"  [503] Key [{key_label}] 503 UNAVAILABLE sau {max_503_retries} lần thử. Trả kết quả degraded.", flush=True)
+                        return "[Degraded] Gemini API 503 UNAVAILABLE (dịch vụ tạm thời quá tải). Bỏ qua phân tích AI."
+                else:
+                    print(f"  [Gemini Error] Key [{key_label}] gặp lỗi: {type(api_err).__name__}", flush=True)
+                    return f"[Degraded] Gemini API gặp lỗi: {type(api_err).__name__}. Bỏ qua phân tích AI."
 
     pause_time = _key_manager.pause_info
     return f"[Tạm dừng] Tất cả {len(GEMINI_API_KEYS)} Gemini API keys đều đã vượt quota hôm nay. Sẽ thử lại lúc {pause_time}."

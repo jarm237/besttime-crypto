@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 
 from btc_scraper.core.runtime_pause import (
@@ -133,3 +134,32 @@ def test_connection_failure_is_not_confused_with_integrity_conflict():
     assert external_reason_for_exception(
         RuntimeError("MongoDB canonical payload conflict")
     ) is None
+
+
+def test_heartbeat_persists_every_30_seconds_on_frequent_ticks(tmp_path):
+    clock = FakeClock()
+    controller = _controller(tmp_path, clock)
+    controller.mark_running()
+    initial_mtime = controller.state_path.stat().st_mtime_ns
+
+    # Advance 1 second at a time for 25 seconds
+    for _ in range(25):
+        clock.advance(1)
+        controller.heartbeat()
+
+    state_mid = controller.snapshot()
+    disk_json_mid = json.loads(controller.state_path.read_text(encoding="utf-8"))
+    assert state_mid.get("last_persisted_wall_heartbeat") is None
+    assert disk_json_mid.get("last_persisted_wall_heartbeat") is None
+    assert controller.state_path.stat().st_mtime_ns == initial_mtime
+
+    # Advance 10 more seconds (total 35 seconds)
+    for _ in range(10):
+        clock.advance(1)
+        controller.heartbeat()
+
+    state_after = controller.snapshot()
+    disk_json_after = json.loads(controller.state_path.read_text(encoding="utf-8"))
+    assert state_after.get("last_persisted_wall_heartbeat") is not None
+    assert disk_json_after.get("last_persisted_wall_heartbeat") is not None
+    assert controller.state_path.stat().st_mtime_ns > initial_mtime

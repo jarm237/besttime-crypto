@@ -98,7 +98,16 @@ class ChildStartBudget:
             self.event("child_start_denied_budget_exhausted", {"phase": phase})
             raise CanaryInvariantError("child_start_budget_exhausted")
 
-    def record_spawned(self, *, phase: str, child: subprocess.Popen[Any]) -> None:
+    def record_spawned(
+        self,
+        *,
+        phase: str,
+        child: subprocess.Popen[Any],
+        argv: list[str] | None = None,
+        cwd: str | None = None,
+        stdout_path: str | None = None,
+        stderr_path: str | None = None,
+    ) -> None:
         self.consumed += 1
         self.event(
             "child_started",
@@ -106,6 +115,10 @@ class ChildStartBudget:
                 "phase": phase,
                 "child_pid": child.pid,
                 "child_started_at": datetime.now(timezone.utc).isoformat(),
+                "argv": argv or [sys.executable, str(REPO_ROOT / "main.py")],
+                "cwd": cwd or str(REPO_ROOT),
+                "stdout_path": stdout_path,
+                "stderr_path": stderr_path,
             },
         )
 
@@ -971,6 +984,20 @@ def _record_seal_blocked(
     })
 
 
+def _get_current_tree_sha() -> str | None:
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "HEAD^{tree}"],
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return res.stdout.strip()
+    except Exception:
+        return None
+
+
 def main() -> int:
     args = _parser().parse_args()
     if args.poll_seconds <= 0 or args.restart_observation_seconds < 0:
@@ -986,17 +1013,7 @@ def main() -> int:
     child: subprocess.Popen[Any] | None = None
     mongo: MongoClient | None = None
     pause_controller: RuntimePauseController | None = None
-    child_budget = ChildStartBudget(
-        limit=args.child_start_budget,
-        consumed=0,
-        lifecycle_path=runtime_root / "state" / "canary_runner" / "child_lifecycle.jsonl",
-        metadata={
-            "supervisor_pid": os.getpid(),
-            "epoch_id": args.epoch_id,
-            "deployment_id": args.deployment_id,
-            "paper_run_id": args.deployment_id,
-        },
-    )
+    child_budget: ChildStartBudget | None = None
     interrupted = False
 
     def request_stop(signum: int, _frame: Any) -> None:
@@ -1010,6 +1027,39 @@ def main() -> int:
     try:
         epoch = _assert_epoch_and_code(store, args.epoch_id, args.deployment_id)
         environment = _child_environment(epoch, args.deployment_id)
+        manifest = getattr(epoch, "release_manifest", None) or {}
+        tree_sha = (
+            getattr(epoch, "code_tree_sha", None)
+            or manifest.get("code_tree_sha")
+            or _get_current_tree_sha()
+        )
+        sidecar_hashes = getattr(epoch, "sidecar_hashes", None) or getattr(epoch, "sidecar_sha256", None)
+        if not sidecar_hashes and manifest:
+            sidecar_hashes = {
+                "metadata_sha256": manifest.get("metadata_sha256"),
+                "registry_sha256": manifest.get("registry_sha256"),
+            }
+
+        child_budget = ChildStartBudget(
+            limit=args.child_start_budget,
+            consumed=0,
+            lifecycle_path=runtime_root / "state" / "canary_runner" / "child_lifecycle.jsonl",
+            metadata={
+                "supervisor_pid": os.getpid(),
+                "epoch_id": args.epoch_id,
+                "deployment_id": args.deployment_id,
+                "paper_run_id": args.deployment_id,
+                "supervisor_argv": sys.argv,
+                "supervisor_cwd": str(Path.cwd()),
+                "code_commit_sha": getattr(epoch, "code_commit_sha", None),
+                "code_tree_sha": tree_sha,
+                "artifact_sha256": getattr(epoch, "artifact_sha256", None),
+                "sidecar_hashes": sidecar_hashes,
+            },
+        )
+        child_budget.event("supervisor_started", {
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        })
         mongo = _mongo_client(args.mongo_timeout_ms)
         database = mongo["besttime_crypto"]
 
