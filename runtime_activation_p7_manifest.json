@@ -37,16 +37,16 @@
   },
   "deployment_id": "paper-canary-20260914-01",
   "epoch_id": "canary-p7-remediation-epoch-20260914-01",
-  "manifest_sha256": "bc4a67626e46a65314eed33931c1a20926b9b84d4fb16d564529b5340fcea64d",
+  "manifest_sha256": "e948a09adc5fb922a0f36bc8264380056f8bf72270c96fecfb00741b8262ea86",
   "observation": {
     "production_promotion": "NOT_AUTHORIZED",
     "successor_research": "NOT_AUTHORIZED"
   },
   "paper_run_id": "paper-canary-20260914-01",
   "release": {
-    "commit_sha": "80acd1aa9670ebfbeaa0dfceaa0bd40e947d0e40",
+    "commit_sha": "b05603d9321e24991b7939a6b70faf7cba81afbb",
     "source": "P7_REMEDIATED_RELEASE",
-    "tree_sha": "e6ae34b3f868ef61a0b3e51d9eb17036a111b151"
+    "tree_sha": "018dd2fe183325566b94a2af32fa8da92f250f84"
   },
   "runtime": {
     "automatic_retry": "FORBIDDEN",
