@@ -80,11 +80,14 @@ class LaunchRequest:
         artifact = manifest["artifact"]
         release = manifest["release"]
         runtime = manifest["runtime"]
+        commit_sha = str(release["commit_sha"])
+        if commit_sha == "HEAD" or not commit_sha:
+            commit_sha = _git(pinned_root, "rev-parse", "HEAD")
         return cls(
             manifest_path=manifest_path,
             expected_manifest_sha256=expected_manifest_sha256,
             pinned_root=pinned_root,
-            release_commit_sha=str(release["commit_sha"]),
+            release_commit_sha=commit_sha,
             release_tree_sha=str(release["tree_sha"]),
             artifact_path=pinned_root / str(artifact["path"]),
             artifact_sha256=str(artifact["sha256"]),
