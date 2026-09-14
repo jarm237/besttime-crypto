@@ -35,18 +35,18 @@
     "s3_threshold": "s3-per-symbol-v1",
     "schema": "runtime-schema/v1"
   },
-  "deployment_id": "paper-canary-20260824-01",
-  "epoch_id": "canary-p6-sealed-v1-20260824-01",
-  "manifest_sha256": "187005e4b50882c2c12e5ebab56844c9ba3e039f6412e4b5279b0413efd2d88e",
+  "deployment_id": "paper-canary-20260914-01",
+  "epoch_id": "canary-p7-remediation-epoch-20260914-01",
+  "manifest_sha256": "1e915e632549a6c051f1011cc908ae2b29408208c297ad9504a202330b3f1150",
   "observation": {
     "production_promotion": "NOT_AUTHORIZED",
     "successor_research": "NOT_AUTHORIZED"
   },
-  "paper_run_id": "paper-canary-20260824-01",
+  "paper_run_id": "paper-canary-20260914-01",
   "release": {
-    "commit_sha": "b6d22745bf8892d17784cff5d42ce2ac0b72fa41",
+    "commit_sha": "72eeb3ea6f4ad886864dec8920e6a1c384feda25",
     "source": "P7_REMEDIATED_RELEASE",
-    "tree_sha": "85ee5b68f9432bb2fe584c3b0ed4b71886779def"
+    "tree_sha": "7e60dec728014ab81e60ec240e0866e53827788c"
   },
   "runtime": {
     "automatic_retry": "FORBIDDEN",
