@@ -45,10 +45,27 @@ def build(root: Path) -> dict[str, Any]:
     source_checkpoint_path = reports / "h14_2_stream_checkpoint.json"
     source_checkpoint = json.loads(source_checkpoint_path.read_text(encoding="utf-8"))
     provenance = json.loads((contracts / "h14_2_provenance_purity_contract_v1.json").read_text(encoding="utf-8"))
+
+    analysis_file = data / "h14_1_prospective_analysis_stream.jsonl"
+    decisions_file = data / "h14_1_prospective_design_decisions.jsonl"
+    accounting_file = data / "h14_2_decision_divergence_accounting.jsonl"
+
+    for file_path, expected_sha_key in [
+        (analysis_file, "analysis_stream_sha256"),
+        (decisions_file, "decision_stream_sha256"),
+        (accounting_file, "divergence_sha256"),
+    ]:
+        if not file_path.is_file() or file_path.stat().st_size == 0:
+            raise RuntimeError(f"raw_stream_mutation_forbidden: raw prospective input stream missing or empty ({file_path.name})")
+        actual_sha = hashlib.sha256(file_path.read_bytes()).hexdigest()
+        expected_sha = source_checkpoint[expected_sha_key]
+        if actual_sha != expected_sha:
+            raise RuntimeError(f"raw_stream_mutation_forbidden: raw prospective stream {file_path.name} sha256 mismatch (expected {expected_sha}, got {actual_sha})")
+
     result = reconstitute(
-        read_jsonl(data / "h14_1_prospective_analysis_stream.jsonl"),
-        read_jsonl(data / "h14_1_prospective_design_decisions.jsonl"),
-        read_jsonl(data / "h14_2_decision_divergence_accounting.jsonl"),
+        read_jsonl(analysis_file),
+        read_jsonl(decisions_file),
+        read_jsonl(accounting_file),
         provenance,
         checkpoint_generated_at=source_checkpoint["checkpoint_timestamp"],
     )

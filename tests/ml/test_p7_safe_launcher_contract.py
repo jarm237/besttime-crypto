@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -16,17 +17,19 @@ from scripts.p7_safe_paper_canary_launcher import (
 )
 
 
-RELEASE_COMMIT = "5e8d798e4d06d6abd21ade99c79caaa93307dd5b"
-RELEASE_TREE = "48ef10b27488468d294a5e223cb95a4aebfc3f01"
-ARTIFACT_SHA = "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c"
-MANIFEST_SHA = "9140dc0c501349988aae1ff9547e671517f3253545344c506567df56c4c88894"
+MANIFEST_PATH = Path("runtime_activation_p7_manifest.json").resolve()
+MANIFEST_SHA = "187005e4b50882c2c12e5ebab56844c9ba3e039f6412e4b5279b0413efd2d88e"
+RELEASE_COMMIT = "b6d22745bf8892d17784cff5d42ce2ac0b72fa41"
+RELEASE_TREE = "85ee5b68f9432bb2fe584c3b0ed4b71886779def"
+ARTIFACT_SHA = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
 
 
 def request() -> LaunchRequest:
+    pinned = Path("runtime/worktrees/paper-canary-b6d22745").resolve()
     return LaunchRequest.from_manifest(
-        manifest_path=Path("runtime_activation_p7_manifest.json").resolve(),
+        manifest_path=MANIFEST_PATH,
         expected_manifest_sha256=MANIFEST_SHA,
-        pinned_root=Path("runtime/worktrees/pinned-5e8d798").resolve(),
+        pinned_root=pinned,
     )
 
 
@@ -97,10 +100,11 @@ def test_launcher_success_spawns_exactly_once_with_pinned_child_boundary():
     assert result["automatic_retries"] == 0
     assert len(calls) == 1
     args, kwargs = calls[0]
-    assert args[0][1].endswith("/runtime/worktrees/pinned-5e8d798/main.py")
-    assert kwargs["cwd"].endswith("/runtime/worktrees/pinned-5e8d798")
+    pinned_str = str(request().pinned_root)
+    assert Path(args[0][1]) == request().pinned_root / "main.py"
+    assert Path(kwargs["cwd"]) == request().pinned_root
     env = kwargs["env"]
-    assert env["PYTHONPATH"].endswith("/runtime/worktrees/pinned-5e8d798")
+    assert Path(env["PYTHONPATH"]) == request().pinned_root
     assert env["PYTHONNOUSERSITE"] == "1"
     assert env["BTC_RUNTIME_ENVIRONMENT"] == "paper"
     assert env["AUTO_TRADE_DRY_RUN"] == "true"
@@ -126,14 +130,14 @@ def test_launcher_failure_has_no_retry():
 def test_launcher_cli_validate_only():
     result = subprocess.run(
         [
-            ".venv/bin/python",
+            sys.executable,
             "scripts/p7_safe_paper_canary_launcher.py",
             "--manifest-path",
             "runtime_activation_p7_manifest.json",
             "--expected-manifest-sha256",
             MANIFEST_SHA,
             "--pinned-root",
-            "runtime/worktrees/pinned-5e8d798",
+            "runtime/worktrees/paper-canary-b6d22745",
             "--validate-only",
         ],
         text=True,

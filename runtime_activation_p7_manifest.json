@@ -18,7 +18,7 @@
     "model_family": "meta_model",
     "path": "logs/meta_model.joblib",
     "schema_fingerprint": "1a7e21c5ab5f0403a554be55c79e763205c72c91c4c21cd9c603990176d726fe",
-    "sha256": "dbf0a08241dae01241539ef3f48c6a0b13da9b13a5b128de259aac06d267241c"
+    "sha256": "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
   },
   "contract": "paper-canary-deployment/v1",
   "contracts": {
@@ -44,9 +44,9 @@
   },
   "paper_run_id": "paper-canary-20260824-01",
   "release": {
-    "commit_sha": "5e8d798e4d06d6abd21ade99c79caaa93307dd5b",
-    "source": "P6_CANONICAL_SEAL",
-    "tree_sha": "48ef10b27488468d294a5e223cb95a4aebfc3f01"
+    "commit_sha": "b6d22745bf8892d17784cff5d42ce2ac0b72fa41",
+    "source": "P7_REMEDIATED_RELEASE",
+    "tree_sha": "85ee5b68f9432bb2fe584c3b0ed4b71886779def"
   },
   "runtime": {
     "automatic_retry": "FORBIDDEN",

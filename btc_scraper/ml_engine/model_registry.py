@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import fcntl
@@ -51,8 +52,8 @@ class ModelRegistry:
                 finally:
                     try:
                         fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
-                    except Exception:
-                        pass
+                    except Exception as err:
+                        logging.debug("flock unlock ignored: %s", err)
 
     def _read(self) -> dict[str, list[dict[str, Any]]]:
         if not self.path.exists():
@@ -84,14 +85,14 @@ class ModelRegistry:
                         os.fsync(directory_fd)
                     finally:
                         os.close(directory_fd)
-                except Exception:
-                    pass
+                except Exception as err:
+                    logging.debug("directory fsync ignored: %s", err)
         finally:
             if tmp.exists():
                 try:
                     tmp.unlink()
-                except Exception:
-                    pass
+                except Exception as err:
+                    logging.debug("unlink tmp ignored: %s", err)
 
     def _assert_promotion_unfrozen(self) -> None:
         if not self.promotion_guard_path.exists() or os.getenv("ML_MODEL_PROMOTION_OVERRIDE", "false").lower() in {"1", "true", "yes"}:

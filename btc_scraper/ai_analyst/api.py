@@ -1,7 +1,9 @@
 import datetime
+import hashlib
 import random
 import time
 from google import genai
+from google.genai import types
 from btc_scraper.core.config import GEMINI_API_KEYS
 from .utils import _parse_retry_delay
 
@@ -84,7 +86,6 @@ class _GeminiKeyManager:
         self._exhausted.discard(key)
 
 
-
 # Singleton manager
 _key_manager = _GeminiKeyManager(GEMINI_API_KEYS)
 
@@ -103,7 +104,7 @@ def call_gemini(prompt: str) -> str:
         if api_key is None:
             break
 
-        key_label = f"...{api_key[-4:]}" if api_key and len(api_key) >= 4 else "..."
+        key_label = f"key_{hashlib.sha256(api_key.encode('utf-8')).hexdigest()[:6]}" if api_key else "key_***"
         max_503_retries = 3
         for attempt in range(max_503_retries):
             try:
@@ -111,7 +112,7 @@ def call_gemini(prompt: str) -> str:
                     print(f"  [Gemini] Dùng key [{key_label}]...", flush=True)
                 else:
                     print(f"  [Gemini] Thử lại 503 lần {attempt}/{max_503_retries - 1}...", flush=True)
-                client = genai.Client(api_key=api_key)
+                client = genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=30_000))
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=prompt,
@@ -125,7 +126,7 @@ def call_gemini(prompt: str) -> str:
                     print(f"  [429] Key [{key_label}] hết quota (retry ~{wait_sec}s). Chuyển key tiếp theo...", flush=True)
                     _key_manager.mark_exhausted(api_key)
                     break
-                elif any(code in err_str for code in ("503", "UNAVAILABLE", "500", "502", "504", "ServiceUnavailable")):
+                elif any(code in err_str.lower() for code in ("503", "unavailable", "500", "502", "504", "serviceunavailable", "timeout", "timed out", "deadlineexceeded")):
                     if attempt < max_503_retries - 1:
                         backoff = (2 ** attempt) + random.uniform(0.1, 0.5)
                         print(f"  [503] Key [{key_label}] tạm thời không khả dụng, chờ {backoff:.1f}s trước khi thử lại...", flush=True)

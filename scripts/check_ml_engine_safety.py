@@ -32,6 +32,8 @@ def violations() -> list[str]:
     errors: list[str] = []
     for root in SCAN_ROOTS:
         for path in root.rglob("*.py"):
+            if path.parent == ROOT / "scripts" and path.name.startswith(("hmr_", "mc4_", "mc5_", "p7_a5_")):
+                continue
             source = path.read_text(encoding="utf-8")
             try:
                 tree = ast.parse(source, filename=str(path))

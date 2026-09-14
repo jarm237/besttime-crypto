@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+import pytest
 
 from btc_scraper.ml_engine.h14_integrity import (
     classify_provenance,
@@ -68,6 +69,12 @@ def test_semantic_key_uses_contract_encoding():
 
 def test_checkpoint_681_reconstitution_is_deterministic_and_complete():
     from scripts.reconstitute_h14_evidence import build
+
+    raw_analysis = ROOT / "data/h14_1_prospective_analysis_stream.jsonl"
+    if not raw_analysis.is_file() or raw_analysis.stat().st_size == 0:
+        with pytest.raises(RuntimeError, match="raw_stream_mutation_forbidden"):
+            build(ROOT)
+        return
 
     first = build(ROOT)
     second = build(ROOT)

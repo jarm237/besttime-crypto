@@ -23,6 +23,9 @@ venv/
 
 # Frozen H14.2 reconstitution outputs are governed evidence artifacts, not
 # mutable runtime streams.
+!historical-h14-prospective-validation-design-discrimination/data/h14_1_prospective_analysis_stream.jsonl
+!historical-h14-prospective-validation-design-discrimination/data/h14_1_prospective_design_decisions.jsonl
+!historical-h14-prospective-validation-design-discrimination/data/h14_2_decision_divergence_accounting.jsonl
 !historical-h14-prospective-validation-design-discrimination/data/h14_2_authoritative_analysis_stream.jsonl
 !historical-h14-prospective-validation-design-discrimination/data/h14_2_authoritative_design_decisions.jsonl
 !historical-h14-prospective-validation-design-discrimination/data/h14_2_authoritative_divergence_accounting.jsonl

@@ -1368,9 +1368,10 @@ def predict_meta_confidence(
                     InferenceArtifact,
                 )
 
-                from btc_scraper.ml_engine.artifact_resolver import sha256_file
-                model_dict = joblib.load(route.model_artifact_path)
-                calibrator_dict = joblib.load(route.calibrator_artifact_path)
+                from btc_scraper.ml_engine.governed_artifact_loader import load_offline_joblib_artifact
+                from btc_scraper.core.paths import ROOT as REPO_ROOT
+                model_dict = load_offline_joblib_artifact(route.model_artifact_path, approved_root=REPO_ROOT)
+                calibrator_dict = load_offline_joblib_artifact(route.calibrator_artifact_path, approved_root=REPO_ROOT)
                 inner_model = model_dict["model"]
                 inner_calibrator = calibrator_dict["calibrator"]
 

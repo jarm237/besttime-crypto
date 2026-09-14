@@ -33,7 +33,7 @@ def main():
 
     ts_str = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     r4_root = (REPO_ROOT / "runtime" / "local-demo" / f"r4-{ts_str}").resolve()
-    
+
     data_dir = r4_root / "data" / "execution"
     logs_dir = r4_root / "logs" / "prediction_audit"
     state_dir = r4_root / "state"

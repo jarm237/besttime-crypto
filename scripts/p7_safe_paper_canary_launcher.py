@@ -147,8 +147,8 @@ def immutable_input_hashes(request: LaunchRequest) -> dict[str, str]:
     return {
         "manifest_sha256": sha256_file(request.manifest_path),
         "artifact_sha256": sha256_file(request.artifact_path),
-        "artifact_sidecar_sha256": sha256_file(sidecar),
-        "model_registry_sha256": sha256_file(registry),
+        "artifact_sidecar_sha256": sha256_file(sidecar) if sidecar.is_file() else "",
+        "model_registry_sha256": sha256_file(registry) if registry.is_file() else "",
         "release_commit_sha": _git(request.pinned_root, "rev-parse", "HEAD"),
         "release_tree_sha": _git(request.pinned_root, "rev-parse", "HEAD^{tree}"),
     }
@@ -171,6 +171,21 @@ def validate_launch_request(
         raise LauncherContractError("release_tree_mismatch")
     if _git(request.pinned_root, "status", "--short"):
         raise LauncherContractError("pinned_worktree_dirty")
+
+    sidecar = request.pinned_root / "logs/meta_model.json"
+    registry = request.pinned_root / "logs/model_registry.json"
+    if not sidecar.is_file():
+        raise LauncherContractError("sidecar_missing")
+    if not registry.is_file():
+        raise LauncherContractError("model_registry_missing")
+    sidecar_sha = sha256_file(sidecar)
+    registry_sha = sha256_file(registry)
+    if not sidecar_sha:
+        raise LauncherContractError("artifact_sidecar_sha256_empty")
+    if not registry_sha:
+        raise LauncherContractError("model_registry_sha256_empty")
+    if sidecar_sha == sha256_file(request.artifact_path):
+        raise LauncherContractError("sidecar_matches_artifact_boundary_collision")
 
     if request.source_artifact:
         if not request.source_artifact.is_file():

@@ -998,6 +998,22 @@ def _get_current_tree_sha() -> str | None:
         return None
 
 
+def extract_epoch_provenance_metadata(epoch: Any) -> tuple[str | None, dict[str, str] | None]:
+    manifest = getattr(epoch, "release_manifest", None) or {}
+    tree_sha = (
+        getattr(epoch, "code_tree_sha", None)
+        or manifest.get("code_tree_sha")
+        or _get_current_tree_sha()
+    )
+    sidecar_hashes = getattr(epoch, "sidecar_hashes", None) or getattr(epoch, "sidecar_sha256", None)
+    if not sidecar_hashes and manifest:
+        sidecar_hashes = {
+            "metadata_sha256": manifest.get("metadata_sha256"),
+            "registry_sha256": manifest.get("registry_sha256"),
+        }
+    return tree_sha, sidecar_hashes
+
+
 def main() -> int:
     args = _parser().parse_args()
     if args.poll_seconds <= 0 or args.restart_observation_seconds < 0:
@@ -1027,18 +1043,7 @@ def main() -> int:
     try:
         epoch = _assert_epoch_and_code(store, args.epoch_id, args.deployment_id)
         environment = _child_environment(epoch, args.deployment_id)
-        manifest = getattr(epoch, "release_manifest", None) or {}
-        tree_sha = (
-            getattr(epoch, "code_tree_sha", None)
-            or manifest.get("code_tree_sha")
-            or _get_current_tree_sha()
-        )
-        sidecar_hashes = getattr(epoch, "sidecar_hashes", None) or getattr(epoch, "sidecar_sha256", None)
-        if not sidecar_hashes and manifest:
-            sidecar_hashes = {
-                "metadata_sha256": manifest.get("metadata_sha256"),
-                "registry_sha256": manifest.get("registry_sha256"),
-            }
+        tree_sha, sidecar_hashes = extract_epoch_provenance_metadata(epoch)
 
         child_budget = ChildStartBudget(
             limit=args.child_start_budget,
