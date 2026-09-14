@@ -37,7 +37,7 @@
   },
   "deployment_id": "paper-canary-20260914-01",
   "epoch_id": "canary-p7-remediation-epoch-20260914-01",
-  "manifest_sha256": "e948a09adc5fb922a0f36bc8264380056f8bf72270c96fecfb00741b8262ea86",
+  "manifest_sha256": "a8116bef1962b8692a02a90436af53d183c4df8c0b9efa402f3155e2bb0e8661",
   "observation": {
     "production_promotion": "NOT_AUTHORIZED",
     "successor_research": "NOT_AUTHORIZED"

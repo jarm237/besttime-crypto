@@ -18,7 +18,7 @@ from scripts.p7_safe_paper_canary_launcher import (
 
 
 MANIFEST_PATH = Path("runtime_activation_p7_manifest.json").resolve()
-MANIFEST_SHA = "ae551bdf517174d60d62b88c408d2b9438a601b1336c8c41202ad0f9b213d895"
+MANIFEST_SHA = "6d9546a92f8faa95b24eab413e210b9016ebca946c018ced983f0d9b53e9c40c"
 RELEASE_COMMIT = "b05603d9321e24991b7939a6b70faf7cba81afbb"
 RELEASE_TREE = "018dd2fe183325566b94a2af32fa8da92f250f84"
 ARTIFACT_SHA = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
