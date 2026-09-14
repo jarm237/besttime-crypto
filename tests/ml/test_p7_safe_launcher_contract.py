@@ -18,14 +18,14 @@ from scripts.p7_safe_paper_canary_launcher import (
 
 
 MANIFEST_PATH = Path("runtime_activation_p7_manifest.json").resolve()
-MANIFEST_SHA = "fd07a6bec0fc0cfe01a1fd19c94b31d9ba97214aad7b4e2a76f9498e5032677f"
-RELEASE_COMMIT = "72eeb3ea6f4ad886864dec8920e6a1c384feda25"
-RELEASE_TREE = "7e60dec728014ab81e60ec240e0866e53827788c"
+MANIFEST_SHA = "d87983ed1bf7e4f6b0986eee1f2ba8583dcec7fc01c10f49f2b12133fda39cdc"
+RELEASE_COMMIT = "35d20dc4a5b6fce2aa1a7d65ffcf70c634ddf466"
+RELEASE_TREE = "fdc1b4c2918eef92978b7254cb4da3777a42584f"
 ARTIFACT_SHA = "8781aeee0b4ed4b84b18332600572bc9deaf5fdab896f945923d948df6c48b26"
 
 
 def request() -> LaunchRequest:
-    pinned = Path("runtime/worktrees/paper-canary-72eeb3ea").resolve()
+    pinned = Path("runtime/worktrees/paper-canary-35d20dc4").resolve()
     return LaunchRequest.from_manifest(
         manifest_path=MANIFEST_PATH,
         expected_manifest_sha256=MANIFEST_SHA,
@@ -137,7 +137,7 @@ def test_launcher_cli_validate_only():
             "--expected-manifest-sha256",
             MANIFEST_SHA,
             "--pinned-root",
-            "runtime/worktrees/paper-canary-72eeb3ea",
+            "runtime/worktrees/paper-canary-35d20dc4",
             "--validate-only",
         ],
         text=True,
