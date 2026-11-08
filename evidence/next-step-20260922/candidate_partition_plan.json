@@ -1,0 +1,111 @@
+{
+  "schema_version": 2,
+  "candidate": "model-coverage-remediation-20261009-A-plus",
+  "total_candidate_files_pre_seal": 72,
+  "total_candidate_files_post_seal": 73,
+  "partitions": {
+    "C1_H14_INTEGRITY": {
+      "count": 1,
+      "files": [
+        "tests/ml/test_h14_integrity.py"
+      ]
+    },
+    "C2_RELEASE_IDENTITY_GOVERNANCE": {
+      "count": 7,
+      "files": [
+        "tests/ml/test_model_coverage_mc8_manifest_worktree.py",
+        "tests/ml/test_model_coverage_mc9_authorization.py",
+        "tests/ml/test_model_coverage_mc9_release_identity.py",
+        "tests/ml/test_model_coverage_mc9_seal.py",
+        "tests/ml/test_p7_a4_resume_contract.py",
+        "tests/ml/test_p7_r3a_supervised_child.py",
+        "tests/ml/test_p8_economic_evaluation.py"
+      ]
+    },
+    "C3_RUNTIME_OWNERSHIP_HARDENING": {
+      "count": 12,
+      "files": [
+        "btc_scraper/core/db.py",
+        "btc_scraper/core/runtime_ownership.py",
+        "btc_scraper/ml_engine/inference_coordinator.py",
+        "scripts/run_canary_until_seal_ready.py",
+        "scripts/run_manual_runner.py",
+        "scripts/runtime_migration_preflight.py",
+        "tests/ml/test_non_evidence_inference_smoke.py",
+        "tests/test_decision_engine.py",
+        "tests/test_phase21_integration.py",
+        "tests/test_phase4_operational_resilience.py",
+        "tests/test_runtime_migration_preflight.py",
+        "tests/test_runtime_ownership.py"
+      ]
+    },
+    "C4_REGRESSION_FIXES_RESEARCH": {
+      "count": 32,
+      "files": [
+        "pytest.ini",
+        "research/historical_market_replay_v4/v4b_3a_liquidation_source_manifest.json",
+        "research/historical_market_replay_v4/v4b_4a_trade_flow_source_manifest.json",
+        "research/historical_market_replay_v4/v4b_4b_trade_flow_audit.json",
+        "research/historical_market_replay_v4/v4b_4b_trade_flow_report.md",
+        "research/historical_market_replay_v4/v4b_5a_options_provenance_audit.json",
+        "research/historical_market_replay_v4/v4b_5a_options_source_manifest.json",
+        "research/historical_market_replay_v4/v4c_1a_cross_market_source_manifest.json",
+        "research/historical_market_replay_v4/v4c_2a_stablecoin_source_manifest.json",
+        "research/historical_market_replay_v4/v4c_3a_etf_provenance_audit.json",
+        "research/historical_market_replay_v4/v4c_3a_etf_source_manifest.json",
+        "research/historical_market_replay_v4/v4c_3b_etf_audit.json",
+        "scripts/hmr_v4b_2b_premium_audit.py",
+        "scripts/repair_evidence_epoch_lineage.py",
+        "scripts/test_sentiment_trend.py",
+        "tests/ml/test_repair_evidence_epoch.py",
+        "tests/test_cross_market_audit.py",
+        "tests/test_cross_market_provenance_audit.py",
+        "tests/test_etf_audit.py",
+        "tests/test_etf_integration_audit.py",
+        "tests/test_etf_provenance_audit.py",
+        "tests/test_liquidation_provenance_audit.py",
+        "tests/test_ml_models.py",
+        "tests/test_options_provenance_audit.py",
+        "tests/test_premium_audit.py",
+        "tests/test_stablecoin_audit.py",
+        "tests/test_stablecoin_provenance_audit.py",
+        "tests/test_stage1_pipeline.py",
+        "tests/test_timegan_stage3.py",
+        "tests/test_trade_flow_audit.py",
+        "tests/test_trade_flow_provenance_audit.py",
+        "tests/test_validate_alternative_history.py"
+      ]
+    },
+    "C5_STATUS_EVIDENCE_RECONCILIATION": {
+      "count": 20,
+      "files": [
+        "docs/NEXT_STEP_EXECUTION_PLAN_2026-09-22.md",
+        "evidence/next-step-20260922/baseline_inventory.json",
+        "evidence/next-step-20260922/branch_delta_governance_disposition.md",
+        "evidence/next-step-20260922/candidate_partition_plan.json",
+        "evidence/next-step-20260922/candidate_verification_manifest.json",
+        "evidence/next-step-20260922/evidence_reconciliation_report.md",
+        "evidence/next-step-20260922/full_regression_junit.xml",
+        "evidence/next-step-20260922/full_regression_plan.json",
+        "evidence/next-step-20260922/gitnexus_change_review.md",
+        "evidence/next-step-20260922/gitnexus_critical_review.json",
+        "evidence/next-step-20260922/hash_inventory.json",
+        "evidence/next-step-20260922/integrity_audit_failure_report.md",
+        "evidence/next-step-20260922/manual_verification_summary.json",
+        "evidence/next-step-20260922/p7_status_report.json",
+        "evidence/next-step-20260922/p8_status_report.json",
+        "evidence/next-step-20260922/runtime_probe_observation.json",
+        "evidence/next-step-20260922/source_of_truth_matrix.json",
+        "evidence/next-step-20260922/targeted_remediation_junit.xml",
+        "evidence/next-step-20260922/worktree_disposition.md",
+        "scripts/run_remediation_verification.ps1"
+      ]
+    },
+    "C6_CANDIDATE_SEAL_METADATA": {
+      "count": 1,
+      "files": [
+        "evidence/next-step-20260922/candidate_seal_report.json"
+      ]
+    }
+  }
+}

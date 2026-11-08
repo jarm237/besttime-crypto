@@ -1,6 +1,11 @@
 # HMR-V5-D2: Research/Runtime Parity Replay Report
 
-> **Timestamp**: `2026-08-16T17:38:25.825957+00:00` | **Status**: `PASS`
+> **Timestamp**: `2026-10-31T13:27:59.695942+00:00` | **Status**: `PASS`
+
+## Evidence Taxonomy Boundary
+- **Category**: `MODEL_PARITY`
+- **Scope**: Mathematical and decision consistency between research model parameters and production runtime inference engine (`RuntimeInferenceEngine`).
+- **Explicit Non-Goal**: This replay does **NOT** measure trading performance, profit factor, Sharpe ratio, or observed demo returns. Parity only proves that the production runtime executes the research specification without numerical drift.
 
 ## 1. Parity Audit Results
 

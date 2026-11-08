@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-09-22T20:38:00+07:00",
+  "contract": "paper-canary-launcher/v1",
+  "commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "branch": "model-coverage/22-symbol-v1-dev",
+  "release_lineage": "model-coverage-v1",
+  "launcher_status": "HARDENED_FAIL_CLOSED",
+  "authorization_state": "ARMED",
+  "spawn_budget": 1,
+  "restart_budget": 0,
+  "real_money_enabled": false,
+  "runtime_process_active": false,
+  "paper_canary_activation": "PENDING_EXPLICIT_AUTHORIZATION"
+}

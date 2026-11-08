@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "phase": "Verify",
+  "base_ref": "main",
+  "repo_root": "D:\\Workspaces\\besttime-crypto",
+  "observed_pre_reconciliation_tree": "f745fb75d02ecfd71aef0ae64613f4af8038620a",
+  "runtime_environment": {
+    "gitnexus_version": "1.6.13-rc.103",
+    "ladybugdb_core_version": "0.21.1",
+    "ladybugdb_native_binary": "C:\\Users\\admin\\AppData\\Roaming\\npm\\node_modules\\gitnexus\\node_modules\\@ladybugdb\\core\\lbugjs.node",
+    "ladybugdb_native_sha256": "4c6d3204fe7a54886a52503a906cb6b239d4cd1d353cb1c510759e968099366c",
+    "mitigation_classification": "version-correlated mitigation",
+    "whitespace_policy": "git -c core.whitespace=trailing-space,space-before-tab,cr-at-eol diff --cached --check (literal bare git diff --cached --check emits CRLF line ending warnings on Windows worktree)"
+  },
+  "started_at": "2026-10-12T17:07:52.4586265Z",
+  "finished_at": "2026-10-12T17:09:01.0750939Z",
+  "duration_seconds": 68.616,
+  "execution_status": "PASS",
+  "governance_status": "BLOCKED",
+  "overall_status": "FAIL_CLOSED",
+  "steps": [
+    {
+      "name": "Git whitespace check",
+      "exit_code": 0,
+      "started_at": "2026-10-12T17:07:52.4893034Z",
+      "finished_at": "2026-10-12T17:07:52.5435234Z",
+      "duration_seconds": 0.054,
+      "details": {
+        "command": "git -c core.whitespace=trailing-space,space-before-tab,cr-at-eol diff --cached --check",
+        "note": "PASS with cr-at-eol on 72 staged candidate files; bare git diff --cached --check emits CRLF warnings on Windows."
+      }
+    },
+    {
+      "name": "GitNexus refresh",
+      "exit_code": 0,
+      "started_at": "2026-10-12T17:07:52.5575037Z",
+      "finished_at": "2026-10-12T17:08:59.8378317Z",
+      "duration_seconds": 67.28,
+      "details": {
+        "command": "node .gitnexus/run.cjs analyze --index-only",
+        "version": "1.6.13-rc.103"
+      }
+    },
+    {
+      "name": "GitNexus change detection",
+      "exit_code": 0,
+      "started_at": "2026-10-12T17:08:59.8424350Z",
+      "finished_at": "2026-10-12T17:09:01.0735265Z",
+      "duration_seconds": 1.231,
+      "details": {
+        "command": "node .gitnexus/run.cjs detect-changes --repo besttime-crypto --scope compare --base-ref main",
+        "scope_compare": {
+          "changed_files": 622,
+          "changed_symbols": 2239,
+          "affected_processes": 281,
+          "risk": "critical",
+          "partial": false,
+          "truncated": true
+        },
+        "scope_all": {
+          "changed_files": 72,
+          "changed_symbols": 215,
+          "affected_processes": 95,
+          "risk": "critical",
+          "partial": false,
+          "truncated": false
+        }
+      }
+    }
+  ]
+}

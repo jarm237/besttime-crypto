@@ -1,0 +1,23 @@
+﻿{
+    "schema_version":  1,
+    "phase":  "FullPlan",
+    "base_ref":  "main",
+    "repo_root":  "D:\\Workspaces\\besttime-crypto",
+    "started_at":  "2026-10-01T03:18:06.7940910Z",
+    "finished_at":  "2026-10-01T03:18:36.4308440Z",
+    "duration_seconds":  29.637,
+    "overall_status":  "PASS",
+    "steps":  [
+                  {
+                      "name":  "Full regression collection plan",
+                      "exit_code":  0,
+                      "started_at":  "2026-10-01T03:18:06.8280976Z",
+                      "finished_at":  "2026-10-01T03:18:36.4152588Z",
+                      "duration_seconds":  29.587,
+                      "details":  {
+                                      "shard_count":  32,
+                                      "plan_path":  "D:\\Workspaces\\besttime-crypto\\evidence\\next-step-20260922\\full_regression_plan.json"
+                                  }
+                  }
+              ]
+}

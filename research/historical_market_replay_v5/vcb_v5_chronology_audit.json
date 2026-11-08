@@ -1,0 +1,22 @@
+{
+  "verdict": "PRE_REGISTRATION_NOT_PROVABLE",
+  "epistemic_classification": "DEBUG_EXPOSED_CROSS_SECTIONAL_DIAGNOSTIC",
+  "is_provable": false,
+  "earliest_artifact_filesystem_creation_utc": "2026-11-04T02:17:21.769903+00:00",
+  "internal_spec_lock_utc": "2026-11-04T03:16:10.906048+00:00",
+  "internal_plan_lock_utc": "2026-11-04T03:16:10.906048+00:00",
+  "earliest_known_raw_read_or_debug_run_utc": "2026-11-04T02:17:21+00:00",
+  "final_evaluation_utc": "2026-11-04T03:16:10.906048+00:00",
+  "reasons": [
+    "RAW_READ_PRECEDES_SPEC_LOCK: Data read at 2026-11-04T02:17:21+00:00 preceded spec lock at 2026-11-04T03:16:10.906048+00:00.",
+    "RAW_READ_PRECEDES_PLAN_LOCK: Data read at 2026-11-04T02:17:21+00:00 preceded plan lock at 2026-11-04T03:16:10.906048+00:00.",
+    "FILE_CREATION_PRECEDES_INTERNAL_LOCK: Artifact file was created at 2026-11-04T02:17:21.769903+00:00 but internal lock is 2026-11-04T03:16:10.906048+00:00 (3529.1s earlier), demonstrating prior execution and file overwrite."
+  ],
+  "sources": {
+    "earliest_artifact_filesystem_creation_utc": "os.stat.st_ctime of research/historical_market_replay_v5/vcb_v5_cross_sectional_exposure_audit.json",
+    "internal_spec_lock_utc": "vcb_v5_sell_only_9asset_candidate_spec.json::spec_locked_at_utc",
+    "internal_plan_lock_utc": "vcb_v5_cross_sectional_validation_plan.json::plan_locked_at_utc",
+    "earliest_known_raw_read_or_debug_run_utc": "transcript execution of scratch/execute_vcb_v5_study.py at 02:17 UTC reading DOGE 15m candles",
+    "final_evaluation_utc": "vcb_v5_sell_only_9asset_research.json::generation_timestamp"
+  }
+}

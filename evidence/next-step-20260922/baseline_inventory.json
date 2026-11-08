@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-22T19:57:00+07:00",
+  "repository": "besttime-crypto",
+  "branch": "model-coverage/22-symbol-v1-dev",
+  "commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "upstream_divergence": {
+    "ahead_of_remote_branch": 9,
+    "ahead_of_origin_main": 98
+  },
+  "tracked_modified_files_count": 29,
+  "untracked_paths_count": 12,
+  "gitnexus_indexed_commit": "f96c6b8",
+  "release_lineage_target": "model-coverage-v1",
+  "governance_constraints": {
+    "h14_status": "CLOSED",
+    "h14_verdict": "RESEARCH_HARD_STOP",
+    "real_money_enabled": false,
+    "paper_canary_status": "NOT_AUTHORIZED"
+  }
+}

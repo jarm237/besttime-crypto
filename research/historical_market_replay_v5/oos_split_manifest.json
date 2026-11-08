@@ -1,0 +1,94 @@
+{
+  "manifest_version": "hmr-v5-oos-split/v3-honest-governance",
+  "created_at": "2026-11-01T19:18:25.317937+00:00",
+  "scaffold_file": "v5_causal_e4_scaffold_2023_2026.parquet",
+  "scaffold_sha256": "a80da933881fec0212be5a41e1a9ae001c1ca903a2bd4a5c4e3cc745b7907f6e",
+  "combined_source_dataset_sha256": "98af4a93bead47e8ac927007826b71ed3591661d86896ff3a515ed76542ff245",
+  "total_candidate_trades": 396159,
+  "multiple_testing_governance": {
+    "multiple_testing_trials_count": "UNKNOWN",
+    "honest_disclosure": "Exact total historical trials/ideas/parameter combinations explored interactively prior to locking VOL_COMPRESSION_BREAKOUT_V1 was not prospectively pre-registered; all pre-lock historical confidence intervals are exploratory only."
+  },
+  "splits": {
+    "EXPLORATORY_TRAIN_2023": {
+      "description": "Exploratory strategy family discovery, hypothesis generation, and q65 ATR threshold calibration window",
+      "start": "2023-01-01T00:00:00Z",
+      "end": "2024-01-01T00:00:00Z",
+      "is_independent_confirmatory_oos": false,
+      "interval_definition": "half_open_start_inclusive_end_exclusive"
+    },
+    "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+      "description": "Development walk-forward candidate screening and selection window (NOT independent confirmatory OOS)",
+      "start": "2024-01-01T00:00:00Z",
+      "end": "2026-01-01T00:00:00Z",
+      "is_independent_confirmatory_oos": false,
+      "folds": {
+        "DEV_SELECTION_2024": {
+          "start": "2024-01-01T00:00:00Z",
+          "end": "2025-01-01T00:00:00Z"
+        },
+        "DEV_SELECTION_2025": {
+          "start": "2025-01-01T00:00:00Z",
+          "end": "2026-01-01T00:00:00Z"
+        }
+      },
+      "interval_definition": "half_open_start_inclusive_end_exclusive"
+    },
+    "BURNED_EXPOSED_AUDIT_2026_H1": {
+      "description": "Exposed one-shot historical audit window; VOL_COMPRESSION_BREAKOUT_V1 failed (-7.60 bps gross, -22.26 bps net@14 under NEXT_BAR_OPEN). Permanently burned: zero retuning allowed.",
+      "start": "2026-01-01T00:00:00Z",
+      "end": "2026-07-01T00:00:00Z",
+      "is_independent_confirmatory_oos": false,
+      "audit_status": "BURNED_ONE_SHOT_AUDIT_FAILED_NO_RETUNING",
+      "embargo_bars": 96,
+      "interval_definition": "half_open_start_inclusive_end_exclusive"
+    },
+    "PROSPECTIVE_SHADOW_EPOCH": {
+      "description": "Forward-looking passive closed-candle shadow paper validation epoch under immutable LockedCandidateSpec",
+      "start": "PROSPECTIVE_RUNTIME_START_AFTER_2026-06-30T23:45:00Z",
+      "mode": "NO_TRADE_SHADOW",
+      "locked_candidate_id": "VOL_COMPRESSION_BREAKOUT_V1",
+      "locked_spec_version": "1.1.0-next-bar-open",
+      "locked_spec_sha256": "67806d6e5eb77ce6aaef7e9d1a70bf5ca61b17fb03f0dc8bcc884c0244375b6d",
+      "lock_timestamp": "2026-11-01T19:00:00+00:00",
+      "last_used_historical_timestamp": "2026-06-30T23:45:00+00:00"
+    }
+  },
+  "registered_candidates": [
+    {
+      "name": "NO_TRADE",
+      "type": "BENCHMARK_ABSTAIN",
+      "description": "Abstains from all trades; 0.0 net PnL, 0.0 drawdown"
+    },
+    {
+      "name": "CONTROL",
+      "type": "RAW_UNFILTERED",
+      "description": "Executes all proposed E4 entry candidates without statistical filter"
+    },
+    {
+      "name": "S3_LEGACY",
+      "type": "LEGACY_S3_FILTER",
+      "description": "Applies frozen S3 per-symbol thresholds (BTC 0.6816, ETH 0.8281, BNB 0.7566)"
+    },
+    {
+      "name": "NET_RETURN_RANKER",
+      "type": "COST_AWARE_RANKER",
+      "description": "Trained on 2023 net return target R_net = R_gross - 0.0014; executes predicted net return > 0"
+    },
+    {
+      "name": "VOL_COMPRESSION_BREAKOUT_V1",
+      "type": "DIRECTIONAL_DONCHIAN_COMPRESSION_BREAKOUT",
+      "description": "15m 96-bar Donchian breakout + SMA96/384 trend + vol_ratio>=1.2 + 2023 ATR q65<=38.305 bps; signal at bar i close, entry at bar i+1 open"
+    }
+  ],
+  "promotion_gates": {
+    "gate_1": "Net Expectancy > 0.0 bps (after 14 bps base friction)",
+    "gate_2": "Profit Factor > 1.0",
+    "gate_3": "Max Drawdown <= 20.0%",
+    "gate_4": "Executed trades N >= 100",
+    "gate_5": "Per-symbol consistency >= 2/3 positive net expectancy",
+    "gate_6": "Top-5 outlier removal keeps net expectancy > 0",
+    "gate_7_primary": "Daily cross-symbol portfolio MTM Moving-Block & Stationary Bootstrap (block=10d) 95% CI lower bound > 0.0 bps/day (IID trade CI is diagnostic-only)"
+  },
+  "manifest_sha256": "67245fcbb6fbabdecea77a49e40cde9b24dcb412539ddc29dbf0a63dcd88eb7d"
+}

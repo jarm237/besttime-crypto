@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "metadata": {
+    "source_commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+    "source_commit_tree": "da720a407ea580e5c67cc8f0035f8322d5f19586",
+    "pre_g5_reconciliation_index_tree": "f992221b8ac2d9ec48c06bf1f3c84d33072ad47d",
+    "observed_at_utc": "2026-10-12T01:00:42.5928305Z",
+    "generated_at_utc": "2026-10-12T02:35:00Z",
+    "generator": {
+      "name": "g5-evidence-reconciliation",
+      "version": "2.1",
+      "mode": "manual-governed"
+    },
+    "input_hashes": {
+      "execution_plan": "5897aefbc6a0a7228c659b901879d1bc0355855a647581fd63d811ed065c5b9c",
+      "baseline_inventory": "006fbaf4dd3dc6d6c8368647287249666e28dd69a676eab487c7f12c8ac36b14",
+      "p7_status_report": "01c5e3884b99f29503e20f0f3b40a40426f946f06a08f78b5937b23538bc19c2",
+      "p8_status_report": "67abbcd8bac24619afc5b54aa5cb86810b35b4cdad1efce3f4e83a75a3dd8b07",
+      "runtime_pause_state": "9d0037dda3cab1b45294a4efd40b7a02d05d14d9c70ef29739a1819e1ab57ee6"
+    }
+  },
+  "repository": "besttime-crypto",
+  "branch": "model-coverage/22-symbol-v1-dev",
+  "base_commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "process_probe": {
+    "probe_command": "$selfPid = $PID; Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $selfPid -and $_.Name -match '^python(w)?\\.exe$' -and $_.CommandLine -match 'besttime-crypto|btc_scraper|canary|auto_trader|main(_live)?\\.py' }",
+    "running_bot_processes_count": 0,
+    "pids_observed": [],
+    "verdict": "NO_ACTIVE_BOT_PROCESS"
+  },
+  "heartbeat_probe": {
+    "monitored_paths": [
+      "runtime/paper/paper-canary-win-tsfix-20260901-01/state/runtime_pause_state.json"
+    ],
+    "heartbeat_source_sha256": "9d0037dda3cab1b45294a4efd40b7a02d05d14d9c70ef29739a1819e1ab57ee6",
+    "last_recorded_heartbeat_utc": "2026-09-23T07:35:31.078907Z",
+    "observation_timestamp_utc": "2026-10-12T01:00:42.5928305Z",
+    "heartbeat_age_seconds": 1617911.51,
+    "heartbeat_age_days": 18.7258,
+    "verdict": "NO_FRESH_ACTIVE_HEARTBEAT",
+    "runtime_liveness": "INACTIVE_DORMANT"
+  },
+  "authorization_probe": {
+    "auth_sources": [
+      "evidence/next-step-20260922/p7_status_report.json",
+      "evidence/next-step-20260922/baseline_inventory.json"
+    ],
+    "governance_contract": "docs/NEXT_STEP_EXECUTION_PLAN_2026-09-22.md",
+    "real_money_enabled": false,
+    "environment_snapshot_note": "Environment snapshot for LIVE_TRADING_ENABLED not captured in repo; default fail-closed applies.",
+    "fail_closed_mode": true,
+    "verdict": "NOT_AUTHORIZED"
+  },
+  "governance_summary": {
+    "paper_runtime_state": "INACTIVE_DORMANT",
+    "live_real_money_state": "NOT_AUTHORIZED",
+    "economic_promotion_state": "BLOCKED_PENDING_P8_ACCUMULATION",
+    "gate_g5_state": "REVIEW_FAIL_CLOSED"
+  }
+}

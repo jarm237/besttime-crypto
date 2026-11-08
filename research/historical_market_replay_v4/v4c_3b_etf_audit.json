@@ -7,10 +7,10 @@
   "eligible_states_period_c": 552,
   "model_training": "BLOCKED",
   "contamination_correlations": {
-    "corr_flow_btc_same_trade_day_return": -0.0392192584482499,
-    "corr_flow_btc_prev_24h_return": -0.07213509825015894,
-    "corr_flow_btc_future_24h_return": 0.007791347339449199,
-    "corr_flow_btc_future_72h_return": 0.047545399876940626,
+    "corr_flow_btc_same_trade_day_return": -0.039219258448249916,
+    "corr_flow_btc_prev_24h_return": -0.07213509825015904,
+    "corr_flow_btc_future_24h_return": 0.007791347339449205,
+    "corr_flow_btc_future_72h_return": 0.04754539987694061,
     "corr_flow_btc_future_7d_return": 0.12243614967013351
   },
   "directional_audit": [

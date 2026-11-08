@@ -1,0 +1,793 @@
+{
+  "pipeline_name": "hmr_v5_vcb_economic_decomposition",
+  "semantic_hash_schema_version": "1.0.0",
+  "semantic_hash_excluded_fields": [
+    "semantic_artifact_sha256",
+    "generation_timestamp",
+    "performance_metadata",
+    "stage_timing_seconds"
+  ],
+  "generation_timestamp": "2026-11-03T13:24:01.492679+00:00",
+  "git_head": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "dataset_manifest": {
+    "BNB": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "545f8c7270f69caac5186c21a28c48e3be53a99d23dfec35542da4e96e31cd27"
+    },
+    "BTC": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "5cdc540f1ade283f50e41a5657c277ea06fa2c5b8c4f1cce8ac68e87058dd379"
+    },
+    "ETH": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "13230c606a3472d86d5f45b69361a244a3e4917ee7da1a38c30aec6b40d7bff9"
+    },
+    "combined_dataset_sha256": "f1db65ae72bdc5056a05ccd31c22226fd952f4e33fbeaafd30d37aa1a9901958"
+  },
+  "candidate_spec": {
+    "candidate_id": "VOL_COMPRESSION_BREAKOUT_V1",
+    "spec_version": "1.2.0-research-canonical",
+    "universe": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "bar_interval_minutes": 15,
+    "parameters": {
+      "donchian_bars": 96,
+      "sma_fast_bars": 96,
+      "sma_slow_bars": 384,
+      "min_vol_ratio_96": 1.2,
+      "atr_compression_bars": 192,
+      "max_hold_bars": 192,
+      "tp_bps": 350.0,
+      "sl_bps": 150.0
+    },
+    "behavior_flags": {
+      "req_slope": false,
+      "req_regime_gate": false,
+      "use_atr_normalized_barrier": false
+    },
+    "slope_gate_specification": {
+      "enabled": false,
+      "slope_lookback_bars": null,
+      "slope_comparison_rule": null
+    },
+    "regime_gate_specification": {
+      "enabled": false,
+      "regime_lookback_bars": null,
+      "regime_comparison_rule": null
+    },
+    "barrier_specification": {
+      "barrier_type": "FIXED_BPS",
+      "fixed_tp_bps": 350.0,
+      "fixed_sl_bps": 150.0,
+      "atr_tp_multiplier": null,
+      "atr_sl_multiplier": null,
+      "atr_tp_min_bps": null,
+      "atr_tp_max_bps": null,
+      "atr_sl_min_bps": null,
+      "atr_sl_max_bps": null
+    },
+    "execution_timing_contract": {
+      "signal_confirmation": "bar_i_close (signal_close_timestamp = signal_timestamp + 15m)",
+      "earliest_entry": "bar_i_plus_1_open (entry_index = signal_index + 1, entry_price = opens[i+1])",
+      "future_bar_admission_leakage": false,
+      "intrabar_tp_sl_collision_policy": "SL_FIRST_CONSERVATIVE",
+      "gap_through_stop_policy": "ADVERSE_OPEN_PRICE_FILL_SL_GAP",
+      "max_hold_anchor": "entry_index (entry_index .. entry_index + max_hold - 1)",
+      "execution_timing": "SIGNAL_AT_BAR_I_CLOSE__EARLIEST_ENTRY_AT_BAR_I_PLUS_1_OPEN",
+      "cooldown_bars": 96,
+      "max_concurrent_positions": 3,
+      "max_positions_per_asset": 1
+    },
+    "spec_sha256": "1a6639922743bbd6ce12ba88e1a407df79171a3e564246696b112c7034f4ecc6",
+    "fold_fitted_atr_q65_thresholds_bps": {
+      "fold_1_train_2023_applied_to_2024": 32.796,
+      "fold_2_train_2023_2024_applied_to_2025": 37.937,
+      "audit_train_2023_2025_applied_to_2026": 38.315
+    },
+    "total_filtered_signals": 3718
+  },
+  "accounting_config": {
+    "initial_capital": 10000.0,
+    "max_concurrent_positions": 3,
+    "max_positions_per_asset": 1,
+    "cooldown_bars": 96,
+    "allocation_pct_per_trade": 0.25,
+    "fee_rate_bps": 5.0,
+    "slippage_bps": 2.0
+  },
+  "v1_evaluation_summary": {
+    "candidate_id": "VOL_COMPRESSION_BREAKOUT_V1",
+    "spec_sha256": "1a6639922743bbd6ce12ba88e1a407df79171a3e564246696b112c7034f4ecc6",
+    "parameters": {
+      "donchian_bars": 96,
+      "sma_fast_bars": 96,
+      "sma_slow_bars": 384,
+      "min_vol_ratio_96": 1.2,
+      "atr_compression_bars": 192,
+      "max_hold_bars": 192,
+      "tp_bps": 350.0,
+      "sl_bps": 150.0
+    },
+    "periods": {
+      "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+        "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+        "candidate_signals_in_window": 2208,
+        "executed_trades_count": 369,
+        "rejected_capacity_count": 1833,
+        "excluded_cross_boundary_count": 6,
+        "total_net_pnl_usd": 2619.56,
+        "total_net_pnl_pct": 26.2,
+        "gross_profit_usd": 12278.93,
+        "gross_loss_usd": 9659.37,
+        "profit_factor": 1.2712,
+        "gross_expectancy_bps": 40.14,
+        "net_expectancy_bps_cost14": 24.5,
+        "win_rate_pct": 42.0,
+        "max_drawdown_pct": 6.8,
+        "capital_turnover": 214.27,
+        "primary_daily_block_bootstrap_ci_bps": {
+          "ci_lower": -0.032,
+          "ci_upper": 6.601,
+          "mean_daily_bps": 3.289,
+          "block_size_days": 10,
+          "gate_7_passed": false
+        },
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 30.14,
+            "win_rate_pct": 42.5,
+            "profit_factor": 1.34
+          },
+          "14.0": {
+            "expectancy_bps": 26.14,
+            "win_rate_pct": 42.0,
+            "profit_factor": 1.29
+          },
+          "20.0": {
+            "expectancy_bps": 20.14,
+            "win_rate_pct": 41.5,
+            "profit_factor": 1.22
+          },
+          "30.0": {
+            "expectancy_bps": 10.14,
+            "win_rate_pct": 41.5,
+            "profit_factor": 1.1
+          }
+        }
+      },
+      "BURNED_EXPOSED_AUDIT_2026_H1": {
+        "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+        "candidate_signals_in_window": 652,
+        "executed_trades_count": 125,
+        "rejected_capacity_count": 523,
+        "excluded_cross_boundary_count": 4,
+        "total_net_pnl_usd": -677.42,
+        "total_net_pnl_pct": -6.77,
+        "gross_profit_usd": 2325.85,
+        "gross_loss_usd": 3003.28,
+        "profit_factor": 0.7744,
+        "gross_expectancy_bps": -7.6,
+        "net_expectancy_bps_cost14": -22.26,
+        "win_rate_pct": 33.6,
+        "max_drawdown_pct": 15.39,
+        "capital_turnover": 60.84,
+        "primary_daily_block_bootstrap_ci_bps": {
+          "ci_lower": -11.07,
+          "ci_upper": 4.197,
+          "mean_daily_bps": -3.719,
+          "block_size_days": 10,
+          "gate_7_passed": false
+        },
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": -17.6,
+            "win_rate_pct": 33.6,
+            "profit_factor": 0.82
+          },
+          "14.0": {
+            "expectancy_bps": -21.6,
+            "win_rate_pct": 33.6,
+            "profit_factor": 0.78
+          },
+          "20.0": {
+            "expectancy_bps": -27.6,
+            "win_rate_pct": 33.6,
+            "profit_factor": 0.73
+          },
+          "30.0": {
+            "expectancy_bps": -37.6,
+            "win_rate_pct": 32.0,
+            "profit_factor": 0.66
+          }
+        }
+      }
+    }
+  },
+  "decompositions": {
+    "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+      "period": "DEV_WALK_FORWARD_SELECTION_2024_2025",
+      "executed_trade_count": 369,
+      "overall_gross_expectancy_bps": 40.14,
+      "overall_net_expectancy_bps": 26.11,
+      "overall_net_pnl_usd": 2619.56,
+      "by_symbol": {
+        "BNB": {
+          "count": 128,
+          "share_pct": 34.7,
+          "gross_exp_bps": 21.22,
+          "net_exp_bps": 7.21,
+          "win_rate_pct": 38.3,
+          "net_pnl_usd": 288.71
+        },
+        "BTC": {
+          "count": 163,
+          "share_pct": 44.2,
+          "gross_exp_bps": 42.89,
+          "net_exp_bps": 28.86,
+          "win_rate_pct": 42.9,
+          "net_pnl_usd": 1204.55
+        },
+        "ETH": {
+          "count": 78,
+          "share_pct": 21.1,
+          "gross_exp_bps": 65.44,
+          "net_exp_bps": 51.39,
+          "win_rate_pct": 46.2,
+          "net_pnl_usd": 1126.31
+        }
+      },
+      "by_side": {
+        "BUY": {
+          "count": 222,
+          "share_pct": 60.2,
+          "gross_exp_bps": 45.44,
+          "net_exp_bps": 31.41,
+          "win_rate_pct": 44.1,
+          "net_pnl_usd": 1946.48
+        },
+        "SELL": {
+          "count": 147,
+          "share_pct": 39.8,
+          "gross_exp_bps": 32.14,
+          "net_exp_bps": 18.12,
+          "win_rate_pct": 38.8,
+          "net_pnl_usd": 673.08
+        }
+      },
+      "by_symbol_side": {
+        "BNB_BUY": {
+          "count": 75,
+          "share_pct": 20.3,
+          "gross_exp_bps": 33.88,
+          "net_exp_bps": 19.86,
+          "win_rate_pct": 42.7,
+          "net_pnl_usd": 488.21
+        },
+        "BNB_SELL": {
+          "count": 53,
+          "share_pct": 14.4,
+          "gross_exp_bps": 3.31,
+          "net_exp_bps": -10.7,
+          "win_rate_pct": 32.1,
+          "net_pnl_usd": -199.5
+        },
+        "BTC_BUY": {
+          "count": 94,
+          "share_pct": 25.5,
+          "gross_exp_bps": 49.38,
+          "net_exp_bps": 35.34,
+          "win_rate_pct": 45.7,
+          "net_pnl_usd": 861.2
+        },
+        "BTC_SELL": {
+          "count": 69,
+          "share_pct": 18.7,
+          "gross_exp_bps": 34.06,
+          "net_exp_bps": 20.03,
+          "win_rate_pct": 39.1,
+          "net_pnl_usd": 343.34
+        },
+        "ETH_BUY": {
+          "count": 53,
+          "share_pct": 14.4,
+          "gross_exp_bps": 54.81,
+          "net_exp_bps": 40.77,
+          "win_rate_pct": 43.4,
+          "net_pnl_usd": 597.07
+        },
+        "ETH_SELL": {
+          "count": 25,
+          "share_pct": 6.8,
+          "gross_exp_bps": 87.97,
+          "net_exp_bps": 73.91,
+          "win_rate_pct": 52.0,
+          "net_pnl_usd": 529.24
+        }
+      },
+      "by_exit_reason": {
+        "SL": {
+          "count": 193,
+          "share_pct": 52.3,
+          "gross_exp_bps": -150.0,
+          "net_exp_bps": -163.89,
+          "win_rate_pct": 0.0,
+          "net_pnl_usd": -9198.14,
+          "avg_bars_held": 58.3
+        },
+        "TIMEOUT": {
+          "count": 64,
+          "share_pct": 17.3,
+          "gross_exp_bps": 71.28,
+          "net_exp_bps": 57.23,
+          "win_rate_pct": 67.2,
+          "net_pnl_usd": 1036.41,
+          "avg_bars_held": 192.0
+        },
+        "TP": {
+          "count": 112,
+          "share_pct": 30.4,
+          "gross_exp_bps": 350.0,
+          "net_exp_bps": 335.75,
+          "win_rate_pct": 100.0,
+          "net_pnl_usd": 10781.3,
+          "avg_bars_held": 73.4
+        }
+      },
+      "by_holding_period": {
+        "1-16_bars_le4h": {
+          "count": 49,
+          "share_pct": 13.3,
+          "gross_exp_bps": -58.16,
+          "net_exp_bps": -72.12,
+          "win_rate_pct": 18.4,
+          "net_pnl_usd": -1091.27
+        },
+        "17-48_bars_4-12h": {
+          "count": 85,
+          "share_pct": 23.0,
+          "gross_exp_bps": 2.94,
+          "net_exp_bps": -11.06,
+          "win_rate_pct": 30.6,
+          "net_pnl_usd": -314.75
+        },
+        "49-96_bars_12-24h": {
+          "count": 98,
+          "share_pct": 26.6,
+          "gross_exp_bps": 74.49,
+          "net_exp_bps": 60.44,
+          "win_rate_pct": 44.9,
+          "net_pnl_usd": 1646.94
+        },
+        "97-192_bars_24-48h": {
+          "count": 137,
+          "share_pct": 37.1,
+          "gross_exp_bps": 73.81,
+          "net_exp_bps": 59.76,
+          "win_rate_pct": 55.5,
+          "net_pnl_usd": 2378.64
+        }
+      },
+      "by_session_utc": {
+        "00-06_ASIA": {
+          "count": 74,
+          "share_pct": 20.1,
+          "gross_exp_bps": 63.98,
+          "net_exp_bps": 49.94,
+          "win_rate_pct": 47.3,
+          "net_pnl_usd": 1086.65
+        },
+        "06-12_EU": {
+          "count": 80,
+          "share_pct": 21.7,
+          "gross_exp_bps": 51.35,
+          "net_exp_bps": 37.32,
+          "win_rate_pct": 43.8,
+          "net_pnl_usd": 816.25
+        },
+        "12-18_US": {
+          "count": 136,
+          "share_pct": 36.9,
+          "gross_exp_bps": 41.08,
+          "net_exp_bps": 27.05,
+          "win_rate_pct": 43.4,
+          "net_pnl_usd": 963.14
+        },
+        "18-24_LATE_US": {
+          "count": 79,
+          "share_pct": 21.4,
+          "gross_exp_bps": 4.83,
+          "net_exp_bps": -9.18,
+          "win_rate_pct": 32.9,
+          "net_pnl_usd": -246.48
+        }
+      },
+      "by_day_of_week": {
+        "Monday": {
+          "count": 73,
+          "share_pct": 19.8,
+          "gross_exp_bps": 53.15,
+          "net_exp_bps": 39.12,
+          "win_rate_pct": 42.5,
+          "net_pnl_usd": 745.27
+        },
+        "Tuesday": {
+          "count": 36,
+          "share_pct": 9.8,
+          "gross_exp_bps": 36.31,
+          "net_exp_bps": 22.29,
+          "win_rate_pct": 47.2,
+          "net_pnl_usd": 238.61
+        },
+        "Wednesday": {
+          "count": 45,
+          "share_pct": 12.2,
+          "gross_exp_bps": 95.36,
+          "net_exp_bps": 81.29,
+          "win_rate_pct": 48.9,
+          "net_pnl_usd": 1040.25
+        },
+        "Thursday": {
+          "count": 37,
+          "share_pct": 10.0,
+          "gross_exp_bps": 19.73,
+          "net_exp_bps": 5.72,
+          "win_rate_pct": 43.2,
+          "net_pnl_usd": 46.49
+        },
+        "Friday": {
+          "count": 32,
+          "share_pct": 8.7,
+          "gross_exp_bps": 26.3,
+          "net_exp_bps": 12.28,
+          "win_rate_pct": 37.5,
+          "net_pnl_usd": 84.53
+        },
+        "Saturday": {
+          "count": 38,
+          "share_pct": 10.3,
+          "gross_exp_bps": 56.66,
+          "net_exp_bps": 42.62,
+          "win_rate_pct": 44.7,
+          "net_pnl_usd": 488.94
+        },
+        "Sunday": {
+          "count": 108,
+          "share_pct": 29.3,
+          "gross_exp_bps": 14.89,
+          "net_exp_bps": 0.88,
+          "win_rate_pct": 37.0,
+          "net_pnl_usd": -24.52
+        }
+      },
+      "cost_sensitivity": {
+        "10.0": {
+          "expectancy_bps": 30.14,
+          "win_rate_pct": 42.5,
+          "profit_factor": 1.34
+        },
+        "14.0": {
+          "expectancy_bps": 26.14,
+          "win_rate_pct": 42.0,
+          "profit_factor": 1.29
+        },
+        "20.0": {
+          "expectancy_bps": 20.14,
+          "win_rate_pct": 41.5,
+          "profit_factor": 1.22
+        },
+        "30.0": {
+          "expectancy_bps": 10.14,
+          "win_rate_pct": 41.5,
+          "profit_factor": 1.1
+        }
+      }
+    },
+    "BURNED_EXPOSED_AUDIT_2026_H1": {
+      "period": "BURNED_EXPOSED_AUDIT_2026_H1",
+      "executed_trade_count": 125,
+      "overall_gross_expectancy_bps": -7.6,
+      "overall_net_expectancy_bps": -21.59,
+      "overall_net_pnl_usd": -677.42,
+      "by_symbol": {
+        "BNB": {
+          "count": 45,
+          "share_pct": 36.0,
+          "gross_exp_bps": -2.78,
+          "net_exp_bps": -16.78,
+          "win_rate_pct": 37.8,
+          "net_pnl_usd": -206.87
+        },
+        "BTC": {
+          "count": 49,
+          "share_pct": 39.2,
+          "gross_exp_bps": -27.61,
+          "net_exp_bps": -41.59,
+          "win_rate_pct": 28.6,
+          "net_pnl_usd": -514.96
+        },
+        "ETH": {
+          "count": 31,
+          "share_pct": 24.8,
+          "gross_exp_bps": 17.03,
+          "net_exp_bps": 3.02,
+          "win_rate_pct": 35.5,
+          "net_pnl_usd": 44.41
+        }
+      },
+      "by_side": {
+        "BUY": {
+          "count": 71,
+          "share_pct": 56.8,
+          "gross_exp_bps": -27.08,
+          "net_exp_bps": -41.06,
+          "win_rate_pct": 29.6,
+          "net_pnl_usd": -701.28
+        },
+        "SELL": {
+          "count": 54,
+          "share_pct": 43.2,
+          "gross_exp_bps": 18.02,
+          "net_exp_bps": 4.01,
+          "win_rate_pct": 38.9,
+          "net_pnl_usd": 23.86
+        }
+      },
+      "by_symbol_side": {
+        "BNB_BUY": {
+          "count": 28,
+          "share_pct": 22.4,
+          "gross_exp_bps": -29.64,
+          "net_exp_bps": -43.62,
+          "win_rate_pct": 32.1,
+          "net_pnl_usd": -304.74
+        },
+        "BNB_SELL": {
+          "count": 17,
+          "share_pct": 13.6,
+          "gross_exp_bps": 41.47,
+          "net_exp_bps": 27.44,
+          "win_rate_pct": 47.1,
+          "net_pnl_usd": 97.87
+        },
+        "BTC_BUY": {
+          "count": 27,
+          "share_pct": 21.6,
+          "gross_exp_bps": -36.42,
+          "net_exp_bps": -50.4,
+          "win_rate_pct": 25.9,
+          "net_pnl_usd": -329.65
+        },
+        "BTC_SELL": {
+          "count": 22,
+          "share_pct": 17.6,
+          "gross_exp_bps": -16.8,
+          "net_exp_bps": -30.78,
+          "win_rate_pct": 31.8,
+          "net_pnl_usd": -185.31
+        },
+        "ETH_BUY": {
+          "count": 16,
+          "share_pct": 12.8,
+          "gross_exp_bps": -6.84,
+          "net_exp_bps": -20.84,
+          "win_rate_pct": 31.2,
+          "net_pnl_usd": -66.89
+        },
+        "ETH_SELL": {
+          "count": 15,
+          "share_pct": 12.0,
+          "gross_exp_bps": 42.51,
+          "net_exp_bps": 28.48,
+          "win_rate_pct": 40.0,
+          "net_pnl_usd": 111.3
+        }
+      },
+      "by_exit_reason": {
+        "SL": {
+          "count": 72,
+          "share_pct": 57.6,
+          "gross_exp_bps": -150.0,
+          "net_exp_bps": -163.89,
+          "win_rate_pct": 0.0,
+          "net_pnl_usd": -2883.22,
+          "avg_bars_held": 58.8
+        },
+        "TIMEOUT": {
+          "count": 32,
+          "share_pct": 25.6,
+          "gross_exp_bps": 78.13,
+          "net_exp_bps": 64.08,
+          "win_rate_pct": 65.6,
+          "net_pnl_usd": 492.62,
+          "avg_bars_held": 192.0
+        },
+        "TP": {
+          "count": 21,
+          "share_pct": 16.8,
+          "gross_exp_bps": 350.0,
+          "net_exp_bps": 335.75,
+          "win_rate_pct": 100.0,
+          "net_pnl_usd": 1713.19,
+          "avg_bars_held": 65.2
+        }
+      },
+      "by_holding_period": {
+        "1-16_bars_le4h": {
+          "count": 22,
+          "share_pct": 17.6,
+          "gross_exp_bps": -36.36,
+          "net_exp_bps": -50.34,
+          "win_rate_pct": 22.7,
+          "net_pnl_usd": -290.33
+        },
+        "17-48_bars_4-12h": {
+          "count": 25,
+          "share_pct": 20.0,
+          "gross_exp_bps": -90.0,
+          "net_exp_bps": -103.94,
+          "win_rate_pct": 12.0,
+          "net_pnl_usd": -625.5
+        },
+        "49-96_bars_12-24h": {
+          "count": 26,
+          "share_pct": 20.8,
+          "gross_exp_bps": 23.08,
+          "net_exp_bps": 9.06,
+          "win_rate_pct": 34.6,
+          "net_pnl_usd": 64.53
+        },
+        "97-192_bars_24-48h": {
+          "count": 52,
+          "share_pct": 41.6,
+          "gross_exp_bps": 28.85,
+          "net_exp_bps": 14.83,
+          "win_rate_pct": 48.1,
+          "net_pnl_usd": 173.88
+        }
+      },
+      "by_session_utc": {
+        "00-06_ASIA": {
+          "count": 31,
+          "share_pct": 24.8,
+          "gross_exp_bps": 24.98,
+          "net_exp_bps": 10.96,
+          "win_rate_pct": 38.7,
+          "net_pnl_usd": 99.4
+        },
+        "06-12_EU": {
+          "count": 25,
+          "share_pct": 20.0,
+          "gross_exp_bps": -16.91,
+          "net_exp_bps": -30.9,
+          "win_rate_pct": 36.0,
+          "net_pnl_usd": -196.4
+        },
+        "12-18_US": {
+          "count": 45,
+          "share_pct": 36.0,
+          "gross_exp_bps": -22.55,
+          "net_exp_bps": -36.53,
+          "win_rate_pct": 28.9,
+          "net_pnl_usd": -424.59
+        },
+        "18-24_LATE_US": {
+          "count": 24,
+          "share_pct": 19.2,
+          "gross_exp_bps": -11.94,
+          "net_exp_bps": -25.93,
+          "win_rate_pct": 33.3,
+          "net_pnl_usd": -155.83
+        }
+      },
+      "by_day_of_week": {
+        "Monday": {
+          "count": 21,
+          "share_pct": 16.8,
+          "gross_exp_bps": -78.57,
+          "net_exp_bps": -92.52,
+          "win_rate_pct": 14.3,
+          "net_pnl_usd": -468.39
+        },
+        "Tuesday": {
+          "count": 14,
+          "share_pct": 11.2,
+          "gross_exp_bps": 91.17,
+          "net_exp_bps": 77.1,
+          "win_rate_pct": 50.0,
+          "net_pnl_usd": 277.49
+        },
+        "Wednesday": {
+          "count": 23,
+          "share_pct": 18.4,
+          "gross_exp_bps": -1.27,
+          "net_exp_bps": -15.27,
+          "win_rate_pct": 30.4,
+          "net_pnl_usd": -119.17
+        },
+        "Thursday": {
+          "count": 10,
+          "share_pct": 8.0,
+          "gross_exp_bps": -22.03,
+          "net_exp_bps": -36.02,
+          "win_rate_pct": 30.0,
+          "net_pnl_usd": -83.46
+        },
+        "Friday": {
+          "count": 17,
+          "share_pct": 13.6,
+          "gross_exp_bps": 18.2,
+          "net_exp_bps": 4.19,
+          "win_rate_pct": 52.9,
+          "net_pnl_usd": 11.91
+        },
+        "Saturday": {
+          "count": 13,
+          "share_pct": 10.4,
+          "gross_exp_bps": -30.17,
+          "net_exp_bps": -44.15,
+          "win_rate_pct": 30.8,
+          "net_pnl_usd": -151.71
+        },
+        "Sunday": {
+          "count": 27,
+          "share_pct": 21.6,
+          "gross_exp_bps": -9.03,
+          "net_exp_bps": -23.02,
+          "win_rate_pct": 33.3,
+          "net_pnl_usd": -144.09
+        }
+      },
+      "cost_sensitivity": {
+        "10.0": {
+          "expectancy_bps": -17.6,
+          "win_rate_pct": 33.6,
+          "profit_factor": 0.82
+        },
+        "14.0": {
+          "expectancy_bps": -21.6,
+          "win_rate_pct": 33.6,
+          "profit_factor": 0.78
+        },
+        "20.0": {
+          "expectancy_bps": -27.6,
+          "win_rate_pct": 33.6,
+          "profit_factor": 0.73
+        },
+        "30.0": {
+          "expectancy_bps": -37.6,
+          "win_rate_pct": 32.0,
+          "profit_factor": 0.66
+        }
+      }
+    }
+  },
+  "performance_metadata": {
+    "elapsed_seconds": 112.83,
+    "canonical_elapsed_seconds_without_memory_instrumentation": 112.83,
+    "profiled_elapsed_seconds": null,
+    "peak_memory_mb": null,
+    "profiling_enabled": false,
+    "stage_timing_seconds": {
+      "load_symbol_candles_seconds": 51.729,
+      "build_hourly_mtm_candles_seconds": 0.015,
+      "compute_dataset_manifest_seconds": 0.001,
+      "init_feature_cache_seconds": 0.004,
+      "pre_slice_hourly_candles_seconds": 0.005,
+      "v1_stream_simulation_seconds": 3.917,
+      "v1_evaluation_seconds": 7.329,
+      "v1_decomposition_seconds": 0.077,
+      "variants_simulation_and_eval_seconds": 49.757,
+      "total_wall_clock_seconds": 112.834
+    }
+  },
+  "semantic_artifact_sha256": "1f363597633c3e17cda6b32bda6a02252f7e575d6058d23205160f8a8e7f10c3"
+}

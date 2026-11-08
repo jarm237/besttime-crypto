@@ -1,0 +1,5303 @@
+{
+  "evaluation_timestamp": "2026-11-01T18:55:57.834229+00:00",
+  "scaffold_path": "D:\\Workspaces\\besttime-crypto\\research\\historical_market_replay_v5\\v5_causal_e4_scaffold_2023_2026.parquet",
+  "total_scaffold_trades": 396159,
+  "interval_and_boundary_contract": {
+    "interval_semantics": "half_open_[start,end)",
+    "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+    "training_fold_outcome_guard": "entry_timestamp < fold_end AND exit_timestamp < fold_end"
+  },
+  "split_and_multiple_testing_governance": {
+    "EXPLORATORY_TRAIN_2023": "Exploratory discovery & fold-1 training [2023-01-01, 2024-01-01)",
+    "DEV_WALK_FORWARD_SELECTION_2024_2025": "Development selection / walk-forward development evidence [2024-01-01, 2026-01-01) \u2014 participated in candidate/barrier/universe selection; NOT independent confirmatory OOS.",
+    "BURNED_EXPOSED_AUDIT_2026_H1": "Exposed one-shot audit [2026-01-01, 2026-07-01) \u2014 failed and permanently burned; never reusable for parameter tuning or candidate selection.",
+    "multiple_testing_trials_count": "UNKNOWN",
+    "ci_interpretation_warning": "Because the exact count of informal feature/barrier hypotheses explored prior to lock is UNKNOWN, all historical confidence intervals prior to prospective shadow lock are exploratory and unadjusted for selection bias.",
+    "primary_statistical_gate": "Moving-Block & Politis-Romano Stationary Bootstrap (block_size=10d) on cross-symbol daily MTM portfolio returns; IID trade-level bootstrap is strictly diagnostic and cannot pass promotion."
+  },
+  "walk_forward_metrics": {
+    "dev_brier_score": 0.23440634639118835,
+    "dev_spearman_rank_correlation": 0.00013975546759007496,
+    "positive_ev_floor_bps": 0.0,
+    "fold_1": {
+      "raw_p80_hurdle_bps": -13.584271047995463,
+      "effective_hurdle_bps": 0.0,
+      "excluded_cross_boundary_train_rows": 12
+    },
+    "fold_2": {
+      "raw_p80_hurdle_bps": -13.517723694513785,
+      "effective_hurdle_bps": 0.0,
+      "excluded_cross_boundary_train_rows": 31
+    },
+    "audit_set_2026": {
+      "raw_p80_hurdle_bps": -13.660714879711518,
+      "effective_hurdle_bps": 0.0,
+      "excluded_cross_boundary_train_rows": 45
+    },
+    "vol_compression_breakout_v1_governance": {
+      "candidate_id": "VOL_COMPRESSION_BREAKOUT_V1",
+      "spec_version": "1.1.0-next-bar-open",
+      "execution_timing_contract": {
+        "signal_confirmation": "bar_i_close (signal_close_timestamp = signal_timestamp + 15m)",
+        "earliest_entry": "bar_i_plus_1_open (entry_index = signal_index + 1, entry_price = opens[i+1])",
+        "future_bar_admission_leakage": false,
+        "intrabar_tp_sl_collision_policy": "SL_FIRST_CONSERVATIVE",
+        "gap_through_stop_policy": "ADVERSE_OPEN_PRICE_FILL (SL_GAP)",
+        "max_hold_anchor": "entry_index (entry_index .. entry_index + max_hold - 1)"
+      },
+      "parameters": {
+        "universe": [
+          "BTC",
+          "ETH",
+          "BNB"
+        ],
+        "donchian_bars": 96,
+        "sma_fast_bars": 96,
+        "sma_slow_bars": 384,
+        "min_vol_ratio_96": 1.2,
+        "atr_compression_bars": 192,
+        "atr_compression_quantile": 0.65,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0,
+        "max_hold_bars": 192
+      },
+      "spec_sha256": "e83a4e7d65f138819a09cc81e68ed4d5ef1a640579139bf89e4a6a5a00033a5d",
+      "split_governance": {
+        "exploratory_discovery_split": "EXPLORATORY_TRAIN_2023 [2023-01-01, 2024-01-01)",
+        "development_selection_split": "DEV_WALK_FORWARD_SELECTION_2024_2025 [2024-01-01, 2026-01-01)",
+        "is_2024_2025_independent_confirmatory_oos": false,
+        "exposed_one_shot_audit_split": "BURNED_EXPOSED_AUDIT_2026_H1 [2026-01-01, 2026-07-01)",
+        "audit_2026_status": "BURNED_FAILED_ONE_SHOT_AUDIT_NEVER_REUSED_FOR_TUNING",
+        "audit_2026_used_in_design_or_selection": false,
+        "multiple_testing_trials_count": "UNKNOWN",
+        "historical_ci_epistemic_status": "EXPLORATORY_ONLY \u2014 candidate family, symbol set, and barrier scale were selected across 2023 discovery and 2024-2025 development folds without a pre-registered exhaustive trial counter."
+      },
+      "fold_fitted_atr_q65_thresholds_bps": {
+        "fold_1_train_2023_applied_to_2024": 32.741,
+        "fold_2_train_2023_2024_applied_to_2025": 37.914,
+        "audit_train_2023_2025_applied_to_2026": 38.305
+      },
+      "next_bar_open_diagnostics": {
+        "total_filtered_signals": 3713,
+        "gap_through_stop_count": 0,
+        "same_bar_collision_count": 0,
+        "entry_bar_immediate_exit_count": 28
+      }
+    }
+  },
+  "candidates": {
+    "NO_TRADE": {
+      "classification": "BASELINE_ABSTENTION",
+      "description": "Baseline abstention (zero orders, zero risk, preserves capital)",
+      "periods": {
+        "EXPLORATORY_TRAIN_2023": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_SELECTION_2024": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_SELECTION_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0,
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        }
+      }
+    },
+    "CONTROL": {
+      "classification": "PASSIVE_BASELINE",
+      "description": "Raw unguided E4 trend-spread candidates (TP=50, SL=30, H=96)",
+      "periods": {
+        "EXPLORATORY_TRAIN_2023": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 6765.94,
+            "total_net_pnl_usd": -3234.06,
+            "total_net_pnl_pct": -32.3406,
+            "executed_trades_count": 1005,
+            "rejected_capacity_count": 115108,
+            "excluded_cross_boundary_count": 12,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 358,
+            "loss_count": 647,
+            "win_rate_pct": 35.62,
+            "gross_profit_usd": 2548.96,
+            "gross_loss_usd": 5783.01,
+            "profit_factor": 0.4408,
+            "expectancy_usd": -3.218,
+            "expectancy_bps": -15.91,
+            "realized_drawdown_pct": 32.3777,
+            "realized_drawdown_usd": 3236.07,
+            "mtm_drawdown_pct": 32.3425,
+            "mtm_drawdown_usd": 3231.44,
+            "max_drawdown_pct": 32.3777,
+            "max_drawdown_usd": 3236.07,
+            "capital_turnover": 406.496,
+            "exposure_pct": 19.968,
+            "capital_utilization_pct": 6.2234,
+            "daily_sharpe": -12.5744,
+            "daily_sortino": -9.4648,
+            "candidate_signals_in_window": 116125,
+            "gross_expectancy_bps": -1.53
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 339,
+              "BTC": 330,
+              "ETH": 336
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 339,
+                "gross_expectancy_bps": -2.0,
+                "net_expectancy_14bps": -16.0
+              },
+              "BTC": {
+                "executed_n": 330,
+                "gross_expectancy_bps": 1.32,
+                "net_expectancy_14bps": -12.69
+              },
+              "ETH": {
+                "executed_n": 336,
+                "gross_expectancy_bps": -3.84,
+                "net_expectancy_14bps": -17.84
+              }
+            },
+            "max_symbol_trade_share_pct": 33.73,
+            "max_single_trade_profit_share_pct": 0.35
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": -15.91,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.44,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": false,
+              "value_pct": 32.38,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 1005,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": -1.53,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": false,
+              "value_bps": -21.53,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -12.4468,
+              "diagnostic_iid_trade_ci_lower_bps": -17.75,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 365,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 33.73,
+              "max_single_trade_profit_share_pct": 0.35,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                1005
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 365,
+            "block_size_days": 10,
+            "mean_daily_bps": -10.68478123596723,
+            "ci_lower": -12.44678608861637,
+            "ci_upper": -8.940527396541192,
+            "moving_block_ci_lower": -12.342990973242603,
+            "moving_block_ci_upper": -8.940527396541192,
+            "stationary_ci_lower": -12.44678608861637,
+            "stationary_ci_upper": -8.992713718909735
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 53,
+            "mean_cluster_net_bps": -15.526473364036349,
+            "ci_lower": -17.904910490281083,
+            "ci_upper": -13.14692733751093
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -1.527542643887068,
+            "ci_lower": -3.7563169490826187,
+            "ci_upper": 0.893912516253513,
+            "n_trades": 1005
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -15.526473364036347,
+            "ci_lower": -17.753687527218258,
+            "ci_upper": -13.106713222507866,
+            "n_trades": 1005
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -11.53,
+              "win_rate_pct": 35.6,
+              "profit_factor": 0.55
+            },
+            "14.0": {
+              "expectancy_bps": -15.53,
+              "win_rate_pct": 35.6,
+              "profit_factor": 0.45
+            },
+            "20.0": {
+              "expectancy_bps": -21.53,
+              "win_rate_pct": 35.4,
+              "profit_factor": 0.33
+            },
+            "30.0": {
+              "expectancy_bps": -31.53,
+              "win_rate_pct": 35.3,
+              "profit_factor": 0.18
+            }
+          }
+        },
+        "DEV_SELECTION_2024": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 6928.32,
+            "total_net_pnl_usd": -3071.68,
+            "total_net_pnl_pct": -30.7168,
+            "executed_trades_count": 1045,
+            "rejected_capacity_count": 111067,
+            "excluded_cross_boundary_count": 31,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 391,
+            "loss_count": 654,
+            "win_rate_pct": 37.42,
+            "gross_profit_usd": 2906.6,
+            "gross_loss_usd": 5978.28,
+            "profit_factor": 0.4862,
+            "expectancy_usd": -2.9394,
+            "expectancy_bps": -14.16,
+            "realized_drawdown_pct": 30.8976,
+            "realized_drawdown_usd": 3088.14,
+            "mtm_drawdown_pct": 30.9324,
+            "mtm_drawdown_usd": 3091.74,
+            "max_drawdown_pct": 30.9324,
+            "max_drawdown_usd": 3091.74,
+            "capital_turnover": 433.9081,
+            "exposure_pct": 13.2969,
+            "capital_utilization_pct": 3.6656,
+            "daily_sharpe": -11.1136,
+            "daily_sortino": -8.75,
+            "candidate_signals_in_window": 112143,
+            "gross_expectancy_bps": -0.03
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 350,
+              "BTC": 343,
+              "ETH": 352
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 350,
+                "gross_expectancy_bps": 1.31,
+                "net_expectancy_14bps": -12.69
+              },
+              "BTC": {
+                "executed_n": 343,
+                "gross_expectancy_bps": -0.02,
+                "net_expectancy_14bps": -14.02
+              },
+              "ETH": {
+                "executed_n": 352,
+                "gross_expectancy_bps": -1.36,
+                "net_expectancy_14bps": -15.36
+              }
+            },
+            "max_symbol_trade_share_pct": 33.68,
+            "max_single_trade_profit_share_pct": 0.31
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": -14.16,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.49,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": false,
+              "value_pct": 30.93,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 1045,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": -0.03,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": false,
+              "value_bps": -20.03,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -11.8366,
+              "diagnostic_iid_trade_ci_lower_bps": -16.32,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 366,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 33.68,
+              "max_single_trade_profit_share_pct": 0.31,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                1045
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 366,
+            "block_size_days": 10,
+            "mean_daily_bps": -10.006650752438684,
+            "ci_lower": -11.83659243768418,
+            "ci_upper": -8.217694778695376,
+            "moving_block_ci_lower": -11.759311445785603,
+            "moving_block_ci_upper": -8.217694778695376,
+            "stationary_ci_lower": -11.83659243768418,
+            "stationary_ci_upper": -8.398107963851201
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 53,
+            "mean_cluster_net_bps": -14.025066392220564,
+            "ci_lower": -16.46578834062588,
+            "ci_upper": -11.65971435369622
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -0.025083950986255293,
+            "ci_lower": -2.3217346686896048,
+            "ci_upper": 2.3553701566106118,
+            "n_trades": 1045
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -14.025066392220566,
+            "ci_lower": -16.32010945442152,
+            "ci_upper": -11.646278602499015,
+            "n_trades": 1045
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -10.03,
+              "win_rate_pct": 37.5,
+              "profit_factor": 0.6
+            },
+            "14.0": {
+              "expectancy_bps": -14.03,
+              "win_rate_pct": 37.4,
+              "profit_factor": 0.49
+            },
+            "20.0": {
+              "expectancy_bps": -20.03,
+              "win_rate_pct": 37.4,
+              "profit_factor": 0.36
+            },
+            "30.0": {
+              "expectancy_bps": -30.03,
+              "win_rate_pct": 37.4,
+              "profit_factor": 0.2
+            }
+          }
+        },
+        "DEV_SELECTION_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 6503.53,
+            "total_net_pnl_usd": -3496.47,
+            "total_net_pnl_pct": -34.9647,
+            "executed_trades_count": 1039,
+            "rejected_capacity_count": 110752,
+            "excluded_cross_boundary_count": 45,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 357,
+            "loss_count": 682,
+            "win_rate_pct": 34.36,
+            "gross_profit_usd": 2638.2,
+            "gross_loss_usd": 6134.67,
+            "profit_factor": 0.43,
+            "expectancy_usd": -3.3652,
+            "expectancy_bps": -16.41,
+            "realized_drawdown_pct": 35.0588,
+            "realized_drawdown_usd": 3504.04,
+            "mtm_drawdown_pct": 34.8798,
+            "mtm_drawdown_usd": 3476.48,
+            "max_drawdown_pct": 35.0588,
+            "max_drawdown_usd": 3504.04,
+            "capital_turnover": 426.0051,
+            "exposure_pct": 14.4521,
+            "capital_utilization_pct": 3.9246,
+            "daily_sharpe": -14.0865,
+            "daily_sortino": -10.2181,
+            "candidate_signals_in_window": 111836,
+            "gross_expectancy_bps": -2.54
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 345,
+              "BTC": 339,
+              "ETH": 355
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 345,
+                "gross_expectancy_bps": -1.71,
+                "net_expectancy_14bps": -15.71
+              },
+              "BTC": {
+                "executed_n": 339,
+                "gross_expectancy_bps": -3.19,
+                "net_expectancy_14bps": -17.19
+              },
+              "ETH": {
+                "executed_n": 355,
+                "gross_expectancy_bps": -2.73,
+                "net_expectancy_14bps": -16.73
+              }
+            },
+            "max_symbol_trade_share_pct": 34.17,
+            "max_single_trade_profit_share_pct": 0.34
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": -16.41,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.43,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": false,
+              "value_pct": 35.06,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 1039,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": -2.54,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": false,
+              "value_bps": -22.54,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -13.6671,
+              "diagnostic_iid_trade_ci_lower_bps": -18.77,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 365,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 34.17,
+              "max_single_trade_profit_share_pct": 0.34,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                1039
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 365,
+            "block_size_days": 10,
+            "mean_daily_bps": -11.76774229645151,
+            "ci_lower": -13.667059943168981,
+            "ci_upper": -9.8565958800947,
+            "moving_block_ci_lower": -13.531954704881048,
+            "moving_block_ci_upper": -9.9957254635758,
+            "stationary_ci_lower": -13.667059943168981,
+            "stationary_ci_upper": -9.8565958800947
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 53,
+            "mean_cluster_net_bps": -16.541174916849815,
+            "ci_lower": -18.75267095213031,
+            "ci_upper": -14.272183337169452
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -2.5429549853395534,
+            "ci_lower": -4.775871250979591,
+            "ci_upper": -0.29449559390837915,
+            "n_trades": 1039
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -16.541174916849815,
+            "ci_lower": -18.772528141103905,
+            "ci_upper": -14.294289446992643,
+            "n_trades": 1039
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -12.54,
+              "win_rate_pct": 34.4,
+              "profit_factor": 0.52
+            },
+            "14.0": {
+              "expectancy_bps": -16.54,
+              "win_rate_pct": 34.4,
+              "profit_factor": 0.43
+            },
+            "20.0": {
+              "expectancy_bps": -22.54,
+              "win_rate_pct": 34.3,
+              "profit_factor": 0.31
+            },
+            "30.0": {
+              "expectancy_bps": -32.54,
+              "win_rate_pct": 34.3,
+              "profit_factor": 0.17
+            }
+          }
+        },
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 4487.86,
+            "total_net_pnl_usd": -5512.14,
+            "total_net_pnl_pct": -55.1214,
+            "executed_trades_count": 2084,
+            "rejected_capacity_count": 221850,
+            "excluded_cross_boundary_count": 45,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 746,
+            "loss_count": 1338,
+            "win_rate_pct": 35.8,
+            "gross_profit_usd": 4717.39,
+            "gross_loss_usd": 10229.54,
+            "profit_factor": 0.4612,
+            "expectancy_usd": -2.645,
+            "expectancy_bps": -15.14,
+            "realized_drawdown_pct": 55.1864,
+            "realized_drawdown_usd": 5515.74,
+            "mtm_drawdown_pct": 55.1892,
+            "mtm_drawdown_usd": 5516.23,
+            "max_drawdown_pct": 55.1892,
+            "max_drawdown_usd": 5516.23,
+            "capital_turnover": 728.151,
+            "exposure_pct": 13.7939,
+            "capital_utilization_pct": 3.7721,
+            "daily_sharpe": -12.5308,
+            "daily_sortino": -9.4727,
+            "candidate_signals_in_window": 223979,
+            "gross_expectancy_bps": -1.36
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 695,
+              "BTC": 682,
+              "ETH": 707
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 695,
+                "gross_expectancy_bps": -0.42,
+                "net_expectancy_14bps": -14.42
+              },
+              "BTC": {
+                "executed_n": 682,
+                "gross_expectancy_bps": -1.6,
+                "net_expectancy_14bps": -15.59
+              },
+              "ETH": {
+                "executed_n": 707,
+                "gross_expectancy_bps": -2.05,
+                "net_expectancy_14bps": -16.05
+              }
+            },
+            "max_symbol_trade_share_pct": 33.93,
+            "max_single_trade_profit_share_pct": 0.19
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": -15.14,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.46,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": false,
+              "value_pct": 55.19,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 2084,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": -1.36,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": false,
+              "value_bps": -21.36,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -12.2219,
+              "diagnostic_iid_trade_ci_lower_bps": -16.97,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 731,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 33.93,
+              "max_single_trade_profit_share_pct": 0.19,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                1045,
+                1039
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 731,
+            "block_size_days": 10,
+            "mean_daily_bps": -10.940560563395675,
+            "ci_lower": -12.221887161780167,
+            "ci_upper": -9.683254332302297,
+            "moving_block_ci_lower": -12.183559039224216,
+            "moving_block_ci_upper": -9.70435283452435,
+            "stationary_ci_lower": -12.221887161780167,
+            "stationary_ci_upper": -9.683254332302297
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 105,
+            "mean_cluster_net_bps": -15.356220306371137,
+            "ci_lower": -16.954087530566078,
+            "ci_upper": -13.658299802520995
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -1.357170325599056,
+            "ci_lower": -2.9698398341135444,
+            "ci_upper": 0.24961101898318958,
+            "n_trades": 2084
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -15.356220306371137,
+            "ci_lower": -16.967760946229664,
+            "ci_upper": -13.750563708730098,
+            "n_trades": 2084
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -11.36,
+              "win_rate_pct": 35.8,
+              "profit_factor": 0.56
+            },
+            "14.0": {
+              "expectancy_bps": -15.36,
+              "win_rate_pct": 35.8,
+              "profit_factor": 0.46
+            },
+            "20.0": {
+              "expectancy_bps": -21.36,
+              "win_rate_pct": 35.7,
+              "profit_factor": 0.33
+            },
+            "30.0": {
+              "expectancy_bps": -31.36,
+              "win_rate_pct": 35.7,
+              "profit_factor": 0.19
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 8536.77,
+            "total_net_pnl_usd": -1463.23,
+            "total_net_pnl_pct": -14.6323,
+            "executed_trades_count": 509,
+            "rejected_capacity_count": 54873,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 201,
+            "loss_count": 308,
+            "win_rate_pct": 39.49,
+            "gross_profit_usd": 1654.74,
+            "gross_loss_usd": 3117.97,
+            "profit_factor": 0.5307,
+            "expectancy_usd": -2.8747,
+            "expectancy_bps": -12.52,
+            "realized_drawdown_pct": 14.5875,
+            "realized_drawdown_usd": 1457.98,
+            "mtm_drawdown_pct": 14.6412,
+            "mtm_drawdown_usd": 1462.13,
+            "max_drawdown_pct": 14.6412,
+            "max_drawdown_usd": 1462.13,
+            "capital_turnover": 233.83,
+            "exposure_pct": 15.2855,
+            "capital_utilization_pct": 4.5005,
+            "daily_sharpe": -9.2999,
+            "daily_sortino": -7.6952,
+            "candidate_signals_in_window": 55382,
+            "gross_expectancy_bps": 1.59
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 167,
+              "BTC": 170,
+              "ETH": 172
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 167,
+                "gross_expectancy_bps": 3.05,
+                "net_expectancy_14bps": -10.95
+              },
+              "BTC": {
+                "executed_n": 170,
+                "gross_expectancy_bps": 0.59,
+                "net_expectancy_14bps": -13.41
+              },
+              "ETH": {
+                "executed_n": 172,
+                "gross_expectancy_bps": 1.16,
+                "net_expectancy_14bps": -12.84
+              }
+            },
+            "max_symbol_trade_share_pct": 33.79,
+            "max_single_trade_profit_share_pct": 0.54
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": -12.52,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.53,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 14.64,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 509,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 1.59,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": false,
+              "value_bps": -18.41,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -10.9976,
+              "diagnostic_iid_trade_ci_lower_bps": -15.87,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 181,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 33.79,
+              "max_single_trade_profit_share_pct": 0.54,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                509
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 181,
+            "block_size_days": 10,
+            "mean_daily_bps": -8.720685276349576,
+            "ci_lower": -10.997587918847351,
+            "ci_upper": -6.556803956232382,
+            "moving_block_ci_lower": -10.948264267382712,
+            "moving_block_ci_upper": -6.556803956232382,
+            "stationary_ci_lower": -10.997587918847351,
+            "stationary_ci_upper": -6.5657465419673695
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 26,
+            "mean_cluster_net_bps": -12.409758349705307,
+            "ci_lower": -15.097035928143713,
+            "ci_upper": -9.581513613455824
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 1.5913555992141455,
+            "ci_lower": -1.8664047151277015,
+            "ci_upper": 5.05304518664045,
+            "n_trades": 509
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -12.409758349705303,
+            "ci_lower": -15.86509823182711,
+            "ci_upper": -8.9504919449902,
+            "n_trades": 509
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -8.41,
+              "win_rate_pct": 39.5,
+              "profit_factor": 0.65
+            },
+            "14.0": {
+              "expectancy_bps": -12.41,
+              "win_rate_pct": 39.5,
+              "profit_factor": 0.53
+            },
+            "20.0": {
+              "expectancy_bps": -18.41,
+              "win_rate_pct": 39.5,
+              "profit_factor": 0.39
+            },
+            "30.0": {
+              "expectancy_bps": -28.41,
+              "win_rate_pct": 39.5,
+              "profit_factor": 0.22
+            }
+          }
+        }
+      }
+    },
+    "S3_LEGACY": {
+      "classification": "OUT_OF_DOMAIN_DIAGNOSTIC",
+      "description": "Legacy S3 filter evaluated out-of-domain on E4 trend-spread stream",
+      "periods": {
+        "EXPLORATORY_TRAIN_2023": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_SELECTION_2024": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_SELECTION_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0,
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        }
+      }
+    },
+    "NET_RETURN_RANKER": {
+      "classification": "COST_AWARE_RANKER_E4",
+      "description": "Cost-aware walk-forward Ridge ranker on narrow E4 stream (collapses to tiny N)",
+      "periods": {
+        "EXPLORATORY_TRAIN_2023": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_SELECTION_2024": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10008.99,
+            "total_net_pnl_usd": 8.99,
+            "total_net_pnl_pct": 0.0899,
+            "executed_trades_count": 1,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 1,
+            "loss_count": 0,
+            "win_rate_pct": 100.0,
+            "gross_profit_usd": 8.99,
+            "gross_loss_usd": 0,
+            "profit_factor": 999.0,
+            "expectancy_usd": 8.9912,
+            "expectancy_bps": 35.96,
+            "realized_drawdown_pct": 0.0175,
+            "realized_drawdown_usd": 1.75,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0175,
+            "max_drawdown_usd": 1.75,
+            "capital_turnover": 0.5012,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.9986,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 1,
+            "gross_expectancy_bps": 50.0
+          },
+          "diversification": {
+            "active_symbols_count": 1,
+            "symbol_trade_counts": {
+              "BNB": 1
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 1,
+                "gross_expectancy_bps": 50.0,
+                "net_expectancy_14bps": 35.97
+              }
+            },
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": true,
+              "value_bps": 35.96,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": true,
+              "value": 999.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.02,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 1,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 50.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 30.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 35.97,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 366,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 1,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                1
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 366,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.024566256830598078,
+            "ci_lower": 0.0,
+            "ci_upper": 0.07369877049179423,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.07369877049179423,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.07369877049179423
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 50.0,
+            "ci_lower": 50.0,
+            "ci_upper": 50.0,
+            "n_trades": 1
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 35.965,
+            "ci_lower": 35.965,
+            "ci_upper": 35.965,
+            "n_trades": 1
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 40.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            },
+            "14.0": {
+              "expectancy_bps": 36.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            },
+            "20.0": {
+              "expectancy_bps": 30.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            },
+            "30.0": {
+              "expectancy_bps": 20.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            }
+          }
+        },
+        "DEV_SELECTION_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        },
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10008.99,
+            "total_net_pnl_usd": 8.99,
+            "total_net_pnl_pct": 0.0899,
+            "executed_trades_count": 1,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 1,
+            "loss_count": 0,
+            "win_rate_pct": 100.0,
+            "gross_profit_usd": 8.99,
+            "gross_loss_usd": 0,
+            "profit_factor": 999.0,
+            "expectancy_usd": 8.9912,
+            "expectancy_bps": 35.96,
+            "realized_drawdown_pct": 0.0175,
+            "realized_drawdown_usd": 1.75,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0175,
+            "max_drawdown_usd": 1.75,
+            "capital_turnover": 0.5012,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.7066,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 1,
+            "gross_expectancy_bps": 50.0
+          },
+          "diversification": {
+            "active_symbols_count": 1,
+            "symbol_trade_counts": {
+              "BNB": 1
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 1,
+                "gross_expectancy_bps": 50.0,
+                "net_expectancy_14bps": 35.97
+              }
+            },
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": true,
+              "value_bps": 35.96,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": true,
+              "value": 999.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.02,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 1,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 50.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 30.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 35.97,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 731,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 1,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                1,
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 731,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.012299931600545686,
+            "ci_lower": 0.0,
+            "ci_upper": 0.036899794801637055,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.036899794801637055,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.036899794801637055
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 50.0,
+            "ci_lower": 50.0,
+            "ci_upper": 50.0,
+            "n_trades": 1
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 35.965,
+            "ci_lower": 35.965,
+            "ci_upper": 35.965,
+            "n_trades": 1
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 40.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            },
+            "14.0": {
+              "expectancy_bps": 36.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            },
+            "20.0": {
+              "expectancy_bps": 30.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            },
+            "30.0": {
+              "expectancy_bps": 20.0,
+              "win_rate_pct": 100.0,
+              "profit_factor": "INF_UNDEFINED_SMALL_SAMPLE"
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10000.0,
+            "total_net_pnl_usd": 0.0,
+            "total_net_pnl_pct": 0.0,
+            "executed_trades_count": 0,
+            "rejected_capacity_count": 0,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 0,
+            "loss_count": 0,
+            "win_rate_pct": 0.0,
+            "gross_profit_usd": 0,
+            "gross_loss_usd": 0,
+            "profit_factor": 0.0,
+            "expectancy_usd": 0.0,
+            "expectancy_bps": 0.0,
+            "realized_drawdown_pct": 0.0,
+            "realized_drawdown_usd": 0.0,
+            "mtm_drawdown_pct": 0.0,
+            "mtm_drawdown_usd": 0.0,
+            "max_drawdown_pct": 0.0,
+            "max_drawdown_usd": 0.0,
+            "capital_turnover": 0.0,
+            "exposure_pct": 0.0,
+            "capital_utilization_pct": 0.0,
+            "daily_sharpe": 0.0,
+            "daily_sortino": 0.0,
+            "candidate_signals_in_window": 0,
+            "gross_expectancy_bps": 0.0
+          },
+          "diversification": {
+            "active_symbols_count": 0,
+            "symbol_trade_counts": {},
+            "symbol_breakdown": {},
+            "max_symbol_trade_share_pct": 100.0,
+            "max_single_trade_profit_share_pct": 100.0
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.0,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 0.0,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": false,
+              "value_n": 0,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": 0.0,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 0.0,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": 0.0,
+              "diagnostic_iid_trade_ci_lower_bps": 0.0,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 0,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": false,
+              "active_symbols_count": 0,
+              "max_symbol_trade_share_pct": 100.0,
+              "max_single_trade_profit_share_pct": 100.0,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": false,
+              "fold_counts": [
+                0
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 0,
+            "block_size_days": 10,
+            "mean_daily_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "moving_block_ci_lower": 0.0,
+            "moving_block_ci_upper": 0.0,
+            "stationary_ci_lower": 0.0,
+            "stationary_ci_upper": 0.0
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 0,
+            "mean_cluster_net_bps": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "n_trades": 0
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "14.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "20.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            },
+            "30.0": {
+              "expectancy_bps": 0.0,
+              "win_rate_pct": 0.0,
+              "profit_factor": 0.0
+            }
+          }
+        }
+      }
+    },
+    "VOL_COMPRESSION_BREAKOUT_V1": {
+      "classification": "EXPLORATORY_DEV_DIRECTIONAL_CANDIDATE_NEXT_BAR_OPEN",
+      "description": "Causal bar-i close signal -> bar-(i+1) open fill + gap-aware SL + SL-first barriers (24h Donchian + SMA_96/384 + vol>=1.2x + fold-fitted ATR_192<=Q65, TP=350, SL=150, H=192)",
+      "periods": {
+        "EXPLORATORY_TRAIN_2023": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 10684.61,
+            "total_net_pnl_usd": 684.61,
+            "total_net_pnl_pct": 6.8461,
+            "executed_trades_count": 226,
+            "rejected_capacity_count": 633,
+            "excluded_cross_boundary_count": 1,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 88,
+            "loss_count": 138,
+            "win_rate_pct": 38.94,
+            "gross_profit_usd": 5889.81,
+            "gross_loss_usd": 5205.19,
+            "profit_factor": 1.1315,
+            "expectancy_usd": 3.0293,
+            "expectancy_bps": 11.83,
+            "realized_drawdown_pct": 10.6926,
+            "realized_drawdown_usd": 1155.97,
+            "mtm_drawdown_pct": 10.9707,
+            "mtm_drawdown_usd": 1189.35,
+            "max_drawdown_pct": 10.9707,
+            "max_drawdown_usd": 1189.35,
+            "capital_turnover": 115.8815,
+            "exposure_pct": 40.9522,
+            "capital_utilization_pct": 14.935,
+            "daily_sharpe": 0.7004,
+            "daily_sortino": 0.7228,
+            "candidate_signals_in_window": 860,
+            "gross_expectancy_bps": 26.68
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 69,
+              "ETH": 78,
+              "BTC": 79
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 69,
+                "gross_expectancy_bps": 35.09,
+                "net_expectancy_14bps": 21.06
+              },
+              "BTC": {
+                "executed_n": 79,
+                "gross_expectancy_bps": 15.72,
+                "net_expectancy_14bps": 1.7
+              },
+              "ETH": {
+                "executed_n": 78,
+                "gross_expectancy_bps": 30.35,
+                "net_expectancy_14bps": 16.33
+              }
+            },
+            "max_symbol_trade_share_pct": 34.96,
+            "max_single_trade_profit_share_pct": 1.53
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": true,
+              "value_bps": 11.83,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": true,
+              "value": 1.13,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 10.97,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 226,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 26.68,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 6.68,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -3.8545,
+              "diagnostic_iid_trade_ci_lower_bps": -15.8,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 365,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 34.96,
+              "max_single_trade_profit_share_pct": 1.53,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                226
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 365,
+            "block_size_days": 10,
+            "mean_daily_bps": 1.9556766023877996,
+            "ci_lower": -3.8545145031145354,
+            "ci_upper": 8.169799934085548,
+            "moving_block_ci_lower": -3.8545145031145354,
+            "moving_block_ci_upper": 8.169799934085548,
+            "stationary_ci_lower": -3.2043195269756763,
+            "stationary_ci_upper": 7.9249728301772375
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 51,
+            "mean_cluster_net_bps": 12.661720794706223,
+            "ci_lower": -21.384862139860232,
+            "ci_upper": 49.772539957396546
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 26.680397072657087,
+            "ci_lower": -1.8036697190688227,
+            "ci_upper": 55.25775284157166,
+            "n_trades": 226
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 12.661720794706227,
+            "ci_lower": -15.80240715026547,
+            "ci_upper": 41.219072414582556,
+            "n_trades": 226
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 16.68,
+              "win_rate_pct": 39.8,
+              "profit_factor": 1.19
+            },
+            "14.0": {
+              "expectancy_bps": 12.68,
+              "win_rate_pct": 38.9,
+              "profit_factor": 1.14
+            },
+            "20.0": {
+              "expectancy_bps": 6.68,
+              "win_rate_pct": 38.9,
+              "profit_factor": 1.07
+            },
+            "30.0": {
+              "expectancy_bps": -3.32,
+              "win_rate_pct": 36.3,
+              "profit_factor": 0.97
+            }
+          }
+        },
+        "DEV_SELECTION_2024": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 11378.79,
+            "total_net_pnl_usd": 1378.79,
+            "total_net_pnl_pct": 13.7879,
+            "executed_trades_count": 156,
+            "rejected_capacity_count": 680,
+            "excluded_cross_boundary_count": 0,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 67,
+            "loss_count": 89,
+            "win_rate_pct": 42.95,
+            "gross_profit_usd": 5141.48,
+            "gross_loss_usd": 3762.69,
+            "profit_factor": 1.3664,
+            "expectancy_usd": 8.8384,
+            "expectancy_bps": 32.59,
+            "realized_drawdown_pct": 5.2597,
+            "realized_drawdown_usd": 600.14,
+            "mtm_drawdown_pct": 5.6261,
+            "mtm_drawdown_usd": 644.2,
+            "max_drawdown_pct": 5.6261,
+            "max_drawdown_usd": 644.2,
+            "capital_turnover": 84.8084,
+            "exposure_pct": 26.8898,
+            "capital_utilization_pct": 8.9928,
+            "daily_sharpe": 1.6766,
+            "daily_sortino": 1.4308,
+            "candidate_signals_in_window": 836,
+            "gross_expectancy_bps": 48.11
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BTC": 66,
+              "ETH": 40,
+              "BNB": 50
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 50,
+                "gross_expectancy_bps": -8.73,
+                "net_expectancy_14bps": -22.73
+              },
+              "BTC": {
+                "executed_n": 66,
+                "gross_expectancy_bps": 76.02,
+                "net_expectancy_14bps": 61.96
+              },
+              "ETH": {
+                "executed_n": 40,
+                "gross_expectancy_bps": 73.11,
+                "net_expectancy_14bps": 59.06
+              }
+            },
+            "max_symbol_trade_share_pct": 42.31,
+            "max_single_trade_profit_share_pct": 1.87
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": true,
+              "value_bps": 32.59,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": true,
+              "value": 1.37,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 5.63,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 156,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 48.11,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 28.11,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -0.7012,
+              "diagnostic_iid_trade_ci_lower_bps": -0.93,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 366,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 42.31,
+              "max_single_trade_profit_share_pct": 1.87,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                156
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 366,
+            "block_size_days": 10,
+            "mean_daily_bps": 3.6140304261425036,
+            "ci_lower": -0.7011833214725985,
+            "ci_upper": 7.9112650971292,
+            "moving_block_ci_lower": -0.5207363219864655,
+            "moving_block_ci_upper": 7.9112650971292,
+            "stationary_ci_lower": -0.7011833214725985,
+            "stationary_ci_upper": 7.7918953383719085
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 49,
+            "mean_cluster_net_bps": 34.0751608959563,
+            "ci_lower": -11.972732064512678,
+            "ci_upper": 81.3821187034626
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 48.10883708191365,
+            "ci_lower": 13.081977844317088,
+            "ci_upper": 84.3347599826923,
+            "n_trades": 156
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 34.075160895956316,
+            "ci_lower": -0.9271795401739357,
+            "ci_upper": 70.27572565070443,
+            "n_trades": 156
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 38.11,
+              "win_rate_pct": 44.2,
+              "profit_factor": 1.44
+            },
+            "14.0": {
+              "expectancy_bps": 34.11,
+              "win_rate_pct": 42.9,
+              "profit_factor": 1.39
+            },
+            "20.0": {
+              "expectancy_bps": 28.11,
+              "win_rate_pct": 42.3,
+              "profit_factor": 1.31
+            },
+            "30.0": {
+              "expectancy_bps": 18.11,
+              "win_rate_pct": 42.3,
+              "profit_factor": 1.19
+            }
+          }
+        },
+        "DEV_SELECTION_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 11064.29,
+            "total_net_pnl_usd": 1064.29,
+            "total_net_pnl_pct": 10.6429,
+            "executed_trades_count": 213,
+            "rejected_capacity_count": 1146,
+            "excluded_cross_boundary_count": 6,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 88,
+            "loss_count": 125,
+            "win_rate_pct": 41.31,
+            "gross_profit_usd": 6232.15,
+            "gross_loss_usd": 5167.87,
+            "profit_factor": 1.2059,
+            "expectancy_usd": 4.9967,
+            "expectancy_bps": 18.79,
+            "realized_drawdown_pct": 6.3355,
+            "realized_drawdown_usd": 748.39,
+            "mtm_drawdown_pct": 6.7968,
+            "mtm_drawdown_usd": 806.86,
+            "max_drawdown_pct": 6.7968,
+            "max_drawdown_usd": 806.86,
+            "capital_turnover": 113.455,
+            "exposure_pct": 41.5068,
+            "capital_utilization_pct": 13.6224,
+            "daily_sharpe": 1.0969,
+            "daily_sortino": 1.1855,
+            "candidate_signals_in_window": 1365,
+            "gross_expectancy_bps": 33.86
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BNB": 78,
+              "ETH": 38,
+              "BTC": 97
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 78,
+                "gross_expectancy_bps": 40.42,
+                "net_expectancy_14bps": 26.39
+              },
+              "BTC": {
+                "executed_n": 97,
+                "gross_expectancy_bps": 19.38,
+                "net_expectancy_14bps": 5.37
+              },
+              "ETH": {
+                "executed_n": 38,
+                "gross_expectancy_bps": 57.36,
+                "net_expectancy_14bps": 43.32
+              }
+            },
+            "max_symbol_trade_share_pct": 45.54,
+            "max_single_trade_profit_share_pct": 1.58
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": true,
+              "value_bps": 18.79,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": true,
+              "value": 1.21,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 6.8,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 213,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 33.86,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 13.86,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -2.012,
+              "diagnostic_iid_trade_ci_lower_bps": -9.33,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 365,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 45.54,
+              "max_single_trade_profit_share_pct": 1.58,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                213
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 365,
+            "block_size_days": 10,
+            "mean_daily_bps": 2.8977413811435793,
+            "ci_lower": -2.011989279698409,
+            "ci_upper": 7.9364917177923155,
+            "moving_block_ci_lower": -1.8544302207651218,
+            "moving_block_ci_upper": 7.8481463755166,
+            "stationary_ci_lower": -2.011989279698409,
+            "stationary_ci_upper": 7.9364917177923155
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 52,
+            "mean_cluster_net_bps": 19.837300279262717,
+            "ci_lower": -13.862146862507773,
+            "ci_upper": 54.844191533264635
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 33.861002981349664,
+            "ci_lower": 4.677717295651911,
+            "ci_upper": 63.34750515025958,
+            "n_trades": 213
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 19.837300279262713,
+            "ci_lower": -9.325557106455047,
+            "ci_upper": 49.303161896654395,
+            "n_trades": 213
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 23.86,
+              "win_rate_pct": 41.3,
+              "profit_factor": 1.27
+            },
+            "14.0": {
+              "expectancy_bps": 19.86,
+              "win_rate_pct": 41.3,
+              "profit_factor": 1.22
+            },
+            "20.0": {
+              "expectancy_bps": 13.86,
+              "win_rate_pct": 40.8,
+              "profit_factor": 1.15
+            },
+            "30.0": {
+              "expectancy_bps": 3.86,
+              "win_rate_pct": 40.8,
+              "profit_factor": 1.04
+            }
+          }
+        },
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 12589.82,
+            "total_net_pnl_usd": 2589.82,
+            "total_net_pnl_pct": 25.8982,
+            "executed_trades_count": 369,
+            "rejected_capacity_count": 1826,
+            "excluded_cross_boundary_count": 6,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 155,
+            "loss_count": 214,
+            "win_rate_pct": 42.01,
+            "gross_profit_usd": 12232.91,
+            "gross_loss_usd": 9643.09,
+            "profit_factor": 1.2686,
+            "expectancy_usd": 7.0185,
+            "expectancy_bps": 24.26,
+            "realized_drawdown_pct": 6.3355,
+            "realized_drawdown_usd": 851.58,
+            "mtm_drawdown_pct": 6.7968,
+            "mtm_drawdown_usd": 918.11,
+            "max_drawdown_pct": 6.7968,
+            "max_drawdown_usd": 918.11,
+            "capital_turnover": 213.9065,
+            "exposure_pct": 34.1883,
+            "capital_utilization_pct": 11.3044,
+            "daily_sharpe": 1.3517,
+            "daily_sortino": 1.3149,
+            "candidate_signals_in_window": 2201,
+            "gross_expectancy_bps": 39.88
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "BTC": 163,
+              "ETH": 78,
+              "BNB": 128
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 128,
+                "gross_expectancy_bps": 21.22,
+                "net_expectancy_14bps": 7.21
+              },
+              "BTC": {
+                "executed_n": 163,
+                "gross_expectancy_bps": 42.31,
+                "net_expectancy_14bps": 28.28
+              },
+              "ETH": {
+                "executed_n": 78,
+                "gross_expectancy_bps": 65.44,
+                "net_expectancy_14bps": 51.39
+              }
+            },
+            "max_symbol_trade_share_pct": 44.17,
+            "max_single_trade_profit_share_pct": 0.91
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": true,
+              "value_bps": 24.26,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": true,
+              "value": 1.27,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 6.8,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 369,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": true,
+              "value_bps": 39.88,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": true,
+              "value_bps": 19.88,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -0.054,
+              "diagnostic_iid_trade_ci_lower_bps": 2.57,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 731,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 44.17,
+              "max_single_trade_profit_share_pct": 0.91,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                156,
+                213
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 731,
+            "block_size_days": 10,
+            "mean_daily_bps": 3.256375841430306,
+            "ci_lower": -0.054028870915279185,
+            "ci_upper": 6.5527904225363365,
+            "moving_block_ci_lower": -0.054028870915279185,
+            "moving_block_ci_upper": 6.411621030422923,
+            "stationary_ci_lower": 0.25260036055688806,
+            "stationary_ci_upper": 6.5527904225363365
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 100,
+            "mean_cluster_net_bps": 25.856558426157573,
+            "ci_lower": 0.04600158212413778,
+            "ci_upper": 52.02598662366842
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 39.88447756044989,
+            "ci_lower": 16.577905629557208,
+            "ci_upper": 63.387472686686074,
+            "n_trades": 369
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": 25.856558426157573,
+            "ci_lower": 2.566301095616522,
+            "ci_upper": 49.3431014558054,
+            "n_trades": 369
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 29.88,
+              "win_rate_pct": 42.5,
+              "profit_factor": 1.34
+            },
+            "14.0": {
+              "expectancy_bps": 25.88,
+              "win_rate_pct": 42.0,
+              "profit_factor": 1.29
+            },
+            "20.0": {
+              "expectancy_bps": 19.88,
+              "win_rate_pct": 41.5,
+              "profit_factor": 1.21
+            },
+            "30.0": {
+              "expectancy_bps": 9.88,
+              "win_rate_pct": 41.5,
+              "profit_factor": 1.1
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "metrics": {
+            "initial_capital": 10000.0,
+            "final_equity": 9322.58,
+            "total_net_pnl_usd": -677.42,
+            "total_net_pnl_pct": -6.7742,
+            "executed_trades_count": 125,
+            "rejected_capacity_count": 523,
+            "excluded_cross_boundary_count": 4,
+            "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+            "win_count": 42,
+            "loss_count": 83,
+            "win_rate_pct": 33.6,
+            "gross_profit_usd": 2325.85,
+            "gross_loss_usd": 3003.28,
+            "profit_factor": 0.7744,
+            "expectancy_usd": -5.4194,
+            "expectancy_bps": -22.26,
+            "realized_drawdown_pct": 14.0253,
+            "realized_drawdown_usd": 1474.3,
+            "mtm_drawdown_pct": 15.3938,
+            "mtm_drawdown_usd": 1637.14,
+            "max_drawdown_pct": 15.3938,
+            "max_drawdown_usd": 1637.14,
+            "capital_turnover": 60.8443,
+            "exposure_pct": 45.6722,
+            "capital_utilization_pct": 16.877,
+            "daily_sharpe": -1.2685,
+            "daily_sortino": -1.2826,
+            "candidate_signals_in_window": 652,
+            "gross_expectancy_bps": -7.6
+          },
+          "diversification": {
+            "active_symbols_count": 3,
+            "symbol_trade_counts": {
+              "ETH": 31,
+              "BNB": 45,
+              "BTC": 49
+            },
+            "symbol_breakdown": {
+              "BNB": {
+                "executed_n": 45,
+                "gross_expectancy_bps": -2.78,
+                "net_expectancy_14bps": -16.78
+              },
+              "BTC": {
+                "executed_n": 49,
+                "gross_expectancy_bps": -27.61,
+                "net_expectancy_14bps": -41.59
+              },
+              "ETH": {
+                "executed_n": 31,
+                "gross_expectancy_bps": 17.03,
+                "net_expectancy_14bps": 3.02
+              }
+            },
+            "max_symbol_trade_share_pct": 39.2,
+            "max_single_trade_profit_share_pct": 3.76
+          },
+          "gates": {
+            "gate_1_positive_net_expectancy": {
+              "passed": false,
+              "value_bps": -22.26,
+              "required": "> 0.0"
+            },
+            "gate_2_profit_factor": {
+              "passed": false,
+              "value": 0.77,
+              "required": "> 1.0"
+            },
+            "gate_3_max_drawdown": {
+              "passed": true,
+              "value_pct": 15.39,
+              "required": "<= 20.0%"
+            },
+            "gate_4_sample_size": {
+              "passed": true,
+              "value_n": 125,
+              "required": ">= 30"
+            },
+            "gate_5_positive_gross_expectancy": {
+              "passed": false,
+              "value_bps": -7.6,
+              "required": "> 0.0"
+            },
+            "gate_6_cost_resilience_20bps": {
+              "passed": false,
+              "value_bps": -27.6,
+              "required": ">= -5.0"
+            },
+            "gate_7_primary_daily_portfolio_block_ci": {
+              "passed": false,
+              "primary_daily_block_ci_lower_bps": -11.0703,
+              "diagnostic_iid_trade_ci_lower_bps": -54.88,
+              "iid_trade_ci_allowed_for_promotion": false,
+              "n_days": 181,
+              "block_size_days": 10,
+              "required": "primary_daily_block_ci_lower_bps > 0.0 (Moving-Block & Stationary 95% CI on daily portfolio returns, N >= 30)"
+            },
+            "gate_8_diversification": {
+              "passed": true,
+              "active_symbols_count": 3,
+              "max_symbol_trade_share_pct": 39.2,
+              "max_single_trade_profit_share_pct": 3.76,
+              "required": "active_symbols >= 2, max_sym <= 80%, max_trade <= 50%"
+            },
+            "gate_9_no_zero_coverage_fold": {
+              "passed": true,
+              "fold_counts": [
+                125
+              ],
+              "required": "all folds > 0"
+            },
+            "all_gates_passed": false,
+            "multiple_testing_trials_count": "UNKNOWN",
+            "historical_ci_epistemic_status": "EXPLORATORY_PRE_PROSPECTIVE_LOCK",
+            "prospective_shadow_mandatory_before_active_paper": true
+          },
+          "primary_daily_portfolio_block_bootstrap_ci_bps": {
+            "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+            "used_for_promotion_gate": true,
+            "n_days": 181,
+            "block_size_days": 10,
+            "mean_daily_bps": -3.7192808452660926,
+            "ci_lower": -11.070340015938742,
+            "ci_upper": 4.196669792835902,
+            "moving_block_ci_lower": -11.070340015938742,
+            "moving_block_ci_upper": 3.8208072806942885,
+            "stationary_ci_lower": -10.902106215546064,
+            "stationary_ci_upper": 4.196669792835902
+          },
+          "time_cluster_7d_bootstrap_ci_bps": {
+            "role": "TIME_CLUSTER_CROSS_SYMBOL_DIAGNOSTIC",
+            "cluster_days": 7,
+            "n_clusters": 23,
+            "mean_cluster_net_bps": -21.59342031423578,
+            "ci_lower": -58.32829832030893,
+            "ci_upper": 17.939596629085653
+          },
+          "diagnostic_iid_bootstrap_ci_trade_gross_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -7.598739431838063,
+            "ci_lower": -40.90672901410871,
+            "ci_upper": 28.228257483967962,
+            "n_trades": 125
+          },
+          "diagnostic_iid_bootstrap_ci_trade_net_bps": {
+            "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+            "used_for_promotion_gate": false,
+            "mean": -21.593420314235768,
+            "ci_lower": -54.87809430379882,
+            "ci_upper": 14.208497703729172,
+            "n_trades": 125
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -17.6,
+              "win_rate_pct": 33.6,
+              "profit_factor": 0.82
+            },
+            "14.0": {
+              "expectancy_bps": -21.6,
+              "win_rate_pct": 33.6,
+              "profit_factor": 0.78
+            },
+            "20.0": {
+              "expectancy_bps": -27.6,
+              "win_rate_pct": 33.6,
+              "profit_factor": 0.73
+            },
+            "30.0": {
+              "expectancy_bps": -37.6,
+              "win_rate_pct": 32.0,
+              "profit_factor": 0.66
+            }
+          }
+        }
+      }
+    }
+  },
+  "vcb_v1_execution_timing_reconciliation": {
+    "EXPLORATORY_TRAIN_2023": {
+      "retracted_same_close": {
+        "signals": 860,
+        "executed_n": 226,
+        "rejected_capacity_n": 633,
+        "excluded_cross_boundary_n": 1,
+        "gross_expectancy_bps": 26.67,
+        "net_expectancy_14bps": 11.83,
+        "profit_factor": 1.1315,
+        "max_drawdown_pct": 10.976,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 16.67,
+            "win_rate_pct": 39.8,
+            "profit_factor": 1.19
+          },
+          "14.0": {
+            "expectancy_bps": 12.67,
+            "win_rate_pct": 38.9,
+            "profit_factor": 1.14
+          },
+          "20.0": {
+            "expectancy_bps": 6.67,
+            "win_rate_pct": 38.9,
+            "profit_factor": 1.07
+          },
+          "30.0": {
+            "expectancy_bps": -3.33,
+            "win_rate_pct": 36.3,
+            "profit_factor": 0.97
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 365,
+          "block_size_days": 10,
+          "mean_daily_bps": 1.9547393221141585,
+          "ci_lower": -3.87141566329935,
+          "ci_upper": 8.141422547537546,
+          "moving_block_ci_lower": -3.87141566329935,
+          "moving_block_ci_upper": 8.141422547537546,
+          "stationary_ci_lower": -3.19663915646547,
+          "stationary_ci_upper": 7.952493742380044
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 12.654409458649814,
+          "ci_lower": -15.80099883885407,
+          "ci_upper": 41.162329879802535,
+          "n_trades": 226
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 69,
+            "gross_expectancy_bps": 35.05,
+            "net_expectancy_14bps": 21.02
+          },
+          "BTC": {
+            "executed_n": 79,
+            "gross_expectancy_bps": 15.72,
+            "net_expectancy_14bps": 1.71
+          },
+          "ETH": {
+            "executed_n": 78,
+            "gross_expectancy_bps": 30.36,
+            "net_expectancy_14bps": 16.34
+          }
+        }
+      },
+      "corrected_next_bar_open": {
+        "signals": 860,
+        "executed_n": 226,
+        "rejected_capacity_n": 633,
+        "excluded_cross_boundary_n": 1,
+        "gross_expectancy_bps": 26.68,
+        "net_expectancy_14bps": 11.83,
+        "profit_factor": 1.1315,
+        "max_drawdown_pct": 10.9707,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 16.68,
+            "win_rate_pct": 39.8,
+            "profit_factor": 1.19
+          },
+          "14.0": {
+            "expectancy_bps": 12.68,
+            "win_rate_pct": 38.9,
+            "profit_factor": 1.14
+          },
+          "20.0": {
+            "expectancy_bps": 6.68,
+            "win_rate_pct": 38.9,
+            "profit_factor": 1.07
+          },
+          "30.0": {
+            "expectancy_bps": -3.32,
+            "win_rate_pct": 36.3,
+            "profit_factor": 0.97
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 365,
+          "block_size_days": 10,
+          "mean_daily_bps": 1.9556766023877996,
+          "ci_lower": -3.8545145031145354,
+          "ci_upper": 8.169799934085548,
+          "moving_block_ci_lower": -3.8545145031145354,
+          "moving_block_ci_upper": 8.169799934085548,
+          "stationary_ci_lower": -3.2043195269756763,
+          "stationary_ci_upper": 7.9249728301772375
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 12.661720794706227,
+          "ci_lower": -15.80240715026547,
+          "ci_upper": 41.219072414582556,
+          "n_trades": 226
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 69,
+            "gross_expectancy_bps": 35.09,
+            "net_expectancy_14bps": 21.06
+          },
+          "BTC": {
+            "executed_n": 79,
+            "gross_expectancy_bps": 15.72,
+            "net_expectancy_14bps": 1.7
+          },
+          "ETH": {
+            "executed_n": 78,
+            "gross_expectancy_bps": 30.35,
+            "net_expectancy_14bps": 16.33
+          }
+        }
+      }
+    },
+    "DEV_SELECTION_2024": {
+      "retracted_same_close": {
+        "signals": 836,
+        "executed_n": 156,
+        "rejected_capacity_n": 680,
+        "excluded_cross_boundary_n": 0,
+        "gross_expectancy_bps": 48.14,
+        "net_expectancy_14bps": 32.62,
+        "profit_factor": 1.3668,
+        "max_drawdown_pct": 5.6227,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 38.14,
+            "win_rate_pct": 44.2,
+            "profit_factor": 1.44
+          },
+          "14.0": {
+            "expectancy_bps": 34.14,
+            "win_rate_pct": 42.9,
+            "profit_factor": 1.39
+          },
+          "20.0": {
+            "expectancy_bps": 28.14,
+            "win_rate_pct": 42.3,
+            "profit_factor": 1.31
+          },
+          "30.0": {
+            "expectancy_bps": 18.14,
+            "win_rate_pct": 42.3,
+            "profit_factor": 1.19
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 366,
+          "block_size_days": 10,
+          "mean_daily_bps": 3.615852271055394,
+          "ci_lower": -0.6805650058420714,
+          "ci_upper": 7.917216902149891,
+          "moving_block_ci_lower": -0.5112223942489023,
+          "moving_block_ci_upper": 7.917216902149891,
+          "stationary_ci_lower": -0.6805650058420714,
+          "stationary_ci_upper": 7.792502402310447
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 34.10308199600585,
+          "ci_lower": -0.8965468088571468,
+          "ci_upper": 70.28407543797505,
+          "n_trades": 156
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 50,
+            "gross_expectancy_bps": -8.67,
+            "net_expectancy_14bps": -22.66
+          },
+          "BTC": {
+            "executed_n": 66,
+            "gross_expectancy_bps": 76.04,
+            "net_expectancy_14bps": 61.98
+          },
+          "ETH": {
+            "executed_n": 40,
+            "gross_expectancy_bps": 73.11,
+            "net_expectancy_14bps": 59.06
+          }
+        }
+      },
+      "corrected_next_bar_open": {
+        "signals": 836,
+        "executed_n": 156,
+        "rejected_capacity_n": 680,
+        "excluded_cross_boundary_n": 0,
+        "gross_expectancy_bps": 48.11,
+        "net_expectancy_14bps": 32.59,
+        "profit_factor": 1.3664,
+        "max_drawdown_pct": 5.6261,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 38.11,
+            "win_rate_pct": 44.2,
+            "profit_factor": 1.44
+          },
+          "14.0": {
+            "expectancy_bps": 34.11,
+            "win_rate_pct": 42.9,
+            "profit_factor": 1.39
+          },
+          "20.0": {
+            "expectancy_bps": 28.11,
+            "win_rate_pct": 42.3,
+            "profit_factor": 1.31
+          },
+          "30.0": {
+            "expectancy_bps": 18.11,
+            "win_rate_pct": 42.3,
+            "profit_factor": 1.19
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 366,
+          "block_size_days": 10,
+          "mean_daily_bps": 3.6140304261425036,
+          "ci_lower": -0.7011833214725985,
+          "ci_upper": 7.9112650971292,
+          "moving_block_ci_lower": -0.5207363219864655,
+          "moving_block_ci_upper": 7.9112650971292,
+          "stationary_ci_lower": -0.7011833214725985,
+          "stationary_ci_upper": 7.7918953383719085
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 34.075160895956316,
+          "ci_lower": -0.9271795401739357,
+          "ci_upper": 70.27572565070443,
+          "n_trades": 156
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 50,
+            "gross_expectancy_bps": -8.73,
+            "net_expectancy_14bps": -22.73
+          },
+          "BTC": {
+            "executed_n": 66,
+            "gross_expectancy_bps": 76.02,
+            "net_expectancy_14bps": 61.96
+          },
+          "ETH": {
+            "executed_n": 40,
+            "gross_expectancy_bps": 73.11,
+            "net_expectancy_14bps": 59.06
+          }
+        }
+      }
+    },
+    "DEV_SELECTION_2025": {
+      "retracted_same_close": {
+        "signals": 1365,
+        "executed_n": 213,
+        "rejected_capacity_n": 1146,
+        "excluded_cross_boundary_n": 6,
+        "gross_expectancy_bps": 33.86,
+        "net_expectancy_14bps": 18.79,
+        "profit_factor": 1.2059,
+        "max_drawdown_pct": 6.7966,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 23.86,
+            "win_rate_pct": 41.3,
+            "profit_factor": 1.27
+          },
+          "14.0": {
+            "expectancy_bps": 19.86,
+            "win_rate_pct": 41.3,
+            "profit_factor": 1.22
+          },
+          "20.0": {
+            "expectancy_bps": 13.86,
+            "win_rate_pct": 40.8,
+            "profit_factor": 1.15
+          },
+          "30.0": {
+            "expectancy_bps": 3.86,
+            "win_rate_pct": 40.8,
+            "profit_factor": 1.04
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 365,
+          "block_size_days": 10,
+          "mean_daily_bps": 2.89708663743471,
+          "ci_lower": -2.0159698754551907,
+          "ci_upper": 7.934803780581045,
+          "moving_block_ci_lower": -1.8569478672690558,
+          "moving_block_ci_upper": 7.874102920150927,
+          "stationary_ci_lower": -2.0159698754551907,
+          "stationary_ci_upper": 7.934803780581045
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 19.83763224081045,
+          "ci_lower": -9.32728800171854,
+          "ci_upper": 49.30520018347752,
+          "n_trades": 213
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 78,
+            "gross_expectancy_bps": 40.42,
+            "net_expectancy_14bps": 26.39
+          },
+          "BTC": {
+            "executed_n": 97,
+            "gross_expectancy_bps": 19.38,
+            "net_expectancy_14bps": 5.37
+          },
+          "ETH": {
+            "executed_n": 38,
+            "gross_expectancy_bps": 57.36,
+            "net_expectancy_14bps": 43.32
+          }
+        }
+      },
+      "corrected_next_bar_open": {
+        "signals": 1365,
+        "executed_n": 213,
+        "rejected_capacity_n": 1146,
+        "excluded_cross_boundary_n": 6,
+        "gross_expectancy_bps": 33.86,
+        "net_expectancy_14bps": 18.79,
+        "profit_factor": 1.2059,
+        "max_drawdown_pct": 6.7968,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 23.86,
+            "win_rate_pct": 41.3,
+            "profit_factor": 1.27
+          },
+          "14.0": {
+            "expectancy_bps": 19.86,
+            "win_rate_pct": 41.3,
+            "profit_factor": 1.22
+          },
+          "20.0": {
+            "expectancy_bps": 13.86,
+            "win_rate_pct": 40.8,
+            "profit_factor": 1.15
+          },
+          "30.0": {
+            "expectancy_bps": 3.86,
+            "win_rate_pct": 40.8,
+            "profit_factor": 1.04
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 365,
+          "block_size_days": 10,
+          "mean_daily_bps": 2.8977413811435793,
+          "ci_lower": -2.011989279698409,
+          "ci_upper": 7.9364917177923155,
+          "moving_block_ci_lower": -1.8544302207651218,
+          "moving_block_ci_upper": 7.8481463755166,
+          "stationary_ci_lower": -2.011989279698409,
+          "stationary_ci_upper": 7.9364917177923155
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 19.837300279262713,
+          "ci_lower": -9.325557106455047,
+          "ci_upper": 49.303161896654395,
+          "n_trades": 213
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 78,
+            "gross_expectancy_bps": 40.42,
+            "net_expectancy_14bps": 26.39
+          },
+          "BTC": {
+            "executed_n": 97,
+            "gross_expectancy_bps": 19.38,
+            "net_expectancy_14bps": 5.37
+          },
+          "ETH": {
+            "executed_n": 38,
+            "gross_expectancy_bps": 57.36,
+            "net_expectancy_14bps": 43.32
+          }
+        }
+      }
+    },
+    "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+      "retracted_same_close": {
+        "signals": 2201,
+        "executed_n": 369,
+        "rejected_capacity_n": 1826,
+        "excluded_cross_boundary_n": 6,
+        "gross_expectancy_bps": 39.9,
+        "net_expectancy_14bps": 24.27,
+        "profit_factor": 1.2687,
+        "max_drawdown_pct": 6.7966,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 29.9,
+            "win_rate_pct": 42.5,
+            "profit_factor": 1.34
+          },
+          "14.0": {
+            "expectancy_bps": 25.9,
+            "win_rate_pct": 42.0,
+            "profit_factor": 1.29
+          },
+          "20.0": {
+            "expectancy_bps": 19.9,
+            "win_rate_pct": 41.5,
+            "profit_factor": 1.21
+          },
+          "30.0": {
+            "expectancy_bps": 9.9,
+            "win_rate_pct": 41.5,
+            "profit_factor": 1.1
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 731,
+          "block_size_days": 10,
+          "mean_daily_bps": 3.2569610860053784,
+          "ci_lower": -0.052969412572963046,
+          "ci_upper": 6.550512405424557,
+          "moving_block_ci_lower": -0.052969412572963046,
+          "moving_block_ci_upper": 6.386425243078117,
+          "stationary_ci_lower": 0.23312788257070677,
+          "stationary_ci_upper": 6.550512405424557
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 25.86855408853533,
+          "ci_lower": 2.574188611303005,
+          "ci_upper": 49.34478647384183,
+          "n_trades": 369
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 128,
+            "gross_expectancy_bps": 21.25,
+            "net_expectancy_14bps": 7.23
+          },
+          "BTC": {
+            "executed_n": 163,
+            "gross_expectancy_bps": 42.32,
+            "net_expectancy_14bps": 28.29
+          },
+          "ETH": {
+            "executed_n": 78,
+            "gross_expectancy_bps": 65.44,
+            "net_expectancy_14bps": 51.39
+          }
+        }
+      },
+      "corrected_next_bar_open": {
+        "signals": 2201,
+        "executed_n": 369,
+        "rejected_capacity_n": 1826,
+        "excluded_cross_boundary_n": 6,
+        "gross_expectancy_bps": 39.88,
+        "net_expectancy_14bps": 24.26,
+        "profit_factor": 1.2686,
+        "max_drawdown_pct": 6.7968,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": 29.88,
+            "win_rate_pct": 42.5,
+            "profit_factor": 1.34
+          },
+          "14.0": {
+            "expectancy_bps": 25.88,
+            "win_rate_pct": 42.0,
+            "profit_factor": 1.29
+          },
+          "20.0": {
+            "expectancy_bps": 19.88,
+            "win_rate_pct": 41.5,
+            "profit_factor": 1.21
+          },
+          "30.0": {
+            "expectancy_bps": 9.88,
+            "win_rate_pct": 41.5,
+            "profit_factor": 1.1
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 731,
+          "block_size_days": 10,
+          "mean_daily_bps": 3.256375841430306,
+          "ci_lower": -0.054028870915279185,
+          "ci_upper": 6.5527904225363365,
+          "moving_block_ci_lower": -0.054028870915279185,
+          "moving_block_ci_upper": 6.411621030422923,
+          "stationary_ci_lower": 0.25260036055688806,
+          "stationary_ci_upper": 6.5527904225363365
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": 25.856558426157573,
+          "ci_lower": 2.566301095616522,
+          "ci_upper": 49.3431014558054,
+          "n_trades": 369
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 128,
+            "gross_expectancy_bps": 21.22,
+            "net_expectancy_14bps": 7.21
+          },
+          "BTC": {
+            "executed_n": 163,
+            "gross_expectancy_bps": 42.31,
+            "net_expectancy_14bps": 28.28
+          },
+          "ETH": {
+            "executed_n": 78,
+            "gross_expectancy_bps": 65.44,
+            "net_expectancy_14bps": 51.39
+          }
+        }
+      }
+    },
+    "BURNED_EXPOSED_AUDIT_2026_H1": {
+      "retracted_same_close": {
+        "signals": 647,
+        "executed_n": 124,
+        "rejected_capacity_n": 523,
+        "excluded_cross_boundary_n": 0,
+        "gross_expectancy_bps": -6.45,
+        "net_expectancy_14bps": -21.16,
+        "profit_factor": 0.7845,
+        "max_drawdown_pct": 15.3928,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": -16.45,
+            "win_rate_pct": 33.9,
+            "profit_factor": 0.83
+          },
+          "14.0": {
+            "expectancy_bps": -20.45,
+            "win_rate_pct": 33.9,
+            "profit_factor": 0.79
+          },
+          "20.0": {
+            "expectancy_bps": -26.45,
+            "win_rate_pct": 33.9,
+            "profit_factor": 0.74
+          },
+          "30.0": {
+            "expectancy_bps": -36.45,
+            "win_rate_pct": 32.3,
+            "profit_factor": 0.66
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 181,
+          "block_size_days": 10,
+          "mean_daily_bps": -3.494348813605255,
+          "ci_lower": -11.024670588494407,
+          "ci_upper": 4.544296871068182,
+          "moving_block_ci_lower": -11.024670588494407,
+          "moving_block_ci_upper": 4.138245801200891,
+          "stationary_ci_lower": -10.707570667216633,
+          "stationary_ci_upper": 4.544296871068182
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": -20.44132970638148,
+          "ci_lower": -53.895523044834825,
+          "ci_upper": 13.744308918658076,
+          "n_trades": 124
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 45,
+            "gross_expectancy_bps": -2.77,
+            "net_expectancy_14bps": -16.77
+          },
+          "BTC": {
+            "executed_n": 49,
+            "gross_expectancy_bps": -27.61,
+            "net_expectancy_14bps": -41.59
+          },
+          "ETH": {
+            "executed_n": 30,
+            "gross_expectancy_bps": 22.61,
+            "net_expectancy_14bps": 8.59
+          }
+        }
+      },
+      "corrected_next_bar_open": {
+        "signals": 652,
+        "executed_n": 125,
+        "rejected_capacity_n": 523,
+        "excluded_cross_boundary_n": 4,
+        "gross_expectancy_bps": -7.6,
+        "net_expectancy_14bps": -22.26,
+        "profit_factor": 0.7744,
+        "max_drawdown_pct": 15.3938,
+        "cost_sensitivity": {
+          "10.0": {
+            "expectancy_bps": -17.6,
+            "win_rate_pct": 33.6,
+            "profit_factor": 0.82
+          },
+          "14.0": {
+            "expectancy_bps": -21.6,
+            "win_rate_pct": 33.6,
+            "profit_factor": 0.78
+          },
+          "20.0": {
+            "expectancy_bps": -27.6,
+            "win_rate_pct": 33.6,
+            "profit_factor": 0.73
+          },
+          "30.0": {
+            "expectancy_bps": -37.6,
+            "win_rate_pct": 32.0,
+            "profit_factor": 0.66
+          }
+        },
+        "primary_daily_block_ci_bps": {
+          "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+          "used_for_promotion_gate": true,
+          "n_days": 181,
+          "block_size_days": 10,
+          "mean_daily_bps": -3.7192808452660926,
+          "ci_lower": -11.070340015938742,
+          "ci_upper": 4.196669792835902,
+          "moving_block_ci_lower": -11.070340015938742,
+          "moving_block_ci_upper": 3.8208072806942885,
+          "stationary_ci_lower": -10.902106215546064,
+          "stationary_ci_upper": 4.196669792835902
+        },
+        "diagnostic_iid_trade_ci_bps": {
+          "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+          "used_for_promotion_gate": false,
+          "mean": -21.593420314235768,
+          "ci_lower": -54.87809430379882,
+          "ci_upper": 14.208497703729172,
+          "n_trades": 125
+        },
+        "symbol_breakdown": {
+          "BNB": {
+            "executed_n": 45,
+            "gross_expectancy_bps": -2.78,
+            "net_expectancy_14bps": -16.78
+          },
+          "BTC": {
+            "executed_n": 49,
+            "gross_expectancy_bps": -27.61,
+            "net_expectancy_14bps": -41.59
+          },
+          "ETH": {
+            "executed_n": 31,
+            "gross_expectancy_bps": 17.03,
+            "net_expectancy_14bps": 3.02
+          }
+        }
+      }
+    }
+  },
+  "promotion_verdict": "NO_VALIDATED_OOS_EDGE_ENFORCE_NO_TRADE_SHADOW",
+  "shadow_qualified_candidates": [],
+  "recommended_runtime_policy": "ENFORCE_NO_TRADE_SHADOW",
+  "candidate_disposition_summary": {
+    "NO_TRADE": {
+      "classification": "BASELINE_ABSTENTION",
+      "dev_selection_2024_2025_gates_passed": false,
+      "burned_audit_2026_gates_passed": false,
+      "dev_selection_executed_n": 0,
+      "dev_selection_gross_expectancy_bps": 0.0,
+      "dev_selection_net_expectancy_14bps": 0.0,
+      "dev_selection_net_expectancy_20bps": 0.0,
+      "dev_selection_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 0,
+        "block_size_days": 10,
+        "mean_daily_bps": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "moving_block_ci_lower": 0.0,
+        "moving_block_ci_upper": 0.0,
+        "stationary_ci_lower": 0.0,
+        "stationary_ci_upper": 0.0
+      },
+      "dev_selection_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "n_trades": 0
+      },
+      "burned_audit_2026_executed_n": 0,
+      "burned_audit_2026_gross_expectancy_bps": 0.0,
+      "burned_audit_2026_net_expectancy_14bps": 0.0,
+      "burned_audit_2026_net_expectancy_20bps": 0.0,
+      "burned_audit_2026_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 0,
+        "block_size_days": 10,
+        "mean_daily_bps": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "moving_block_ci_lower": 0.0,
+        "moving_block_ci_upper": 0.0,
+        "stationary_ci_lower": 0.0,
+        "stationary_ci_upper": 0.0
+      },
+      "burned_audit_2026_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "n_trades": 0
+      },
+      "burned_audit_2026_profit_factor": 0.0,
+      "burned_audit_2026_max_drawdown_pct": 0.0,
+      "verdict": "BASELINE_ABSTENTION"
+    },
+    "CONTROL": {
+      "classification": "PASSIVE_BASELINE",
+      "dev_selection_2024_2025_gates_passed": false,
+      "burned_audit_2026_gates_passed": false,
+      "dev_selection_executed_n": 2084,
+      "dev_selection_gross_expectancy_bps": -1.36,
+      "dev_selection_net_expectancy_14bps": -15.14,
+      "dev_selection_net_expectancy_20bps": -21.36,
+      "dev_selection_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 731,
+        "block_size_days": 10,
+        "mean_daily_bps": -10.940560563395675,
+        "ci_lower": -12.221887161780167,
+        "ci_upper": -9.683254332302297,
+        "moving_block_ci_lower": -12.183559039224216,
+        "moving_block_ci_upper": -9.70435283452435,
+        "stationary_ci_lower": -12.221887161780167,
+        "stationary_ci_upper": -9.683254332302297
+      },
+      "dev_selection_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": -15.356220306371137,
+        "ci_lower": -16.967760946229664,
+        "ci_upper": -13.750563708730098,
+        "n_trades": 2084
+      },
+      "burned_audit_2026_executed_n": 509,
+      "burned_audit_2026_gross_expectancy_bps": 1.59,
+      "burned_audit_2026_net_expectancy_14bps": -12.52,
+      "burned_audit_2026_net_expectancy_20bps": -18.41,
+      "burned_audit_2026_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 181,
+        "block_size_days": 10,
+        "mean_daily_bps": -8.720685276349576,
+        "ci_lower": -10.997587918847351,
+        "ci_upper": -6.556803956232382,
+        "moving_block_ci_lower": -10.948264267382712,
+        "moving_block_ci_upper": -6.556803956232382,
+        "stationary_ci_lower": -10.997587918847351,
+        "stationary_ci_upper": -6.5657465419673695
+      },
+      "burned_audit_2026_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": -12.409758349705303,
+        "ci_lower": -15.86509823182711,
+        "ci_upper": -8.9504919449902,
+        "n_trades": 509
+      },
+      "burned_audit_2026_profit_factor": 0.5307,
+      "burned_audit_2026_max_drawdown_pct": 14.6412,
+      "verdict": "REJECTED_NEGATIVE_EXPECTANCY"
+    },
+    "S3_LEGACY": {
+      "classification": "OUT_OF_DOMAIN_DIAGNOSTIC",
+      "dev_selection_2024_2025_gates_passed": false,
+      "burned_audit_2026_gates_passed": false,
+      "dev_selection_executed_n": 0,
+      "dev_selection_gross_expectancy_bps": 0.0,
+      "dev_selection_net_expectancy_14bps": 0.0,
+      "dev_selection_net_expectancy_20bps": 0.0,
+      "dev_selection_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 0,
+        "block_size_days": 10,
+        "mean_daily_bps": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "moving_block_ci_lower": 0.0,
+        "moving_block_ci_upper": 0.0,
+        "stationary_ci_lower": 0.0,
+        "stationary_ci_upper": 0.0
+      },
+      "dev_selection_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "n_trades": 0
+      },
+      "burned_audit_2026_executed_n": 0,
+      "burned_audit_2026_gross_expectancy_bps": 0.0,
+      "burned_audit_2026_net_expectancy_14bps": 0.0,
+      "burned_audit_2026_net_expectancy_20bps": 0.0,
+      "burned_audit_2026_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 0,
+        "block_size_days": 10,
+        "mean_daily_bps": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "moving_block_ci_lower": 0.0,
+        "moving_block_ci_upper": 0.0,
+        "stationary_ci_lower": 0.0,
+        "stationary_ci_upper": 0.0
+      },
+      "burned_audit_2026_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "n_trades": 0
+      },
+      "burned_audit_2026_profit_factor": 0.0,
+      "burned_audit_2026_max_drawdown_pct": 0.0,
+      "verdict": "OUT_OF_DOMAIN_DIAGNOSTIC_REJECTED"
+    },
+    "NET_RETURN_RANKER": {
+      "classification": "COST_AWARE_RANKER_E4",
+      "dev_selection_2024_2025_gates_passed": false,
+      "burned_audit_2026_gates_passed": false,
+      "dev_selection_executed_n": 1,
+      "dev_selection_gross_expectancy_bps": 50.0,
+      "dev_selection_net_expectancy_14bps": 35.96,
+      "dev_selection_net_expectancy_20bps": 30.0,
+      "dev_selection_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 731,
+        "block_size_days": 10,
+        "mean_daily_bps": 0.012299931600545686,
+        "ci_lower": 0.0,
+        "ci_upper": 0.036899794801637055,
+        "moving_block_ci_lower": 0.0,
+        "moving_block_ci_upper": 0.036899794801637055,
+        "stationary_ci_lower": 0.0,
+        "stationary_ci_upper": 0.036899794801637055
+      },
+      "dev_selection_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 35.965,
+        "ci_lower": 35.965,
+        "ci_upper": 35.965,
+        "n_trades": 1
+      },
+      "burned_audit_2026_executed_n": 0,
+      "burned_audit_2026_gross_expectancy_bps": 0.0,
+      "burned_audit_2026_net_expectancy_14bps": 0.0,
+      "burned_audit_2026_net_expectancy_20bps": 0.0,
+      "burned_audit_2026_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 0,
+        "block_size_days": 10,
+        "mean_daily_bps": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "moving_block_ci_lower": 0.0,
+        "moving_block_ci_upper": 0.0,
+        "stationary_ci_lower": 0.0,
+        "stationary_ci_upper": 0.0
+      },
+      "burned_audit_2026_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "n_trades": 0
+      },
+      "burned_audit_2026_profit_factor": 0.0,
+      "burned_audit_2026_max_drawdown_pct": 0.0,
+      "verdict": "REJECTED_INSUFFICIENT_SAMPLE_AND_ZERO_FOLD_COVERAGE"
+    },
+    "VOL_COMPRESSION_BREAKOUT_V1": {
+      "classification": "EXPLORATORY_DEV_DIRECTIONAL_CANDIDATE_NEXT_BAR_OPEN",
+      "dev_selection_2024_2025_gates_passed": false,
+      "burned_audit_2026_gates_passed": false,
+      "dev_selection_executed_n": 369,
+      "dev_selection_gross_expectancy_bps": 39.88,
+      "dev_selection_net_expectancy_14bps": 24.26,
+      "dev_selection_net_expectancy_20bps": 19.88,
+      "dev_selection_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 731,
+        "block_size_days": 10,
+        "mean_daily_bps": 3.256375841430306,
+        "ci_lower": -0.054028870915279185,
+        "ci_upper": 6.5527904225363365,
+        "moving_block_ci_lower": -0.054028870915279185,
+        "moving_block_ci_upper": 6.411621030422923,
+        "stationary_ci_lower": 0.25260036055688806,
+        "stationary_ci_upper": 6.5527904225363365
+      },
+      "dev_selection_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": 25.856558426157573,
+        "ci_lower": 2.566301095616522,
+        "ci_upper": 49.3431014558054,
+        "n_trades": 369
+      },
+      "burned_audit_2026_executed_n": 125,
+      "burned_audit_2026_gross_expectancy_bps": -7.6,
+      "burned_audit_2026_net_expectancy_14bps": -22.26,
+      "burned_audit_2026_net_expectancy_20bps": -27.6,
+      "burned_audit_2026_primary_daily_block_ci_95_bps": {
+        "role": "PRIMARY_PORTFOLIO_TIME_BLOCK_GATE",
+        "used_for_promotion_gate": true,
+        "n_days": 181,
+        "block_size_days": 10,
+        "mean_daily_bps": -3.7192808452660926,
+        "ci_lower": -11.070340015938742,
+        "ci_upper": 4.196669792835902,
+        "moving_block_ci_lower": -11.070340015938742,
+        "moving_block_ci_upper": 3.8208072806942885,
+        "stationary_ci_lower": -10.902106215546064,
+        "stationary_ci_upper": 4.196669792835902
+      },
+      "burned_audit_2026_diagnostic_iid_trade_ci_95_bps": {
+        "role": "DIAGNOSTIC_ONLY_IGNORES_OVERLAP_AND_CROSS_SYMBOL_CORRELATION",
+        "used_for_promotion_gate": false,
+        "mean": -21.593420314235768,
+        "ci_lower": -54.87809430379882,
+        "ci_upper": 14.208497703729172,
+        "n_trades": 125
+      },
+      "burned_audit_2026_profit_factor": 0.7744,
+      "burned_audit_2026_max_drawdown_pct": 15.3938,
+      "verdict": "EXPLORATORY_DEV_EDGE_AUDIT_FAILED_NO_VALIDATED_EDGE"
+    }
+  },
+  "prospective_shadow_epoch_spec": {
+    "status": "MANDATORY_ONLY_FOR_LOCKED_PLAUSIBLE_DEV_CANDIDATES",
+    "policy": "NO_TRADE_SHADOW",
+    "zero_order_invariants_guaranteed": true
+  }
+}

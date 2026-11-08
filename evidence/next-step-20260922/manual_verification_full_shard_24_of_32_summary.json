@@ -1,0 +1,38 @@
+﻿{
+    "schema_version":  1,
+    "phase":  "Full",
+    "base_ref":  "main",
+    "repo_root":  "D:\\Workspaces\\besttime-crypto",
+    "started_at":  "2026-10-01T03:20:11.0494364Z",
+    "finished_at":  "2026-10-01T03:21:06.5606341Z",
+    "duration_seconds":  55.511,
+    "overall_status":  "PASS",
+    "steps":  [
+                  {
+                      "name":  "Full regression collection plan",
+                      "exit_code":  0,
+                      "started_at":  "2026-10-01T03:20:11.0835177Z",
+                      "finished_at":  "2026-10-01T03:20:41.5004822Z",
+                      "duration_seconds":  30.417,
+                      "details":  {
+                                      "shard_count":  32,
+                                      "plan_path":  "D:\\Workspaces\\besttime-crypto\\evidence\\next-step-20260922\\full_regression_plan.json"
+                                  }
+                  },
+                  {
+                      "name":  "Full regression shard 24/32",
+                      "exit_code":  0,
+                      "started_at":  "2026-10-01T03:20:41.5345517Z",
+                      "finished_at":  "2026-10-01T03:21:06.5574086Z",
+                      "duration_seconds":  25.023,
+                      "details":  {
+                                      "shard_index":  24,
+                                      "shard_count":  32,
+                                      "expected_tests":  63,
+                                      "file_count":  9,
+                                      "junit_path":  "D:\\Workspaces\\besttime-crypto\\evidence\\next-step-20260922\\full_regression_shard_24_of_32.xml",
+                                      "log_path":  "D:\\Workspaces\\besttime-crypto\\evidence\\next-step-20260922\\full_regression_shard_24_of_32.log"
+                                  }
+                  }
+              ]
+}

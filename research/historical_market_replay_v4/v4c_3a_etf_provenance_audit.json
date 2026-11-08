@@ -18,8 +18,8 @@
     "E11_SUITABILITY": true
   },
   "api_probe": {
-    "status": "ok",
-    "count": 671
+    "status": "failed",
+    "count": 0
   },
   "verdict": "AUTHORIZED_V4C_3B"
 }

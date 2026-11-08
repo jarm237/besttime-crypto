@@ -1,0 +1,131 @@
+{
+  "schema_version": 5,
+  "metadata": {
+    "source_commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+    "source_commit_tree": "da720a407ea580e5c67cc8f0035f8322d5f19586",
+    "pre_g5_reconciliation_index_tree": "f992221b8ac2d9ec48c06bf1f3c84d33072ad47d",
+    "observed_at_utc": "2026-10-12T01:00:42.5928305Z",
+    "generated_at_utc": "2026-10-13T01:10:00Z",
+    "generator": {
+      "name": "g5-evidence-reconciliation",
+      "version": "2.1",
+      "mode": "manual-governed"
+    },
+    "input_hashes": {
+      "execution_plan": "5897aefbc6a0a7228c659b901879d1bc0355855a647581fd63d811ed065c5b9c",
+      "research_cycle_state_historical": "c806cf1461b353c11cf90bea2a1b0e78ca602e7e754c7f73d6a1cd2fc6d1c2c1",
+      "full_regression_junit": "82a19782f4f84cb0cd693d2252aa861e0572ae67239a978826d293c26a04ecb2",
+      "p7_status_report": "01c5e3884b99f29503e20f0f3b40a40426f946f06a08f78b5937b23538bc19c2",
+      "p8_status_report": "67abbcd8bac24619afc5b54aa5cb86810b35b4cdad1efce3f4e83a75a3dd8b07",
+      "worktree_disposition": "1e5461c25c30f8eedcdbc1623d2641530b8b9615b3228d20fde6f40caf06e178",
+      "candidate_seal_report_quarantined": "c1eb1a1ff2afada126512d220440b48f5125d75e0ac32e44ab9c6eb903d507cb",
+      "runtime_probe_observation": "162a8f180d861de572c1bf7e4ef7bdfc7ed95cd399c1a7dadc543e71a79ac5fc",
+      "branch_delta_governance_disposition": "33012e05212e3ff01478b1719b9458f1b38de13cf843482d3e3205ed2b9def12"
+    }
+  },
+  "observed_at_utc": "2026-10-12T01:00:42.5928305Z",
+  "generated_at_utc": "2026-10-13T01:10:00Z",
+  "repository": "besttime-crypto",
+  "branch": "model-coverage/22-symbol-v1-dev",
+  "commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "g5_verdict": "REVIEW_FAIL_CLOSED",
+  "g6_verdict": "BLOCKED",
+  "reconciliation_summary": {
+    "conflicting_authoritative_artifacts": 0,
+    "stale_checkpoints_quarantined": 1,
+    "historical_state_artifacts_quarantined": 1,
+    "observed_runtime_processes": 0,
+    "active_heartbeats_status": "NO_FRESH_ACTIVE_HEARTBEAT",
+    "status_description": "Gate G5 held in REVIEW/FAIL-CLOSED; Gate G6 held BLOCKED under Stop Condition #4 (truncated: true on branch scope, bare git diff --cached --check CRLF exit); WP7/WP8 FORBIDDEN"
+  },
+  "source_of_truth_matrix": [
+    {
+      "domain": "H14_RESEARCH_LINEAGE",
+      "artifact": "docs/NEXT_STEP_EXECUTION_PLAN_2026-09-22.md",
+      "verdict": "CLOSED / RESEARCH_HARD_STOP / BLOCKED_FINAL",
+      "disposition": "AUTHORITATIVE_GOVERNANCE_SPEC",
+      "sha256": "5897aefbc6a0a7228c659b901879d1bc0355855a647581fd63d811ed065c5b9c",
+      "notes": "H14 is permanently closed fail-closed. No retraining or re-tuning permitted."
+    },
+    {
+      "domain": "RESEARCH_CYCLE_STATE_HISTORICAL",
+      "artifact": "docs/research/research_cycle_state.json",
+      "verdict": "HISTORICAL_RECORD / SUPERSEDED_BY_WP5",
+      "disposition": "QUARANTINED_STALE",
+      "sha256": "c806cf1461b353c11cf90bea2a1b0e78ca602e7e754c7f73d6a1cd2fc6d1c2c1",
+      "notes": "Historical state file from 2026-08-13 recording H14 as OPEN is quarantined and explicitly superseded by NEXT_STEP_EXECUTION_PLAN_2026-09-22.md (WP5 line 334 hard stop)."
+    },
+    {
+      "domain": "MODEL_COVERAGE_RELEASE_SPEC",
+      "artifact": "docs/NEXT_STEP_EXECUTION_PLAN_2026-09-22.md",
+      "verdict": "SEALED (22 symbols: 9 routable, 13 disabled)",
+      "disposition": "AUTHORITATIVE_GOVERNANCE_SPEC",
+      "sha256": "5897aefbc6a0a7228c659b901879d1bc0355855a647581fd63d811ed065c5b9c",
+      "notes": "Governance contract specifying sealed release identity."
+    },
+    {
+      "domain": "FULL_REGRESSION_EVIDENCE",
+      "artifact": "evidence/next-step-20260922/full_regression_junit.xml",
+      "verdict": "2069_PASSED_0_FAIL_0_ERR",
+      "disposition": "AUTHORITATIVE_EVIDENCE",
+      "sha256": "82a19782f4f84cb0cd693d2252aa861e0572ae67239a978826d293c26a04ecb2",
+      "notes": "Bo 2.069 test cung cap bang chung regression manh trong pham vi suite da thuc thi; khong loai bo rui ro tu graph relationships chua quan sat duoc."
+    },
+    {
+      "domain": "P7_READINESS_REPORT",
+      "artifact": "evidence/next-step-20260922/p7_status_report.json",
+      "verdict": "READY_FOR_PAPER_AUTHORIZATION",
+      "disposition": "SUPPORTING_EVIDENCE",
+      "sha256": "01c5e3884b99f29503e20f0f3b40a40426f946f06a08f78b5937b23538bc19c2",
+      "notes": "P7 launcher contracts validated."
+    },
+    {
+      "domain": "P8_ECONOMIC_MATURITY",
+      "artifact": "evidence/next-step-20260922/p8_status_report.json",
+      "verdict": "ACCUMULATING",
+      "disposition": "SUPPORTING_EVIDENCE",
+      "sha256": "67abbcd8bac24619afc5b54aa5cb86810b35b4cdad1efce3f4e83a75a3dd8b07",
+      "notes": "0 closed natural trades. Economic promotion blocked."
+    },
+    {
+      "domain": "WORKTREE_INVENTORY_DISPOSITION",
+      "artifact": "evidence/next-step-20260922/worktree_disposition.md",
+      "verdict": "72_STAGED_99_UNTRACKED",
+      "disposition": "DISPOSITION_SNAPSHOT",
+      "sha256": "1e5461c25c30f8eedcdbc1623d2641530b8b9615b3228d20fde6f40caf06e178",
+      "notes": "Candidate scope partitioned into C1-C6 (A+ scope: 72 pre-seal, 73 post-seal)."
+    },
+    {
+      "domain": "CANDIDATE_SEAL_CHECKPOINT",
+      "artifact": "evidence/next-step-20260922/candidate_seal_report.json",
+      "verdict": "REJECTED_INTEGRITY_FAIL / STALE_CHECKPOINT",
+      "disposition": "QUARANTINED",
+      "sha256": "c1eb1a1ff2afada126512d220440b48f5125d75e0ac32e44ab9c6eb903d507cb",
+      "notes": "Stale checkpoint excluded from candidate scope. C6 will create new seal."
+    },
+    {
+      "domain": "PAPER_RUNTIME_OBSERVED_STATE",
+      "artifact": "evidence/next-step-20260922/runtime_probe_observation.json",
+      "verdict": "NO_FRESH_ACTIVE_HEARTBEAT / INACTIVE_DORMANT (0 processes, heartbeat age >18d)",
+      "disposition": "OBSERVED_RUNTIME_STATE",
+      "sha256": "162a8f180d861de572c1bf7e4ef7bdfc7ed95cd399c1a7dadc543e71a79ac5fc",
+      "notes": "Self-excluding CimInstance process probe confirms 0 running bot instances. Last heartbeat 2026-09-23T07:35:31.078907Z in runtime_pause_state.json."
+    },
+    {
+      "domain": "LIVE_REAL_MONEY_AUTHORIZATION",
+      "artifact": "evidence/next-step-20260922/p7_status_report.json",
+      "verdict": "NOT_AUTHORIZED (real_money_enabled=false)",
+      "disposition": "OBSERVED_GOVERNANCE_STATE",
+      "sha256": "01c5e3884b99f29503e20f0f3b40a40426f946f06a08f78b5937b23538bc19c2",
+      "notes": "p7 status report & baseline inventory verify real_money_enabled=false. Environment snapshot not captured; fail-closed applies."
+    },
+    {
+      "domain": "BRANCH_DELTA_GOVERNANCE_DISPOSITION",
+      "artifact": "evidence/next-step-20260922/branch_delta_governance_disposition.md",
+      "verdict": "622_FILES_2239_SYMBOLS_281_FLOWS_TRUNCATED / ISOLATED",
+      "disposition": "BRANCH_GOVERNANCE_DISPOSITION",
+      "sha256": "33012e05212e3ff01478b1719b9458f1b38de13cf843482d3e3205ed2b9def12",
+      "notes": "622 files / 2.239 symbols / 281 flows; CRITICAL; truncated: true. Version-correlated mitigation via GitNexus 1.6.13-rc.103 (@ladybugdb/core 0.21.1) stabilizes 1.000 listed symbols, but full-set determinism is unverified due to slice cap. Suite 2.069 test hermetic cung cap bang chung regression manh trong pham vi suite da thuc thi."
+    }
+  ]
+}

@@ -18,8 +18,8 @@
           "pooled_spread_bps": 0.7344161801501004,
           "conditioned_spread_bps": 0.0,
           "polarity": 1,
-          "corr_recent_momentum": -0.00894116627854247,
-          "corr_future_return": 0.008674857367016923,
+          "corr_recent_momentum": -0.008941166278542485,
+          "corr_future_return": 0.008674857367016925,
           "r1_period_stability": true,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -27,7 +27,7 @@
             "ETH": 1.491477242927108,
             "BNB": 0.9958261389939628
           },
-          "r3_bootstrap_p_gt_0": 0.965,
+          "r3_bootstrap_p_gt_0": 0.97,
           "r3_bootstrap_pass": true,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 8,
@@ -44,8 +44,8 @@
           "pooled_spread_bps": 0.5462050113453436,
           "conditioned_spread_bps": 0.0,
           "polarity": 1,
-          "corr_recent_momentum": -0.00894116627854247,
-          "corr_future_return": 0.006058975636352281,
+          "corr_recent_momentum": -0.008941166278542485,
+          "corr_future_return": 0.006058975636352287,
           "r1_period_stability": false,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -53,7 +53,7 @@
             "ETH": 0.9064542825607189,
             "BNB": 0.9948987059231502
           },
-          "r3_bootstrap_p_gt_0": 0.94,
+          "r3_bootstrap_p_gt_0": 0.93,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 8,
@@ -70,8 +70,8 @@
           "pooled_spread_bps": 0.1261137236837466,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.009093401257547724,
-          "corr_future_return": -0.0006004115626230863,
+          "corr_recent_momentum": -0.009093401257547722,
+          "corr_future_return": -0.0006004115626230881,
           "r1_period_stability": false,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -79,7 +79,7 @@
             "ETH": -0.9918349587344132,
             "BNB": 0.6993715704246589
           },
-          "r3_bootstrap_p_gt_0": 0.595,
+          "r3_bootstrap_p_gt_0": 0.655,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
@@ -103,8 +103,8 @@
           "pooled_spread_bps": -0.2526014278419739,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.002461113107606794,
-          "corr_future_return": 0.0008898624046218813,
+          "corr_recent_momentum": -0.0024611131076067907,
+          "corr_future_return": 0.0008898624046218822,
           "r1_period_stability": false,
           "r2_asset_breadth": false,
           "r2_asset_spreads": {
@@ -112,7 +112,7 @@
             "ETH": -1.1450309743396547,
             "BNB": 0.10009433026504196
           },
-          "r3_bootstrap_p_gt_0": 0.24,
+          "r3_bootstrap_p_gt_0": 0.335,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
@@ -129,7 +129,7 @@
           "pooled_spread_bps": 0.1693245168175235,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.002461113107606794,
+          "corr_recent_momentum": -0.0024611131076067907,
           "corr_future_return": -0.002658594447671733,
           "r1_period_stability": false,
           "r2_asset_breadth": false,
@@ -138,7 +138,7 @@
             "ETH": 0.7834475292212374,
             "BNB": -0.04170762552958307
           },
-          "r3_bootstrap_p_gt_0": 0.61,
+          "r3_bootstrap_p_gt_0": 0.7,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 9,
@@ -155,8 +155,8 @@
           "pooled_spread_bps": 1.0189709713735469,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.002155351255473545,
-          "corr_future_return": -0.009191475536934834,
+          "corr_recent_momentum": -0.0021553512554735505,
+          "corr_future_return": -0.009191475536934847,
           "r1_period_stability": false,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -164,7 +164,7 @@
             "ETH": 1.1148403175871546,
             "BNB": 0.6713532987035606
           },
-          "r3_bootstrap_p_gt_0": 0.94,
+          "r3_bootstrap_p_gt_0": 0.925,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 9,
@@ -188,8 +188,8 @@
           "pooled_spread_bps": 1.1069541230088498,
           "conditioned_spread_bps": 0.0,
           "polarity": 1,
-          "corr_recent_momentum": -0.0061528746937511035,
-          "corr_future_return": 0.005245460616336538,
+          "corr_recent_momentum": -0.006152874693751106,
+          "corr_future_return": 0.005245460616336544,
           "r1_period_stability": true,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -214,8 +214,8 @@
           "pooled_spread_bps": 1.047863085531434,
           "conditioned_spread_bps": 0.0,
           "polarity": 1,
-          "corr_recent_momentum": -0.0061528746937511035,
-          "corr_future_return": 0.002658171503667662,
+          "corr_recent_momentum": -0.006152874693751106,
+          "corr_future_return": 0.0026581715036676566,
           "r1_period_stability": true,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -223,7 +223,7 @@
             "ETH": 1.4659339245415075,
             "BNB": 1.913730066215876
           },
-          "r3_bootstrap_p_gt_0": 1.0,
+          "r3_bootstrap_p_gt_0": 0.995,
           "r3_bootstrap_pass": true,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 8,
@@ -249,7 +249,7 @@
             "ETH": 0.8569895372388618,
             "BNB": -0.2583853729605415
           },
-          "r3_bootstrap_p_gt_0": 0.2,
+          "r3_bootstrap_p_gt_0": 0.155,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 5,
@@ -273,8 +273,8 @@
           "pooled_spread_bps": 0.23793853362976122,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": 0.0021696541346876343,
-          "corr_future_return": -0.002063923820344463,
+          "corr_recent_momentum": 0.0021696541346876317,
+          "corr_future_return": -0.0020639238203444582,
           "r1_period_stability": false,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -282,7 +282,7 @@
             "ETH": 0.9697635481355573,
             "BNB": -0.9005000604407143
           },
-          "r3_bootstrap_p_gt_0": 0.705,
+          "r3_bootstrap_p_gt_0": 0.62,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 5,
@@ -299,8 +299,8 @@
           "pooled_spread_bps": 0.3946474192080802,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": 0.0021696541346876343,
-          "corr_future_return": -0.0021115567577461134,
+          "corr_recent_momentum": 0.0021696541346876317,
+          "corr_future_return": -0.0021115567577461147,
           "r1_period_stability": false,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -308,7 +308,7 @@
             "ETH": 0.5976612255003485,
             "BNB": -0.0887448671170191
           },
-          "r3_bootstrap_p_gt_0": 0.655,
+          "r3_bootstrap_p_gt_0": 0.625,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 5,
@@ -326,7 +326,7 @@
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
           "corr_recent_momentum": 0.002344269270530883,
-          "corr_future_return": -0.013743990810214003,
+          "corr_future_return": -0.013743990810213998,
           "r1_period_stability": false,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -334,7 +334,7 @@
             "ETH": 1.0949096794071385,
             "BNB": 3.8477070487763223
           },
-          "r3_bootstrap_p_gt_0": 0.84,
+          "r3_bootstrap_p_gt_0": 0.865,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 7,
@@ -358,8 +358,8 @@
           "pooled_spread_bps": 0.12269374847775509,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.00402029634822152,
-          "corr_future_return": 9.491841113490196e-05,
+          "corr_recent_momentum": -0.004020296348221525,
+          "corr_future_return": 9.491841113490074e-05,
           "r1_period_stability": false,
           "r2_asset_breadth": false,
           "r2_asset_spreads": {
@@ -367,7 +367,7 @@
             "ETH": -0.02171738641416563,
             "BNB": -0.2689477942896159
           },
-          "r3_bootstrap_p_gt_0": 0.62,
+          "r3_bootstrap_p_gt_0": 0.585,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,
@@ -384,8 +384,8 @@
           "pooled_spread_bps": 0.23255968719755263,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.00402029634822152,
-          "corr_future_return": -0.0020380220885411198,
+          "corr_recent_momentum": -0.004020296348221525,
+          "corr_future_return": -0.0020380220885411193,
           "r1_period_stability": true,
           "r2_asset_breadth": true,
           "r2_asset_spreads": {
@@ -393,7 +393,7 @@
             "ETH": 0.49120628537337674,
             "BNB": -0.2967589107193391
           },
-          "r3_bootstrap_p_gt_0": 0.705,
+          "r3_bootstrap_p_gt_0": 0.69,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": true,
           "r4_positive_months": 7,
@@ -410,8 +410,8 @@
           "pooled_spread_bps": -0.024045850893341523,
           "conditioned_spread_bps": 0.0,
           "polarity": -1,
-          "corr_recent_momentum": -0.0038791796587673948,
-          "corr_future_return": 0.0009622424917763068,
+          "corr_recent_momentum": -0.0038791796587673965,
+          "corr_future_return": 0.0009622424917763057,
           "r1_period_stability": false,
           "r2_asset_breadth": false,
           "r2_asset_spreads": {
@@ -419,7 +419,7 @@
             "ETH": -0.6295119330702046,
             "BNB": -0.2863032973782706
           },
-          "r3_bootstrap_p_gt_0": 0.545,
+          "r3_bootstrap_p_gt_0": 0.465,
           "r3_bootstrap_pass": false,
           "r4_monthly_stability_pass": false,
           "r4_positive_months": 6,

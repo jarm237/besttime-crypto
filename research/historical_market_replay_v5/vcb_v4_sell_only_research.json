@@ -1,0 +1,736 @@
+{
+  "pipeline_name": "hmr_v5_vcb_v4_sell_only_research",
+  "semantic_hash_schema_version": "1.0.0",
+  "semantic_hash_excluded_fields": [
+    "semantic_artifact_sha256",
+    "generation_timestamp",
+    "performance_metadata",
+    "stage_timing_seconds"
+  ],
+  "generation_timestamp": "2026-11-04T01:57:20.471067+00:00",
+  "git_head": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "candidate_id": "VCB_V4_SELL_ONLY",
+  "spec_version": "1.0.0-research-v4",
+  "allowed_sides": [
+    "SELL"
+  ],
+  "design_source": "POST_HOC_AFTER_2026_H1_EXPOSURE",
+  "validation_status": "UNVALIDATED_PROSPECTIVE_HYPOTHESIS",
+  "dataset_manifest": {
+    "BNB": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "545f8c7270f69caac5186c21a28c48e3be53a99d23dfec35542da4e96e31cd27"
+    },
+    "BTC": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "5cdc540f1ade283f50e41a5657c277ea06fa2c5b8c4f1cce8ac68e87058dd379"
+    },
+    "ETH": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "13230c606a3472d86d5f45b69361a244a3e4917ee7da1a38c30aec6b40d7bff9"
+    },
+    "combined_dataset_sha256": "f1db65ae72bdc5056a05ccd31c22226fd952f4e33fbeaafd30d37aa1a9901958"
+  },
+  "candidate_spec": {
+    "candidate_id": "VCB_V4_SELL_ONLY",
+    "spec_version": "1.0.0-research-v4",
+    "universe": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "bar_interval_minutes": 15,
+    "parameters": {
+      "donchian_bars": 96,
+      "sma_fast_bars": 96,
+      "sma_slow_bars": 384,
+      "min_vol_ratio_96": 1.2,
+      "atr_compression_bars": 192,
+      "max_hold_bars": 192,
+      "tp_bps": 350.0,
+      "sl_bps": 150.0
+    },
+    "behavior_flags": {
+      "req_slope": false,
+      "req_regime_gate": false,
+      "use_atr_normalized_barrier": false
+    },
+    "slope_gate_specification": {
+      "enabled": false,
+      "slope_lookback_bars": null,
+      "slope_comparison_rule": null
+    },
+    "regime_gate_specification": {
+      "enabled": false,
+      "regime_lookback_bars": null,
+      "regime_comparison_rule": null
+    },
+    "barrier_specification": {
+      "barrier_type": "FIXED_BPS",
+      "fixed_tp_bps": 350.0,
+      "fixed_sl_bps": 150.0,
+      "atr_tp_multiplier": null,
+      "atr_sl_multiplier": null,
+      "atr_tp_min_bps": null,
+      "atr_tp_max_bps": null,
+      "atr_sl_min_bps": null,
+      "atr_sl_max_bps": null
+    },
+    "execution_timing_contract": {
+      "signal_confirmation": "bar_i_close (signal_close_timestamp = signal_timestamp + 15m)",
+      "earliest_entry": "bar_i_plus_1_open (entry_index = signal_index + 1, entry_price = opens[i+1])",
+      "future_bar_admission_leakage": false,
+      "intrabar_tp_sl_collision_policy": "SL_FIRST_CONSERVATIVE",
+      "gap_through_stop_policy": "ADVERSE_OPEN_PRICE_FILL_SL_GAP",
+      "max_hold_anchor": "entry_index (entry_index .. entry_index + max_hold - 1)",
+      "execution_timing": "SIGNAL_AT_BAR_I_CLOSE__EARLIEST_ENTRY_AT_BAR_I_PLUS_1_OPEN",
+      "cooldown_bars": 96,
+      "max_concurrent_positions": 3,
+      "max_positions_per_asset": 1
+    },
+    "allowed_sides": [
+      "SELL"
+    ],
+    "design_source": "POST_HOC_AFTER_2026_H1_EXPOSURE",
+    "validation_status": "UNVALIDATED_PROSPECTIVE_HYPOTHESIS",
+    "spec_sha256": "f07c5fa4810aa377c5db8d3e37f4823cb26f61a4dc7edb9bd1778741b9776801",
+    "fold_fitted_atr_q65_thresholds_bps": {
+      "fold_1_train_2023_applied_to_2024": 31.291,
+      "fold_2_train_2023_2024_applied_to_2025": 39.644,
+      "audit_train_2023_2025_applied_to_2026": 41.316
+    },
+    "total_filtered_signals": 1388
+  },
+  "trade_rate_projections": {
+    "dev_calendar_days": 731,
+    "dev_executed_trades": 161,
+    "trades_per_day": 0.2202,
+    "projected_trades_30d": 6.61,
+    "projected_trades_90d": 19.82,
+    "projected_trades_365d": 80.39,
+    "estimated_days_to_100_trades": 454.0
+  },
+  "evaluation_summary": {
+    "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+      "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+      "candidate_signals_in_window": 772,
+      "executed_trades_count": 161,
+      "rejected_capacity_count": 611,
+      "excluded_cross_boundary_count": 0,
+      "total_net_pnl_usd": 383.06,
+      "total_net_pnl_pct": 3.83,
+      "gross_profit_usd": 4533.91,
+      "gross_loss_usd": 4150.85,
+      "profit_factor": 1.0923,
+      "gross_expectancy_bps": 24.27,
+      "net_expectancy_bps_cost14": 8.99,
+      "win_rate_pct": 37.9,
+      "max_drawdown_pct": 9.25,
+      "capital_turnover": 85.35,
+      "primary_daily_block_bootstrap_ci_bps": {
+        "ci_lower": -1.553,
+        "ci_upper": 2.891,
+        "mean_daily_bps": 0.565,
+        "block_size_days": 10,
+        "gate_7_passed": false
+      },
+      "cost_sensitivity": {
+        "10.0": {
+          "expectancy_bps": 14.27,
+          "win_rate_pct": 38.5,
+          "profit_factor": 1.15
+        },
+        "14.0": {
+          "expectancy_bps": 10.27,
+          "win_rate_pct": 37.9,
+          "profit_factor": 1.11
+        },
+        "20.0": {
+          "expectancy_bps": 4.27,
+          "win_rate_pct": 37.3,
+          "profit_factor": 1.04
+        },
+        "30.0": {
+          "expectancy_bps": -5.73,
+          "win_rate_pct": 36.6,
+          "profit_factor": 0.95
+        }
+      }
+    },
+    "BURNED_EXPOSED_AUDIT_2026_H1": {
+      "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+      "candidate_signals_in_window": 295,
+      "executed_trades_count": 64,
+      "rejected_capacity_count": 227,
+      "excluded_cross_boundary_count": 4,
+      "total_net_pnl_usd": 0.02,
+      "total_net_pnl_pct": 0.0,
+      "gross_profit_usd": 1418.51,
+      "gross_loss_usd": 1418.48,
+      "profit_factor": 1.0,
+      "gross_expectancy_bps": 14.98,
+      "net_expectancy_bps_cost14": 0.0,
+      "win_rate_pct": 37.5,
+      "max_drawdown_pct": 10.07,
+      "capital_turnover": 31.46,
+      "primary_daily_block_bootstrap_ci_bps": {
+        "ci_lower": -6.355,
+        "ci_upper": 7.746,
+        "mean_daily_bps": 0.091,
+        "block_size_days": 10,
+        "gate_7_passed": false
+      },
+      "cost_sensitivity": {
+        "10.0": {
+          "expectancy_bps": 4.98,
+          "win_rate_pct": 37.5,
+          "profit_factor": 1.06
+        },
+        "14.0": {
+          "expectancy_bps": 0.98,
+          "win_rate_pct": 37.5,
+          "profit_factor": 1.01
+        },
+        "20.0": {
+          "expectancy_bps": -5.02,
+          "win_rate_pct": 37.5,
+          "profit_factor": 0.95
+        },
+        "30.0": {
+          "expectancy_bps": -15.02,
+          "win_rate_pct": 35.9,
+          "profit_factor": 0.85
+        }
+      }
+    }
+  },
+  "decompositions": {
+    "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+      "period": "DEV_WALK_FORWARD_SELECTION_2024_2025",
+      "executed_trade_count": 161,
+      "overall_gross_expectancy_bps": 24.27,
+      "overall_net_expectancy_bps": 10.26,
+      "overall_net_pnl_usd": 383.06,
+      "by_symbol": {
+        "BNB": {
+          "count": 55,
+          "share_pct": 34.2,
+          "gross_exp_bps": 9.42,
+          "net_exp_bps": -4.59,
+          "win_rate_pct": 34.5,
+          "net_pnl_usd": -73.52
+        },
+        "BTC": {
+          "count": 78,
+          "share_pct": 48.4,
+          "gross_exp_bps": 6.41,
+          "net_exp_bps": -7.6,
+          "win_rate_pct": 33.3,
+          "net_pnl_usd": -195.35
+        },
+        "ETH": {
+          "count": 28,
+          "share_pct": 17.4,
+          "gross_exp_bps": 103.22,
+          "net_exp_bps": 89.15,
+          "win_rate_pct": 57.1,
+          "net_pnl_usd": 651.93
+        }
+      },
+      "by_side": {
+        "SELL": {
+          "count": 161,
+          "share_pct": 100.0,
+          "gross_exp_bps": 24.27,
+          "net_exp_bps": 10.26,
+          "win_rate_pct": 37.9,
+          "net_pnl_usd": 383.06
+        }
+      },
+      "by_symbol_side": {
+        "BNB_SELL": {
+          "count": 55,
+          "share_pct": 34.2,
+          "gross_exp_bps": 9.42,
+          "net_exp_bps": -4.59,
+          "win_rate_pct": 34.5,
+          "net_pnl_usd": -73.52
+        },
+        "BTC_SELL": {
+          "count": 78,
+          "share_pct": 48.4,
+          "gross_exp_bps": 6.41,
+          "net_exp_bps": -7.6,
+          "win_rate_pct": 33.3,
+          "net_pnl_usd": -195.35
+        },
+        "ETH_SELL": {
+          "count": 28,
+          "share_pct": 17.4,
+          "gross_exp_bps": 103.22,
+          "net_exp_bps": 89.15,
+          "win_rate_pct": 57.1,
+          "net_pnl_usd": 651.93
+        }
+      },
+      "by_exit_reason": {
+        "SL": {
+          "count": 90,
+          "share_pct": 55.9,
+          "gross_exp_bps": -150.0,
+          "net_exp_bps": -163.89,
+          "win_rate_pct": 0.0,
+          "net_pnl_usd": -3919.93,
+          "avg_bars_held": 52.9
+        },
+        "TIMEOUT": {
+          "count": 23,
+          "share_pct": 14.3,
+          "gross_exp_bps": 26.43,
+          "net_exp_bps": 12.41,
+          "win_rate_pct": 56.5,
+          "net_pnl_usd": 68.13,
+          "avg_bars_held": 192.0
+        },
+        "TP": {
+          "count": 48,
+          "share_pct": 29.8,
+          "gross_exp_bps": 350.0,
+          "net_exp_bps": 335.76,
+          "win_rate_pct": 100.0,
+          "net_pnl_usd": 4234.86,
+          "avg_bars_held": 65.7
+        }
+      },
+      "by_holding_period": {
+        "1-16_bars_le4h": {
+          "count": 26,
+          "share_pct": 16.1,
+          "gross_exp_bps": -73.08,
+          "net_exp_bps": -87.03,
+          "win_rate_pct": 15.4,
+          "net_pnl_usd": -597.21
+        },
+        "17-48_bars_4-12h": {
+          "count": 37,
+          "share_pct": 23.0,
+          "gross_exp_bps": -14.86,
+          "net_exp_bps": -28.85,
+          "win_rate_pct": 27.0,
+          "net_pnl_usd": -294.02
+        },
+        "49-96_bars_12-24h": {
+          "count": 50,
+          "share_pct": 31.1,
+          "gross_exp_bps": 100.0,
+          "net_exp_bps": 85.93,
+          "win_rate_pct": 50.0,
+          "net_pnl_usd": 1094.74
+        },
+        "97-192_bars_24-48h": {
+          "count": 48,
+          "share_pct": 29.8,
+          "gross_exp_bps": 28.29,
+          "net_exp_bps": 14.27,
+          "win_rate_pct": 45.8,
+          "net_pnl_usd": 179.55
+        }
+      },
+      "by_session_utc": {
+        "00-06_ASIA": {
+          "count": 33,
+          "share_pct": 20.5,
+          "gross_exp_bps": 104.21,
+          "net_exp_bps": 90.14,
+          "win_rate_pct": 54.5,
+          "net_pnl_usd": 768.42
+        },
+        "06-12_EU": {
+          "count": 34,
+          "share_pct": 21.1,
+          "gross_exp_bps": 54.25,
+          "net_exp_bps": 40.21,
+          "win_rate_pct": 41.2,
+          "net_pnl_usd": 347.01
+        },
+        "12-18_US": {
+          "count": 53,
+          "share_pct": 32.9,
+          "gross_exp_bps": 13.74,
+          "net_exp_bps": -0.27,
+          "win_rate_pct": 37.7,
+          "net_pnl_usd": -14.94
+        },
+        "18-24_LATE_US": {
+          "count": 41,
+          "share_pct": 25.5,
+          "gross_exp_bps": -51.31,
+          "net_exp_bps": -65.27,
+          "win_rate_pct": 22.0,
+          "net_pnl_usd": -717.43
+        }
+      },
+      "by_day_of_week": {
+        "Monday": {
+          "count": 35,
+          "share_pct": 21.7,
+          "gross_exp_bps": 72.56,
+          "net_exp_bps": 58.5,
+          "win_rate_pct": 45.7,
+          "net_pnl_usd": 537.38
+        },
+        "Tuesday": {
+          "count": 13,
+          "share_pct": 8.1,
+          "gross_exp_bps": 19.77,
+          "net_exp_bps": 5.76,
+          "win_rate_pct": 46.2,
+          "net_pnl_usd": -1.39
+        },
+        "Wednesday": {
+          "count": 22,
+          "share_pct": 13.7,
+          "gross_exp_bps": 15.21,
+          "net_exp_bps": 1.2,
+          "win_rate_pct": 31.8,
+          "net_pnl_usd": -10.22
+        },
+        "Thursday": {
+          "count": 17,
+          "share_pct": 10.6,
+          "gross_exp_bps": -10.34,
+          "net_exp_bps": -24.33,
+          "win_rate_pct": 35.3,
+          "net_pnl_usd": -119.11
+        },
+        "Friday": {
+          "count": 18,
+          "share_pct": 11.2,
+          "gross_exp_bps": 32.83,
+          "net_exp_bps": 18.81,
+          "win_rate_pct": 38.9,
+          "net_pnl_usd": 97.08
+        },
+        "Saturday": {
+          "count": 10,
+          "share_pct": 6.2,
+          "gross_exp_bps": 53.55,
+          "net_exp_bps": 39.51,
+          "win_rate_pct": 40.0,
+          "net_pnl_usd": 110.91
+        },
+        "Sunday": {
+          "count": 46,
+          "share_pct": 28.6,
+          "gross_exp_bps": -3.78,
+          "net_exp_bps": -17.78,
+          "win_rate_pct": 32.6,
+          "net_pnl_usd": -231.6
+        }
+      },
+      "cost_sensitivity": {
+        "10.0": {
+          "expectancy_bps": 14.27,
+          "win_rate_pct": 38.5,
+          "profit_factor": 1.15
+        },
+        "14.0": {
+          "expectancy_bps": 10.27,
+          "win_rate_pct": 37.9,
+          "profit_factor": 1.11
+        },
+        "20.0": {
+          "expectancy_bps": 4.27,
+          "win_rate_pct": 37.3,
+          "profit_factor": 1.04
+        },
+        "30.0": {
+          "expectancy_bps": -5.73,
+          "win_rate_pct": 36.6,
+          "profit_factor": 0.95
+        }
+      }
+    },
+    "BURNED_EXPOSED_AUDIT_2026_H1": {
+      "period": "BURNED_EXPOSED_AUDIT_2026_H1",
+      "executed_trade_count": 64,
+      "overall_gross_expectancy_bps": 14.98,
+      "overall_net_expectancy_bps": 0.97,
+      "overall_net_pnl_usd": 0.02,
+      "by_symbol": {
+        "BNB": {
+          "count": 20,
+          "share_pct": 31.2,
+          "gross_exp_bps": 20.54,
+          "net_exp_bps": 6.52,
+          "win_rate_pct": 40.0,
+          "net_pnl_usd": 19.47
+        },
+        "BTC": {
+          "count": 25,
+          "share_pct": 39.1,
+          "gross_exp_bps": -9.54,
+          "net_exp_bps": -23.53,
+          "win_rate_pct": 32.0,
+          "net_pnl_usd": -152.03
+        },
+        "ETH": {
+          "count": 19,
+          "share_pct": 29.7,
+          "gross_exp_bps": 41.41,
+          "net_exp_bps": 27.38,
+          "win_rate_pct": 42.1,
+          "net_pnl_usd": 132.59
+        }
+      },
+      "by_side": {
+        "SELL": {
+          "count": 64,
+          "share_pct": 100.0,
+          "gross_exp_bps": 14.98,
+          "net_exp_bps": 0.97,
+          "win_rate_pct": 37.5,
+          "net_pnl_usd": 0.02
+        }
+      },
+      "by_symbol_side": {
+        "BNB_SELL": {
+          "count": 20,
+          "share_pct": 31.2,
+          "gross_exp_bps": 20.54,
+          "net_exp_bps": 6.52,
+          "win_rate_pct": 40.0,
+          "net_pnl_usd": 19.47
+        },
+        "BTC_SELL": {
+          "count": 25,
+          "share_pct": 39.1,
+          "gross_exp_bps": -9.54,
+          "net_exp_bps": -23.53,
+          "win_rate_pct": 32.0,
+          "net_pnl_usd": -152.03
+        },
+        "ETH_SELL": {
+          "count": 19,
+          "share_pct": 29.7,
+          "gross_exp_bps": 41.41,
+          "net_exp_bps": 27.38,
+          "win_rate_pct": 42.1,
+          "net_pnl_usd": 132.59
+        }
+      },
+      "by_exit_reason": {
+        "SL": {
+          "count": 33,
+          "share_pct": 51.6,
+          "gross_exp_bps": -150.0,
+          "net_exp_bps": -163.89,
+          "win_rate_pct": 0.0,
+          "net_pnl_usd": -1334.71,
+          "avg_bars_held": 70.8
+        },
+        "TIMEOUT": {
+          "count": 18,
+          "share_pct": 28.1,
+          "gross_exp_bps": 75.5,
+          "net_exp_bps": 61.45,
+          "win_rate_pct": 61.1,
+          "net_pnl_usd": 263.81,
+          "avg_bars_held": 192.0
+        },
+        "TP": {
+          "count": 13,
+          "share_pct": 20.3,
+          "gross_exp_bps": 350.0,
+          "net_exp_bps": 335.76,
+          "win_rate_pct": 100.0,
+          "net_pnl_usd": 1070.92,
+          "avg_bars_held": 53.6
+        }
+      },
+      "by_holding_period": {
+        "1-16_bars_le4h": {
+          "count": 12,
+          "share_pct": 18.8,
+          "gross_exp_bps": 16.67,
+          "net_exp_bps": 2.66,
+          "win_rate_pct": 33.3,
+          "net_pnl_usd": 4.05
+        },
+        "17-48_bars_4-12h": {
+          "count": 9,
+          "share_pct": 14.1,
+          "gross_exp_bps": -94.44,
+          "net_exp_bps": -108.38,
+          "win_rate_pct": 11.1,
+          "net_pnl_usd": -236.75
+        },
+        "49-96_bars_12-24h": {
+          "count": 14,
+          "share_pct": 21.9,
+          "gross_exp_bps": 100.0,
+          "net_exp_bps": 85.93,
+          "win_rate_pct": 50.0,
+          "net_pnl_usd": 292.85
+        },
+        "97-192_bars_24-48h": {
+          "count": 29,
+          "share_pct": 45.3,
+          "gross_exp_bps": 7.21,
+          "net_exp_bps": -6.8,
+          "win_rate_pct": 41.4,
+          "net_pnl_usd": -60.12
+        }
+      },
+      "by_session_utc": {
+        "00-06_ASIA": {
+          "count": 12,
+          "share_pct": 18.8,
+          "gross_exp_bps": 38.7,
+          "net_exp_bps": 24.67,
+          "win_rate_pct": 50.0,
+          "net_pnl_usd": 72.1
+        },
+        "06-12_EU": {
+          "count": 18,
+          "share_pct": 28.1,
+          "gross_exp_bps": 5.03,
+          "net_exp_bps": -8.97,
+          "win_rate_pct": 38.9,
+          "net_pnl_usd": -45.79
+        },
+        "12-18_US": {
+          "count": 19,
+          "share_pct": 29.7,
+          "gross_exp_bps": 46.0,
+          "net_exp_bps": 31.97,
+          "win_rate_pct": 42.1,
+          "net_pnl_usd": 138.1
+        },
+        "18-24_LATE_US": {
+          "count": 15,
+          "share_pct": 23.4,
+          "gross_exp_bps": -31.33,
+          "net_exp_bps": -45.31,
+          "win_rate_pct": 20.0,
+          "net_pnl_usd": -164.39
+        }
+      },
+      "by_day_of_week": {
+        "Monday": {
+          "count": 7,
+          "share_pct": 10.9,
+          "gross_exp_bps": 135.71,
+          "net_exp_bps": 121.62,
+          "win_rate_pct": 57.1,
+          "net_pnl_usd": 206.69
+        },
+        "Tuesday": {
+          "count": 5,
+          "share_pct": 7.8,
+          "gross_exp_bps": -50.0,
+          "net_exp_bps": -63.96,
+          "win_rate_pct": 20.0,
+          "net_pnl_usd": -77.33
+        },
+        "Wednesday": {
+          "count": 14,
+          "share_pct": 21.9,
+          "gross_exp_bps": 109.9,
+          "net_exp_bps": 95.83,
+          "win_rate_pct": 50.0,
+          "net_pnl_usd": 317.03
+        },
+        "Thursday": {
+          "count": 9,
+          "share_pct": 14.1,
+          "gross_exp_bps": -10.55,
+          "net_exp_bps": -24.55,
+          "win_rate_pct": 33.3,
+          "net_pnl_usd": -50.96
+        },
+        "Friday": {
+          "count": 6,
+          "share_pct": 9.4,
+          "gross_exp_bps": -9.35,
+          "net_exp_bps": -23.34,
+          "win_rate_pct": 50.0,
+          "net_pnl_usd": -35.26
+        },
+        "Saturday": {
+          "count": 8,
+          "share_pct": 12.5,
+          "gross_exp_bps": -7.09,
+          "net_exp_bps": -21.09,
+          "win_rate_pct": 37.5,
+          "net_pnl_usd": -48.93
+        },
+        "Sunday": {
+          "count": 15,
+          "share_pct": 23.4,
+          "gross_exp_bps": -71.46,
+          "net_exp_bps": -85.41,
+          "win_rate_pct": 20.0,
+          "net_pnl_usd": -311.22
+        }
+      },
+      "cost_sensitivity": {
+        "10.0": {
+          "expectancy_bps": 4.98,
+          "win_rate_pct": 37.5,
+          "profit_factor": 1.06
+        },
+        "14.0": {
+          "expectancy_bps": 0.98,
+          "win_rate_pct": 37.5,
+          "profit_factor": 1.01
+        },
+        "20.0": {
+          "expectancy_bps": -5.02,
+          "win_rate_pct": 37.5,
+          "profit_factor": 0.95
+        },
+        "30.0": {
+          "expectancy_bps": -15.02,
+          "win_rate_pct": 35.9,
+          "profit_factor": 0.85
+        }
+      }
+    }
+  },
+  "admission_evaluation": {
+    "admission_verdict": "VCB_V4_REJECTED_AT_EXPLORATORY_ADMISSION",
+    "admission_passed": false,
+    "stage_2_dev_gate_scorecard": {
+      "net_expectancy_positive": true,
+      "gate_7_ci_lower_positive": false,
+      "profit_factor_above_one": true,
+      "min_two_assets_active": true,
+      "no_zero_coverage_fold": true,
+      "sample_sufficient_for_trade_rate": true
+    },
+    "rejection_reasons": [
+      "FAILED_DEV_SELECTION_GATE: Candidate VCB_V4_SELL_ONLY failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0 (Observed CI: [-1.553, 2.891] bps/day, lower=-1.553)"
+    ],
+    "burned_audit_usage": "NONE (Burned audit data strictly excluded from prospective admission input and gate evaluation)",
+    "prospective_registration_validation": {
+      "is_eligible": false,
+      "reasons": [
+        "FAILED_DEV_SELECTION_GATE: Candidate VCB_V4_SELL_ONLY failed DEV walk-forward selection (DEV Gate 7 passed=False, DEV Net Exp=8.99 bps)"
+      ]
+    }
+  },
+  "system_operating_disposition": {
+    "candidate_selection_verdict": "NO_CANDIDATE_SELECTED",
+    "prospective_status": "PROSPECTIVE_NOT_STARTED",
+    "runtime_candidate_spec": null,
+    "activation_manifest": null
+  },
+  "semantic_artifact_sha256": "fe8166fa057dfcac1a0b702b48e81ae8ec8fa8635e1eafe211ff83c86e2c2b1c"
+}

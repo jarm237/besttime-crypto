@@ -1,0 +1,163 @@
+{
+  "audit_name": "vcb_v5_cross_sectional_exposure_audit",
+  "audit_timestamp_utc": "2026-11-04T03:16:10.906048+00:00",
+  "git_head": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "universe_definition": {
+    "all_symbols": [
+      "BNB",
+      "BTC",
+      "DOGE",
+      "ETH",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ],
+    "design_symbols": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "holdout_symbols": [
+      "DOGE",
+      "IOTA",
+      "NEAR",
+      "SOL",
+      "TRX",
+      "ZEC"
+    ],
+    "min_required_eligible_symbols": 4,
+    "observed_eligible_symbols": 6
+  },
+  "symbols": {
+    "BNB": {
+      "symbol": "BNB",
+      "role": "EXPOSED_DESIGN_ASSET_DIAGNOSTIC",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [
+        "research/historical_market_replay_v5/vcb_economic_decomposition.json",
+        "research/historical_market_replay_v5/vcb_economic_decomposition.md",
+        "research/historical_market_replay_v5/vcb_exploratory_variants.json",
+        "research/historical_market_replay_v5/vcb_v4_sell_only_research.json",
+        "research/historical_market_replay_v5/vcb_v4_sell_only_research.md"
+      ],
+      "prior_vcb_reference_count": 5,
+      "exposure_status": "EXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "INELIGIBLE_FOR_PRIMARY_HOLDOUT_EVALUATION"
+    },
+    "BTC": {
+      "symbol": "BTC",
+      "role": "EXPOSED_DESIGN_ASSET_DIAGNOSTIC",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [
+        "research/historical_market_replay_v5/vcb_economic_decomposition.json",
+        "research/historical_market_replay_v5/vcb_economic_decomposition.md",
+        "research/historical_market_replay_v5/vcb_exploratory_variants.json",
+        "research/historical_market_replay_v5/vcb_v4_sell_only_research.json",
+        "research/historical_market_replay_v5/vcb_v4_sell_only_research.md"
+      ],
+      "prior_vcb_reference_count": 5,
+      "exposure_status": "EXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "INELIGIBLE_FOR_PRIMARY_HOLDOUT_EVALUATION"
+    },
+    "DOGE": {
+      "symbol": "DOGE",
+      "role": "CANDIDATE_CROSS_SECTIONAL_HOLDOUT",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [],
+      "prior_vcb_reference_count": 0,
+      "exposure_status": "UNEXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "ELIGIBLE"
+    },
+    "ETH": {
+      "symbol": "ETH",
+      "role": "EXPOSED_DESIGN_ASSET_DIAGNOSTIC",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [
+        "research/historical_market_replay_v5/vcb_economic_decomposition.json",
+        "research/historical_market_replay_v5/vcb_economic_decomposition.md",
+        "research/historical_market_replay_v5/vcb_exploratory_variants.json",
+        "research/historical_market_replay_v5/vcb_v4_sell_only_research.json",
+        "research/historical_market_replay_v5/vcb_v4_sell_only_research.md"
+      ],
+      "prior_vcb_reference_count": 5,
+      "exposure_status": "EXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "INELIGIBLE_FOR_PRIMARY_HOLDOUT_EVALUATION"
+    },
+    "IOTA": {
+      "symbol": "IOTA",
+      "role": "CANDIDATE_CROSS_SECTIONAL_HOLDOUT",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [],
+      "prior_vcb_reference_count": 0,
+      "exposure_status": "UNEXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "ELIGIBLE"
+    },
+    "NEAR": {
+      "symbol": "NEAR",
+      "role": "CANDIDATE_CROSS_SECTIONAL_HOLDOUT",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [],
+      "prior_vcb_reference_count": 0,
+      "exposure_status": "UNEXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "ELIGIBLE"
+    },
+    "SOL": {
+      "symbol": "SOL",
+      "role": "CANDIDATE_CROSS_SECTIONAL_HOLDOUT",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [],
+      "prior_vcb_reference_count": 0,
+      "exposure_status": "UNEXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "ELIGIBLE"
+    },
+    "TRX": {
+      "symbol": "TRX",
+      "role": "CANDIDATE_CROSS_SECTIONAL_HOLDOUT",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [],
+      "prior_vcb_reference_count": 0,
+      "exposure_status": "UNEXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "ELIGIBLE"
+    },
+    "ZEC": {
+      "symbol": "ZEC",
+      "role": "CANDIDATE_CROSS_SECTIONAL_HOLDOUT",
+      "files_count_15m": 42,
+      "earliest_timestamp": "2022-12-29 00:00",
+      "latest_timestamp": "2026-06-30 23:45",
+      "total_rows": 134683,
+      "prior_vcb_references": [],
+      "prior_vcb_reference_count": 0,
+      "exposure_status": "UNEXPOSED_TO_VCB_SPEC",
+      "coverage_eligibility": "ELIGIBLE"
+    }
+  },
+  "audit_verdict": "SUFFICIENT_CROSS_SECTIONAL_HOLDOUT_UNIVERSE",
+  "epistemic_classification": "CROSS_SECTIONAL_EXPOSURE_AUDIT_STRICT_PRE_REGISTRATION"
+}

@@ -1,0 +1,5419 @@
+{
+  "program": "HMR-V5-ECONOMIC-ATTRIBUTION-11D",
+  "audit_timestamp": "2026-11-01T17:59:54.862399+00:00",
+  "leakage_governance": {
+    "discovery_split": "TRAIN_2023 [2023-01-01, 2024-01-01)",
+    "selection_split": "DEV_2024_2025 [2024-01-01, 2026-01-01)",
+    "interval_semantics": "half_open_[start,end)",
+    "cross_boundary_policy": "EXCLUDE_CROSS_BOUNDARY_OUTCOME",
+    "audit_2026_used_in_attribution_or_discovery": false,
+    "minimum_adequate_cell_sample_n": 30
+  },
+  "train_fitted_bucket_cutoffs": {
+    "fitted_strictly_on": "TRAIN_2023 [2023-01-01, 2024-01-01) with exit_timestamp < 2024-01-01",
+    "atr14_quartiles_bps": [
+      16.745,
+      24.872,
+      36.528
+    ],
+    "atr192_compression_q65_bps": 32.782,
+    "wf_score_decile_edges_bps": [
+      -15.011,
+      -14.568,
+      -14.335,
+      -14.176,
+      -14.05,
+      -13.928,
+      -13.786,
+      -13.584,
+      -13.23
+    ]
+  },
+  "overall": {
+    "train_2023": {
+      "count": 116113,
+      "executed_serialized_n": 1006,
+      "sample_adequacy": "ADEQUATE",
+      "coverage_pct": 100.0,
+      "gross_expectancy_bps": -0.09,
+      "net_expectancy_bps": -14.09,
+      "net_expectancy_by_cost_bps": {
+        "10bps": -10.09,
+        "14bps": -14.09,
+        "20bps": -20.09,
+        "30bps": -30.09
+      },
+      "win_rate_pct": 37.16,
+      "profit_factor": 0.486,
+      "bootstrap_ci_95_gross_bps": {
+        "mean": -0.09,
+        "ci_lower": -0.33,
+        "ci_upper": 0.13
+      },
+      "bootstrap_ci_95_net14_bps": {
+        "mean": -14.09,
+        "ci_lower": -14.33,
+        "ci_upper": -13.87
+      },
+      "max_drawdown_pct": 32.27,
+      "turnover": 205.35,
+      "tp_count": 42980,
+      "sl_count": 72093,
+      "timeout_count": 1040,
+      "tp_rate_pct": 37.02,
+      "sl_rate_pct": 62.09,
+      "timeout_rate_pct": 0.9,
+      "timeout_avg_gross_bps": 2.8
+    },
+    "dev_2024_2025": {
+      "count": 223934,
+      "executed_serialized_n": 2085,
+      "sample_adequacy": "ADEQUATE",
+      "coverage_pct": 100.0,
+      "gross_expectancy_bps": -0.04,
+      "net_expectancy_bps": -14.04,
+      "net_expectancy_by_cost_bps": {
+        "10bps": -10.04,
+        "14bps": -14.04,
+        "20bps": -20.04,
+        "30bps": -30.04
+      },
+      "win_rate_pct": 37.44,
+      "profit_factor": 0.49,
+      "bootstrap_ci_95_gross_bps": {
+        "mean": -0.04,
+        "ci_lower": -0.18,
+        "ci_upper": 0.12
+      },
+      "bootstrap_ci_95_net14_bps": {
+        "mean": -14.04,
+        "ci_lower": -14.18,
+        "ci_upper": -13.88
+      },
+      "max_drawdown_pct": 54.04,
+      "turnover": 369.63,
+      "tp_count": 83729,
+      "sl_count": 139906,
+      "timeout_count": 299,
+      "tp_rate_pct": 37.39,
+      "sl_rate_pct": 62.48,
+      "timeout_rate_pct": 0.13,
+      "timeout_avg_gross_bps": 9.44
+    },
+    "confirmatory_2024_h2_control": {
+      "count": 55716,
+      "executed_serialized_n": 528,
+      "sample_adequacy": "ADEQUATE",
+      "coverage_pct": 100.0,
+      "gross_expectancy_bps": 0.65,
+      "net_expectancy_bps": -13.35,
+      "net_expectancy_by_cost_bps": {
+        "10bps": -9.35,
+        "14bps": -13.35,
+        "20bps": -19.35,
+        "30bps": -29.35
+      },
+      "win_rate_pct": 38.31,
+      "profit_factor": 0.508,
+      "bootstrap_ci_95_gross_bps": {
+        "mean": 0.65,
+        "ci_lower": 0.35,
+        "ci_upper": 0.98
+      },
+      "bootstrap_ci_95_net14_bps": {
+        "mean": -13.35,
+        "ci_lower": -13.65,
+        "ci_upper": -13.02
+      },
+      "max_drawdown_pct": 17.46,
+      "turnover": 119.62,
+      "tp_count": 21346,
+      "sl_count": 34363,
+      "timeout_count": 7,
+      "tp_rate_pct": 38.31,
+      "sl_rate_pct": 61.68,
+      "timeout_rate_pct": 0.01,
+      "timeout_avg_gross_bps": -7.13
+    },
+    "confirmatory_2024_h2_s3": {
+      "count": 0,
+      "executed_serialized_n": 0,
+      "sample_adequacy": "EMPTY_SLICE",
+      "coverage_pct": 0.0,
+      "gross_expectancy_bps": 0.0,
+      "net_expectancy_bps": 0.0,
+      "net_expectancy_by_cost_bps": {
+        "10bps": 0.0,
+        "14bps": 0.0,
+        "20bps": 0.0,
+        "30bps": 0.0
+      },
+      "win_rate_pct": 0.0,
+      "profit_factor": 0.0,
+      "bootstrap_ci_95_gross_bps": {
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
+      },
+      "bootstrap_ci_95_net14_bps": {
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
+      },
+      "max_drawdown_pct": 0.0,
+      "turnover": 0.0,
+      "tp_count": 0,
+      "sl_count": 0,
+      "timeout_count": 0,
+      "tp_rate_pct": 0.0,
+      "sl_rate_pct": 0.0,
+      "timeout_rate_pct": 0.0,
+      "timeout_avg_gross_bps": 0.0
+    }
+  },
+  "attribution_11d_train_2023": {
+    "symbol": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "BNB": {
+          "count": 38116,
+          "executed_serialized_n": 339,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 32.83,
+          "gross_expectancy_bps": -0.88,
+          "net_expectancy_bps": -14.88,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.88,
+            "14bps": -14.88,
+            "20bps": -20.88,
+            "30bps": -30.88
+          },
+          "win_rate_pct": 36.35,
+          "profit_factor": 0.468,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.88,
+            "ci_lower": -1.29,
+            "ci_upper": -0.51
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.88,
+            "ci_lower": -15.29,
+            "ci_upper": -14.51
+          },
+          "max_drawdown_pct": 13.49,
+          "turnover": 78.23,
+          "tp_count": 13824,
+          "sl_count": 24179,
+          "timeout_count": 113,
+          "tp_rate_pct": 36.27,
+          "sl_rate_pct": 63.44,
+          "timeout_rate_pct": 0.3,
+          "timeout_avg_gross_bps": 5.58,
+          "is_ex_post_diagnostic_only": false
+        },
+        "BTC": {
+          "count": 39409,
+          "executed_serialized_n": 330,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 33.94,
+          "gross_expectancy_bps": 0.46,
+          "net_expectancy_bps": -13.54,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.54,
+            "14bps": -13.54,
+            "20bps": -19.54,
+            "30bps": -29.54
+          },
+          "win_rate_pct": 37.6,
+          "profit_factor": 0.498,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.46,
+            "ci_lower": 0.09,
+            "ci_upper": 0.83
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.54,
+            "ci_lower": -13.91,
+            "ci_upper": -13.17
+          },
+          "max_drawdown_pct": 12.76,
+          "turnover": 77.16,
+          "tp_count": 14713,
+          "sl_count": 23977,
+          "timeout_count": 719,
+          "tp_rate_pct": 37.33,
+          "sl_rate_pct": 60.84,
+          "timeout_rate_pct": 1.82,
+          "timeout_avg_gross_bps": 2.25,
+          "is_ex_post_diagnostic_only": false
+        },
+        "ETH": {
+          "count": 38588,
+          "executed_serialized_n": 337,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 33.23,
+          "gross_expectancy_bps": 0.12,
+          "net_expectancy_bps": -13.88,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.88,
+            "14bps": -13.88,
+            "20bps": -19.88,
+            "30bps": -29.88
+          },
+          "win_rate_pct": 37.5,
+          "profit_factor": 0.493,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.12,
+            "ci_lower": -0.29,
+            "ci_upper": 0.55
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.88,
+            "ci_lower": -14.29,
+            "ci_upper": -13.45
+          },
+          "max_drawdown_pct": 13.93,
+          "turnover": 77.99,
+          "tp_count": 14443,
+          "sl_count": 23937,
+          "timeout_count": 208,
+          "tp_rate_pct": 37.43,
+          "sl_rate_pct": 62.03,
+          "timeout_rate_pct": 0.54,
+          "timeout_avg_gross_bps": 3.2,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "side": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "BUY": {
+          "count": 58280,
+          "executed_serialized_n": 863,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 50.19,
+          "gross_expectancy_bps": 0.07,
+          "net_expectancy_bps": -13.93,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.93,
+            "14bps": -13.93,
+            "20bps": -19.93,
+            "30bps": -29.93
+          },
+          "win_rate_pct": 37.38,
+          "profit_factor": 0.491,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.07,
+            "ci_lower": -0.24,
+            "ci_upper": 0.37
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.93,
+            "ci_lower": -14.24,
+            "ci_upper": -13.63
+          },
+          "max_drawdown_pct": 25.44,
+          "turnover": 186.58,
+          "tp_count": 21700,
+          "sl_count": 36088,
+          "timeout_count": 492,
+          "tp_rate_pct": 37.23,
+          "sl_rate_pct": 61.92,
+          "timeout_rate_pct": 0.84,
+          "timeout_avg_gross_bps": 3.48,
+          "is_ex_post_diagnostic_only": false
+        },
+        "SELL": {
+          "count": 57833,
+          "executed_serialized_n": 853,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 49.81,
+          "gross_expectancy_bps": -0.26,
+          "net_expectancy_bps": -14.26,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.26,
+            "14bps": -14.26,
+            "20bps": -20.26,
+            "30bps": -30.26
+          },
+          "win_rate_pct": 36.93,
+          "profit_factor": 0.482,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.26,
+            "ci_lower": -0.55,
+            "ci_upper": 0.04
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.26,
+            "ci_lower": -14.55,
+            "ci_upper": -13.96
+          },
+          "max_drawdown_pct": 25.73,
+          "turnover": 182.09,
+          "tp_count": 21280,
+          "sl_count": 36005,
+          "timeout_count": 548,
+          "tp_rate_pct": 36.8,
+          "sl_rate_pct": 62.26,
+          "timeout_rate_pct": 0.95,
+          "timeout_avg_gross_bps": 2.19,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "regime": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "CHOP_RANGE": {
+          "count": 64511,
+          "executed_serialized_n": 845,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 55.56,
+          "gross_expectancy_bps": -0.14,
+          "net_expectancy_bps": -14.14,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.14,
+            "14bps": -14.14,
+            "20bps": -20.14,
+            "30bps": -30.14
+          },
+          "win_rate_pct": 37.01,
+          "profit_factor": 0.484,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.14,
+            "ci_lower": -0.47,
+            "ci_upper": 0.13
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.14,
+            "ci_lower": -14.47,
+            "ci_upper": -13.87
+          },
+          "max_drawdown_pct": 25.08,
+          "turnover": 183.07,
+          "tp_count": 23751,
+          "sl_count": 39968,
+          "timeout_count": 792,
+          "tp_rate_pct": 36.82,
+          "sl_rate_pct": 61.96,
+          "timeout_rate_pct": 1.23,
+          "timeout_avg_gross_bps": 2.79,
+          "is_ex_post_diagnostic_only": false
+        },
+        "COMPRESSION_BREAKOUT": {
+          "count": 830,
+          "executed_serialized_n": 284,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 0.71,
+          "gross_expectancy_bps": -0.31,
+          "net_expectancy_bps": -14.31,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.31,
+            "14bps": -14.31,
+            "20bps": -20.31,
+            "30bps": -30.31
+          },
+          "win_rate_pct": 37.11,
+          "profit_factor": 0.483,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.31,
+            "ci_lower": -2.97,
+            "ci_upper": 2.29
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.31,
+            "ci_lower": -16.97,
+            "ci_upper": -11.71
+          },
+          "max_drawdown_pct": 11.3,
+          "turnover": 67.44,
+          "tp_count": 308,
+          "sl_count": 522,
+          "timeout_count": 0,
+          "tp_rate_pct": 37.11,
+          "sl_rate_pct": 62.89,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "HIGH_VOL_OR_UNALIGNED_BREAKOUT": {
+          "count": 1542,
+          "executed_serialized_n": 496,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 1.33,
+          "gross_expectancy_bps": -2.19,
+          "net_expectancy_bps": -16.19,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -12.19,
+            "14bps": -16.19,
+            "20bps": -22.19,
+            "30bps": -32.19
+          },
+          "win_rate_pct": 34.76,
+          "profit_factor": 0.436,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -2.19,
+            "ci_lower": -3.93,
+            "ci_upper": -0.35
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -16.19,
+            "ci_lower": -17.93,
+            "ci_upper": -14.35
+          },
+          "max_drawdown_pct": 16.96,
+          "turnover": 113.02,
+          "tp_count": 536,
+          "sl_count": 1006,
+          "timeout_count": 0,
+          "tp_rate_pct": 34.76,
+          "sl_rate_pct": 65.24,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "TREND_BEAR": {
+          "count": 23728,
+          "executed_serialized_n": 458,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 20.44,
+          "gross_expectancy_bps": 0.09,
+          "net_expectancy_bps": -13.91,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.91,
+            "14bps": -13.91,
+            "20bps": -19.91,
+            "30bps": -29.91
+          },
+          "win_rate_pct": 37.44,
+          "profit_factor": 0.492,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.09,
+            "ci_lower": -0.44,
+            "ci_upper": 0.6
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.91,
+            "ci_lower": -14.44,
+            "ci_upper": -13.4
+          },
+          "max_drawdown_pct": 17.67,
+          "turnover": 104.04,
+          "tp_count": 8857,
+          "sl_count": 14707,
+          "timeout_count": 164,
+          "tp_rate_pct": 37.33,
+          "sl_rate_pct": 61.98,
+          "timeout_rate_pct": 0.69,
+          "timeout_avg_gross_bps": 2.95,
+          "is_ex_post_diagnostic_only": false
+        },
+        "TREND_BULL": {
+          "count": 25502,
+          "executed_serialized_n": 498,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 21.96,
+          "gross_expectancy_bps": -0.0,
+          "net_expectancy_bps": -14.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.0,
+            "14bps": -14.0,
+            "20bps": -20.0,
+            "30bps": -30.0
+          },
+          "win_rate_pct": 37.42,
+          "profit_factor": 0.49,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.0,
+            "ci_lower": -0.46,
+            "ci_upper": 0.48
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.0,
+            "ci_lower": -14.46,
+            "ci_upper": -13.52
+          },
+          "max_drawdown_pct": 17.89,
+          "turnover": 112.75,
+          "tp_count": 9528,
+          "sl_count": 15890,
+          "timeout_count": 84,
+          "tp_rate_pct": 37.36,
+          "sl_rate_pct": 62.31,
+          "timeout_rate_pct": 0.33,
+          "timeout_avg_gross_bps": 2.55,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "volatility_bucket": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "Q1_LOW_VOL": {
+          "count": 29029,
+          "executed_serialized_n": 496,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.0,
+          "gross_expectancy_bps": 0.62,
+          "net_expectancy_bps": -13.38,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.38,
+            "14bps": -13.38,
+            "20bps": -19.38,
+            "30bps": -29.38
+          },
+          "win_rate_pct": 37.44,
+          "profit_factor": 0.499,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.62,
+            "ci_lower": 0.18,
+            "ci_upper": 1.03
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.38,
+            "ci_lower": -13.82,
+            "ci_upper": -12.97
+          },
+          "max_drawdown_pct": 14.77,
+          "turnover": 113.7,
+          "tp_count": 10741,
+          "sl_count": 17368,
+          "timeout_count": 920,
+          "tp_rate_pct": 37.0,
+          "sl_rate_pct": 59.83,
+          "timeout_rate_pct": 3.17,
+          "timeout_avg_gross_bps": 2.24,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Q2_MOD_LOW_VOL": {
+          "count": 29028,
+          "executed_serialized_n": 755,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.0,
+          "gross_expectancy_bps": -0.13,
+          "net_expectancy_bps": -14.13,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.13,
+            "14bps": -14.13,
+            "20bps": -20.13,
+            "30bps": -30.13
+          },
+          "win_rate_pct": 37.27,
+          "profit_factor": 0.487,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.13,
+            "ci_lower": -0.58,
+            "ci_upper": 0.29
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.13,
+            "ci_lower": -14.58,
+            "ci_upper": -13.71
+          },
+          "max_drawdown_pct": 25.83,
+          "turnover": 164.57,
+          "tp_count": 10793,
+          "sl_count": 18134,
+          "timeout_count": 101,
+          "tp_rate_pct": 37.18,
+          "sl_rate_pct": 62.47,
+          "timeout_rate_pct": 0.35,
+          "timeout_avg_gross_bps": 5.41,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Q3_MOD_HIGH_VOL": {
+          "count": 29028,
+          "executed_serialized_n": 805,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.0,
+          "gross_expectancy_bps": -0.57,
+          "net_expectancy_bps": -14.57,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.57,
+            "14bps": -14.57,
+            "20bps": -20.57,
+            "30bps": -30.57
+          },
+          "win_rate_pct": 36.8,
+          "profit_factor": 0.476,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.57,
+            "ci_lower": -1.02,
+            "ci_upper": -0.13
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.57,
+            "ci_lower": -15.02,
+            "ci_upper": -14.13
+          },
+          "max_drawdown_pct": 28.39,
+          "turnover": 175.01,
+          "tp_count": 10670,
+          "sl_count": 18341,
+          "timeout_count": 17,
+          "tp_rate_pct": 36.76,
+          "sl_rate_pct": 63.18,
+          "timeout_rate_pct": 0.06,
+          "timeout_avg_gross_bps": 17.59,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Q4_HIGH_VOL": {
+          "count": 29028,
+          "executed_serialized_n": 682,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.0,
+          "gross_expectancy_bps": -0.3,
+          "net_expectancy_bps": -14.3,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.3,
+            "14bps": -14.3,
+            "20bps": -20.3,
+            "30bps": -30.3
+          },
+          "win_rate_pct": 37.12,
+          "profit_factor": 0.483,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.3,
+            "ci_lower": -0.7,
+            "ci_upper": 0.08
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.3,
+            "ci_lower": -14.7,
+            "ci_upper": -13.92
+          },
+          "max_drawdown_pct": 19.95,
+          "turnover": 156.79,
+          "tp_count": 10776,
+          "sl_count": 18250,
+          "timeout_count": 2,
+          "tp_rate_pct": 37.12,
+          "sl_rate_pct": 62.87,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 2.95,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "funding_liquidity_bucket": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "HIGH_LIQ_NEG_PREMIUM": {
+          "count": 38254,
+          "executed_serialized_n": 810,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 32.95,
+          "gross_expectancy_bps": 0.6,
+          "net_expectancy_bps": -13.4,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.4,
+            "14bps": -13.4,
+            "20bps": -19.4,
+            "30bps": -29.4
+          },
+          "win_rate_pct": 38.22,
+          "profit_factor": 0.506,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.6,
+            "ci_lower": 0.22,
+            "ci_upper": 1.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.4,
+            "ci_lower": -13.78,
+            "ci_upper": -13.0
+          },
+          "max_drawdown_pct": 27.92,
+          "turnover": 171.81,
+          "tp_count": 14610,
+          "sl_count": 23599,
+          "timeout_count": 45,
+          "tp_rate_pct": 38.19,
+          "sl_rate_pct": 61.69,
+          "timeout_rate_pct": 0.12,
+          "timeout_avg_gross_bps": 7.12,
+          "is_ex_post_diagnostic_only": false
+        },
+        "HIGH_LIQ_POS_PREMIUM": {
+          "count": 19802,
+          "executed_serialized_n": 584,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 17.05,
+          "gross_expectancy_bps": -0.05,
+          "net_expectancy_bps": -14.05,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.05,
+            "14bps": -14.05,
+            "20bps": -20.05,
+            "30bps": -30.05
+          },
+          "win_rate_pct": 37.44,
+          "profit_factor": 0.49,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.05,
+            "ci_lower": -0.62,
+            "ci_upper": 0.44
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.05,
+            "ci_lower": -14.62,
+            "ci_upper": -13.56
+          },
+          "max_drawdown_pct": 17.95,
+          "turnover": 133.73,
+          "tp_count": 7413,
+          "sl_count": 12386,
+          "timeout_count": 3,
+          "tp_rate_pct": 37.44,
+          "sl_rate_pct": 62.55,
+          "timeout_rate_pct": 0.02,
+          "timeout_avg_gross_bps": -16.2,
+          "is_ex_post_diagnostic_only": false
+        },
+        "LOW_LIQ_NEG_PREMIUM": {
+          "count": 41346,
+          "executed_serialized_n": 724,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 35.61,
+          "gross_expectancy_bps": -0.41,
+          "net_expectancy_bps": -14.41,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.41,
+            "14bps": -14.41,
+            "20bps": -20.41,
+            "30bps": -30.41
+          },
+          "win_rate_pct": 36.4,
+          "profit_factor": 0.475,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.41,
+            "ci_lower": -0.82,
+            "ci_upper": -0.06
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.41,
+            "ci_lower": -14.82,
+            "ci_upper": -14.06
+          },
+          "max_drawdown_pct": 23.78,
+          "turnover": 159.4,
+          "tp_count": 14925,
+          "sl_count": 25509,
+          "timeout_count": 912,
+          "tp_rate_pct": 36.1,
+          "sl_rate_pct": 61.7,
+          "timeout_rate_pct": 2.21,
+          "timeout_avg_gross_bps": 2.42,
+          "is_ex_post_diagnostic_only": false
+        },
+        "LOW_LIQ_POS_PREMIUM": {
+          "count": 16708,
+          "executed_serialized_n": 420,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.39,
+          "gross_expectancy_bps": -0.95,
+          "net_expectancy_bps": -14.95,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.95,
+            "14bps": -14.95,
+            "20bps": -20.95,
+            "30bps": -30.95
+          },
+          "win_rate_pct": 36.25,
+          "profit_factor": 0.465,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.95,
+            "ci_lower": -1.56,
+            "ci_upper": -0.31
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.95,
+            "ci_lower": -15.56,
+            "ci_upper": -14.31
+          },
+          "max_drawdown_pct": 12.4,
+          "turnover": 99.01,
+          "tp_count": 6032,
+          "sl_count": 10596,
+          "timeout_count": 80,
+          "tp_rate_pct": 36.1,
+          "sl_rate_pct": 63.42,
+          "timeout_rate_pct": 0.48,
+          "timeout_avg_gross_bps": 5.38,
+          "is_ex_post_diagnostic_only": false
+        },
+        "STALE_FEED_CANDLE_VOL_HIGH": {
+          "count": 1,
+          "executed_serialized_n": 1,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.0,
+          "gross_expectancy_bps": -30.0,
+          "net_expectancy_bps": -44.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -40.0,
+            "14bps": -44.0,
+            "20bps": -50.0,
+            "30bps": -60.0
+          },
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -30.0,
+            "ci_lower": -30.0,
+            "ci_upper": -30.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -44.0,
+            "ci_lower": -44.0,
+            "ci_upper": -44.0
+          },
+          "max_drawdown_pct": 0.11,
+          "turnover": 0.25,
+          "tp_count": 0,
+          "sl_count": 1,
+          "timeout_count": 0,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 100.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "STALE_FEED_CANDLE_VOL_LOW": {
+          "count": 2,
+          "executed_serialized_n": 2,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.0,
+          "gross_expectancy_bps": -30.0,
+          "net_expectancy_bps": -44.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -40.0,
+            "14bps": -44.0,
+            "20bps": -50.0,
+            "30bps": -60.0
+          },
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -30.0,
+            "ci_lower": -30.0,
+            "ci_upper": -30.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -44.0,
+            "ci_lower": -44.0,
+            "ci_upper": -44.0
+          },
+          "max_drawdown_pct": 0.22,
+          "turnover": 0.5,
+          "tp_count": 0,
+          "sl_count": 2,
+          "timeout_count": 0,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 100.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "signal_family": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "CHOP_DUAL_SIDED": {
+          "count": 22038,
+          "executed_serialized_n": 742,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 18.98,
+          "gross_expectancy_bps": 0.63,
+          "net_expectancy_bps": -13.37,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.37,
+            "14bps": -13.37,
+            "20bps": -19.37,
+            "30bps": -29.37
+          },
+          "win_rate_pct": 37.67,
+          "profit_factor": 0.501,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.63,
+            "ci_lower": 0.15,
+            "ci_upper": 1.16
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.37,
+            "ci_lower": -13.85,
+            "ci_upper": -12.84
+          },
+          "max_drawdown_pct": 24.29,
+          "turnover": 162.56,
+          "tp_count": 8206,
+          "sl_count": 13267,
+          "timeout_count": 565,
+          "tp_rate_pct": 37.24,
+          "sl_rate_pct": 60.2,
+          "timeout_rate_pct": 2.56,
+          "timeout_avg_gross_bps": 2.9,
+          "is_ex_post_diagnostic_only": false
+        },
+        "COUNTER_HTF_DRIFT": {
+          "count": 43537,
+          "executed_serialized_n": 797,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 37.5,
+          "gross_expectancy_bps": -0.55,
+          "net_expectancy_bps": -14.55,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.55,
+            "14bps": -14.55,
+            "20bps": -20.55,
+            "30bps": -30.55
+          },
+          "win_rate_pct": 36.66,
+          "profit_factor": 0.475,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.55,
+            "ci_lower": -0.89,
+            "ci_upper": -0.2
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.55,
+            "ci_lower": -14.89,
+            "ci_upper": -14.2
+          },
+          "max_drawdown_pct": 26.1,
+          "turnover": 174.74,
+          "tp_count": 15934,
+          "sl_count": 27376,
+          "timeout_count": 227,
+          "tp_rate_pct": 36.6,
+          "sl_rate_pct": 62.88,
+          "timeout_rate_pct": 0.52,
+          "timeout_avg_gross_bps": 2.53,
+          "is_ex_post_diagnostic_only": false
+        },
+        "DONCHIAN_BREAKOUT_ALIGNED": {
+          "count": 1308,
+          "executed_serialized_n": 419,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 1.13,
+          "gross_expectancy_bps": -2.17,
+          "net_expectancy_bps": -16.17,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -12.17,
+            "14bps": -16.17,
+            "20bps": -22.17,
+            "30bps": -32.17
+          },
+          "win_rate_pct": 34.79,
+          "profit_factor": 0.436,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -2.17,
+            "ci_lower": -4.22,
+            "ci_upper": -0.24
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -16.17,
+            "ci_lower": -18.22,
+            "ci_upper": -14.24
+          },
+          "max_drawdown_pct": 16.97,
+          "turnover": 96.73,
+          "tp_count": 455,
+          "sl_count": 853,
+          "timeout_count": 0,
+          "tp_rate_pct": 34.79,
+          "sl_rate_pct": 65.21,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "MOMENTUM_CONTINUATION": {
+          "count": 22260,
+          "executed_serialized_n": 798,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 19.17,
+          "gross_expectancy_bps": 0.32,
+          "net_expectancy_bps": -13.68,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.68,
+            "14bps": -13.68,
+            "20bps": -19.68,
+            "30bps": -29.68
+          },
+          "win_rate_pct": 37.83,
+          "profit_factor": 0.499,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.32,
+            "ci_lower": -0.19,
+            "ci_upper": 0.82
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.68,
+            "ci_lower": -14.19,
+            "ci_upper": -13.18
+          },
+          "max_drawdown_pct": 26.02,
+          "turnover": 172.65,
+          "tp_count": 8415,
+          "sl_count": 13787,
+          "timeout_count": 58,
+          "tp_rate_pct": 37.8,
+          "sl_rate_pct": 61.94,
+          "timeout_rate_pct": 0.26,
+          "timeout_avg_gross_bps": -1.51,
+          "is_ex_post_diagnostic_only": false
+        },
+        "PULLBACK_IN_TREND": {
+          "count": 26970,
+          "executed_serialized_n": 839,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 23.23,
+          "gross_expectancy_bps": -0.19,
+          "net_expectancy_bps": -14.19,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.19,
+            "14bps": -14.19,
+            "20bps": -20.19,
+            "30bps": -30.19
+          },
+          "win_rate_pct": 37.1,
+          "profit_factor": 0.484,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.19,
+            "ci_lower": -0.63,
+            "ci_upper": 0.25
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.19,
+            "ci_lower": -14.63,
+            "ci_upper": -13.75
+          },
+          "max_drawdown_pct": 27.66,
+          "turnover": 177.28,
+          "tp_count": 9970,
+          "sl_count": 16810,
+          "timeout_count": 190,
+          "tp_rate_pct": 36.97,
+          "sl_rate_pct": 62.33,
+          "timeout_rate_pct": 0.7,
+          "timeout_avg_gross_bps": 4.13,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "exit_reason": {
+      "is_ex_post_diagnostic_only": true,
+      "cells": {
+        "SL": {
+          "count": 72093,
+          "executed_serialized_n": 1004,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 62.09,
+          "gross_expectancy_bps": -30.0,
+          "net_expectancy_bps": -44.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -40.0,
+            "14bps": -44.0,
+            "20bps": -50.0,
+            "30bps": -60.0
+          },
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -30.0,
+            "ci_lower": -30.0,
+            "ci_upper": -30.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -44.0,
+            "ci_lower": -44.0,
+            "ci_upper": -44.0
+          },
+          "max_drawdown_pct": 66.88,
+          "turnover": 152.0,
+          "tp_count": 0,
+          "sl_count": 72093,
+          "timeout_count": 0,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 100.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        },
+        "TIMEOUT": {
+          "count": 1040,
+          "executed_serialized_n": 30,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 0.9,
+          "gross_expectancy_bps": 2.8,
+          "net_expectancy_bps": -11.2,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -7.2,
+            "14bps": -11.2,
+            "20bps": -17.2,
+            "30bps": -27.2
+          },
+          "win_rate_pct": 15.77,
+          "profit_factor": 0.098,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 2.8,
+            "ci_lower": 2.07,
+            "ci_upper": 3.47
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -11.2,
+            "ci_lower": -11.93,
+            "ci_upper": -10.53
+          },
+          "max_drawdown_pct": 0.53,
+          "turnover": 7.48,
+          "tp_count": 0,
+          "sl_count": 0,
+          "timeout_count": 1040,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 100.0,
+          "timeout_avg_gross_bps": 2.8,
+          "is_ex_post_diagnostic_only": true
+        },
+        "TP": {
+          "count": 42980,
+          "executed_serialized_n": 941,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 37.02,
+          "gross_expectancy_bps": 50.0,
+          "net_expectancy_bps": 36.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": 40.0,
+            "14bps": 36.0,
+            "20bps": 30.0,
+            "30bps": 20.0
+          },
+          "win_rate_pct": 100.0,
+          "profit_factor": 999.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 50.0,
+            "ci_lower": 50.0,
+            "ci_upper": 50.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": 36.0,
+            "ci_lower": 36.0,
+            "ci_upper": 36.0
+          },
+          "max_drawdown_pct": 0.0,
+          "turnover": 369.87,
+          "tp_count": 42980,
+          "sl_count": 0,
+          "timeout_count": 0,
+          "tp_rate_pct": 100.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        }
+      }
+    },
+    "holding_time_bucket": {
+      "is_ex_post_diagnostic_only": true,
+      "cells": {
+        "1-4_bars": {
+          "count": 54262,
+          "executed_serialized_n": 1009,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 46.73,
+          "gross_expectancy_bps": -3.76,
+          "net_expectancy_bps": -17.76,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -13.76,
+            "14bps": -17.76,
+            "20bps": -23.76,
+            "30bps": -33.76
+          },
+          "win_rate_pct": 32.8,
+          "profit_factor": 0.399,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -3.76,
+            "ci_lower": -4.04,
+            "ci_upper": -3.45
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -17.76,
+            "ci_lower": -18.04,
+            "ci_upper": -17.45
+          },
+          "max_drawdown_pct": 42.68,
+          "turnover": 192.88,
+          "tp_count": 17798,
+          "sl_count": 36464,
+          "timeout_count": 0,
+          "tp_rate_pct": 32.8,
+          "sl_rate_pct": 67.2,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        },
+        "17-48_bars": {
+          "count": 15536,
+          "executed_serialized_n": 598,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 13.38,
+          "gross_expectancy_bps": 5.02,
+          "net_expectancy_bps": -8.98,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -4.98,
+            "14bps": -8.98,
+            "20bps": -14.98,
+            "30bps": -24.98
+          },
+          "win_rate_pct": 43.78,
+          "profit_factor": 0.637,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 5.02,
+            "ci_lower": 4.44,
+            "ci_upper": 5.63
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -8.98,
+            "ci_lower": -9.56,
+            "ci_upper": -8.37
+          },
+          "max_drawdown_pct": 9.65,
+          "turnover": 141.8,
+          "tp_count": 6801,
+          "sl_count": 8735,
+          "timeout_count": 0,
+          "tp_rate_pct": 43.78,
+          "sl_rate_pct": 56.22,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        },
+        "49-96_bars": {
+          "count": 3869,
+          "executed_serialized_n": 126,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 3.33,
+          "gross_expectancy_bps": 3.3,
+          "net_expectancy_bps": -10.7,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -6.7,
+            "14bps": -10.7,
+            "20bps": -16.7,
+            "30bps": -26.7
+          },
+          "win_rate_pct": 34.84,
+          "profit_factor": 0.515,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 3.3,
+            "ci_lower": 2.24,
+            "ci_upper": 4.38
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -10.7,
+            "ci_lower": -11.76,
+            "ci_upper": -9.62
+          },
+          "max_drawdown_pct": 4.3,
+          "turnover": 30.77,
+          "tp_count": 1184,
+          "sl_count": 1645,
+          "timeout_count": 1040,
+          "tp_rate_pct": 30.6,
+          "sl_rate_pct": 42.52,
+          "timeout_rate_pct": 26.88,
+          "timeout_avg_gross_bps": 2.8,
+          "is_ex_post_diagnostic_only": true
+        },
+        "5-16_bars": {
+          "count": 42446,
+          "executed_serialized_n": 951,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 36.56,
+          "gross_expectancy_bps": 2.41,
+          "net_expectancy_bps": -11.59,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -7.59,
+            "14bps": -11.59,
+            "20bps": -17.59,
+            "30bps": -27.59
+          },
+          "win_rate_pct": 40.52,
+          "profit_factor": 0.557,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 2.41,
+            "ci_lower": 2.06,
+            "ci_upper": 2.8
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -11.59,
+            "ci_lower": -11.94,
+            "ci_upper": -11.2
+          },
+          "max_drawdown_pct": 27.28,
+          "turnover": 203.94,
+          "tp_count": 17197,
+          "sl_count": 25249,
+          "timeout_count": 0,
+          "tp_rate_pct": 40.52,
+          "sl_rate_pct": 59.48,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        }
+      }
+    },
+    "time_of_day_utc": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "00-06_ASIA": {
+          "count": 29062,
+          "executed_serialized_n": 874,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.03,
+          "gross_expectancy_bps": -0.7,
+          "net_expectancy_bps": -14.7,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.7,
+            "14bps": -14.7,
+            "20bps": -20.7,
+            "30bps": -30.7
+          },
+          "win_rate_pct": 36.4,
+          "profit_factor": 0.47,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.7,
+            "ci_lower": -1.11,
+            "ci_upper": -0.24
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.7,
+            "ci_lower": -15.11,
+            "ci_upper": -14.24
+          },
+          "max_drawdown_pct": 30.98,
+          "turnover": 180.38,
+          "tp_count": 10534,
+          "sl_count": 18270,
+          "timeout_count": 258,
+          "tp_rate_pct": 36.25,
+          "sl_rate_pct": 62.87,
+          "timeout_rate_pct": 0.89,
+          "timeout_avg_gross_bps": 3.99,
+          "is_ex_post_diagnostic_only": false
+        },
+        "06-12_EU": {
+          "count": 29491,
+          "executed_serialized_n": 839,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.4,
+          "gross_expectancy_bps": 0.8,
+          "net_expectancy_bps": -13.2,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.2,
+            "14bps": -13.2,
+            "20bps": -19.2,
+            "30bps": -29.2
+          },
+          "win_rate_pct": 38.19,
+          "profit_factor": 0.51,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.8,
+            "ci_lower": 0.35,
+            "ci_upper": 1.28
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.2,
+            "ci_lower": -13.65,
+            "ci_upper": -12.72
+          },
+          "max_drawdown_pct": 23.9,
+          "turnover": 180.26,
+          "tp_count": 11226,
+          "sl_count": 17936,
+          "timeout_count": 329,
+          "tp_rate_pct": 38.07,
+          "sl_rate_pct": 60.82,
+          "timeout_rate_pct": 1.12,
+          "timeout_avg_gross_bps": 1.53,
+          "is_ex_post_diagnostic_only": false
+        },
+        "12-18_US": {
+          "count": 29029,
+          "executed_serialized_n": 920,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.0,
+          "gross_expectancy_bps": 0.12,
+          "net_expectancy_bps": -13.88,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.88,
+            "14bps": -13.88,
+            "20bps": -19.88,
+            "30bps": -29.88
+          },
+          "win_rate_pct": 37.47,
+          "profit_factor": 0.492,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.12,
+            "ci_lower": -0.32,
+            "ci_upper": 0.55
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.88,
+            "ci_lower": -14.32,
+            "ci_upper": -13.45
+          },
+          "max_drawdown_pct": 23.21,
+          "turnover": 201.87,
+          "tp_count": 10847,
+          "sl_count": 17971,
+          "timeout_count": 211,
+          "tp_rate_pct": 37.37,
+          "sl_rate_pct": 61.91,
+          "timeout_rate_pct": 0.73,
+          "timeout_avg_gross_bps": 0.97,
+          "is_ex_post_diagnostic_only": false
+        },
+        "18-24_LATE_US": {
+          "count": 28531,
+          "executed_serialized_n": 885,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 24.57,
+          "gross_expectancy_bps": -0.62,
+          "net_expectancy_bps": -14.62,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.62,
+            "14bps": -14.62,
+            "20bps": -20.62,
+            "30bps": -30.62
+          },
+          "win_rate_pct": 36.54,
+          "profit_factor": 0.473,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.62,
+            "ci_lower": -1.04,
+            "ci_upper": -0.18
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.62,
+            "ci_lower": -15.04,
+            "ci_upper": -14.18
+          },
+          "max_drawdown_pct": 30.22,
+          "turnover": 184.41,
+          "tp_count": 10373,
+          "sl_count": 17916,
+          "timeout_count": 242,
+          "tp_rate_pct": 36.36,
+          "sl_rate_pct": 62.79,
+          "timeout_rate_pct": 0.85,
+          "timeout_avg_gross_bps": 4.85,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "day_of_week_utc": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "Fri": {
+          "count": 16477,
+          "executed_serialized_n": 156,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.19,
+          "gross_expectancy_bps": -1.41,
+          "net_expectancy_bps": -15.41,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.41,
+            "14bps": -15.41,
+            "20bps": -21.41,
+            "30bps": -31.41
+          },
+          "win_rate_pct": 35.48,
+          "profit_factor": 0.452,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.41,
+            "ci_lower": -1.91,
+            "ci_upper": -0.77
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.41,
+            "ci_lower": -15.91,
+            "ci_upper": -14.77
+          },
+          "max_drawdown_pct": 5.11,
+          "turnover": 37.83,
+          "tp_count": 5807,
+          "sl_count": 10478,
+          "timeout_count": 192,
+          "tp_rate_pct": 35.24,
+          "sl_rate_pct": 63.59,
+          "timeout_rate_pct": 1.17,
+          "timeout_avg_gross_bps": 4.08,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Mon": {
+          "count": 16079,
+          "executed_serialized_n": 156,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 13.85,
+          "gross_expectancy_bps": 1.13,
+          "net_expectancy_bps": -12.87,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -8.87,
+            "14bps": -12.87,
+            "20bps": -18.87,
+            "30bps": -28.87
+          },
+          "win_rate_pct": 38.92,
+          "profit_factor": 0.521,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 1.13,
+            "ci_lower": 0.59,
+            "ci_upper": 1.71
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -12.87,
+            "ci_lower": -13.41,
+            "ci_upper": -12.29
+          },
+          "max_drawdown_pct": 5.21,
+          "turnover": 37.88,
+          "tp_count": 6252,
+          "sl_count": 9820,
+          "timeout_count": 7,
+          "tp_rate_pct": 38.88,
+          "sl_rate_pct": 61.07,
+          "timeout_rate_pct": 0.04,
+          "timeout_avg_gross_bps": 26.69,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Sat": {
+          "count": 17404,
+          "executed_serialized_n": 156,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.99,
+          "gross_expectancy_bps": -1.49,
+          "net_expectancy_bps": -15.49,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.49,
+            "14bps": -15.49,
+            "20bps": -21.49,
+            "30bps": -31.49
+          },
+          "win_rate_pct": 34.41,
+          "profit_factor": 0.44,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.49,
+            "ci_lower": -2.06,
+            "ci_upper": -0.89
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.49,
+            "ci_lower": -16.06,
+            "ci_upper": -14.89
+          },
+          "max_drawdown_pct": 5.45,
+          "turnover": 38.38,
+          "tp_count": 5872,
+          "sl_count": 10711,
+          "timeout_count": 821,
+          "tp_rate_pct": 33.74,
+          "sl_rate_pct": 61.54,
+          "timeout_rate_pct": 4.72,
+          "timeout_avg_gross_bps": 2.21,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Sun": {
+          "count": 17744,
+          "executed_serialized_n": 159,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 15.28,
+          "gross_expectancy_bps": -0.32,
+          "net_expectancy_bps": -14.32,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.32,
+            "14bps": -14.32,
+            "20bps": -20.32,
+            "30bps": -30.32
+          },
+          "win_rate_pct": 37.08,
+          "profit_factor": 0.482,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.32,
+            "ci_lower": -0.87,
+            "ci_upper": 0.28
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.32,
+            "ci_lower": -14.87,
+            "ci_upper": -13.72
+          },
+          "max_drawdown_pct": 8.98,
+          "turnover": 37.57,
+          "tp_count": 6578,
+          "sl_count": 11157,
+          "timeout_count": 9,
+          "tp_rate_pct": 37.07,
+          "sl_rate_pct": 62.88,
+          "timeout_rate_pct": 0.05,
+          "timeout_avg_gross_bps": 6.82,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Thu": {
+          "count": 16133,
+          "executed_serialized_n": 156,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 13.89,
+          "gross_expectancy_bps": -0.29,
+          "net_expectancy_bps": -14.29,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.29,
+            "14bps": -14.29,
+            "20bps": -20.29,
+            "30bps": -30.29
+          },
+          "win_rate_pct": 37.12,
+          "profit_factor": 0.483,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.29,
+            "ci_lower": -0.81,
+            "ci_upper": 0.31
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.29,
+            "ci_lower": -14.81,
+            "ci_upper": -13.69
+          },
+          "max_drawdown_pct": 5.23,
+          "turnover": 38.02,
+          "tp_count": 5988,
+          "sl_count": 10135,
+          "timeout_count": 10,
+          "tp_rate_pct": 37.12,
+          "sl_rate_pct": 62.82,
+          "timeout_rate_pct": 0.06,
+          "timeout_avg_gross_bps": 3.45,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Tue": {
+          "count": 16142,
+          "executed_serialized_n": 156,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 13.9,
+          "gross_expectancy_bps": 0.6,
+          "net_expectancy_bps": -13.4,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.4,
+            "14bps": -13.4,
+            "20bps": -19.4,
+            "30bps": -29.4
+          },
+          "win_rate_pct": 38.25,
+          "profit_factor": 0.507,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.6,
+            "ci_lower": -0.03,
+            "ci_upper": 1.18
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.4,
+            "ci_lower": -14.03,
+            "ci_upper": -12.82
+          },
+          "max_drawdown_pct": 5.17,
+          "turnover": 38.03,
+          "tp_count": 6174,
+          "sl_count": 9968,
+          "timeout_count": 0,
+          "tp_rate_pct": 38.25,
+          "sl_rate_pct": 61.75,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Wed": {
+          "count": 16134,
+          "executed_serialized_n": 156,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 13.9,
+          "gross_expectancy_bps": 1.29,
+          "net_expectancy_bps": -12.71,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -8.71,
+            "14bps": -12.71,
+            "20bps": -18.71,
+            "30bps": -28.71
+          },
+          "win_rate_pct": 39.11,
+          "profit_factor": 0.525,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 1.29,
+            "ci_lower": 0.69,
+            "ci_upper": 1.85
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -12.71,
+            "ci_lower": -13.31,
+            "ci_upper": -12.15
+          },
+          "max_drawdown_pct": 3.5,
+          "turnover": 38.73,
+          "tp_count": 6309,
+          "sl_count": 9824,
+          "timeout_count": 1,
+          "tp_rate_pct": 39.1,
+          "sl_rate_pct": 60.89,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 33.82,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "confidence_score_decile": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "D01": {
+          "count": 11612,
+          "executed_serialized_n": 526,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": -1.0,
+          "net_expectancy_bps": -15.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.0,
+            "14bps": -15.0,
+            "20bps": -21.0,
+            "30bps": -31.0
+          },
+          "win_rate_pct": 36.23,
+          "profit_factor": 0.465,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.0,
+            "ci_lower": -1.7,
+            "ci_upper": -0.28
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.0,
+            "ci_lower": -15.7,
+            "ci_upper": -14.28
+          },
+          "max_drawdown_pct": 18.91,
+          "turnover": 118.14,
+          "tp_count": 4206,
+          "sl_count": 7400,
+          "timeout_count": 6,
+          "tp_rate_pct": 36.22,
+          "sl_rate_pct": 63.73,
+          "timeout_rate_pct": 0.05,
+          "timeout_avg_gross_bps": 9.5,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D02": {
+          "count": 11611,
+          "executed_serialized_n": 730,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": -1.62,
+          "net_expectancy_bps": -15.62,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.62,
+            "14bps": -15.62,
+            "20bps": -21.62,
+            "30bps": -31.62
+          },
+          "win_rate_pct": 35.42,
+          "profit_factor": 0.449,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.62,
+            "ci_lower": -2.32,
+            "ci_upper": -0.92
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.62,
+            "ci_lower": -16.32,
+            "ci_upper": -14.92
+          },
+          "max_drawdown_pct": 23.18,
+          "turnover": 160.44,
+          "tp_count": 4104,
+          "sl_count": 7474,
+          "timeout_count": 33,
+          "tp_rate_pct": 35.35,
+          "sl_rate_pct": 64.37,
+          "timeout_rate_pct": 0.28,
+          "timeout_avg_gross_bps": 6.49,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D03": {
+          "count": 11611,
+          "executed_serialized_n": 799,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": -1.38,
+          "net_expectancy_bps": -15.38,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.38,
+            "14bps": -15.38,
+            "20bps": -21.38,
+            "30bps": -31.38
+          },
+          "win_rate_pct": 35.61,
+          "profit_factor": 0.454,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.38,
+            "ci_lower": -2.01,
+            "ci_upper": -0.67
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.38,
+            "ci_lower": -16.01,
+            "ci_upper": -14.67
+          },
+          "max_drawdown_pct": 25.34,
+          "turnover": 171.82,
+          "tp_count": 4124,
+          "sl_count": 7416,
+          "timeout_count": 71,
+          "tp_rate_pct": 35.52,
+          "sl_rate_pct": 63.87,
+          "timeout_rate_pct": 0.61,
+          "timeout_avg_gross_bps": 3.63,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D04": {
+          "count": 11611,
+          "executed_serialized_n": 813,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": -1.05,
+          "net_expectancy_bps": -15.05,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.05,
+            "14bps": -15.05,
+            "20bps": -21.05,
+            "30bps": -31.05
+          },
+          "win_rate_pct": 35.99,
+          "profit_factor": 0.461,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.05,
+            "ci_lower": -1.73,
+            "ci_upper": -0.38
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.05,
+            "ci_lower": -15.73,
+            "ci_upper": -14.38
+          },
+          "max_drawdown_pct": 28.53,
+          "turnover": 173.48,
+          "tp_count": 4148,
+          "sl_count": 7341,
+          "timeout_count": 122,
+          "tp_rate_pct": 35.72,
+          "sl_rate_pct": 63.22,
+          "timeout_rate_pct": 1.05,
+          "timeout_avg_gross_bps": 5.02,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D05": {
+          "count": 11611,
+          "executed_serialized_n": 819,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": -0.16,
+          "net_expectancy_bps": -14.16,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.16,
+            "14bps": -14.16,
+            "20bps": -20.16,
+            "30bps": -30.16
+          },
+          "win_rate_pct": 36.85,
+          "profit_factor": 0.482,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.16,
+            "ci_lower": -0.83,
+            "ci_upper": 0.49
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.16,
+            "ci_lower": -14.83,
+            "ci_upper": -13.51
+          },
+          "max_drawdown_pct": 24.99,
+          "turnover": 179.89,
+          "tp_count": 4244,
+          "sl_count": 7157,
+          "timeout_count": 210,
+          "tp_rate_pct": 36.55,
+          "sl_rate_pct": 61.64,
+          "timeout_rate_pct": 1.81,
+          "timeout_avg_gross_bps": 2.86,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D06": {
+          "count": 11611,
+          "executed_serialized_n": 817,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": 0.66,
+          "net_expectancy_bps": -13.34,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.34,
+            "14bps": -13.34,
+            "20bps": -19.34,
+            "30bps": -29.34
+          },
+          "win_rate_pct": 37.79,
+          "profit_factor": 0.503,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.66,
+            "ci_lower": -0.09,
+            "ci_upper": 1.4
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.34,
+            "ci_lower": -14.09,
+            "ci_upper": -12.6
+          },
+          "max_drawdown_pct": 22.37,
+          "turnover": 178.87,
+          "tp_count": 4347,
+          "sl_count": 7010,
+          "timeout_count": 254,
+          "tp_rate_pct": 37.44,
+          "sl_rate_pct": 60.37,
+          "timeout_rate_pct": 2.19,
+          "timeout_avg_gross_bps": 2.63,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D07": {
+          "count": 11612,
+          "executed_serialized_n": 823,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": 0.63,
+          "net_expectancy_bps": -13.37,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.37,
+            "14bps": -13.37,
+            "20bps": -19.37,
+            "30bps": -29.37
+          },
+          "win_rate_pct": 37.79,
+          "profit_factor": 0.503,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.63,
+            "ci_lower": -0.03,
+            "ci_upper": 1.37
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.37,
+            "ci_lower": -14.03,
+            "ci_upper": -12.63
+          },
+          "max_drawdown_pct": 26.62,
+          "turnover": 176.48,
+          "tp_count": 4363,
+          "sl_count": 7040,
+          "timeout_count": 209,
+          "tp_rate_pct": 37.57,
+          "sl_rate_pct": 60.63,
+          "timeout_rate_pct": 1.8,
+          "timeout_avg_gross_bps": 1.75,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D08": {
+          "count": 11611,
+          "executed_serialized_n": 811,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": 0.69,
+          "net_expectancy_bps": -13.31,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.31,
+            "14bps": -13.31,
+            "20bps": -19.31,
+            "30bps": -29.31
+          },
+          "win_rate_pct": 38.17,
+          "profit_factor": 0.508,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.69,
+            "ci_lower": -0.0,
+            "ci_upper": 1.4
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.31,
+            "ci_lower": -14.0,
+            "ci_upper": -12.6
+          },
+          "max_drawdown_pct": 22.76,
+          "turnover": 176.7,
+          "tp_count": 4425,
+          "sl_count": 7108,
+          "timeout_count": 78,
+          "tp_rate_pct": 38.11,
+          "sl_rate_pct": 61.22,
+          "timeout_rate_pct": 0.67,
+          "timeout_avg_gross_bps": 0.63,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D09": {
+          "count": 11611,
+          "executed_serialized_n": 770,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": 0.36,
+          "net_expectancy_bps": -13.64,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.64,
+            "14bps": -13.64,
+            "20bps": -19.64,
+            "30bps": -29.64
+          },
+          "win_rate_pct": 37.82,
+          "profit_factor": 0.499,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.36,
+            "ci_lower": -0.32,
+            "ci_upper": 1.08
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.64,
+            "ci_lower": -14.32,
+            "ci_upper": -12.92
+          },
+          "max_drawdown_pct": 23.11,
+          "turnover": 168.78,
+          "tp_count": 4387,
+          "sl_count": 7175,
+          "timeout_count": 49,
+          "tp_rate_pct": 37.78,
+          "sl_rate_pct": 61.79,
+          "timeout_rate_pct": 0.42,
+          "timeout_avg_gross_bps": 0.76,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D10": {
+          "count": 11612,
+          "executed_serialized_n": 589,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.0,
+          "gross_expectancy_bps": 1.94,
+          "net_expectancy_bps": -12.06,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -8.06,
+            "14bps": -12.06,
+            "20bps": -18.06,
+            "30bps": -28.06
+          },
+          "win_rate_pct": 39.89,
+          "profit_factor": 0.543,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 1.94,
+            "ci_lower": 1.25,
+            "ci_upper": 2.62
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -12.06,
+            "ci_lower": -12.75,
+            "ci_upper": -11.38
+          },
+          "max_drawdown_pct": 15.33,
+          "turnover": 136.31,
+          "tp_count": 4632,
+          "sl_count": 6972,
+          "timeout_count": 8,
+          "tp_rate_pct": 39.89,
+          "sl_rate_pct": 60.04,
+          "timeout_rate_pct": 0.07,
+          "timeout_avg_gross_bps": 6.15,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "input_quality": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "FRESH_ALL_CONTEXT": {
+          "count": 115831,
+          "executed_serialized_n": 1004,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 99.76,
+          "gross_expectancy_bps": -0.07,
+          "net_expectancy_bps": -14.07,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.07,
+            "14bps": -14.07,
+            "20bps": -20.07,
+            "30bps": -30.07
+          },
+          "win_rate_pct": 37.19,
+          "profit_factor": 0.487,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.07,
+            "ci_lower": -0.28,
+            "ci_upper": 0.17
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.07,
+            "ci_lower": -14.28,
+            "ci_upper": -13.83
+          },
+          "max_drawdown_pct": 33.07,
+          "turnover": 204.5,
+          "tp_count": 42912,
+          "sl_count": 71879,
+          "timeout_count": 1040,
+          "tp_rate_pct": 37.05,
+          "sl_rate_pct": 62.06,
+          "timeout_rate_pct": 0.9,
+          "timeout_avg_gross_bps": 2.8,
+          "is_ex_post_diagnostic_only": false
+        },
+        "STALE_EXTERNAL_NEUTRALIZED": {
+          "count": 3,
+          "executed_serialized_n": 3,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.0,
+          "gross_expectancy_bps": -30.0,
+          "net_expectancy_bps": -44.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -40.0,
+            "14bps": -44.0,
+            "20bps": -50.0,
+            "30bps": -60.0
+          },
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -30.0,
+            "ci_lower": -30.0,
+            "ci_upper": -30.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -44.0,
+            "ci_lower": -44.0,
+            "ci_upper": -44.0
+          },
+          "max_drawdown_pct": 0.33,
+          "turnover": 0.75,
+          "tp_count": 0,
+          "sl_count": 3,
+          "timeout_count": 0,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 100.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "WEEKEND_OR_HOLIDAY_MACRO_AGING": {
+          "count": 279,
+          "executed_serialized_n": 3,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.24,
+          "gross_expectancy_bps": -10.5,
+          "net_expectancy_bps": -24.5,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -20.5,
+            "14bps": -24.5,
+            "20bps": -30.5,
+            "30bps": -40.5
+          },
+          "win_rate_pct": 24.37,
+          "profit_factor": 0.264,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -10.5,
+            "ci_lower": -14.52,
+            "ci_upper": -6.62
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -24.5,
+            "ci_lower": -28.52,
+            "ci_upper": -20.62
+          },
+          "max_drawdown_pct": 0.13,
+          "turnover": 0.75,
+          "tp_count": 68,
+          "sl_count": 211,
+          "timeout_count": 0,
+          "tp_rate_pct": 24.37,
+          "sl_rate_pct": 75.63,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    }
+  },
+  "attribution_11d_dev_2024_2025": {
+    "symbol": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "BNB": {
+          "count": 74297,
+          "executed_serialized_n": 696,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 33.18,
+          "gross_expectancy_bps": 0.11,
+          "net_expectancy_bps": -13.89,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.89,
+            "14bps": -13.89,
+            "20bps": -19.89,
+            "30bps": -29.89
+          },
+          "win_rate_pct": 37.63,
+          "profit_factor": 0.494,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.11,
+            "ci_lower": -0.18,
+            "ci_upper": 0.4
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.89,
+            "ci_lower": -14.18,
+            "ci_upper": -13.6
+          },
+          "max_drawdown_pct": 23.33,
+          "turnover": 152.72,
+          "tp_count": 27954,
+          "sl_count": 46333,
+          "timeout_count": 10,
+          "tp_rate_pct": 37.62,
+          "sl_rate_pct": 62.36,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 15.68,
+          "is_ex_post_diagnostic_only": false
+        },
+        "BTC": {
+          "count": 75817,
+          "executed_serialized_n": 680,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 33.86,
+          "gross_expectancy_bps": -0.01,
+          "net_expectancy_bps": -14.01,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.01,
+            "14bps": -14.01,
+            "20bps": -20.01,
+            "30bps": -30.01
+          },
+          "win_rate_pct": 37.46,
+          "profit_factor": 0.49,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.01,
+            "ci_lower": -0.29,
+            "ci_upper": 0.25
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.01,
+            "ci_lower": -14.29,
+            "ci_upper": -13.75
+          },
+          "max_drawdown_pct": 20.42,
+          "turnover": 154.06,
+          "tp_count": 28283,
+          "sl_count": 47245,
+          "timeout_count": 289,
+          "tp_rate_pct": 37.3,
+          "sl_rate_pct": 62.31,
+          "timeout_rate_pct": 0.38,
+          "timeout_avg_gross_bps": 9.23,
+          "is_ex_post_diagnostic_only": false
+        },
+        "ETH": {
+          "count": 73820,
+          "executed_serialized_n": 707,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 32.97,
+          "gross_expectancy_bps": -0.21,
+          "net_expectancy_bps": -14.21,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.21,
+            "14bps": -14.21,
+            "20bps": -20.21,
+            "30bps": -30.21
+          },
+          "win_rate_pct": 37.24,
+          "profit_factor": 0.486,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.21,
+            "ci_lower": -0.49,
+            "ci_upper": 0.06
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.21,
+            "ci_lower": -14.49,
+            "ci_upper": -13.94
+          },
+          "max_drawdown_pct": 22.54,
+          "turnover": 156.84,
+          "tp_count": 27492,
+          "sl_count": 46328,
+          "timeout_count": 0,
+          "tp_rate_pct": 37.24,
+          "sl_rate_pct": 62.76,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "side": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "BUY": {
+          "count": 117761,
+          "executed_serialized_n": 1776,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 52.59,
+          "gross_expectancy_bps": -0.03,
+          "net_expectancy_bps": -14.03,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.03,
+            "14bps": -14.03,
+            "20bps": -20.03,
+            "30bps": -30.03
+          },
+          "win_rate_pct": 37.45,
+          "profit_factor": 0.49,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.03,
+            "ci_lower": -0.24,
+            "ci_upper": 0.2
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.03,
+            "ci_lower": -14.24,
+            "ci_upper": -13.8
+          },
+          "max_drawdown_pct": 43.14,
+          "turnover": 338.36,
+          "tp_count": 44018,
+          "sl_count": 73544,
+          "timeout_count": 199,
+          "tp_rate_pct": 37.38,
+          "sl_rate_pct": 62.45,
+          "timeout_rate_pct": 0.17,
+          "timeout_avg_gross_bps": 9.54,
+          "is_ex_post_diagnostic_only": false
+        },
+        "SELL": {
+          "count": 106173,
+          "executed_serialized_n": 1708,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 47.41,
+          "gross_expectancy_bps": -0.04,
+          "net_expectancy_bps": -14.04,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.04,
+            "14bps": -14.04,
+            "20bps": -20.04,
+            "30bps": -30.04
+          },
+          "win_rate_pct": 37.44,
+          "profit_factor": 0.49,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.04,
+            "ci_lower": -0.27,
+            "ci_upper": 0.2
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.04,
+            "ci_lower": -14.27,
+            "ci_upper": -13.8
+          },
+          "max_drawdown_pct": 42.58,
+          "turnover": 322.66,
+          "tp_count": 39711,
+          "sl_count": 66362,
+          "timeout_count": 100,
+          "tp_rate_pct": 37.4,
+          "sl_rate_pct": 62.5,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 9.25,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "regime": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "CHOP_RANGE": {
+          "count": 114780,
+          "executed_serialized_n": 1723,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 51.26,
+          "gross_expectancy_bps": 0.09,
+          "net_expectancy_bps": -13.91,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.91,
+            "14bps": -13.91,
+            "20bps": -19.91,
+            "30bps": -29.91
+          },
+          "win_rate_pct": 37.59,
+          "profit_factor": 0.493,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.09,
+            "ci_lower": -0.14,
+            "ci_upper": 0.31
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.91,
+            "ci_lower": -14.14,
+            "ci_upper": -13.69
+          },
+          "max_drawdown_pct": 42.61,
+          "turnover": 336.66,
+          "tp_count": 43072,
+          "sl_count": 71500,
+          "timeout_count": 208,
+          "tp_rate_pct": 37.53,
+          "sl_rate_pct": 62.29,
+          "timeout_rate_pct": 0.18,
+          "timeout_avg_gross_bps": 7.94,
+          "is_ex_post_diagnostic_only": false
+        },
+        "COMPRESSION_BREAKOUT": {
+          "count": 1868,
+          "executed_serialized_n": 420,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 0.83,
+          "gross_expectancy_bps": 0.92,
+          "net_expectancy_bps": -13.08,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.08,
+            "14bps": -13.08,
+            "20bps": -19.08,
+            "30bps": -29.08
+          },
+          "win_rate_pct": 38.65,
+          "profit_factor": 0.515,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.92,
+            "ci_lower": -0.9,
+            "ci_upper": 2.68
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.08,
+            "ci_lower": -14.9,
+            "ci_upper": -11.32
+          },
+          "max_drawdown_pct": 12.04,
+          "turnover": 98.99,
+          "tp_count": 722,
+          "sl_count": 1146,
+          "timeout_count": 0,
+          "tp_rate_pct": 38.65,
+          "sl_rate_pct": 61.35,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "HIGH_VOL_OR_UNALIGNED_BREAKOUT": {
+          "count": 5536,
+          "executed_serialized_n": 1263,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 2.47,
+          "gross_expectancy_bps": -3.83,
+          "net_expectancy_bps": -17.83,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -13.83,
+            "14bps": -17.83,
+            "20bps": -23.83,
+            "30bps": -33.83
+          },
+          "win_rate_pct": 32.71,
+          "profit_factor": 0.398,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -3.83,
+            "ci_lower": -4.73,
+            "ci_upper": -2.77
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -17.83,
+            "ci_lower": -18.73,
+            "ci_upper": -16.77
+          },
+          "max_drawdown_pct": 41.49,
+          "turnover": 244.85,
+          "tp_count": 1811,
+          "sl_count": 3725,
+          "timeout_count": 0,
+          "tp_rate_pct": 32.71,
+          "sl_rate_pct": 67.29,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "TREND_BEAR": {
+          "count": 45297,
+          "executed_serialized_n": 893,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 20.23,
+          "gross_expectancy_bps": -0.12,
+          "net_expectancy_bps": -14.12,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.12,
+            "14bps": -14.12,
+            "20bps": -20.12,
+            "30bps": -30.12
+          },
+          "win_rate_pct": 37.35,
+          "profit_factor": 0.488,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.12,
+            "ci_lower": -0.48,
+            "ci_upper": 0.23
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.12,
+            "ci_lower": -14.48,
+            "ci_upper": -13.77
+          },
+          "max_drawdown_pct": 25.53,
+          "turnover": 190.44,
+          "tp_count": 16898,
+          "sl_count": 28369,
+          "timeout_count": 30,
+          "tp_rate_pct": 37.3,
+          "sl_rate_pct": 62.63,
+          "timeout_rate_pct": 0.07,
+          "timeout_avg_gross_bps": 23.12,
+          "is_ex_post_diagnostic_only": false
+        },
+        "TREND_BULL": {
+          "count": 56453,
+          "executed_serialized_n": 1033,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.21,
+          "gross_expectancy_bps": 0.12,
+          "net_expectancy_bps": -13.88,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.88,
+            "14bps": -13.88,
+            "20bps": -19.88,
+            "30bps": -29.88
+          },
+          "win_rate_pct": 37.64,
+          "profit_factor": 0.494,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.12,
+            "ci_lower": -0.18,
+            "ci_upper": 0.44
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.88,
+            "ci_lower": -14.18,
+            "ci_upper": -13.56
+          },
+          "max_drawdown_pct": 32.55,
+          "turnover": 214.48,
+          "tp_count": 21226,
+          "sl_count": 35166,
+          "timeout_count": 61,
+          "tp_rate_pct": 37.6,
+          "sl_rate_pct": 62.29,
+          "timeout_rate_pct": 0.11,
+          "timeout_avg_gross_bps": 7.83,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "volatility_bucket": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "Q1_LOW_VOL": {
+          "count": 22946,
+          "executed_serialized_n": 508,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 10.25,
+          "gross_expectancy_bps": -0.15,
+          "net_expectancy_bps": -14.15,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.15,
+            "14bps": -14.15,
+            "20bps": -20.15,
+            "30bps": -30.15
+          },
+          "win_rate_pct": 37.22,
+          "profit_factor": 0.484,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.15,
+            "ci_lower": -0.62,
+            "ci_upper": 0.34
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.15,
+            "ci_lower": -14.62,
+            "ci_upper": -13.66
+          },
+          "max_drawdown_pct": 16.98,
+          "turnover": 115.45,
+          "tp_count": 8424,
+          "sl_count": 14246,
+          "timeout_count": 276,
+          "tp_rate_pct": 36.71,
+          "sl_rate_pct": 62.08,
+          "timeout_rate_pct": 1.2,
+          "timeout_avg_gross_bps": 9.78,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Q2_MOD_LOW_VOL": {
+          "count": 40346,
+          "executed_serialized_n": 1116,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 18.02,
+          "gross_expectancy_bps": 0.7,
+          "net_expectancy_bps": -13.3,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.3,
+            "14bps": -13.3,
+            "20bps": -19.3,
+            "30bps": -29.3
+          },
+          "win_rate_pct": 38.37,
+          "profit_factor": 0.51,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.7,
+            "ci_lower": 0.33,
+            "ci_upper": 1.11
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.3,
+            "ci_lower": -13.67,
+            "ci_upper": -12.89
+          },
+          "max_drawdown_pct": 32.91,
+          "turnover": 233.15,
+          "tp_count": 15477,
+          "sl_count": 24850,
+          "timeout_count": 19,
+          "tp_rate_pct": 38.36,
+          "sl_rate_pct": 61.59,
+          "timeout_rate_pct": 0.05,
+          "timeout_avg_gross_bps": 3.75,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Q3_MOD_HIGH_VOL": {
+          "count": 60714,
+          "executed_serialized_n": 1587,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 27.11,
+          "gross_expectancy_bps": 0.35,
+          "net_expectancy_bps": -13.65,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.65,
+            "14bps": -13.65,
+            "20bps": -19.65,
+            "30bps": -29.65
+          },
+          "win_rate_pct": 37.94,
+          "profit_factor": 0.5,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.35,
+            "ci_lower": 0.08,
+            "ci_upper": 0.64
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.65,
+            "ci_lower": -13.92,
+            "ci_upper": -13.36
+          },
+          "max_drawdown_pct": 41.87,
+          "turnover": 304.66,
+          "tp_count": 23032,
+          "sl_count": 37678,
+          "timeout_count": 4,
+          "tp_rate_pct": 37.94,
+          "sl_rate_pct": 62.06,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 13.17,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Q4_HIGH_VOL": {
+          "count": 99928,
+          "executed_serialized_n": 1681,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 44.62,
+          "gross_expectancy_bps": -0.54,
+          "net_expectancy_bps": -14.54,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.54,
+            "14bps": -14.54,
+            "20bps": -20.54,
+            "30bps": -30.54
+          },
+          "win_rate_pct": 36.82,
+          "profit_factor": 0.477,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.54,
+            "ci_lower": -0.77,
+            "ci_upper": -0.31
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.54,
+            "ci_lower": -14.77,
+            "ci_upper": -14.31
+          },
+          "max_drawdown_pct": 45.99,
+          "turnover": 321.24,
+          "tp_count": 36796,
+          "sl_count": 63132,
+          "timeout_count": 0,
+          "tp_rate_pct": 36.82,
+          "sl_rate_pct": 63.18,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "funding_liquidity_bucket": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "HIGH_LIQ_NEG_PREMIUM": {
+          "count": 43016,
+          "executed_serialized_n": 757,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 19.21,
+          "gross_expectancy_bps": 0.05,
+          "net_expectancy_bps": -13.95,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.95,
+            "14bps": -13.95,
+            "20bps": -19.95,
+            "30bps": -29.95
+          },
+          "win_rate_pct": 37.55,
+          "profit_factor": 0.492,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.05,
+            "ci_lower": -0.31,
+            "ci_upper": 0.42
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.95,
+            "ci_lower": -14.31,
+            "ci_upper": -13.58
+          },
+          "max_drawdown_pct": 20.85,
+          "turnover": 166.4,
+          "tp_count": 16151,
+          "sl_count": 26856,
+          "timeout_count": 9,
+          "tp_rate_pct": 37.55,
+          "sl_rate_pct": 62.43,
+          "timeout_rate_pct": 0.02,
+          "timeout_avg_gross_bps": 7.32,
+          "is_ex_post_diagnostic_only": false
+        },
+        "HIGH_LIQ_POS_PREMIUM": {
+          "count": 37057,
+          "executed_serialized_n": 708,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 16.55,
+          "gross_expectancy_bps": -0.25,
+          "net_expectancy_bps": -14.25,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.25,
+            "14bps": -14.25,
+            "20bps": -20.25,
+            "30bps": -30.25
+          },
+          "win_rate_pct": 37.19,
+          "profit_factor": 0.484,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.25,
+            "ci_lower": -0.64,
+            "ci_upper": 0.11
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.25,
+            "ci_lower": -14.64,
+            "ci_upper": -13.89
+          },
+          "max_drawdown_pct": 19.2,
+          "turnover": 161.28,
+          "tp_count": 13778,
+          "sl_count": 23271,
+          "timeout_count": 8,
+          "tp_rate_pct": 37.18,
+          "sl_rate_pct": 62.8,
+          "timeout_rate_pct": 0.02,
+          "timeout_avg_gross_bps": 13.62,
+          "is_ex_post_diagnostic_only": false
+        },
+        "LOW_LIQ_NEG_PREMIUM": {
+          "count": 20905,
+          "executed_serialized_n": 613,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 9.34,
+          "gross_expectancy_bps": 1.17,
+          "net_expectancy_bps": -12.83,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -8.83,
+            "14bps": -12.83,
+            "20bps": -18.83,
+            "30bps": -28.83
+          },
+          "win_rate_pct": 38.93,
+          "profit_factor": 0.522,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 1.17,
+            "ci_lower": 0.61,
+            "ci_upper": 1.71
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -12.83,
+            "ci_lower": -13.39,
+            "ci_upper": -12.29
+          },
+          "max_drawdown_pct": 16.45,
+          "turnover": 140.09,
+          "tp_count": 8124,
+          "sl_count": 12734,
+          "timeout_count": 47,
+          "tp_rate_pct": 38.86,
+          "sl_rate_pct": 60.91,
+          "timeout_rate_pct": 0.22,
+          "timeout_avg_gross_bps": 6.11,
+          "is_ex_post_diagnostic_only": false
+        },
+        "LOW_LIQ_POS_PREMIUM": {
+          "count": 11177,
+          "executed_serialized_n": 428,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 4.99,
+          "gross_expectancy_bps": 0.6,
+          "net_expectancy_bps": -13.4,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.4,
+            "14bps": -13.4,
+            "20bps": -19.4,
+            "30bps": -29.4
+          },
+          "win_rate_pct": 38.25,
+          "profit_factor": 0.506,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.6,
+            "ci_lower": -0.12,
+            "ci_upper": 1.31
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.4,
+            "ci_lower": -14.12,
+            "ci_upper": -12.69
+          },
+          "max_drawdown_pct": 14.1,
+          "turnover": 98.95,
+          "tp_count": 4249,
+          "sl_count": 6882,
+          "timeout_count": 46,
+          "tp_rate_pct": 38.02,
+          "sl_rate_pct": 61.57,
+          "timeout_rate_pct": 0.41,
+          "timeout_avg_gross_bps": 15.14,
+          "is_ex_post_diagnostic_only": false
+        },
+        "STALE_FEED_CANDLE_VOL_HIGH": {
+          "count": 91701,
+          "executed_serialized_n": 933,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 40.95,
+          "gross_expectancy_bps": -0.16,
+          "net_expectancy_bps": -14.16,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.16,
+            "14bps": -14.16,
+            "20bps": -20.16,
+            "30bps": -30.16
+          },
+          "win_rate_pct": 37.3,
+          "profit_factor": 0.487,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.16,
+            "ci_lower": -0.42,
+            "ci_upper": 0.12
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.16,
+            "ci_lower": -14.42,
+            "ci_upper": -13.88
+          },
+          "max_drawdown_pct": 32.46,
+          "turnover": 194.95,
+          "tp_count": 34167,
+          "sl_count": 57449,
+          "timeout_count": 85,
+          "tp_rate_pct": 37.26,
+          "sl_rate_pct": 62.65,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 9.98,
+          "is_ex_post_diagnostic_only": false
+        },
+        "STALE_FEED_CANDLE_VOL_LOW": {
+          "count": 20078,
+          "executed_serialized_n": 232,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 8.97,
+          "gross_expectancy_bps": -0.88,
+          "net_expectancy_bps": -14.88,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.88,
+            "14bps": -14.88,
+            "20bps": -20.88,
+            "30bps": -30.88
+          },
+          "win_rate_pct": 36.35,
+          "profit_factor": 0.467,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.88,
+            "ci_lower": -1.43,
+            "ci_upper": -0.39
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.88,
+            "ci_lower": -15.43,
+            "ci_upper": -14.39
+          },
+          "max_drawdown_pct": 9.54,
+          "turnover": 55.01,
+          "tp_count": 7260,
+          "sl_count": 12714,
+          "timeout_count": 104,
+          "tp_rate_pct": 36.16,
+          "sl_rate_pct": 63.32,
+          "timeout_rate_pct": 0.52,
+          "timeout_avg_gross_bps": 7.85,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "signal_family": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "CHOP_DUAL_SIDED": {
+          "count": 26900,
+          "executed_serialized_n": 1462,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 12.01,
+          "gross_expectancy_bps": 0.24,
+          "net_expectancy_bps": -13.76,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.76,
+            "14bps": -13.76,
+            "20bps": -19.76,
+            "30bps": -29.76
+          },
+          "win_rate_pct": 37.77,
+          "profit_factor": 0.496,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.24,
+            "ci_lower": -0.2,
+            "ci_upper": 0.7
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.76,
+            "ci_lower": -14.2,
+            "ci_upper": -13.3
+          },
+          "max_drawdown_pct": 43.98,
+          "turnover": 281.1,
+          "tp_count": 10127,
+          "sl_count": 16684,
+          "timeout_count": 89,
+          "tp_rate_pct": 37.65,
+          "sl_rate_pct": 62.02,
+          "timeout_rate_pct": 0.33,
+          "timeout_avg_gross_bps": 7.19,
+          "is_ex_post_diagnostic_only": false
+        },
+        "COUNTER_HTF_DRIFT": {
+          "count": 90896,
+          "executed_serialized_n": 1641,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 40.59,
+          "gross_expectancy_bps": -0.08,
+          "net_expectancy_bps": -14.08,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.08,
+            "14bps": -14.08,
+            "20bps": -20.08,
+            "30bps": -30.08
+          },
+          "win_rate_pct": 37.39,
+          "profit_factor": 0.488,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.08,
+            "ci_lower": -0.33,
+            "ci_upper": 0.15
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.08,
+            "ci_lower": -14.33,
+            "ci_upper": -13.85
+          },
+          "max_drawdown_pct": 40.13,
+          "turnover": 322.44,
+          "tp_count": 33939,
+          "sl_count": 56838,
+          "timeout_count": 119,
+          "tp_rate_pct": 37.34,
+          "sl_rate_pct": 62.53,
+          "timeout_rate_pct": 0.13,
+          "timeout_avg_gross_bps": 8.5,
+          "is_ex_post_diagnostic_only": false
+        },
+        "DONCHIAN_BREAKOUT_ALIGNED": {
+          "count": 4388,
+          "executed_serialized_n": 992,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 1.96,
+          "gross_expectancy_bps": -1.94,
+          "net_expectancy_bps": -15.94,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.94,
+            "14bps": -15.94,
+            "20bps": -21.94,
+            "30bps": -31.94
+          },
+          "win_rate_pct": 35.07,
+          "profit_factor": 0.442,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.94,
+            "ci_lower": -3.18,
+            "ci_upper": -0.87
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.94,
+            "ci_lower": -17.18,
+            "ci_upper": -14.87
+          },
+          "max_drawdown_pct": 32.82,
+          "turnover": 205.46,
+          "tp_count": 1539,
+          "sl_count": 2849,
+          "timeout_count": 0,
+          "tp_rate_pct": 35.07,
+          "sl_rate_pct": 64.93,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "MOMENTUM_CONTINUATION": {
+          "count": 47969,
+          "executed_serialized_n": 1638,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 21.42,
+          "gross_expectancy_bps": 0.13,
+          "net_expectancy_bps": -13.87,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.87,
+            "14bps": -13.87,
+            "20bps": -19.87,
+            "30bps": -29.87
+          },
+          "win_rate_pct": 37.65,
+          "profit_factor": 0.494,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.13,
+            "ci_lower": -0.19,
+            "ci_upper": 0.46
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.87,
+            "ci_lower": -14.19,
+            "ci_upper": -13.54
+          },
+          "max_drawdown_pct": 42.42,
+          "turnover": 313.71,
+          "tp_count": 18043,
+          "sl_count": 29882,
+          "timeout_count": 44,
+          "tp_rate_pct": 37.61,
+          "sl_rate_pct": 62.29,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 9.26,
+          "is_ex_post_diagnostic_only": false
+        },
+        "PULLBACK_IN_TREND": {
+          "count": 53781,
+          "executed_serialized_n": 1714,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 24.02,
+          "gross_expectancy_bps": -0.09,
+          "net_expectancy_bps": -14.09,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.09,
+            "14bps": -14.09,
+            "20bps": -20.09,
+            "30bps": -30.09
+          },
+          "win_rate_pct": 37.38,
+          "profit_factor": 0.488,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.09,
+            "ci_lower": -0.45,
+            "ci_upper": 0.21
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.09,
+            "ci_lower": -14.45,
+            "ci_upper": -13.79
+          },
+          "max_drawdown_pct": 43.39,
+          "turnover": 339.54,
+          "tp_count": 20081,
+          "sl_count": 33653,
+          "timeout_count": 47,
+          "tp_rate_pct": 37.34,
+          "sl_rate_pct": 62.57,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 16.25,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "exit_reason": {
+      "is_ex_post_diagnostic_only": true,
+      "cells": {
+        "SL": {
+          "count": 139906,
+          "executed_serialized_n": 2065,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 62.48,
+          "gross_expectancy_bps": -30.0,
+          "net_expectancy_bps": -44.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -40.0,
+            "14bps": -44.0,
+            "20bps": -50.0,
+            "30bps": -60.0
+          },
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -30.0,
+            "ci_lower": -30.0,
+            "ci_upper": -30.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -44.0,
+            "ci_lower": -44.0,
+            "ci_upper": -44.0
+          },
+          "max_drawdown_pct": 89.7,
+          "turnover": 203.86,
+          "tp_count": 0,
+          "sl_count": 139906,
+          "timeout_count": 0,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 100.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        },
+        "TIMEOUT": {
+          "count": 299,
+          "executed_serialized_n": 15,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.13,
+          "gross_expectancy_bps": 9.44,
+          "net_expectancy_bps": -4.56,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -0.56,
+            "14bps": -4.56,
+            "20bps": -10.56,
+            "30bps": -20.56
+          },
+          "win_rate_pct": 40.8,
+          "profit_factor": 0.481,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 9.44,
+            "ci_lower": 7.87,
+            "ci_upper": 11.06
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -4.56,
+            "ci_lower": -6.13,
+            "ci_upper": -2.94
+          },
+          "max_drawdown_pct": 0.04,
+          "turnover": 3.75,
+          "tp_count": 0,
+          "sl_count": 0,
+          "timeout_count": 299,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 100.0,
+          "timeout_avg_gross_bps": 9.44,
+          "is_ex_post_diagnostic_only": true
+        },
+        "TP": {
+          "count": 83729,
+          "executed_serialized_n": 1979,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 37.39,
+          "gross_expectancy_bps": 50.0,
+          "net_expectancy_bps": 36.0,
+          "net_expectancy_by_cost_bps": {
+            "10bps": 40.0,
+            "14bps": 36.0,
+            "20bps": 30.0,
+            "30bps": 20.0
+          },
+          "win_rate_pct": 100.0,
+          "profit_factor": 999.0,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 50.0,
+            "ci_lower": 50.0,
+            "ci_upper": 50.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": 36.0,
+            "ci_lower": 36.0,
+            "ci_upper": 36.0
+          },
+          "max_drawdown_pct": 0.0,
+          "turnover": 1369.9,
+          "tp_count": 83729,
+          "sl_count": 0,
+          "timeout_count": 0,
+          "tp_rate_pct": 100.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        }
+      }
+    },
+    "holding_time_bucket": {
+      "is_ex_post_diagnostic_only": true,
+      "cells": {
+        "1-4_bars": {
+          "count": 144288,
+          "executed_serialized_n": 2098,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 64.43,
+          "gross_expectancy_bps": -3.05,
+          "net_expectancy_bps": -17.05,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -13.05,
+            "14bps": -17.05,
+            "20bps": -23.05,
+            "30bps": -33.05
+          },
+          "win_rate_pct": 33.69,
+          "profit_factor": 0.416,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -3.05,
+            "ci_lower": -3.22,
+            "ci_upper": -2.88
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -17.05,
+            "ci_lower": -17.22,
+            "ci_upper": -16.88
+          },
+          "max_drawdown_pct": 64.26,
+          "turnover": 332.53,
+          "tp_count": 48610,
+          "sl_count": 95678,
+          "timeout_count": 0,
+          "tp_rate_pct": 33.69,
+          "sl_rate_pct": 66.31,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        },
+        "17-48_bars": {
+          "count": 13926,
+          "executed_serialized_n": 793,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 6.22,
+          "gross_expectancy_bps": 5.85,
+          "net_expectancy_bps": -8.15,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -4.15,
+            "14bps": -8.15,
+            "20bps": -14.15,
+            "30bps": -24.15
+          },
+          "win_rate_pct": 44.81,
+          "profit_factor": 0.664,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 5.85,
+            "ci_lower": 5.22,
+            "ci_upper": 6.47
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -8.15,
+            "ci_lower": -8.78,
+            "ci_upper": -7.53
+          },
+          "max_drawdown_pct": 2.81,
+          "turnover": 200.0,
+          "tp_count": 6240,
+          "sl_count": 7686,
+          "timeout_count": 0,
+          "tp_rate_pct": 44.81,
+          "sl_rate_pct": 55.19,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        },
+        "49-96_bars": {
+          "count": 1787,
+          "executed_serialized_n": 95,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 0.8,
+          "gross_expectancy_bps": 6.1,
+          "net_expectancy_bps": -7.9,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -3.9,
+            "14bps": -7.9,
+            "20bps": -13.9,
+            "30bps": -23.9
+          },
+          "win_rate_pct": 43.7,
+          "profit_factor": 0.639,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 6.1,
+            "ci_lower": 4.34,
+            "ci_upper": 7.56
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -7.9,
+            "ci_lower": -9.66,
+            "ci_upper": -6.44
+          },
+          "max_drawdown_pct": 2.66,
+          "turnover": 23.45,
+          "tp_count": 659,
+          "sl_count": 829,
+          "timeout_count": 299,
+          "tp_rate_pct": 36.88,
+          "sl_rate_pct": 46.39,
+          "timeout_rate_pct": 16.73,
+          "timeout_avg_gross_bps": 9.44,
+          "is_ex_post_diagnostic_only": true
+        },
+        "5-16_bars": {
+          "count": 63933,
+          "executed_serialized_n": 1836,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 28.55,
+          "gross_expectancy_bps": 5.31,
+          "net_expectancy_bps": -8.69,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -4.69,
+            "14bps": -8.69,
+            "20bps": -14.69,
+            "30bps": -24.69
+          },
+          "win_rate_pct": 44.14,
+          "profit_factor": 0.647,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 5.31,
+            "ci_lower": 5.02,
+            "ci_upper": 5.63
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -8.69,
+            "ci_lower": -8.98,
+            "ci_upper": -8.37
+          },
+          "max_drawdown_pct": 29.32,
+          "turnover": 392.54,
+          "tp_count": 28220,
+          "sl_count": 35713,
+          "timeout_count": 0,
+          "tp_rate_pct": 44.14,
+          "sl_rate_pct": 55.86,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": true
+        }
+      }
+    },
+    "time_of_day_utc": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "00-06_ASIA": {
+          "count": 56338,
+          "executed_serialized_n": 1866,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.16,
+          "gross_expectancy_bps": -0.02,
+          "net_expectancy_bps": -14.02,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.02,
+            "14bps": -14.02,
+            "20bps": -20.02,
+            "30bps": -30.02
+          },
+          "win_rate_pct": 37.47,
+          "profit_factor": 0.49,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.02,
+            "ci_lower": -0.32,
+            "ci_upper": 0.3
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.02,
+            "ci_lower": -14.32,
+            "ci_upper": -13.7
+          },
+          "max_drawdown_pct": 48.13,
+          "turnover": 342.47,
+          "tp_count": 21058,
+          "sl_count": 35176,
+          "timeout_count": 104,
+          "tp_rate_pct": 37.38,
+          "sl_rate_pct": 62.44,
+          "timeout_rate_pct": 0.18,
+          "timeout_avg_gross_bps": 12.43,
+          "is_ex_post_diagnostic_only": false
+        },
+        "06-12_EU": {
+          "count": 56062,
+          "executed_serialized_n": 1830,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.04,
+          "gross_expectancy_bps": 0.68,
+          "net_expectancy_bps": -13.32,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.32,
+            "14bps": -13.32,
+            "20bps": -19.32,
+            "30bps": -29.32
+          },
+          "win_rate_pct": 38.33,
+          "profit_factor": 0.509,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.68,
+            "ci_lower": 0.36,
+            "ci_upper": 1.0
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.32,
+            "ci_lower": -13.64,
+            "ci_upper": -13.0
+          },
+          "max_drawdown_pct": 43.61,
+          "turnover": 351.22,
+          "tp_count": 21451,
+          "sl_count": 34506,
+          "timeout_count": 105,
+          "tp_rate_pct": 38.26,
+          "sl_rate_pct": 61.55,
+          "timeout_rate_pct": 0.19,
+          "timeout_avg_gross_bps": 7.88,
+          "is_ex_post_diagnostic_only": false
+        },
+        "12-18_US": {
+          "count": 56054,
+          "executed_serialized_n": 1944,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 25.03,
+          "gross_expectancy_bps": 0.13,
+          "net_expectancy_bps": -13.87,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.87,
+            "14bps": -13.87,
+            "20bps": -19.87,
+            "30bps": -29.87
+          },
+          "win_rate_pct": 37.64,
+          "profit_factor": 0.494,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.13,
+            "ci_lower": -0.18,
+            "ci_upper": 0.46
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.87,
+            "ci_lower": -14.18,
+            "ci_upper": -13.54
+          },
+          "max_drawdown_pct": 51.38,
+          "turnover": 348.43,
+          "tp_count": 21092,
+          "sl_count": 34922,
+          "timeout_count": 40,
+          "tp_rate_pct": 37.63,
+          "sl_rate_pct": 62.3,
+          "timeout_rate_pct": 0.07,
+          "timeout_avg_gross_bps": 4.54,
+          "is_ex_post_diagnostic_only": false
+        },
+        "18-24_LATE_US": {
+          "count": 55480,
+          "executed_serialized_n": 1873,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 24.78,
+          "gross_expectancy_bps": -0.94,
+          "net_expectancy_bps": -14.94,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.94,
+            "14bps": -14.94,
+            "20bps": -20.94,
+            "30bps": -30.94
+          },
+          "win_rate_pct": 36.32,
+          "profit_factor": 0.467,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.94,
+            "ci_lower": -1.25,
+            "ci_upper": -0.6
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.94,
+            "ci_lower": -15.25,
+            "ci_upper": -14.6
+          },
+          "max_drawdown_pct": 50.68,
+          "turnover": 341.62,
+          "tp_count": 20128,
+          "sl_count": 35302,
+          "timeout_count": 50,
+          "tp_rate_pct": 36.28,
+          "sl_rate_pct": 63.63,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 10.43,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "day_of_week_utc": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "Fri": {
+          "count": 31655,
+          "executed_serialized_n": 312,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.14,
+          "gross_expectancy_bps": -0.85,
+          "net_expectancy_bps": -14.85,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.85,
+            "14bps": -14.85,
+            "20bps": -20.85,
+            "30bps": -30.85
+          },
+          "win_rate_pct": 36.42,
+          "profit_factor": 0.469,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.85,
+            "ci_lower": -1.3,
+            "ci_upper": -0.44
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.85,
+            "ci_lower": -15.3,
+            "ci_upper": -14.44
+          },
+          "max_drawdown_pct": 11.37,
+          "turnover": 73.49,
+          "tp_count": 11521,
+          "sl_count": 20099,
+          "timeout_count": 35,
+          "tp_rate_pct": 36.4,
+          "sl_rate_pct": 63.49,
+          "timeout_rate_pct": 0.11,
+          "timeout_avg_gross_bps": 4.76,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Mon": {
+          "count": 31538,
+          "executed_serialized_n": 315,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.08,
+          "gross_expectancy_bps": 0.49,
+          "net_expectancy_bps": -13.51,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.51,
+            "14bps": -13.51,
+            "20bps": -19.51,
+            "30bps": -29.51
+          },
+          "win_rate_pct": 38.12,
+          "profit_factor": 0.504,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.49,
+            "ci_lower": 0.07,
+            "ci_upper": 0.92
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.51,
+            "ci_lower": -13.93,
+            "ci_upper": -13.08
+          },
+          "max_drawdown_pct": 9.21,
+          "turnover": 74.83,
+          "tp_count": 12021,
+          "sl_count": 19517,
+          "timeout_count": 0,
+          "tp_rate_pct": 38.12,
+          "sl_rate_pct": 61.88,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Sat": {
+          "count": 33187,
+          "executed_serialized_n": 312,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.82,
+          "gross_expectancy_bps": -1.27,
+          "net_expectancy_bps": -15.27,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -11.27,
+            "14bps": -15.27,
+            "20bps": -21.27,
+            "30bps": -31.27
+          },
+          "win_rate_pct": 35.85,
+          "profit_factor": 0.456,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -1.27,
+            "ci_lower": -1.65,
+            "ci_upper": -0.82
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -15.27,
+            "ci_lower": -15.65,
+            "ci_upper": -14.82
+          },
+          "max_drawdown_pct": 13.87,
+          "turnover": 72.6,
+          "tp_count": 11790,
+          "sl_count": 21137,
+          "timeout_count": 260,
+          "tp_rate_pct": 35.53,
+          "sl_rate_pct": 63.69,
+          "timeout_rate_pct": 0.78,
+          "timeout_avg_gross_bps": 9.71,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Sun": {
+          "count": 32697,
+          "executed_serialized_n": 312,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.6,
+          "gross_expectancy_bps": 1.12,
+          "net_expectancy_bps": -12.88,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -8.88,
+            "14bps": -12.88,
+            "20bps": -18.88,
+            "30bps": -28.88
+          },
+          "win_rate_pct": 38.9,
+          "profit_factor": 0.521,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 1.12,
+            "ci_lower": 0.73,
+            "ci_upper": 1.57
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -12.88,
+            "ci_lower": -13.27,
+            "ci_upper": -12.43
+          },
+          "max_drawdown_pct": 12.49,
+          "turnover": 73.1,
+          "tp_count": 12717,
+          "sl_count": 19978,
+          "timeout_count": 2,
+          "tp_rate_pct": 38.89,
+          "sl_rate_pct": 61.1,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 37.93,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Thu": {
+          "count": 31424,
+          "executed_serialized_n": 312,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.03,
+          "gross_expectancy_bps": -0.01,
+          "net_expectancy_bps": -14.01,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.01,
+            "14bps": -14.01,
+            "20bps": -20.01,
+            "30bps": -30.01
+          },
+          "win_rate_pct": 37.49,
+          "profit_factor": 0.491,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.01,
+            "ci_lower": -0.42,
+            "ci_upper": 0.39
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.01,
+            "ci_lower": -14.42,
+            "ci_upper": -13.61
+          },
+          "max_drawdown_pct": 13.26,
+          "turnover": 73.87,
+          "tp_count": 11780,
+          "sl_count": 19644,
+          "timeout_count": 0,
+          "tp_rate_pct": 37.49,
+          "sl_rate_pct": 62.51,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Tue": {
+          "count": 31653,
+          "executed_serialized_n": 315,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.13,
+          "gross_expectancy_bps": -0.27,
+          "net_expectancy_bps": -14.27,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.27,
+            "14bps": -14.27,
+            "20bps": -20.27,
+            "30bps": -30.27
+          },
+          "win_rate_pct": 37.16,
+          "profit_factor": 0.484,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.27,
+            "ci_lower": -0.65,
+            "ci_upper": 0.14
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.27,
+            "ci_lower": -14.65,
+            "ci_upper": -13.86
+          },
+          "max_drawdown_pct": 9.09,
+          "turnover": 75.91,
+          "tp_count": 11761,
+          "sl_count": 19890,
+          "timeout_count": 2,
+          "tp_rate_pct": 37.16,
+          "sl_rate_pct": 62.84,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 27.76,
+          "is_ex_post_diagnostic_only": false
+        },
+        "Wed": {
+          "count": 31780,
+          "executed_serialized_n": 315,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.19,
+          "gross_expectancy_bps": 0.56,
+          "net_expectancy_bps": -13.44,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.44,
+            "14bps": -13.44,
+            "20bps": -19.44,
+            "30bps": -29.44
+          },
+          "win_rate_pct": 38.2,
+          "profit_factor": 0.506,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.56,
+            "ci_lower": 0.12,
+            "ci_upper": 0.97
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.44,
+            "ci_lower": -13.88,
+            "ci_upper": -13.03
+          },
+          "max_drawdown_pct": 10.62,
+          "turnover": 74.63,
+          "tp_count": 12139,
+          "sl_count": 19641,
+          "timeout_count": 0,
+          "tp_rate_pct": 38.2,
+          "sl_rate_pct": 61.8,
+          "timeout_rate_pct": 0.0,
+          "timeout_avg_gross_bps": 0.0,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "confidence_score_decile": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "D01": {
+          "count": 26977,
+          "executed_serialized_n": 1008,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 12.05,
+          "gross_expectancy_bps": -0.31,
+          "net_expectancy_bps": -14.31,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.31,
+            "14bps": -14.31,
+            "20bps": -20.31,
+            "30bps": -30.31
+          },
+          "win_rate_pct": 37.12,
+          "profit_factor": 0.483,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.31,
+            "ci_lower": -0.77,
+            "ci_upper": 0.14
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.31,
+            "ci_lower": -14.77,
+            "ci_upper": -13.86
+          },
+          "max_drawdown_pct": 32.27,
+          "turnover": 212.01,
+          "tp_count": 10011,
+          "sl_count": 16963,
+          "timeout_count": 3,
+          "tp_rate_pct": 37.11,
+          "sl_rate_pct": 62.88,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 19.56,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D02": {
+          "count": 21558,
+          "executed_serialized_n": 1271,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 9.63,
+          "gross_expectancy_bps": -0.06,
+          "net_expectancy_bps": -14.06,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.06,
+            "14bps": -14.06,
+            "20bps": -20.06,
+            "30bps": -30.06
+          },
+          "win_rate_pct": 37.42,
+          "profit_factor": 0.489,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.06,
+            "ci_lower": -0.62,
+            "ci_upper": 0.41
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.06,
+            "ci_lower": -14.62,
+            "ci_upper": -13.59
+          },
+          "max_drawdown_pct": 38.21,
+          "turnover": 249.43,
+          "tp_count": 8066,
+          "sl_count": 13489,
+          "timeout_count": 3,
+          "tp_rate_pct": 37.42,
+          "sl_rate_pct": 62.57,
+          "timeout_rate_pct": 0.01,
+          "timeout_avg_gross_bps": 15.44,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D03": {
+          "count": 18068,
+          "executed_serialized_n": 1401,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 8.07,
+          "gross_expectancy_bps": -0.1,
+          "net_expectancy_bps": -14.1,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.1,
+            "14bps": -14.1,
+            "20bps": -20.1,
+            "30bps": -30.1
+          },
+          "win_rate_pct": 37.36,
+          "profit_factor": 0.488,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.1,
+            "ci_lower": -0.68,
+            "ci_upper": 0.41
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.1,
+            "ci_lower": -14.68,
+            "ci_upper": -13.59
+          },
+          "max_drawdown_pct": 42.08,
+          "turnover": 268.1,
+          "tp_count": 6746,
+          "sl_count": 11305,
+          "timeout_count": 17,
+          "tp_rate_pct": 37.34,
+          "sl_rate_pct": 62.57,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 4.61,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D04": {
+          "count": 15960,
+          "executed_serialized_n": 1442,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 7.13,
+          "gross_expectancy_bps": 0.64,
+          "net_expectancy_bps": -13.36,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.36,
+            "14bps": -13.36,
+            "20bps": -19.36,
+            "30bps": -29.36
+          },
+          "win_rate_pct": 38.26,
+          "profit_factor": 0.507,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.64,
+            "ci_lower": 0.05,
+            "ci_upper": 1.33
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.36,
+            "ci_lower": -13.95,
+            "ci_upper": -12.67
+          },
+          "max_drawdown_pct": 41.26,
+          "turnover": 280.08,
+          "tp_count": 6104,
+          "sl_count": 9834,
+          "timeout_count": 22,
+          "tp_rate_pct": 38.25,
+          "sl_rate_pct": 61.62,
+          "timeout_rate_pct": 0.14,
+          "timeout_avg_gross_bps": -0.11,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D05": {
+          "count": 14893,
+          "executed_serialized_n": 1469,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 6.65,
+          "gross_expectancy_bps": 0.33,
+          "net_expectancy_bps": -13.67,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.67,
+            "14bps": -13.67,
+            "20bps": -19.67,
+            "30bps": -29.67
+          },
+          "win_rate_pct": 37.89,
+          "profit_factor": 0.499,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.33,
+            "ci_lower": -0.27,
+            "ci_upper": 0.93
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.67,
+            "ci_lower": -14.27,
+            "ci_upper": -13.07
+          },
+          "max_drawdown_pct": 37.67,
+          "turnover": 287.78,
+          "tp_count": 5638,
+          "sl_count": 9235,
+          "timeout_count": 20,
+          "tp_rate_pct": 37.86,
+          "sl_rate_pct": 62.01,
+          "timeout_rate_pct": 0.13,
+          "timeout_avg_gross_bps": 6.24,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D06": {
+          "count": 16517,
+          "executed_serialized_n": 1542,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 7.38,
+          "gross_expectancy_bps": 0.1,
+          "net_expectancy_bps": -13.9,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.9,
+            "14bps": -13.9,
+            "20bps": -19.9,
+            "30bps": -29.9
+          },
+          "win_rate_pct": 37.63,
+          "profit_factor": 0.493,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.1,
+            "ci_lower": -0.5,
+            "ci_upper": 0.62
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.9,
+            "ci_lower": -14.5,
+            "ci_upper": -13.38
+          },
+          "max_drawdown_pct": 41.34,
+          "turnover": 296.09,
+          "tp_count": 6208,
+          "sl_count": 10298,
+          "timeout_count": 11,
+          "tp_rate_pct": 37.59,
+          "sl_rate_pct": 62.35,
+          "timeout_rate_pct": 0.07,
+          "timeout_avg_gross_bps": 13.04,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D07": {
+          "count": 20456,
+          "executed_serialized_n": 1610,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 9.13,
+          "gross_expectancy_bps": -0.5,
+          "net_expectancy_bps": -14.5,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.5,
+            "14bps": -14.5,
+            "20bps": -20.5,
+            "30bps": -30.5
+          },
+          "win_rate_pct": 36.87,
+          "profit_factor": 0.478,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.5,
+            "ci_lower": -1.01,
+            "ci_upper": -0.01
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.5,
+            "ci_lower": -15.01,
+            "ci_upper": -14.01
+          },
+          "max_drawdown_pct": 45.88,
+          "turnover": 305.14,
+          "tp_count": 7536,
+          "sl_count": 12908,
+          "timeout_count": 12,
+          "tp_rate_pct": 36.84,
+          "sl_rate_pct": 63.1,
+          "timeout_rate_pct": 0.06,
+          "timeout_avg_gross_bps": 14.08,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D08": {
+          "count": 31742,
+          "executed_serialized_n": 1654,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 14.17,
+          "gross_expectancy_bps": 0.1,
+          "net_expectancy_bps": -13.9,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.9,
+            "14bps": -13.9,
+            "20bps": -19.9,
+            "30bps": -29.9
+          },
+          "win_rate_pct": 37.62,
+          "profit_factor": 0.493,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.1,
+            "ci_lower": -0.37,
+            "ci_upper": 0.53
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.9,
+            "ci_lower": -14.37,
+            "ci_upper": -13.47
+          },
+          "max_drawdown_pct": 41.57,
+          "turnover": 320.7,
+          "tp_count": 11918,
+          "sl_count": 19776,
+          "timeout_count": 48,
+          "tp_rate_pct": 37.55,
+          "sl_rate_pct": 62.3,
+          "timeout_rate_pct": 0.15,
+          "timeout_avg_gross_bps": 11.29,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D09": {
+          "count": 39777,
+          "executed_serialized_n": 1588,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 17.76,
+          "gross_expectancy_bps": 0.02,
+          "net_expectancy_bps": -13.98,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.98,
+            "14bps": -13.98,
+            "20bps": -19.98,
+            "30bps": -29.98
+          },
+          "win_rate_pct": 37.5,
+          "profit_factor": 0.491,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.02,
+            "ci_lower": -0.36,
+            "ci_upper": 0.35
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.98,
+            "ci_lower": -14.36,
+            "ci_upper": -13.65
+          },
+          "max_drawdown_pct": 42.48,
+          "turnover": 302.26,
+          "tp_count": 14857,
+          "sl_count": 24774,
+          "timeout_count": 146,
+          "tp_rate_pct": 37.35,
+          "sl_rate_pct": 62.28,
+          "timeout_rate_pct": 0.37,
+          "timeout_avg_gross_bps": 9.08,
+          "is_ex_post_diagnostic_only": false
+        },
+        "D10": {
+          "count": 17986,
+          "executed_serialized_n": 959,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 8.03,
+          "gross_expectancy_bps": -0.4,
+          "net_expectancy_bps": -14.4,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.4,
+            "14bps": -14.4,
+            "20bps": -20.4,
+            "30bps": -30.4
+          },
+          "win_rate_pct": 37.01,
+          "profit_factor": 0.48,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.4,
+            "ci_lower": -0.98,
+            "ci_upper": 0.11
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.4,
+            "ci_lower": -14.98,
+            "ci_upper": -13.89
+          },
+          "max_drawdown_pct": 30.25,
+          "turnover": 198.68,
+          "tp_count": 6645,
+          "sl_count": 11324,
+          "timeout_count": 17,
+          "tp_rate_pct": 36.95,
+          "sl_rate_pct": 62.96,
+          "timeout_rate_pct": 0.09,
+          "timeout_avg_gross_bps": 19.82,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    },
+    "input_quality": {
+      "is_ex_post_diagnostic_only": false,
+      "cells": {
+        "FRESH_ALL_CONTEXT": {
+          "count": 112155,
+          "executed_serialized_n": 1046,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 50.08,
+          "gross_expectancy_bps": 0.21,
+          "net_expectancy_bps": -13.79,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -9.79,
+            "14bps": -13.79,
+            "20bps": -19.79,
+            "30bps": -29.79
+          },
+          "win_rate_pct": 37.76,
+          "profit_factor": 0.496,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 0.21,
+            "ci_lower": -0.03,
+            "ci_upper": 0.43
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -13.79,
+            "ci_lower": -14.03,
+            "ci_upper": -13.57
+          },
+          "max_drawdown_pct": 30.06,
+          "turnover": 219.82,
+          "tp_count": 42302,
+          "sl_count": 69743,
+          "timeout_count": 110,
+          "tp_rate_pct": 37.72,
+          "sl_rate_pct": 62.18,
+          "timeout_rate_pct": 0.1,
+          "timeout_avg_gross_bps": 10.53,
+          "is_ex_post_diagnostic_only": false
+        },
+        "STALE_EXTERNAL_NEUTRALIZED": {
+          "count": 111779,
+          "executed_serialized_n": 1039,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 49.92,
+          "gross_expectancy_bps": -0.29,
+          "net_expectancy_bps": -14.29,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -10.29,
+            "14bps": -14.29,
+            "20bps": -20.29,
+            "30bps": -30.29
+          },
+          "win_rate_pct": 37.13,
+          "profit_factor": 0.483,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -0.29,
+            "ci_lower": -0.49,
+            "ci_upper": -0.07
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -14.29,
+            "ci_lower": -14.49,
+            "ci_upper": -14.07
+          },
+          "max_drawdown_pct": 33.68,
+          "turnover": 217.05,
+          "tp_count": 41427,
+          "sl_count": 70163,
+          "timeout_count": 189,
+          "tp_rate_pct": 37.06,
+          "sl_rate_pct": 62.77,
+          "timeout_rate_pct": 0.17,
+          "timeout_avg_gross_bps": 8.81,
+          "is_ex_post_diagnostic_only": false
+        }
+      }
+    }
+  },
+  "timeout_subset_deep_dive": {
+    "verdict": "NOT_VIABLE_ASYMMETRIC_BARRIER_SURVIVORSHIP_ARTIFACT",
+    "timing_attribution_explanation": "In E4 (TP=+50 bps, SL=-30 bps, max_hold=96), a TIMEOUT trade is defined ex-post as a path that never touched -30 bps and never touched +50 bps over 96 bars. Consequently, terminal TIMEOUT returns are mechanically trapped inside (-30, +50) bps, whose geometric midpoint is +10.0 bps even for a zero-drift random walk (paid for by the 62.1% SL hit rate). Removing barriers on the same trend_spread entries yields only +0.59 to +3.29 bps gross (-10.71 to -13.41 bps net at 14 bps), proving TIMEOUT positivity is an exit-conditioning survivorship artifact rather than causal entry alpha.",
+    "splits": {
+      "TRAIN_2023": {
+        "overall": {
+          "count": 1040,
+          "executed_serialized_n": 30,
+          "sample_adequacy": "ADEQUATE",
+          "coverage_pct": 0.9,
+          "gross_expectancy_bps": 2.8,
+          "net_expectancy_bps": -11.2,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -7.2,
+            "14bps": -11.2,
+            "20bps": -17.2,
+            "30bps": -27.2
+          },
+          "win_rate_pct": 15.77,
+          "profit_factor": 0.098,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 2.8,
+            "ci_lower": 2.07,
+            "ci_upper": 3.47
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -11.2,
+            "ci_lower": -11.93,
+            "ci_upper": -10.53
+          },
+          "max_drawdown_pct": 0.53,
+          "turnover": 7.48,
+          "tp_count": 0,
+          "sl_count": 0,
+          "timeout_count": 1040,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 100.0,
+          "timeout_avg_gross_bps": 2.8
+        },
+        "corridor_bounds_observed_bps": {
+          "min_gross_bps": -29.83,
+          "max_gross_bps": 47.42,
+          "theoretical_corridor_bps": [
+            -30.0,
+            50.0
+          ],
+          "theoretical_symmetric_midpoint_bps": 10.0
+        },
+        "by_symbol": {
+          "BTC": {
+            "count": 719,
+            "executed_serialized_n": 16,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 69.13,
+            "gross_expectancy_bps": 2.25,
+            "net_expectancy_bps": -11.75,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -7.75,
+              "14bps": -11.75,
+              "20bps": -17.75,
+              "30bps": -27.75
+            },
+            "win_rate_pct": 14.33,
+            "profit_factor": 0.082,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 2.25,
+              "ci_lower": 1.37,
+              "ci_upper": 3.08
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -11.75,
+              "ci_lower": -12.63,
+              "ci_upper": -10.92
+            },
+            "max_drawdown_pct": 0.34,
+            "turnover": 4.0,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 719,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 2.25
+          },
+          "ETH": {
+            "count": 208,
+            "executed_serialized_n": 7,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 20.0,
+            "gross_expectancy_bps": 3.2,
+            "net_expectancy_bps": -10.8,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -6.8,
+              "14bps": -10.8,
+              "20bps": -16.8,
+              "30bps": -26.8
+            },
+            "win_rate_pct": 13.46,
+            "profit_factor": 0.096,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 3.2,
+              "ci_lower": 1.77,
+              "ci_upper": 4.92
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -10.8,
+              "ci_lower": -12.23,
+              "ci_upper": -9.08
+            },
+            "max_drawdown_pct": 0.06,
+            "turnover": 1.75,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 208,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 3.2
+          },
+          "BNB": {
+            "count": 113,
+            "executed_serialized_n": 7,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 10.87,
+            "gross_expectancy_bps": 5.58,
+            "net_expectancy_bps": -8.42,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -4.42,
+              "14bps": -8.42,
+              "20bps": -14.42,
+              "30bps": -24.42
+            },
+            "win_rate_pct": 29.2,
+            "profit_factor": 0.22,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 5.58,
+              "ci_lower": 3.11,
+              "ci_upper": 7.8
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -8.42,
+              "ci_lower": -10.89,
+              "ci_upper": -6.2
+            },
+            "max_drawdown_pct": 0.28,
+            "turnover": 1.75,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 113,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 5.58
+          }
+        },
+        "by_side": {
+          "BUY": {
+            "count": 492,
+            "executed_serialized_n": 25,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 47.31,
+            "gross_expectancy_bps": 3.48,
+            "net_expectancy_bps": -10.52,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -6.52,
+              "14bps": -10.52,
+              "20bps": -16.52,
+              "30bps": -26.52
+            },
+            "win_rate_pct": 17.48,
+            "profit_factor": 0.125,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 3.48,
+              "ci_lower": 2.54,
+              "ci_upper": 4.5
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -10.52,
+              "ci_lower": -11.46,
+              "ci_upper": -9.5
+            },
+            "max_drawdown_pct": 0.44,
+            "turnover": 6.24,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 492,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 3.48
+          },
+          "SELL": {
+            "count": 548,
+            "executed_serialized_n": 21,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 52.69,
+            "gross_expectancy_bps": 2.19,
+            "net_expectancy_bps": -11.81,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -7.81,
+              "14bps": -11.81,
+              "20bps": -17.81,
+              "30bps": -27.81
+            },
+            "win_rate_pct": 14.23,
+            "profit_factor": 0.075,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 2.19,
+              "ci_lower": 1.36,
+              "ci_upper": 3.08
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -11.81,
+              "ci_lower": -12.64,
+              "ci_upper": -10.92
+            },
+            "max_drawdown_pct": 0.52,
+            "turnover": 5.23,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 548,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 2.19
+          }
+        },
+        "by_regime": {
+          "CHOP_RANGE": {
+            "count": 792,
+            "executed_serialized_n": 27,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 76.15,
+            "gross_expectancy_bps": 2.79,
+            "net_expectancy_bps": -11.21,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -7.21,
+              "14bps": -11.21,
+              "20bps": -17.21,
+              "30bps": -27.21
+            },
+            "win_rate_pct": 15.53,
+            "profit_factor": 0.093,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 2.79,
+              "ci_lower": 2.1,
+              "ci_upper": 3.65
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -11.21,
+              "ci_lower": -11.9,
+              "ci_upper": -10.35
+            },
+            "max_drawdown_pct": 0.72,
+            "turnover": 6.72,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 792,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 2.79
+          },
+          "TREND_BEAR": {
+            "count": 164,
+            "executed_serialized_n": 10,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 15.77,
+            "gross_expectancy_bps": 2.95,
+            "net_expectancy_bps": -11.05,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -7.05,
+              "14bps": -11.05,
+              "20bps": -17.05,
+              "30bps": -27.05
+            },
+            "win_rate_pct": 16.46,
+            "profit_factor": 0.097,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 2.95,
+              "ci_lower": 1.08,
+              "ci_upper": 4.6
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -11.05,
+              "ci_lower": -12.92,
+              "ci_upper": -9.4
+            },
+            "max_drawdown_pct": 0.1,
+            "turnover": 2.5,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 164,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 2.95
+          },
+          "TREND_BULL": {
+            "count": 84,
+            "executed_serialized_n": 9,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 8.08,
+            "gross_expectancy_bps": 2.55,
+            "net_expectancy_bps": -11.45,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -7.45,
+              "14bps": -11.45,
+              "20bps": -17.45,
+              "30bps": -27.45
+            },
+            "win_rate_pct": 16.67,
+            "profit_factor": 0.14,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 2.55,
+              "ci_lower": -0.11,
+              "ci_upper": 5.87
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -11.45,
+              "ci_lower": -14.11,
+              "ci_upper": -8.13
+            },
+            "max_drawdown_pct": 0.2,
+            "turnover": 2.25,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 84,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 2.55
+          }
+        },
+        "observed_paper_fill_sensitivity": {
+          "observed_median_roundtrip_bps": 11.0,
+          "net_at_observed_median_bps": -8.2,
+          "observed_mean_roundtrip_bps": 18.5,
+          "net_at_observed_mean_bps": -15.7,
+          "sample_warning": "INSUFFICIENT_SAMPLE_NOT_CALIBRATION_GRADE"
+        }
+      },
+      "DEV_2024_2025": {
+        "overall": {
+          "count": 299,
+          "executed_serialized_n": 15,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.13,
+          "gross_expectancy_bps": 9.44,
+          "net_expectancy_bps": -4.56,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -0.56,
+            "14bps": -4.56,
+            "20bps": -10.56,
+            "30bps": -20.56
+          },
+          "win_rate_pct": 40.8,
+          "profit_factor": 0.481,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": 9.44,
+            "ci_lower": 7.87,
+            "ci_upper": 11.06
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -4.56,
+            "ci_lower": -6.13,
+            "ci_upper": -2.94
+          },
+          "max_drawdown_pct": 0.04,
+          "turnover": 3.75,
+          "tp_count": 0,
+          "sl_count": 0,
+          "timeout_count": 299,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 100.0,
+          "timeout_avg_gross_bps": 9.44
+        },
+        "corridor_bounds_observed_bps": {
+          "min_gross_bps": -28.62,
+          "max_gross_bps": 49.5,
+          "theoretical_corridor_bps": [
+            -30.0,
+            50.0
+          ],
+          "theoretical_symmetric_midpoint_bps": 10.0
+        },
+        "by_symbol": {
+          "BTC": {
+            "count": 289,
+            "executed_serialized_n": 13,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 96.66,
+            "gross_expectancy_bps": 9.23,
+            "net_expectancy_bps": -4.77,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -0.77,
+              "14bps": -4.77,
+              "20bps": -10.77,
+              "30bps": -20.77
+            },
+            "win_rate_pct": 40.14,
+            "profit_factor": 0.447,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 9.23,
+              "ci_lower": 7.47,
+              "ci_upper": 10.79
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -4.77,
+              "ci_lower": -6.53,
+              "ci_upper": -3.21
+            },
+            "max_drawdown_pct": 0.04,
+            "turnover": 3.25,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 289,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 9.23
+          },
+          "ETH": {
+            "count": 0,
+            "executed_serialized_n": 0,
+            "sample_adequacy": "EMPTY_SLICE",
+            "coverage_pct": 0.0,
+            "gross_expectancy_bps": 0.0,
+            "net_expectancy_bps": 0.0,
+            "net_expectancy_by_cost_bps": {
+              "10bps": 0.0,
+              "14bps": 0.0,
+              "20bps": 0.0,
+              "30bps": 0.0
+            },
+            "win_rate_pct": 0.0,
+            "profit_factor": 0.0,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.0,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 0,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 0.0,
+            "timeout_avg_gross_bps": 0.0
+          },
+          "BNB": {
+            "count": 10,
+            "executed_serialized_n": 2,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 3.34,
+            "gross_expectancy_bps": 15.68,
+            "net_expectancy_bps": 1.68,
+            "net_expectancy_by_cost_bps": {
+              "10bps": 5.68,
+              "14bps": 1.68,
+              "20bps": -4.32,
+              "30bps": -14.32
+            },
+            "win_rate_pct": 60.0,
+            "profit_factor": 1.128,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 15.68,
+              "ci_lower": -2.9,
+              "ci_upper": 34.12
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": 1.68,
+              "ci_lower": -16.9,
+              "ci_upper": 20.12
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.5,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 10,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 15.68
+          }
+        },
+        "by_side": {
+          "BUY": {
+            "count": 199,
+            "executed_serialized_n": 14,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 66.56,
+            "gross_expectancy_bps": 9.54,
+            "net_expectancy_bps": -4.46,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -0.46,
+              "14bps": -4.46,
+              "20bps": -10.46,
+              "30bps": -20.46
+            },
+            "win_rate_pct": 39.2,
+            "profit_factor": 0.459,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 9.54,
+              "ci_lower": 7.33,
+              "ci_upper": 11.31
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -4.46,
+              "ci_lower": -6.67,
+              "ci_upper": -2.69
+            },
+            "max_drawdown_pct": 0.02,
+            "turnover": 3.5,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 199,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 9.54
+          },
+          "SELL": {
+            "count": 100,
+            "executed_serialized_n": 10,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 33.44,
+            "gross_expectancy_bps": 9.25,
+            "net_expectancy_bps": -4.75,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -0.75,
+              "14bps": -4.75,
+              "20bps": -10.75,
+              "30bps": -20.75
+            },
+            "win_rate_pct": 44.0,
+            "profit_factor": 0.518,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 9.25,
+              "ci_lower": 5.83,
+              "ci_upper": 12.92
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -4.75,
+              "ci_lower": -8.17,
+              "ci_upper": -1.08
+            },
+            "max_drawdown_pct": 0.15,
+            "turnover": 2.5,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 100,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 9.25
+          }
+        },
+        "by_regime": {
+          "CHOP_RANGE": {
+            "count": 208,
+            "executed_serialized_n": 13,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 69.57,
+            "gross_expectancy_bps": 7.94,
+            "net_expectancy_bps": -6.06,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -2.06,
+              "14bps": -6.06,
+              "20bps": -12.06,
+              "30bps": -22.06
+            },
+            "win_rate_pct": 37.5,
+            "profit_factor": 0.345,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 7.94,
+              "ci_lower": 5.94,
+              "ci_upper": 9.96
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -6.06,
+              "ci_lower": -8.06,
+              "ci_upper": -4.04
+            },
+            "max_drawdown_pct": 0.05,
+            "turnover": 3.25,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 208,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 7.94
+          },
+          "TREND_BEAR": {
+            "count": 30,
+            "executed_serialized_n": 4,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 10.03,
+            "gross_expectancy_bps": 23.12,
+            "net_expectancy_bps": 9.12,
+            "net_expectancy_by_cost_bps": {
+              "10bps": 13.12,
+              "14bps": 9.12,
+              "20bps": 3.12,
+              "30bps": -6.88
+            },
+            "win_rate_pct": 73.33,
+            "profit_factor": 5.128,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 23.12,
+              "ci_lower": 18.9,
+              "ci_upper": 27.59
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": 9.12,
+              "ci_lower": 4.9,
+              "ci_upper": 13.59
+            },
+            "max_drawdown_pct": 0.04,
+            "turnover": 1.0,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 30,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 23.12
+          },
+          "TREND_BULL": {
+            "count": 61,
+            "executed_serialized_n": 6,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 20.4,
+            "gross_expectancy_bps": 7.83,
+            "net_expectancy_bps": -6.17,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -2.17,
+              "14bps": -6.17,
+              "20bps": -12.17,
+              "30bps": -22.17
+            },
+            "win_rate_pct": 36.07,
+            "profit_factor": 0.409,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 7.83,
+              "ci_lower": 3.92,
+              "ci_upper": 12.28
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -6.17,
+              "ci_lower": -10.08,
+              "ci_upper": -1.72
+            },
+            "max_drawdown_pct": 0.05,
+            "turnover": 1.5,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 61,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": 7.83
+          }
+        },
+        "observed_paper_fill_sensitivity": {
+          "observed_median_roundtrip_bps": 11.0,
+          "net_at_observed_median_bps": -1.56,
+          "observed_mean_roundtrip_bps": 18.5,
+          "net_at_observed_mean_bps": -9.06,
+          "sample_warning": "INSUFFICIENT_SAMPLE_NOT_CALIBRATION_GRADE"
+        }
+      },
+      "CONFIRMATORY_2024_H2": {
+        "overall": {
+          "count": 7,
+          "executed_serialized_n": 1,
+          "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+          "coverage_pct": 0.01,
+          "gross_expectancy_bps": -7.13,
+          "net_expectancy_bps": -21.13,
+          "net_expectancy_by_cost_bps": {
+            "10bps": -17.13,
+            "14bps": -21.13,
+            "20bps": -27.13,
+            "30bps": -37.13
+          },
+          "win_rate_pct": 14.29,
+          "profit_factor": 0.002,
+          "bootstrap_ci_95_gross_bps": {
+            "mean": -7.13,
+            "ci_lower": -13.62,
+            "ci_upper": 0.57
+          },
+          "bootstrap_ci_95_net14_bps": {
+            "mean": -21.13,
+            "ci_lower": -27.62,
+            "ci_upper": -13.43
+          },
+          "max_drawdown_pct": 0.0,
+          "turnover": 0.25,
+          "tp_count": 0,
+          "sl_count": 0,
+          "timeout_count": 7,
+          "tp_rate_pct": 0.0,
+          "sl_rate_pct": 0.0,
+          "timeout_rate_pct": 100.0,
+          "timeout_avg_gross_bps": -7.13
+        },
+        "corridor_bounds_observed_bps": {
+          "min_gross_bps": -19.03,
+          "max_gross_bps": 14.34,
+          "theoretical_corridor_bps": [
+            -30.0,
+            50.0
+          ],
+          "theoretical_symmetric_midpoint_bps": 10.0
+        },
+        "by_symbol": {
+          "BTC": {
+            "count": 7,
+            "executed_serialized_n": 1,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 100.0,
+            "gross_expectancy_bps": -7.13,
+            "net_expectancy_bps": -21.13,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -17.13,
+              "14bps": -21.13,
+              "20bps": -27.13,
+              "30bps": -37.13
+            },
+            "win_rate_pct": 14.29,
+            "profit_factor": 0.002,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": -7.13,
+              "ci_lower": -13.62,
+              "ci_upper": 0.57
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -21.13,
+              "ci_lower": -27.62,
+              "ci_upper": -13.43
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.25,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 7,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": -7.13
+          },
+          "ETH": {
+            "count": 0,
+            "executed_serialized_n": 0,
+            "sample_adequacy": "EMPTY_SLICE",
+            "coverage_pct": 0.0,
+            "gross_expectancy_bps": 0.0,
+            "net_expectancy_bps": 0.0,
+            "net_expectancy_by_cost_bps": {
+              "10bps": 0.0,
+              "14bps": 0.0,
+              "20bps": 0.0,
+              "30bps": 0.0
+            },
+            "win_rate_pct": 0.0,
+            "profit_factor": 0.0,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.0,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 0,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 0.0,
+            "timeout_avg_gross_bps": 0.0
+          },
+          "BNB": {
+            "count": 0,
+            "executed_serialized_n": 0,
+            "sample_adequacy": "EMPTY_SLICE",
+            "coverage_pct": 0.0,
+            "gross_expectancy_bps": 0.0,
+            "net_expectancy_bps": 0.0,
+            "net_expectancy_by_cost_bps": {
+              "10bps": 0.0,
+              "14bps": 0.0,
+              "20bps": 0.0,
+              "30bps": 0.0
+            },
+            "win_rate_pct": 0.0,
+            "profit_factor": 0.0,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.0,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 0,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 0.0,
+            "timeout_avg_gross_bps": 0.0
+          }
+        },
+        "by_side": {
+          "BUY": {
+            "count": 0,
+            "executed_serialized_n": 0,
+            "sample_adequacy": "EMPTY_SLICE",
+            "coverage_pct": 0.0,
+            "gross_expectancy_bps": 0.0,
+            "net_expectancy_bps": 0.0,
+            "net_expectancy_by_cost_bps": {
+              "10bps": 0.0,
+              "14bps": 0.0,
+              "20bps": 0.0,
+              "30bps": 0.0
+            },
+            "win_rate_pct": 0.0,
+            "profit_factor": 0.0,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": 0.0,
+              "ci_lower": 0.0,
+              "ci_upper": 0.0
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.0,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 0,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 0.0,
+            "timeout_avg_gross_bps": 0.0
+          },
+          "SELL": {
+            "count": 7,
+            "executed_serialized_n": 1,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 100.0,
+            "gross_expectancy_bps": -7.13,
+            "net_expectancy_bps": -21.13,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -17.13,
+              "14bps": -21.13,
+              "20bps": -27.13,
+              "30bps": -37.13
+            },
+            "win_rate_pct": 14.29,
+            "profit_factor": 0.002,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": -7.13,
+              "ci_lower": -13.62,
+              "ci_upper": 0.57
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -21.13,
+              "ci_lower": -27.62,
+              "ci_upper": -13.43
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.25,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 7,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": -7.13
+          }
+        },
+        "by_regime": {
+          "CHOP_RANGE": {
+            "count": 7,
+            "executed_serialized_n": 1,
+            "sample_adequacy": "SMALL_SAMPLE_NOT_EDGE_EVIDENCE",
+            "coverage_pct": 100.0,
+            "gross_expectancy_bps": -7.13,
+            "net_expectancy_bps": -21.13,
+            "net_expectancy_by_cost_bps": {
+              "10bps": -17.13,
+              "14bps": -21.13,
+              "20bps": -27.13,
+              "30bps": -37.13
+            },
+            "win_rate_pct": 14.29,
+            "profit_factor": 0.002,
+            "bootstrap_ci_95_gross_bps": {
+              "mean": -7.13,
+              "ci_lower": -13.62,
+              "ci_upper": 0.57
+            },
+            "bootstrap_ci_95_net14_bps": {
+              "mean": -21.13,
+              "ci_lower": -27.62,
+              "ci_upper": -13.43
+            },
+            "max_drawdown_pct": 0.0,
+            "turnover": 0.25,
+            "tp_count": 0,
+            "sl_count": 0,
+            "timeout_count": 7,
+            "tp_rate_pct": 0.0,
+            "sl_rate_pct": 0.0,
+            "timeout_rate_pct": 100.0,
+            "timeout_avg_gross_bps": -7.13
+          }
+        },
+        "observed_paper_fill_sensitivity": {
+          "observed_median_roundtrip_bps": 11.0,
+          "net_at_observed_median_bps": -18.13,
+          "observed_mean_roundtrip_bps": 18.5,
+          "net_at_observed_mean_bps": -25.63,
+          "sample_warning": "INSUFFICIENT_SAMPLE_NOT_CALIBRATION_GRADE"
+        }
+      }
+    },
+    "train_2023_exit_horizon_experiments": [
+      {
+        "experiment": "E4_NARROW_H16",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 16,
+        "tp_bps": 50.0,
+        "sl_bps": 30.0,
+        "n_trades": 5891,
+        "gross_expectancy_bps": 0.53,
+        "net_14bps": -13.47,
+        "net_20bps": -19.47,
+        "ci_95_net14_bps": {
+          "mean": -13.47,
+          "ci_lower": -14.33,
+          "ci_upper": -12.62
+        }
+      },
+      {
+        "experiment": "E4_NARROW_H32",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 32,
+        "tp_bps": 50.0,
+        "sl_bps": 30.0,
+        "n_trades": 5888,
+        "gross_expectancy_bps": 0.68,
+        "net_14bps": -13.32,
+        "net_20bps": -19.32,
+        "ci_95_net14_bps": {
+          "mean": -13.32,
+          "ci_lower": -14.32,
+          "ci_upper": -12.33
+        }
+      },
+      {
+        "experiment": "E4_NARROW_H48",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 48,
+        "tp_bps": 50.0,
+        "sl_bps": 30.0,
+        "n_trades": 5885,
+        "gross_expectancy_bps": 0.7,
+        "net_14bps": -13.3,
+        "net_20bps": -19.3,
+        "ci_95_net14_bps": {
+          "mean": -13.3,
+          "ci_lower": -14.33,
+          "ci_upper": -12.34
+        }
+      },
+      {
+        "experiment": "E4_NARROW_H96_BASELINE",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 96,
+        "tp_bps": 50.0,
+        "sl_bps": 30.0,
+        "n_trades": 5877,
+        "gross_expectancy_bps": 0.74,
+        "net_14bps": -13.26,
+        "net_20bps": -19.26,
+        "ci_95_net14_bps": {
+          "mean": -13.26,
+          "ci_lower": -14.32,
+          "ci_upper": -12.35
+        }
+      },
+      {
+        "experiment": "E4_NARROW_H144",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 144,
+        "tp_bps": 50.0,
+        "sl_bps": 30.0,
+        "n_trades": 5869,
+        "gross_expectancy_bps": 0.77,
+        "net_14bps": -13.23,
+        "net_20bps": -19.23,
+        "ci_95_net14_bps": {
+          "mean": -13.23,
+          "ci_lower": -14.29,
+          "ci_upper": -12.24
+        }
+      },
+      {
+        "experiment": "PURE_TIME_EXIT_H16_NO_BARRIER",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 16,
+        "tp_bps": 10000.0,
+        "sl_bps": 10000.0,
+        "n_trades": 5891,
+        "gross_expectancy_bps": 1.5,
+        "net_14bps": -12.5,
+        "net_20bps": -18.5,
+        "ci_95_net14_bps": {
+          "mean": -12.5,
+          "ci_lower": -14.9,
+          "ci_upper": -10.12
+        }
+      },
+      {
+        "experiment": "PURE_TIME_EXIT_H48_NO_BARRIER",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 48,
+        "tp_bps": 10000.0,
+        "sl_bps": 10000.0,
+        "n_trades": 5885,
+        "gross_expectancy_bps": 2.09,
+        "net_14bps": -11.91,
+        "net_20bps": -17.91,
+        "ci_95_net14_bps": {
+          "mean": -11.91,
+          "ci_lower": -16.16,
+          "ci_upper": -7.61
+        }
+      },
+      {
+        "experiment": "PURE_TIME_EXIT_H96_NO_BARRIER",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 96,
+        "tp_bps": 10000.0,
+        "sl_bps": 10000.0,
+        "n_trades": 5877,
+        "gross_expectancy_bps": 0.17,
+        "net_14bps": -13.83,
+        "net_20bps": -19.83,
+        "ci_95_net14_bps": {
+          "mean": -13.83,
+          "ci_lower": -19.87,
+          "ci_upper": -7.51
+        }
+      },
+      {
+        "experiment": "WIDE_BARRIER_350_150_H192_TREND_SPREAD",
+        "entry_mode": "TREND_SPREAD",
+        "max_hold_bars": 192,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0,
+        "n_trades": 5860,
+        "gross_expectancy_bps": -1.0,
+        "net_14bps": -15.0,
+        "net_20bps": -21.0,
+        "ci_95_net14_bps": {
+          "mean": -15.0,
+          "ci_lower": -19.84,
+          "ci_upper": -9.94
+        }
+      },
+      {
+        "experiment": "WIDE_BARRIER_350_150_H192_VOL_COMP_BREAKOUT",
+        "entry_mode": "VOL_COMP_BREAKOUT",
+        "max_hold_bars": 192,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0,
+        "n_trades": 235,
+        "gross_expectancy_bps": 21.66,
+        "net_14bps": 7.66,
+        "net_20bps": 1.66,
+        "ci_95_net14_bps": {
+          "mean": 7.66,
+          "ci_lower": -22.37,
+          "ci_upper": 33.41
+        }
+      }
+    ],
+    "observed_paper_fill_audit": {
+      "observed_filled_legs_n": 7,
+      "evidence_eligible_count": 0,
+      "sample_adequacy": "INSUFFICIENT_SAMPLE_NOT_CALIBRATION_GRADE",
+      "per_leg_median_bps": 5.5,
+      "per_leg_mean_bps": 9.25,
+      "implied_roundtrip_median_bps": 11.0,
+      "implied_roundtrip_mean_bps": 18.5,
+      "implied_roundtrip_p95_bps": 47.76
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "plan_name": "vcb_v5_cross_sectional_validation_plan",
+  "plan_locked_at_utc": "2026-11-04T03:16:10.906048+00:00",
+  "raw_holdout_outcome_read_at_utc": "2026-11-04T03:16:10.951095+00:00",
+  "candidate_id": "VCB_V5_SELL_ONLY_9ASSET",
+  "spec_sha256": "524ac4ed6a7ff7f9d72a413296668b61d486d962d229a4bb7d02cc505e5d1fbf",
+  "target_universe": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "primary_holdout_universe": [
+    "DOGE",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "diagnostic_design_universe": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "primary_evaluation_window": {
+    "name": "HOLDOUT_30M_CONTIGUOUS_2024_2026_H1",
+    "start": "2024-01-01T00:00:00+00:00",
+    "end": "2026-07-01T00:00:00+00:00",
+    "calendar_days": 912
+  },
+  "temporal_stability_windows": [
+    {
+      "name": "HOLDOUT_2024_ANNUAL",
+      "start": "2024-01-01T00:00:00+00:00",
+      "end": "2025-01-01T00:00:00+00:00"
+    },
+    {
+      "name": "HOLDOUT_2025_ANNUAL",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2026-01-01T00:00:00+00:00"
+    },
+    {
+      "name": "HOLDOUT_2026_H1_SEMESTER",
+      "start": "2026-01-01T00:00:00+00:00",
+      "end": "2026-07-01T00:00:00+00:00"
+    }
+  ],
+  "primary_decision_gates": {
+    "gate_1_sample_size": {
+      "description": "Total executed trades on holdout universe",
+      "threshold": ">= 100"
+    },
+    "gate_2_net_expectancy": {
+      "description": "Net expectancy @ 14 bps baseline cost",
+      "threshold": "> 0.0 bps"
+    },
+    "gate_3_profit_factor": {
+      "description": "Profit factor @ 14 bps baseline cost",
+      "threshold": "> 1.0"
+    },
+    "gate_4_bootstrap_lower": {
+      "description": "Daily block bootstrap 95% CI lower bound (block_size=10, reps=2000, seed=42)",
+      "threshold": "> 0.0 bps/day"
+    },
+    "gate_5_cross_sectional_breadth": {
+      "description": "Number of active holdout assets with >=1 executed trade",
+      "threshold": ">= 4"
+    },
+    "gate_6_concentration_risk": {
+      "description": "Max single-asset trade count share of total",
+      "threshold": "< 80.0%"
+    },
+    "gate_7_max_drawdown": {
+      "description": "Maximum portfolio equity drawdown",
+      "threshold": "<= 20.0%"
+    },
+    "gate_8_friction_tolerance": {
+      "description": "Net expectancy @ 20 bps cost tier",
+      "threshold": ">= -5.0 bps"
+    }
+  },
+  "epistemic_classification": "DEBUG_EXPOSED_CROSS_SECTIONAL_DIAGNOSTIC",
+  "chronology_audit": {
+    "verdict": "PRE_REGISTRATION_NOT_PROVABLE",
+    "epistemic_classification": "DEBUG_EXPOSED_CROSS_SECTIONAL_DIAGNOSTIC",
+    "is_provable": false,
+    "earliest_artifact_filesystem_creation_utc": "2026-11-04T02:17:21.769903+00:00",
+    "internal_spec_lock_utc": "2026-11-04T03:16:10.906048+00:00",
+    "internal_plan_lock_utc": "2026-11-04T03:16:10.906048+00:00",
+    "earliest_known_raw_read_or_debug_run_utc": "2026-11-04T02:17:21+00:00",
+    "final_evaluation_utc": "2026-11-04T03:16:10.906048+00:00",
+    "reasons": [
+      "RAW_READ_PRECEDES_SPEC_LOCK: Data read at 2026-11-04T02:17:21+00:00 preceded spec lock at 2026-11-04T03:16:10.906048+00:00.",
+      "RAW_READ_PRECEDES_PLAN_LOCK: Data read at 2026-11-04T02:17:21+00:00 preceded plan lock at 2026-11-04T03:16:10.906048+00:00.",
+      "FILE_CREATION_PRECEDES_INTERNAL_LOCK: Artifact file was created at 2026-11-04T02:17:21.769903+00:00 but internal lock is 2026-11-04T03:16:10.906048+00:00 (3529.1s earlier), demonstrating prior execution and file overwrite."
+    ],
+    "sources": {
+      "earliest_artifact_filesystem_creation_utc": "os.stat.st_ctime of research/historical_market_replay_v5/vcb_v5_cross_sectional_exposure_audit.json",
+      "internal_spec_lock_utc": "vcb_v5_sell_only_9asset_candidate_spec.json::spec_locked_at_utc",
+      "internal_plan_lock_utc": "vcb_v5_cross_sectional_validation_plan.json::plan_locked_at_utc",
+      "earliest_known_raw_read_or_debug_run_utc": "transcript execution of scratch/execute_vcb_v5_study.py at 02:17 UTC reading DOGE 15m candles",
+      "final_evaluation_utc": "vcb_v5_sell_only_9asset_research.json::generation_timestamp"
+    }
+  },
+  "governance_rule": "If ANY primary decision gate fails on the holdout universe, the candidate is unconditionally rejected. Runtime remains fail-closed (NO_CANDIDATE_SELECTED, PROSPECTIVE_NOT_STARTED)."
+}

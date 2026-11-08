@@ -1,0 +1,113 @@
+{
+  "inventory_schema_version": "1.0.0",
+  "generated_timestamp": "2026-11-03T13:15:00Z",
+  "git_head": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "top_level_verdict": "NO_UNTOUCHED_FUTURE_WINDOW_FOUND",
+  "top_level_reason": "Exhaustive repository inspection confirms that canonical 15m OHLCV price series for BTC, ETH, and BNB terminate on 2026-06-30 23:45:00+00:00. All files bearing post-2026-07-01 timestamps consist of runtime fill logs, scraper outputs, feature store slices, or temporary databases from historical canary sessions that were already referenced, evaluated, or fitted in past iterations. Zero untouched sealed market data exists.",
+  "governance_rule": "Prospective paper execution (NO_TRADE_SHADOW) is the sole epistemically valid path to accumulate new out-of-sample evidence.",
+  "sources_audited": [
+    {
+      "path_or_glob": "data/fresh_training_data_2023_2026/data_manifest.json",
+      "data_type": "15m OHLCV training dataset manifest for BTC, ETH, BNB",
+      "earliest_timestamp": "2023-01-01T00:00:00+00:00",
+      "latest_timestamp": "2026-06-30T23:45:00+00:00",
+      "sha256": "98af4a93bead47e8ac927007826b71ed3591661d86896ff3a515ed76542ff245",
+      "reference_in_repo": "research/historical_market_replay_v5/oos_split_manifest.json",
+      "exposure_evidence": "Manifest confirms primary multi-year 15m OHLCV series strictly terminates at 2026-06-30 23:45:00+00:00. Zero OHLCV candle records exist post-2026-06-30.",
+      "eligibility_verdict": "WINDOW_EXHAUSTED_NO_FUTURE_OHLCV_AVAILABLE",
+      "reason": "No 15m OHLCV price series exists in repository beyond 2026-06-30."
+    },
+    {
+      "path_or_glob": "data/execution/fills/fills_2026-07-*.jsonl",
+      "data_type": "Live/simulated execution fill event logs",
+      "earliest_timestamp": "2026-07-07T00:00:00Z",
+      "latest_timestamp": "2026-07-27T23:59:59Z",
+      "sha256": null,
+      "reference_in_repo": "evidence/next-step-20260922/p7_status_report.json; scripts/run_canary_until_seal_ready.py",
+      "exposure_evidence": "Referenced and evaluated by execution quality audit scripts (data/execution/reports/execution_quality_phase5_*.json) during P7 canary remediation.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Execution fills from July 2026 were directly parsed, analyzed, and used to calibrate canary trade execution policies."
+    },
+    {
+      "path_or_glob": "data/execution/fills/paper/fills_2026-07-*.jsonl",
+      "data_type": "Paper runtime fill event logs",
+      "earliest_timestamp": "2026-07-12T00:00:00Z",
+      "latest_timestamp": "2026-07-22T23:59:59Z",
+      "sha256": null,
+      "reference_in_repo": "data/execution/reports/execution_quality_phase5_20260715.json",
+      "exposure_evidence": "Generated and monitored by paper trader runtime during July 2026 canary sessions.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Paper execution fills are runtime artifacts already consumed by past verification runs."
+    },
+    {
+      "path_or_glob": "artifacts/regime/tuning/regime_tuning_20260730*.json",
+      "data_type": "Regime detection hyperparameter tuning logs",
+      "earliest_timestamp": "2026-07-30T02:48:53Z",
+      "latest_timestamp": "2026-07-30T02:49:12Z",
+      "sha256": null,
+      "reference_in_repo": "btc_scraper/ml_engine/feature_extractor.py; scripts/hmr_v5_d2_parity_replay.py",
+      "exposure_evidence": "Hyperparameters tuned on late July 2026 regime records were incorporated into feature extractor configuration.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Directly used to fit model parameters during July 30 2026 tuning."
+    },
+    {
+      "path_or_glob": "data/cleanup/*20260715*.json",
+      "data_type": "Trade provenance and position cleanup backup manifests",
+      "earliest_timestamp": "2026-07-15T05:25:54Z",
+      "latest_timestamp": "2026-07-15T06:27:00Z",
+      "sha256": null,
+      "reference_in_repo": "evidence/next-step-20260922/baseline_inventory.json",
+      "exposure_evidence": "Referenced in partition plan and baseline inventory for remediation verification.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Database maintenance and position correction state backups from mid-July 2026."
+    },
+    {
+      "path_or_glob": "data/raw_alternative/alternative_2026-07-*.json",
+      "data_type": "Alternative market sentiment and scraper raw inputs",
+      "earliest_timestamp": "2026-07-03T06:24:49Z",
+      "latest_timestamp": "2026-07-31T23:59:59Z",
+      "sha256": null,
+      "reference_in_repo": "evaluations/ml_engine_remediation_20260723/meta_model_v3.joblib; btc_scraper/collectors/alternative_scheduler.py",
+      "exposure_evidence": "Scraped alternative data from July 2026 was used to train and evaluate meta_model_v3 remediation models.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Directly used as training/evaluation input for ML engine remediation in July 2026."
+    },
+    {
+      "path_or_glob": "data/feature_store/training/ml_dataset_v3_2026_07_*.metadata.json",
+      "data_type": "Machine learning feature store dataset metadata",
+      "earliest_timestamp": "2026-07-02T00:00:00Z",
+      "latest_timestamp": "2026-07-27T00:00:00Z",
+      "sha256": null,
+      "reference_in_repo": "evaluations/ml_engine_remediation_20260723/model_registry.json",
+      "exposure_evidence": "Feature store datasets generated from July 2026 market states were recorded in the model registry.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Formally registered as training sets for meta_model_v3 in evaluations/ml_engine_remediation_20260723."
+    },
+    {
+      "path_or_glob": "tmp_2026-08-06.db; tmp_test_2026-08-06.db",
+      "data_type": "Temporary SQLite trading databases",
+      "earliest_timestamp": "2026-08-06T00:00:00Z",
+      "latest_timestamp": "2026-08-06T23:59:59Z",
+      "sha256": null,
+      "reference_in_repo": "scripts/rerun_canary_20260813_01.sh",
+      "exposure_evidence": "Temporary execution store used during August 2026 canary rerun tests.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Transient state files from past test runs; contains no raw OHLCV market price series."
+    },
+    {
+      "path_or_glob": "p7_attempt5_resume_spawn_record_20260826T013814Z.json",
+      "data_type": "Process orchestration checkpoint record",
+      "earliest_timestamp": "2026-08-26T01:38:14Z",
+      "latest_timestamp": "2026-08-26T01:38:14Z",
+      "sha256": "9d83d1c31278ffc9772da104ca86282ee0a905ee7158756578036987c95ee13c",
+      "reference_in_repo": "tests/ml/test_p7_a4_resume_contract.py",
+      "exposure_evidence": "Orchestration state verified by P7 A4 resume test suite.",
+      "eligibility_verdict": "WINDOW_ALREADY_EXPOSED_NOT_ELIGIBLE",
+      "reason": "Orchestration process metadata record; contains no market price series."
+    }
+  ],
+  "verdict": "NO_UNTOUCHED_FUTURE_WINDOW_FOUND",
+  "touch_count": 9,
+  "raw_ohlcv_values_read": false,
+  "inventory_sha256": "6c26aebbbf06e03ee8dbff8258b2f10f43ebd29fe1e8dec113473bd3afd83a07"
+}

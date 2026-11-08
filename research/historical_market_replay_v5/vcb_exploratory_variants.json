@@ -1,0 +1,870 @@
+{
+  "pipeline_name": "hmr_v5_vcb_exploratory_variants",
+  "semantic_hash_schema_version": "1.0.0",
+  "semantic_hash_excluded_fields": [
+    "semantic_artifact_sha256",
+    "generation_timestamp",
+    "performance_metadata",
+    "stage_timing_seconds"
+  ],
+  "generation_timestamp": "2026-11-03T13:24:01.492679+00:00",
+  "git_head": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "candidate_selection_verdict": "NO_CANDIDATE_SELECTED",
+  "prospective_status": "NOT_STARTED",
+  "runtime_candidate_spec": null,
+  "activation_manifest": null,
+  "rejection_audit": {
+    "VOL_COMPRESSION_BREAKOUT_V1": {
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VOL_COMPRESSION_BREAKOUT_V1 failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VOL_COMPRESSION_BREAKOUT_V1 failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-22.26 bps)"
+      ],
+      "historical_disposition": "REJECTED_AFTER_EXPOSED_AUDIT"
+    },
+    "VCB_V2_VOL15": {
+      "eligible": false,
+      "reasons": [
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V2_VOL15 failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-25.32 bps)"
+      ],
+      "historical_disposition": "REJECTED_AFTER_EXPOSED_AUDIT"
+    },
+    "VCB_V2_DONCHIAN192": {
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V2_DONCHIAN192 failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V2_DONCHIAN192 failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-18.99 bps)"
+      ],
+      "historical_disposition": "REJECTED_AFTER_EXPOSED_AUDIT"
+    },
+    "VCB_V2_SLOPE": {
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V2_SLOPE failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V2_SLOPE failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-30.73 bps)"
+      ],
+      "historical_disposition": "REJECTED_AFTER_EXPOSED_AUDIT"
+    },
+    "VCB_V3_VOL_NORMALIZED_BARRIER": {
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V3_VOL_NORMALIZED_BARRIER failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V3_VOL_NORMALIZED_BARRIER failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-11.90 bps)"
+      ],
+      "historical_disposition": "REJECTED_AFTER_EXPOSED_AUDIT"
+    },
+    "VCB_V3_DIRECTIONAL_REGIME_GATE": {
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V3_DIRECTIONAL_REGIME_GATE failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V3_DIRECTIONAL_REGIME_GATE failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-20.32 bps)"
+      ],
+      "historical_disposition": "REJECTED_AFTER_EXPOSED_AUDIT"
+    }
+  },
+  "historical_dispositions": {
+    "VOL_COMPRESSION_BREAKOUT_V1": {
+      "candidate_id": "VOL_COMPRESSION_BREAKOUT_V1",
+      "disposition": "REJECTED_AFTER_EXPOSED_AUDIT",
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VOL_COMPRESSION_BREAKOUT_V1 failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VOL_COMPRESSION_BREAKOUT_V1 failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-22.26 bps)"
+      ],
+      "dev_gate_7_passed": false,
+      "audit_gate_7_passed": false,
+      "audit_net_expectancy_bps": -22.26
+    },
+    "VCB_V2_VOL15": {
+      "candidate_id": "VCB_V2_VOL15",
+      "disposition": "REJECTED_AFTER_EXPOSED_AUDIT",
+      "eligible": false,
+      "reasons": [
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V2_VOL15 failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-25.32 bps)"
+      ],
+      "dev_gate_7_passed": true,
+      "audit_gate_7_passed": false,
+      "audit_net_expectancy_bps": -25.32
+    },
+    "VCB_V2_DONCHIAN192": {
+      "candidate_id": "VCB_V2_DONCHIAN192",
+      "disposition": "REJECTED_AFTER_EXPOSED_AUDIT",
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V2_DONCHIAN192 failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V2_DONCHIAN192 failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-18.99 bps)"
+      ],
+      "dev_gate_7_passed": false,
+      "audit_gate_7_passed": false,
+      "audit_net_expectancy_bps": -18.99
+    },
+    "VCB_V2_SLOPE": {
+      "candidate_id": "VCB_V2_SLOPE",
+      "disposition": "REJECTED_AFTER_EXPOSED_AUDIT",
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V2_SLOPE failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V2_SLOPE failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-30.73 bps)"
+      ],
+      "dev_gate_7_passed": false,
+      "audit_gate_7_passed": false,
+      "audit_net_expectancy_bps": -30.73
+    },
+    "VCB_V3_VOL_NORMALIZED_BARRIER": {
+      "candidate_id": "VCB_V3_VOL_NORMALIZED_BARRIER",
+      "disposition": "REJECTED_AFTER_EXPOSED_AUDIT",
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V3_VOL_NORMALIZED_BARRIER failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V3_VOL_NORMALIZED_BARRIER failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-11.90 bps)"
+      ],
+      "dev_gate_7_passed": false,
+      "audit_gate_7_passed": false,
+      "audit_net_expectancy_bps": -11.9
+    },
+    "VCB_V3_DIRECTIONAL_REGIME_GATE": {
+      "candidate_id": "VCB_V3_DIRECTIONAL_REGIME_GATE",
+      "disposition": "REJECTED_AFTER_EXPOSED_AUDIT",
+      "eligible": false,
+      "reasons": [
+        "FAILED_DEV_GATE_7: Candidate VCB_V3_DIRECTIONAL_REGIME_GATE failed DEV walk-forward Gate 7 bootstrap lower bound > 0.0",
+        "FAILED_EXPOSED_AUDIT: Candidate VCB_V3_DIRECTIONAL_REGIME_GATE failed burned 2026-H1 audit (Audit Gate 7 passed=False, Audit Net Exp=-20.32 bps)"
+      ],
+      "dev_gate_7_passed": false,
+      "audit_gate_7_passed": false,
+      "audit_net_expectancy_bps": -20.32
+    }
+  },
+  "dataset_manifest": {
+    "BNB": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "545f8c7270f69caac5186c21a28c48e3be53a99d23dfec35542da4e96e31cd27"
+    },
+    "BTC": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "5cdc540f1ade283f50e41a5657c277ea06fa2c5b8c4f1cce8ac68e87058dd379"
+    },
+    "ETH": {
+      "candle_count": 122875,
+      "first_timestamp": "2022-12-29 00:00:00+00:00",
+      "last_timestamp": "2026-06-30 23:45:00+00:00",
+      "sha256": "13230c606a3472d86d5f45b69361a244a3e4917ee7da1a38c30aec6b40d7bff9"
+    },
+    "combined_dataset_sha256": "f1db65ae72bdc5056a05ccd31c22226fd952f4e33fbeaafd30d37aa1a9901958"
+  },
+  "statistical_protocol": {
+    "bootstrap_method": "Moving-Block & Stationary Bootstrap on Cross-Symbol Daily MTM Returns",
+    "block_size_days": 10,
+    "bootstrap_replications": 2000,
+    "random_seed": 42,
+    "primary_decision_gate": "Gate 7: Primary Daily Portfolio Block Bootstrap CI Lower Bound > 0.0 bps/day"
+  },
+  "epistemic_notice": "All variants in this artifact are post-hoc exploratory hypotheses formulated after audit exposure. None are eligible for promotion.",
+  "candidates": {
+    "NO_TRADE": {
+      "candidate_id": "NO_TRADE",
+      "economic_rationale": "Baseline capital preservation (0 trades)",
+      "spec_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "BASELINE",
+          "executed_trades_count": 0,
+          "gross_expectancy_bps": 0.0,
+          "net_expectancy_bps_cost14": 0.0,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 0.0,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "mean_daily_bps": 0.0,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BASELINE",
+          "executed_trades_count": 0,
+          "gross_expectancy_bps": 0.0,
+          "net_expectancy_bps_cost14": 0.0,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 0.0,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "mean_daily_bps": 0.0,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          }
+        }
+      }
+    },
+    "VOL_COMPRESSION_BREAKOUT_V1": {
+      "candidate_id": "VOL_COMPRESSION_BREAKOUT_V1",
+      "economic_rationale": "Baseline frozen specification (Donchian 96, SMA 96/384, Vol 1.2x, TP 350, SL 150)",
+      "spec_sha256": "1a6639922743bbd6ce12ba88e1a407df79171a3e564246696b112c7034f4ecc6",
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+          "candidate_signals_in_window": 2208,
+          "executed_trades_count": 369,
+          "rejected_capacity_count": 1833,
+          "excluded_cross_boundary_count": 6,
+          "total_net_pnl_usd": 2619.56,
+          "total_net_pnl_pct": 26.2,
+          "gross_profit_usd": 12278.93,
+          "gross_loss_usd": 9659.37,
+          "profit_factor": 1.2712,
+          "gross_expectancy_bps": 40.14,
+          "net_expectancy_bps_cost14": 24.5,
+          "win_rate_pct": 42.0,
+          "max_drawdown_pct": 6.8,
+          "capital_turnover": 214.27,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -0.032,
+            "ci_upper": 6.601,
+            "mean_daily_bps": 3.289,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 30.14,
+              "win_rate_pct": 42.5,
+              "profit_factor": 1.34
+            },
+            "14.0": {
+              "expectancy_bps": 26.14,
+              "win_rate_pct": 42.0,
+              "profit_factor": 1.29
+            },
+            "20.0": {
+              "expectancy_bps": 20.14,
+              "win_rate_pct": 41.5,
+              "profit_factor": 1.22
+            },
+            "30.0": {
+              "expectancy_bps": 10.14,
+              "win_rate_pct": 41.5,
+              "profit_factor": 1.1
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+          "candidate_signals_in_window": 652,
+          "executed_trades_count": 125,
+          "rejected_capacity_count": 523,
+          "excluded_cross_boundary_count": 4,
+          "total_net_pnl_usd": -677.42,
+          "total_net_pnl_pct": -6.77,
+          "gross_profit_usd": 2325.85,
+          "gross_loss_usd": 3003.28,
+          "profit_factor": 0.7744,
+          "gross_expectancy_bps": -7.6,
+          "net_expectancy_bps_cost14": -22.26,
+          "win_rate_pct": 33.6,
+          "max_drawdown_pct": 15.39,
+          "capital_turnover": 60.84,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -11.07,
+            "ci_upper": 4.197,
+            "mean_daily_bps": -3.719,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -17.6,
+              "win_rate_pct": 33.6,
+              "profit_factor": 0.82
+            },
+            "14.0": {
+              "expectancy_bps": -21.6,
+              "win_rate_pct": 33.6,
+              "profit_factor": 0.78
+            },
+            "20.0": {
+              "expectancy_bps": -27.6,
+              "win_rate_pct": 33.6,
+              "profit_factor": 0.73
+            },
+            "30.0": {
+              "expectancy_bps": -37.6,
+              "win_rate_pct": 32.0,
+              "profit_factor": 0.66
+            }
+          }
+        }
+      }
+    },
+    "VCB_V2_VOL15": {
+      "candidate_id": "VCB_V2_VOL15",
+      "spec_sha256": "fe61127eff86fe2decd6c2cf4932b1a8ae1f87d6ad4e81d9646564074c533f91",
+      "parameters": {
+        "donchian_bars": 96,
+        "sma_fast_bars": 96,
+        "sma_slow_bars": 384,
+        "min_vol_ratio_96": 1.5,
+        "atr_compression_bars": 192,
+        "max_hold_bars": 192,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0
+      },
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+          "candidate_signals_in_window": 2002,
+          "executed_trades_count": 359,
+          "rejected_capacity_count": 1638,
+          "excluded_cross_boundary_count": 5,
+          "total_net_pnl_usd": 2721.86,
+          "total_net_pnl_pct": 27.22,
+          "gross_profit_usd": 12173.24,
+          "gross_loss_usd": 9451.39,
+          "profit_factor": 1.288,
+          "gross_expectancy_bps": 41.77,
+          "net_expectancy_bps_cost14": 25.97,
+          "win_rate_pct": 42.1,
+          "max_drawdown_pct": 6.14,
+          "capital_turnover": 210.07,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": 0.182,
+            "ci_upper": 6.573,
+            "mean_daily_bps": 3.399,
+            "block_size_days": 10,
+            "gate_7_passed": true
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 31.77,
+              "win_rate_pct": 42.6,
+              "profit_factor": 1.36
+            },
+            "14.0": {
+              "expectancy_bps": 27.77,
+              "win_rate_pct": 42.1,
+              "profit_factor": 1.31
+            },
+            "20.0": {
+              "expectancy_bps": 21.77,
+              "win_rate_pct": 41.5,
+              "profit_factor": 1.23
+            },
+            "30.0": {
+              "expectancy_bps": 11.77,
+              "win_rate_pct": 41.5,
+              "profit_factor": 1.12
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+          "candidate_signals_in_window": 609,
+          "executed_trades_count": 123,
+          "rejected_capacity_count": 482,
+          "excluded_cross_boundary_count": 4,
+          "total_net_pnl_usd": -760.37,
+          "total_net_pnl_pct": -7.6,
+          "gross_profit_usd": 2208.26,
+          "gross_loss_usd": 2968.64,
+          "profit_factor": 0.7439,
+          "gross_expectancy_bps": -10.94,
+          "net_expectancy_bps_cost14": -25.32,
+          "win_rate_pct": 33.3,
+          "max_drawdown_pct": 15.3,
+          "capital_turnover": 60.02,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -11.257,
+            "ci_upper": 3.325,
+            "mean_daily_bps": -4.221,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -20.94,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.78
+            },
+            "14.0": {
+              "expectancy_bps": -24.94,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.75
+            },
+            "20.0": {
+              "expectancy_bps": -30.94,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.7
+            },
+            "30.0": {
+              "expectancy_bps": -40.94,
+              "win_rate_pct": 31.7,
+              "profit_factor": 0.63
+            }
+          }
+        }
+      },
+      "economic_rationale": "Filters low-volume chop by raising volume hurdle from 1.2x to 1.5x"
+    },
+    "VCB_V2_DONCHIAN192": {
+      "candidate_id": "VCB_V2_DONCHIAN192",
+      "spec_sha256": "6111f1f383c39548aa3de3edac76ab69507f620e7841068d887d22a80f838884",
+      "parameters": {
+        "donchian_bars": 192,
+        "sma_fast_bars": 96,
+        "sma_slow_bars": 384,
+        "min_vol_ratio_96": 1.2,
+        "atr_compression_bars": 192,
+        "max_hold_bars": 192,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0
+      },
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+          "candidate_signals_in_window": 1874,
+          "executed_trades_count": 342,
+          "rejected_capacity_count": 1529,
+          "excluded_cross_boundary_count": 3,
+          "total_net_pnl_usd": 2463.61,
+          "total_net_pnl_pct": 24.64,
+          "gross_profit_usd": 11357.5,
+          "gross_loss_usd": 8893.89,
+          "profit_factor": 1.277,
+          "gross_expectancy_bps": 40.76,
+          "net_expectancy_bps_cost14": 25.13,
+          "win_rate_pct": 42.4,
+          "max_drawdown_pct": 5.98,
+          "capital_turnover": 196.46,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -0.411,
+            "ci_upper": 6.49,
+            "mean_daily_bps": 3.118,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 30.76,
+              "win_rate_pct": 42.7,
+              "profit_factor": 1.35
+            },
+            "14.0": {
+              "expectancy_bps": 26.76,
+              "win_rate_pct": 42.4,
+              "profit_factor": 1.3
+            },
+            "20.0": {
+              "expectancy_bps": 20.76,
+              "win_rate_pct": 41.8,
+              "profit_factor": 1.22
+            },
+            "30.0": {
+              "expectancy_bps": 10.76,
+              "win_rate_pct": 41.8,
+              "profit_factor": 1.11
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+          "candidate_signals_in_window": 562,
+          "executed_trades_count": 118,
+          "rejected_capacity_count": 441,
+          "excluded_cross_boundary_count": 3,
+          "total_net_pnl_usd": -546.66,
+          "total_net_pnl_pct": -5.47,
+          "gross_profit_usd": 2263.74,
+          "gross_loss_usd": 2810.4,
+          "profit_factor": 0.8055,
+          "gross_expectancy_bps": -4.24,
+          "net_expectancy_bps_cost14": -18.99,
+          "win_rate_pct": 33.9,
+          "max_drawdown_pct": 14.09,
+          "capital_turnover": 57.55,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -10.113,
+            "ci_upper": 4.467,
+            "mean_daily_bps": -2.981,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -14.24,
+              "win_rate_pct": 34.7,
+              "profit_factor": 0.85
+            },
+            "14.0": {
+              "expectancy_bps": -18.24,
+              "win_rate_pct": 33.9,
+              "profit_factor": 0.81
+            },
+            "20.0": {
+              "expectancy_bps": -24.24,
+              "win_rate_pct": 33.1,
+              "profit_factor": 0.76
+            },
+            "30.0": {
+              "expectancy_bps": -34.24,
+              "win_rate_pct": 32.2,
+              "profit_factor": 0.68
+            }
+          }
+        }
+      },
+      "economic_rationale": "Filters 24h noise by expanding breakout lookback from 24h to 48h (192 bars)"
+    },
+    "VCB_V2_SLOPE": {
+      "candidate_id": "VCB_V2_SLOPE",
+      "spec_sha256": "ba09f279d207cc740ec4959f558725fd2bae642a51787f5e2124c92490788e73",
+      "parameters": {
+        "donchian_bars": 96,
+        "sma_fast_bars": 96,
+        "sma_slow_bars": 384,
+        "min_vol_ratio_96": 1.2,
+        "atr_compression_bars": 192,
+        "max_hold_bars": 192,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0
+      },
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+          "candidate_signals_in_window": 1993,
+          "executed_trades_count": 354,
+          "rejected_capacity_count": 1633,
+          "excluded_cross_boundary_count": 6,
+          "total_net_pnl_usd": 1829.98,
+          "total_net_pnl_pct": 18.3,
+          "gross_profit_usd": 10877.55,
+          "gross_loss_usd": 9047.57,
+          "profit_factor": 1.2023,
+          "gross_expectancy_bps": 33.9,
+          "net_expectancy_bps_cost14": 18.63,
+          "win_rate_pct": 41.2,
+          "max_drawdown_pct": 8.6,
+          "capital_turnover": 196.76,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -0.751,
+            "ci_upper": 5.59,
+            "mean_daily_bps": 2.399,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 23.9,
+              "win_rate_pct": 41.8,
+              "profit_factor": 1.27
+            },
+            "14.0": {
+              "expectancy_bps": 19.9,
+              "win_rate_pct": 41.2,
+              "profit_factor": 1.22
+            },
+            "20.0": {
+              "expectancy_bps": 13.9,
+              "win_rate_pct": 41.0,
+              "profit_factor": 1.15
+            },
+            "30.0": {
+              "expectancy_bps": 3.9,
+              "win_rate_pct": 41.0,
+              "profit_factor": 1.04
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+          "candidate_signals_in_window": 567,
+          "executed_trades_count": 114,
+          "rejected_capacity_count": 449,
+          "excluded_cross_boundary_count": 4,
+          "total_net_pnl_usd": -849.19,
+          "total_net_pnl_pct": -8.49,
+          "gross_profit_usd": 2026.62,
+          "gross_loss_usd": 2875.81,
+          "profit_factor": 0.7047,
+          "gross_expectancy_bps": -16.41,
+          "net_expectancy_bps_cost14": -30.73,
+          "win_rate_pct": 33.3,
+          "max_drawdown_pct": 16.37,
+          "capital_turnover": 55.22,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -12.04,
+            "ci_upper": 3.626,
+            "mean_daily_bps": -4.767,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -26.41,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.74
+            },
+            "14.0": {
+              "expectancy_bps": -30.41,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.71
+            },
+            "20.0": {
+              "expectancy_bps": -36.41,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.66
+            },
+            "30.0": {
+              "expectancy_bps": -46.41,
+              "win_rate_pct": 30.7,
+              "profit_factor": 0.6
+            }
+          }
+        }
+      },
+      "economic_rationale": "Prevents counter-trend BUY entries by requiring SMA384 slope alignment"
+    },
+    "VCB_V3_VOL_NORMALIZED_BARRIER": {
+      "candidate_id": "VCB_V3_VOL_NORMALIZED_BARRIER",
+      "spec_sha256": "b1baa93bfc6a11130908b5b1595a51b28f9ce725899484c64f3d529104c946a2",
+      "parameters": {
+        "donchian_bars": 96,
+        "sma_fast_bars": 96,
+        "sma_slow_bars": 384,
+        "min_vol_ratio_96": 1.2,
+        "atr_compression_bars": 192,
+        "max_hold_bars": 192,
+        "tp_bps": "DYNAMIC_3.0_ATR",
+        "sl_bps": "DYNAMIC_1.5_ATR"
+      },
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+          "candidate_signals_in_window": 2208,
+          "executed_trades_count": 475,
+          "rejected_capacity_count": 1733,
+          "excluded_cross_boundary_count": 0,
+          "total_net_pnl_usd": -1032.76,
+          "total_net_pnl_pct": -10.33,
+          "gross_profit_usd": 2760.69,
+          "gross_loss_usd": 3793.45,
+          "profit_factor": 0.7278,
+          "gross_expectancy_bps": 4.87,
+          "net_expectancy_bps_cost14": -9.18,
+          "win_rate_pct": 37.9,
+          "max_drawdown_pct": 11.36,
+          "capital_turnover": 225.0,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -2.332,
+            "ci_upper": -0.657,
+            "mean_daily_bps": -1.483,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -5.13,
+              "win_rate_pct": 37.9,
+              "profit_factor": 0.84
+            },
+            "14.0": {
+              "expectancy_bps": -9.13,
+              "win_rate_pct": 37.9,
+              "profit_factor": 0.73
+            },
+            "20.0": {
+              "expectancy_bps": -15.13,
+              "win_rate_pct": 37.9,
+              "profit_factor": 0.6
+            },
+            "30.0": {
+              "expectancy_bps": -25.13,
+              "win_rate_pct": 37.9,
+              "profit_factor": 0.42
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+          "candidate_signals_in_window": 651,
+          "executed_trades_count": 165,
+          "rejected_capacity_count": 486,
+          "excluded_cross_boundary_count": 0,
+          "total_net_pnl_usd": -478.46,
+          "total_net_pnl_pct": -4.78,
+          "gross_profit_usd": 904.47,
+          "gross_loss_usd": 1382.93,
+          "profit_factor": 0.654,
+          "gross_expectancy_bps": 2.17,
+          "net_expectancy_bps_cost14": -11.9,
+          "win_rate_pct": 37.6,
+          "max_drawdown_pct": 5.74,
+          "capital_turnover": 80.45,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -4.699,
+            "ci_upper": -0.524,
+            "mean_daily_bps": -2.697,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -7.83,
+              "win_rate_pct": 37.6,
+              "profit_factor": 0.75
+            },
+            "14.0": {
+              "expectancy_bps": -11.83,
+              "win_rate_pct": 37.6,
+              "profit_factor": 0.66
+            },
+            "20.0": {
+              "expectancy_bps": -17.83,
+              "win_rate_pct": 37.6,
+              "profit_factor": 0.53
+            },
+            "30.0": {
+              "expectancy_bps": -27.83,
+              "win_rate_pct": 37.6,
+              "profit_factor": 0.37
+            }
+          }
+        }
+      },
+      "economic_rationale": "Adapts rigid TP/SL barriers to prevailing market volatility using 3.0x/1.5x ATR scaling"
+    },
+    "VCB_V3_DIRECTIONAL_REGIME_GATE": {
+      "candidate_id": "VCB_V3_DIRECTIONAL_REGIME_GATE",
+      "spec_sha256": "531bd192e58eaf4ec7a59aa3210a2b2867bc48d000f7af7cd58e13bcf9e89d5d",
+      "parameters": {
+        "donchian_bars": 192,
+        "sma_fast_bars": 96,
+        "sma_slow_bars": 384,
+        "min_vol_ratio_96": 1.2,
+        "atr_compression_bars": 192,
+        "max_hold_bars": 192,
+        "tp_bps": 350.0,
+        "sl_bps": 150.0
+      },
+      "periods": {
+        "DEV_WALK_FORWARD_SELECTION_2024_2025": {
+          "epistemic_classification": "DEV_WALK_FORWARD_EXPOSURE",
+          "candidate_signals_in_window": 1227,
+          "executed_trades_count": 239,
+          "rejected_capacity_count": 985,
+          "excluded_cross_boundary_count": 3,
+          "total_net_pnl_usd": 1061.74,
+          "total_net_pnl_pct": 10.62,
+          "gross_profit_usd": 6743.91,
+          "gross_loss_usd": 5682.17,
+          "profit_factor": 1.1869,
+          "gross_expectancy_bps": 31.75,
+          "net_expectancy_bps_cost14": 17.29,
+          "win_rate_pct": 39.3,
+          "max_drawdown_pct": 6.83,
+          "capital_turnover": 123.04,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -1.073,
+            "ci_upper": 3.975,
+            "mean_daily_bps": 1.443,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": 21.75,
+              "win_rate_pct": 39.7,
+              "profit_factor": 1.24
+            },
+            "14.0": {
+              "expectancy_bps": 17.75,
+              "win_rate_pct": 39.3,
+              "profit_factor": 1.19
+            },
+            "20.0": {
+              "expectancy_bps": 11.75,
+              "win_rate_pct": 39.3,
+              "profit_factor": 1.12
+            },
+            "30.0": {
+              "expectancy_bps": 1.75,
+              "win_rate_pct": 38.9,
+              "profit_factor": 1.02
+            }
+          }
+        },
+        "BURNED_EXPOSED_AUDIT_2026_H1": {
+          "epistemic_classification": "BURNED_EXPOSED_AUDIT_PERMANENTLY_CONSUMED",
+          "candidate_signals_in_window": 328,
+          "executed_trades_count": 72,
+          "rejected_capacity_count": 253,
+          "excluded_cross_boundary_count": 3,
+          "total_net_pnl_usd": -360.57,
+          "total_net_pnl_pct": -3.61,
+          "gross_profit_usd": 1443.23,
+          "gross_loss_usd": 1803.8,
+          "profit_factor": 0.8001,
+          "gross_expectancy_bps": -5.7,
+          "net_expectancy_bps_cost14": -20.32,
+          "win_rate_pct": 31.9,
+          "max_drawdown_pct": 9.68,
+          "capital_turnover": 35.47,
+          "primary_daily_block_bootstrap_ci_bps": {
+            "ci_lower": -7.652,
+            "ci_upper": 3.942,
+            "mean_daily_bps": -1.964,
+            "block_size_days": 10,
+            "gate_7_passed": false
+          },
+          "cost_sensitivity": {
+            "10.0": {
+              "expectancy_bps": -15.7,
+              "win_rate_pct": 33.3,
+              "profit_factor": 0.84
+            },
+            "14.0": {
+              "expectancy_bps": -19.7,
+              "win_rate_pct": 31.9,
+              "profit_factor": 0.81
+            },
+            "20.0": {
+              "expectancy_bps": -25.7,
+              "win_rate_pct": 31.9,
+              "profit_factor": 0.76
+            },
+            "30.0": {
+              "expectancy_bps": -35.7,
+              "win_rate_pct": 30.6,
+              "profit_factor": 0.68
+            }
+          }
+        }
+      },
+      "economic_rationale": "Requires HTF multi-day macro regime alignment (SMA384 > SMA384[384]) before permitting breakouts"
+    }
+  },
+  "performance_metadata": {
+    "elapsed_seconds": 112.83,
+    "canonical_elapsed_seconds_without_memory_instrumentation": 112.83,
+    "profiled_elapsed_seconds": null,
+    "peak_memory_mb": null,
+    "profiling_enabled": false,
+    "stage_timing_seconds": {
+      "load_symbol_candles_seconds": 51.729,
+      "build_hourly_mtm_candles_seconds": 0.015,
+      "compute_dataset_manifest_seconds": 0.001,
+      "init_feature_cache_seconds": 0.004,
+      "pre_slice_hourly_candles_seconds": 0.005,
+      "v1_stream_simulation_seconds": 3.917,
+      "v1_evaluation_seconds": 7.329,
+      "v1_decomposition_seconds": 0.077,
+      "variants_simulation_and_eval_seconds": 49.757,
+      "total_wall_clock_seconds": 112.834
+    }
+  },
+  "semantic_artifact_sha256": "386002df5cdbb6988d27aed5260086d8574b441072a2f92b74b93443ca4dcfa6"
+}

@@ -1,6 +1,6 @@
 {
   "program": "HMR-V5-D2",
-  "audit_timestamp": "2026-08-16T17:38:25.825957+00:00",
+  "audit_timestamp": "2026-10-31T13:27:59.695942+00:00",
   "gates": {
     "D2-G0": "PASS",
     "D2-G1": "PASS",
@@ -24,5 +24,7 @@
       "max_probability_diff": 2.220446049250313e-16,
       "decision_mismatch_count": 0
     }
-  }
+  },
+  "evidence_taxonomy": "MODEL_PARITY",
+  "scope_notice": "This replay strictly validates mathematical and decision parity between the research model specification and the production runtime inference engine. It does NOT evaluate economic profitability, PnL, or executed trading performance."
 }

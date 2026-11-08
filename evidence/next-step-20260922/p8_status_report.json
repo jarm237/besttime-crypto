@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-22T20:38:00+07:00",
+  "verdict": "ACCUMULATING",
+  "maturity_stage": "ACCUMULATING",
+  "closed_natural_trades": 0,
+  "required_trades_for_primary_review": 100,
+  "synthetic_trades_allowed": false,
+  "manual_intervention_allowed": false,
+  "outcome_leakage_allowed": false,
+  "promotion_status": "NOT_AUTHORIZED"
+}

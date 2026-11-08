@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-09-23T18:04:00+00:00",
+  "candidate_commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "branch": "model-coverage/22-symbol-v1-dev",
+  "gitnexus_indexed_commit": "f96c6b8",
+  "gitnexus_status": "FRESH",
+  "workpackages_completed": [
+    "WP0"
+  ],
+  "workpackages_blocked": [
+    "WP1",
+    "WP2",
+    "WP3",
+    "WP4",
+    "WP5",
+    "WP6"
+  ],
+  "gates_passed": [
+    "G0_BASELINE_FROZEN"
+  ],
+  "gates_failed": [
+    "G1_H14_INTEGRITY_CLOSED",
+    "G4_REGRESSION_CLEAN",
+    "G6_CANDIDATE_SEALED"
+  ],
+  "integrity_blockers": {
+    "h14_sha256_mismatch": true,
+    "h14_raw_streams_unauthentic": true,
+    "regression_failures_count": 42,
+    "untracked_scratch_solver_scripts": true
+  },
+  "h14_status": "CLOSED",
+  "h14_verdict": "RESEARCH_HARD_STOP",
+  "real_money_enabled": false,
+  "paper_canary_status": "NOT_AUTHORIZED",
+  "overall_seal_verdict": "REJECTED_INTEGRITY_FAIL"
+}

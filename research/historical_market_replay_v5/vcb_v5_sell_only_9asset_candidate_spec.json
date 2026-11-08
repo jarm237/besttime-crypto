@@ -1,0 +1,107 @@
+{
+  "candidate_id": "VCB_V5_SELL_ONLY_9ASSET",
+  "spec_version": "1.0.0-research-v5",
+  "universe": [
+    "BNB",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "bar_interval_minutes": 15,
+  "parameters": {
+    "donchian_bars": 96,
+    "sma_fast_bars": 96,
+    "sma_slow_bars": 384,
+    "min_vol_ratio_96": 1.2,
+    "atr_compression_bars": 192,
+    "max_hold_bars": 192,
+    "tp_bps": 350.0,
+    "sl_bps": 150.0
+  },
+  "behavior_flags": {
+    "req_slope": false,
+    "req_regime_gate": false,
+    "use_atr_normalized_barrier": false
+  },
+  "slope_gate_specification": {
+    "enabled": false,
+    "slope_lookback_bars": null,
+    "slope_comparison_rule": null
+  },
+  "regime_gate_specification": {
+    "enabled": false,
+    "regime_lookback_bars": null,
+    "regime_comparison_rule": null
+  },
+  "barrier_specification": {
+    "barrier_type": "FIXED_BPS",
+    "fixed_tp_bps": 350.0,
+    "fixed_sl_bps": 150.0,
+    "atr_tp_multiplier": null,
+    "atr_sl_multiplier": null,
+    "atr_tp_min_bps": null,
+    "atr_tp_max_bps": null,
+    "atr_sl_min_bps": null,
+    "atr_sl_max_bps": null
+  },
+  "execution_timing_contract": {
+    "signal_confirmation": "bar_i_close (signal_close_timestamp = signal_timestamp + 15m)",
+    "earliest_entry": "bar_i_plus_1_open (entry_index = signal_index + 1, entry_price = opens[i+1])",
+    "future_bar_admission_leakage": false,
+    "intrabar_tp_sl_collision_policy": "SL_FIRST_CONSERVATIVE",
+    "gap_through_stop_policy": "ADVERSE_OPEN_PRICE_FILL_SL_GAP",
+    "max_hold_anchor": "entry_index (entry_index .. entry_index + max_hold - 1)",
+    "execution_timing": "SIGNAL_AT_BAR_I_CLOSE__EARLIEST_ENTRY_AT_BAR_I_PLUS_1_OPEN",
+    "cooldown_bars": 96,
+    "max_concurrent_positions": 3,
+    "max_positions_per_asset": 1
+  },
+  "allowed_sides": [
+    "SELL"
+  ],
+  "design_source": "CROSS_SECTIONAL_HOLDOUT_HYPOTHESIS",
+  "validation_status": "DEBUG_EXPOSED_CROSS_SECTIONAL_DIAGNOSTIC",
+  "spec_sha256": "524ac4ed6a7ff7f9d72a413296668b61d486d962d229a4bb7d02cc505e5d1fbf",
+  "spec_locked_at_utc": "2026-11-04T03:16:10.906048+00:00",
+  "holdout_universe": [
+    "DOGE",
+    "IOTA",
+    "NEAR",
+    "SOL",
+    "TRX",
+    "ZEC"
+  ],
+  "design_universe": [
+    "BTC",
+    "ETH",
+    "BNB"
+  ],
+  "governance_note": "Candidate specification was intended to be locked prior to reading holdout candles, but during debugging data was read and evaluator was launched before final lock artifact. Chronology audit verdict: PRE_REGISTRATION_NOT_PROVABLE. Metrics are retained strictly as post-hoc diagnostic data, not confirmatory out-of-sample evidence.",
+  "chronology_audit": {
+    "verdict": "PRE_REGISTRATION_NOT_PROVABLE",
+    "epistemic_classification": "DEBUG_EXPOSED_CROSS_SECTIONAL_DIAGNOSTIC",
+    "is_provable": false,
+    "earliest_artifact_filesystem_creation_utc": "2026-11-04T02:17:21.769903+00:00",
+    "internal_spec_lock_utc": "2026-11-04T03:16:10.906048+00:00",
+    "internal_plan_lock_utc": "2026-11-04T03:16:10.906048+00:00",
+    "earliest_known_raw_read_or_debug_run_utc": "2026-11-04T02:17:21+00:00",
+    "final_evaluation_utc": "2026-11-04T03:16:10.906048+00:00",
+    "reasons": [
+      "RAW_READ_PRECEDES_SPEC_LOCK: Data read at 2026-11-04T02:17:21+00:00 preceded spec lock at 2026-11-04T03:16:10.906048+00:00.",
+      "RAW_READ_PRECEDES_PLAN_LOCK: Data read at 2026-11-04T02:17:21+00:00 preceded plan lock at 2026-11-04T03:16:10.906048+00:00.",
+      "FILE_CREATION_PRECEDES_INTERNAL_LOCK: Artifact file was created at 2026-11-04T02:17:21.769903+00:00 but internal lock is 2026-11-04T03:16:10.906048+00:00 (3529.1s earlier), demonstrating prior execution and file overwrite."
+    ],
+    "sources": {
+      "earliest_artifact_filesystem_creation_utc": "os.stat.st_ctime of research/historical_market_replay_v5/vcb_v5_cross_sectional_exposure_audit.json",
+      "internal_spec_lock_utc": "vcb_v5_sell_only_9asset_candidate_spec.json::spec_locked_at_utc",
+      "internal_plan_lock_utc": "vcb_v5_cross_sectional_validation_plan.json::plan_locked_at_utc",
+      "earliest_known_raw_read_or_debug_run_utc": "transcript execution of scratch/execute_vcb_v5_study.py at 02:17 UTC reading DOGE 15m candles",
+      "final_evaluation_utc": "vcb_v5_sell_only_9asset_research.json::generation_timestamp"
+    }
+  }
+}

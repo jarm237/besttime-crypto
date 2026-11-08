@@ -1,0 +1,189 @@
+{
+  "schema_version": 2,
+  "candidate": "model-coverage-remediation-20261009-A-plus",
+  "metadata": {
+    "source_commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+    "source_commit_tree": "da720a407ea580e5c67cc8f0035f8322d5f19586",
+    "pre_g5_reconciliation_index_tree": "f992221b8ac2d9ec48c06bf1f3c84d33072ad47d",
+    "observed_at_utc": "2026-10-12T01:00:42.5928305Z",
+    "generated_at_utc": "2026-10-13T01:10:00Z",
+    "generator": {
+      "name": "g5-evidence-reconciliation",
+      "version": "2.1",
+      "mode": "manual-governed"
+    },
+    "input_hashes": {
+      "execution_plan": "5897aefbc6a0a7228c659b901879d1bc0355855a647581fd63d811ed065c5b9c",
+      "verification_runner": "78b967aa58be84f5840c0bd8315fbde4abff47a96fdf70a4a157c9dd73a1a2b1"
+    }
+  },
+  "repository": "besttime-crypto",
+  "branch": "model-coverage/22-symbol-v1-dev",
+  "base_commit": "f96c6b8b64516dd76d3af132dac316c5672e35be",
+  "verification": {
+    "targeted": {
+      "status": "PASS",
+      "tests": 2,
+      "duration_seconds": 94.53,
+      "executed_by": "user"
+    },
+    "full_regression": {
+      "status": "PASS",
+      "collected": 2069,
+      "files": 246,
+      "shards": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 8,
+      "junit_time_seconds": 1051.709,
+      "executed_by": "user"
+    },
+    "verify": {
+      "status": "PASS",
+      "finished_at_utc": "2026-10-12T17:09:01.0750939Z",
+      "gates": [
+        "Git whitespace check (cr-at-eol policy on cached candidate)",
+        "GitNexus refresh (1.6.13-rc.103)",
+        "GitNexus change detection (compare with main)"
+      ],
+      "executed_by": "user",
+      "runtime_binding": {
+        "gitnexus_version": "1.6.13-rc.103",
+        "ladybugdb_core_version": "0.21.1",
+        "ladybugdb_native_sha256": "4c6d3204fe7a54886a52503a906cb6b239d4cd1d353cb1c510759e968099366c",
+        "observed_pre_reconciliation_tree": "f745fb75d02ecfd71aef0ae64613f4af8038620a"
+      }
+    }
+  },
+  "candidate_scope_summary": {
+    "total_pre_seal_files": 72,
+    "partitions": {
+      "C1_H14_INTEGRITY": 1,
+      "C2_RELEASE_IDENTITY_GOVERNANCE": 7,
+      "C3_RUNTIME_OWNERSHIP_HARDENING": 12,
+      "C4_REGRESSION_FIXES_RESEARCH": 32,
+      "C5_STATUS_EVIDENCE_RECONCILIATION": 20
+    },
+    "post_seal_c6_file": 1,
+    "total_post_seal_files": 73
+  },
+  "evidence": [
+    {
+      "path": "evidence/next-step-20260922/baseline_inventory.json",
+      "role": "baseline_inventory",
+      "sha256": "006fbaf4dd3dc6d6c8368647287249666e28dd69a676eab487c7f12c8ac36b14"
+    },
+    {
+      "path": "evidence/next-step-20260922/branch_delta_governance_disposition.md",
+      "role": "branch_delta_governance_disposition",
+      "sha256": "33012e05212e3ff01478b1719b9458f1b38de13cf843482d3e3205ed2b9def12"
+    },
+    {
+      "path": "evidence/next-step-20260922/candidate_partition_plan.json",
+      "role": "candidate_partition_plan",
+      "sha256": "6e664e01e9c955723cce298f093d718ba3c32b68e6f470873b5ca50775c8a4d3"
+    },
+    {
+      "path": "evidence/next-step-20260922/evidence_reconciliation_report.md",
+      "role": "evidence_reconciliation_report",
+      "sha256": "c7bd4d969f99ef797e8c98dcf08c8a3a84fd01c4c62a96c686e09629386a39e7"
+    },
+    {
+      "path": "evidence/next-step-20260922/full_regression_junit.xml",
+      "role": "canonical_full_regression",
+      "sha256": "82a19782f4f84cb0cd693d2252aa861e0572ae67239a978826d293c26a04ecb2"
+    },
+    {
+      "path": "evidence/next-step-20260922/full_regression_plan.json",
+      "role": "full_regression_plan",
+      "sha256": "253fa50d1c1d0708cf4788d52b008f39bd364e875508fc2d3f9380a91980a46a"
+    },
+    {
+      "path": "evidence/next-step-20260922/gitnexus_change_review.md",
+      "role": "gitnexus_change_review",
+      "sha256": "5cd024795eb359b43f6e091d79736dc1a5b8fb898b8ab1c973d9a97fa5d02b1b"
+    },
+    {
+      "path": "evidence/next-step-20260922/gitnexus_critical_review.json",
+      "role": "gitnexus_critical_review",
+      "sha256": "5044ce93beada1ed63f8b7745ac57a55423e146171b27b6049b60a05abf93a33"
+    },
+    {
+      "path": "evidence/next-step-20260922/hash_inventory.json",
+      "role": "historical_governance_hash_inventory",
+      "sha256": "e47ff17aef2d29fb3086325dbd6bf9bc3e541576ea1edb605c1dc17c58cd0c08"
+    },
+    {
+      "path": "evidence/next-step-20260922/integrity_audit_failure_report.md",
+      "role": "historical_failure_context",
+      "sha256": "597580e8785019ba559317d88362ae01ae5ef62c73992df65939778933ef2067"
+    },
+    {
+      "path": "evidence/next-step-20260922/manual_verification_summary.json",
+      "role": "canonical_verify_summary",
+      "sha256": "70f4ea316b4f4151308dd752abdc8f2cc8af747666b803cf62c72e193e921a8c"
+    },
+    {
+      "path": "evidence/next-step-20260922/p7_status_report.json",
+      "role": "supporting_p7_status",
+      "sha256": "01c5e3884b99f29503e20f0f3b40a40426f946f06a08f78b5937b23538bc19c2"
+    },
+    {
+      "path": "evidence/next-step-20260922/p8_status_report.json",
+      "role": "supporting_p8_status",
+      "sha256": "67abbcd8bac24619afc5b54aa5cb86810b35b4cdad1efce3f4e83a75a3dd8b07"
+    },
+    {
+      "path": "evidence/next-step-20260922/runtime_probe_observation.json",
+      "role": "runtime_probe_observation",
+      "sha256": "162a8f180d861de572c1bf7e4ef7bdfc7ed95cd399c1a7dadc543e71a79ac5fc"
+    },
+    {
+      "path": "evidence/next-step-20260922/source_of_truth_matrix.json",
+      "role": "source_of_truth_matrix",
+      "sha256": "cc9e8e824f940357f7666a2411f0449a28d12fd71fd71cdd00d3f9a6481c1198"
+    },
+    {
+      "path": "evidence/next-step-20260922/targeted_remediation_junit.xml",
+      "role": "supporting_targeted_regression",
+      "sha256": "b3263c0574f968cbdb36b55e367821d09ac6b7e30481018e4810bb5f697acf57"
+    },
+    {
+      "path": "evidence/next-step-20260922/worktree_disposition.md",
+      "role": "worktree_disposition",
+      "sha256": "1e5461c25c30f8eedcdbc1623d2641530b8b9615b3228d20fde6f40caf06e178"
+    },
+    {
+      "path": "docs/NEXT_STEP_EXECUTION_PLAN_2026-09-22.md",
+      "role": "execution_plan",
+      "sha256": "5897aefbc6a0a7228c659b901879d1bc0355855a647581fd63d811ed065c5b9c"
+    },
+    {
+      "path": "scripts/run_remediation_verification.ps1",
+      "role": "verification_runner",
+      "sha256": "78b967aa58be84f5840c0bd8315fbde4abff47a96fdf70a4a157c9dd73a1a2b1"
+    }
+  ],
+  "excluded_from_candidate": {
+    "transient": [
+      "evidence/next-step-20260922/full_regression_shard_*.log",
+      "evidence/next-step-20260922/full_regression_shard_*.xml"
+    ],
+    "stale": [
+      "evidence/next-step-20260922/candidate_seal_report.json",
+      "evidence/next-step-20260922/manual_verification_full_plan_summary.json",
+      "evidence/next-step-20260922/manual_verification_full_shard_24_of_32_summary.json",
+      "evidence/next-step-20260922/full_tail_junit.xml"
+    ],
+    "scratch": [
+      "scratch/",
+      "historical-h14-prospective-validation-design-discrimination/data/"
+    ]
+  },
+  "known_graph_limitations": [
+    "GitNexus FTS extension unavailable on Windows; keyword search is degraded.",
+    "Global detect-changes compare with main reported 622 files, 2239 symbols, 281 flows, and truncated: true. Version-correlated mitigation via GitNexus 1.6.13-rc.103 (@ladybugdb/core 0.21.1) stabilizes the 1000 listed symbols, but full-set determinism across all 2239 symbols remains unproven due to slice cap.",
+    "Gate G5 is kept at REVIEW / FAIL-CLOSED, Gate G6 is kept BLOCKED, and WP7/WP8 are FORBIDDEN under Stop Condition #4 until branch truncation is formally resolved.",
+    "Literal bare git diff --cached --check exits with error due to Windows CRLF line endings; canonical verification gate passes with exit 0 under authoritative cr-at-eol policy (git -c core.whitespace=trailing-space,space-before-tab,cr-at-eol diff --cached --check)."
+  ]
+}

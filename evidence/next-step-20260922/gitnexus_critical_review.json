@@ -1,0 +1,895 @@
+{
+  "InferenceCoordinator.predict_once": {
+    "symbol": "InferenceCoordinator.predict_once",
+    "filePath": "btc_scraper/ml_engine/inference_coordinator.py",
+    "exact_uid": "Method:btc_scraper/ml_engine/inference_coordinator.py:InferenceCoordinator.predict_once#5",
+    "status": "resolved",
+    "risk": "CRITICAL",
+    "riskSharedAxes": "MEDIUM",
+    "impactedCount": 19,
+    "direct_caller_count": 11,
+    "direct_callers": [
+      {
+        "id": "Function:scripts/hmr_v1_3a_decomposition.py:run_decomposition",
+        "name": "run_decomposition",
+        "filePath": "scripts/hmr_v1_3a_decomposition.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/hmr_v1_3b_ablations.py:run_ablation_scenario",
+        "name": "run_ablation_scenario",
+        "filePath": "scripts/hmr_v1_3b_ablations.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/hmr_v1_3b_b0_model_ranking.py:run_b0_diagnostics",
+        "name": "run_b0_diagnostics",
+        "filePath": "scripts/hmr_v1_3b_b0_model_ranking.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/hmr_v1_3c_c2_economic_ranking.py:run_c2_diagnostics",
+        "name": "run_c2_diagnostics",
+        "filePath": "scripts/hmr_v1_3c_c2_economic_ranking.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/hmr_v1_3d_d1_d2_economic_audit.py:run_economic_audit",
+        "name": "run_economic_audit",
+        "filePath": "scripts/hmr_v1_3d_d1_d2_economic_audit.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/hmr_v1_3d_d5_validation_runner.py:run_window_backtest",
+        "name": "run_window_backtest",
+        "filePath": "scripts/hmr_v1_3d_d5_validation_runner.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/hmr_v1_baseline.py:build_production_policy_signals",
+        "name": "build_production_policy_signals",
+        "filePath": "scripts/hmr_v1_baseline.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/p7_a5_legacy_parity.py:main",
+        "name": "main",
+        "filePath": "scripts/p7_a5_legacy_parity.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Function:scripts/p7_r6_v1r1_runtime_preflight.py:main",
+        "name": "main",
+        "filePath": "scripts/p7_r6_v1r1_runtime_preflight.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Method:btc_scraper/ml_engine/multi_agent.py:SignalGeneratorAgent.run#1",
+        "name": "run",
+        "filePath": "btc_scraper/ml_engine/multi_agent.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      },
+      {
+        "id": "Method:btc_scraper/trading/auto_trader.py:AutoTrader.evaluate_and_trade#2",
+        "name": "evaluate_and_trade",
+        "filePath": "btc_scraper/trading/auto_trader.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      }
+    ],
+    "total_impacted_symbols": 21,
+    "all_impacted_symbols": [
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_3a_decomposition.py:run_decomposition",
+        "name": "run_decomposition",
+        "filePath": "scripts/hmr_v1_3a_decomposition.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_3b_ablations.py:run_ablation_scenario",
+        "name": "run_ablation_scenario",
+        "filePath": "scripts/hmr_v1_3b_ablations.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_3b_b0_model_ranking.py:run_b0_diagnostics",
+        "name": "run_b0_diagnostics",
+        "filePath": "scripts/hmr_v1_3b_b0_model_ranking.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_3c_c2_economic_ranking.py:run_c2_diagnostics",
+        "name": "run_c2_diagnostics",
+        "filePath": "scripts/hmr_v1_3c_c2_economic_ranking.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_3d_d1_d2_economic_audit.py:run_economic_audit",
+        "name": "run_economic_audit",
+        "filePath": "scripts/hmr_v1_3d_d1_d2_economic_audit.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_3d_d5_validation_runner.py:run_window_backtest",
+        "name": "run_window_backtest",
+        "filePath": "scripts/hmr_v1_3d_d5_validation_runner.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/hmr_v1_baseline.py:build_production_policy_signals",
+        "name": "build_production_policy_signals",
+        "filePath": "scripts/hmr_v1_baseline.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/p7_a5_legacy_parity.py:main",
+        "name": "main",
+        "filePath": "scripts/p7_a5_legacy_parity.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Function:scripts/p7_r6_v1r1_runtime_preflight.py:main",
+        "name": "main",
+        "filePath": "scripts/p7_r6_v1r1_runtime_preflight.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Method:btc_scraper/ml_engine/multi_agent.py:SignalGeneratorAgent.run#1",
+        "name": "run",
+        "filePath": "btc_scraper/ml_engine/multi_agent.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 1,
+        "id": "Method:btc_scraper/trading/auto_trader.py:AutoTrader.evaluate_and_trade#2",
+        "name": "evaluate_and_trade",
+        "filePath": "btc_scraper/trading/auto_trader.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": null,
+        "name": "hmr_v1_3a_decomposition.py",
+        "filePath": "scripts/hmr_v1_3a_decomposition.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/p7_a5_legacy_parity.py",
+        "name": "p7_a5_legacy_parity.py",
+        "filePath": "scripts/p7_a5_legacy_parity.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/p7_r6_v1r1_runtime_preflight.py",
+        "name": "p7_r6_v1r1_runtime_preflight.py",
+        "filePath": "scripts/p7_r6_v1r1_runtime_preflight.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Function:scripts/hmr_v1_3b_ablations.py:main",
+        "name": "main",
+        "filePath": "scripts/hmr_v1_3b_ablations.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Function:scripts/hmr_v1_3d_d5_validation_runner.py:main",
+        "name": "main",
+        "filePath": "scripts/hmr_v1_3d_d5_validation_runner.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Function:scripts/hmr_v1_baseline.py:build_report",
+        "name": "build_report",
+        "filePath": "scripts/hmr_v1_baseline.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Method:btc_scraper/ml_engine/multi_agent.py:AgentOrchestrator.run_cycle#2",
+        "name": "run_cycle",
+        "filePath": "btc_scraper/ml_engine/multi_agent.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Method:btc_scraper/ml_engine/multi_agent.py:ExecutionAgent.run#1",
+        "name": "run",
+        "filePath": "btc_scraper/ml_engine/multi_agent.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Function:main.py:fetch_and_display",
+        "name": "fetch_and_display",
+        "filePath": "main.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Function:scripts/hmr_v1_baseline.py:main",
+        "name": "main",
+        "filePath": "scripts/hmr_v1_baseline.py",
+        "relationType": "CALLS"
+      }
+    ],
+    "affected_processes_count": 12,
+    "affected_processes": [
+      "fetch_and_display",
+      "main",
+      "run_decomposition",
+      "run_b0_diagnostics",
+      "run_c2_diagnostics",
+      "run_economic_audit",
+      "run_window_backtest",
+      "build_production_policy_signals",
+      "main",
+      "run",
+      "build_report",
+      "run_ablation_scenario"
+    ],
+    "truncation_warning_observed": false,
+    "epistemic_state": "exact",
+    "index_base_commit": "f96c6b8",
+    "audit_timestamp_utc": "2026-10-11T13:04:00Z"
+  },
+  "CircuitBreakerCollection": {
+    "symbol": "CircuitBreakerCollection",
+    "filePath": "btc_scraper/core/db.py",
+    "exact_uid": "Class:btc_scraper/core/db.py:CircuitBreakerCollection",
+    "status": "resolved",
+    "risk": "MEDIUM",
+    "riskSharedAxes": "MEDIUM",
+    "impactedCount": 50,
+    "direct_caller_count": 11,
+    "direct_callers": [
+      {
+        "id": "File:api/server.py",
+        "name": "server.py",
+        "filePath": "api/server.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:btc_scraper/ai_analyst/builders.py",
+        "name": "builders.py",
+        "filePath": "btc_scraper/ai_analyst/builders.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:btc_scraper/collectors/alternative_quality.py",
+        "name": "alternative_quality.py",
+        "filePath": "btc_scraper/collectors/alternative_quality.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:btc_scraper/collectors/parsebot_farside_collector.py",
+        "name": "parsebot_farside_collector.py",
+        "filePath": "btc_scraper/collectors/parsebot_farside_collector.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:btc_scraper/trading/exposure_manager.py",
+        "name": "exposure_manager.py",
+        "filePath": "btc_scraper/trading/exposure_manager.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:btc_scraper/trading/position_tracker.py",
+        "name": "position_tracker.py",
+        "filePath": "btc_scraper/trading/position_tracker.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:btc_scraper/trading/risk_manager.py",
+        "name": "risk_manager.py",
+        "filePath": "btc_scraper/trading/risk_manager.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:data/raw_alternative/alternative_2026-07-11T11_17_12.090626+00_00.json",
+        "name": "main.py",
+        "filePath": "main.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:data/raw_alternative/alternative_2026-07-19T05_55_54.049669+00_00.json",
+        "name": "backfill_trade_provenance.py",
+        "filePath": "scripts/backfill_trade_provenance.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:data/raw_alternative/alternative_2026-07-19T09_44_41.830321+00_00.json",
+        "name": "build_and_train.py",
+        "filePath": "scripts/build_and_train.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      },
+      {
+        "id": "File:scripts/prepare_ml_data.py",
+        "name": "prepare_ml_data.py",
+        "filePath": "scripts/prepare_ml_data.py",
+        "relationType": "IMPORTS",
+        "confidence": 1
+      }
+    ],
+    "total_impacted_symbols": 50,
+    "all_impacted_symbols": [
+      {
+        "depth": 1,
+        "id": "File:api/server.py",
+        "name": "server.py",
+        "filePath": "api/server.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:btc_scraper/ai_analyst/builders.py",
+        "name": "builders.py",
+        "filePath": "btc_scraper/ai_analyst/builders.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:btc_scraper/collectors/alternative_quality.py",
+        "name": "alternative_quality.py",
+        "filePath": "btc_scraper/collectors/alternative_quality.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:btc_scraper/collectors/parsebot_farside_collector.py",
+        "name": "parsebot_farside_collector.py",
+        "filePath": "btc_scraper/collectors/parsebot_farside_collector.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:btc_scraper/trading/exposure_manager.py",
+        "name": "exposure_manager.py",
+        "filePath": "btc_scraper/trading/exposure_manager.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:btc_scraper/trading/position_tracker.py",
+        "name": "position_tracker.py",
+        "filePath": "btc_scraper/trading/position_tracker.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:btc_scraper/trading/risk_manager.py",
+        "name": "risk_manager.py",
+        "filePath": "btc_scraper/trading/risk_manager.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:data/raw_alternative/alternative_2026-07-11T11_17_12.090626+00_00.json",
+        "name": "main.py",
+        "filePath": "main.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T05_55_54.049669+00_00.json",
+        "name": "backfill_trade_provenance.py",
+        "filePath": "scripts/backfill_trade_provenance.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T09_44_41.830321+00_00.json",
+        "name": "build_and_train.py",
+        "filePath": "scripts/build_and_train.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 1,
+        "id": "File:scripts/prepare_ml_data.py",
+        "name": "prepare_ml_data.py",
+        "filePath": "scripts/prepare_ml_data.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/ai_analyst/core.py",
+        "name": "core.py",
+        "filePath": "btc_scraper/ai_analyst/core.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/collectors/etf_collector.py",
+        "name": "etf_collector.py",
+        "filePath": "btc_scraper/collectors/etf_collector.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/collectors/etf_providers.py",
+        "name": "etf_providers.py",
+        "filePath": "btc_scraper/collectors/etf_providers.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/execution/execution_engine.py",
+        "name": "execution_engine.py",
+        "filePath": "btc_scraper/execution/execution_engine.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/ml_engine/multi_agent.py",
+        "name": "multi_agent.py",
+        "filePath": "btc_scraper/ml_engine/multi_agent.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/ml_engine/signal_score.py",
+        "name": "signal_score.py",
+        "filePath": "btc_scraper/ml_engine/signal_score.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/telegram_bot/commands.py",
+        "name": "commands.py",
+        "filePath": "btc_scraper/telegram_bot/commands.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/telegram_bot/formatters.py",
+        "name": "formatters.py",
+        "filePath": "btc_scraper/telegram_bot/formatters.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:btc_scraper/trading/auto_trader.py",
+        "name": "auto_trader.py",
+        "filePath": "btc_scraper/trading/auto_trader.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:data/raw_alternative/alternative_2026-07-09T08_27_59.925125+00_00.json",
+        "name": "Phase0_Completion_Report.md",
+        "filePath": "docs/remediation/Phase0_Completion_Report.md",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:data/raw_alternative/alternative_2026-07-11T11_18_36.641748+00_00.json",
+        "name": "main_live.py",
+        "filePath": "main_live.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T03_53_53.456846+00_00.json",
+        "name": "audit_etf_provenance.py",
+        "filePath": "scripts/audit_etf_provenance.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T18_53_31.239728+00_00.json",
+        "name": "fetch_etf_history.py",
+        "filePath": "scripts/fetch_etf_history.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T20_40_19.808577+00_00.json",
+        "name": "fetch_parsebot_etf_jobs.py",
+        "filePath": "scripts/fetch_parsebot_etf_jobs.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/manage_positions.py",
+        "name": "manage_positions.py",
+        "filePath": "scripts/manage_positions.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/merge_historical_records.py",
+        "name": "merge_historical_records.py",
+        "filePath": "scripts/merge_historical_records.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/run_canary_until_seal_ready.py",
+        "name": "run_canary_until_seal_ready.py",
+        "filePath": "scripts/run_canary_until_seal_ready.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/run_manual_runner.py",
+        "name": "run_manual_runner.py",
+        "filePath": "scripts/run_manual_runner.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 2,
+        "id": "File:scripts/run_manual_scan.py",
+        "name": "run_manual_scan.py",
+        "filePath": "scripts/run_manual_scan.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "name": "Phase0_Completion_Report.md",
+        "filePath": "docs/remediation/Phase0_Completion_Report.md",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/ai_analyst/__init__.py",
+        "name": "__init__.py",
+        "filePath": "btc_scraper/ai_analyst/__init__.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/ai_analyst/utils.py",
+        "name": "utils.py",
+        "filePath": "btc_scraper/ai_analyst/utils.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/analysis/core.py",
+        "name": "core.py",
+        "filePath": "btc_scraper/analysis/core.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/analysis/htf_utils.py",
+        "name": "htf_utils.py",
+        "filePath": "btc_scraper/analysis/htf_utils.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/collectors/alternative_data.py",
+        "name": "alternative_data.py",
+        "filePath": "btc_scraper/collectors/alternative_data.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/collectors/alternative_scheduler.py",
+        "name": "alternative_scheduler.py",
+        "filePath": "btc_scraper/collectors/alternative_scheduler.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/execution/__init__.py",
+        "name": "__init__.py",
+        "filePath": "btc_scraper/execution/__init__.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/telegram_bot/__init__.py",
+        "name": "__init__.py",
+        "filePath": "btc_scraper/telegram_bot/__init__.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/telegram_bot/alerts.py",
+        "name": "alerts.py",
+        "filePath": "btc_scraper/telegram_bot/alerts.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/telegram_bot/listener.py",
+        "name": "listener.py",
+        "filePath": "btc_scraper/telegram_bot/listener.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:btc_scraper/ui/display.py",
+        "name": "display.py",
+        "filePath": "btc_scraper/ui/display.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T06_11_07.727992+00_00.json",
+        "name": "backtest.py",
+        "filePath": "scripts/backtest.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:data/raw_alternative/alternative_2026-07-19T07_27_29.419527+00_00.json",
+        "name": "backtest_eval.py",
+        "filePath": "scripts/backtest_eval.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:data/raw_alternative/alternative_2026-07-20T01_18_24.183012+00_00.json",
+        "name": "hmr_v1_3a_decomposition.py",
+        "filePath": "scripts/hmr_v1_3a_decomposition.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:data/raw_alternative/alternative_2026-07-20T02_50_00.642798+00_00.json",
+        "name": "hmr_v1_3b_ablations.py",
+        "filePath": "scripts/hmr_v1_3b_ablations.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:data/raw_alternative/alternative_2026-07-20T03_51_13.290560+00_00.json",
+        "name": "hmr_v1_3d_d5_validation_runner.py",
+        "filePath": "scripts/hmr_v1_3d_d5_validation_runner.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:data/raw_alternative/alternative_2026-07-20T06_39_05.097153+00_00.json",
+        "name": "hmr_v1_baseline.py",
+        "filePath": "scripts/hmr_v1_baseline.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:scripts/optimize_hyperparameters.py",
+        "name": "optimize_hyperparameters.py",
+        "filePath": "scripts/optimize_hyperparameters.py",
+        "relationType": "IMPORTS"
+      },
+      {
+        "depth": 3,
+        "id": "File:scripts/train_april_model.py",
+        "name": "train_april_model.py",
+        "filePath": "scripts/train_april_model.py",
+        "relationType": "IMPORTS"
+      }
+    ],
+    "affected_processes_count": 0,
+    "affected_processes": [],
+    "truncation_warning_observed": false,
+    "epistemic_state": "exact"
+  },
+  "_pid_alive": {
+    "symbol": "_pid_alive",
+    "filePath": "btc_scraper/core/runtime_ownership.py",
+    "exact_uid": "Function:btc_scraper/core/runtime_ownership.py:_pid_alive",
+    "status": "resolved",
+    "risk": "LOW",
+    "riskSharedAxes": "LOW",
+    "impactedCount": 7,
+    "direct_caller_count": 1,
+    "direct_callers": [
+      {
+        "id": "Method:btc_scraper/core/runtime_ownership.py:RuntimeLock.acquire#0",
+        "name": "acquire",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      }
+    ],
+    "total_impacted_symbols": 7,
+    "all_impacted_symbols": [
+      {
+        "depth": 1,
+        "id": "Method:btc_scraper/core/runtime_ownership.py:RuntimeLock.acquire#0",
+        "name": "acquire",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Function:btc_scraper/core/runtime_ownership.py:assert_runtime_owned",
+        "name": "assert_runtime_owned",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Function:main.py:main",
+        "name": "main",
+        "filePath": "main.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Method:btc_scraper/core/runtime_ownership.py:RuntimeLock.__enter__#0",
+        "name": "__enter__",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": null,
+        "name": "main.py",
+        "filePath": "main.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Function:scripts/run_manual_runner.py:main",
+        "name": "main",
+        "filePath": "scripts/run_manual_runner.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Function:scripts/run_manual_scan.py:main",
+        "name": "main",
+        "filePath": "scripts/run_manual_scan.py",
+        "relationType": "CALLS"
+      }
+    ],
+    "affected_processes_count": 1,
+    "affected_processes": [
+      "main"
+    ],
+    "truncation_warning_observed": false,
+    "epistemic_state": "exact"
+  },
+  "_windows_pid_alive": {
+    "symbol": "_windows_pid_alive",
+    "filePath": "btc_scraper/core/runtime_ownership.py",
+    "exact_uid": "Function:btc_scraper/core/runtime_ownership.py:_windows_pid_alive",
+    "status": "resolved",
+    "risk": "LOW",
+    "riskSharedAxes": "LOW",
+    "impactedCount": 5,
+    "direct_caller_count": 1,
+    "direct_callers": [
+      {
+        "id": "Function:btc_scraper/core/runtime_ownership.py:_pid_alive",
+        "name": "_pid_alive",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      }
+    ],
+    "total_impacted_symbols": 5,
+    "all_impacted_symbols": [
+      {
+        "depth": 1,
+        "id": "Function:btc_scraper/core/runtime_ownership.py:_pid_alive",
+        "name": "_pid_alive",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Method:btc_scraper/core/runtime_ownership.py:RuntimeLock.acquire#0",
+        "name": "acquire",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Function:btc_scraper/core/runtime_ownership.py:assert_runtime_owned",
+        "name": "assert_runtime_owned",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Function:main.py:main",
+        "name": "main",
+        "filePath": "main.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "Method:btc_scraper/core/runtime_ownership.py:RuntimeLock.__enter__#0",
+        "name": "__enter__",
+        "filePath": "btc_scraper/core/runtime_ownership.py",
+        "relationType": "CALLS"
+      }
+    ],
+    "affected_processes_count": 1,
+    "affected_processes": [
+      "main"
+    ],
+    "truncation_warning_observed": false,
+    "epistemic_state": "exact"
+  },
+  "inspect_process": {
+    "symbol": "inspect_process",
+    "filePath": "scripts/runtime_migration_preflight.py",
+    "exact_uid": "Function:scripts/runtime_migration_preflight.py:inspect_process",
+    "status": "resolved",
+    "risk": "LOW",
+    "riskSharedAxes": "LOW",
+    "impactedCount": 3,
+    "direct_caller_count": 1,
+    "direct_callers": [
+      {
+        "id": "Function:scripts/runtime_migration_preflight.py:build_report",
+        "name": "build_report",
+        "filePath": "scripts/runtime_migration_preflight.py",
+        "relationType": "CALLS",
+        "confidence": 0.85
+      }
+    ],
+    "total_impacted_symbols": 3,
+    "all_impacted_symbols": [
+      {
+        "depth": 1,
+        "id": "Function:scripts/runtime_migration_preflight.py:build_report",
+        "name": "build_report",
+        "filePath": "scripts/runtime_migration_preflight.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 2,
+        "id": "Function:scripts/runtime_migration_preflight.py:main",
+        "name": "main",
+        "filePath": "scripts/runtime_migration_preflight.py",
+        "relationType": "CALLS"
+      },
+      {
+        "depth": 3,
+        "id": "File:scripts/runtime_migration_preflight.py",
+        "name": "runtime_migration_preflight.py",
+        "filePath": "scripts/runtime_migration_preflight.py",
+        "relationType": "CALLS"
+      }
+    ],
+    "affected_processes_count": 1,
+    "affected_processes": [
+      "build_report"
+    ],
+    "truncation_warning_observed": false,
+    "epistemic_state": "exact"
+  }
+}
