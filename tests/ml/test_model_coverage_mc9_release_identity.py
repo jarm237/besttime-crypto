@@ -19,7 +19,8 @@ MC8_MANIFEST = ROOT / "model_coverage_mc8_release_manifest.json"
 MC6_REGISTRY = ROOT / "model_coverage_mc6_inference_registry.json"
 MC7_BINDING = ROOT / "model_coverage_mc7_runtime_binding_contract.json"
 
-EXPECTED_SOURCE_COMMIT = "94407d3483bb01eccf0e86882cef258dcbb646e9"
+EXPECTED_SOURCE_COMMIT = "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
+EXPECTED_RELEASE_ID = "model-coverage-v1-r1"
 EXPECTED_AUTHORIZED = ["BNB", "BTC", "DOGE", "ETH", "IOTA", "NEAR", "SOL", "TRX", "ZEC"]
 EXPECTED_DISABLED = ["AEVO", "AR", "AVAX", "ENA", "SOPH", "TAO", "TRB", "TRUMP",
                      "WLD", "XAUT", "XLM", "XPL", "XRP"]
@@ -48,7 +49,7 @@ def contract():
 def test_mc9_a_t1_sha256_sidecar_matches_disk():
     """Identity SHA256 sidecar must match actual file on disk."""
     assert IDENTITY_SHA_PATH.exists(), f"Missing sidecar: {IDENTITY_SHA_PATH}"
-    recorded = IDENTITY_SHA_PATH.read_text().strip()
+    recorded = IDENTITY_SHA_PATH.read_text().strip().split()[0]
     actual = sha256_file(IDENTITY_PATH)
     assert actual == recorded, f"SHA256 mismatch: disk={actual[:16]} sidecar={recorded[:16]}"
 
@@ -62,7 +63,7 @@ def test_mc9_a_t2_source_commit_exact(identity):
 
 # ── MC9-A-T3  release_id correct ────────────────────────────────────────────
 def test_mc9_a_t3_release_id(identity):
-    assert identity["release_id"] == "model-coverage-v1"
+    assert identity["release_id"] == EXPECTED_RELEASE_ID
 
 
 # ── MC9-A-T4  universe accounting: 9 + 13 == 22 ─────────────────────────────

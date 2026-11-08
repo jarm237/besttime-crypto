@@ -19,21 +19,21 @@ def test_audit_results_verdicts():
     # Verify presence of output files
     assert (OUT_DIR / "v4c_2b_stablecoin_audit.json").exists()
     assert (OUT_DIR / "v4c_2b_stablecoin_report.md").exists()
-    
+
     with open(OUT_DIR / "v4c_2b_stablecoin_audit.json", "r") as f:
         a = json.load(f)
-        
+
     assert a["program"] == "HMR-V4C-2B"
     assert a["source"] == "defillama_stablecoin_supply"
-    
+
     # All directional features rejected due to no economic info
     for df in a["directional_audit"]:
         assert df["verdict"] == "REJECT_NO_ECONOMIC_INFORMATION"
-        
+
     # All volatility features rejected
     for vf in a["volatility_audit"]:
         assert vf["verdict"] == "REJECT_NO_INFORMATION"
-        
+
     # All risk state features rejected
     for rf in a["risk_state_audit"]:
         assert rf["verdict"] == "REJECT_NO_INFORMATION"
@@ -43,16 +43,18 @@ def test_rerun_determinism():
     # Read existing audit
     with open(OUT_DIR / "v4c_2b_stablecoin_audit.json", "r") as f:
         existing_data = json.load(f)
-        
+
     # Rerun script
-    cmd = [".venv/bin/python", "scripts/hmr_v4c_2b_stablecoin_audit.py"]
-    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    import sys, os
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, "scripts/hmr_v4c_2b_stablecoin_audit.py"]
+    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, env=env, encoding="utf-8")
     assert res.returncode == 0
-    
+
     # Read new audit
     with open(OUT_DIR / "v4c_2b_stablecoin_audit.json", "r") as f:
         new_data = json.load(f)
-        
+
     # Compare
     assert existing_data["directional_audit"] == new_data["directional_audit"]
     assert existing_data["volatility_audit"] == new_data["volatility_audit"]

@@ -14,10 +14,19 @@ MC8_CONTRACT = REPO_ROOT / "model_coverage_mc8_release_contract.json"
 MC8_MANIFEST = REPO_ROOT / "model_coverage_mc8_release_manifest.json"
 MC8_REPORT   = REPO_ROOT / "model_coverage_mc8_pinned_runtime_report.json"
 WORKTREE_DIR = REPO_ROOT / "runtime" / "worktrees" / "pinned-94407d3"
+V1_MANIFEST_COMMIT = "56231dc093445280b6b4e73ae7d453b5e6409a16"
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _git_artifact_json(commit: str, path: str) -> dict:
+    raw = subprocess.check_output(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=REPO_ROOT,
+    )
+    return json.loads(raw)
 
 
 @pytest.fixture(scope="module")
@@ -49,8 +58,8 @@ def test_mc8_pinned_runtime_report_sha_sidecar_valid() -> None:
 # ── Manifest Structure ────────────────────────────────────────────────────────
 
 def test_manifest_basic_metadata(manifest: dict) -> None:
-    assert manifest["release_version"] == "model-coverage-v1"
-    assert manifest["source_commit"] == "94407d3483bb01eccf0e86882cef258dcbb646e9"
+    assert manifest["release_version"] == "model-coverage-v1-r1"
+    assert manifest["source_commit"] == "b284ad36f311c5cbf4986c6dfe7f47e8aee01062"
     assert manifest["canonical_universe"] == 22
     assert manifest["effective_runtime_universe"] == 9
     assert len(manifest["routes"]) == 9
@@ -71,11 +80,16 @@ def test_pinned_worktree_exists_and_checked_out() -> None:
     assert (WORKTREE_DIR / ".git").exists()  # git worktree has a .git file pointing to the main repo git dir
 
 
-def test_worktree_commit_matches_manifest(manifest: dict) -> None:
+def test_worktree_commit_matches_its_v1_manifest() -> None:
+    historical_manifest = _git_artifact_json(
+        V1_MANIFEST_COMMIT,
+        "model_coverage_mc8_release_manifest.json",
+    )
     head = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=str(WORKTREE_DIR)
     ).decode().strip()
-    assert head == manifest["source_commit"]
+    assert historical_manifest["release_version"] == "model-coverage-v1"
+    assert head == historical_manifest["source_commit"]
 
 
 # ── PYTHONPATH / import isolation preflight ──────────────────────────────────

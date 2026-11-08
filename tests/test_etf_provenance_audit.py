@@ -25,7 +25,7 @@ def test_etf_provenance_verdict_gates():
         a = json.load(f)
     assert a["verdict"] == "AUTHORIZED_V4C_3B"
     assert a["provenance"] == "AUTHORIZED_V4C_3B"
-    
+
     gates = a["gates"]
     assert gates["E0_SOURCE_PROVENANCE"] is True
     assert gates["E1_HISTORICAL_COVERAGE"] is True
@@ -38,16 +38,18 @@ def test_etf_determinism_invariant():
     # Read existing audit json
     with open(OUT_DIR / "v4c_3a_etf_provenance_audit.json", "r") as f:
         existing_data = json.load(f)
-        
+
     # Re-run the script
-    cmd = [".venv/bin/python", "scripts/audit_etf_provenance.py"]
-    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    import sys, os
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, "scripts/audit_etf_provenance.py"]
+    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, env=env, encoding="utf-8")
     assert res.returncode == 0
-    
+
     # Read new audit json
     with open(OUT_DIR / "v4c_3a_etf_provenance_audit.json", "r") as f:
         new_data = json.load(f)
-        
+
     # Check that they match exactly
     assert existing_data["verdict"] == new_data["verdict"]
     assert existing_data["gates"] == new_data["gates"]

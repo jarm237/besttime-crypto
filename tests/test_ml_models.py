@@ -19,7 +19,7 @@ def temp_logs_dir(tmp_path):
     ads.ADAPTIVE_LOG = str(tmp_path / "adaptive_signals.json")
     ads.ADAPTIVE_MODEL = str(tmp_path / "adaptive_model.json")
     ads.ADAPTIVE_MODEL_JOBLIB = str(tmp_path / "adaptive_model.joblib")
-    
+
     original_mm_input = mm.INPUT
     original_mm_model_out = mm.MODEL_OUT
     original_mm_metric_out = mm.METRIC_OUT
@@ -27,7 +27,7 @@ def temp_logs_dir(tmp_path):
     original_model_cache = mm._MODEL_CACHE
     original_artifact_provenance = mm._MODEL_ARTIFACT_PROVENANCE
     original_artifact_owner = mm._MODEL_ARTIFACT_OWNER_ID
-    
+
     mm.INPUT = tmp_path / "adaptive_signals_v2.json"
     mm.MODEL_OUT = tmp_path / "meta_model.joblib"
     mm.METRIC_OUT = tmp_path / "meta_model.json"
@@ -36,9 +36,9 @@ def temp_logs_dir(tmp_path):
     mm._MODEL_CACHE = None
     mm._MODEL_ARTIFACT_PROVENANCE = None
     mm._MODEL_ARTIFACT_OWNER_ID = None
-    
+
     yield tmp_path
-    
+
     # Restore original paths
     ads.ADAPTIVE_LOG = original_log
     ads.ADAPTIVE_MODEL = original_model
@@ -56,9 +56,9 @@ def temp_logs_dir(tmp_path):
 def test_calibration_buckets():
     probs = [0.85, 0.75, 0.65, 0.55, 0.35]
     results = ["WIN", "LOSS", "WIN", "LOSS", "LOSS"]
-    
+
     analysis = compute_calibration_buckets(probs, results, min_samples=1)
-    
+
     assert "0.8-1.0" in analysis
     assert "0.0-0.4" in analysis
     assert analysis["0.8-1.0"]["wins"] == 1
@@ -70,7 +70,7 @@ def test_calibration_buckets():
 def test_adaptive_scoring_log_and_stats(temp_logs_dir):
     # Verify starting empty
     assert len(ads._load_log()) == 0
-    
+
     trade1 = {
         "coin": "BTC",
         "id": "1",
@@ -83,7 +83,7 @@ def test_adaptive_scoring_log_and_stats(temp_logs_dir):
         "signal": "BUY",
         "signal_score": {"score": 85, "regime": "STRONG_TREND_BULL"}
     }
-    
+
     trade2 = {
         "coin": "BTC",
         "id": "2",
@@ -96,17 +96,17 @@ def test_adaptive_scoring_log_and_stats(temp_logs_dir):
         "signal": "BUY",
         "signal_score": {"score": 82, "regime": "STRONG_TREND_BULL"}
     }
-    
+
     ads.log_trade_outcome(trade1)
     ads.log_trade_outcome(trade2)
-    
+
     log = ads._load_log()
     assert len(log) == 2
     assert log[0]["coin"] == "BTC"
     assert log[0]["result"] == "WIN"
     assert log[0]["traceability_scope"] == "offline_only"
     assert log[0]["runtime_calibration_eligible"] is False
-    
+
     # Check stats computation
     stats = ads.compute_score_stats()
     assert "80" in stats
@@ -114,7 +114,7 @@ def test_adaptive_scoring_log_and_stats(temp_logs_dir):
     assert stats["80"]["wins"] == 1
     assert stats["80"]["losses"] == 1
     assert stats["80"]["win_rate"] == 50.0
-    
+
     # Train adaptive model
     train_res = ads.train_adaptive_model(save=True)
     assert train_res is not None
@@ -131,7 +131,7 @@ def test_adaptive_scoring_log_and_stats(temp_logs_dir):
 def test_ensemble_meta_model():
     from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2
     n_features = len(FEATURE_SCHEMA_V2)
-    
+
     # Generate simple synthetic dataset matching features length
     X, y = make_classification(
         n_samples=40,
@@ -140,31 +140,31 @@ def test_ensemble_meta_model():
         n_redundant=2,
         random_state=42
     )
-    
+
     # Force class 0 and 1
     y[0] = 0
     y[1] = 1
-    
+
     # Determine which base models are available
     estimators = mm._import_optional_estimators()
     if not estimators:
         pytest.skip("No LGBM, CatBoost, or XGBoost available for testing EnsembleMetaModel.")
-        
+
     # Pick weights representing available estimators
     weights = {k: 1.0 for k in estimators.keys()}
-    
+
     # Test Init
     model = EnsembleMetaModel(weights=weights, n_estimators=10, random_state=42)
-    
+
     # Test Fit
     model.fit(X, y, cv=2)
     assert len(model.models_) > 0
-    
+
     # Test Predict Proba
     probs = model.predict_proba(X[:5])
     assert probs.shape == (5, 2)
     assert np.allclose(np.sum(probs, axis=1), 1.0)
-    
+
     # Test Predict
     preds = model.predict(X[:5])
     assert len(preds) == 5
@@ -189,28 +189,28 @@ def test_predict_meta_confidence(temp_logs_dir):
     )
     assert "error" in res_no_model
     assert res_no_model["probability"] is None
-    
+
     # Train and save a small calibrated model to temp folder to test loading
     from btc_scraper.ml_engine.feature_extractor import FEATURE_SCHEMA_V2
     n_features = len(FEATURE_SCHEMA_V2)
-    
+
     estimators = mm._import_optional_estimators()
     if not estimators:
         pytest.skip("No LGBM, CatBoost, or XGBoost available to save test meta model.")
-        
+
     X = np.random.rand(30, n_features)
     y = np.random.randint(0, 2, size=30)
     y[0] = 0
     y[1] = 1
-    
+
     weights = {k: 1.0 for k in estimators.keys()}
     model = EnsembleMetaModel(weights=weights, calibration="sigmoid", n_estimators=5, random_state=42)
     model.fit(X, y, cv=2)
-    
+
     import joblib
     # Save dummy model structure
     joblib.dump({"model": model, "features": FEATURE_SCHEMA_V2, "version": mm.MODEL_VERSION}, mm.MODEL_OUT)
-    
+
     # Test prediction with mock data
     mock_analysis_info = {
         "coin": "BTC",
@@ -225,7 +225,7 @@ def test_predict_meta_confidence(temp_logs_dir):
         "mtf_alignment": 1,
         "regime": "STRONG_TREND_BULL"
     }
-    
+
     res = predict_meta_confidence(mock_analysis_info, symbol="BTC")
     assert "probability" in res
     assert isinstance(res["probability"], float)
@@ -246,6 +246,7 @@ def test_meta_decision_engine():
 
     engine = MetaDecisionEngine()
     decision = engine.decide({
+        "coin": "BTC",
         "signal": "BUY",
         "fear_greed": 70,
         "sentiment_momentum": 0.3,

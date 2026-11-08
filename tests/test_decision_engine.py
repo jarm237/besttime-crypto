@@ -358,7 +358,7 @@ class TestSideAgnosticExpectedValueContract:
     def test_symmetric_threshold_gating_behavior(self):
         # Use a posterior threshold above BTC S3 so each gate remains independently observable.
         engine = MetaDecisionEngine(weights={"meta": 1.0}, buy_threshold=0.80, sell_threshold=0.80, min_ev_pct=0.05)
-        
+
         # 1. Meets threshold exactly -> eligible
         res_buy = engine.decide({
             "coin": "BTC",
@@ -371,7 +371,7 @@ class TestSideAgnosticExpectedValueContract:
             }
         }, persist_final=False)
         assert res_buy["action"] == "BUY"
-        
+
         res_sell = engine.decide({
             "coin": "BTC",
             "signal": "SELL",
@@ -396,7 +396,7 @@ class TestSideAgnosticExpectedValueContract:
             }
         }, persist_final=False)
         assert res_buy_hold["action"] == "HOLD"
-        
+
         res_sell_hold = engine.decide({
             "coin": "BTC",
             "signal": "SELL",
@@ -586,7 +586,7 @@ class TestDecideWithModel:
         assert 0.0 <= p <= 1.0
 
     def test_reason_string_contains_components(self, engine_with_model):
-        result = engine_with_model.decide({"coin": "SOL", "signal": "BUY", "action": "BUY"})
+        result = engine_with_model.decide({"coin": "BTC", "signal": "BUY", "action": "BUY"})
         reason = result.get("reason", "")
         assert "meta_prob=" in reason
         assert "posterior=" in reason

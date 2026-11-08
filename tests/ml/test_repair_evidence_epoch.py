@@ -126,10 +126,13 @@ def test_repair_sqlite_file_apply_creates_backup_and_audit(tmp_path):
     conn.commit()
     conn.close()
 
-    res = repair_sqlite_file(db_path, apply=True)
+    custom_backup_dir = tmp_path / "backups"
+    res = repair_sqlite_file(db_path, apply=True, backup_dir=custom_backup_dir)
     assert res["scanned"] == 1
     assert res["repaired"] == 1
     assert res["errors"] == 0
+    assert custom_backup_dir.exists()
+    assert len(list(custom_backup_dir.glob("*.bak"))) == 1
 
     # Verify DB was updated and audit log written
     conn2 = sqlite3.connect(db_path)

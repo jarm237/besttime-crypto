@@ -27,7 +27,7 @@ def test_provenance_verdict_gates():
         a = json.load(f)
     assert a["verdict"] == "AUTHORIZE_V4B_4B"
     assert a["provenance"] == "PROVEN"
-    
+
     gates = a["provenance_gates"]
     assert gates["F0_SOURCE_PROVENANCE"] is True
     assert gates["F1_HISTORICAL_AVAILABILITY"] is True
@@ -42,16 +42,18 @@ def test_determinism_invariant():
     # Read existing audit json
     with open(OUT_DIR / "v4b_4a_trade_flow_provenance_audit.json", "r") as f:
         existing_data = json.load(f)
-        
+
     # Re-run the script
-    cmd = [".venv/bin/python", "scripts/audit_real_trade_flow_provenance.py"]
-    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    import sys, os
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, "scripts/audit_real_trade_flow_provenance.py"]
+    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, env=env, encoding="utf-8")
     assert res.returncode == 0
-    
+
     # Read new audit json
     with open(OUT_DIR / "v4b_4a_trade_flow_provenance_audit.json", "r") as f:
         new_data = json.load(f)
-        
+
     # Check that they match exactly
     assert existing_data["verdict"] == new_data["verdict"]
     assert existing_data["provenance_gates"] == new_data["provenance_gates"]

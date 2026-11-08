@@ -251,11 +251,13 @@ def test_autotrader_correlation_and_sizing_filters(mock_cov_corr, monkeypatch):
             monkeypatch.setattr(exposure_manager, "positions_col", mock_col)
             
             # Setup AutoTrader config via env
+            monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
             monkeypatch.setenv("AUTO_TRADE_DRY_RUN", "true")
             monkeypatch.setenv("AUTO_TRADE_ACCOUNT_USDT", "1000.0")
             monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.5")
             monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "50")
             monkeypatch.setenv("DISABLE_KELLY", "1")  # Disable Kelly to isolate VaR & exposure
+            monkeypatch.setenv("AUTO_TRADE_COINS", "BTC,ETH,SOL,NEAR")
             
             class MockCCXTClient:
                 async def get_usdt_balance(self):

@@ -138,6 +138,7 @@ class TestDecisionEngineWithProvider:
         engine = MetaDecisionEngine()
         # Use minimal analysis_info — Meta Model may return error without real model
         analysis_info = {
+            "coin": "BTC",
             "signal": "BUY",
             "fear_greed": 60,
             "regime": "RISK_ON",
@@ -151,7 +152,7 @@ class TestDecisionEngineWithProvider:
         from btc_scraper.ml_engine.decision_engine import MetaDecisionEngine
 
         engine = MetaDecisionEngine()
-        analysis_info = {"signal": "BUY", "fear_greed": 60, "regime": "RISK_ON", "atr": 1.0}
+        analysis_info = {"coin": "BTC", "signal": "BUY", "fear_greed": 60, "regime": "RISK_ON", "atr": 1.0}
         result = engine.decide_with_provider(analysis_info, rule_provider, world_state)
         # If meta model returns error, context_provider field may not be set
         # — that's acceptable in CI without a trained model
@@ -165,7 +166,7 @@ class TestDecisionEngineWithProvider:
 
         engine = MetaDecisionEngine()
         noop = NoOpContextProvider()
-        analysis_info = {"signal": "BUY", "fear_greed": 60, "regime": "RISK_ON", "atr": 1.0}
+        analysis_info = {"coin": "BTC", "signal": "BUY", "fear_greed": 60, "regime": "RISK_ON", "atr": 1.0}
         result = engine.decide_with_provider(analysis_info, noop, world_state)
         assert isinstance(result, dict)
         # NoOp never applies, so context_skipped should be True

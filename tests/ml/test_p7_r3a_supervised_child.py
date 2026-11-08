@@ -5,6 +5,7 @@ import os
 import signal
 import sys
 from pathlib import Path
+import pytest
 
 from scripts.p7_r3a_supervised_child import (
     SupervisedChildRequest,
@@ -66,6 +67,8 @@ def test_signal_exit_classification():
 
 
 def test_sigterm_child_exit_is_observable(tmp_path):
+    if sys.platform == "win32":
+        pytest.skip("SIGTERM returncode semantics are POSIX-specific")
     code = "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
     result = supervise_child(_request(tmp_path, code))
 

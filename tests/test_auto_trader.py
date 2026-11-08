@@ -159,6 +159,7 @@ def test_process_signal_blocks_zero_signal_kelly(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.10")
     monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "70")
     monkeypatch.setenv("AUTO_TRADE_COINS", "ZEC")
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     monkeypatch.setattr("btc_scraper.trading.auto_trader._append_log", lambda entry: logged.append(entry))
 
     trader = AutoTrader()
@@ -949,6 +950,7 @@ def test_process_signal_emits_decision_breakdown_logs(monkeypatch):
     monkeypatch.setenv("AUTO_TRADE_META_THRESHOLD", "0.80")
     monkeypatch.setenv("AUTO_TRADE_SCORE_THRESHOLD", "75")
     monkeypatch.setenv("AUTO_TRADE_MIN_RR", "1.0")
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     
     trader = AutoTrader()
     monkeypatch.setattr(trader, "_has_open_position", lambda *args, **kwargs: False)

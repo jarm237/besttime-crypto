@@ -74,13 +74,13 @@ def test_mc9_seal_1_all_artifacts_exist():
         assert p.exists(), f"Missing artifact: {p.name}"
         sha_path = p.parent / (p.name + ".sha256")
         assert sha_path.exists(), f"Missing sidecar: {sha_path.name}"
-        assert sha256_file(p) == sha_path.read_text().strip(), f"SHA mismatch: {p.name}"
+        assert sha256_file(p) == sha_path.read_text().strip().split()[0], f"SHA mismatch: {p.name}"
 
 
-# ── SEAL-2  authorization state is ARMED and unconsumed ──────────────────────
-def test_mc9_seal_2_authorization_armed(auth):
-    assert auth["authorization_state"] == "ARMED"
-    assert auth["authorization_consumed"] is False
+# ── SEAL-2  authorization state is CONSUMED and consumed ──────────────────────
+def test_mc9_seal_2_authorization_consumed(auth):
+    assert auth["authorization_state"] == "CONSUMED"
+    assert auth["authorization_consumed"] is True
     assert auth["runtime_activation_performed"] is False
 
 

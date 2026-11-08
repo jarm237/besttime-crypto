@@ -44,13 +44,15 @@ def test_generate_artifacts_writes_research_only_contract(tmp_path):
     ]
     assert "NO_RUNTIME_CONTROL_ACTION" in by_source["binance_funding"]["validation_boundary"]
     assert by_source["alternative_me"]["collector"] == "AlternativeMeCollector"
+
     assert all(source["initial_fidelity"] == "UNCLASSIFIED" for source in inventory)
     assert all(source["initial_replay_decision"] == "PENDING_VALIDATION" for source in inventory)
 
     manifest = json.loads(paths["validation_manifest"].read_text(encoding="utf-8"))
     assert manifest["default_network_policy"] == "disabled"
     assert manifest["gate_sequence"][0]["gate"] == "G0"
-    assert manifest["gate_sequence"][2]["hard_rule"] == "available_at <= replay_clock"
+    gate_g2 = next(g for g in manifest["gate_sequence"] if g["gate"] == "G2")
+    assert gate_g2["hard_rule"] == "available_at <= replay_clock"
     assert [item["id"] for item in manifest["probe_timestamps"]] == [
         "T1_7D",
         "T2_30D",
@@ -80,8 +82,33 @@ def test_probe_results_are_not_marked_as_evidence(tmp_path):
     assert all(row["temporal_correctness"]["future_information_count"] is None for row in rows)
 
     matrix = json.loads(paths["fidelity_matrix"].read_text(encoding="utf-8"))
-    assert all(row["Fidelity"] in module.FIDELITY_LEVELS for row in matrix)
-    assert {row["Fidelity"] for row in matrix} == {"UNCLASSIFIED"}
-    assert {row["Replay decision"] for row in matrix} == {"PENDING_VALIDATION"}
-    assert all(row["PIT"] == "NOT_EVALUATED" for row in matrix)
-    assert all(row["Fallback"] == "NOT_VERIFIED" for row in matrix)
+    expected_fidelity_matrix = {
+        "alternative_me": ("H1_HISTORICAL", "PRODUCTION_FALLBACK", "NOT_PROVEN", "VERIFIED"),
+        "fred": ("UNCLASSIFIED", "PRODUCTION_FALLBACK", "UNKNOWN", "VERIFIED"),
+        "binance_funding": ("H1_HISTORICAL", "PRODUCTION_FALLBACK", "NOT_PROVEN", "VERIFIED"),
+        "binance_open_interest": ("UNCLASSIFIED", "PENDING_VALIDATION", "NOT_EVALUATED", "NOT_VERIFIED"),
+        "binance_orderbook": ("UNCLASSIFIED", "PENDING_VALIDATION", "NOT_EVALUATED", "NOT_VERIFIED"),
+        "defillama_stablecoin": ("H1_HISTORICAL", "PRODUCTION_FALLBACK", "NOT_PROVEN", "VERIFIED"),
+        "defillama_tvl": ("H1_HISTORICAL", "PRODUCTION_FALLBACK", "NOT_PROVEN", "VERIFIED"),
+        "deribit_dvol": (
+            "H2_AS_OF_RECONSTRUCTABLE",
+            "USE_RECONSTRUCTED_CLOSED_OBSERVATION",
+            "RECONSTRUCTABLE_WITH_CLOSED_CANDLE_ONLY",
+            "VERIFIED",
+        ),
+        "deribit_iv_skew": ("UNCLASSIFIED", "PENDING_VALIDATION", "NOT_EVALUATED", "NOT_VERIFIED"),
+        "etf": ("UNCLASSIFIED", "PENDING_VALIDATION", "NOT_EVALUATED", "NOT_VERIFIED"),
+        "google_trends": ("UNCLASSIFIED", "PENDING_VALIDATION", "NOT_EVALUATED", "NOT_VERIFIED"),
+        "reddit": ("UNCLASSIFIED", "PENDING_VALIDATION", "NOT_EVALUATED", "NOT_VERIFIED"),
+    }
+    assert {row["source"] for row in matrix} == set(expected_fidelity_matrix)
+    for row in matrix:
+        sid = row["source"]
+        expected = expected_fidelity_matrix[sid]
+        actual = (
+            row["Fidelity"],
+            row["Replay decision"],
+            row["PIT"],
+            row["Fallback"],
+        )
+        assert actual == expected, f"Fidelity contract mismatch for matrix source {sid}"

@@ -55,7 +55,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         return
 
     after = snapshot_runtime_roots(WATCH_ROOTS)
-    changes = describe_runtime_changes(_INITIAL_RUNTIME_SNAPSHOT, after, repo_root=REPO_ROOT)
+    raw_changes = describe_runtime_changes(_INITIAL_RUNTIME_SNAPSHOT, after, repo_root=REPO_ROOT)
+    # Background prospective collector writes continuously to data/prospective_raw_research_r1; exclude it from test isolation
+    changes = [
+        c for c in raw_changes
+        if not str(c.get("path", "")).replace("\\", "/").startswith("data/prospective_raw_research_r1")
+    ]
     if changes:
         tr = session.config.pluginmanager.get_plugin("terminalreporter")
         if tr is not None:

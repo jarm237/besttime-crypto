@@ -278,19 +278,22 @@ class TestFullStage3Pipeline:
     def test_full_pipeline_device_detection(self):
         """Test pipeline detects GPU if available."""
         sequences = self.create_dummy_sequences(n=50)
-        
-        result = run_stage3_pipeline(
-            sequences,
-            ae_epochs=1,
-            sup_epochs=1,
-            adv_epochs=1,
-            batch_size=32,
-            verbose=False
-            # device=None -> auto-detect
-        )
-        
-        assert "autoencoder" in result
-        assert "supervisor" in result
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = run_stage3_pipeline(
+                sequences,
+                ae_epochs=1,
+                sup_epochs=1,
+                adv_epochs=1,
+                batch_size=32,
+                checkpoint_dir=tmpdir,
+                verbose=False
+                # device=None -> auto-detect
+            )
+
+            assert "autoencoder" in result
+            assert "supervisor" in result
+            assert all(Path(path).parent == Path(tmpdir) for path in result["checkpoints"].values())
 
 
 if __name__ == "__main__":

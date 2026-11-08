@@ -97,3 +97,49 @@ def test_runtime_migration_preflight_compare_detects_legacy_changes(tmp_path):
     comparison = module.compare_reports(before, after)
     assert comparison["legacy_roots_unchanged"] is False
     assert comparison["before_aggregate_sha256"] != comparison["after_aggregate_sha256"]
+
+
+def test_inspect_process_schema_parity():
+    module = _load_preflight_module()
+    expected_keys = {
+        "pid",
+        "running",
+        "cmdline",
+        "cwd",
+        "ownership_env",
+        "has_owned_runtime_env",
+        "fd_count",
+        "fd_sample",
+    }
+
+    live_res = module.inspect_process(os.getpid())
+    assert live_res["running"] is True
+    assert expected_keys.issubset(set(live_res.keys()))
+
+    dead_res = module.inspect_process(9999999)
+    assert dead_res["running"] is False
+    assert expected_keys.issubset(set(dead_res.keys()))
+
+
+def test_windows_process_probe_never_uses_os_kill(monkeypatch):
+    module = _load_preflight_module()
+    probe_pid = 2_147_483_000
+    observed_pids = []
+
+    monkeypatch.setattr(module.sys, "platform", "win32")
+    monkeypatch.setattr(
+        module,
+        "_windows_pid_alive",
+        lambda pid: (observed_pids.append(pid), False)[1],
+    )
+    monkeypatch.setattr(
+        module.os,
+        "kill",
+        lambda *_args: (_ for _ in ()).throw(AssertionError("os.kill must not probe Windows PIDs")),
+    )
+
+    result = module.inspect_process(probe_pid)
+
+    assert result["running"] is False
+    assert module._pid_alive(probe_pid) is False
+    assert observed_pids == [probe_pid, probe_pid]

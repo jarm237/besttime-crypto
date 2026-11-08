@@ -55,7 +55,11 @@ from scripts.p8_economic_report import (
     is_economic_verdict_authorized,
     validate_canonical_store_identity,
 )
-from scripts.run_manual_runner import SEALED_WORKTREE_PATH, validate_governed_preflight
+from scripts.run_manual_runner import (
+    SEALED_WORKTREE_PATH,
+    _inspect_worktree_cleanliness,
+    validate_governed_preflight,
+)
 
 
 def _seed_basic_evidence(store: RuntimeEvidenceStore, epoch_id="p8-readiness-r2-20260902-01", dep_id="paper-canary-win-tsfix-20260901-01"):
@@ -699,3 +703,45 @@ def test_decimal_accounting_reconciliation_rejects_fee_mismatch():
 
     assert reconciliation["status"] == "FAIL"
     assert reconciliation["fee_mismatch_ids"] == ["trade-001"]
+
+
+def test_worktree_cleanliness_inspects_production_helper(tmp_path):
+    """Production helper detects tracked/untracked content but ignores stat drift."""
+    repo = tmp_path / "mock_repo"
+    repo.mkdir()
+    subprocess.run(["git", "init"], cwd=str(repo), check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=str(repo), check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=str(repo), check=True)
+
+    tracked_file = repo / "tracked.txt"
+    tracked_file.write_text("v1", encoding="utf-8")
+    subprocess.run(["git", "add", "tracked.txt"], cwd=str(repo), check=True)
+    subprocess.run(["git", "commit", "-m", "init"], cwd=str(repo), check=True)
+
+    assert _inspect_worktree_cleanliness(repo) == {
+        "tracked_changes": [],
+        "untracked_files": [],
+    }
+
+    # Timestamp/stat-cache drift alone must remain clean.
+    os.utime(tracked_file, None)
+    assert _inspect_worktree_cleanliness(repo)["tracked_changes"] == []
+
+    # Untracked content must fail the clean classification.
+    untracked_file = repo / "untracked.txt"
+    untracked_file.write_text("scratch", encoding="utf-8")
+    assert _inspect_worktree_cleanliness(repo)["untracked_files"] == ["untracked.txt"]
+
+    untracked_file.unlink()
+
+    # Both unstaged and staged tracked content must be reported.
+    tracked_file.write_text("v2", encoding="utf-8")
+    assert _inspect_worktree_cleanliness(repo)["tracked_changes"] == ["tracked.txt"]
+
+    subprocess.run(["git", "add", "tracked.txt"], cwd=str(repo), check=True)
+    assert _inspect_worktree_cleanliness(repo)["tracked_changes"] == ["tracked.txt"]
+
+
+def test_worktree_cleanliness_fails_closed_when_git_inspection_fails(tmp_path):
+    with pytest.raises(RuntimeError, match="git diff failed"):
+        _inspect_worktree_cleanliness(tmp_path / "not-a-repository")

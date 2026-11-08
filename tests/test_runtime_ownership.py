@@ -129,6 +129,25 @@ def test_runtime_lock_recovers_when_pid_probe_raises_oserror(monkeypatch, tmp_pa
     assert "stale_lock_recovered" in audit
 
 
+def test_runtime_lock_windows_probe_never_uses_os_kill(monkeypatch):
+    observed_pids = []
+    probe_pid = 2_147_483_000
+    monkeypatch.setattr(runtime_ownership.sys, "platform", "win32")
+    monkeypatch.setattr(
+        runtime_ownership,
+        "_windows_pid_alive",
+        lambda pid: (observed_pids.append(pid), True)[1],
+    )
+    monkeypatch.setattr(
+        runtime_ownership.os,
+        "kill",
+        lambda *_args: (_ for _ in ()).throw(AssertionError("os.kill must not probe Windows PIDs")),
+    )
+
+    assert runtime_ownership._pid_alive({"process_id": probe_pid}) is True
+    assert observed_pids == [probe_pid]
+
+
 def test_unacquired_runtime_lock_release_is_noop(monkeypatch, tmp_path):
     _clear_path_overrides(monkeypatch)
     monkeypatch.setenv("BTC_RUNTIME_ENVIRONMENT", "paper")
@@ -244,7 +263,7 @@ def test_runtime_guard_fingerprint_reports_hash_and_owner(tmp_path):
     after = snapshot_runtime_roots([watched])
     changes = describe_runtime_changes(before, after, repo_root=tmp_path)
 
-    state_change = next(change for change in changes if change["path"] == "watched/state.json")
+    state_change = next(change for change in changes if Path(change["path"]).as_posix() == "watched/state.json")
     assert state_change["before_hash"] != state_change["after_hash"]
     assert state_change["suspected_writer_runtime_id"] == "runtime-writer"
     assert state_change["suspected_writer_process_id"] == 12345

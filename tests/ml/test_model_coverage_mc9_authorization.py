@@ -4,6 +4,7 @@ Tests the authorization artifact (MC9-E) and dry validation logic (MC9-F).
 """
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,9 @@ IDENTITY_PATH = ROOT / "model_coverage_mc9_release_identity.json"
 
 SOURCE_COMMIT = "94407d3483bb01eccf0e86882cef258dcbb646e9"
 EXPECTED_RELEASE_ID = "model-coverage-v1"
+V1_MANIFEST_COMMIT = "56231dc093445280b6b4e73ae7d453b5e6409a16"
+V1_IDENTITY_COMMIT = "9909463519405fb05307f987f10cbe878b3e0b00"
+V1_ARMED_AUTH_COMMIT = "ba2a2ec5d0dc4a7e04b762ad39e21c8ab2e2fe33"
 EXPECTED_SYMBOLS = ["BNB", "BTC", "DOGE", "ETH", "IOTA", "NEAR", "SOL", "TRX", "ZEC"]
 
 
@@ -24,6 +28,14 @@ def sha256_file(path: Path) -> str:
         for block in iter(lambda: fh.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def git_artifact_bytes(commit: str, path: str) -> bytes:
+    """Read an immutable historical artifact directly from its sealing commit."""
+    return subprocess.check_output(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=ROOT,
+    )
 
 
 def validate_auth(auth: dict, identity_sha: str, manifest_sha: str) -> tuple[bool, str]:
@@ -67,29 +79,40 @@ def identity():
 
 
 @pytest.fixture(scope="module")
-def identity_sha():
-    return sha256_file(IDENTITY_PATH)
+def armed_auth():
+    return json.loads(
+        git_artifact_bytes(V1_ARMED_AUTH_COMMIT, "model_coverage_mc9_p7_authorization.json")
+    )
 
 
 @pytest.fixture(scope="module")
-def manifest_sha(identity):
-    return identity["release_manifest"]["sha256"]
+def v1_manifest_sha():
+    return hashlib.sha256(
+        git_artifact_bytes(V1_MANIFEST_COMMIT, "model_coverage_mc8_release_manifest.json")
+    ).hexdigest()
+
+
+@pytest.fixture(scope="module")
+def v1_identity_sha():
+    return hashlib.sha256(
+        git_artifact_bytes(V1_IDENTITY_COMMIT, "model_coverage_mc9_release_identity.json")
+    ).hexdigest()
 
 
 # ── T1  SHA256 sidecar matches disk ─────────────────────────────────────────
 def test_mc9_e_t1_sha256_sidecar():
     assert AUTH_SHA_PATH.exists()
-    assert sha256_file(AUTH_PATH) == AUTH_SHA_PATH.read_text().strip()
+    assert sha256_file(AUTH_PATH) == AUTH_SHA_PATH.read_text().strip().split()[0]
 
 
-# ── T2  authorization_state == ARMED ─────────────────────────────────────────
-def test_mc9_e_t2_state_armed(auth):
-    assert auth["authorization_state"] == "ARMED"
+# ── T2  authorization_state == CONSUMED ────────────────────────────────────────
+def test_mc9_e_t2_state_consumed(auth):
+    assert auth["authorization_state"] == "CONSUMED"
 
 
-# ── T3  authorization_consumed == false ───────────────────────────────────────
-def test_mc9_e_t3_not_consumed(auth):
-    assert auth["authorization_consumed"] is False
+# ── T3  authorization_consumed == true ───────────────────────────────────────
+def test_mc9_e_t3_is_consumed(auth):
+    assert auth["authorization_consumed"] is True
 
 
 # ── T4  runtime_activation_performed == false ────────────────────────────────
@@ -109,14 +132,14 @@ def test_mc9_e_t6_source_commit(auth):
 
 
 # ── T7  release_id and manifest sha correct ───────────────────────────────────
-def test_mc9_e_t7_release_binding(auth, manifest_sha):
+def test_mc9_e_t7_release_binding(auth, v1_manifest_sha):
     assert auth["release_id"] == EXPECTED_RELEASE_ID
-    assert auth["release_manifest_sha256"] == manifest_sha
+    assert auth["release_manifest_sha256"] == v1_manifest_sha
 
 
-# ── T8  release identity sha matches disk ─────────────────────────────────────
-def test_mc9_e_t8_identity_sha(auth, identity_sha):
-    assert auth["release_identity_sha256"] == identity_sha
+# ── T8  release identity sha matches bound v1 identity ────────────────────────
+def test_mc9_e_t8_identity_sha(auth, v1_identity_sha):
+    assert auth["release_identity_sha256"] == v1_identity_sha
 
 
 # ── T9  SOL is explicitly in effective_runtime_symbols ───────────────────────
@@ -130,9 +153,9 @@ def test_mc9_e_t10_symbols_exact(auth):
     assert auth["effective_runtime_count"] == 9
 
 
-# ── T11  full positive validation passes ─────────────────────────────────────
-def test_mc9_e_t11_positive_validation(auth, identity_sha, manifest_sha):
-    ok, reason = validate_auth(auth, identity_sha, manifest_sha)
+# ── T11  full positive validation passes for ARMED authorization ────────────
+def test_mc9_e_t11_positive_validation(armed_auth, v1_identity_sha, v1_manifest_sha):
+    ok, reason = validate_auth(armed_auth, v1_identity_sha, v1_manifest_sha)
     assert ok, f"Positive validation failed: {reason}"
 
 
@@ -149,10 +172,10 @@ def test_mc9_e_t11_positive_validation(auth, identity_sha, manifest_sha):
     ("wrong_identity_sha", {"release_identity_sha256": "b" * 64}),
     ("wrong_release_id", {"release_id": "model-coverage-v0"}),
 ])
-def test_mc9_f_negative(auth, identity_sha, manifest_sha, label, mutation):
+def test_mc9_f_negative(armed_auth, v1_identity_sha, v1_manifest_sha, label, mutation):
     """Every tampered authorization must be rejected (fail-closed)."""
-    tampered = {**auth, **mutation}
-    ok, reason = validate_auth(tampered, identity_sha, manifest_sha)
+    tampered = {**armed_auth, **mutation}
+    ok, reason = validate_auth(tampered, v1_identity_sha, v1_manifest_sha)
     assert not ok, (
         f"Negative case '{label}' was NOT rejected (should have been): reason={reason!r}"
     )

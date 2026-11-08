@@ -24,7 +24,7 @@ def test_trade_flow_history_schema():
         "provenance_class", "interval"
     }
     assert required_cols.issubset(df.columns)
-    
+
     # Assert PIT boundary case: bar is only available at open_time + 15m
     assert (df["available_at"] == df["open_time"] + pd.Timedelta(minutes=15)).all()
 
@@ -32,7 +32,7 @@ def test_pit_no_lookahead():
     # Load audit JSON and assert verdicts are reject
     with open(JSON_PATH, "r") as f:
         data = json.load(f)
-        
+
     assert len(data["feature_verdicts"]) == 5
     for fv in data["feature_verdicts"]:
         assert fv["verdict"] == "REJECT_NO_ECONOMIC_INFORMATION"
@@ -46,16 +46,18 @@ def test_determinism_invariant():
     # Read existing JSON verdict
     with open(JSON_PATH, "r") as f:
         existing_data = json.load(f)
-        
+
     # Re-run the audit script
-    cmd = [".venv/bin/python", "scripts/hmr_v4b_4b_trade_flow_audit.py"]
-    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    import sys, os
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, "scripts/hmr_v4b_4b_trade_flow_audit.py"]
+    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, env=env, encoding="utf-8")
     assert res.returncode == 0
-    
+
     # Read newly generated JSON verdict
     with open(JSON_PATH, "r") as f:
         new_data = json.load(f)
-        
+
     # Verify features and verdicts match exactly
     assert len(existing_data["feature_verdicts"]) == len(new_data["feature_verdicts"])
     for i in range(len(existing_data["feature_verdicts"])):

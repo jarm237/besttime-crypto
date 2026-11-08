@@ -32,7 +32,9 @@ def test_atomic_write_never_leaves_partial_json(tmp_path):
     assert not list(tmp_path.glob("*.tmp"))
 
 
-def test_health_readiness_reflects_dependencies(tmp_path):
+def test_health_readiness_reflects_dependencies(monkeypatch, tmp_path):
+    import shutil
+    monkeypatch.setattr(shutil, "disk_usage", lambda path: shutil._ntuple_diskusage(100 * 1024**3, 50 * 1024**3, 50 * 1024**3))
     unhealthy = service_health(db_ok=False, exchange_ok=True, model_ok=True, data_path=tmp_path)
     assert unhealthy["live"] is True and unhealthy["ready"] is False
     healthy = service_health(db_ok=True, exchange_ok=True, model_ok=True, data_path=tmp_path)

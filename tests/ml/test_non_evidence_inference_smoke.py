@@ -22,8 +22,9 @@ from tests.ml.fixtures.production_lineage import (
 def test_configure_smoke_runtime_uses_non_production_smoke_namespace(monkeypatch, tmp_path):
     runtime_root = configure_smoke_runtime(monkeypatch, tmp_path)
 
-    assert "runtime/production" not in str(runtime_root)
-    assert "runtime/smoke" in str(runtime_root)
+    posix_root = runtime_root.as_posix()
+    assert "runtime/production" not in posix_root
+    assert "runtime/smoke" in posix_root
     assert runtime_root.name == "paper-canary-20260805-01-preflight"
     assert os.getenv("BTC_DEPLOYMENT_ID") == "paper-canary-20260805-01-smoke"
     assert os.getenv("BTC_PAPER_RUN_ID") == "paper-canary-20260805-01-smoke"
