@@ -215,17 +215,18 @@ async def _fetch_from_domains(symbol: str, interval: str, limit: int, sess: aioh
     raise last_err or RuntimeError("All exchange REST endpoints unreachable")
 
 
-async def fetch_ohlcv(coin: str, session: aiohttp.ClientSession = None) -> list[dict]:
+async def fetch_ohlcv(coin: str, session: aiohttp.ClientSession = None, limit: int | None = None) -> list[dict]:
     """
     Lấy dữ liệu nến OHLCV từ Binance cho một coin cụ thể.
     Trả về danh sách dict với các trường: time, open, high, low, close, volume.
     """
     symbol = f"{coin}USDT"
+    use_limit = limit if limit is not None else LIMIT
     try:
         if session is None:
             async with create_robust_client_session() as sess:
-                return await _fetch_from_domains(symbol, INTERVAL, LIMIT, sess)
-        return await _fetch_from_domains(symbol, INTERVAL, LIMIT, session)
+                return await _fetch_from_domains(symbol, INTERVAL, use_limit, sess)
+        return await _fetch_from_domains(symbol, INTERVAL, use_limit, session)
     except Exception as e:
         return [{"error": str(e)}]
 

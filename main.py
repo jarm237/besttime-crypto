@@ -4,6 +4,9 @@ Cào dữ liệu nến 15m đa coin từ Binance, Bybit, OKX
 Tính toán chỉ số kỹ thuật và in bảng tổng hợp tín hiệu Mua/Bán.
 """
 
+from btc_scraper.core.milestones import milestone_tracker
+milestone_tracker.record("process_started")
+
 from dotenv import load_dotenv
 load_dotenv()
 import sys
@@ -62,11 +65,20 @@ from btc_scraper.collectors.macro_collector import load_macro_state, fetch_and_s
 from btc_scraper.collectors.alternative_scheduler import AlternativeDataScheduler
 from btc_scraper.collectors.alternative_quality import CollectorHealthMonitor, DataQualityDashboard
 from btc_scraper.collectors.alternative_data import load_alternative_data
+milestone_tracker.record("imports_ready")
 
 
 console = Console()
 RUNTIME_UNIVERSE = get_runtime_universe()
 ANALYSIS_SYMBOLS = RUNTIME_UNIVERSE.analysis_symbols
+
+# Cold-start & runtime telemetry
+_COLD_START_TIME = milestone_tracker.get("process_started") or time.perf_counter()
+_TIME_TO_FIRST_ANALYSIS: float | None = None
+_TIME_TO_FIRST_PREDICTION: float | None = None
+_ALT_FOREGROUND_WAIT: float = 0.0
+_ALT_CACHE_AGE: float | None = None
+_STARTUP_MODE_USED: str = "cache"
 
 
 def _resolve_analysis_fear_greed(analysis: dict) -> float:
@@ -102,6 +114,7 @@ shutdown_event_async = None  # Will be initialized in async_main
 managed_processes: list[subprocess.Popen] = []
 runtime_lock: RuntimeLock | None = None
 runtime_pause_controller: RuntimePauseController | None = None
+_runtime_args: Any = None
 
 
 def _track_process(proc: subprocess.Popen) -> None:
@@ -287,21 +300,51 @@ def _send_alt_data_telegram_alert(alert) -> None:
         pass  # Never crash the monitor callback
 
 
+INTERVAL_FRESHNESS_TTL: dict[str, float] = {
+    "15m": 1800.0,
+    "1h": 7200.0,
+    "4h": 28800.0,
+    "1d": 172800.0,
+}
+
+# Optional simulated clock for offline replay (None => wall clock). Paper/benchmark use only.
+_candle_clock = None
+
+
 async def _get_candles_for_coin(coin: str, interval: str = "15m", session=None) -> list[dict]:
     """
-    Đọc nến từ CandleStore (WS) nếu có, ngược lại fallback về REST.
+    Đọc nến từ CandleStore (WS) nếu WebSocket healthy và dữ liệu tươi mới.
+    Ngược lại fallback về REST API.
     Đây là điểm duy nhất trong code đọc dữ liệu Binance.
     """
     global _ws_manager
-    if _ws_manager is not None and candle_store.has_data(coin, interval):
+    using_ws = _ws_manager is not None and _ws_manager.is_healthy()
+    default_max_age = float(os.getenv("CANDLE_MAX_AGE_SECONDS", "1800"))
+    max_age = INTERVAL_FRESHNESS_TTL.get(interval, default_max_age)
+    ref_now = _candle_clock() if _candle_clock is not None else None
+    if using_ws and candle_store.has_data(coin, interval) and candle_store.is_fresh(coin, interval, max_age_seconds=max_age, now=ref_now):
         candles = candle_store.get(coin, interval)
         if candles:
-            return candles
+            return candles[-210:] if interval == "15m" else candles
 
-    # REST fallback (WS chưa sẵn sàng hoặc chưa có dữ liệu)
+    # REST fallback (WS chưa sẵn sàng hoặc dữ liệu stale / chưa có)
     from btc_scraper.exchanges.binance import fetch_ohlcv, fetch_ohlcv_tf, MTF_INTERVALS
     if interval == "15m":
-        return await fetch_ohlcv(coin, session)
+        existing = candle_store.get(coin, "15m") if candle_store.has_data(coin, "15m") else None
+        if existing and isinstance(existing[0], dict) and "time" in existing[0]:
+            # Incremental update: fetch only latest 10 candles, merge into store without wiping history
+            new_candles = await fetch_ohlcv(coin, session, limit=10)
+            if new_candles and isinstance(new_candles[0], dict) and "time" in new_candles[0]:
+                for c in new_candles:
+                    candle_store.update(coin, "15m", c)
+                return candle_store.get(coin, "15m")[-210:]
+            return new_candles
+        limit = candle_store.get_capacity(coin, "15m") if hasattr(candle_store, "get_capacity") else None
+        fetched = await fetch_ohlcv(coin, session, limit=limit)
+        if fetched and isinstance(fetched[0], dict) and "time" in fetched[0]:
+            candle_store.seed(coin, "15m", fetched)
+            return candle_store.get(coin, "15m")[-210:]
+        return fetched
     limit = MTF_INTERVALS.get(interval, 50)
     return await fetch_ohlcv_tf(coin, interval, limit, session)
 
@@ -330,19 +373,51 @@ async def _run_causal_runtime_pass(
 
         manager = get_world_state_manager()
         state = state_payload or {}
-        macro_state = load_macro_state()
+        has_explicit_macro = isinstance(state.get("macro"), dict) or ("macro_quality_status" in state)
+        raw_macro_in = state.get("macro") if isinstance(state.get("macro"), dict) else {}
+        raw_sent_in = state.get("sentiment") if isinstance(state.get("sentiment"), dict) else {}
+        macro_state = {} if has_explicit_macro else load_macro_state()
+        from btc_scraper.collectors.macro_collector import is_macro_state_fresh
+        if has_explicit_macro:
+            is_macro_stale = bool(
+                str(state.get("macro_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+                or state.get("macro_stale", False)
+                or raw_macro_in.get("stale", False)
+                or str(raw_macro_in.get("status") or "").lower() == "stale"
+            )
+        else:
+            is_macro_stale = bool(macro_state.get("stale", False) or not is_macro_state_fresh())
+        is_sentiment_stale = bool(
+            str(state.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+            or state.get("sentiment_stale", False)
+            or raw_sent_in.get("stale", False)
+            or str(raw_sent_in.get("status") or "").lower() == "stale"
+        )
+
         world_state = WorldState(timestamp=__import__('datetime').datetime.now(__import__('datetime').timezone.utc))
         world_state.regime = risk_appetite_from_signal(state.get("signal"))
         world_state.technical_regime = state.get("technical_regime")
         world_state.liquidity_regime = LiquidityRegime.NORMAL
-        world_state.macro.DXY = float(state.get("macro", {}).get("DXY", macro_state.get("DXY", 100.0)))
-        world_state.macro.RealYield = float(state.get("macro", {}).get("RealYield", 0.0))
-        world_state.macro.VIX = float(state.get("macro", {}).get("VIX", macro_state.get("VIX", 20.0)))
-        world_state.macro.BondYield = float(macro_state.get("BondYield", 4.5))
+        if is_macro_stale:
+            world_state.macro.DXY = 100.0
+            world_state.macro.RealYield = 0.0
+            world_state.macro.VIX = 20.0
+            world_state.macro.BondYield = 4.5
+        else:
+            world_state.macro.DXY = float(raw_macro_in.get("DXY", macro_state.get("DXY", 100.0)))
+            world_state.macro.RealYield = float(raw_macro_in.get("RealYield", macro_state.get("RealYield", 0.0)))
+            world_state.macro.VIX = float(raw_macro_in.get("VIX", macro_state.get("VIX", 20.0)))
+            world_state.macro.BondYield = float(raw_macro_in.get("BondYield", macro_state.get("BondYield", 4.5)))
+
         world_state.liquidity.BTC_Funding = float(state.get("liquidity", {}).get("BTC_Funding", 0.0))
         world_state.liquidity.OI_Delta = float(state.get("liquidity", {}).get("OI_Delta", 0.0))
         world_state.crypto.BTC_Price = float(state.get("crypto", {}).get("BTC_Price", 0.0))
-        world_state.sentiment.FearGreed = float(state.get("sentiment", {}).get("FearGreed", 50.0))
+        if is_sentiment_stale:
+            world_state.sentiment.FearGreed = 50.0
+        else:
+            world_state.sentiment.FearGreed = float(raw_sent_in.get("FearGreed", 50.0))
+        world_state.macro_quality_status = "STALE_NEUTRALIZED" if is_macro_stale else "FRESH"
+        world_state.sentiment_quality_status = "STALE_NEUTRALIZED" if is_sentiment_stale else "FRESH"
         manager.update_state(world_state)
 
         predictor = components.get("predictor") or WorldModelPredictor(graph_path="data/causal_graph.json")
@@ -358,10 +433,19 @@ async def _run_causal_runtime_pass(
         ]
         consensus = consensus_engine.decide(world_state, reports)
 
+        observability_only = {}
+        if is_macro_stale:
+            observability_only["raw_macro"] = dict(state.get("raw_macro") or raw_macro_in or macro_state)
+        if is_sentiment_stale:
+            observability_only["raw_sentiment"] = dict(state.get("raw_sentiment") or raw_sent_in)
+
         return {
             "prediction": prediction,
             "anomaly": anomaly,
             "consensus": consensus,
+            "macro_quality_status": world_state.macro_quality_status,
+            "sentiment_quality_status": world_state.sentiment_quality_status,
+            "observability_only": observability_only,
         }
     except Exception as exc:
         console.print(f"[dim yellow]Causal runtime pass skipped: {exc}[/dim yellow]")
@@ -425,9 +509,14 @@ async def fetch_and_display():
         )
 
     # Chạy hệ thống đa tác nhân điều phối (AgentOrchestrator)
+    milestone_tracker.record("market_data_ready")
     from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
     orchestrator = AgentOrchestrator(analysis_symbols=ANALYSIS_SYMBOLS)
     context = await orchestrator.run_cycle(raw_candles_dict, mtf_candles_dict)
+
+    global _TIME_TO_FIRST_ANALYSIS, _TIME_TO_FIRST_PREDICTION
+    _TIME_TO_FIRST_ANALYSIS = milestone_tracker.elapsed_since_start("first_analysis_ready")
+    _TIME_TO_FIRST_PREDICTION = milestone_tracker.elapsed_since_start("first_prediction_ready")
 
     analysis = context["analysis"]
     mtf_analysis = context["mtf_analysis"]
@@ -435,16 +524,37 @@ async def fetch_and_display():
     try:
         # Phase A fix: đọc đúng key "BTC:Binance" và lấy fear_greed từ đúng path
         btc_ana = analysis.get("BTC:Binance", {})
-        fear_greed = _resolve_analysis_fear_greed(btc_ana)
+        sentiment_dict = btc_ana.get("sentiment") or {}
+        sentiment_is_stale = bool(sentiment_dict.get("stale", False) or (sentiment_dict.get("status") == "stale"))
+        raw_sent_obs = sentiment_dict.get("raw_observability") if isinstance(sentiment_dict, dict) else None
+        raw_fear_greed = (
+            resolve_fear_greed_value(raw_sent_obs.get("raw_value"), default=50.0)
+            if (sentiment_is_stale and isinstance(raw_sent_obs, dict) and raw_sent_obs.get("raw_value") is not None)
+            else _resolve_analysis_fear_greed(btc_ana)
+        )
+        effective_fear_greed = 50.0 if sentiment_is_stale else raw_fear_greed
+
+        from btc_scraper.collectors.macro_collector import is_macro_state_fresh
         macro_state = load_macro_state()
+        macro_is_stale = bool(macro_state.get("stale", False) or not is_macro_state_fresh())
+        raw_macro = {
+            "DXY": float(macro_state.get("DXY", 100.0)),
+            "RealYield": 0.0,
+            "VIX": float(macro_state.get("VIX", 20.0)),
+            "BondYield": float(macro_state.get("BondYield", 4.5)),
+        }
+        effective_macro = {
+            "DXY": 100.0 if macro_is_stale else raw_macro["DXY"],
+            "RealYield": 0.0,
+            "VIX": 20.0 if macro_is_stale else raw_macro["VIX"],
+            "BondYield": 4.5 if macro_is_stale else raw_macro["BondYield"],
+        }
         causal_payload = {
             "signal": btc_ana.get("signal", "neutral"),
             "technical_regime": btc_ana.get("regime_snapshot"),
-            "macro": {
-                "DXY": float(macro_state.get("DXY", 100.0)),
-                "RealYield": 0.0,
-                "VIX": float(macro_state.get("VIX", 20.0)),
-            },
+            "macro": effective_macro,
+            "raw_macro": raw_macro,
+            "macro_quality_status": "STALE_NEUTRALIZED" if macro_is_stale else "FRESH",
             "liquidity": {
                 "BTC_Funding": float(btc_ana.get("funding_rate") or btc_ana.get("funding") or 0.0),
                 "OI_Delta":    float(btc_ana.get("oi_delta") or 0.0),
@@ -453,8 +563,13 @@ async def fetch_and_display():
                 "BTC_Price": float(btc_ana.get("close", 0.0)),
             },
             "sentiment": {
-                "FearGreed": fear_greed,
+                "FearGreed": effective_fear_greed,
             },
+            "raw_sentiment": {
+                "FearGreed": raw_fear_greed,
+            },
+            "sentiment_quality_status": "STALE_NEUTRALIZED" if sentiment_is_stale else "FRESH",
+            "sentiment_stale": sentiment_is_stale,
         }
         causal_result = await _run_causal_runtime_pass(causal_payload, _CAUSAL_COMPONENTS)
 
@@ -550,9 +665,11 @@ async def fetch_and_display():
     # 3. Gửi tin nhắn thông báo tín hiệu về Telegram ngay lập tức (Luồng Core)
     message_id = send_signals_alert(analysis, mtf_analysis)
 
-    # 4. Đẩy phân tích đa khung thời gian và vị thế mở vào Queue cho Luồng AI xử lý ngầm
-    open_positions = _runtime_open_positions()
-    ai_queue.put((analysis, mtf_analysis, open_positions, message_id))
+    # 4. Đẩy phân tích đa khung thời gian và vị thế mở vào Queue cho Luồng AI xử lý ngầm (nếu không skip)
+    if _runtime_args is None or not getattr(_runtime_args, "skip_ai_drain", False):
+        open_positions = _runtime_open_positions()
+        ai_queue.put((analysis, mtf_analysis, open_positions, message_id))
+    milestone_tracker.record("cycle_complete")
 
 async def fetch_and_analyze_open_positions_only():
     """Lấy dữ liệu và phân tích chỉ cho các coin đang có vị thế mở (quét khẩn cấp mỗi 5 phút). Không gọi AI."""
@@ -773,7 +890,20 @@ async def async_main():
         action="store_true",
         help="Chạy một lần rồi thoát (mặc định: chạy liên tục)",
     )
+    parser.add_argument(
+        "--skip-ai-drain",
+        action="store_true",
+        help="Không đợi AI worker queue drain khi chạy --once (dùng cho core benchmark)",
+    )
+    parser.add_argument(
+        "--alternative-mode",
+        choices=["cache", "refresh", "blocking", "background"],
+        default=None,
+        help="Chế độ nạp alternative data khi khởi động: cache (nhanh) hoặc refresh",
+    )
+    global _runtime_args
     args = parser.parse_args()
+    _runtime_args = args
 
     console.print(f"\n[bold yellow]*** Multi-coin Trading Signals Scraper ***[/]")
     console.print(
@@ -835,12 +965,31 @@ async def async_main():
             on_success=lambda payload: _alt_health_monitor.record_collection("alternative_data", payload, success=True),
             on_failure=lambda exc: _alt_health_monitor.record_collection("alternative_data", {}, success=False),
         )
-        first_payload = _alt_data_scheduler.run_once(force=True)
+        global _ALT_FOREGROUND_WAIT, _ALT_CACHE_AGE, _STARTUP_MODE_USED
+        cli_alt_mode = getattr(args, "alternative_mode", None)
+        startup_mode = cli_alt_mode or os.getenv(
+            "ALTERNATIVE_DATA_STARTUP_MODE",
+            "cache" if (args.once or os.getenv("BTC_RUNTIME_ENVIRONMENT") == "paper") else "background"
+        )
+        _STARTUP_MODE_USED = startup_mode
+        t_alt_0 = time.perf_counter()
+        first_payload = _alt_data_scheduler.run_startup(mode=startup_mode)
+        _ALT_FOREGROUND_WAIT = round(time.perf_counter() - t_alt_0, 4)
+        milestone_tracker.record("alternative_cache_ready")
+
+        ts_raw = first_payload.get("timestamp")
+        if ts_raw:
+            try:
+                ts = datetime.fromisoformat(str(ts_raw).replace("Z", "+00:00"))
+                _ALT_CACHE_AGE = round((datetime.now(timezone.utc) - ts).total_seconds(), 2)
+            except Exception:
+                _ALT_CACHE_AGE = None
+
         n_fields = sum(1 for k, v in first_payload.items() if k != "timestamp" and v != 0.0)
         console.print(
-            f"[bold cyan]  [Alternative Data] Scheduler started "
-            f"(interval={FETCH_INTERVAL_MINUTES * 60}s) | "
-            f"First collection: {len(first_payload)} fields ({n_fields} non-zero)[/bold cyan]\n"
+            f"[bold cyan]  [Alternative Data] Scheduler started (mode={startup_mode}, "
+            f"interval={FETCH_INTERVAL_MINUTES * 60}s, startup_wait={_ALT_FOREGROUND_WAIT}s) | "
+            f"Initial payload: {len(first_payload)} fields ({n_fields} non-zero)[/bold cyan]\n"
         )
         if not args.once:
             _alt_data_scheduler.start(daemon=True)
@@ -914,21 +1063,57 @@ async def async_main():
             f"[dim]>> Lên lịch tổng quát vào: {general_minutes} | Quét khẩn cấp vị thế mở vào: {focused_minutes}. Nhấn Ctrl+C để dừng.[/dim]\n"
         )
 
-    # Khởi động worker thread chạy ngầm (daemon)
-    worker = threading.Thread(target=ai_worker, daemon=True)
-    worker.start()
+    # Khởi động worker thread chạy ngầm (daemon) nếu không skip
+    if not args.skip_ai_drain:
+        worker = threading.Thread(target=ai_worker, daemon=True)
+        worker.start()
 
     # Lấy dữ liệu ngay lập tức (cũng có retry)
     if runtime_pause_controller is None or not runtime_pause_controller.is_paused:
         await fetch_and_display_with_retry()
 
     if args.once:
-        # Nếu chỉ chạy 1 lần, đợi hàng đợi AI hoàn thành trước khi thoát
-        if not ai_queue.empty():
+        # Nếu chỉ chạy 1 lần, kiểm tra có đợi hàng đợi AI hoàn thành hay không
+        if not args.skip_ai_drain and not ai_queue.empty():
             console.print("\n[dim]Đang đợi AI Worker hoàn thành phân tích...[/dim]")
             ai_queue.join()
+        milestone_tracker.record("ai_drain_complete")
         shutdown_event.set()
-        ai_queue.put(None)
+        if not args.skip_ai_drain:
+            ai_queue.put(None)
+        milestone_tracker.record("shutdown_complete")
+
+        # Write cold start telemetry for benchmarking & observability
+        try:
+            import json
+            from btc_scraper.core.utils import write_atomic
+            telemetry_path = build_logs_path("cold_start_telemetry.json")
+            m_dict = milestone_tracker.to_dict()
+            core_cycle_sec = milestone_tracker.elapsed_since_start("cycle_complete")
+            ai_drain_sec = None
+            if "ai_drain_complete" in m_dict["milestones_sec"] and "cycle_complete" in m_dict["milestones_sec"]:
+                ai_drain_sec = round(max(0.0, m_dict["milestones_sec"]["ai_drain_complete"] - m_dict["milestones_sec"]["cycle_complete"]), 4)
+            telemetry = {
+                "startup_mode": _STARTUP_MODE_USED,
+                "benchmark_mode": "CORE_CYCLE" if args.skip_ai_drain else "END_TO_END_WITH_AI_DRAIN",
+                "core_cycle_wall_sec": core_cycle_sec,
+                "ai_drain_sec": ai_drain_sec,
+                "total_cold_wall_sec": round(time.perf_counter() - _COLD_START_TIME, 4),
+                "alternative_foreground_wait_sec": _ALT_FOREGROUND_WAIT,
+                "time_to_first_analysis_sec": milestone_tracker.elapsed_since_start("first_analysis_ready"),
+                "time_to_first_prediction_sec": milestone_tracker.elapsed_since_start("first_prediction_ready"),
+                "time_to_first_final_decision_sec": milestone_tracker.elapsed_since_start("first_final_decision_ready"),
+                "time_to_cycle_complete_sec": core_cycle_sec,
+                "cache_freshness_sec": _ALT_CACHE_AGE,
+                "parsebot_foreground_jobs": 0,
+                "milestones": m_dict["milestones_sec"],
+                "milestones_valid": m_dict["milestones_valid"],
+                "milestone_validation_errors": m_dict["validation_errors"],
+            }
+            write_atomic(str(telemetry_path), json.dumps(telemetry, indent=2))
+        except Exception as tel_err:
+            logger.warning("Could not write cold_start_telemetry.json: %s", tel_err)
+
         _cleanup_managed_processes()
         return
 
@@ -942,7 +1127,8 @@ async def async_main():
         console.print("\n[bold red]Đã dừng.[/bold red]")
     finally:
         shutdown_event.set()
-        ai_queue.put(None)
+        if not getattr(_runtime_args, "skip_ai_drain", False):
+            ai_queue.put(None)
         if _alt_data_scheduler is not None:
             _alt_data_scheduler.stop(timeout=5.0)
         _cleanup_managed_processes()
@@ -986,7 +1172,8 @@ def main():
         console.print("\n[bold red]Đã dừng.[/bold red]")
     finally:
         shutdown_event.set()
-        ai_queue.put(None)
+        if not getattr(_runtime_args, "skip_ai_drain", False):
+            ai_queue.put(None)
         _cleanup_managed_processes()
         if runtime_lock is not None:
             runtime_lock.release()

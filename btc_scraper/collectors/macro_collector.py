@@ -19,7 +19,9 @@ from btc_scraper.core.paths import build_data_path
 
 _logger = logging.getLogger(__name__)
 
-DATA_FILE = str(build_data_path("macro_state.json"))
+def _macro_data_file() -> Path:
+    return build_data_path("macro_state.json")
+
 
 MACRO_TICKERS = {
     "DXY": "DX-Y.NYB",
@@ -58,8 +60,36 @@ def _fetch_ticker_rest(ticker: str) -> Optional[float]:
 
 def fetch_and_save_macro() -> Dict[str, float | str]:
     """Fetch macro market data from yfinance (or REST fallback) and persist it to disk."""
-    result: Dict[str, float | str] = {}
+    mode = os.getenv("ALTERNATIVE_DATA_STARTUP_MODE", "").lower()
+    data_file = _macro_data_file()
+    max_age = int(os.getenv("MACRO_MAX_AGE_SECONDS", "3600"))
 
+    if mode == "cache":
+        if data_file.exists():
+            if is_macro_state_fresh(data_file, max_age_seconds=max_age):
+                existing = load_macro_state()
+                if existing and existing.get("timestamp"):
+                    existing.setdefault("stale", False)
+                    return existing
+            else:
+                # File exists but exceeds TTL — degrade explicitly
+                existing = load_macro_state()
+                if existing:
+                    existing["stale"] = True
+                    return existing
+
+        result = {
+            "DXY": 100.0,
+            "VIX": 20.0,
+            "BondYield": 4.5,
+            "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+            "stale": True,
+        }
+        _write_macro_state(result)
+        return result
+
+    result: Dict[str, float | str] = {}
+    had_fetch_failure = False
     for name, ticker in MACRO_TICKERS.items():
         if yf is not None:
             try:
@@ -78,6 +108,7 @@ def fetch_and_save_macro() -> Dict[str, float | str]:
         if val is not None:
             result[name] = val
         else:
+            had_fetch_failure = True
             _logger.warning("[macro_collector] all fetch methods failed for %s — using default", name)
             result[name] = {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}.get(name, 0.0)
 
@@ -85,38 +116,78 @@ def fetch_and_save_macro() -> Dict[str, float | str]:
     result.setdefault("VIX", 20.0)
     result.setdefault("BondYield", 4.5)
     result["timestamp"] = dt.datetime.now(dt.timezone.utc).isoformat()
+    result["stale"] = had_fetch_failure
     _write_macro_state(result)
     return result
 
 
 def load_macro_state() -> Dict[str, float | str]:
     """Load macro data from disk if present; otherwise return safe defaults."""
+    data_file = _macro_data_file()
     try:
-        with open(DATA_FILE, "r", encoding="utf-8") as handle:
-            data = json.load(handle)
-            if isinstance(data, dict):
-                return data
+        if data_file.exists():
+            with open(data_file, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+                if isinstance(data, dict):
+                    return data
     except Exception as _load_err:
         import logging as _log
         _log.getLogger(__name__).warning("[macro_collector] load_macro_state failed: %s — using defaults", _load_err)
 
-    return {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5}
+    return {"DXY": 100.0, "VIX": 20.0, "BondYield": 4.5, "stale": True}
 
 
-def is_macro_state_fresh(path: str | os.PathLike[str] | None = None, max_age_seconds: int = 3600) -> bool:
-    """Return True when the macro state file exists and was updated recently."""
-    target = Path(path or DATA_FILE)
+def is_macro_state_fresh(
+    path: str | os.PathLike[str] | None = None,
+    max_age_seconds: int = 3600,
+    max_future_skew_seconds: float = 60.0,
+    now: Optional[float] = None,
+) -> bool:
+    """
+    Return True when the macro state file exists and its content timestamp (or file mtime fallback)
+    is fresh and not skewed into the future.
+    """
+    target = Path(path) if path is not None else _macro_data_file()
     if not target.exists():
         return False
 
+    ref_time = now if now is not None else time.time()
+
+    # Parse payload timestamp first
+    ts = None
     try:
-        age_seconds = time.time() - target.stat().st_mtime
+        with open(target, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+            if isinstance(data, dict) and data.get("timestamp"):
+                iso_ts = str(data["timestamp"])
+                dt_val = dt.datetime.fromisoformat(iso_ts.replace("Z", "+00:00"))
+                ts = dt_val.timestamp()
+    except Exception:
+        ts = None
+
+    try:
+        mtime = target.stat().st_mtime
     except OSError:
         return False
-    return age_seconds <= max_age_seconds
+
+    # Check payload timestamp if present
+    if ts is not None:
+        if (ref_time - ts) > max_age_seconds:
+            return False
+        if (ts - ref_time) > max_future_skew_seconds:
+            return False
+
+    # Also check filesystem mtime
+    if (ref_time - mtime) > max_age_seconds:
+        return False
+    if (mtime - ref_time) > max_future_skew_seconds:
+        return False
+
+    return True
 
 
 def _write_macro_state(payload: Dict[str, float | str]) -> None:
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-    with open(DATA_FILE, "w", encoding="utf-8") as handle:
+    data_file = _macro_data_file()
+    os.makedirs(data_file.parent, exist_ok=True)
+    with open(data_file, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)

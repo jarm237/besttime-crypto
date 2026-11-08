@@ -14,6 +14,7 @@ import os
 import urllib.request
 import urllib.error
 from datetime import date, datetime, timedelta, timezone
+from typing import Optional, Tuple, Any, Dict, List
 
 from btc_scraper.core.paths import build_logs_path
 from btc_scraper.core.fear_greed import normalize_fear_greed, parse_fear_greed_record
@@ -96,6 +97,45 @@ def get_market_sentiment() -> dict:
 
     if now - _cache["timestamp"] < _CACHE_TTL:
         return {k: v for k, v in _cache.items() if k != "timestamp"}
+
+    if os.getenv("ALTERNATIVE_DATA_STARTUP_MODE") == "cache":
+        try:
+            history_path = build_logs_path("sentiment_history.json")
+            if not history_path.exists():
+                repo_fallback = Path(__file__).resolve().parent.parent.parent / "data" / "sentiment_history.json"
+                if repo_fallback.exists():
+                    history_path = repo_fallback
+            if history_path.exists():
+                with open(history_path, "r", encoding="utf-8") as f:
+                    hist = json.load(f)
+                daily = _history_by_date(hist)
+                if daily:
+                    latest_date = max(daily.keys())
+                    latest = daily[latest_date]
+                    now_utc = datetime.now(timezone.utc)
+                    today_utc = now_utc.date()
+                    max_sentiment_age = int(os.getenv("SENTIMENT_MAX_AGE_SECONDS", "86400"))
+                    days_diff = (today_utc - latest_date).days
+                    is_future_skew = days_diff < 0
+                    is_too_old = days_diff > 1 or (days_diff >= 1 and (now_utc - datetime.combine(latest_date, datetime.min.time(), tzinfo=timezone.utc)).total_seconds() > max_sentiment_age)
+                    is_stale = is_future_skew or is_too_old
+                    result = {
+                        "score": latest.get("score", 0.0),
+                        "normalized_score": latest.get("score", 0.0),
+                        "label": latest.get("label", "Neutral"),
+                        "raw_value": latest.get("raw_value", 50),
+                        "observed_at": latest.get("observed_at"),
+                        "observation_date": latest_date.isoformat(),
+                        "source": "cache",
+                        "status": "stale" if is_stale else "cached",
+                        "stale": is_stale,
+                        "trend": [],
+                    }
+                    _cache.update(result)
+                    _cache["timestamp"] = now
+                    return {k: v for k, v in _cache.items() if k != "timestamp"}
+        except Exception:
+            pass
 
     try:
         result = _fetch_fear_and_greed()
@@ -206,8 +246,12 @@ def _history_by_date(history: dict) -> dict[date, dict]:
     return {observed_date: item[1] for observed_date, item in daily.items()}
 
 
+_LAST_SAVED_SENTIMENT: Optional[Tuple[str, str, int, float]] = None
+
+
 def _save_sentiment_to_history(sentiment_dict: dict, history_file: str | None = None):
     """Upsert one canonical daily observation and retain a bounded history."""
+    global _LAST_SAVED_SENTIMENT
     from pathlib import Path
     try:
         raw_value = sentiment_dict.get("raw_value")
@@ -216,6 +260,11 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str | None = 
             return
 
         history_path = Path(history_file) if history_file is not None else build_logs_path("sentiment_history.json")
+        observed_date = _observation_date(sentiment_dict)
+        history_key = (str(history_path), observed_date.isoformat(), int(raw_value), float(score))
+        if _LAST_SAVED_SENTIMENT == history_key and history_path.exists():
+            return
+
         history_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Load existing history
@@ -228,7 +277,6 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str | None = 
                 history = {}
         
         daily = _history_by_date(history)
-        observed_date = _observation_date(sentiment_dict)
         daily[observed_date] = {
             "score": score,  # backward-compatible alias
             "normalized_score": score,
@@ -250,6 +298,7 @@ def _save_sentiment_to_history(sentiment_dict: dict, history_file: str | None = 
         # Save updated history
         with open(history_path, 'w', encoding='utf-8') as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
+        _LAST_SAVED_SENTIMENT = history_key
     except Exception as e:
         print(f"  [Sentiment] Lỗi lưu history: {e}", flush=True)
 

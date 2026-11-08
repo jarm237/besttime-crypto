@@ -53,6 +53,10 @@ class EntryRejectionReason(str, Enum):
     NON_EXECUTABLE_FINAL_DECISION = "non_executable_final_decision"
     FINAL_DECISION_LINEAGE_MISMATCH = "final_decision_lineage_mismatch"
     FINAL_DECISION_SUPERSEDED = "final_decision_superseded"
+    COOLDOWN_ACTIVE = "cooldown_active"
+    MAX_CONCURRENT_POSITIONS = "max_concurrent_positions"
+    CAPITAL_CAPACITY_EXCEEDED = "capital_capacity_exceeded"
+    NO_VIABLE_ECONOMIC_CANDIDATE = "no_viable_economic_candidate"
 
 
 class AuthorizationReason(str, Enum):

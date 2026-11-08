@@ -245,20 +245,31 @@ def build_meta_features(info: Dict, htf_trend: str = None) -> Dict[str, float]:
     # 6. fear_greed (raw 0-100)
     # Lấy từ nhiều nguồn: context.sentiment_raw, sentiment.raw_value
     sentiment = info.get("sentiment") or {}
-    fg_raw = first_not_none(
-        info.get("sentiment_raw"),
-        info.get("fear_greed"),
-        sentiment.get("raw_value"),
+    sentiment_is_stale = (
+        str(info.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+        or (isinstance(sentiment, dict) and bool(sentiment.get("stale") or sentiment.get("status") == "stale"))
     )
-    if fg_raw is not None:
-        f["fear_greed"] = max(0.0, min(100.0, _safe_float(fg_raw, default=50.0)))
+    if sentiment_is_stale:
+        f["fear_greed"] = 50.0
     else:
-        normalized = first_not_none(sentiment.get("normalized_score"), sentiment.get("score"))
-        if normalized is None:
-            f["fear_greed"] = 50.0
+        fg_raw = first_not_none(
+            info.get("sentiment_raw"),
+            info.get("fear_greed"),
+            sentiment.get("raw_value") if isinstance(sentiment, dict) else None,
+        )
+        if fg_raw is not None:
+            f["fear_greed"] = max(0.0, min(100.0, _safe_float(fg_raw, default=50.0)))
         else:
-            normalized = max(-1.0, min(1.0, _safe_float(normalized, default=0.0)))
-            f["fear_greed"] = (normalized + 1.0) / 2.0 * 100.0
+            normalized = (
+                first_not_none(sentiment.get("normalized_score"), sentiment.get("score"))
+                if isinstance(sentiment, dict)
+                else None
+            )
+            if normalized is None:
+                f["fear_greed"] = 50.0
+            else:
+                normalized = max(-1.0, min(1.0, _safe_float(normalized, default=0.0)))
+                f["fear_greed"] = (normalized + 1.0) / 2.0 * 100.0
 
     # 7. ema_distance_pct = (ema9 - ema21) / close * 100
     ema9 = _safe_float(info.get("ema9"), default=0.0)
@@ -364,6 +375,16 @@ def build_meta_features_v2(info: Dict, htf_trend: str = None) -> Dict[str, float
         "tf_4h_bull": info.get("tf_4h_bull"),
         "tf_1d_bull": info.get("tf_1d_bull"),
     }
+    _sent_v2 = info.get("sentiment") or {}
+    if (
+        str(info.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+        or (isinstance(_sent_v2, dict) and bool(_sent_v2.get("stale") or _sent_v2.get("status") == "stale"))
+    ):
+        extra_keys["sentiment_momentum"] = 0.0
+        extra_keys["sentiment_recovery"] = 0.0
+        extra_keys["sentiment_risk"] = 0.0
+        extra_keys["sentiment_trend_up"] = 0.0
+        extra_keys["sentiment_trend_down"] = 0.0
 
     regime_label, _, _, _ = _regime_components(info)
     regime_bucket = model_regime_bucket(regime_label, default="")
@@ -439,11 +460,18 @@ def records_to_dataset(records: List[Dict]) -> Tuple[List[List[float]], List[int
     for r in records:
         # Luôn re-extract để đảm bảo pattern fixes được áp dụng
         feat = build_meta_features_v2(r)
-        # Các sentiment fields cần lấy từ cached record nếu không thể recompute
-        for sk in ("sentiment_momentum", "sentiment_recovery", "sentiment_risk",
-                   "sentiment_trend_up", "sentiment_trend_down", "fear_greed"):
-            if feat.get(sk, 0.0) == 0.0 and r.get(sk, 0.0) != 0.0:
-                feat[sk] = float(r[sk])
+        r_sent = r.get("sentiment")
+        r_sent_stale = (
+            str(r.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+            or bool(r.get("sentiment_stale"))
+            or (isinstance(r_sent, dict) and bool(r_sent.get("stale") or r_sent.get("status") == "stale"))
+        )
+        # Các sentiment fields cần lấy từ cached record nếu không thể recompute (nhưng không nạp lại nếu stale)
+        if not r_sent_stale:
+            for sk in ("sentiment_momentum", "sentiment_recovery", "sentiment_risk",
+                       "sentiment_trend_up", "sentiment_trend_down", "fear_greed"):
+                if feat.get(sk, 0.0) == 0.0 and r.get(sk, 0.0) != 0.0:
+                    feat[sk] = float(r[sk])
         row = [float(feat.get(k, 0.0)) for k in FEATURE_SCHEMA_V2]
         X.append(row)
         label = 1 if (r.get("result") == "WIN") else 0

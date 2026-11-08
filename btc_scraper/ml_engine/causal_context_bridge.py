@@ -85,14 +85,27 @@ def build_world_state_from_ana(ana: Dict):
         state = WorldState(timestamp=datetime.datetime.now(datetime.timezone.utc))
         state.regime = MarketRegime.RISK_ON if "BUY" in sig else MarketRegime.RISK_OFF
 
-        # Sentiment
-        _sentiment = ana.get("sentiment") or {}
-        fear_greed = resolve_fear_greed_value(
+        # Sentiment: neutralize stale sentiment into 50.0 (Neutral)
+        _sentiment = ana.get("sentiment") if isinstance(ana.get("sentiment"), dict) else {}
+        sentiment_is_stale = bool(
+            str(ana.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+            or ana.get("sentiment_stale", False)
+            or _sentiment.get("stale", False)
+            or (_sentiment.get("status") == "stale")
+        )
+        raw_obs_sent = _sentiment.get("raw_observability") if isinstance(_sentiment.get("raw_observability"), dict) else {}
+        raw_fear_greed = resolve_fear_greed_value(
+            raw_obs_sent.get("raw_value") if sentiment_is_stale else None,
             _sentiment.get("raw_value"),
             ana.get("fear_greed"),
             default=50.0,
         )
-        state.sentiment.FearGreed = fear_greed
+        if sentiment_is_stale:
+            state.sentiment.FearGreed = 50.0
+            sentiment_quality_status = "STALE_NEUTRALIZED"
+        else:
+            state.sentiment.FearGreed = raw_fear_greed
+            sentiment_quality_status = "FRESH"
 
         # Liquidity
         state.liquidity.BTC_Funding = float(
@@ -103,17 +116,59 @@ def build_world_state_from_ana(ana: Dict):
         # Crypto price
         state.crypto.BTC_Price = float(ana.get("close") or 0.0)
 
-        # Macro values from collector with safe defaults
-        macro_state = load_macro_state()
-        state.macro.DXY = float(macro_state.get("DXY", 100.0))
-        state.macro.VIX = float(macro_state.get("VIX", 20.0))
-        state.macro.RealYield = float(macro_state.get("RealYield", 0.0))
-        state.macro.BondYield = float(macro_state.get("BondYield", 4.5))
+        # Macro values from explicit payload or collector: neutralize stale macro values to baseline
+        from btc_scraper.collectors.macro_collector import is_macro_state_fresh
+        explicit_macro = ana.get("macro") if isinstance(ana.get("macro"), dict) else None
+        macro_state = explicit_macro if explicit_macro is not None else load_macro_state()
+        if explicit_macro is not None:
+            macro_is_stale = bool(
+                str(ana.get("macro_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+                or ana.get("macro_stale", False)
+                or explicit_macro.get("stale", False)
+                or explicit_macro.get("status") == "stale"
+            )
+        else:
+            macro_is_stale = bool(
+                str(ana.get("macro_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+                or ana.get("macro_stale", False)
+                or macro_state.get("stale", False)
+                or not is_macro_state_fresh()
+            )
+        raw_macro_obs = {
+            "DXY": float(macro_state.get("DXY", 100.0)),
+            "VIX": float(macro_state.get("VIX", 20.0)),
+            "RealYield": float(macro_state.get("RealYield", 0.0)),
+            "BondYield": float(macro_state.get("BondYield", 4.5)),
+        }
+        if macro_is_stale:
+            state.macro.DXY = 100.0
+            state.macro.VIX = 20.0
+            state.macro.RealYield = 0.0
+            state.macro.BondYield = 4.5
+            macro_quality_status = "STALE_NEUTRALIZED"
+        else:
+            state.macro.DXY = raw_macro_obs["DXY"]
+            state.macro.VIX = raw_macro_obs["VIX"]
+            state.macro.RealYield = raw_macro_obs["RealYield"]
+            state.macro.BondYield = raw_macro_obs["BondYield"]
+            macro_quality_status = "FRESH"
 
         # Alternative Data is deliberately not loaded into decision state.
         # It is attached only after scoring by SignalGeneratorAgent as a
         # reference-only payload. This prevents future rule/model changes from
         # silently turning an informational field into trading evidence.
+        state.macro_quality_status = macro_quality_status
+        state.sentiment_quality_status = sentiment_quality_status
+        observability_only: Dict[str, Dict] = {}
+        if sentiment_is_stale:
+            observability_only["raw_sentiment"] = {
+                "FearGreed": raw_fear_greed,
+                "raw_value": raw_obs_sent.get("raw_value", _sentiment.get("raw_value")),
+                "score": raw_obs_sent.get("normalized_score", _sentiment.get("score")),
+            }
+        if macro_is_stale:
+            observability_only["raw_macro"] = raw_macro_obs
+        state.observability_only = observability_only
 
         return state
     except Exception as exc:
@@ -204,10 +259,32 @@ def enhance_signal_with_causal_context(
         decision_input["_meta_prediction"] = meta_prediction
         provider = get_hybrid_provider(alpha=alpha)
         state = build_world_state_from_ana(ana)
+        if state is not None:
+            decision_input["macro_quality_status"] = getattr(state, "macro_quality_status", "FRESH")
+            decision_input["sentiment_quality_status"] = getattr(state, "sentiment_quality_status", "FRESH")
+            state_obs = getattr(state, "observability_only", None)
+            if isinstance(state_obs, dict) and state_obs:
+                decision_input["observability_only"] = dict(state_obs)
+        else:
+            from btc_scraper.collectors.macro_collector import is_macro_state_fresh
+            _sent = ana.get("sentiment") or decision_input.get("sentiment") or {}
+            decision_input.setdefault(
+                "sentiment_quality_status",
+                "STALE_NEUTRALIZED" if bool(_sent.get("stale") or _sent.get("status") == "stale") else "FRESH",
+            )
+            _macro = load_macro_state()
+            decision_input.setdefault(
+                "macro_quality_status",
+                "STALE_NEUTRALIZED" if bool(_macro.get("stale") or not is_macro_state_fresh()) else "FRESH",
+            )
+        if decision_input.get("sentiment_quality_status") == "STALE_NEUTRALIZED":
+            decision_input["fear_greed"] = 50.0
+            decision_input["sentiment_momentum"] = 0.0
+            decision_input["sentiment_raw"] = 50.0
+            decision_input["sentiment_score"] = 0.0
         if provider is None or state is None:
-            return engine.decide(decision_input)
-        enhanced = engine.decide_with_provider(decision_input, provider, state)
-        return enhanced or {}
+            return engine.decide(decision_input, persist_final=True)
+        return engine.decide_with_provider(decision_input, provider, state) or {}
 
     except Exception as exc:
         logger.warning(f"[CausalBridge] enhance_signal_with_causal_context skipped: {exc}")

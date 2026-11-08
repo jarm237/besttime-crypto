@@ -38,6 +38,27 @@ DEFAULT_PARSEBOT_ALL_CRON = "30 9 * * 6"
 DEFAULT_PARSEBOT_FUND_CRON = "0 10 * * 0"
 
 
+def resolve_startup_mode(configured: str | None = None) -> str:
+    """Resolve alternative-data startup mode: 'cache', 'background', or 'blocking'.
+
+    Defaults to 'cache' in paper/demo or once modes, avoiding network wait on critical startup path.
+    """
+    if configured:
+        val = str(configured).strip().lower()
+        if val in ("cache", "background", "blocking"):
+            return val
+    env_mode = os.getenv("ALTERNATIVE_DATA_STARTUP_MODE")
+    if env_mode:
+        val = env_mode.strip().lower()
+        if val in ("cache", "background", "blocking"):
+            return val
+    is_paper = os.getenv("BTC_RUNTIME_ENVIRONMENT", "").strip().lower() == "paper"
+    is_dry = os.getenv("AUTO_TRADE_DRY_RUN", "").strip().lower() == "true"
+    if is_paper or is_dry:
+        return "cache"
+    return "background"
+
+
 def _parse_cron_field(raw: str, minimum: int, maximum: int) -> set[int]:
     values: set[int] = set()
     for part in raw.split(","):
@@ -145,10 +166,49 @@ class AlternativeDataScheduler:
         self.last_payload: Optional[Dict[str, Any]] = None
         self.last_error: Optional[Exception] = None
 
-        # Parse.bot schedule tracking
-        self._last_recent_run_slot: Optional[str] = None
-        self._last_all_run_slot: Optional[str] = None
-        self._last_fund_run_slot: Optional[str] = None
+        # Parse.bot schedule tracking with slot persistence across restarts
+        self._slots_file = self._resolve_slots_file()
+        persisted_slots = self._load_persisted_slots()
+        self._last_recent_run_slot: Optional[str] = persisted_slots.get("recent")
+        self._last_all_run_slot: Optional[str] = persisted_slots.get("all")
+        self._last_fund_run_slot: Optional[str] = persisted_slots.get("fund")
+
+    def _resolve_slots_file(self) -> Path:
+        from btc_scraper.core.paths import build_data_path
+        return build_data_path("parsebot_cron_slots.json")
+
+    def _load_persisted_slots(self) -> dict[str, str]:
+        path = self._resolve_slots_file()
+        if path.exists():
+            try:
+                import json
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    return {str(k): str(v) for k, v in data.items()}
+            except Exception:
+                pass
+        return {}
+
+    def _persist_slot(self, state_attr: str, due_slot: str) -> None:
+        key_map = {
+            "_last_recent_run_slot": "recent",
+            "_last_all_run_slot": "all",
+            "_last_fund_run_slot": "fund",
+        }
+        key = key_map.get(state_attr)
+        if not key:
+            return
+        slots = self._load_persisted_slots()
+        slots[key] = due_slot
+        path = self._resolve_slots_file()
+        try:
+            import json
+            from btc_scraper.core.utils import write_atomic
+            path.parent.mkdir(parents=True, exist_ok=True)
+            write_atomic(str(path), json.dumps(slots, indent=2))
+        except Exception as e:
+            logger.warning("Could not persist Parse.bot slot %s=%s: %s", key, due_slot, e)
 
     # ------------------------------------------------------------------
     # Public API
@@ -179,9 +239,62 @@ class AlternativeDataScheduler:
             self._thread.join(timeout=timeout)
         logger.info("AlternativeDataScheduler stopped.")
 
-    def run_once(self, force: bool = True) -> Dict[str, Any]:
+    def run_startup(self, mode: str | None = None) -> Dict[str, Any]:
+        """Execute startup initialization according to the resolved startup mode.
+
+        Modes:
+            - 'cache': load cached alternative payload immediately without network wait.
+            - 'background': return cached payload immediately and trigger background refresh.
+            - 'blocking': execute synchronous network collection (not recommended for startup).
+        """
+        resolved_mode = resolve_startup_mode(mode)
+        logger.info("AlternativeDataScheduler starting with mode: %s", resolved_mode)
+
+        if resolved_mode in ("cache", "background"):
+            from btc_scraper.collectors.alternative_data import load_alternative_data
+            payload = load_alternative_data(self.output_path)
+            self.last_payload = payload
+            self.last_run_at = datetime.now(timezone.utc)
+            self.success_count += 1
+
+            ts_raw = payload.get("timestamp")
+            if ts_raw:
+                try:
+                    ts = datetime.fromisoformat(str(ts_raw).replace("Z", "+00:00"))
+                    age_sec = (datetime.now(timezone.utc) - ts).total_seconds()
+                    logger.info(
+                        "Loaded alternative data cache from %s (age=%.1fs, fields=%d)",
+                        self.output_path, age_sec, len(payload),
+                    )
+                except Exception:
+                    logger.info("Loaded alternative data cache with unparsed timestamp: %s", ts_raw)
+            else:
+                logger.info("Alternative data cache missing or empty; using default neutral features.")
+
+            if self.on_success is not None:
+                try:
+                    self.on_success(payload)
+                except Exception:
+                    logger.exception("on_success callback raised an exception during startup cache load.")
+
+            if resolved_mode == "background":
+                bg_thread = threading.Thread(
+                    target=self._collect,
+                    kwargs={"force": True, "allow_all_history": False},
+                    name="alt-data-startup-bg",
+                    daemon=True,
+                )
+                bg_thread.start()
+
+            return payload
+        else:
+            return self._collect(force=True, allow_all_history=False)
+
+    def run_once(self, force: bool = True, allow_network: bool = True, allow_all_history: bool = False) -> Dict[str, Any]:
         """Execute a single collection cycle synchronously."""
-        return self._collect(force=force)
+        if not allow_network:
+            return self.run_startup(mode="cache")
+        return self._collect(force=force, allow_all_history=allow_all_history)
 
     def is_running(self) -> bool:
         """Return True if the scheduler thread is alive."""
@@ -205,7 +318,7 @@ class AlternativeDataScheduler:
 
     def _loop(self) -> None:
         while not self._stop_event.is_set():
-            self._collect(force=False)
+            self._collect(force=False, allow_all_history=True)
             # Sleep in small increments so stop() is responsive
             elapsed = 0.0
             tick = 1.0
@@ -213,7 +326,7 @@ class AlternativeDataScheduler:
                 time.sleep(tick)
                 elapsed += tick
 
-    def _collect(self, force: bool = False) -> Dict[str, Any]:
+    def _collect(self, force: bool = False, allow_all_history: bool = True) -> Dict[str, Any]:
         self.run_count += 1
         self.last_run_at = datetime.now(timezone.utc)
 
@@ -224,7 +337,7 @@ class AlternativeDataScheduler:
                 from zoneinfo import ZoneInfo
                 tz = ZoneInfo(os.getenv("ETF_FLOW_TIMEZONE", "Asia/Ho_Chi_Minh"))
                 now_tz = datetime.now(tz)
-                self._run_scheduled_parsebot_jobs(now_tz)
+                self._run_scheduled_parsebot_jobs(now_tz, allow_all_history=allow_all_history)
 
             except Exception as e:
                 logger.warning("Error executing scheduled Parse.bot jobs in scheduler loop: %s", e)
@@ -266,7 +379,7 @@ class AlternativeDataScheduler:
                     logger.exception("on_failure callback raised an exception.")
             return {}
 
-    def _run_scheduled_parsebot_jobs(self, now_tz: datetime) -> None:
+    def _run_scheduled_parsebot_jobs(self, now_tz: datetime, allow_all_history: bool = True) -> None:
         """Run the low-frequency Parse.bot jobs due at ``now_tz``.
 
         With five keys, the default recent schedule runs six times per
@@ -303,6 +416,8 @@ class AlternativeDataScheduler:
         )
 
         for name, expression, job, state_attr in schedules:
+            if name == "all historical" and not allow_all_history:
+                continue
             try:
                 due_slot = _latest_due_cron_slot(expression, now_tz)
             except (TypeError, ValueError) as exc:
@@ -314,20 +429,24 @@ class AlternativeDataScheduler:
                     name,
                     due_slot,
                 )
-                if self.analysis_symbols is not None and name != "fund info":
-                    supported = (
-                        {"BTC", "ETH", "SOL"}
-                        if name == "recent"
-                        else {"BTC", "ETH"}
-                    )
-                    job(symbols=tuple(
-                        symbol
-                        for symbol in self.analysis_symbols
-                        if symbol in supported
-                    ))
-                else:
-                    job()
-                setattr(self, state_attr, due_slot)
+                try:
+                    if self.analysis_symbols is not None and name != "fund info":
+                        supported = (
+                            {"BTC", "ETH", "SOL"}
+                            if name == "recent"
+                            else {"BTC", "ETH"}
+                        )
+                        job(symbols=tuple(
+                            symbol
+                            for symbol in self.analysis_symbols
+                            if symbol in supported
+                        ))
+                    else:
+                        job()
+                    setattr(self, state_attr, due_slot)
+                    self._persist_slot(state_attr, due_slot)
+                except Exception as job_exc:
+                    logger.warning("Parse.bot job %s failed: %s", name, job_exc)
 
 
 class SchedulerRegistry:

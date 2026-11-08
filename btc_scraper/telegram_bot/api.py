@@ -22,14 +22,19 @@ def send_telegram_message(
     - reply_to_message_id: message_id của tin nhắn gốc để gửi dưới dạng reply/thread.
     Trả về message_id (int) nếu thành công, None nếu thất bại.
     """
-    if not TELEGRAM_BOT_TOKEN:
+    import os
+    if os.getenv("TELEGRAM_NOTIFICATIONS_ENABLED", "true").lower() in ("false", "0", "off", "no"):
         return None
 
-    target_chat_id = chat_id if chat_id is not None else TELEGRAM_CHAT_ID
+    active_token = (os.getenv("TELEGRAM_BOT_TOKEN") if os.getenv("TELEGRAM_BOT_TOKEN") is not None else TELEGRAM_BOT_TOKEN).strip()
+    if not active_token:
+        return None
+
+    target_chat_id = chat_id if chat_id is not None else (os.getenv("TELEGRAM_CHAT_ID") or TELEGRAM_CHAT_ID)
     if not target_chat_id:
         return None
 
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    url = f"https://api.telegram.org/bot{active_token}/sendMessage"
     payload = {
         "chat_id": target_chat_id,
         "text": text,

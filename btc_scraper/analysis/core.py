@@ -350,13 +350,35 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
     bos_bull_list, bos_bear_list, choch_bull_list, choch_bear_list = calculate_smc_structure(candles)
     chandelier_list = calculate_chandelier_exit(candles, period=22, multiplier=3.0)
     sentiment_data = get_market_sentiment()
-    sentiment_score = sentiment_data.get("normalized_score")
-    sentiment_label = sentiment_data.get("label")
-    sentiment_raw = sentiment_data.get("raw_value")
-    
-    # Compare against the latest observation before today, then persist today.
-    sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
-    _save_sentiment_to_history(sentiment_data)
+    sentiment_is_stale = bool(sentiment_data.get("stale", False) or sentiment_data.get("status") == "stale")
+    raw_sentiment_observability = {
+        "raw_value": sentiment_data.get("raw_value"),
+        "normalized_score": sentiment_data.get("normalized_score"),
+        "label": sentiment_data.get("label"),
+        "observed_at": sentiment_data.get("observed_at"),
+        "observation_date": sentiment_data.get("observation_date"),
+        "status": sentiment_data.get("status"),
+    }
+    if sentiment_is_stale:
+        sentiment_score = 0.0
+        sentiment_label = "Neutral"
+        sentiment_raw = 50
+        sentiment_trend_data = {
+            "trend": "STABLE",
+            "daily_momentum": 0.0,
+            "momentum": 0.0,
+            "recovery_signal": False,
+            "risk_signal": False,
+            "hours_in_extreme": 0,
+            "consecutive_extreme_days": 0,
+        }
+    else:
+        sentiment_score = sentiment_data.get("normalized_score")
+        sentiment_label = sentiment_data.get("label")
+        sentiment_raw = sentiment_data.get("raw_value")
+        # Compare against the latest observation before today, then persist today.
+        sentiment_trend_data = get_sentiment_trend(current_sentiment=sentiment_data)
+        _save_sentiment_to_history(sentiment_data)
 
     # Ghi lại chỉ số vào nến để hiển thị
     for i, c in enumerate(candles):
@@ -903,6 +925,7 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
         "reason": current_reason,
         "tp_sl": current_tp_sl,
         "trend_context": trend_context,
+        "sentiment_quality_status": "STALE_NEUTRALIZED" if sentiment_is_stale else "FRESH",
         "sentiment": {
             "score": sentiment_score,
             "normalized_score": sentiment_score,
@@ -917,6 +940,8 @@ def analyze_market(candles: list[dict], coin_name: str = None) -> dict:
             "consecutive_extreme_days": sentiment_trend_data.get("consecutive_extreme_days", 0),
             "status": sentiment_data.get("status"),
             "stale": sentiment_data.get("stale", False),
+            "sentiment_quality_status": "STALE_NEUTRALIZED" if sentiment_is_stale else "FRESH",
+            "raw_observability": raw_sentiment_observability if sentiment_is_stale else None,
             "available": sentiment_score is not None,
         },
     }
@@ -1105,9 +1130,14 @@ def analyze_all_market(candles: list[dict], sentiment_map: dict = None) -> list[
             date_str = candles[i]["time"][:10]
             c_sentiment = sentiment_map.get(date_str)
             if c_sentiment:
-                c_sentiment_score = c_sentiment["score"]
-                c_sentiment_label = c_sentiment["label"]
-                c_sentiment_raw = c_sentiment["raw_value"]
+                if c_sentiment.get("stale") or c_sentiment.get("status") == "stale":
+                    c_sentiment_score = 0.0
+                    c_sentiment_label = "Neutral"
+                    c_sentiment_raw = 50
+                else:
+                    c_sentiment_score = c_sentiment["score"]
+                    c_sentiment_label = c_sentiment["label"]
+                    c_sentiment_raw = c_sentiment["raw_value"]
 
         extreme_fear = c_sentiment_score is not None and c_sentiment_score < -0.6
         extreme_greed = c_sentiment_score is not None and c_sentiment_score > 0.6

@@ -148,7 +148,7 @@ class InferenceCoordinator:
             )
 
             from btc_scraper.ml_engine.governed_artifact_loader import load_offline_joblib_artifact
-            from btc_scraper.core.paths import ROOT as REPO_ROOT
+            from btc_scraper.core.paths import REPO_ROOT
             model_dict = load_offline_joblib_artifact(route.model_artifact_path, approved_root=REPO_ROOT)
             calibrator_dict = load_offline_joblib_artifact(route.calibrator_artifact_path, approved_root=REPO_ROOT)
             inner_model = model_dict["model"]

@@ -29,3 +29,10 @@ venv/
 !historical-h14-prospective-validation-design-discrimination/data/h14_2_authoritative_analysis_stream.jsonl
 !historical-h14-prospective-validation-design-discrimination/data/h14_2_authoritative_design_decisions.jsonl
 !historical-h14-prospective-validation-design-discrimination/data/h14_2_authoritative_divergence_accounting.jsonl
+
+# Active prospective collector runtime directory (unattended demo runner state)
+/data/prospective_raw_research_r1/
+
+# Ephemeral scratch scripts and test logs
+/scratch/
+*.log

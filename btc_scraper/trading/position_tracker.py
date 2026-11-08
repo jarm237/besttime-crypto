@@ -14,13 +14,24 @@ from typing import Literal
 import numpy as np
 from pathlib import Path
 
-try:
-    import torch
-except Exception as exc:  # pragma: no cover - environment dependent
-    torch = None
-    TORCH_IMPORT_ERROR = exc
-else:
-    TORCH_IMPORT_ERROR = None
+torch = None
+TORCH_IMPORT_ERROR = None
+_TORCH_LOAD_ATTEMPTED = False
+
+
+def _get_torch():
+    """Lazy-load PyTorch only when explicitly required by RL exit evaluation."""
+    global torch, TORCH_IMPORT_ERROR, _TORCH_LOAD_ATTEMPTED
+    if not _TORCH_LOAD_ATTEMPTED:
+        _TORCH_LOAD_ATTEMPTED = True
+        try:
+            import torch as _torch
+            torch = _torch
+            TORCH_IMPORT_ERROR = None
+        except Exception as exc:  # pragma: no cover - environment dependent
+            torch = None
+            TORCH_IMPORT_ERROR = exc
+    return torch
 
 from btc_scraper.analysis import calculate_tp_sl
 from btc_scraper.core.db import positions_col, closed_positions_col, closed_trades_col
@@ -251,10 +262,11 @@ load_lstm_cache()
 
 
 def _get_default_device() -> str:
-    if torch is None:
+    t = _get_torch()
+    if t is None:
         return "cpu"
     try:
-        return "cuda" if torch.cuda.is_available() else "cpu"
+        return "cuda" if t.cuda.is_available() else "cpu"
     except Exception:
         return "cpu"
 
@@ -285,16 +297,19 @@ def load_latest_ppo_model() -> str | None:
 
 
 def get_ppo_model(device: str = "auto"):
-    """Tải model PPO động và cache."""
+    """Tải model PPO động và cache. Chỉ nạp torch và sb3_contrib khi thực sự cần."""
     global _PPO_MODEL_CACHE, _LAST_MODEL_PATH
     if _PPO_MODEL_CACHE is None:
+        t = _get_torch()
+        if t is None:
+            return None
         try:
             from sb3_contrib import RecurrentPPO
             from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
             from btc_scraper.trading.rl_action_guard import rl_exit_allows_shadow_artifact
             if device == "auto":
                 device = _get_default_device()
-            elif device == "cuda" and not torch.cuda.is_available():
+            elif device == "cuda" and not t.cuda.is_available():
                 print("[RL Exit Agent] CUDA requested but not available. Falling back to CPU.")
                 device = "cpu"
             allowed = ("production", "shadow") if rl_exit_allows_shadow_artifact() else ("production",)

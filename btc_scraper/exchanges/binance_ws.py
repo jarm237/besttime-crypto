@@ -139,7 +139,8 @@ class BinanceWebSocketManager:
             limit = MTF_LIMIT_MAP.get(interval, 50)
             try:
                 if interval == "15m":
-                    candles = await fetch_ohlcv(coin, session)
+                    c_limit = self.store.get_capacity(coin, "15m") if hasattr(self.store, "get_capacity") else None
+                    candles = await fetch_ohlcv(coin, session, limit=c_limit)
                 else:
                     candles = await fetch_ohlcv_tf(coin, interval, limit, session)
 

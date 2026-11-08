@@ -164,11 +164,18 @@ def score_signal_pure(
         adjust("ATR_SHOCK", AdjustmentEffect.WEAKEN, 10.0)
 
     sentiment = analysis.get("sentiment") or explicit_context.get("sentiment") or {}
-    try:
-        sentiment_value = sentiment.get("normalized_score", sentiment.get("score"))
-        sentiment_score = float(sentiment_value) if sentiment_value is not None else None
-    except (AttributeError, TypeError, ValueError):
-        sentiment_score = None
+    sentiment_is_stale = (
+        str(analysis.get("sentiment_quality_status") or explicit_context.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+        or (isinstance(sentiment, dict) and bool(sentiment.get("stale") or sentiment.get("status") == "stale"))
+    )
+    if sentiment_is_stale:
+        sentiment_score = 0.0
+    else:
+        try:
+            sentiment_value = sentiment.get("normalized_score", sentiment.get("score"))
+            sentiment_score = float(sentiment_value) if sentiment_value is not None else None
+        except (AttributeError, TypeError, ValueError):
+            sentiment_score = None
     try:
         explicit_penalty = abs(float(explicit_context["sentiment_penalty"]))
     except (KeyError, TypeError, ValueError):

@@ -1,8 +1,18 @@
+import copy
+import os
 from enum import Enum
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, Mapping, Optional, TYPE_CHECKING
 import uuid
 
-from .economic_contract import EV_CONTRACT_VERSION, EXPECTED_RETURN_UNIT
+from .economic_contract import (
+    COST_CONTRACT_VERSION,
+    DEFAULT_ROUNDTRIP_COST_FRACTION,
+    EV_CONTRACT_VERSION,
+    EXPECTED_RETURN_UNIT,
+    compute_net_expected_return,
+    is_paper_shadow_policy,
+    resolve_paper_economic_policy,
+)
 from .inference_contract import normalize_inference_symbol
 from .meta_model import predict_meta_confidence
 from .s3_thresholds import evaluate_s3_threshold
@@ -97,6 +107,56 @@ MIN_EV_FRACTION_DEFAULT = 0.0005
 MIN_EV_PCT_DEFAULT = MIN_EV_FRACTION_DEFAULT
 
 
+def apply_economic_policy_to_final_decision(
+    decision: Dict[str, Any],
+    *,
+    analysis_info: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Applies canonical runtime economic policy at finalization point.
+
+    In paper environment with PAPER_ECONOMIC_POLICY in {NO_TRADE_SHADOW, NO_TRADE, SHADOW}:
+    - Suppresses executable BUY/SELL to HOLD.
+    - Sets eligible = False.
+    - Sets terminal_status = HOLD and terminal_action = HOLD.
+    - Preserves original active intent in shadow_action.
+    - Sets rejection_reason = NO_VIABLE_ECONOMIC_CANDIDATE.
+    - Sets economic_rejection_reason = NO_VIABLE_ECONOMIC_CANDIDATE.
+    - Zero executable paper orders can be planned or executed.
+    """
+    if not isinstance(decision, dict):
+        return decision
+
+    env = os.getenv("BTC_RUNTIME_ENVIRONMENT", "").strip().lower()
+    live_enabled = os.getenv("LIVE_TRADING_ENABLED", "false").strip().lower() == "true"
+    is_paper_env = (
+        not live_enabled
+        or env in {"paper", "testnet", "local-paper"}
+        or os.getenv("AUTO_TRADE_DRY_RUN", "true").lower() == "true"
+        or (analysis_info or {}).get("is_paper") is True
+    )
+
+    policy = resolve_paper_economic_policy(analysis_info=analysis_info)
+    decision["paper_economic_policy"] = policy
+    current_action = str(decision.get("action") or "HOLD").upper()
+
+    if is_paper_env and is_paper_shadow_policy(policy, analysis_info=analysis_info):
+        if current_action in {"BUY", "SELL"}:
+            decision["shadow_action"] = current_action
+            decision["action"] = "HOLD"
+            decision["eligible"] = False
+            decision["terminal_status"] = "HOLD"
+            decision["terminal_action"] = "HOLD"
+            decision["economic_rejection_reason"] = "NO_VIABLE_ECONOMIC_CANDIDATE"
+            decision["rejection_reason"] = "NO_VIABLE_ECONOMIC_CANDIDATE"
+            reason_str = str(decision.get("reason") or "")
+            if "economic_failure=NO_VIABLE_ECONOMIC_CANDIDATE" not in reason_str:
+                decision["reason"] = f"{reason_str} | economic_failure=NO_VIABLE_ECONOMIC_CANDIDATE".strip(" |")
+        elif "shadow_action" not in decision:
+            decision["shadow_action"] = current_action
+
+    return decision
+
+
 class MetaDecisionEngine:
     """Central decision engine combining EV meta model and contextual evidence."""
 
@@ -107,6 +167,9 @@ class MetaDecisionEngine:
         sell_threshold: float = 0.50,
         hold_threshold: float = 0.45,
         min_ev_pct: float = MIN_EV_PCT_DEFAULT,  # see _EXPECTED_RETURN_UNIT: FRACTION (0.0005 = 5 bps)
+        roundtrip_cost_fraction: float = DEFAULT_ROUNDTRIP_COST_FRACTION,
+        min_net_ev_pct: float | None = None,
+        net_ev_gating_enabled: bool = False,
     ):
         self.proposed_weights = (weights if weights is not None else DEFAULT_EVIDENCE_WEIGHTS).copy()
         self.weights = self.proposed_weights.copy()
@@ -117,6 +180,11 @@ class MetaDecisionEngine:
         self.sell_threshold = sell_threshold
         self.hold_threshold = hold_threshold
         self.min_ev_pct = min_ev_pct
+        self.roundtrip_cost_fraction = roundtrip_cost_fraction
+        self.min_net_ev_pct = min_net_ev_pct if min_net_ev_pct is not None else 0.0
+        self.net_ev_gating_enabled = net_ev_gating_enabled or (
+            os.getenv("PAPER_NET_EV_GATE_ENABLED", "").lower() in {"1", "true", "yes"}
+        )
 
     def _clamp01(self, value: float) -> float:
         try:
@@ -162,18 +230,26 @@ class MetaDecisionEngine:
         return 1.0 - probability if str(action).upper() == "SELL" else probability
 
     def _sentiment_support(self, info: Dict) -> float:
-        fg = info.get("fear_greed")
-        try:
-            fg = float(fg) if fg is not None else 50.0
-        except Exception:
+        _sent = info.get("sentiment")
+        sentiment_stale = (
+            str(info.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+            or (isinstance(_sent, dict) and bool(_sent.get("stale") or _sent.get("status") == "stale"))
+        )
+        if sentiment_stale:
             fg = 50.0
-        fg_score = self._clamp01(fg / 100.0)
-
-        momentum = info.get("sentiment_momentum")
-        try:
-            momentum = float(momentum)
-        except Exception:
             momentum = 0.0
+        else:
+            fg = info.get("fear_greed")
+            try:
+                fg = float(fg) if fg is not None else 50.0
+            except Exception:
+                fg = 50.0
+            momentum = info.get("sentiment_momentum")
+            try:
+                momentum = float(momentum)
+            except Exception:
+                momentum = 0.0
+        fg_score = self._clamp01(fg / 100.0)
         momentum = self._clamp01((momentum + 1.0) / 2.0)
 
         direction = self._signal_direction(info)
@@ -247,7 +323,24 @@ class MetaDecisionEngine:
         return self._clamp01(weighted / total_weight)
 
     @staticmethod
+    def _finalize_and_persist(
+        decision: Dict,
+        *,
+        analysis_info: Optional[Mapping[str, Any]] = None,
+        persist: bool = True,
+    ) -> Dict:
+        """Finalize the decision exactly once and persist the exact finalized object."""
+        finalized = apply_economic_policy_to_final_decision(decision, analysis_info=analysis_info)
+        if persist:
+            MetaDecisionEngine._persist_final_decision(finalized)
+        return finalized
+
+    @staticmethod
     def _persist_final_decision(decision: Dict) -> None:
+        """Persist a pre-finalized decision to the runtime evidence store.
+
+        Does NOT alter, re-finalize, or duplicate finalization logic.
+        """
         if not decision.get("prediction_id"):
             return
         try:
@@ -272,7 +365,103 @@ class MetaDecisionEngine:
             str(prediction_id)
         )
 
+    @staticmethod
+    def _resolve_input_quality(
+        analysis_info: Optional[Mapping[str, Any]],
+        world_state: Any = None,
+    ) -> tuple[str, str, Dict[str, Any]]:
+        info = analysis_info if isinstance(analysis_info, Mapping) else {}
+        sent_obj = info.get("sentiment") if isinstance(info.get("sentiment"), Mapping) else {}
+        macro_obj = info.get("macro") if isinstance(info.get("macro"), Mapping) else {}
+
+        ws_sent_status = str(getattr(world_state, "sentiment_quality_status", "") or "").upper()
+        ws_macro_status = str(getattr(world_state, "macro_quality_status", "") or "").upper()
+
+        sentiment_stale = bool(
+            str(info.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+            or ws_sent_status == "STALE_NEUTRALIZED"
+            or info.get("sentiment_stale", False)
+            or sent_obj.get("stale", False)
+            or str(sent_obj.get("status") or "").lower() == "stale"
+        )
+        macro_stale = bool(
+            str(info.get("macro_quality_status") or "").upper() == "STALE_NEUTRALIZED"
+            or ws_macro_status == "STALE_NEUTRALIZED"
+            or info.get("macro_stale", False)
+            or macro_obj.get("stale", False)
+            or str(macro_obj.get("status") or "").lower() == "stale"
+        )
+
+        macro_quality_status = "STALE_NEUTRALIZED" if macro_stale else str(info.get("macro_quality_status") or "FRESH")
+        sentiment_quality_status = (
+            "STALE_NEUTRALIZED" if sentiment_stale else str(info.get("sentiment_quality_status") or "FRESH")
+        )
+
+        obs: Dict[str, Any] = {}
+        existing_obs = info.get("observability_only")
+        if isinstance(existing_obs, Mapping):
+            obs.update(copy.deepcopy(dict(existing_obs)))
+        ws_obs = getattr(world_state, "observability_only", None)
+        if isinstance(ws_obs, Mapping):
+            for k, v in ws_obs.items():
+                obs.setdefault(k, copy.deepcopy(v))
+
+        if sentiment_stale and "raw_sentiment" not in obs:
+            raw_sent_obs = sent_obj.get("raw_observability") if isinstance(sent_obj.get("raw_observability"), Mapping) else {}
+            ws_sent_fg = getattr(getattr(world_state, "sentiment", None), "FearGreed", None)
+            obs["raw_sentiment"] = {
+                "fear_greed": (
+                    raw_sent_obs.get("raw_value")
+                    if raw_sent_obs.get("raw_value") is not None
+                    else (
+                        info.get("fear_greed")
+                        if info.get("fear_greed") is not None
+                        else (sent_obj.get("raw_value") if sent_obj.get("raw_value") is not None else ws_sent_fg)
+                    )
+                ),
+                "sentiment_momentum": info.get("sentiment_momentum", sent_obj.get("momentum")),
+                "score": raw_sent_obs.get("normalized_score", sent_obj.get("score")),
+            }
+
+        if macro_stale and "raw_macro" not in obs:
+            ws_macro = getattr(world_state, "macro", None)
+            obs["raw_macro"] = {
+                "DXY": macro_obj.get("DXY", getattr(ws_macro, "DXY", None)),
+                "VIX": macro_obj.get("VIX", getattr(ws_macro, "VIX", None)),
+                "RealYield": macro_obj.get("RealYield", getattr(ws_macro, "RealYield", None)),
+                "BondYield": macro_obj.get("BondYield", getattr(ws_macro, "BondYield", None)),
+            }
+
+        return macro_quality_status, sentiment_quality_status, obs
+
+    @staticmethod
+    def _neutralize_world_state(
+        world_state: Any,
+        *,
+        macro_stale: bool,
+        sentiment_stale: bool,
+    ) -> Any:
+        if world_state is None or (not macro_stale and not sentiment_stale):
+            return world_state
+        cloned = copy.copy(world_state)
+        if macro_stale and hasattr(cloned, "macro") and cloned.macro is not None:
+            cloned_macro = copy.copy(cloned.macro)
+            cloned_macro.DXY = 100.0
+            cloned_macro.VIX = 20.0
+            cloned_macro.RealYield = 0.0
+            cloned_macro.BondYield = 4.5
+            cloned_macro.FedRate = 0.0
+            cloned.macro = cloned_macro
+            cloned.macro_quality_status = "STALE_NEUTRALIZED"
+        if sentiment_stale and hasattr(cloned, "sentiment") and cloned.sentiment is not None:
+            cloned_sent = copy.copy(cloned.sentiment)
+            cloned_sent.FearGreed = 50.0
+            cloned.sentiment = cloned_sent
+            cloned.sentiment_quality_status = "STALE_NEUTRALIZED"
+        return cloned
+
     def decide(self, analysis_info: Dict, *, persist_final: bool = True) -> Dict:
+        macro_quality_status, sentiment_quality_status, observability_only = self._resolve_input_quality(analysis_info)
         meta = analysis_info.get("_meta_prediction")
         existing = self._existing_final_decision(analysis_info)
         if existing is not None:
@@ -283,8 +472,24 @@ class MetaDecisionEngine:
                 or analysis_info.get("coin")
                 or analysis_info.get("ticker")
             )
+            effective_infer_info = dict(analysis_info)
+            effective_infer_info["macro_quality_status"] = macro_quality_status
+            effective_infer_info["sentiment_quality_status"] = sentiment_quality_status
+            if sentiment_quality_status == "STALE_NEUTRALIZED":
+                effective_infer_info["fear_greed"] = 50.0
+                effective_infer_info["sentiment_raw"] = 50.0
+                effective_infer_info["sentiment_score"] = 0.0
+                effective_infer_info["sentiment_momentum"] = 0.0
+            if macro_quality_status == "STALE_NEUTRALIZED" and isinstance(effective_infer_info.get("macro"), Mapping):
+                effective_infer_info["macro"] = {
+                    "DXY": 100.0,
+                    "VIX": 20.0,
+                    "RealYield": 0.0,
+                    "BondYield": 4.5,
+                    "stale": True,
+                }
             meta = predict_meta_confidence(
-                analysis_info,
+                effective_infer_info,
                 symbol=explicit_symbol,
             )
         if not isinstance(meta, dict) or meta.get("probability") is None:
@@ -357,6 +562,7 @@ class MetaDecisionEngine:
             or analysis_info.get("ticker"),
             meta_prob,
         )
+
         sentiment_prob = self._sentiment_support(analysis_info)
         proposed_regime_prob = self._regime_support(analysis_info)
         applied_regime_prob = proposed_regime_prob if self.regime_decision_effect_enabled else 0.5
@@ -376,6 +582,14 @@ class MetaDecisionEngine:
         except Exception:
             expected_return = 0.0
 
+        net_ev_metrics = compute_net_expected_return(
+            expected_return,
+            roundtrip_cost_fraction=self.roundtrip_cost_fraction,
+        )
+        expected_gross_return = net_ev_metrics["expected_gross_return"]
+        expected_cost = net_ev_metrics["expected_cost"]
+        expected_net_return = net_ev_metrics["expected_net_return"]
+
         action = "HOLD"
         if signal_side == "BUY":
             if expected_return >= self.min_ev_pct and side_probability >= self.buy_threshold:
@@ -388,24 +602,46 @@ class MetaDecisionEngine:
             elif side_probability >= self.sell_threshold:
                 action = "REDUCE"
 
-        if expected_return < self.min_ev_pct:
-            action = "IGNORE"
+        # S3 Threshold Gating
+        s3_rejection_reason = None
         if not s3_gate.s3_pass:
             action = "IGNORE"
+            s3_rejection_reason = s3_gate.error or "S3_THRESHOLD_NOT_MET"
 
+        # Economic Gating
+        economic_rejection_reason = None
+        if expected_return < self.min_ev_pct:
+            action = "IGNORE"
+            economic_rejection_reason = "INSUFFICIENT_EXPECTED_VALUE"
+
+        # Net EV Gate: Enforce cost-aware expected return threshold
+        if self.net_ev_gating_enabled and expected_net_return < self.min_net_ev_pct:
+            action = "HOLD"
+            economic_rejection_reason = "NEGATIVE_NET_EXPECTED_VALUE"
+
+        # PAPER_ECONOMIC_POLICY: Resolved canonical policy
+        paper_economic_policy = resolve_paper_economic_policy(analysis_info=analysis_info)
+        shadow_action = action
+
+        # Risk Gating
         risk_status = str(analysis_info.get("risk_status") or "HEALTHY").upper()
-        risk_failure_reason = analysis_info.get("risk_failure_reason")
         risk_blocked = bool(analysis_info.get("risk_blocked", False))
+        risk_failure_reason = None
         if risk_blocked or risk_status == "UNAVAILABLE":
             action = "BLOCK_ENTRY"
-            risk_failure_reason = risk_failure_reason or "risk_data_unavailable"
-
-        # A meta/context layer may filter a structured entry action, but it may
-        # not manufacture a physical BUY/SELL from a neutral pre-final intent.
-        # Display text is deliberately not consulted here.
-        if action in {"BUY", "SELL"} and self._entry_action(analysis_info) != action:
+            risk_failure_reason = analysis_info.get("risk_failure_reason") or "risk_data_unavailable"
+        elif action in {"BUY", "SELL"} and self._entry_action(analysis_info) != action:
             action = "HOLD"
             risk_failure_reason = "canonical_action_not_supported_by_entry_signal"
+        elif analysis_info.get("risk_failure_reason"):
+            risk_failure_reason = str(analysis_info.get("risk_failure_reason"))
+
+        # Composite rejection reason
+        composite_rejection_reason = (
+            risk_failure_reason
+            or s3_rejection_reason
+            or economic_rejection_reason
+        ) if action in {"HOLD", "IGNORE", "BLOCK_ENTRY"} else None
 
         reason = [
             f"model_probability_up={model_probability_up:.3f}",
@@ -418,6 +654,10 @@ class MetaDecisionEngine:
             f"posterior={posterior:.3f}",
             f"side_probability={side_probability:.3f}",
             f"ev={expected_return:.4f}",
+            f"gross_ev={expected_gross_return:.4f}",
+            f"cost={expected_cost:.4f}",
+            f"net_ev={expected_net_return:.4f}",
+            f"cost_contract={COST_CONTRACT_VERSION}",
             f"ev_unit={EXPECTED_RETURN_UNIT}",
             f"ev_contract={EV_CONTRACT_VERSION}",
             f"s3_threshold={s3_gate.s3_threshold}",
@@ -426,8 +666,14 @@ class MetaDecisionEngine:
         ]
         if s3_gate.error:
             reason.append(f"s3_error={s3_gate.error}")
-        if risk_blocked or risk_status == "UNAVAILABLE":
+        if risk_blocked or risk_status == "UNAVAILABLE" or risk_failure_reason:
             reason.append(f"risk_failure={risk_failure_reason}")
+        if economic_rejection_reason:
+            reason.append(f"economic_failure={economic_rejection_reason}")
+        if macro_quality_status != "FRESH":
+            reason.append(f"macro_quality={macro_quality_status}")
+        if sentiment_quality_status != "FRESH":
+            reason.append(f"sentiment_quality={sentiment_quality_status}")
 
         final_decision = {
             "action": action,
@@ -443,6 +689,9 @@ class MetaDecisionEngine:
             "execution_probability_semantics": "P(win_given_proposed_trade)",
             "decision_contract_version": "side-probability-v2",
             "sentiment_support": sentiment_prob,
+            "macro_quality_status": macro_quality_status,
+            "sentiment_quality_status": sentiment_quality_status,
+            "observability_only": observability_only,
             "regime_support": applied_regime_prob,
             "proposed_regime_support": proposed_regime_prob,
             "applied_regime_support": applied_regime_prob,
@@ -451,6 +700,19 @@ class MetaDecisionEngine:
             "regime_snapshot": analysis_info.get("regime_snapshot"),
             "volatility_support": volatility_prob,
             "expected_return": expected_return,
+            "expected_gross_return": expected_gross_return,
+            "expected_cost": expected_cost,
+            "expected_net_return": expected_net_return,
+            "cost_contract_version": COST_CONTRACT_VERSION,
+            "rejection_reason": composite_rejection_reason,
+            "risk_rejection_reason": risk_failure_reason,
+            "economic_rejection_reason": economic_rejection_reason,
+            "paper_economic_policy": paper_economic_policy,
+            "shadow_action": shadow_action,
+            "estimate_source": meta.get("estimate_source", "meta_confidence"),
+            "calibration_identity": meta.get("calibration_identity", meta.get("calibration_method", "logistic")),
+            "confidence": meta.get("confidence", meta_prob),
+            "net_ev_status": "AVAILABLE" if net_ev_metrics is not None else "NET_EV_UNAVAILABLE",
             "expected_return_unit": EXPECTED_RETURN_UNIT,
             "ev_contract_version": EV_CONTRACT_VERSION,
             "expected_drawdown": meta.get("expected_drawdown"),
@@ -499,14 +761,19 @@ class MetaDecisionEngine:
             **self._terminal_fields(action),
         }
         if persist_final:
-            self._persist_final_decision(final_decision)
+            return self._finalize_and_persist(final_decision, analysis_info=analysis_info, persist=True)
         return final_decision
 
-    def apply_context(self, base_decision: Dict, context_report: Dict, *, analysis_info: Optional[Dict] = None) -> Dict:
-        """Apply context to an existing inference and enforce the final hard-risk gate."""
+    def _build_context_decision(
+        self,
+        base_decision: Dict,
+        context_report: Dict,
+        *,
+        analysis_info: Optional[Dict] = None,
+    ) -> Dict:
+        """Build raw context-adjusted decision dictionary without finalization or persistence."""
         if not context_report or base_decision.get("error"):
-            self._persist_final_decision(base_decision)
-            return base_decision
+            return dict(base_decision)
 
         original_posterior = base_decision.get("posterior_probability", 0.5)
         adjusted_posterior = self._clamp01(context_report.get("adjusted_score", original_posterior))
@@ -571,6 +838,21 @@ class MetaDecisionEngine:
             if final_action.value == "SELL"
             else adjusted_posterior
         )
+        macro_q, sent_q, obs_only = self._resolve_input_quality(analysis_info)
+        if str(base_decision.get("macro_quality_status") or "").upper() == "STALE_NEUTRALIZED":
+            macro_q = "STALE_NEUTRALIZED"
+        if str(base_decision.get("sentiment_quality_status") or "").upper() == "STALE_NEUTRALIZED":
+            sent_q = "STALE_NEUTRALIZED"
+        merged_obs = {}
+        if isinstance(base_decision.get("observability_only"), Mapping):
+            merged_obs.update(copy.deepcopy(dict(base_decision["observability_only"])))
+        merged_obs.update(obs_only)
+        base_reason_str = base_decision.get("reason", "")
+        if macro_q != "FRESH" and f"macro_quality={macro_q}" not in base_reason_str:
+            reason_parts.append(f"macro_quality={macro_q}")
+        if sent_q != "FRESH" and f"sentiment_quality={sent_q}" not in base_reason_str:
+            reason_parts.append(f"sentiment_quality={sent_q}")
+
         final_decision = {
             **base_decision,
             "action": final_action.value,
@@ -586,18 +868,38 @@ class MetaDecisionEngine:
             "stop_processing": stop_processing,
             "risk_reason_codes": list(risk_reasons),
             "context_snapshot_id": context_snapshot_id,
+            "macro_quality_status": macro_q,
+            "sentiment_quality_status": sent_q,
+            "observability_only": merged_obs,
             "decision_id": base_decision.get("decision_id") or str(uuid.uuid4()),
             "signal_id": base_decision.get("signal_id") or (analysis_info or {}).get("signal_id") or (analysis_info or {}).get("id"),
             "reason": " | ".join(part for part in reason_parts if part),
             **self._terminal_fields(final_action.value),
         }
-        self._persist_final_decision(final_decision)
         return final_decision
+
+    def apply_context(
+        self,
+        base_decision: Dict,
+        context_report: Dict,
+        *,
+        analysis_info: Optional[Dict] = None,
+        persist_final: bool = True,
+    ) -> Dict:
+        """Apply context to an existing inference and enforce the final hard-risk gate."""
+        raw_decision = self._build_context_decision(
+            base_decision, context_report, analysis_info=analysis_info
+        )
+        if persist_final:
+            return self._finalize_and_persist(raw_decision, analysis_info=analysis_info, persist=True)
+        return raw_decision
 
     def decide_with_context(
         self,
         analysis_info: Dict,
         context_report: Optional[Dict] = None,
+        *,
+        persist_final: bool = True,
     ) -> Dict:
         """
         Make decision incorporating causal context adjustment.
@@ -605,6 +907,7 @@ class MetaDecisionEngine:
         Args:
             analysis_info: Base analysis information
             context_report: ContextReport dict (from ContextEngine)
+            persist_final: Whether to persist the final decision (default True).
 
         Returns:
             Enhanced decision dict with context adjustments
@@ -613,7 +916,12 @@ class MetaDecisionEngine:
         existing = self._existing_final_decision(base_decision)
         if existing is not None:
             return existing
-        return self.apply_context(base_decision, context_report or {}, analysis_info=analysis_info)
+        return self.apply_context(
+            base_decision,
+            context_report or {},
+            analysis_info=analysis_info,
+            persist_final=persist_final,
+        )
 
     def decide_with_provider(
         self,
@@ -637,33 +945,43 @@ class MetaDecisionEngine:
         Returns:
             Enhanced decision dict, same shape as decide_with_context().
         """
+        macro_q, sent_q, obs_only = self._resolve_input_quality(analysis_info, world_state=world_state)
+        effective_info = dict(analysis_info)
+        effective_info["macro_quality_status"] = macro_q
+        effective_info["sentiment_quality_status"] = sent_q
+        if obs_only:
+            effective_info["observability_only"] = obs_only
+        effective_world_state = self._neutralize_world_state(
+            world_state,
+            macro_stale=(macro_q == "STALE_NEUTRALIZED"),
+            sentiment_stale=(sent_q == "STALE_NEUTRALIZED"),
+        )
+
         # Get base decision
-        base_decision = self.decide(analysis_info, persist_final=False)
+        base_decision = self.decide(effective_info, persist_final=False)
         existing = self._existing_final_decision(base_decision)
         if existing is not None:
             return existing
         if base_decision.get("error") or base_decision.get("posterior_probability") is None:
-            return base_decision
+            return self._finalize_and_persist(base_decision, analysis_info=effective_info, persist=True)
 
         # Check if provider wants to apply context in current market conditions
         try:
-            should_apply = context_provider.should_apply_context(world_state)
+            should_apply = context_provider.should_apply_context(effective_world_state)
         except Exception as exc:
             from .operational_health import record_degradation
             record_degradation("context_provider", "context_provider_failure_total", exc)
-            self._persist_final_decision(base_decision)
-            return base_decision
+            return self._finalize_and_persist(base_decision, analysis_info=effective_info, persist=True)
         if not should_apply:
             base_decision["context_provider"] = context_provider.name
             base_decision["context_skipped"] = True
-            self._persist_final_decision(base_decision)
-            return base_decision
+            return self._finalize_and_persist(base_decision, analysis_info=effective_info, persist=True)
 
         original_posterior = base_decision.get("posterior_probability", 0.5)
 
         # Generate context report via provider
         try:
-            report = context_provider.generate_context_report(original_posterior, world_state)
+            report = context_provider.generate_context_report(original_posterior, effective_world_state)
         except Exception as exc:
             import logging
             from .operational_health import record_degradation
@@ -671,11 +989,13 @@ class MetaDecisionEngine:
             logging.getLogger(__name__).error(
                 f"[DecisionEngine] ContextProvider '{context_provider.name}' failed: {exc}"
             )
-            self._persist_final_decision(base_decision)
-            return base_decision
+            return self._finalize_and_persist(base_decision, analysis_info=effective_info, persist=True)
 
-        return {
-            **self.apply_context(base_decision, report.to_dict(), analysis_info=analysis_info),
-            "context_provider": context_provider.name,
-            "context_skipped": False,
-        }
+        raw_applied = self._build_context_decision(
+            base_decision,
+            report.to_dict(),
+            analysis_info=effective_info,
+        )
+        raw_applied["context_provider"] = context_provider.name
+        raw_applied["context_skipped"] = False
+        return self._finalize_and_persist(raw_applied, analysis_info=effective_info, persist=True)

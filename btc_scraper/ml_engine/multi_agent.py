@@ -50,9 +50,15 @@ class MarketAnalystAgent(BaseAgent):
             candles_15m = raw_candles.get(coin, [])
             if not candles_15m or "error" in candles_15m[0]:
                 continue
-            ana = analyze_market(candles_15m, coin)
-            ana["close"] = candles_15m[-1]["close"]
+            analysis_candles_15m = candles_15m[-210:]
+            ana = analyze_market(analysis_candles_15m, coin)
+            ana["close"] = analysis_candles_15m[-1]["close"]
+            if coin in ("BTC", "ETH", "BNB"):
+                from btc_scraper.core.candle_store import candle_store
+                ana["_shadow_candles_15m"] = candle_store.get(coin, "15m")[-500:]
             analysis_results[f"{coin}:Binance"] = ana
+            from btc_scraper.core.milestones import milestone_tracker
+            milestone_tracker.record("first_analysis_ready")
 
             # 2. Phân tích đa khung thời gian (MTF)
             coin_mtf = mtf_candles.get(coin, {})
@@ -90,6 +96,8 @@ class MarketAnalystAgent(BaseAgent):
                 tf_key = f"tf_{tf}_bull"
                 analysis_results[f"{coin}:Binance"][tf_key] = bull_val
 
+        from btc_scraper.core.milestones import milestone_tracker
+        milestone_tracker.record("all_analysis_ready")
         context["analysis"] = analysis_results
         context["mtf_analysis"] = mtf_analysis_results
         return context
@@ -124,12 +132,56 @@ class SignalGeneratorAgent(BaseAgent):
         context["alternative_data_reference"] = copy.deepcopy(alternative_reference)
 
         signals_info = []
+        from btc_scraper.core.config import get_execution_universe
+        from btc_scraper.core.milestones import milestone_tracker
+        inference_scope = os.getenv("PAPER_INFERENCE_SCOPE", "execution").strip().lower()
+        execution_coins = set(get_execution_universe()) if inference_scope == "execution" else None
+
+        quality_status = alternative_reference.get("status", "unavailable")
+        if quality_status == "available":
+            prediction_quality = "COMPLETE"
+        elif quality_status == "partial":
+            prediction_quality = "PARTIAL"
+        elif quality_status == "stale":
+            prediction_quality = "STALE"
+        else:
+            prediction_quality = "NEUTRAL_DEFAULTS"
+
         for key, ana in list(analysis.items()):
             coin = key.split(":")[0]
             ana.setdefault("coin", coin)
             ana.setdefault("symbol", f"{coin}USDT")
             ana.setdefault("timeframe", "15m")
             ana["cycle_id"] = cycle_id
+            ana["prediction_input_quality"] = prediction_quality
+
+            if execution_coins is not None and coin not in execution_coins:
+                ana["execution_eligible"] = False
+                ana["skip_reason"] = "ANALYSIS_ONLY_NOT_IN_EXECUTION_UNIVERSE"
+                sig_score = {
+                    "action": ana.get("action", "HOLD"),
+                    "score": 50,
+                    "strength": 0,
+                    "meta_confidence": 0.5,
+                    "kelly_fraction": 0.0,
+                    "execution_eligible": False,
+                    "skip_reason": "ANALYSIS_ONLY_NOT_IN_EXECUTION_UNIVERSE",
+                }
+                ana["signal_score"] = sig_score
+                ana["alternative_data_reference"] = copy.deepcopy(alternative_reference)
+                signals_info.append({
+                    "coin": coin,
+                    "action": sig_score["action"],
+                    "meta_confidence": 0.5,
+                    "kelly_fraction": 0.0,
+                    "close": ana.get("close", 0.0),
+                    "atr": ana.get("atr", 0.0),
+                    "signal": ana.get("signal", ""),
+                    "execution_eligible": False,
+                    "skip_reason": "ANALYSIS_ONLY_NOT_IN_EXECUTION_UNIVERSE",
+                })
+                continue
+
             meta_prediction = None
             terminal_error: Exception | None = None
             try:
@@ -140,6 +192,7 @@ class SignalGeneratorAgent(BaseAgent):
                     decision_context="entry",
                     caller_context="agent_orchestrator",
                 )
+                milestone_tracker.record("first_prediction_ready")
             except Exception as exc:
                 from btc_scraper.ml_engine.operational_health import record_degradation
                 record_degradation("ml_inference", "ml_inference_failure_total", exc)
@@ -307,6 +360,8 @@ class SignalGeneratorAgent(BaseAgent):
                 "signal": ana.get("signal", "")
             })
             
+        from btc_scraper.core.milestones import milestone_tracker
+        milestone_tracker.record("all_predictions_ready")
         context["signals_info"] = signals_info
         return context
 
@@ -379,30 +434,37 @@ class PortfolioManagerAgent(BaseAgent):
 class RLExitAgent(BaseAgent):
     """
     RLExitAgent: Sử dụng Agent Học tăng cường để đề xuất exit động cho các vị thế đang mở.
+    Lazy-loads PPO model only when open positions are present and exit evaluation is required.
     """
     def __init__(self):
         super().__init__("RLExit")
         self.model = None
-        self._load_rl_model()
 
     def _load_rl_model(self):
-        try:
-            from sb3_contrib import RecurrentPPO
-            from btc_scraper.ml_engine.governed_artifact_loader import get_governed_artifact_loader
-            from btc_scraper.trading.rl_action_guard import rl_exit_allows_shadow_artifact
-            allowed = ("production", "shadow") if rl_exit_allows_shadow_artifact() else ("production",)
-            loaded = get_governed_artifact_loader().load_production(
-                "rl_exit", "rl-exit-obs-v2", allowed_statuses=allowed, model_class=RecurrentPPO,
-            )
-            self.model = loaded.model
-            console.print(f"[bold green]  [RLExitAgent] Loaded governed RL Model: {loaded.artifact_id}[/bold green]")
-        except Exception as e:
-            console.print(f"[dim red]  [RLExitAgent] Không thể load model RL exit: {e}[/dim red]")
+        if self.model is None:
+            try:
+                from btc_scraper.trading.position_tracker import get_ppo_model
+                self.model = get_ppo_model()
+            except Exception as e:
+                console.print(f"[dim red]  [RLExitAgent] Không thể load model RL exit: {e}[/dim red]")
+        return self.model
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        # Tác nhân RL đóng vai trò giám sát các vị thế đang mở và đưa ra gợi ý nâng cao
-        # (Chi tiết logic đã được tích hợp qua position_tracker.py và shadow log)
-        context["rl_model_loaded"] = self.model is not None
+        # Tác nhân RL chỉ cần thiết khi có vị thế đang mở
+        open_positions = context.get("open_positions")
+        if open_positions is None:
+            try:
+                from btc_scraper.trading.position_tracker import get_open_positions
+                open_positions = get_open_positions()
+            except Exception:
+                open_positions = []
+
+        if not open_positions:
+            context["rl_model_loaded"] = False
+            return context
+
+        model = self._load_rl_model()
+        context["rl_model_loaded"] = model is not None
         return context
 
 class ExecutionAgent(BaseAgent):
@@ -419,7 +481,9 @@ class ExecutionAgent(BaseAgent):
         # 1. Chạy Auto Trader (CCXT)
         try:
             from btc_scraper.trading.auto_trader import auto_trader
+            from btc_scraper.core.milestones import milestone_tracker
             await auto_trader.evaluate_and_trade(analysis, mtf_analysis=mtf_analysis)
+            milestone_tracker.record("first_final_decision_ready")
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")
             
@@ -491,9 +555,17 @@ class AgentOrchestrator:
         """
         Kích hoạt Core Loop chạy qua tất cả các Agent.
         """
+        open_positions = None
+        try:
+            from btc_scraper.trading.position_tracker import get_open_positions
+            open_positions = get_open_positions()
+        except Exception:
+            open_positions = []
+
         context = {
             "raw_candles": raw_candles_dict,
             "mtf_candles": mtf_candles_dict,
+            "open_positions": open_positions,
             "timestamp": time.time(),
             "cycle_id": f"cycle-{uuid.uuid4().hex}",
         }

@@ -1,0 +1,4 @@
+# Volatile runtime artifacts ignored by GitNexus to avoid spurious re-indexing
+data/prospective_raw_research_r1/
+data/prospective_raw_research_r1/**
+data/prospective_raw_research_r1/*

@@ -47,7 +47,7 @@ import os
 import time
 import uuid
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
@@ -74,6 +74,7 @@ from btc_scraper.core.paths import (
     runtime_evidence_eligible,
     runtime_paper_run_id,
 )
+from btc_scraper.trading.prospective_shadow_logger import get_prospective_shadow_logger
 
 AUTO_TRADE_LOG = build_logs_path("auto_trade_log.json")
 CIRCUIT_BREAKER_STATE = build_logs_path("auto_trade_circuit.json")
@@ -128,9 +129,114 @@ def _save_log(data: List[Dict]) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def _append_log(entry: Dict) -> None:
-    data = _load_log()
-    data.append(entry)
-    _save_log(data)
+    """
+    Append a trade log entry to the auto-trade log JSON file.
+
+    CONCURRENCY CONTRACT: Single-Writer within the runtime process lifecycle.
+    This implementation avoids full JSON file re-parsing by seeking to the tail
+    and splicing before the closing bracket in bounded latency. It is designed
+    for single-writer execution on the main event loop and does not employ cross-process
+    file locks.
+    """
+    path = _auto_trade_log_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    entry_json = json.dumps(entry, ensure_ascii=False, indent=2)
+    indented_entry = "\n".join("  " + line for line in entry_json.splitlines())
+
+    if not path.exists() or path.stat().st_size == 0:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("[\n" + indented_entry + "\n]\n")
+        return
+
+    try:
+        with open(path, "r+b") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            scan_size = min(size, 1024)
+            f.seek(size - scan_size)
+            tail = f.read(scan_size)
+            bracket_pos = tail.rfind(b"]")
+            if bracket_pos == -1:
+                # Fallback to full load/dump if file structure is unexpected
+                data = _load_log()
+                data.append(entry)
+                _save_log(data)
+                return
+
+            abs_bracket_pos = (size - scan_size) + bracket_pos
+            before_bracket = tail[:bracket_pos].strip()
+            is_empty_array = (before_bracket == b"[") or (size <= 5 and before_bracket.endswith(b"["))
+
+            f.seek(abs_bracket_pos)
+            if is_empty_array:
+                f.write(("  " + indented_entry.lstrip() + "\n]\n").encode("utf-8"))
+            else:
+                f.write((",\n" + indented_entry + "\n]\n").encode("utf-8"))
+            f.truncate()
+    except Exception:
+        data = _load_log()
+        data.append(entry)
+        _save_log(data)
+
+
+def _append_logs_batch(entries: List[Dict]) -> None:
+    """Append multiple trade log entries in a single file open and fsync operation.
+
+    Designed for NO_TRADE_SHADOW paper batching across universe symbols to avoid
+    per-symbol disk open overhead.
+    """
+    if not entries:
+        return
+    if len(entries) == 1:
+        _append_log(entries[0])
+        return
+
+    path = _auto_trade_log_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    formatted_entries = []
+    for entry in entries:
+        entry_json = json.dumps(entry, ensure_ascii=False, indent=2)
+        formatted_entries.append("\n".join("  " + line for line in entry_json.splitlines()))
+    combined_body = ",\n".join(formatted_entries)
+
+    if not path.exists() or path.stat().st_size == 0:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("[\n" + combined_body + "\n]\n")
+            f.flush()
+            os.fsync(f.fileno())
+        return
+
+    try:
+        with open(path, "r+b") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            scan_size = min(size, 1024)
+            f.seek(size - scan_size)
+            tail = f.read(scan_size)
+            bracket_pos = tail.rfind(b"]")
+            if bracket_pos == -1:
+                data = _load_log()
+                data.extend(entries)
+                _save_log(data)
+                return
+
+            abs_bracket_pos = (size - scan_size) + bracket_pos
+            before_bracket = tail[:bracket_pos].strip()
+            is_empty_array = (before_bracket == b"[") or (size <= 5 and before_bracket.endswith(b"["))
+
+            f.seek(abs_bracket_pos)
+            if is_empty_array:
+                f.write(("  " + combined_body.lstrip() + "\n]\n").encode("utf-8"))
+            else:
+                f.write((",\n" + combined_body + "\n]\n").encode("utf-8"))
+            f.truncate()
+            f.flush()
+            os.fsync(f.fileno())
+    except Exception:
+        data = _load_log()
+        data.extend(entries)
+        _save_log(data)
 
 
 # ─── Circuit Breaker State ──────────────────────────────────────────────────────
@@ -163,8 +269,79 @@ class AutoTrader:
     Không có call trực tiếp tới CCXTClient nữa.
     """
 
-    def __init__(self):
+    def __init__(self, activation_manifest_path: str | Path | None = None):
         self._execution_engine = None  # Lazy init ExecutionEngine with WriteAdapter
+        self._last_exit_timestamps: dict[str, datetime] = {}
+        self._current_cycle_shadow_summaries: dict[str, Any] = {}
+        if activation_manifest_path is not None:
+            self._activation_manifest_path = Path(activation_manifest_path)
+        else:
+            env_path = os.environ.get("PROSPECTIVE_ACTIVATION_MANIFEST_PATH")
+            self._activation_manifest_path = Path(env_path) if env_path else None
+
+    def activate_prospective_evidence(self, manifest: Any):
+        """Explicit activation path for prospective evidence in paper runtime with verified manifest."""
+        from btc_scraper.trading.prospective_shadow_logger import (
+            EvidenceActivationManifest,
+            load_activation_manifest,
+            get_prospective_shadow_logger,
+            LOCKED_VCB_V1_SPEC,
+        )
+        if isinstance(manifest, (str, Path)):
+            manifest_obj = load_activation_manifest(manifest)
+            self._activation_manifest_path = Path(manifest)
+        elif isinstance(manifest, EvidenceActivationManifest):
+            manifest_obj = manifest
+            if hasattr(manifest, "state_path") and manifest.state_path:
+                self._activation_manifest_path = Path(manifest.state_path).parent / "activation_manifest.json"
+        else:
+            raise TypeError(f"Expected EvidenceActivationManifest or Path/str, got {type(manifest)}")
+
+        manifest_obj.verify_integrity()
+        if manifest_obj.paper_policy != "NO_TRADE_SHADOW":
+            raise ValueError(f"Paper policy must be NO_TRADE_SHADOW, got {manifest_obj.paper_policy!r}")
+        if manifest_obj.strategy_spec_sha256 != LOCKED_VCB_V1_SPEC.strategy_spec_sha256:
+            raise ValueError(
+                f"Manifest strategy_spec_sha256 mismatch: {manifest_obj.strategy_spec_sha256} vs {LOCKED_VCB_V1_SPEC.strategy_spec_sha256}"
+            )
+
+        logger = get_prospective_shadow_logger(
+            activation_manifest=manifest_obj,
+            manifest_path=self._activation_manifest_path,
+            reset_singleton=True,
+        )
+        return logger
+
+    def _get_shadow_logger(self):
+        return get_prospective_shadow_logger(manifest_path=self._activation_manifest_path)
+
+    def get_last_exit_timestamps(self) -> dict[str, datetime]:
+        """Returns the most recent exit timestamp per coin, queried from DB and memory."""
+        res: dict[str, datetime] = dict(self._last_exit_timestamps)
+        try:
+            from btc_scraper.core.db import closed_positions_col
+            if closed_positions_col is not None:
+                recent_closed = closed_positions_col.find(
+                    {}, {"coin": 1, "closed_at": 1, "exit_time": 1, "timestamp": 1, "_id": 0}
+                )
+                for doc in recent_closed:
+                    c = str(doc.get("coin") or "").upper().removesuffix("USDT")
+                    t_val = doc.get("closed_at") or doc.get("exit_time") or doc.get("timestamp")
+                    if c and t_val:
+                        try:
+                            if isinstance(t_val, str):
+                                dt = datetime.fromisoformat(t_val.replace("Z", "+00:00"))
+                            elif isinstance(t_val, datetime):
+                                dt = t_val if t_val.tzinfo is not None else t_val.replace(tzinfo=timezone.utc)
+                            else:
+                                continue
+                            if c not in res or dt > res[c]:
+                                res[c] = dt
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+        return res
 
     @property
     def dry_run(self) -> bool:
@@ -656,6 +833,16 @@ class AutoTrader:
             ):
                 return _reject(EntryRejectionReason.FINAL_DECISION_LINEAGE_MISMATCH)
 
+        # 0. Economic policy check from causal / final decision
+        if (
+            causal_decision.get("economic_rejection_reason") == "NO_VIABLE_ECONOMIC_CANDIDATE"
+            or causal_decision.get("rejection_reason") == "NO_VIABLE_ECONOMIC_CANDIDATE"
+        ):
+            return _reject(
+                EntryRejectionReason.NO_VIABLE_ECONOMIC_CANDIDATE,
+                stage=DecisionStage.EDGE,
+            )
+
         # 1. Coin whitelist
         if coin.upper() not in [c.upper() for c in self.allowed_coins]:
             return _reject(EntryRejectionReason.COIN_NOT_ALLOWED)
@@ -933,9 +1120,13 @@ class AutoTrader:
         """
         placed = []
 
+        # 1. Run cycle-level candidate batch for prospective shadow logger (once per cycle)
+        self._run_cycle_prospective_shadow_batch(analysis)
+
+        shadow_batch_logs: list[dict] = []
         for key, ana in analysis.items():
             try:
-                result = await self._process_signal(key, ana)
+                result = await self._process_signal(key, ana, shadow_batch_collector=shadow_batch_logs)
                 if result:
                     placed.append(result)
             except Exception as e:
@@ -946,6 +1137,9 @@ class AutoTrader:
                     "status": "error",
                     "error": str(e),
                 })
+
+        if shadow_batch_logs:
+            _append_logs_batch(shadow_batch_logs)
 
         # Optionally evaluate & trade on higher timeframes (MTF)
         try:
@@ -1025,11 +1219,37 @@ class AutoTrader:
 
         return placed
 
-    async def _process_signal(self, key: str, ana: Dict) -> Optional[Dict]:
+    async def _process_signal(
+        self,
+        key: str,
+        ana: Dict,
+        shadow_batch_collector: Optional[List[Dict]] = None,
+    ) -> Optional[Dict]:
         """Xử lý một signal từ một coin."""
         coin = key.split(":")[0].upper()
         signal = ana.get("signal", "")
         sig_score = ana.get("signal_score") or {}
+        causal_decision = ana.get("causal_decision") or {}
+
+        # 0. Canonical Paper Economic Policy Fast Path
+        # When policy is NO_TRADE_SHADOW, short-circuit before ANY database queries,
+        # balance fetching, position queries, VaR calculations, exposure queries,
+        # canonical policy cooldown queries, or live market evaluation.
+        from btc_scraper.ml_engine.economic_contract import (
+            resolve_paper_economic_policy,
+            is_paper_shadow_policy,
+        )
+        policy = resolve_paper_economic_policy(analysis_info=ana)
+        if is_paper_shadow_policy(policy, analysis_info=ana):
+            log_entry = self._build_shadow_fast_path_log(
+                coin, signal, ana, causal_decision, policy
+            )
+            if shadow_batch_collector is not None:
+                shadow_batch_collector.append(log_entry)
+            else:
+                _append_log(log_entry)
+            # Routine shadow skips record local telemetry without synchronous Telegram alerts
+            return log_entry
 
         # Resolve adapter-only account/exposure inputs before the canonical
         # evaluator. Eligibility and sizing themselves execute inside its
@@ -1079,6 +1299,29 @@ class AutoTrader:
         ana["market_evaluation_result"] = market_evaluation.result.to_dict()
         final_decision = ana.get("causal_decision") or {}
 
+        # 1. Canonical Execution Policy Evaluation (P4 shared contract)
+        from btc_scraper.trading.execution_policy import CANONICAL_POLICY
+        can_enter, policy_rejection = CANONICAL_POLICY.can_enter(
+            symbol=coin,
+            side="BUY" if "BUY" in str(signal).upper() else "SELL",
+            current_time=datetime.now(timezone.utc),
+            active_positions=open_positions,
+            last_exit_timestamps=self.get_last_exit_timestamps(),
+            total_equity=real_balance,
+            available_cash=real_balance,
+        )
+        if not can_enter:
+            log_entry = self._build_skip_log(
+                coin,
+                signal,
+                f"canonical_policy_{policy_rejection}",
+                ana,
+                decision,
+            )
+            _append_log(log_entry)
+            self._notify_trade(log_entry)
+            return log_entry
+
         if not decision.eligible:
             # Silently skip low-priority or expected non-trade signals
             silent_reasons = {
@@ -1104,7 +1347,9 @@ class AutoTrader:
             score_val = decision.breakdown.technical_score if decision.breakdown else 50
 
             reason_str = decision.rejection_reason.value if decision.rejection_reason else "rejected"
-            if decision.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY:
+            if decision.rejection_reason == EntryRejectionReason.NO_VIABLE_ECONOMIC_CANDIDATE:
+                reason_str = "NO_VIABLE_ECONOMIC_CANDIDATE"
+            elif decision.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY:
                 reason_str = "Kelly Fraction <= 0 (signal_score)"
             elif decision.rejection_reason == EntryRejectionReason.CIRCUIT_BREAKER:
                 _, reason_str = self._check_circuit_breaker()
@@ -1127,6 +1372,30 @@ class AutoTrader:
                 ana,
                 decision,
             )
+            paper_policy = resolve_paper_economic_policy(analysis_info=ana)
+            log_entry["paper_economic_policy"] = paper_policy
+            causal = ana.get("causal_decision") or {}
+            log_entry["shadow_action"] = (
+                causal.get("shadow_action")
+                or (decision.breakdown.signal_action.value if decision.breakdown and hasattr(decision.breakdown, "signal_action") else None)
+                or (decision.action.value if decision.action else "HOLD")
+            )
+            _append_log(log_entry)
+            self._notify_trade(log_entry)
+            return log_entry
+
+        # 2. Defense-in-depth: Enforce paper economic policy at AutoTrader execution boundary
+        paper_economic_policy = resolve_paper_economic_policy(analysis_info=ana)
+        if is_paper_shadow_policy(paper_economic_policy, analysis_info=ana):
+            log_entry = self._build_skip_log(
+                coin,
+                signal,
+                "NO_VIABLE_ECONOMIC_CANDIDATE",
+                ana,
+                decision,
+            )
+            log_entry["paper_economic_policy"] = paper_economic_policy
+            log_entry["shadow_action"] = decision.action.value if decision.action else "HOLD"
             _append_log(log_entry)
             self._notify_trade(log_entry)
             return log_entry
@@ -1348,6 +1617,137 @@ class AutoTrader:
         _append_log(log_entry)
         return log_entry
 
+    def _run_cycle_prospective_shadow_batch(self, analysis: Dict[str, Any]) -> None:
+        """Runs the prospective shadow batch across candidate coins (BTC, ETH, BNB) once per cycle.
+
+        Evaluates unseen closed candles in strict global (timestamp, symbol) order,
+        persisting at most one atomic checkpoint transaction per cycle.
+        """
+        try:
+            from btc_scraper.core.candle_store import candle_store
+
+            logger = self._get_shadow_logger()
+            batch_candles: dict[str, Any] = {}
+            batch_flags: dict[str, Any] = {}
+
+            for coin in logger.spec.universe:
+                ana = (
+                    analysis.get(coin)
+                    or analysis.get(f"{coin}:Binance")
+                    or analysis.get(f"{coin}:BINANCE")
+                    or {}
+                )
+                candles = ana.get("_shadow_candles_15m") or ana.get("candles_15m")
+                if not isinstance(candles, (list, tuple)):
+                    candles = candle_store.get(coin, "15m")
+
+                has_candles = bool(candles and len(candles) > 0)
+                batch_candles[coin] = candles if has_candles else []
+
+                causal_decision = ana.get("causal_decision") or {}
+                c_fresh = bool(
+                    ana.get("candle_store_fresh")
+                    if ana.get("candle_store_fresh") is not None
+                    else candle_store.is_fresh(coin, "15m")
+                )
+                macro_q = causal_decision.get("macro_quality_status") or ana.get("macro_quality_status") or "UNKNOWN"
+                sent_q = causal_decision.get("sentiment_quality_status") or ana.get("sentiment_quality_status") or "UNKNOWN"
+                fund_q = ana.get("funding_quality_status") or "UNKNOWN"
+                batch_flags[coin] = {
+                    "present": has_candles,
+                    "candle_store_fresh": c_fresh,
+                    "macro_quality_status": macro_q,
+                    "sentiment_quality_status": sent_q,
+                    "funding_quality_status": fund_q,
+                }
+
+            self._current_cycle_shadow_summaries = logger.observe_cycle_candidate_batch(
+                batch_candles,
+                data_quality_flags=batch_flags,
+            )
+        except Exception as e:
+            self._current_cycle_shadow_summaries = {
+                coin: {"status": "DEGRADED_LOGGER_EXCEPTION", "error": str(e), "symbol": coin}
+                for coin in ("BTC", "ETH", "BNB")
+            }
+
+    def _build_shadow_fast_path_log(
+        self,
+        coin: str,
+        signal: str,
+        ana: Dict,
+        causal_decision: Dict,
+        policy: str,
+    ) -> Dict:
+        tp_sl = ana.get("tp_sl") or {}
+        sig_score = ana.get("signal_score") or {}
+        meta_prob = (
+            causal_decision.get("execution_probability")
+            if causal_decision.get("execution_probability") is not None
+            else (
+                causal_decision.get("meta_probability")
+                if causal_decision.get("meta_probability") is not None
+                else sig_score.get("meta_probability")
+            )
+        )
+        score = sig_score.get("score", 50)
+        strength = sig_score.get("strength", 0)
+        raw_shadow = (
+            causal_decision.get("shadow_action")
+            or causal_decision.get("action")
+            or sig_score.get("action")
+            or ("BUY" if "BUY" in str(signal).upper() else ("SELL" if "SELL" in str(signal).upper() else "HOLD"))
+        )
+        shadow_action = str(raw_shadow).upper()
+        prospective_shadow_meta = None
+        if coin in ("BTC", "ETH", "BNB"):
+            prospective_shadow_meta = getattr(self, "_current_cycle_shadow_summaries", {}).get(coin)
+            if prospective_shadow_meta is None:
+                # Fallback for isolated unit tests calling _build_shadow_fast_path_log directly:
+                # read-only health lookup without mutating state or persisting
+                try:
+                    logger = self._get_shadow_logger()
+                    prospective_shadow_meta = {
+                        "status": "NOT_OBSERVED_IN_CYCLE_BATCH",
+                        "symbol": coin,
+                        "health": logger.get_health_status(coin),
+                    }
+                except Exception as e:
+                    prospective_shadow_meta = {
+                        "status": "DEGRADED_LOGGER_EXCEPTION",
+                        "error": str(e),
+                        "symbol": coin,
+                    }
+
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "timestamp_str": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "mode": "DRY_RUN" if self.dry_run else "TESTNET",
+            "coin": coin,
+            "signal": signal,
+            "meta_confidence": round(float(meta_prob), 4) if meta_prob is not None else None,
+            "meta_probability": round(float(meta_prob), 4) if meta_prob is not None else None,
+            "meta_confidence_pct": int(round(float(meta_prob) * 100)) if meta_prob is not None else None,
+            "signal_score": int(score) if score is not None else 50,
+            "signal_strength": float(strength) if strength is not None else 0.0,
+            "kelly_fraction": sig_score.get("kelly_fraction"),
+            "b_estimate": sig_score.get("b_estimate"),
+            "status": "skipped",
+            "reason_skip": "NO_VIABLE_ECONOMIC_CANDIDATE",
+            "entry_price": tp_sl.get("entry") or ana.get("close"),
+            "sl_price": tp_sl.get("sl"),
+            "tp1_price": tp_sl.get("tp1"),
+            "decision_id": causal_decision.get("decision_id"),
+            "signal_eligible": False,
+            "live_authorized": False,
+            "final_status": "REJECTED",
+            "rejection_reason": "NO_VIABLE_ECONOMIC_CANDIDATE",
+            "paper_economic_policy": policy,
+            "shadow_action": shadow_action,
+            "prospective_shadow": prospective_shadow_meta,
+            "decision_breakdown": None,
+        }
+
     def _build_skip_log(
         self,
         coin: str,
@@ -1391,6 +1791,11 @@ class AutoTrader:
     def _notify_trade(self, entry: Dict) -> None:
         """Gửi Telegram alert về auto-trade."""
         try:
+            # Routine paper shadow skips do not send Telegram notifications
+            policy = str(entry.get("paper_economic_policy") or "").upper()
+            if policy in {"NO_TRADE_SHADOW", "NO_TRADE", "SHADOW"} and entry.get("status") == "skipped":
+                return
+
             from btc_scraper.telegram_bot import send_telegram_message
             mode = entry.get("mode", "DRY_RUN")
             coin = entry.get("coin", "?")
@@ -1461,6 +1866,8 @@ class AutoTrader:
         Routes through ExecutionEngine (and thus ExchangeAdapter) — never directly.
         All write calls go through the guard pipeline.
         """
+        coin_clean = str(coin or "").upper().removesuffix("USDT")
+        self._last_exit_timestamps[coin_clean] = datetime.now(timezone.utc)
         if self.dry_run:
             return {"status": "dry_run", "coin": coin}
         if entry_price <= 0 or invested_usdt <= 0:
