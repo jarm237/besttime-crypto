@@ -149,65 +149,31 @@ def main():
     
     X_cols = ["return_8", "return_32", "return_72", "abs_move_72"]
     
-    # Pre-generate exact full-precision model files to avoid truncation differences
+    # Strictly read-only pre-execution hash verification of frozen artifacts
+    import hashlib
     from sklearn.preprocessing import StandardScaler
     from sklearn.linear_model import LogisticRegression
-    import hashlib
     
-    model_params = {}
-    preprocessing_params = {}
+    checksum_path = MODEL_DIR / "checksums.json"
+    with open(checksum_path, "r", encoding="utf-8") as f:
+        expected_checksums = json.load(f)
+        
+    pre_run_hashes = {}
+    for f_name, expected_hash in expected_checksums.items():
+        file_path = MODEL_DIR / f_name
+        assert file_path.exists(), f"Missing artifact: {file_path}"
+        actual_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()
+        assert actual_hash == expected_hash, (
+            f"Pre-check integrity failure on {f_name}: {actual_hash} != {expected_hash}"
+        )
+        pre_run_hashes[f_name] = actual_hash
+        
+    print(f"[OK] Pre-check integrity verified: all {len(pre_run_hashes)} frozen model artifacts match checksums.json.")
     
-    for symbol in COINS:
-        csv_dir = REPO_ROOT / "data/fresh_training_data_2023_2026"
-        candle_df = load_candles_for_coin(csv_dir, symbol, "15m")
-        candle_df["timestamp"] = pd.to_datetime(candle_df["timestamp"], utc=True)
-        candle_df = candle_df.sort_values("timestamp").reset_index(drop=True)
-        candle_df["atr"] = compute_atr14(candle_df)
-        
-        df_coin = run_e4_generation(symbol, df_scaffold, candle_df)
-        df_train = df_coin[(df_coin["entry_timestamp"] >= train_start) & (df_coin["entry_timestamp"] <= train_end)]
-        
-        scaler = StandardScaler()
-        X_train = scaler.fit_transform(df_train[X_cols])
-        Y_train = df_train["Y"].values
-        
-        model = LogisticRegression(penalty="l2", C=1.0, random_state=42)
-        model.fit(X_train, Y_train)
-        
-        probs_train = model.predict_proba(X_train)[:, 1]
-        thresh_s3 = float(np.percentile(probs_train, 30))
-        
-        model_params[symbol] = {
-            "coefficients": [float(c) for c in model.coef_[0]],
-            "intercept": float(model.intercept_[0]),
-            "s3_threshold": thresh_s3
-        }
-        preprocessing_params[symbol] = {
-            "means": [float(m) for m in scaler.mean_],
-            "scales": [float(s) for s in scaler.scale_]
-        }
-        
-    # Write full precision files
-    with open(MODEL_DIR / "model.json", "w") as f:
-        json.dump(model_params, f, indent=2)
-    with open(MODEL_DIR / "preprocessing.json", "w") as f:
-        json.dump(preprocessing_params, f, indent=2)
-        
-    # Recalculate checksums
-    checksum_files = ['manifest.json', 'model.json', 'preprocessing.json', 'feature_schema.json', 'decision_policy.json', 'training_metadata.json']
-    checksums = {}
-    for f_name in checksum_files:
-        content = (MODEL_DIR / f_name).read_bytes()
-        checksums[f_name] = hashlib.sha256(content).hexdigest()
-    with open(MODEL_DIR / "checksums.json", "w") as f:
-        json.dump(checksums, f, indent=2)
-        
-    print("✓ Full-precision JSON model artifacts auto-generated and checksummed.")
-    
-    # Now load engine using newly generated full-precision files
+    # Load runtime engine using frozen artifacts (read-only)
     engine = RuntimeInferenceEngine(MODEL_DIR)
     
-    # Run mock runtime engine parity
+    # Run research/runtime engine parity check against frozen parameters
     for symbol in COINS:
         csv_dir = REPO_ROOT / "data/fresh_training_data_2023_2026"
         candle_df = load_candles_for_coin(csv_dir, symbol, "15m")
@@ -221,20 +187,17 @@ def main():
         conf_cutoff = pd.Timestamp(val_end, tz="UTC") + pd.Timedelta(hours=24)
         df_conf = df_conf[df_conf["entry_timestamp"] >= conf_cutoff].reset_index(drop=True)
         
-        # Offline/Research model predictions (via scikit-learn standard scale + lr model)
-        # We rerun scikit-learn predictions to verify matching score exactly
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.linear_model import LogisticRegression
-        
-        train_start, train_end = "2023-01-01", "2023-12-31"
-        df_train = df_coin[(df_coin["entry_timestamp"] >= train_start) & (df_coin["entry_timestamp"] <= train_end)]
-        
+        # Research reference model initialized strictly with frozen parameters
         scaler = StandardScaler()
-        X_train = scaler.fit_transform(df_train[X_cols])
-        Y_train = df_train["Y"].values
+        scaler.mean_ = np.array(engine.preprocessing[symbol]["means"])
+        scaler.scale_ = np.array(engine.preprocessing[symbol]["scales"])
+        scaler.var_ = scaler.scale_ ** 2
+        scaler.n_features_in_ = len(X_cols)
         
-        model = LogisticRegression(penalty="l2", C=1.0, random_state=42)
-        model.fit(X_train, Y_train)
+        model = LogisticRegression()
+        model.coef_ = np.array([engine.model[symbol]["coefficients"]])
+        model.intercept_ = np.array([engine.model[symbol]["intercept"]])
+        model.classes_ = np.array([0, 1])
         
         X_conf_off = scaler.transform(df_conf[X_cols])
         probs_conf_off = model.predict_proba(X_conf_off)[:, 1]
@@ -269,7 +232,22 @@ def main():
             "decision_mismatch_count": dec_mismatch
         }
         
+    # Strictly read-only post-execution hash verification
+    for f_name, pre_hash in pre_run_hashes.items():
+        file_path = MODEL_DIR / f_name
+        post_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()
+        assert post_hash == pre_hash, (
+            f"CRITICAL: Post-check integrity failure on {f_name}! File was mutated: {pre_hash} -> {post_hash}"
+        )
+    print("[OK] Post-check integrity verified: zero model artifacts were mutated (strictly read-only).")
+        
     # Evaluate Parity gates
+    results["evidence_taxonomy"] = "MODEL_PARITY"
+    results["scope_notice"] = (
+        "This replay strictly validates mathematical and decision parity between the research "
+        "model specification and the production runtime inference engine. It does NOT evaluate "
+        "economic profitability, PnL, or executed trading performance."
+    )
     results["gates"]["D2-G0"] = "PASS"
     results["gates"]["D2-G1"] = "PASS"
     results["gates"]["D2-G2"] = "PASS"
@@ -283,11 +261,11 @@ def main():
     json_path = OUT_DIR / "v5_d2_parity_replay.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
-    print(f"\n✓ Saved parity audit JSON to {json_path}")
+    print(f"\n[OK] Saved parity audit JSON to {json_path}")
     
     # Write report
     write_report(results)
-    print(f"✓ Saved parity report to {OUT_DIR / 'v5_d2_parity_report.md'}")
+    print(f"[OK] Saved parity report to {OUT_DIR / 'v5_d2_parity_report.md'}")
 
 
 def write_report(res: dict[str, Any]):
@@ -297,6 +275,11 @@ def write_report(res: dict[str, Any]):
         "# HMR-V5-D2: Research/Runtime Parity Replay Report",
         "",
         f"> **Timestamp**: `{res['audit_timestamp']}` | **Status**: `PASS`",
+        "",
+        "## Evidence Taxonomy Boundary",
+        "- **Category**: `MODEL_PARITY`",
+        "- **Scope**: Mathematical and decision consistency between research model parameters and production runtime inference engine (`RuntimeInferenceEngine`).",
+        "- **Explicit Non-Goal**: This replay does **NOT** measure trading performance, profit factor, Sharpe ratio, or observed demo returns. Parity only proves that the production runtime executes the research specification without numerical drift.",
         "",
         "## 1. Parity Audit Results",
         "",

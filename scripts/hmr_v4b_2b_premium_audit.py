@@ -2,6 +2,7 @@
 """HMR-V4B-2B-r1: Perp Spot Premium Historical Information Source Audit."""
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import os
@@ -140,7 +141,9 @@ def winsorize_spread(df: pd.DataFrame, target: str, q_limit: float = 0.01) -> fl
         return 0.0
     return (q5.mean() - q1.mean()) * 10000.0
 
-def run_audit():
+def run_audit(output_dir: Path | str = OUT_DIR):
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     print(f"Starting {REVISION} Perpetual Spot Premium audit...")
     
     # 1. Load Parquets
@@ -566,12 +569,12 @@ def run_audit():
         
     # Assembling final artifacts
     print("Saving parquet files...")
-    pd.concat(all_quantiles_export, ignore_index=True).to_parquet(OUT_DIR / "v4b_2b_premium_quantiles.parquet", index=False)
-    pd.DataFrame(all_conditional_export).to_parquet(OUT_DIR / "v4b_2b_premium_conditional.parquet", index=False)
-    pd.DataFrame(all_funding_export).to_parquet(OUT_DIR / "v4b_2b_premium_funding_redundancy.parquet", index=False)
-    pd.DataFrame(all_asset_export).to_parquet(OUT_DIR / "v4b_2b_premium_asset_stability.parquet", index=False)
-    pd.DataFrame(all_monthly_export).to_parquet(OUT_DIR / "v4b_2b_premium_monthly_stability.parquet", index=False)
-    pd.DataFrame(all_tail_export).to_parquet(OUT_DIR / "v4b_2b_premium_tail_sensitivity.parquet", index=False)
+    pd.concat(all_quantiles_export, ignore_index=True).to_parquet(output_dir / "v4b_2b_premium_quantiles.parquet", index=False)
+    pd.DataFrame(all_conditional_export).to_parquet(output_dir / "v4b_2b_premium_conditional.parquet", index=False)
+    pd.DataFrame(all_funding_export).to_parquet(output_dir / "v4b_2b_premium_funding_redundancy.parquet", index=False)
+    pd.DataFrame(all_asset_export).to_parquet(output_dir / "v4b_2b_premium_asset_stability.parquet", index=False)
+    pd.DataFrame(all_monthly_export).to_parquet(output_dir / "v4b_2b_premium_monthly_stability.parquet", index=False)
+    pd.DataFrame(all_tail_export).to_parquet(output_dir / "v4b_2b_premium_tail_sensitivity.parquet", index=False)
     
     # Save JSON Verdict Report
     verdict_json = {
@@ -584,16 +587,16 @@ def run_audit():
         "feature_verdicts": feature_verdicts
     }
     
-    verdict_json_path = OUT_DIR / "v4b_2b_premium_audit.json"
+    verdict_json_path = output_dir / "v4b_2b_premium_audit.json"
     with open(verdict_json_path, "w", encoding="utf-8") as f:
         json.dump(verdict_json, f, indent=2)
     print(f"✓ Saved audit json to {verdict_json_path}")
     
     # Save Markdown report
-    write_md_report(verdict_json)
+    write_md_report(verdict_json, output_dir=output_dir)
     
-def write_md_report(output: dict[str, Any]):
-    report_path = OUT_DIR / "v4b_2b_premium_report.md"
+def write_md_report(output: dict[str, Any], output_dir: Path | str = OUT_DIR):
+    report_path = Path(output_dir) / "v4b_2b_premium_report.md"
     
     lines = [
         f"# {output['program']} Perpetual Spot Premium Historical Information Audit Report",
@@ -656,4 +659,12 @@ def write_md_report(output: dict[str, Any]):
     print(f"✓ Saved markdown report to {report_path}")
 
 if __name__ == "__main__":
-    run_audit()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=OUT_DIR,
+        help="Directory for generated audit artifacts (defaults to the canonical research directory).",
+    )
+    args = parser.parse_args()
+    run_audit(output_dir=args.output_dir)

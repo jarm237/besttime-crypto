@@ -108,7 +108,17 @@ def build_report(
 def inspect_process(pid: int) -> dict[str, Any]:
     proc = Path("/proc") / str(pid)
     if not proc.exists():
-        return {"pid": pid, "running": False}
+        running = bool(_pid_alive(pid)) if sys.platform == "win32" else False
+        return {
+            "pid": pid,
+            "running": running,
+            "cmdline": None,
+            "cwd": None,
+            "ownership_env": {},
+            "has_owned_runtime_env": False,
+            "fd_count": None,
+            "fd_sample": [],
+        }
 
     environ = _read_proc_environ(proc / "environ")
     fd_targets = []
@@ -430,9 +440,39 @@ def _safe_int(value: Any) -> int | None:
         return None
 
 
+def _windows_pid_alive(pid: int) -> bool:
+    """Query a Windows process handle without delivering a console signal."""
+    import ctypes
+    from ctypes import wintypes
+
+    process_query_limited_information = 0x1000
+    error_access_denied = 5
+    still_active = 259
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+    kernel32.GetExitCodeProcess.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+    kernel32.CloseHandle.restype = wintypes.BOOL
+
+    handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
+    if not handle:
+        return ctypes.get_last_error() == error_access_denied
+    try:
+        exit_code = wintypes.DWORD()
+        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+            return True
+        return exit_code.value == still_active
+    finally:
+        kernel32.CloseHandle(handle)
+
+
 def _pid_alive(pid: int | None) -> bool | None:
     if pid is None or pid <= 0:
         return None
+    if sys.platform == "win32":
+        return _windows_pid_alive(pid)
     try:
         os.kill(pid, 0)
         return True

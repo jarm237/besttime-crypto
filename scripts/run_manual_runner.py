@@ -70,6 +70,44 @@ def _is_pid_alive(pid: int) -> bool:
             return False
 
 
+def _inspect_worktree_cleanliness(worktree_path: Path) -> dict[str, list[str]]:
+    """Return content changes that make a sealed worktree non-clean.
+
+    ``git diff --quiet`` is content-aware, so timestamp/stat-cache drift does
+    not create a false positive. Untracked files are checked separately
+    because ``git diff HEAD`` deliberately omits them.
+    """
+    try:
+        diff = subprocess.run(
+            ["git", "-C", str(worktree_path), "diff", "--quiet", "HEAD", "--"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if diff.returncode not in {0, 1}:
+            detail = (diff.stderr or diff.stdout).strip()
+            raise RuntimeError(f"git diff failed with exit {diff.returncode}: {detail}")
+
+        tracked_changes: list[str] = []
+        if diff.returncode == 1:
+            tracked_changes = subprocess.check_output(
+                ["git", "-C", str(worktree_path), "diff", "HEAD", "--name-only", "--"],
+                text=True,
+            ).splitlines()
+
+        untracked_files = subprocess.check_output(
+            ["git", "-C", str(worktree_path), "ls-files", "--others", "--exclude-standard"],
+            text=True,
+        ).splitlines()
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(f"Failed to inspect sealed worktree: {exc}") from exc
+
+    return {
+        "tracked_changes": [path for path in tracked_changes if path],
+        "untracked_files": [path for path in untracked_files if path],
+    }
+
+
 def validate_governed_preflight() -> dict[str, Any]:
     """Preflight check using P8AttestationPolicy read-only SQLite access to verify sealed governance."""
     checks: dict[str, Any] = {}
@@ -94,17 +132,14 @@ def validate_governed_preflight() -> dict[str, Any]:
         )
     checks["sealed_commit_sha"] = current_commit
 
-    # 3. Clean worktree check
-    try:
-        git_status = subprocess.check_output(
-            ["git", "-C", str(SEALED_WORKTREE_PATH), "status", "--short"],
-            text=True
-        ).strip()
-    except Exception as exc:
-        raise RuntimeError(f"Failed to check git status: {exc}") from exc
-
-    if git_status:
-        raise RuntimeError(f"Sealed worktree is dirty:\n{git_status}")
+    # 3. Clean worktree check (content-aware & untracked-aware)
+    cleanliness = _inspect_worktree_cleanliness(SEALED_WORKTREE_PATH)
+    if cleanliness["tracked_changes"]:
+        changed = "\n".join(cleanliness["tracked_changes"])
+        raise RuntimeError(f"Sealed worktree has uncommitted content changes:\n{changed}")
+    if cleanliness["untracked_files"]:
+        untracked = "\n".join(cleanliness["untracked_files"])
+        raise RuntimeError(f"Sealed worktree has untracked files:\n{untracked}")
     checks["worktree_clean"] = True
 
     # 4. Attestation check via P8AttestationPolicy

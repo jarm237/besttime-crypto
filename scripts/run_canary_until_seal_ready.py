@@ -1031,11 +1031,12 @@ def main() -> int:
     pause_controller: RuntimePauseController | None = None
     child_budget: ChildStartBudget | None = None
     interrupted = False
+    old_sigint = signal.getsignal(signal.SIGINT)
+    old_sigterm = signal.getsignal(signal.SIGTERM)
 
     def request_stop(signum: int, _frame: Any) -> None:
         nonlocal interrupted
         interrupted = True
-        print(f"[runner] received signal {signum}", flush=True)
 
     signal.signal(signal.SIGINT, request_stop)
     signal.signal(signal.SIGTERM, request_stop)
@@ -1255,6 +1256,10 @@ def main() -> int:
         print(f"[runner] FAILED {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
         return 1
     finally:
+        signal.signal(signal.SIGINT, old_sigint)
+        signal.signal(signal.SIGTERM, old_sigterm)
+        if interrupted:
+            print("[runner] received signal during execution", file=sys.stderr, flush=True)
         _stop_child(
             child,
             args.child_stop_timeout_seconds,

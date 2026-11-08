@@ -55,7 +55,12 @@ def display_path(path: Path) -> str:
         return str(path)
 
 
-def repair_sqlite_file(db_path: Path, apply: bool = False, include_snapshots: bool = False) -> dict:
+def repair_sqlite_file(
+    db_path: Path,
+    apply: bool = False,
+    include_snapshots: bool = False,
+    backup_dir: Path | None = None,
+) -> dict:
     if not include_snapshots and (".aborted-" in db_path.name or "aborted-" in str(db_path)):
         return {"scanned": 0, "repaired": 0, "skipped": 1, "errors": 0}
 
@@ -151,10 +156,10 @@ def repair_sqlite_file(db_path: Path, apply: bool = False, include_snapshots: bo
 
             if apply:
                 # Perform atomic backup before mutation
-                backup_dir = REPO_ROOT / "logs" / "backups"
-                backup_dir.mkdir(parents=True, exist_ok=True)
+                target_backup_dir = backup_dir if backup_dir is not None else (REPO_ROOT / "logs" / "backups")
+                target_backup_dir.mkdir(parents=True, exist_ok=True)
                 timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-                backup_path = backup_dir / f"{db_path.stem}_{timestamp}.sqlite.bak"
+                backup_path = target_backup_dir / f"{db_path.stem}_{timestamp}.sqlite.bak"
                 
                 bconn = sqlite3.connect(backup_path)
                 conn.backup(bconn)
