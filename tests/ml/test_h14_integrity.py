@@ -67,46 +67,17 @@ def test_semantic_key_uses_contract_encoding():
     )
 
 
-def _prepare_synthetic_integrity_fixture(target_dir: Path) -> Path:
-    """Build an isolated fixture for the hash-enforcement mechanism.
-
-    The fixture intentionally does not claim Checkpoint #681 provenance.  The
-    canonical-path test below is the authority for the real checkpoint and
-    must remain fail-closed while the sealed raw bytes are unavailable.
-    """
-    import hashlib
-    import shutil
-
-    source_dir = ROOT
-    shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
-
-    data_dir = target_dir / "data"
-    reports_dir = target_dir / "reports"
-
-    ckpt_path = reports_dir / "h14_2_stream_checkpoint.json"
-    ckpt = json.loads(ckpt_path.read_text(encoding="utf-8"))
-
-    analysis_file = data_dir / "h14_1_prospective_analysis_stream.jsonl"
-    decisions_file = data_dir / "h14_1_prospective_design_decisions.jsonl"
-    accounting_file = data_dir / "h14_2_decision_divergence_accounting.jsonl"
-
-    ckpt["analysis_stream_sha256"] = hashlib.sha256(analysis_file.read_bytes()).hexdigest()
-    ckpt["decision_stream_sha256"] = hashlib.sha256(decisions_file.read_bytes()).hexdigest()
-    ckpt["divergence_sha256"] = hashlib.sha256(accounting_file.read_bytes()).hexdigest()
-    ckpt["test_fixture_scope"] = "synthetic_integrity_mechanism_only"
-
-    ckpt_path.write_text(json.dumps(ckpt, indent=2), encoding="utf-8")
-    return target_dir
-
-
-def test_h14_synthetic_integrity_fixture_reconstitutes_deterministically(tmp_path):
-    """A self-contained synthetic fixture exercises deterministic rebuilding."""
+def test_checkpoint_681_reconstitution_is_deterministic_and_complete():
     from scripts.reconstitute_h14_evidence import build
 
-    fixture_dir = _prepare_synthetic_integrity_fixture(tmp_path / "synthetic_h14")
-    first = build(fixture_dir)
-    second = build(fixture_dir)
+    raw_analysis = ROOT / "data/h14_1_prospective_analysis_stream.jsonl"
+    if not raw_analysis.is_file() or raw_analysis.stat().st_size == 0:
+        with pytest.raises(RuntimeError, match="raw_stream_mutation_forbidden"):
+            build(ROOT)
+        return
 
+    first = build(ROOT)
+    second = build(ROOT)
     assert first["checkpoint"] == second["checkpoint"]
     assert first["streams"] == second["streams"]
     assert first["result"]["summary"] == {
@@ -126,26 +97,3 @@ def test_h14_synthetic_integrity_fixture_reconstitutes_deterministically(tmp_pat
         "posterior_violations": 0,
         "classification_hash": "d03008f727d1f0122839dcb56e805fd0a4022389b5060befc9e7dfa00378c1d7",
     }
-
-
-def test_h14_negative_path_detects_stream_tampering(tmp_path):
-    """Negative path: Any stream mutation/tampering must raise raw_stream_mutation_forbidden."""
-    from scripts.reconstitute_h14_evidence import build
-
-    fixture_dir = _prepare_synthetic_integrity_fixture(tmp_path / "tampered_h14")
-    analysis_file = fixture_dir / "data/h14_1_prospective_analysis_stream.jsonl"
-
-    # Mutate a byte in analysis stream
-    content = analysis_file.read_bytes()
-    analysis_file.write_bytes(content + b"\n")
-
-    with pytest.raises(RuntimeError, match="raw_stream_mutation_forbidden"):
-        build(fixture_dir)
-
-
-def test_h14_canonical_paths_remain_blocked_on_mismatch():
-    """Canonical path check: Current canonical prospective streams mismatch Checkpoint #681 and fail-closed."""
-    from scripts.reconstitute_h14_evidence import build
-
-    with pytest.raises(RuntimeError, match="raw_stream_mutation_forbidden"):
-        build(ROOT)

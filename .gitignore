@@ -36,3 +36,6 @@ venv/
 # Ephemeral scratch scripts and test logs
 /scratch/
 *.log
+
+# Reproducible large research parquet datasets
+research/historical_market_replay_v5/*.parquet
