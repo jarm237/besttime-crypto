@@ -1,0 +1,103 @@
+{
+  "candidate_id": "vol_aware_mean_reversion_v1",
+  "candidate_version": "1.0.0",
+  "strategy_class_path": "btc_scraper.research.strategy_registry.VolAwareMeanReversionStrategy",
+  "parameters": {
+    "rsi_period": 14,
+    "rsi_oversold": 30.0,
+    "rsi_exit": 50.0,
+    "bb_period": 20,
+    "bb_std": 2.0,
+    "macro_period": 50,
+    "atr_period": 14,
+    "atr_stop_multiplier": 1.5
+  },
+  "config_hash": "4f73c169892a94031456273cdd213f5989ec7421b1679f0d90ae998bfedf5372",
+  "symbol": "ETHUSDT",
+  "market": "BINANCE_SPOT",
+  "timeframe": "1h",
+  "direction": "LONG_ONLY",
+  "sizing_policy": {
+    "initial_capital": 10000.0,
+    "allocation_pct": 0.1,
+    "max_open_positions": 1
+  },
+  "exit_rules": {
+    "take_profit": "close >= sma_20 or rsi >= 50.0",
+    "protective_stop": "close < entry_price - 1.5 * atr_14",
+    "same_candle_conflict": "CONSERVATIVE_SL_FIRST"
+  },
+  "execution_timing_policy": "NEXT_BAR_OPEN",
+  "same_candle_policy": "CONSERVATIVE_SL_FIRST",
+  "cost_model": {
+    "spot_maker_bps": 5.0,
+    "spot_taker_bps": 5.0,
+    "slippage_bps": 2.0,
+    "total_roundtrip_bps": 14.0
+  },
+  "feature_schema_hash": "d1ee189e97d440fefd258676945c5af7796609dbb29e1f5ea5ddfb8a70c99a15",
+  "development_manifest_identity": "canonical_binance_spot_2023_2026_v1",
+  "development_manifest_hash": "51fcd96db7340bfb18be07e434045c0dbc6c0ec1ae28e1b0e9dfa67468987c9b",
+  "development_folds": [
+    {
+      "fold_id": 1,
+      "val_window": "2025-05-01 -> 2025-08-30",
+      "trades": 10,
+      "net_pnl": 36.38,
+      "win_rate": 0.7,
+      "profit_factor": 1.61,
+      "max_drawdown_pct": 0.32
+    },
+    {
+      "fold_id": 2,
+      "val_window": "2025-08-30 -> 2025-12-30",
+      "trades": 11,
+      "net_pnl": 84.46,
+      "win_rate": 0.9091,
+      "profit_factor": 7.83,
+      "max_drawdown_pct": 0.17
+    },
+    {
+      "fold_id": 3,
+      "val_window": "2025-12-30 -> 2026-04-30",
+      "trades": 11,
+      "net_pnl": 43.06,
+      "win_rate": 0.6364,
+      "profit_factor": 1.69,
+      "max_drawdown_pct": 0.31
+    }
+  ],
+  "development_performance_summary": {
+    "disposition": "PROMISING_DEVELOPMENT_CANDIDATE",
+    "total_trades": 32,
+    "total_net_pnl": 163.9,
+    "total_gross_pnl": 196.09,
+    "total_fees": 32.19,
+    "aggregate_win_rate": 0.75,
+    "aggregate_profit_factor": 2.546,
+    "max_drawdown_pct": 0.32,
+    "profitable_folds": "3/3",
+    "assumed_friction_bps": 14.0,
+    "mean_trade_net_pnl_usd": 5.12,
+    "bootstrap_95_ci_usd": [
+      -0.03,
+      9.7
+    ]
+  },
+  "frozen_at_utc": "2026-11-10T01:30:00Z",
+  "code_git_head": "5fee4753a7ed25e21cee3f3d2648d11b51c9ab64",
+  "validation_scope": "PROSPECTIVE_SHADOW_ONLY",
+  "no_retune_policy": true,
+  "source_manifest_hash": "43228bbc968b69f335cae7f63a982c759199706e033105ad8e17610f644ec606",
+  "m4_result_artifact_hash": "4abf11790abe15bdcf70ec5382d58daf08afd41aac81d42c14ceb6f39ddaef29",
+  "seal_status": "SOURCE_SEAL_PENDING",
+  "strategy_source_hash": "1296a5cb4e739502b630c82bf11d926a590b5d3f641136e9857d15597b0b678d",
+  "created_at_utc": "2026-11-10T01:30:00Z",
+  "effective_from_utc": "PENDING_ACTIVATION_AUTHORIZATION",
+  "validation_start_utc": "2026-11-10T00:00:00Z",
+  "holdout_eligibility_status": "PROSPECTIVE_PENDING_DATA",
+  "freeze_hash": "61b0d0ca0dc6c2cb287f4bef25281c870b907579ca78b441df9420cdfe38170f",
+  "is_superseded": true,
+  "freeze_lifecycle_status": "SUPERSEDED",
+  "superseded_reason": "Temporal defect: frozen_at_utc (2026-11-10T01:30:00Z) was in future relative to generation report (2026-11-09T19:02:00Z); string sentinels were stored in datetime fields."
+}
