@@ -25,6 +25,15 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
+def _make_subprocess_env(extra: dict[str, str] | None = None) -> dict[str, str]:
+    sub_env = dict(os.environ)
+    sub_env["PYTHONUTF8"] = "1"
+    sub_env["PYTHONIOENCODING"] = "utf-8"
+    if extra:
+        sub_env.update(extra)
+    return sub_env
+
+
 # ─── Test 1: Startup Mode Resolution ──────────────────────────────────────────
 
 def test_resolve_startup_mode():
@@ -133,6 +142,7 @@ assert not has_torch, f"torch was eagerly loaded into sys.modules: {{[m for m in
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env=_make_subprocess_env(),
     )
     assert res.returncode == 0, f"Subprocess failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
     assert "TORCH_IN_SYS_MODULES:False" in res.stdout
@@ -163,6 +173,7 @@ print("PPO_DYNAMIC_LOAD_SUCCESS")
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env=_make_subprocess_env(),
     )
     assert res.returncode == 0, f"Subprocess failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
     assert "PPO_DYNAMIC_LOAD_SUCCESS" in res.stdout
@@ -274,6 +285,7 @@ print("ORCH_LAZY_SUCCESS")
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env=_make_subprocess_env(),
     )
     assert res.returncode == 0, f"Subprocess failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
     assert "ORCH_LAZY_SUCCESS" in res.stdout
@@ -314,6 +326,7 @@ with tempfile.TemporaryDirectory() as td:
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env=_make_subprocess_env(),
     )
     assert res.returncode == 0, f"Subprocess failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
     assert "ORCH_DYNAMIC_LOAD_SUCCESS" in res.stdout

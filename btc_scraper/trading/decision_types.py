@@ -21,6 +21,21 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from .event_risk_policy import (
+    DEFAULT_EVENT_RISK_POLICY_VERSION,
+    EntryPermission,
+    EventRiskContractError,
+    EventRiskDecision,
+    EventRiskLevel,
+    EventRiskPolicyReason,
+    OrderIntent,
+    PositionAction,
+    RiskEvaluationResult,
+    RiskPolicyEvaluator,
+    StaleSnapshotPolicy,
+    compute_snapshot_hash,
+)
+
 
 # ── Trade action ──────────────────────────────────────────────────────────────
 
@@ -57,6 +72,10 @@ class EntryRejectionReason(str, Enum):
     MAX_CONCURRENT_POSITIONS = "max_concurrent_positions"
     CAPITAL_CAPACITY_EXCEEDED = "capital_capacity_exceeded"
     NO_VIABLE_ECONOMIC_CANDIDATE = "no_viable_economic_candidate"
+    RISK_MANAGER_BLOCKED = "risk_manager_blocked"
+    PORTFOLIO_WEIGHT_ZERO = "portfolio_weight_zero"
+    EVENT_RISK_BLOCKED = "event_risk_blocked"
+    INVALID_EVENT_RISK_SNAPSHOT = "invalid_event_risk_snapshot"
 
 
 class AuthorizationReason(str, Enum):
@@ -152,6 +171,7 @@ class DecisionBreakdown:
     directional_score: int
     signal_strength: int
     signal_action: TradeAction
+    approved_action: Optional[TradeAction] = None
 
     # Statistical edge (None if rejected before EDGE stage)
     meta_probability: Optional[float] = None
@@ -174,6 +194,15 @@ class DecisionBreakdown:
     min_notional: Optional[float] = None
     final_notional: Optional[float] = None
 
+    # Risk & Portfolio governance (P0-A & P0-B)
+    risk_multiplier: Optional[float] = None
+    risk_status: Optional[str] = None
+    risk_blocked: Optional[bool] = None
+    portfolio_weight: Optional[float] = None
+    portfolio_cap: Optional[float] = None
+    event_risk: Optional[EventRiskDecision] = None
+    event_risk_result: Optional[RiskEvaluationResult] = None
+
     # Rejection
     rejection_reason: Optional[EntryRejectionReason] = None
 
@@ -185,6 +214,7 @@ class DecisionBreakdown:
         d["directional_score"] = self.directional_score
         d["signal_strength"] = self.signal_strength
         d["signal_action"] = self.signal_action.value
+        d["approved_action"] = self.approved_action.value if self.approved_action else None
         d["meta_probability"] = self.meta_probability
         d["rr_ratio"] = self.rr_ratio
         d["gross_expected_value"] = self.gross_expected_value
@@ -200,6 +230,13 @@ class DecisionBreakdown:
         d["max_trade_cap"] = self.max_trade_cap
         d["min_notional"] = self.min_notional
         d["final_notional"] = self.final_notional
+        d["risk_multiplier"] = self.risk_multiplier
+        d["risk_status"] = self.risk_status
+        d["risk_blocked"] = self.risk_blocked
+        d["portfolio_weight"] = self.portfolio_weight
+        d["portfolio_cap"] = self.portfolio_cap
+        d["event_risk"] = self.event_risk.to_dict() if self.event_risk else None
+        d["event_risk_result"] = self.event_risk_result.to_dict() if self.event_risk_result else None
         d["rejection_reason"] = self.rejection_reason.value if self.rejection_reason else None
         return d
 
@@ -228,6 +265,9 @@ class SizingDecision:
     final_notional: float = 0.0
     rejected: bool = False
     rejection_reason: Optional[EntryRejectionReason] = None
+    portfolio_weight: Optional[float] = None
+    portfolio_capped: Optional[float] = None
+    risk_multiplier: float = 1.0
 
     @property
     def kelly_fraction(self) -> Optional[float]:
@@ -257,6 +297,30 @@ class SizingDecision:
     def gated(self) -> bool:
         return bool(self.rejected)
 
+    @property
+    def governing_constraint(self) -> str:
+        if self.rejected:
+            if self.rejection_reason == EntryRejectionReason.CAPITAL_CAPACITY_EXCEEDED:
+                return "min_trade_cap"
+            if self.rejection_reason == EntryRejectionReason.PORTFOLIO_WEIGHT_ZERO:
+                return "portfolio_weight_zero"
+            if self.rejection_reason == EntryRejectionReason.RISK_MANAGER_BLOCKED:
+                return "risk_manager_blocked"
+            if self.rejection_reason == EntryRejectionReason.NON_POSITIVE_KELLY:
+                return "non_positive_kelly"
+            return "rejected"
+        if self.max_trade_capped is not None and abs(self.final_notional - self.max_trade_capped) < 1e-4:
+            return "max_trade_cap"
+        if self.exposure_capped is not None and abs(self.final_notional - self.exposure_capped) < 1e-4:
+            return "exposure_cap"
+        if self.var_capped is not None and abs(self.final_notional - self.var_capped) < 1e-4:
+            return "var_cap"
+        if self.portfolio_capped is not None and abs(self.final_notional - self.portfolio_capped) < 1e-4:
+            return "portfolio_allocation_cap"
+        if self.kelly_adjusted is not None and abs(self.final_notional - self.kelly_adjusted) < 1e-4:
+            return "kelly_cap"
+        return "raw_risk_sizing"
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "entry_price": self.entry_price,
@@ -266,6 +330,8 @@ class SizingDecision:
             "risk_notional": self.risk_notional,
             "raw_notional": self.raw_notional,
             "kelly_adjusted": self.kelly_adjusted,
+            "portfolio_weight": self.portfolio_weight,
+            "portfolio_capped": self.portfolio_capped,
             "var_capped": self.var_capped,
             "exposure_capped": self.exposure_capped,
             "max_trade_capped": self.max_trade_capped,
@@ -275,11 +341,108 @@ class SizingDecision:
             "raw_position_size": self.raw_position_size,
             "risk_adjusted_size": self.risk_adjusted_size,
             "final_position_size": self.final_position_size,
+            "risk_multiplier": self.risk_multiplier,
             "gated": self.gated,
             "sizing_contract_version": "risk-sizing/v1",
             "rejected": self.rejected,
             "rejection_reason": self.rejection_reason.value if self.rejection_reason else None,
+            "governing_constraint": self.governing_constraint,
         }
+
+
+# ── Risk & Portfolio Adapter Types (P0-A) ────────────────────────────────────
+
+@dataclass(frozen=True)
+class RiskPortfolioItem:
+    """Canonical adapter between Multi-Agent context and AutoTrader entry decision pipeline."""
+    coin: str
+    action: str = "NEUTRAL"
+    approved_action: str = "NEUTRAL"
+    risk_blocked: bool = False
+    risk_status: str = "OK"
+    risk_failure_reason: Optional[str] = None
+    risk_multiplier: float = 1.0
+    portfolio_weight: Optional[float] = None
+    kelly_fraction: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "coin": self.coin,
+            "action": self.action,
+            "approved_action": self.approved_action,
+            "risk_blocked": self.risk_blocked,
+            "risk_status": self.risk_status,
+            "risk_failure_reason": self.risk_failure_reason,
+            "risk_multiplier": self.risk_multiplier,
+            "portfolio_weight": self.portfolio_weight,
+            "kelly_fraction": self.kelly_fraction,
+        }
+
+
+def build_risk_portfolio_map(
+    signals_info: Optional[Any] = None,
+    risk_metrics: Optional[Dict[str, Any]] = None,
+) -> Dict[str, RiskPortfolioItem]:
+    """Map multi-agent signals_info and risk_metrics to structured per-coin governance objects."""
+    res: Dict[str, RiskPortfolioItem] = {}
+    is_globally_blocked = bool(risk_metrics and risk_metrics.get("blocked", False))
+    global_status = str(risk_metrics.get("status", "UNAVAILABLE") if risk_metrics else "OK")
+    global_failure = str(risk_metrics.get("failure_reason") or "") if is_globally_blocked else None
+    global_mult = float(risk_metrics.get("risk_multiplier", 1.0) if risk_metrics else 1.0)
+
+    if signals_info:
+        # Handle dict or list form
+        iterable = signals_info.values() if isinstance(signals_info, dict) else signals_info
+        for s in iterable:
+            if not isinstance(s, dict):
+                continue
+            coin = str(s.get("coin", "")).upper()
+            if not coin:
+                continue
+            raw_act = str(s.get("action", "NEUTRAL")).upper()
+            if is_globally_blocked:
+                act = raw_act
+                approved = "NEUTRAL"
+                status = global_status
+                failure = global_failure
+                mult = 0.0
+                blocked = True
+            else:
+                blocked = bool(s.get("risk_blocked", False))
+                status = str(s.get("risk_status") or "OK")
+                failure = s.get("risk_failure_reason")
+                raw_approved = s.get("approved_action")
+                if blocked:
+                    approved = "NEUTRAL"
+                elif raw_approved is not None:
+                    approved = str(raw_approved).upper()
+                else:
+                    approved = raw_act
+
+                # approved_action can only be the unchanged raw action or NEUTRAL to block
+                # Never allow flipping BUY to SELL or SELL to BUY
+                if approved not in ("NEUTRAL", raw_act):
+                    approved = "NEUTRAL"
+                    blocked = True
+
+                mult = float(s.get("risk_multiplier", global_mult)) if not blocked else 0.0
+                act = raw_act
+
+            pw = s.get("portfolio_weight")
+            kf = s.get("kelly_fraction")
+
+            res[coin] = RiskPortfolioItem(
+                coin=coin,
+                action=act,
+                approved_action=approved,
+                risk_blocked=blocked,
+                risk_status=status,
+                risk_failure_reason=failure,
+                risk_multiplier=mult,
+                portfolio_weight=float(pw) if pw is not None else None,
+                kelly_fraction=float(kf) if kf is not None else None,
+            )
+    return res
 
 
 # ── Entry decision ────────────────────────────────────────────────────────────
@@ -306,6 +469,8 @@ class EntryDecision:
     final_status: FinalDecisionStatus
     breakdown: Optional[DecisionBreakdown]
     sizing: Optional[SizingDecision]
+    event_risk: Optional[EventRiskDecision] = None
+    event_risk_result: Optional[RiskEvaluationResult] = None
 
     # Eligibility vs authorization separation
     signal_eligible: bool = True
@@ -339,6 +504,10 @@ class EntryDecision:
             EntryRejectionReason.CIRCUIT_BREAKER,
             EntryRejectionReason.CORRELATION_FILTER,
             EntryRejectionReason.DAILY_LIMIT,
+            EntryRejectionReason.RISK_MANAGER_BLOCKED,
+            EntryRejectionReason.PORTFOLIO_WEIGHT_ZERO,
+            EntryRejectionReason.EVENT_RISK_BLOCKED,
+            EntryRejectionReason.INVALID_EVENT_RISK_SNAPSHOT,
         }
         return bool(
             (self.sizing and self.sizing.rejected)
@@ -360,6 +529,8 @@ class EntryDecision:
             "final_status": self.final_status.value,
             "breakdown": self.breakdown.to_dict() if self.breakdown else None,
             "sizing": self.sizing.to_dict() if self.sizing else None,
+            "event_risk": self.event_risk.to_dict() if self.event_risk else None,
+            "event_risk_result": self.event_risk_result.to_dict() if self.event_risk_result else None,
             "signal_eligible": self.signal_eligible,
             "live_authorized": self.live_authorized,
             "eligibility_reason": self.eligibility_reason.value if self.eligibility_reason else None,

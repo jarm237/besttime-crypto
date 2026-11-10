@@ -68,6 +68,14 @@ class TestEntryRejectionReason:
         "NON_EXECUTABLE_FINAL_DECISION": "non_executable_final_decision",
         "FINAL_DECISION_LINEAGE_MISMATCH": "final_decision_lineage_mismatch",
         "FINAL_DECISION_SUPERSEDED": "final_decision_superseded",
+        "COOLDOWN_ACTIVE": "cooldown_active",
+        "MAX_CONCURRENT_POSITIONS": "max_concurrent_positions",
+        "CAPITAL_CAPACITY_EXCEEDED": "capital_capacity_exceeded",
+        "NO_VIABLE_ECONOMIC_CANDIDATE": "no_viable_economic_candidate",
+        "RISK_MANAGER_BLOCKED": "risk_manager_blocked",
+        "PORTFOLIO_WEIGHT_ZERO": "portfolio_weight_zero",
+        "EVENT_RISK_BLOCKED": "event_risk_blocked",
+        "INVALID_EVENT_RISK_SNAPSHOT": "invalid_event_risk_snapshot",
     }
 
     def test_all_values_stable(self):

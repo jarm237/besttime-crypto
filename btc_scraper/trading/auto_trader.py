@@ -42,6 +42,7 @@ Config (từ .env):
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -49,6 +50,7 @@ import uuid
 import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from decimal import Decimal
 from typing import Dict, List, Optional, Any
 
 from btc_scraper.analysis.correlation import correlation_engine, SECTOR_MAP
@@ -67,6 +69,13 @@ from btc_scraper.trading.decision_types import (
     DecisionBreakdown,
     SizingDecision,
     EntryDecision,
+    EventRiskLevel,
+    EntryPermission,
+    PositionAction,
+    OrderIntent,
+    EventRiskDecision,
+    RiskEvaluationResult,
+    RiskPolicyEvaluator,
 )
 from btc_scraper.core.paths import (
     build_logs_path,
@@ -514,6 +523,7 @@ class AutoTrader:
         exposure_cap: Optional[float] = None,
         max_trade_cap: Optional[float] = None,
         min_trade_cap: Optional[float] = None,
+        portfolio_weight: Optional[float] = None,
     ) -> SizingDecision:
         """Tính position size dựa trên fixed fractional risk (2% mặc định)
         nhân với setup multiplier (Kelly/Regime) và áp dụng các cap rủi ro.
@@ -530,6 +540,8 @@ class AutoTrader:
                 risk_pct=0.0,
                 risk_notional=0.0,
                 raw_notional=0.0,
+                portfolio_weight=portfolio_weight,
+                risk_multiplier=multiplier,
                 rejected=True,
                 rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
             )
@@ -544,11 +556,28 @@ class AutoTrader:
                 risk_pct=0.0,
                 risk_notional=0.0,
                 raw_notional=0.0,
+                portfolio_weight=portfolio_weight,
+                risk_multiplier=multiplier,
                 rejected=True,
                 rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
             )
 
         balance = current_balance if current_balance and current_balance > 0 else self.account_usdt
+
+        # Check explicit zero or negative risk multiplier
+        if multiplier <= 0.0:
+            return SizingDecision(
+                entry_price=entry_price,
+                sl_price=sl_price,
+                stop_distance_pct=sl_distance_pct,
+                risk_pct=0.0,
+                risk_notional=0.0,
+                raw_notional=0.0,
+                portfolio_weight=portfolio_weight,
+                risk_multiplier=0.0,
+                rejected=True,
+                rejection_reason=EntryRejectionReason.RISK_MANAGER_BLOCKED,
+            )
 
         # 3. Risk-based sizing
         risk_pct = self.risk_pct * max(0.01, min(1.0, multiplier))
@@ -571,6 +600,8 @@ class AutoTrader:
                     risk_pct=risk_pct,
                     risk_notional=risk_notional,
                     raw_notional=raw_notional,
+                    portfolio_weight=portfolio_weight,
+                    risk_multiplier=multiplier,
                     rejected=True,
                     rejection_reason=EntryRejectionReason.NON_POSITIVE_KELLY,
                 )
@@ -579,19 +610,38 @@ class AutoTrader:
             kelly_adjusted = kelly_risk_notional / sl_distance_pct
             notional = min(notional, kelly_adjusted)
 
-        # 5. VaR Cap
+        # 5. Portfolio Allocation Cap (P0-A)
+        portfolio_capped = None
+        if portfolio_weight is not None:
+            if portfolio_weight <= 0.0:
+                return SizingDecision(
+                    entry_price=entry_price,
+                    sl_price=sl_price,
+                    stop_distance_pct=sl_distance_pct,
+                    risk_pct=risk_pct,
+                    risk_notional=risk_notional,
+                    raw_notional=raw_notional,
+                    portfolio_weight=0.0,
+                    risk_multiplier=multiplier,
+                    rejected=True,
+                    rejection_reason=EntryRejectionReason.PORTFOLIO_WEIGHT_ZERO,
+                )
+            portfolio_capped = round(balance * portfolio_weight, 2)
+            notional = min(notional, portfolio_capped)
+
+        # 6. VaR Cap
         var_capped = None
         if var_cap is not None:
             var_capped = var_cap
             notional = min(notional, var_capped)
 
-        # 6. Exposure Cap
+        # 7. Exposure Cap
         exposure_capped = None
         if exposure_cap is not None:
             exposure_capped = exposure_cap
             notional = min(notional, exposure_capped)
 
-        # 7. Hard Max Cap
+        # 8. Hard Max Cap
         max_trade_capped = None
         max_limit = max_trade_cap if max_trade_cap is not None else self.max_trade_usdt
         if notional > max_limit:
@@ -600,7 +650,7 @@ class AutoTrader:
 
         risk_adjusted_notional = max(0.0, notional)
 
-        # 8. Min Notional Validation
+        # 9. Min Notional Validation
         min_limit = min_trade_cap if min_trade_cap is not None else self.min_trade_usdt
         allowed_risk = risk_notional
         if kelly_f is not None:
@@ -608,6 +658,32 @@ class AutoTrader:
             allowed_risk = min(allowed_risk, balance * kelly_risk_pct / 100.0)
 
         if notional < min_limit:
+            # A floor cannot override a risk cap or portfolio allocation cap
+            if (
+                (portfolio_capped is not None and portfolio_capped < min_limit)
+                or (var_capped is not None and var_capped < min_limit)
+                or (exposure_capped is not None and exposure_capped < min_limit)
+            ):
+                return SizingDecision(
+                    entry_price=entry_price,
+                    sl_price=sl_price,
+                    stop_distance_pct=sl_distance_pct,
+                    risk_pct=risk_pct,
+                    risk_notional=risk_notional,
+                    raw_notional=raw_notional,
+                    kelly_adjusted=kelly_adjusted,
+                    portfolio_weight=portfolio_weight,
+                    portfolio_capped=portfolio_capped,
+                    var_capped=var_capped,
+                    exposure_capped=exposure_capped,
+                    max_trade_capped=max_trade_capped,
+                    risk_adjusted_notional=risk_adjusted_notional,
+                    final_notional=0.0,
+                    risk_multiplier=multiplier,
+                    rejected=True,
+                    rejection_reason=EntryRejectionReason.CAPITAL_CAPACITY_EXCEEDED,
+                )
+
             # Reject if min notional exceeds allowed risk
             min_notional_risk = min_limit * sl_distance_pct
             if min_notional_risk > allowed_risk:
@@ -619,11 +695,14 @@ class AutoTrader:
                     risk_notional=risk_notional,
                     raw_notional=raw_notional,
                     kelly_adjusted=kelly_adjusted,
+                    portfolio_weight=portfolio_weight,
+                    portfolio_capped=portfolio_capped,
                     var_capped=var_capped,
                     exposure_capped=exposure_capped,
                     max_trade_capped=max_trade_capped,
                     risk_adjusted_notional=risk_adjusted_notional,
                     final_notional=0.0,
+                    risk_multiplier=multiplier,
                     rejected=True,
                     rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
                 )
@@ -638,11 +717,14 @@ class AutoTrader:
             risk_notional=risk_notional,
             raw_notional=raw_notional,
             kelly_adjusted=kelly_adjusted,
+            portfolio_weight=portfolio_weight,
+            portfolio_capped=portfolio_capped,
             var_capped=var_capped,
             exposure_capped=exposure_capped,
             max_trade_capped=max_trade_capped,
             risk_adjusted_notional=risk_adjusted_notional,
             final_notional=round(notional, 2),
+            risk_multiplier=multiplier,
             rejected=False,
         )
 
@@ -670,6 +752,13 @@ class AutoTrader:
         self,
         analysis: Dict[str, Any],
         coin: str,
+        risk_decision: Optional[Dict[str, Any]] = None,
+        portfolio_decision: Optional[Dict[str, Any]] = None,
+        current_balance: Optional[float] = None,
+        var_cap: Optional[float] = None,
+        exposure_cap: Optional[float] = None,
+        event_risk: Optional[EventRiskDecision] = None,
+        evaluation_time: Optional[datetime] = None,
     ) -> EntryDecision:
         """Canonical entry decision pipeline.
 
@@ -761,12 +850,77 @@ class AutoTrader:
         except ValueError:
             upstream_action = TradeAction.NEUTRAL
 
+        # Event Risk Policy Overlay Resolution (P0-B)
+        overlay_present = False
+        malformed_event_risk = False
+        resolved_event_risk: Optional[EventRiskDecision] = None
+
+        candidate_er = event_risk if event_risk is not None else analysis.get("event_risk")
+        if candidate_er is not None or "event_risk" in analysis:
+            overlay_present = True
+            if isinstance(candidate_er, EventRiskDecision):
+                resolved_event_risk = candidate_er
+            elif isinstance(candidate_er, dict):
+                try:
+                    resolved_event_risk = EventRiskDecision.from_dict(candidate_er)
+                except Exception:
+                    malformed_event_risk = True
+            else:
+                malformed_event_risk = True
+
+        # Decision boundary evaluation timestamp (strictly deterministic)
+        raw_eval_time = evaluation_time or analysis.get("evaluation_time") or analysis.get("timestamp")
+        eval_time: Optional[datetime] = None
+        if overlay_present:
+            # When overlay is present, evaluation_time is mandatory and must be a timezone-aware datetime.
+            # Never fallback to datetime.now() and never attach UTC silently to naive datetimes.
+            if raw_eval_time is not None:
+                if isinstance(raw_eval_time, str):
+                    try:
+                        parsed_dt = datetime.fromisoformat(raw_eval_time)
+                        if parsed_dt.tzinfo is not None and parsed_dt.tzinfo.utcoffset(parsed_dt) is not None:
+                            eval_time = parsed_dt
+                    except Exception:
+                        eval_time = None
+                elif isinstance(raw_eval_time, datetime):
+                    if raw_eval_time.tzinfo is not None and raw_eval_time.tzinfo.utcoffset(raw_eval_time) is not None:
+                        eval_time = raw_eval_time
+        else:
+            # Baseline P0-A behavior when overlay is absent
+            if raw_eval_time is not None:
+                if isinstance(raw_eval_time, str):
+                    try:
+                        eval_time = datetime.fromisoformat(raw_eval_time)
+                    except Exception:
+                        eval_time = None
+                elif isinstance(raw_eval_time, datetime):
+                    eval_time = raw_eval_time
+
+        # Separate the three identities: prediction_id, causal_final_decision_id, entry_decision_id
+        causal_final_id = causal_decision.get("decision_id")
+        cand_entry_id = analysis.get("entry_decision_id")
+        if cand_entry_id and str(cand_entry_id) != str(causal_final_id):
+            entry_evidence_id = str(cand_entry_id)
+        else:
+            pred_id_part = lineage.get("prediction_id") or "pred"
+            entry_evidence_id = f"eed_{pred_id_part}"
+
+        ev_result: Optional[RiskEvaluationResult] = None
+
         # Helper to build rejection quickly
         def _reject(
             reason: EntryRejectionReason,
             stage: DecisionStage = DecisionStage.NORMALIZATION,
+            rejected_action: Optional[TradeAction] = None,
+            event_risk_snapshot: Optional[EventRiskDecision] = None,
+            event_risk_res: Optional[RiskEvaluationResult] = None,
             **extra_breakdown,
         ) -> EntryDecision:
+            act = rejected_action or upstream_action
+            if "approved_action" not in extra_breakdown:
+                extra_breakdown["approved_action"] = act
+            eff_event_risk = event_risk_snapshot if event_risk_snapshot is not None else resolved_event_risk
+            eff_event_res = event_risk_res if event_risk_res is not None else ev_result
             bd = DecisionBreakdown(
                 decision_stage=stage,
                 technical_score=score,
@@ -774,19 +928,141 @@ class AutoTrader:
                 signal_strength=normalized.strength,
                 signal_action=upstream_action,
                 rejection_reason=reason,
+                event_risk=eff_event_risk,
+                event_risk_result=eff_event_res,
                 **extra_breakdown,
             )
-            return EntryDecision(
+            dec = EntryDecision(
                 eligible=False,
-                action=upstream_action,
+                action=act,
                 rejection_reason=reason,
                 final_status=FinalDecisionStatus.REJECTED,
                 breakdown=bd,
                 sizing=None,
                 signal_eligible=False,
                 eligibility_reason=reason,
+                event_risk=eff_event_risk,
+                event_risk_result=eff_event_res,
                 **lineage,
             )
+            # Only persist canonical entry evidence if snapshot and evaluation result are valid
+            if (
+                runtime_evidence_eligible()
+                and lineage.get("prediction_id")
+                and overlay_present
+                and eff_event_risk is not None
+                and eff_event_res is not None
+                and eval_time is not None
+            ):
+                self._persist_entry_evidence(entry_evidence_id, dec, eff_event_risk, eff_event_res, eval_time, causal_decision)
+            elif runtime_evidence_eligible() and lineage.get("prediction_id") and overlay_present and (eff_event_risk is None or eval_time is None):
+                # For malformed snapshot or invalid timestamp, record audit event only, never canonical entry evidence
+                from btc_scraper.ml_engine.runtime_evidence_store import get_runtime_evidence_store
+                store = get_runtime_evidence_store()
+                raw_str = json.dumps(candidate_er, default=str) if isinstance(candidate_er, dict) else str(candidate_er)
+                raw_hash = hashlib.sha256(raw_str.encode("utf-8")).hexdigest()
+                store.append_audit_event({
+                    "event_type": "INVALID_EVENT_RISK_SNAPSHOT_REJECTED",
+                    "prediction_id": str(lineage.get("prediction_id")),
+                    "raw_payload_hash": raw_hash,
+                    "rejection_reason": reason.value if hasattr(reason, "value") else str(reason),
+                })
+            return dec
+
+        # Check timestamp when overlay is present: fail-closed if missing, naive, or invalid
+        if overlay_present and eval_time is None:
+            return _reject(
+                EntryRejectionReason.INVALID_EVENT_RISK_SNAPSHOT,
+                stage=DecisionStage.ELIGIBILITY,
+                rejected_action=TradeAction.NEUTRAL,
+                approved_action=TradeAction.NEUTRAL,
+                event_risk_snapshot=None,
+                event_risk_res=None,
+            )
+
+        # Check malformed overlay immediately fail-closed (P0-B)
+        if overlay_present and (malformed_event_risk or resolved_event_risk is None):
+            return _reject(
+                EntryRejectionReason.INVALID_EVENT_RISK_SNAPSHOT,
+                stage=DecisionStage.ELIGIBILITY,
+                rejected_action=TradeAction.NEUTRAL,
+                approved_action=TradeAction.NEUTRAL,
+                event_risk_snapshot=None,
+                event_risk_res=None,
+            )
+
+        # Authoritative Risk & Portfolio Governance (P0-A)
+        def _to_clean_dict(val: Any) -> Dict[str, Any]:
+            if val is None:
+                return {}
+            if isinstance(val, dict):
+                return val
+            if hasattr(val, "to_dict") and callable(val.to_dict):
+                return val.to_dict()
+            if hasattr(val, "__dict__"):
+                return {k: v for k, v in val.__dict__.items() if not k.startswith("_")}
+            return {}
+
+        resolved_risk = _to_clean_dict(risk_decision or analysis.get("risk_decision"))
+        resolved_portfolio = _to_clean_dict(portfolio_decision or analysis.get("portfolio_decision"))
+        # Only fallback to weight in risk object when portfolio_weight is None, preserving explicit 0.0
+        if resolved_portfolio.get("portfolio_weight") is None and resolved_risk.get("portfolio_weight") is not None:
+            resolved_portfolio["portfolio_weight"] = resolved_risk["portfolio_weight"]
+
+        # 0a. Check authoritative risk result (blocks stale raw analysis from bypassing)
+        if resolved_risk:
+            is_risk_blocked = bool(resolved_risk.get("risk_blocked", False)) or str(resolved_risk.get("risk_status", "")).upper() in ("UNAVAILABLE", "BLOCKED", "CRITICAL")
+            risk_approved = str(resolved_risk.get("approved_action") or "").upper()
+            if risk_approved and risk_approved not in ("NEUTRAL", upstream_action.value):
+                # Flipping BUY <-> SELL is forbidden; fail-closed to block
+                is_risk_blocked = True
+
+            # Raw NEUTRAL/HOLD is non-trade signal, NOT risk manager failure.
+            # RISK_MANAGER_BLOCKED is triggered if risk state is explicitly blocked,
+            # or if an active trade signal (BUY/SELL) was demoted by risk manager to NEUTRAL/HOLD/BLOCK.
+            if is_risk_blocked or (upstream_action in (TradeAction.BUY, TradeAction.SELL) and risk_approved in ("NEUTRAL", "HOLD", "BLOCK")):
+                return _reject(
+                    EntryRejectionReason.RISK_MANAGER_BLOCKED,
+                    stage=DecisionStage.ELIGIBILITY,
+                    rejected_action=TradeAction.NEUTRAL,
+                    approved_action=TradeAction.NEUTRAL,
+                    risk_blocked=True,
+                    risk_status=str(resolved_risk.get("risk_status") or "UNAVAILABLE"),
+                    risk_multiplier=0.0,
+                    portfolio_weight=float(resolved_portfolio.get("portfolio_weight")) if (resolved_portfolio and resolved_portfolio.get("portfolio_weight") is not None) else None,
+                )
+
+        # 0b. Check portfolio weight (explicit 0.0 rejects with PORTFOLIO_WEIGHT_ZERO)
+        if resolved_portfolio:
+            port_w = resolved_portfolio.get("portfolio_weight")
+            if port_w is not None and float(port_w) <= 0.0:
+                return _reject(
+                    EntryRejectionReason.PORTFOLIO_WEIGHT_ZERO,
+                    stage=DecisionStage.ELIGIBILITY,
+                    rejected_action=TradeAction.NEUTRAL,
+                    approved_action=TradeAction.NEUTRAL,
+                    portfolio_weight=0.0,
+                    portfolio_cap=0.0,
+                )
+
+        # 0c. Check Event Risk Policy overlay (P0-B)
+        if resolved_event_risk is not None:
+            evaluator = RiskPolicyEvaluator()
+            ev_result = evaluator.evaluate(
+                snapshot=resolved_event_risk,
+                intent=OrderIntent.ENTRY,
+                requested_multiplier=Decimal("1.0"),
+                evaluation_timestamp=eval_time,
+            )
+            if not ev_result.allowed:
+                return _reject(
+                    EntryRejectionReason.EVENT_RISK_BLOCKED,
+                    stage=DecisionStage.ELIGIBILITY,
+                    rejected_action=TradeAction.NEUTRAL,
+                    approved_action=TradeAction.NEUTRAL,
+                    event_risk_snapshot=resolved_event_risk,
+                    event_risk_res=ev_result,
+                )
 
         # Eligible production evidence must be authorized by the one persisted
         # terminal decision, never reconstructed from the technical signal.
@@ -1013,13 +1289,54 @@ class AutoTrader:
                     kelly_applied=kelly_raw_val if kelly_raw_val and kelly_raw_val > 0 else 0.0,
                 )
 
-        # ── Build successful breakdown (SIZING stage will be added by caller) ──
+        # ── Stage: SIZING (P0-A) ──────────────────────────────────────────
+        entry_price = float(tp_sl.get("entry") or analysis.get("close") or 0.0)
+        sl_price = float(tp_sl.get("sl") or 0.0)
+
+        risk_mult = float(resolved_risk.get("risk_multiplier", 1.0)) if resolved_risk else float(sig_score.get("risk_multiplier", 1.0))
+        if ev_result is not None:
+            event_cap = float(ev_result.approved_multiplier)
+            risk_mult = min(risk_mult, event_cap)
+        port_weight = float(resolved_portfolio.get("portfolio_weight")) if (resolved_portfolio and resolved_portfolio.get("portfolio_weight") is not None) else None
+
+        sizing: Optional[SizingDecision] = None
+        current_bal = current_balance if current_balance and current_balance > 0 else self.account_usdt
+
+        if entry_price > 0.0 and sl_price > 0.0:
+            sizing = self.compute_position_size(
+                entry_price=entry_price,
+                sl_price=sl_price,
+                current_balance=current_bal,
+                multiplier=risk_mult,
+                win_prob=meta_prob,
+                rr_ratio=rr_ratio,
+                var_cap=var_cap,
+                exposure_cap=exposure_cap,
+                max_trade_cap=self.max_trade_usdt,
+                min_trade_cap=self.min_trade_usdt,
+                portfolio_weight=port_weight,
+            )
+            if sizing.rejected:
+                return _reject(
+                    sizing.rejection_reason or EntryRejectionReason.INVALID_SIZING_INPUT,
+                    stage=DecisionStage.SIZING,
+                    meta_probability=meta_prob,
+                    rr_ratio=rr_ratio,
+                    kelly_raw=kelly_raw_val,
+                    risk_pct_applied=sizing.risk_pct,
+                    risk_notional=sizing.risk_notional,
+                    portfolio_weight=port_weight,
+                    risk_multiplier=risk_mult,
+                )
+
+        decision_stage = DecisionStage.SIZING if sizing is not None else DecisionStage.ELIGIBILITY
         breakdown = DecisionBreakdown(
-            decision_stage=DecisionStage.ELIGIBILITY,
+            decision_stage=decision_stage,
             technical_score=score,
             directional_score=normalized.directional_score,
             signal_strength=int(strength),
             signal_action=upstream_action,
+            approved_action=upstream_action,
             meta_probability=meta_prob,
             rr_ratio=rr_ratio,
             gross_expected_value=round(gross_ev, 6) if gross_ev is not None else None,
@@ -1027,19 +1344,79 @@ class AutoTrader:
             net_expected_value=round(net_ev, 6) if net_ev is not None else None,
             kelly_raw=kelly_raw_val,
             kelly_applied=kelly_raw_val if kelly_raw_val and kelly_raw_val > 0 else None,
+            risk_pct_applied=sizing.risk_pct if sizing else None,
+            risk_notional=sizing.risk_notional if sizing else None,
+            size_before_caps=sizing.raw_notional if sizing else None,
+            var_cap=sizing.var_capped if sizing else var_cap,
+            exposure_cap=sizing.exposure_capped if sizing else exposure_cap,
+            max_trade_cap=sizing.max_trade_capped if sizing else self.max_trade_usdt,
+            min_notional=self.min_trade_usdt if sizing else None,
+            final_notional=sizing.final_notional if sizing else None,
+            risk_multiplier=risk_mult,
+            risk_status=str(resolved_risk.get("risk_status") or "OK") if resolved_risk else "OK",
+            risk_blocked=False,
+            portfolio_weight=port_weight,
+            portfolio_cap=sizing.portfolio_capped if sizing else (round(current_bal * port_weight, 2) if port_weight is not None else None),
+            event_risk=resolved_event_risk,
+            event_risk_result=ev_result,
         )
 
-        return EntryDecision(
+        dec = EntryDecision(
             eligible=True,
             action=upstream_action,
             rejection_reason=None,
             final_status=FinalDecisionStatus.ELIGIBLE,
             breakdown=breakdown,
-            sizing=None,
+            sizing=sizing,
             signal_eligible=True,
             eligibility_reason=None,
+            event_risk=resolved_event_risk,
+            event_risk_result=ev_result,
             **lineage,
         )
+        if (
+            runtime_evidence_eligible()
+            and lineage.get("prediction_id")
+            and overlay_present
+            and resolved_event_risk is not None
+            and ev_result is not None
+            and eval_time is not None
+        ):
+            self._persist_entry_evidence(entry_evidence_id, dec, resolved_event_risk, ev_result, eval_time, causal_decision)
+        return dec
+
+    def _persist_entry_evidence(
+        self,
+        evidence_entry_id: str,
+        decision: EntryDecision,
+        event_risk: EventRiskDecision,
+        event_result: RiskEvaluationResult,
+        eval_time: datetime,
+        causal_decision: Dict[str, Any],
+    ) -> None:
+        """Persist immutable trading entry decision evidence linked to prediction and causal decision.
+
+        Failures raise directly to ensure deterministic, observable persistence without silent dropping.
+        """
+        from btc_scraper.ml_engine.runtime_evidence_store import get_runtime_evidence_store
+        store = get_runtime_evidence_store()
+        causal_id = causal_decision.get("decision_id")
+        record = {
+            "entry_decision_id": evidence_entry_id,
+            "prediction_id": str(decision.prediction_id),
+            "causal_final_decision_id": str(causal_id) if causal_id else None,
+            "eligible": decision.eligible,
+            "rejection_reason": decision.rejection_reason.value if decision.rejection_reason else None,
+            "action": decision.action.value,
+            "event_risk": event_risk.to_dict(),
+            "event_risk_result": event_result.to_dict(),
+            "evaluation_timestamp": eval_time.isoformat(),
+            "risk_state_version": event_risk.risk_state_version,
+            "risk_policy_version": event_risk.risk_policy_version,
+            "snapshot_payload": event_risk.to_dict(),
+            "snapshot_hash": event_result.snapshot_hash,
+        }
+        store.append_entry_decision_evidence(record)
 
     def should_trade(
         self,
@@ -1108,12 +1485,21 @@ class AutoTrader:
 
     # ─── Core: Evaluate & Trade ─────────────────────────────────────────────────
 
-    async def evaluate_and_trade(self, analysis: Dict[str, Any], mtf_analysis: Optional[Dict[str, Any]] = None) -> List[Dict]:
+    async def evaluate_and_trade(
+        self,
+        analysis: Dict[str, Any],
+        mtf_analysis: Optional[Dict[str, Any]] = None,
+        signals_info: Optional[Any] = None,
+        risk_context: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict]:
         """
         Entry point chính. Gọi sau mỗi cycle fetch_and_display().
 
         Args:
             analysis: dict {coin:exchange → analysis_dict} từ analyze_market()
+            mtf_analysis: optional MTF analysis dict
+            signals_info: optional signals_info list/dict from multi-agent context
+            risk_context: optional risk metrics dict from RiskManagerAgent
 
         Returns:
             List các lệnh đã được xử lý (để log/notify)
@@ -1123,10 +1509,20 @@ class AutoTrader:
         # 1. Run cycle-level candidate batch for prospective shadow logger (once per cycle)
         self._run_cycle_prospective_shadow_batch(analysis)
 
+        from btc_scraper.trading.decision_types import build_risk_portfolio_map
+        risk_portfolio_map = build_risk_portfolio_map(signals_info, risk_context)
+
         shadow_batch_logs: list[dict] = []
         for key, ana in analysis.items():
+            coin = key.split(":")[0].upper()
+            rp_item = risk_portfolio_map.get(coin)
             try:
-                result = await self._process_signal(key, ana, shadow_batch_collector=shadow_batch_logs)
+                result = await self._process_signal(
+                    key,
+                    ana,
+                    shadow_batch_collector=shadow_batch_logs,
+                    risk_portfolio=rp_item,
+                )
                 if result:
                     placed.append(result)
             except Exception as e:
@@ -1196,8 +1592,18 @@ class AutoTrader:
                             pass
 
                         fake_key = f"{coin}:MTF:{tf}"
+                        # B. Đóng bypass ở MTF: Mọi MTF call vào _process_signal phải nhận cùng RiskPortfolioItem của coin.
+                        # Nếu risk result bị thiếu trong một cycle đã bật authoritative propagation, không được âm thầm chạy MTF bằng raw signal.
+                        mtf_rp_item = risk_portfolio_map.get(coin)
+                        if risk_portfolio_map and mtf_rp_item is None:
+                            continue
+
                         try:
-                            result = await self._process_signal(fake_key, tf_ana)
+                            result = await self._process_signal(
+                                fake_key,
+                                tf_ana,
+                                risk_portfolio=mtf_rp_item,
+                            )
                             if result:
                                 placed.append(result)
                         except Exception as e:
@@ -1224,6 +1630,7 @@ class AutoTrader:
         key: str,
         ana: Dict,
         shadow_batch_collector: Optional[List[Dict]] = None,
+        risk_portfolio: Optional[Any] = None,
     ) -> Optional[Dict]:
         """Xử lý một signal từ một coin."""
         coin = key.split(":")[0].upper()
@@ -1294,6 +1701,7 @@ class AutoTrader:
             current_balance=real_balance,
             var_cap=max_var_size,
             exposure_cap=max_exposure_size,
+            risk_portfolio=risk_portfolio,
         )
         decision = market_evaluation.entry_decision
         ana["market_evaluation_result"] = market_evaluation.result.to_dict()
@@ -1521,6 +1929,19 @@ class AutoTrader:
                 "idempotency_key": ana.get("idempotency_key"),
                 "lifecycle_schema_version": ana.get("lifecycle_schema_version", "trade-lifecycle-v1"),
                 "entry_time": datetime.now().isoformat(),
+                "latest_event_risk": (
+                    decision.breakdown.event_risk
+                    if decision.breakdown and decision.breakdown.event_risk
+                    else ana.get("event_risk")
+                ),
+                "event_risk_snapshot_hash": (
+                    ana.get("event_risk_snapshot_hash")
+                    or (
+                        getattr(decision.breakdown.event_risk, "snapshot_hash", None)
+                        if decision.breakdown and decision.breakdown.event_risk
+                        else None
+                    )
+                ),
             }
 
             engine = self._get_execution_engine()

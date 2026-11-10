@@ -65,6 +65,27 @@ def _final_decision(action: str = "SELL", **overrides) -> dict:
     return row
 
 
+def _mock_evidence_store(final_decision: dict | None = None) -> SimpleNamespace:
+    fd = final_decision or _final_decision()
+    return SimpleNamespace(
+        get_committed_final_decision=lambda _prediction_id: fd,
+        get_entry_decision_evidence=lambda _pid: {
+            "prediction_id": _pid,
+            "causal_final_decision_id": fd.get("decision_id"),
+            "eligible": fd.get("eligible", True),
+            "action": fd.get("action", "SELL"),
+        },
+        get_entry_decision_evidence_by_id=lambda _eid: {
+            "entry_decision_id": _eid,
+            "prediction_id": fd.get("prediction_id"),
+            "causal_final_decision_id": fd.get("decision_id"),
+            "eligible": fd.get("eligible", True),
+            "action": fd.get("action", "SELL"),
+        },
+        append_audit_event=lambda _evt: None,
+    )
+
+
 def _analysis(final_decision: dict | None) -> dict:
     row = {
         "signal": "STRONG SELL (Confirmed Reversal)",
@@ -233,9 +254,7 @@ def test_wrong_paper_run_is_quarantined_before_reservation(monkeypatch, tmp_path
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.runtime_evidence_store.get_runtime_evidence_store",
-        lambda: SimpleNamespace(
-            get_committed_final_decision=lambda _prediction_id: _final_decision()
-        ),
+        lambda: _mock_evidence_store(),
     )
     signal = _execution_signal(paper_run_id="live-paper-legacy")
 
@@ -269,9 +288,7 @@ def test_paper_fill_preserves_cycle_and_run_lineage(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.runtime_evidence_store.get_runtime_evidence_store",
-        lambda: SimpleNamespace(
-            get_committed_final_decision=lambda _prediction_id: _final_decision()
-        ),
+        lambda: _mock_evidence_store(),
     )
     signal = _execution_signal()
 
@@ -302,9 +319,7 @@ def test_execution_reloads_and_rejects_wrong_decision_digest(monkeypatch, tmp_pa
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.runtime_evidence_store.get_runtime_evidence_store",
-        lambda: SimpleNamespace(
-            get_committed_final_decision=lambda _prediction_id: _final_decision()
-        ),
+        lambda: _mock_evidence_store(),
     )
     signal = {**_execution_signal(), "decision_sha256": "stale-sha"}
 
@@ -324,15 +339,14 @@ def test_execution_reloads_and_rejects_wrong_decision_digest(monkeypatch, tmp_pa
 def test_controlled_sell_smoke_reaches_fill_and_replay_is_idempotent(
     monkeypatch, tmp_path,
 ):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     _production_evidence(monkeypatch)
     final_decision = _final_decision(
         "SELL", meta_probability=0.2, execution_probability=0.8
     )
     monkeypatch.setattr(
         "btc_scraper.ml_engine.runtime_evidence_store.get_runtime_evidence_store",
-        lambda: SimpleNamespace(
-            get_committed_final_decision=lambda _prediction_id: final_decision
-        ),
+        lambda: _mock_evidence_store(final_decision),
     )
     engine = ExecutionEngine(
         log_dir=str(tmp_path / "execution"),

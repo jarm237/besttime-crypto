@@ -153,8 +153,11 @@ def test_evaluate_live_market_production_path_without_lookahead_error():
 
 
 def test_eligible_signal_flows_to_submit_paper(monkeypatch):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
+    monkeypatch.setattr("btc_scraper.trading.auto_trader.exposure_manager.get_open_positions", lambda: [])
     async def _run():
         trader = AutoTrader()
+        monkeypatch.setattr(trader, "get_last_exit_timestamps", lambda: {})
         base_time = datetime.datetime(2026, 9, 9, 0, 0, 0, tzinfo=timezone.utc)
         history = []
         for i in range(100):
@@ -287,6 +290,7 @@ def test_eligible_signal_flows_to_submit_paper(monkeypatch):
 
 
 def test_true_end_to_end_binance_rest_to_submit_paper(monkeypatch):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     async def _run():
         import btc_scraper.trading.auto_trader as auto_trader_mod
         import btc_scraper.trading.exposure_manager as exp_mgr_mod
@@ -296,6 +300,7 @@ def test_true_end_to_end_binance_rest_to_submit_paper(monkeypatch):
         monkeypatch.setattr(pos_trk_mod, "get_open_positions", lambda: [])
 
         trader = AutoTrader()
+        monkeypatch.setattr(trader, "get_last_exit_timestamps", lambda: {})
         now_utc = datetime.datetime.now(timezone.utc)
         # Base time 99 15-min intervals in the past
         base_time = now_utc - datetime.timedelta(minutes=15 * 99)
@@ -484,6 +489,7 @@ def test_bybit_okx_fallbacks_populate_candle_contract(monkeypatch):
 
 
 def test_full_e2e_producer_candlestore_analyze_market_evaluator_real_execution(monkeypatch):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     async def _run():
         import btc_scraper.trading.auto_trader as auto_trader_mod
         import btc_scraper.trading.exposure_manager as exp_mgr_mod
@@ -598,6 +604,7 @@ def test_full_e2e_producer_candlestore_analyze_market_evaluator_real_execution(m
         ana["paper_run_id"] = "paper_e2e_real"
 
         trader = AutoTrader()
+        monkeypatch.setattr(trader, "get_last_exit_timestamps", lambda: {})
         analysis_map = {"BTC:BINANCE": ana}
 
         from btc_scraper.ml_engine.production_evaluator import evaluate_live_market

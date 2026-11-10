@@ -1013,7 +1013,7 @@ def test_process_signal_emits_decision_breakdown_logs(monkeypatch):
     assert result_placed is not None
     assert "decision_breakdown" in result_placed
     bd_placed = result_placed["decision_breakdown"]
-    assert bd_placed["decision_stage"] == "eligibility"
+    assert bd_placed["decision_stage"] == "sizing"
     assert bd_placed["rejection_reason"] is None
     assert result_placed["final_status"] == "eligible"
     assert result_placed["decision_id"] is not None

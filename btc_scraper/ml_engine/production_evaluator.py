@@ -123,6 +123,8 @@ def evaluate_resolved_market(
     exposure_cap: float | None,
     environment: str = "live",
     evaluation_time: datetime | None = None,
+    risk_portfolio: Any | None = None,
+    **kwargs: Any,
 ) -> ProductionEvaluation:
     """Delegate final eligibility and sizing once to the sealed owners."""
     timestamp = evaluation_time or datetime.now(timezone.utc)
@@ -171,20 +173,33 @@ def evaluate_resolved_market(
         }
 
     def decision(_item, _technical, _inference, _score):
-        entry = trader.build_entry_decision(analysis, coin)
+        rp = risk_portfolio
+        rp_dict = rp.to_dict() if hasattr(rp, "to_dict") else (rp if isinstance(rp, dict) else None)
+        entry = trader.build_entry_decision(
+            analysis,
+            coin,
+            risk_decision=rp_dict or analysis.get("risk_decision"),
+            portfolio_decision=rp_dict or analysis.get("portfolio_decision"),
+            current_balance=current_balance,
+            var_cap=var_cap,
+            exposure_cap=exposure_cap,
+            event_risk=analysis.get("event_risk"),
+            evaluation_time=timestamp,
+        )
         tp_sl = analysis.get("tp_sl") or {}
-        if entry.eligible:
+        if entry.eligible and entry.sizing is None:
             sizing = trader.compute_position_size(
                 entry_price=float(tp_sl.get("entry") or analysis.get("close") or 0.0),
                 sl_price=float(tp_sl.get("sl") or 0.0),
                 current_balance=current_balance,
-                multiplier=float(sig_score.get("position_size", 1.0)),
+                multiplier=float(rp_dict.get("risk_multiplier", 1.0) if rp_dict else sig_score.get("position_size", 1.0)),
                 win_prob=float(entry.breakdown.meta_probability if entry.breakdown and entry.breakdown.meta_probability is not None else 0.5),
                 rr_ratio=float(tp_sl.get("rr1", 0.0) or 0.0),
                 var_cap=var_cap,
                 exposure_cap=exposure_cap,
                 max_trade_cap=trader.max_trade_usdt,
                 min_trade_cap=trader.min_trade_usdt,
+                portfolio_weight=float(rp_dict.get("portfolio_weight")) if (rp_dict and rp_dict.get("portfolio_weight") is not None) else None,
             )
             entry = dataclasses.replace(
                 entry,
@@ -229,6 +244,7 @@ def evaluate_resolved_market(
         context={
             "threshold_config_hash": sig_score.get("threshold_contract_sha256"),
             "risk_config_hash": analysis.get("risk_config_hash"),
+            "risk_portfolio": risk_portfolio,
         },
     )
     return ProductionEvaluation(result=result, entry_decision=holder["entry"])

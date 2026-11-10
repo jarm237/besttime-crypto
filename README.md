@@ -86,6 +86,40 @@ Trạng thái vận hành mới nhất nằm tại [`docs/remediation/System_Sta
 
 ---
 
+## P0 — Existing Risk Flow Integrity & Paper Execution Correctness
+
+> **Ghi chú kiến trúc (2026-11-09):** Sự tồn tại của các module risk, portfolio và sizing chưa đủ chứng minh chúng đang chi phối lệnh cuối. Audit hiện tại phát hiện `RiskManagerAgent` và `PortfolioManagerAgent` cập nhật `signals_info`, trong khi đường thực thi có thể tiếp tục đọc `analysis`. Vì vậy, risk block và portfolio weight cần được chứng minh xuyên suốt đến paper order bằng test end-to-end.
+
+Phạm vi P0 chỉ tập trung vào tính đúng đắn, hiệu năng và khả năng đánh giá kinh tế của **paper/demo trading**; không mở rộng chức năng real trading.
+
+Luồng mục tiêu, bám theo các contract hiện có:
+
+```text
+Market Analysis / Raw Signal
+  -> RiskManagerAgent
+  -> PortfolioManagerAgent
+  -> AutoTrader.build_entry_decision()
+  -> EntryDecision                 # canonical final decision, immutable
+  -> ExecutionAgent
+  -> ExecutionEngine.submit_paper()
+       -> execution-time risk recheck
+       -> ExecutionRecord          # attempt/rejection/fill linked by decision_id
+```
+
+Các nguyên tắc bắt buộc:
+
+- Giữ raw signal và prediction không đổi để bảo toàn lineage; không ghi đè tùy ý từ `signals_info` về `analysis`.
+- Dùng `EntryDecision` hiện có làm quyết định entry cuối duy nhất; không tạo thêm `FinalEntryDecision` trùng vai trò.
+- Risk block phải tạo **0 new paper entry**; thay đổi portfolio weight phải làm final quantity thay đổi đúng sau các giới hạn sizing.
+- `EventRiskDecision` phải tách `risk_level`, `entry_permission`, `position_action`, risk multiplier, state/policy version và timestamp.
+- `submit_paper()` phải kiểm tra snapshot tồn tại, TTL, policy compatibility, mức hạn chế mới và remaining risk budget; entry policy không được chặn exit/reduce.
+- Giữ final-decision evidence bất biến trong `RuntimeEvidenceStore`; dùng `ExecutionRecord` hiện có cho từng execution attempt và liên kết bằng `decision_id`.
+- Mọi thay đổi làm đổi eligibility, sizing hoặc execution semantics phải chạy trên successor release/evidence epoch, không sửa ý nghĩa của epoch đã khóa.
+
+Điều kiện đóng P0 là test xuyên suốt chứng minh risk/portfolio thật sự thay đổi kết quả từ `Market Analysis` đến `submit_paper()` và paper outcome. News Intelligence, event data lịch sử và chiến lược MTF độc lập chỉ được ưu tiên sau khi đường truyền quyết định này được xác nhận.
+
+---
+
 ## Backtest & Hiệu năng ML
 
 Trên bộ dữ liệu lịch sử **18 tháng** (01/2025 - 06/2026) với **18,904 mẫu giao dịch đóng**:

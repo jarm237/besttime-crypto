@@ -34,7 +34,7 @@ class EvidenceEpoch:
     activated_at: str | None = None
     evidence_policy_version: str = EVIDENCE_POLICY_VERSION
     risk_policy_version: str = RISK_POLICY_VERSION
-    runtime_schema_version: int = 6
+    runtime_schema_version: int = 7
     status: str = "DRAFT"
     paper_run_id: str = ""
     release_manifest: dict[str, Any] | None = None

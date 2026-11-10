@@ -144,10 +144,11 @@ class PortfolioManager:
         Returns:
             Dict mapping coin -> tỷ trọng vốn tối ưu (từ 0.0 đến max_weight)
         """
-        # Chỉ giữ lại các coin có tín hiệu BUY hoặc SELL rõ ràng
+        # Chỉ giữ lại các coin có tín hiệu BUY hoặc SELL rõ ràng và không bị risk block
         active_signals = [
             s for s in signals_info 
-            if s.get("action") in ("BUY", "SELL")
+            if (s.get("approved_action") or s.get("action")) in ("BUY", "SELL")
+            and not s.get("risk_blocked", False)
         ]
         
         if not active_signals:

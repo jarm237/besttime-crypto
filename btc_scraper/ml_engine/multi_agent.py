@@ -6,6 +6,7 @@ import os
 import time
 import copy
 import uuid
+from datetime import datetime, timezone
 from typing import Dict, Any, Iterable, List
 from rich.console import Console
 
@@ -380,20 +381,74 @@ class RiskManagerAgent(BaseAgent):
         context["risk_metrics"] = risk_metrics
         
         # Nếu bị block do drawdown vượt mức, hạ cấp tất cả tín hiệu về NEUTRAL
-        if risk_metrics.get("blocked", True):
+        blocked = bool(risk_metrics.get("blocked", True))
+        if blocked:
             failure_reason = risk_metrics.get("failure_reason") or f"drawdown={risk_metrics.get('drawdown_pct')}%"
             console.print(f"[bold red][RiskManager] BLOCK_ENTRY: {failure_reason}[/bold red]")
-            for s in context["signals_info"]:
-                s["action"] = "NEUTRAL"
+            for s in context.get("signals_info", []):
+                # Giữ nguyên s["action"] làm dữ liệu nguồn (raw action)
+                s["approved_action"] = "NEUTRAL"
+                s["risk_blocked"] = True
                 s["risk_status"] = risk_metrics.get("status", "UNAVAILABLE")
                 s["risk_failure_reason"] = failure_reason
-                
-        # Áp dụng risk multiplier nếu gặp chuỗi thua
-        risk_mult = risk_metrics.get("risk_multiplier", 0.0)
-        if risk_mult < 1.0:
-            console.print(f"[bold yellow][RiskManager] Áp dụng Risk Multiplier {risk_mult} do chuỗi thua liên tiếp ({risk_metrics.get('consecutive_losses')} lệnh)[/bold yellow]")
-            for s in context["signals_info"]:
-                s["kelly_fraction"] = float(s["kelly_fraction"]) * risk_mult
+                s["risk_multiplier"] = 0.0
+        else:
+            # Áp dụng risk multiplier nếu gặp chuỗi thua
+            risk_mult = float(risk_metrics.get("risk_multiplier", 1.0))
+            if risk_mult < 1.0:
+                console.print(f"[bold yellow][RiskManager] Áp dụng Risk Multiplier {risk_mult} do chuỗi thua liên tiếp ({risk_metrics.get('consecutive_losses')} lệnh)[/bold yellow]")
+            for s in context.get("signals_info", []):
+                s["approved_action"] = s.get("action")
+                s["risk_blocked"] = False
+                s["risk_status"] = risk_metrics.get("status", "OK")
+                s["risk_failure_reason"] = None
+                s["risk_multiplier"] = risk_mult
+
+        # Event Risk Policy Overlay Integration (P0-B, P0-D, M0)
+        event_records = context.get("event_records")
+        event_snapshots = context.get("event_risk_snapshots") or {}
+        single_snapshot = context.get("event_risk_snapshot")
+        if single_snapshot and not event_snapshots:
+            event_snapshots = {"GLOBAL": single_snapshot}
+
+        producer = None
+        if event_records is not None:
+            from btc_scraper.trading.event_risk_producer import DeterministicEventSnapshotProducer
+            producer = DeterministicEventSnapshotProducer()
+
+        cycle_as_of = None
+        raw_ts = context.get("timestamp")
+        if isinstance(raw_ts, (int, float)):
+            cycle_as_of = datetime.fromtimestamp(raw_ts, tz=timezone.utc)
+        elif isinstance(raw_ts, datetime):
+            cycle_as_of = raw_ts
+
+        for s in context.get("signals_info", []):
+            coin = s.get("coin", "")
+            ev_snap = event_snapshots.get(coin) or event_snapshots.get("GLOBAL")
+            if ev_snap is None and producer is not None and cycle_as_of is not None:
+                ev_snap = producer.build_snapshot(event_records, as_of_time=cycle_as_of, symbol=coin)
+            if ev_snap is not None:
+                ev_decision = ev_snap.decision if hasattr(ev_snap, "decision") else ev_snap
+                s["event_risk"] = ev_decision
+                s["event_risk_snapshot_hash"] = getattr(ev_snap, "snapshot_hash", None)
+                if coin and "analysis" in context and f"{coin}:Binance" in context["analysis"]:
+                    context["analysis"][f"{coin}:Binance"]["event_risk"] = ev_decision
+                    context["analysis"][f"{coin}:Binance"]["event_risk_snapshot_hash"] = getattr(ev_snap, "snapshot_hash", None)
+
+                perm = getattr(ev_decision, "entry_permission", None)
+                perm_val = getattr(perm, "value", str(perm)).upper()
+                level = getattr(ev_decision, "risk_level", None)
+                level_val = getattr(level, "value", str(level)).upper()
+                if perm_val in ("BLOCK", "NO_ENTRY", "FORBIDDEN") or level_val == "CRITICAL":
+                    s["approved_action"] = "NEUTRAL"
+                    s["risk_blocked"] = True
+                    s["risk_status"] = "EVENT_RISK_BLOCKED"
+                    s["risk_failure_reason"] = "EVENT_RISK_POLICY_BLOCK"
+                    s["risk_multiplier"] = 0.0
+                elif perm_val in ("REDUCE", "REDUCE_SIZE"):
+                    ev_mult = float(getattr(ev_decision, "max_risk_multiplier", 1.0))
+                    s["risk_multiplier"] = min(float(s.get("risk_multiplier", 1.0)), ev_mult)
 
         return context
 
@@ -407,27 +462,39 @@ class PortfolioManagerAgent(BaseAgent):
         self.pm = PortfolioManager(method="MVO", risk_aversion=2.0, max_weight=0.30)
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        signals_info = context["signals_info"]
-        raw_candles = context["raw_candles"]
+        signals_info = context.get("signals_info", [])
+        raw_candles = context.get("raw_candles", {})
         
-        # Chỉ chạy phân bổ nếu có tối thiểu 2 tín hiệu trở lên
-        active_sigs = [s for s in signals_info if s["action"] in ("BUY", "SELL")]
+        # Chỉ chạy phân bổ nếu có tín hiệu active (xác định từ approved_action, không từ action đã sửa)
+        active_sigs = [
+            s for s in signals_info
+            if (s.get("approved_action") or s.get("action")) in ("BUY", "SELL")
+            and not s.get("risk_blocked", False)
+        ]
         
         if len(active_sigs) >= 2:
             console.print(f"[bold cyan][PortfolioManager] Tìm thấy {len(active_sigs)} tín hiệu đồng thời. Bắt đầu tối ưu danh mục (MVO)...[/bold cyan]")
             weights = self.pm.allocate_weights(signals_info, raw_candles)
             
-            # Ghi đè tỷ lệ phân bổ vốn tối ưu vào kelly_fraction
+            # Gán tỷ lệ phân bổ vốn vào portfolio_weight (không ghi đè kelly_fraction để bảo toàn semantics)
             for s in signals_info:
                 coin = s["coin"]
                 if coin in weights:
-                    s["portfolio_weight"] = weights[coin]
-                    s["kelly_fraction"] = weights[coin]  # Ghi đè kelly_fraction để auto_trader sử dụng
+                    s["portfolio_weight"] = float(weights[coin])
                     console.print(f"  ↳ Allocation {coin}: {weights[coin]*100:.2f}% vốn")
-        else:
-            # Nếu chỉ có 1 tín hiệu, gán portfolio_weight bằng kelly_fraction hiện tại
+                else:
+                    s["portfolio_weight"] = 0.0 if (s.get("approved_action") or s.get("action")) == "NEUTRAL" or s.get("risk_blocked") else self.pm.max_weight
+        elif len(active_sigs) == 1:
+            weights = self.pm.allocate_weights(signals_info, raw_candles)
             for s in signals_info:
-                s["portfolio_weight"] = s["kelly_fraction"]
+                coin = s["coin"]
+                if coin in weights:
+                    s["portfolio_weight"] = float(weights[coin])
+                else:
+                    s["portfolio_weight"] = float(s.get("portfolio_weight") if s.get("portfolio_weight") is not None else (s.get("kelly_fraction") or self.pm.max_weight))
+        else:
+            for s in signals_info:
+                s["portfolio_weight"] = float(s.get("portfolio_weight") if s.get("portfolio_weight") is not None else 0.0)
                 
         return context
 
@@ -477,12 +544,19 @@ class ExecutionAgent(BaseAgent):
     async def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         analysis = context["analysis"]
         mtf_analysis = context.get("mtf_analysis")
+        signals_info = context.get("signals_info")
+        risk_metrics = context.get("risk_metrics")
         
         # 1. Chạy Auto Trader (CCXT)
         try:
             from btc_scraper.trading.auto_trader import auto_trader
             from btc_scraper.core.milestones import milestone_tracker
-            await auto_trader.evaluate_and_trade(analysis, mtf_analysis=mtf_analysis)
+            await auto_trader.evaluate_and_trade(
+                analysis,
+                mtf_analysis=mtf_analysis,
+                signals_info=signals_info,
+                risk_context=risk_metrics,
+            )
             milestone_tracker.record("first_final_decision_ready")
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")

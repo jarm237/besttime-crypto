@@ -21,6 +21,18 @@ from btc_scraper.trading.decision_types import ReservationStatus
 DEFAULT_DB_PATH = get_runtime_paths().reservation_db_path
 
 
+class ReservationError(Exception):
+    """Base reservation error."""
+
+
+class ReservationConflictError(ReservationError):
+    """Raised when entry_decision_id already has an active reservation with a different idempotency key."""
+
+
+class SharedBudgetExceededError(ReservationError):
+    """Raised when reserving would exceed the shared portfolio or account risk budget."""
+
+
 @dataclass
 class ReservationRecord:
     reservation_id: str
@@ -160,11 +172,20 @@ class ReservationStore:
         cycle_id: str | None = None,
         decision_context: str | None = None,
         caller_context: str | None = None,
+        max_shared_budget: Optional[float] = None,
+        enforce_decision_exclusivity: bool = True,
     ) -> Tuple[ReservationRecord, bool]:
         """Atomically reserve a slot and notional.
 
         Returns (record, created_new). If the idempotency key already exists,
         returns the existing record and False.
+
+        Enforces:
+        - Decision exclusivity: if active reservation exists for entry_decision_id
+          with a different idempotency_key, raises ReservationConflictError.
+        - Shared budget capacity: if max_shared_budget is provided, verifies that
+          current active notional + reserved_notional <= max_shared_budget inside the
+          transaction, otherwise raises SharedBudgetExceededError.
         """
         with self._lock:
             now = datetime.now(timezone.utc).isoformat()
@@ -173,7 +194,80 @@ class ReservationStore:
             conn = self._get_conn()
             try:
                 with conn:
-                    # Attempt insertion
+                    # 1. Clean up stale pending reservations inside the transaction
+                    conn.execute(
+                        """
+                        UPDATE reservations
+                        SET status = ?, updated_at = ?
+                        WHERE status = ? AND expires_at <= ?
+                        """,
+                        (
+                            ReservationStatus.EXPIRED.value,
+                            now,
+                            ReservationStatus.PENDING.value,
+                            now,
+                        ),
+                    )
+
+                    # 2. Check if this idempotency key already exists (idempotent replay)
+                    existing_by_key = conn.execute(
+                        "SELECT * FROM reservations WHERE idempotency_key = ?",
+                        (idempotency_key,),
+                    ).fetchone()
+                    if existing_by_key:
+                        return self._row_to_record(existing_by_key), False
+
+                    # 3. Enforce decision exclusivity
+                    if enforce_decision_exclusivity and entry_decision_id:
+                        active_by_dec = conn.execute(
+                            """
+                            SELECT * FROM reservations
+                            WHERE entry_decision_id = ?
+                              AND status IN (?, ?, ?)
+                              AND expires_at > ?
+                            LIMIT 1
+                            """,
+                            (
+                                entry_decision_id,
+                                ReservationStatus.PENDING.value,
+                                ReservationStatus.COMMITTED.value,
+                                ReservationStatus.PARTIALLY_COMMITTED.value,
+                                now,
+                            ),
+                        ).fetchone()
+                        if active_by_dec and active_by_dec["idempotency_key"] != idempotency_key:
+                            raise ReservationConflictError(
+                                f"ENTRY_DECISION_ALREADY_RESERVED: entry_decision_id '{entry_decision_id}' "
+                                f"is already reserved under idempotency_key '{active_by_dec['idempotency_key']}' "
+                                f"with status '{active_by_dec['status']}'"
+                            )
+
+                    # 4. Enforce shared budget capacity atomically
+                    if max_shared_budget is not None:
+                        active_row = conn.execute(
+                            """
+                            SELECT COALESCE(SUM(reserved_notional), 0.0) as active_notional
+                            FROM reservations
+                            WHERE status IN (?, ?, ?)
+                              AND expires_at > ?
+                              AND idempotency_key != ?
+                            """,
+                            (
+                                ReservationStatus.PENDING.value,
+                                ReservationStatus.COMMITTED.value,
+                                ReservationStatus.PARTIALLY_COMMITTED.value,
+                                now,
+                                idempotency_key,
+                            ),
+                        ).fetchone()
+                        active_notional = float(active_row["active_notional"]) if active_row else 0.0
+                        if active_notional + reserved_notional > max_shared_budget:
+                            raise SharedBudgetExceededError(
+                                f"SHARED_BUDGET_EXCEEDED: active reserved notional {active_notional:.2f} + "
+                                f"requested {reserved_notional:.2f} exceeds shared budget limit {max_shared_budget:.2f}"
+                            )
+
+                    # 5. Insert new reservation
                     conn.execute(
                         """
                         INSERT INTO reservations (
@@ -213,7 +307,7 @@ class ReservationStore:
                 assert record is not None
                 return record, True
             except sqlite3.IntegrityError:
-                # Idempotency key already exists, fetch it
+                # Concurrent insertion won idempotency key
                 cursor = conn.cursor()
                 cursor.execute(
                     "SELECT * FROM reservations WHERE idempotency_key = ?",

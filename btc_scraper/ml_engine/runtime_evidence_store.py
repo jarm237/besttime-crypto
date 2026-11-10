@@ -29,7 +29,7 @@ from btc_scraper.core.paths import (
     runtime_owner_metadata,
 )
 
-RUNTIME_EVIDENCE_SCHEMA_VERSION = 6
+RUNTIME_EVIDENCE_SCHEMA_VERSION = 7
 GLOBAL_EVIDENCE_INDEX_SCHEMA_VERSION = 6
 GLOBAL_RESERVATION_STALE_SECONDS = 300.0
 EPOCH_INVALIDATION_AUDIT_EVENT = "EPOCH_INVALIDATION_AUDIT_RECORDED"
@@ -837,6 +837,11 @@ class RuntimeEvidenceStore:
         runtime_universe = get_runtime_universe()
         if tuple(epoch.analysis_universe) != runtime_universe.analysis_symbols:
             raise RuntimeError("epoch analysis_universe mismatch runtime universe")
+        if epoch.runtime_schema_version != RUNTIME_EVIDENCE_SCHEMA_VERSION:
+            raise RuntimeError(
+                f"active epoch requires schema migration: runtime_schema_version {epoch.runtime_schema_version} "
+                f"mismatches store version {RUNTIME_EVIDENCE_SCHEMA_VERSION}"
+            )
 
     def assert_runtime_epoch_ready(self, require_active: bool = True) -> EvidenceEpoch | None:
         epoch = self.get_active_evidence_epoch()
@@ -844,11 +849,39 @@ class RuntimeEvidenceStore:
             if require_active:
                 raise RuntimeError("ACTIVE epoch required")
             return None
-        try:
-            self.validate_runtime_epoch(epoch)
-        except RuntimeError as exc:
-            raise RuntimeError("epoch analysis_universe mismatch runtime universe") from exc
+        self.validate_runtime_epoch(epoch)
         return epoch
+
+    def upgrade_active_epoch_schema(
+        self,
+        new_schema_version: int = RUNTIME_EVIDENCE_SCHEMA_VERSION,
+    ) -> EvidenceEpoch:
+        """Explicit procedure to upgrade an ACTIVE epoch to the current runtime schema version."""
+        active = self.get_active_evidence_epoch()
+        if active is None:
+            raise RuntimeError("cannot upgrade schema: no ACTIVE evidence epoch found")
+        if active.runtime_schema_version == new_schema_version:
+            return active
+        old_version = active.runtime_schema_version
+        now_iso = self._now().isoformat()
+        with self._global_transaction() as db:
+            db.execute(
+                "UPDATE evidence_epochs SET runtime_schema_version=?, updated_at=? WHERE epoch_id=?",
+                (int(new_schema_version), now_iso, str(active.epoch_id)),
+            )
+            audit_event = {
+                "event_type": "EPOCH_SCHEMA_UPGRADED",
+                "epoch_id": str(active.epoch_id),
+                "deployment_id": str(active.deployment_id),
+                "old_runtime_schema_version": old_version,
+                "new_runtime_schema_version": int(new_schema_version),
+                "upgraded_at": now_iso,
+            }
+            self._insert_audit_event_db(db, audit_event)
+        upgraded = self.get_evidence_epoch(str(active.epoch_id))
+        assert upgraded is not None
+        upgraded.validate()
+        return upgraded
 
     def _validate_active_epoch_for_prediction(
         self,
@@ -937,6 +970,11 @@ class RuntimeEvidenceStore:
                     decision_id TEXT PRIMARY KEY, prediction_id TEXT REFERENCES predictions(prediction_id),
                     payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL, written_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS entry_decision_evidence (
+                    entry_decision_id TEXT PRIMARY KEY, prediction_id TEXT REFERENCES predictions(prediction_id),
+                    causal_final_decision_id TEXT REFERENCES final_decisions(decision_id), payload TEXT NOT NULL,
+                    payload_sha256 TEXT NOT NULL, written_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS outcome_links (
                     outcome_id TEXT PRIMARY KEY, prediction_id TEXT REFERENCES predictions(prediction_id),
                     payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL, written_at TEXT NOT NULL
@@ -948,6 +986,12 @@ class RuntimeEvidenceStore:
                 CREATE TABLE IF NOT EXISTS evidence_quarantine (
                     table_name TEXT NOT NULL, record_id TEXT NOT NULL, reason TEXT NOT NULL,
                     detected_at TEXT NOT NULL, PRIMARY KEY(table_name, record_id)
+                );
+                CREATE TABLE IF NOT EXISTS evidence_quarantine_payloads (
+                    table_name TEXT NOT NULL, record_id TEXT NOT NULL,
+                    original_payload TEXT NOT NULL, original_payload_sha256 TEXT NOT NULL,
+                    quarantine_reason TEXT NOT NULL, detected_at TEXT NOT NULL,
+                    PRIMARY KEY(table_name, record_id)
                 );
                 CREATE TABLE IF NOT EXISTS evidence_incidents (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, incident_type TEXT NOT NULL,
@@ -963,6 +1007,154 @@ class RuntimeEvidenceStore:
                         CAST(json_extract(payload, '$.outcome_revision') AS INTEGER)
                     )
                     WHERE json_extract(payload, '$.position_id') IS NOT NULL;
+            """)
+
+            # Check if migration is needed for entry_decision_evidence foreign key or hash upgrade
+            fks = db.execute("PRAGMA foreign_key_list(entry_decision_evidence)").fetchall()
+            has_causal_fk = any(row[2] == "final_decisions" and row[3] == "causal_final_decision_id" for row in fks)
+            current_version = db.execute("PRAGMA user_version").fetchone()[0]
+
+            if not has_causal_fk or current_version < RUNTIME_EVIDENCE_SCHEMA_VERSION:
+                # Idempotent table recreation migration enforcing FK constraint, hash upgrade & lineage preservation
+                db.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    db.execute("BEGIN IMMEDIATE")
+                    db.execute("DROP TABLE IF EXISTS entry_decision_evidence_new")
+                    db.execute("""
+                        CREATE TABLE entry_decision_evidence_new (
+                            entry_decision_id TEXT PRIMARY KEY,
+                            prediction_id TEXT REFERENCES predictions(prediction_id),
+                            causal_final_decision_id TEXT REFERENCES final_decisions(decision_id),
+                            payload TEXT NOT NULL,
+                            payload_sha256 TEXT NOT NULL,
+                            written_at TEXT NOT NULL
+                        )
+                    """)
+                    existing_rows = db.execute(
+                        "SELECT entry_decision_id, prediction_id, causal_final_decision_id, payload, payload_sha256, written_at FROM entry_decision_evidence"
+                    ).fetchall()
+
+                    # Separate valid lineage vs invalid lineage vs corrupt hash
+                    valid_by_pid: dict[str, list[tuple]] = {}
+                    now_str = datetime.now(timezone.utc).isoformat()
+
+                    for r in existing_rows:
+                        eid, pid, cfd, p_data, p_hash, w_at = r
+
+                        # Phase B: Pre-migration legacy hash verification
+                        is_valid_hash = False
+                        try:
+                            parsed_payload = json.loads(str(p_data))
+                            if isinstance(parsed_payload, Mapping):
+                                v6_semantic_hash = idempotency_payload_sha256(parsed_payload)
+                                v6_full_hash = payload_sha256(parsed_payload)
+                            else:
+                                v6_semantic_hash = None
+                                v6_full_hash = None
+                            v7_full_hash = hashlib.sha256(str(p_data).encode("utf-8")).hexdigest()
+                            if str(p_hash) in (v6_semantic_hash, v6_full_hash, v7_full_hash):
+                                is_valid_hash = True
+                        except Exception:
+                            is_valid_hash = False
+
+                        if not is_valid_hash:
+                            # Row was tampered with or corrupted before migration - quarantine immediately!
+                            db.execute(
+                                "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(eid), "corrupt_legacy_hash_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT OR REPLACE INTO evidence_quarantine_payloads VALUES (?, ?, ?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(eid), str(p_data), str(p_hash), "corrupt_legacy_hash_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT INTO evidence_incidents(incident_type,record_id,details,detected_at) VALUES (?,?,?,?)",
+                                ("legacy_migration_payload_corrupt", str(eid), f"legacy_hash_mismatch: pid={pid}, hash={p_hash}", now_str),
+                            )
+                            continue
+
+                        pred_exists = db.execute("SELECT 1 FROM predictions WHERE prediction_id=?", (str(pid),)).fetchone() if pid else None
+                        cfd_row = db.execute("SELECT prediction_id FROM final_decisions WHERE decision_id=?", (str(cfd),)).fetchone() if cfd else None
+
+                        if not pid or not pred_exists:
+                            # Missing prediction
+                            db.execute(
+                                "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(eid), "missing_prediction_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT OR REPLACE INTO evidence_quarantine_payloads VALUES (?, ?, ?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(eid), str(p_data), str(p_hash), "missing_prediction_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT INTO evidence_incidents(incident_type,record_id,details,detected_at) VALUES (?,?,?,?)",
+                                ("legacy_migration_lineage_invalid", str(eid), f"missing_prediction: pid={pid}", now_str),
+                            )
+                        elif not cfd or not cfd_row or str(cfd_row[0]) != str(pid):
+                            # Invalid causal final decision
+                            db.execute(
+                                "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(eid), "invalid_causal_decision_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT OR REPLACE INTO evidence_quarantine_payloads VALUES (?, ?, ?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(eid), str(p_data), str(p_hash), "invalid_causal_decision_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT INTO evidence_incidents(incident_type,record_id,details,detected_at) VALUES (?,?,?,?)",
+                                ("legacy_migration_lineage_invalid", str(eid), f"invalid_cfd: pid={pid}, cfd={cfd}", now_str),
+                            )
+                        else:
+                            valid_by_pid.setdefault(str(pid), []).append(r)
+
+                    # Deterministic winner selection for each prediction_id
+                    for pid, val_rows in valid_by_pid.items():
+                        # Sort by (written_at DESC, entry_decision_id DESC)
+                        sorted_rows = sorted(val_rows, key=lambda x: (str(x[5]), str(x[0])), reverse=True)
+                        winner = sorted_rows[0]
+                        losers = sorted_rows[1:]
+
+                        for loser in losers:
+                            l_eid, l_pid, l_cfd, l_data, l_hash, l_wat = loser
+                            db.execute(
+                                "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(l_eid), "duplicate_prediction_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT OR REPLACE INTO evidence_quarantine_payloads VALUES (?, ?, ?, ?, ?, ?)",
+                                ("entry_decision_evidence", str(l_eid), str(l_data), str(l_hash), "duplicate_prediction_during_migration", now_str),
+                            )
+                            db.execute(
+                                "INSERT INTO evidence_incidents(incident_type,record_id,details,detected_at) VALUES (?,?,?,?)",
+                                ("legacy_migration_duplicate_prediction", str(l_eid), f"pid={l_pid}, winner={winner[0]}", now_str),
+                            )
+
+                        # Winner: recompute exact SHA-256 of stored payload string (v6 semantic -> v7 full hash)
+                        w_eid, w_pid, w_cfd, w_data, w_hash, w_wat = winner
+                        exact_new_hash = hashlib.sha256(str(w_data).encode("utf-8")).hexdigest()
+                        db.execute(
+                            "INSERT OR IGNORE INTO entry_decision_evidence_new VALUES (?, ?, ?, ?, ?, ?)",
+                            (w_eid, w_pid, w_cfd, w_data, exact_new_hash, w_wat),
+                        )
+
+                    db.execute("DROP TABLE entry_decision_evidence")
+                    db.execute("ALTER TABLE entry_decision_evidence_new RENAME TO entry_decision_evidence")
+                    db.execute("""
+                        CREATE UNIQUE INDEX IF NOT EXISTS uq_entry_evidence_prediction
+                        ON entry_decision_evidence(prediction_id) WHERE prediction_id IS NOT NULL
+                    """)
+                    db.execute(f"PRAGMA user_version={RUNTIME_EVIDENCE_SCHEMA_VERSION}")
+                    db.commit()
+                except Exception:
+                    db.rollback()
+                    raise
+                finally:
+                    db.execute("PRAGMA foreign_keys=ON")
+
+            # Only create unique index after migration has resolved duplicates
+            db.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_entry_evidence_prediction
+                ON entry_decision_evidence(prediction_id) WHERE prediction_id IS NOT NULL
             """)
             db.execute(f"PRAGMA user_version={RUNTIME_EVIDENCE_SCHEMA_VERSION}")
 
@@ -1335,6 +1527,174 @@ class RuntimeEvidenceStore:
                 self._record_incident("duplicate_conflicting_payload", "final_decisions", decision_id, str(exc))
             raise
 
+    def append_entry_decision_evidence(self, evidence: Mapping[str, Any]) -> None:
+        """Append immutable trading entry decision evidence linked to prediction and causal decision."""
+        evidence = self._with_runtime_metadata(evidence)
+        entry_decision_id = str(evidence.get("entry_decision_id") or "")
+        if not entry_decision_id:
+            raise ValueError("entry decision evidence must have an entry_decision_id")
+        prediction_id = str(evidence.get("prediction_id") or "")
+        if not prediction_id:
+            raise ValueError("entry decision evidence must reference exactly one prediction")
+
+        causal_final_decision_id = evidence.get("causal_final_decision_id")
+        if not causal_final_decision_id or not str(causal_final_decision_id).strip():
+            raise ValueError("entry decision evidence must reference a non-empty causal_final_decision_id")
+        causal_final_decision_id = str(causal_final_decision_id).strip()
+
+        # Locate target partition of prediction
+        target_path = self._find_partition("predictions", "prediction_id", prediction_id)
+        if target_path is None:
+            raise ValueError(f"entry decision evidence references unknown prediction: {prediction_id}")
+
+        # Compute exact canonical payload and payload_sha256 (Hash Integrity)
+        payload = _canonical(evidence)
+        payload_digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+        # Semantic payload for cross-process idempotency check
+        volatile_keys = {"process_id", "hostname", "started_at", "runtime_id"}
+        semantic_payload = {k: v for k, v in evidence.items() if k not in volatile_keys}
+
+        now_iso = self._now().isoformat()
+
+        # Execute everything in a single atomic BEGIN IMMEDIATE transaction on target partition
+        with self.transaction(target_path) as db:
+            # 1. Atomic verification of prediction in partition
+            p_row = db.execute("SELECT 1 FROM predictions WHERE prediction_id=?", (prediction_id,)).fetchone()
+            if not p_row:
+                raise ValueError(f"entry decision evidence references unknown prediction: {prediction_id}")
+
+            # 2. Atomic verification that causal final decision is in same partition and belongs to prediction
+            f_row = db.execute(
+                "SELECT prediction_id FROM final_decisions WHERE decision_id=?",
+                (causal_final_decision_id,),
+            ).fetchone()
+            if not f_row:
+                raise ValueError(f"causal final decision not found: {causal_final_decision_id}")
+            if str(f_row[0]) != prediction_id:
+                raise ValueError(
+                    f"causal final decision {causal_final_decision_id} does not belong to prediction {prediction_id}"
+                )
+
+            # 3. Check existing evidence by entry_decision_id
+            existing_by_id = db.execute(
+                "SELECT payload, payload_sha256 FROM entry_decision_evidence WHERE entry_decision_id=?",
+                (entry_decision_id,),
+            ).fetchone()
+            if existing_by_id:
+                existing_raw = json.loads(existing_by_id[0])
+                existing_semantic = {k: v for k, v in existing_raw.items() if k not in volatile_keys}
+                if existing_semantic == semantic_payload:
+                    # Idempotent retry: DO NOT insert duplicate audit event
+                    return
+                raise ValueError("non-idempotent duplicate entry decision evidence")
+
+            # 4. Check existing evidence by prediction_id (uniqueness)
+            existing_by_pred = db.execute(
+                "SELECT entry_decision_id, payload, payload_sha256 FROM entry_decision_evidence WHERE prediction_id=?",
+                (prediction_id,),
+            ).fetchone()
+            if existing_by_pred:
+                other_eid, other_payload_raw, _ = existing_by_pred
+                other_raw = json.loads(other_payload_raw)
+                other_semantic = {k: v for k, v in other_raw.items() if k not in volatile_keys}
+                if str(other_eid) == entry_decision_id and other_semantic == semantic_payload:
+                    # Idempotent retry: DO NOT insert duplicate audit event
+                    return
+                raise ValueError("prediction already has entry decision evidence with conflicting payload")
+
+            # 5. Insert evidence record (strictly verify rowcount)
+            cursor = db.execute(
+                "INSERT INTO entry_decision_evidence VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    entry_decision_id,
+                    prediction_id,
+                    causal_final_decision_id,
+                    payload,
+                    payload_digest,
+                    now_iso,
+                ),
+            )
+            if cursor.rowcount != 1:
+                raise RuntimeError(f"failed to insert entry decision evidence for {entry_decision_id}")
+
+            # 6. Audit event is ONLY recorded when evidence record is actually inserted
+            audit_event = {
+                "event_type": "ENTRY_DECISION_EVIDENCE_RECORDED",
+                "entry_decision_id": entry_decision_id,
+                "prediction_id": prediction_id,
+                "causal_final_decision_id": causal_final_decision_id,
+                "evidence_sha256": payload_digest,
+                "written_at": now_iso,
+            }
+            audit_payload = _canonical(audit_event)
+            audit_digest = hashlib.sha256(audit_payload.encode("utf-8")).hexdigest()
+            db.execute(
+                "INSERT INTO audit_events(event_type,payload,payload_sha256,written_at) VALUES (?,?,?,?)",
+                ("ENTRY_DECISION_EVIDENCE_RECORDED", audit_payload, audit_digest, now_iso),
+            )
+
+    def get_entry_decision_evidence(self, prediction_id: str) -> dict[str, Any] | None:
+        """Return canonical entry decision evidence by prediction_id, excluding quarantined records."""
+        path = self._find_partition("entry_decision_evidence", "prediction_id", str(prediction_id))
+        if path is None:
+            return None
+        with self._connect(path) as db:
+            row = db.execute(
+                "SELECT entry_decision_id, payload, payload_sha256 FROM entry_decision_evidence WHERE prediction_id=?",
+                (str(prediction_id),),
+            ).fetchone()
+            if row is None:
+                return None
+            eid, payload_raw, p_sha = row
+            q_row = db.execute(
+                "SELECT 1 FROM evidence_quarantine WHERE table_name='entry_decision_evidence' AND record_id=?",
+                (str(eid),),
+            ).fetchone()
+            if q_row:
+                return None
+            return {**json.loads(payload_raw), "evidence_sha256": str(p_sha)}
+
+    def get_entry_decision_evidence_by_id(self, entry_decision_id: str) -> dict[str, Any] | None:
+        """Return canonical entry decision evidence by entry_decision_id, excluding quarantined records."""
+        path = self._find_partition("entry_decision_evidence", "entry_decision_id", str(entry_decision_id))
+        if path is None:
+            return None
+        with self._connect(path) as db:
+            q_row = db.execute(
+                "SELECT 1 FROM evidence_quarantine WHERE table_name='entry_decision_evidence' AND record_id=?",
+                (str(entry_decision_id),),
+            ).fetchone()
+            if q_row:
+                return None
+            row = db.execute(
+                "SELECT payload, payload_sha256 FROM entry_decision_evidence WHERE entry_decision_id=?",
+                (str(entry_decision_id),),
+            ).fetchone()
+            if row is None:
+                return None
+            return {**json.loads(row[0]), "evidence_sha256": str(row[1])}
+
+    def get_quarantined_payload(self, table_name: str, record_id: str) -> dict[str, Any] | None:
+        """Return raw quarantined record payload and metadata."""
+        for path in self.partition_paths():
+            with self._connect(path) as db:
+                row = db.execute(
+                    "SELECT table_name, record_id, original_payload, original_payload_sha256, quarantine_reason, detected_at "
+                    "FROM evidence_quarantine_payloads WHERE table_name=? AND record_id=?",
+                    (str(table_name), str(record_id)),
+                ).fetchone()
+                if row:
+                    return {
+                        "table_name": str(row[0]),
+                        "record_id": str(row[1]),
+                        "original_payload": str(row[2]),
+                        "original_payload_sha256": str(row[3]),
+                        "quarantine_reason": str(row[4]),
+                        "detected_at": str(row[5]),
+                    }
+        return None
+
     def append_audit_event(self, event: Mapping[str, Any]) -> None:
         event = self._with_runtime_metadata(event)
         payload = _canonical(event)
@@ -1450,15 +1810,17 @@ class RuntimeEvidenceStore:
         return {**json.loads(row[0]), "decision_sha256": str(row[1])}
 
     def count_rows(self, table_name: str) -> int:
-        if table_name not in {"predictions", "feature_snapshots", "final_decisions", "outcome_links", "audit_events", "evidence_quarantine"}:
+        if table_name not in {"predictions", "feature_snapshots", "final_decisions", "entry_decision_evidence", "outcome_links", "audit_events", "evidence_quarantine", "evidence_quarantine_payloads"}:
             raise ValueError(f"unsupported table: {table_name}")
         identity_columns = {
             "predictions": "prediction_id",
             "feature_snapshots": "prediction_id",
             "final_decisions": "decision_id",
+            "entry_decision_evidence": "entry_decision_id",
             "outcome_links": "outcome_id",
             "audit_events": "event_type, payload_sha256, written_at",
             "evidence_quarantine": "table_name, record_id",
+            "evidence_quarantine_payloads": "table_name, record_id",
         }
         return len(set(self._all_rows(table_name, identity_columns[table_name])))
 
@@ -1856,7 +2218,8 @@ class RuntimeEvidenceStore:
         corrupt: set[tuple[str, str]] = set()
         table_keys = {
             "predictions": "prediction_id", "feature_snapshots": "prediction_id",
-            "final_decisions": "decision_id", "outcome_links": "outcome_id",
+            "final_decisions": "decision_id", "entry_decision_evidence": "entry_decision_id",
+            "outcome_links": "outcome_id",
         }
         for path in self.partition_paths():
             with self._connect(path) as db:
@@ -1873,7 +2236,8 @@ class RuntimeEvidenceStore:
         corrupt: set[tuple[str, str]] = set()
         table_keys = {
             "predictions": "prediction_id", "feature_snapshots": "prediction_id",
-            "final_decisions": "decision_id", "outcome_links": "outcome_id",
+            "final_decisions": "decision_id", "entry_decision_evidence": "entry_decision_id",
+            "outcome_links": "outcome_id",
         }
         for path in self.partition_paths():
             with self.transaction(path) as db:
@@ -1885,6 +2249,10 @@ class RuntimeEvidenceStore:
                             db.execute(
                                 "INSERT OR IGNORE INTO evidence_quarantine VALUES (?, ?, ?, ?)",
                                 (table, str(record_id), "payload_sha256_mismatch", self._now().isoformat()),
+                            )
+                            db.execute(
+                                "INSERT OR REPLACE INTO evidence_quarantine_payloads VALUES (?, ?, ?, ?, ?, ?)",
+                                (table, str(record_id), str(payload), str(digest), "payload_sha256_mismatch", self._now().isoformat()),
                             )
                             continue
                         if table == "predictions":
@@ -1904,6 +2272,17 @@ class RuntimeEvidenceStore:
                                     (
                                         table,
                                         str(record_id),
+                                        "invalid_prediction_lineage",
+                                        self._now().isoformat(),
+                                    ),
+                                )
+                                db.execute(
+                                    "INSERT OR REPLACE INTO evidence_quarantine_payloads VALUES (?, ?, ?, ?, ?, ?)",
+                                    (
+                                        table,
+                                        str(record_id),
+                                        str(payload),
+                                        str(digest),
                                         "invalid_prediction_lineage",
                                         self._now().isoformat(),
                                     ),
