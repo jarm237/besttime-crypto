@@ -358,6 +358,7 @@ class ExperimentRunner:
                             "exit_price": round(eff_exit_p, 4),
                             "qty": round(qty, 6),
                             "notional": round(notional_entry, 2),
+                            "sizing_weight": float(pos.get("sizing_weight", 1.0)),
                             "gross_pnl": round(gross_pnl, 4),
                             "entry_fee": round(entry_fee, 4),
                             "exit_fee": round(exit_fee, 4),
@@ -380,7 +381,9 @@ class ExperimentRunner:
                             fee_rate = self._fee_bps / 10_000.0
                             # Sizing constraint ensuring cash covers notional + fee
                             max_usable_cash = current_cash / (1.0 + fee_rate)
-                            target_notional = float(pending.get("target_notional") or (current_cash * self.spec.allocation_pct))
+                            sizing_weight = float(pending.get("sizing_weight", 1.0))
+                            base_notional = current_cash * self.spec.allocation_pct
+                            target_notional = float(pending.get("target_notional") or (base_notional * sizing_weight))
                             target_notional = min(target_notional, max_usable_cash)
 
                             if target_notional >= 10.0:
@@ -397,6 +400,7 @@ class ExperimentRunner:
                                     "entry_price": eff_entry_p,
                                     "qty": qty,
                                     "invested_notional": target_notional,
+                                    "sizing_weight": sizing_weight,
                                     "entry_fee": entry_fee,
                                     "entry_spread_drag": sp_drag,
                                     "entry_slip_drag": sl_drag,
@@ -461,6 +465,7 @@ class ExperimentRunner:
                             "exit_price": round(eff_exit_p, 4),
                             "qty": round(qty, 6),
                             "notional": round(notional_entry, 2),
+                            "sizing_weight": float(pos.get("sizing_weight", 1.0)),
                             "gross_pnl": round(gross_pnl, 4),
                             "entry_fee": round(entry_fee, 4),
                             "exit_fee": round(exit_fee, 4),
@@ -528,6 +533,7 @@ class ExperimentRunner:
                     "exit_price": round(eff_exit_p, 4),
                     "qty": round(qty, 6),
                     "notional": round(notional_entry, 2),
+                    "sizing_weight": float(pos.get("sizing_weight", 1.0)),
                     "gross_pnl": round(gross_pnl, 4),
                     "entry_fee": round(entry_fee, 4),
                     "exit_fee": round(exit_fee, 4),

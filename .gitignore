@@ -39,3 +39,6 @@ venv/
 
 # Reproducible large research parquet datasets
 research/historical_market_replay_v5/*.parquet
+
+# Historical data source feasibility downloads & large raw/normalized partitions
+/data/historical/
