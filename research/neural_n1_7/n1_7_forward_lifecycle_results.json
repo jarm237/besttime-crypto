@@ -2,7 +2,7 @@
   "document_id": "NEURAL-N1-8-FORWARD-PAIRED-CARRY-LIFECYCLE-INTEGRATED",
   "population_mode": "N1_8_POLICY_COMPLIANT_REPLAY",
   "scorecard": {
-    "evaluation_timestamp_utc": "2026-11-12T06:05:10.076318+00:00",
+    "evaluation_timestamp_utc": "2026-11-12T08:36:52.681790+00:00",
     "population_mode": "N1_8_POLICY_COMPLIANT_REPLAY",
     "assumed_portfolio_capital_usd": 20000.0,
     "total_intents_evaluated": 1555,
@@ -80,6 +80,9 @@
       "exit_futures_ask_price": 691.3947,
       "close_now_spot_price": 683.5256,
       "close_now_futures_price": 691.3947,
+      "close_executable": true,
+      "close_liquidation_status": "EXECUTABLE",
+      "executable_liquidation_pnl_usd": -29.35,
       "spot_mark_value": 5025.89,
       "inverse_futures_unrealized_pnl": -0.040773,
       "maintenance_margin": 0.036249,
@@ -91,7 +94,7 @@
       "current_mtm_equity_usd": 4998.02,
       "current_unrealized_pnl_usd": -9.48,
       "unrealized_pnl_after_entry_cost": -9.48,
-      "estimated_close_now_pnl": -16.98,
+      "estimated_close_now_pnl": -29.35,
       "realized_pnl": 0.0,
       "lifecycle_history": [
         {
@@ -138,6 +141,9 @@
       "exit_futures_ask_price": 75545.41,
       "close_now_spot_price": 73910.9911,
       "close_now_futures_price": 75545.41,
+      "close_executable": true,
+      "close_liquidation_status": "EXECUTABLE",
+      "executable_liquidation_pnl_usd": -18.21,
       "spot_mark_value": 5026.28,
       "inverse_futures_unrealized_pnl": -0.000318,
       "maintenance_margin": 0.000331,
@@ -149,7 +155,7 @@
       "current_mtm_equity_usd": 5002.75,
       "current_unrealized_pnl_usd": -4.75,
       "unrealized_pnl_after_entry_cost": -4.75,
-      "estimated_close_now_pnl": -12.25,
+      "estimated_close_now_pnl": -18.21,
       "realized_pnl": 0.0,
       "lifecycle_history": [
         {
@@ -317,6 +323,9 @@
           "exit_futures_ask_price": 691.3947,
           "close_now_spot_price": 683.5256,
           "close_now_futures_price": 691.3947,
+          "close_executable": true,
+          "close_liquidation_status": "EXECUTABLE",
+          "executable_liquidation_pnl_usd": -29.35,
           "spot_mark_value": 5025.89,
           "inverse_futures_unrealized_pnl": -0.040773,
           "maintenance_margin": 0.036249,
@@ -328,7 +337,7 @@
           "current_mtm_equity_usd": 4998.02,
           "current_unrealized_pnl_usd": -9.48,
           "unrealized_pnl_after_entry_cost": -9.48,
-          "estimated_close_now_pnl": -16.98,
+          "estimated_close_now_pnl": -29.35,
           "realized_pnl": 0.0,
           "lifecycle_history": [
             {
@@ -375,6 +384,9 @@
           "exit_futures_ask_price": 75545.41,
           "close_now_spot_price": 73910.9911,
           "close_now_futures_price": 75545.41,
+          "close_executable": true,
+          "close_liquidation_status": "EXECUTABLE",
+          "executable_liquidation_pnl_usd": -18.21,
           "spot_mark_value": 5026.28,
           "inverse_futures_unrealized_pnl": -0.000318,
           "maintenance_margin": 0.000331,
@@ -386,7 +398,7 @@
           "current_mtm_equity_usd": 5002.75,
           "current_unrealized_pnl_usd": -4.75,
           "unrealized_pnl_after_entry_cost": -4.75,
-          "estimated_close_now_pnl": -12.25,
+          "estimated_close_now_pnl": -18.21,
           "realized_pnl": 0.0,
           "lifecycle_history": [
             {

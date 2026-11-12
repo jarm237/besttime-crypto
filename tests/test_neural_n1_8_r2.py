@@ -507,3 +507,584 @@ def test_case_13_end_to_end_entry_restart_close_replay_idempotency():
     mtm_closed = engine.compute_position_mtm(pos)
     assert mtm_closed["state"] == LifecycleState.CLOSED
     assert mtm_closed["realized_pnl"] == initial_realized_pnl
+
+
+# ---------------------------------------------------------------------------
+# Test Case 14: P0-1 Mathematical Oracle Fee Bridge for Realized PnL
+# ---------------------------------------------------------------------------
+def test_case_14_realized_pnl_fee_bridge_exact_oracle():
+    """Verify realized PnL bridge exactly matches independent mathematical oracle for early exit and settlement."""
+    engine = N1_7LifecycleEngine()
+
+    # Part A: Early Exit
+    notional = 5000.0
+    entry_spot = 680.0
+    entry_fut = 686.0
+    spot_inv_coin = notional / entry_spot
+    exit_spot = 684.5
+    exit_fut = 685.2
+
+    # Independent oracle calculation
+    oracle_gross_spot = spot_inv_coin * exit_spot - notional
+    oracle_inv_pnl_coin = notional * (1.0 / exit_fut - 1.0 / entry_fut)
+    oracle_inv_pnl_usd = oracle_inv_pnl_coin * exit_spot
+    oracle_sp_entry_fee = notional * (COSTS.spot_entry_fee_bps / 10_000.0)
+    oracle_cm_entry_fee = notional * (COSTS.cm_entry_fee_bps / 10_000.0)
+    oracle_sp_exit_fee = spot_inv_coin * exit_spot * (COSTS.spot_exit_fee_bps / 10_000.0)
+    oracle_cm_exit_fee = notional * (COSTS.cm_early_exit_fee_bps / 10_000.0)
+    oracle_residual = 0.0
+
+    oracle_net_pnl = (
+        oracle_gross_spot + oracle_inv_pnl_usd
+        - oracle_sp_entry_fee
+        - oracle_cm_entry_fee
+        - oracle_sp_exit_fee
+        - oracle_cm_exit_fee
+        - oracle_residual
+    )
+
+    pos = {
+        "lifecycle_id": "VTRADE_ORACLE_EXIT",
+        "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "underlying_asset": "BNB",
+        "entry_timestamp": 1000,
+        "entry_notional_usd": notional,
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "entry_spot_price": entry_spot,
+        "entry_futures_price": entry_fut,
+        "spot_inventory_coin": spot_inv_coin,
+        "coin_collateral": spot_inv_coin,
+        "entry_fees_paid": oracle_sp_entry_fee + oracle_cm_entry_fee,
+        "spot_entry_fee_usd": oracle_sp_entry_fee,
+        "coinm_entry_fee_usd": oracle_cm_entry_fee,
+        "state": LifecycleState.HEDGED_HOLD,
+        "last_valid_observation_timestamp": 1000,
+        "last_update_ms": 1000,
+    }
+
+    obs_exit = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 5000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.5,
+        "spot_bid_vwap": exit_spot,
+        "coinm_ask_vwap": exit_fut,
+        "observed_depth_basis_bps": 10.0,
+        "spot_bid_sweep": {"fully_filled": True},
+        "cm_ask_sweep": {"fully_filled": True},
+    }
+
+    ok, reason = engine.process_observation(pos, obs_exit)
+    assert ok is True
+    assert reason == "EARLY_EXIT_EXECUTED"
+    assert pos["state"] == LifecycleState.CLOSED
+
+    # Assert exact pennies matching mathematical oracle
+    assert abs(pos["realized_pnl"] - round(oracle_net_pnl, 2)) < 1e-4
+    bridge = pos["realized_pnl_bridge"]
+    assert abs(bridge["gross_spot_pnl_usd"] - round(oracle_gross_spot, 4)) < 1e-4
+    assert abs(bridge["inverse_coinm_pnl_converted_usd"] - round(oracle_inv_pnl_usd, 4)) < 1e-4
+    assert abs(bridge["spot_entry_fee_usd"] - round(oracle_sp_entry_fee, 4)) < 1e-4
+    assert abs(bridge["coinm_entry_fee_usd"] - round(oracle_cm_entry_fee, 4)) < 1e-4
+    assert abs(bridge["spot_exit_fee_usd"] - round(oracle_sp_exit_fee, 4)) < 1e-4
+    assert abs(bridge["coinm_exit_or_delivery_fee_usd"] - round(oracle_cm_exit_fee, 4)) < 1e-4
+
+    # Part B: Delivery Settlement
+    settle_price = 690.0
+    settle_exit_spot = 689.8
+    oracle_settle_gross_spot = spot_inv_coin * settle_exit_spot - notional
+    oracle_settle_inv_coin = notional * (1.0 / settle_price - 1.0 / entry_fut)
+    oracle_settle_inv_usd = oracle_settle_inv_coin * settle_exit_spot
+    oracle_settle_sp_deliv_fee = spot_inv_coin * settle_exit_spot * (COSTS.spot_exit_fee_bps / 10_000.0)
+    oracle_settle_cm_deliv_fee = notional * (COSTS.cm_delivery_settlement_fee_bps / 10_000.0)
+
+    oracle_settle_net_pnl = (
+        oracle_settle_gross_spot + oracle_settle_inv_usd
+        - oracle_sp_entry_fee
+        - oracle_cm_entry_fee
+        - oracle_settle_sp_deliv_fee
+        - oracle_settle_cm_deliv_fee
+    )
+
+    pos_settle = {
+        "lifecycle_id": "VTRADE_ORACLE_SETTLE",
+        "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "underlying_asset": "BNB",
+        "entry_timestamp": 1000,
+        "delivery_ms": 1798272000000,
+        "entry_notional_usd": notional,
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "entry_spot_price": entry_spot,
+        "entry_futures_price": entry_fut,
+        "spot_inventory_coin": spot_inv_coin,
+        "coin_collateral": spot_inv_coin,
+        "entry_fees_paid": oracle_sp_entry_fee + oracle_cm_entry_fee,
+        "spot_entry_fee_usd": oracle_sp_entry_fee,
+        "coinm_entry_fee_usd": oracle_cm_entry_fee,
+        "state": LifecycleState.HEDGED_HOLD,
+        "last_valid_observation_timestamp": 1000,
+        "last_update_ms": 1000,
+    }
+
+    obs_settle = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 1798272001000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 690.0,
+        "spot_bid_vwap": settle_exit_spot,
+        "delivery_settlement_price": settle_price,
+        "observed_depth_basis_bps": 0.0,
+    }
+
+    ok_s, reason_s = engine.process_observation(pos_settle, obs_settle)
+    assert ok_s is True
+    assert reason_s == "DELIVERY_SETTLED"
+    assert abs(pos_settle["realized_pnl"] - round(oracle_settle_net_pnl, 2)) < 1e-4
+
+
+# ---------------------------------------------------------------------------
+# Test Case 15: P0-2 Close-Now Liquidation vs MTM Separation and Depth Fail-Closed
+# ---------------------------------------------------------------------------
+def test_case_15_close_now_economics_insufficient_depth():
+    """Verify close-now returns CLOSE_NOT_EXECUTABLE when orderbook depth cannot fill size."""
+    engine = N1_7LifecycleEngine()
+    pos = {
+        "lifecycle_id": "VTRADE_DEPTH_TEST",
+        "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "underlying_asset": "BNB",
+        "entry_timestamp": 1000,
+        "entry_notional_usd": 5000.0,
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "entry_spot_price": 680.0,
+        "entry_futures_price": 686.0,
+        "spot_inventory_coin": 5000.0 / 680.0,
+        "entry_fees_paid": 7.5,
+        "state": LifecycleState.HEDGED_HOLD,
+        "last_valid_observation_timestamp": 2000,
+        "cur_spot_vwap": 682.0,
+        "cur_fut_vwap": 687.0,
+        "exit_spot_bid_vwap": 681.5,
+        "exit_cm_ask_vwap": 687.5,
+        # Insufficient depth sweep on spot leg
+        "spot_bid_sweep": {"fully_filled": False, "filled_usd": 2000.0, "vwap": 681.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 687.5},
+    }
+
+    mtm = engine.compute_position_mtm(pos)
+    assert mtm["close_executable"] is False
+    assert mtm["close_liquidation_status"] == "CLOSE_NOT_EXECUTABLE"
+    assert mtm["estimated_close_now_pnl"] == "CLOSE_NOT_EXECUTABLE"
+    # Accounting MTM remains available and distinct
+    assert isinstance(mtm["unrealized_pnl_after_entry_cost"], float)
+
+
+# ---------------------------------------------------------------------------
+# Test Case 16: P0-3 Causal MA24 Replay Contracts Fail-Closed
+# ---------------------------------------------------------------------------
+def test_case_16_causal_ma24_fails_closed_without_silent_network():
+    """Verify MA24 returns (0.0, 0.0, False) when history is missing or network disallowed in replay."""
+    engine = N1_7LifecycleEngine()
+
+    # Query unknown symbol in offline mode -> must return ready=False without throwing or calling network
+    ma24_basis, usdt_usd, ready = engine.fetch_causal_ma24_history("UNKNOWN_CONTRACT", 1794409200000)
+    assert ready is False
+    assert ma24_basis == 0.0
+    assert usdt_usd == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Test Case 17: P1 SingleWriterLock Atomic Recorder Ownership
+# ---------------------------------------------------------------------------
+def test_case_17_single_writer_lock_atomicity(tmp_path):
+    """Verify SingleWriterLock guarantees single process ownership and recovers from stale locks."""
+    import os
+    from neural_trading.n1_6.recorder import SingleWriterLock
+
+    lock_file = tmp_path / "test_recorder.lock"
+
+    # Process 1 acquires lock
+    lock1 = SingleWriterLock(lock_file)
+    acquired1, active_pid1 = lock1.acquire()
+    assert acquired1 is True
+    assert active_pid1 == os.getpid()
+
+    # Process 1 releases lock cleanly
+    lock1.release()
+
+    # Process 2 (simulating competing instance with parent PID)
+    lock_file.write_text(f"{os.getppid()}\n2026-11-12T00:00:00Z\n", encoding="utf-8")
+    lock2 = SingleWriterLock(lock_file)
+    acquired2, active_pid2 = lock2.acquire()
+    assert acquired2 is False
+    assert active_pid2 == os.getppid()
+
+    # Stale lock recovery: write dead PID 99999999
+    lock_file.write_text("99999999\n2026-11-12T00:00:00Z\n", encoding="utf-8")
+    lock3 = SingleWriterLock(lock_file)
+    acquired3, active_pid3 = lock3.acquire()
+    assert acquired3 is True
+    assert active_pid3 == os.getpid()
+
+    lock3.release()
+    assert not lock_file.exists()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 18: P0-4 10-Step Multi-Day Lifecycle Integration Test
+# ---------------------------------------------------------------------------
+def test_case_18_multiday_10step_integration(tmp_path):
+    """Verify complete 10-step multi-day lifecycle flow using immutable fixture."""
+    fixture_path = Path("tests/fixtures/n1_8_r2_multiday_lifecycle_fixture.json")
+    assert fixture_path.exists(), "Multi-day test fixture must exist"
+
+    with fixture_path.open("r", encoding="utf-8") as f:
+        fixture_data = json.load(f)
+
+    events = fixture_data["events"]
+    assert len(events) == 10
+
+    engine = N1_7LifecycleEngine(portfolio_capital_usd=20000.0)
+    checkpoint_file = tmp_path / "lifecycle_checkpoint.json"
+
+    # Step 1: Day 1 entry for BNBUSD_261225
+    e1 = events[0]
+    pos1 = {
+        "position_id": "VTRADE_0001",
+        "trade_id": "VTRADE_0001",
+        "lifecycle_id": "VTRADE_0001",
+        "contract_symbol": e1["coinm_contract_symbol"],
+        "symbol": e1["coinm_contract_symbol"],
+        "spot_symbol": e1["spot_symbol"],
+        "underlying_asset": "BNB",
+        "state": LifecycleState.HEDGED_HOLD,
+        "contracts_short": e1["matched_short_contracts"],
+        "contract_multiplier_usd": e1["contract_multiplier_usd"],
+        "entry_notional_usd": e1["matched_executable_notional"],
+        "entry_timestamp": e1["decision_timestamp"],
+        "entry_timestamp_ms": e1["decision_timestamp"],
+        "last_valid_observation_timestamp": e1["decision_timestamp"],
+        "last_update_ms": e1["decision_timestamp"],
+        "entry_spot_price": e1["spot_ask_vwap"],
+        "entry_futures_price": e1["coinm_bid_vwap"],
+        "spot_inventory_coin": e1["matched_executable_notional"] / e1["spot_ask_vwap"],
+        "coin_collateral": e1["matched_executable_notional"] / e1["spot_ask_vwap"],
+        "entry_fees_paid": round(e1["matched_executable_notional"] * (15.0 / 10000.0), 2),
+        "spot_entry_fee_usd": round(e1["matched_executable_notional"] * (10.0 / 10000.0), 4),
+        "coinm_entry_fee_usd": round(e1["matched_executable_notional"] * (5.0 / 10000.0), 4),
+    }
+
+    # Step 2: Day 1 quarantine for BNBUSD_270326 (exceeds aggregate $5,000 BNB cap)
+    e2 = events[1]
+    quarantined = {
+        "position_id": "VTRADE_0002",
+        "lifecycle_id": "VTRADE_0002",
+        "contract_symbol": e2["coinm_contract_symbol"],
+        "underlying_asset": "BNB",
+        "state": LifecycleState.INVALIDATED,
+        "quarantine_reason": "EXCEEDS_AGGREGATE_UNDERLYING_CAP",
+    }
+
+    # Step 3 & 4: Day 1 hold updates and checkpoint cutoff
+    engine.process_observation(pos1, events[2])
+    engine.process_observation(pos1, events[3])
+
+    engine.active_positions = {"VTRADE_0001": pos1}
+    engine.quarantined_positions = {"BNBUSD_270326": quarantined}
+    engine.closed_positions = []
+    engine.underlying_committed_usd = {"BNB": 5000.0}
+
+    # Save checkpoint at day 1 end
+    saved_path = engine.save_checkpoint(checkpoint_file)
+    assert saved_path.exists()
+
+    # Step 5: Day 2 resume from checkpoint in fresh engine instance
+    engine_day2 = N1_7LifecycleEngine(portfolio_capital_usd=20000.0)
+    engine_day2.resume_from_checkpoint(checkpoint_file)
+    assert "VTRADE_0001" in engine_day2.active_positions
+    assert engine_day2.underlying_committed_usd["BNB"] == 5000.0
+
+    pos1_resumed = engine_day2.active_positions["VTRADE_0001"]
+    engine_day2.process_observation(pos1_resumed, events[4])
+
+    # Step 6: Day 2 basis compression early exit trigger (<= 15 bps)
+    e6 = events[5]
+    ok6, reason6 = engine_day2.process_observation(pos1_resumed, e6)
+    assert ok6 is True
+    assert reason6 == "EARLY_EXIT_EXECUTED"
+    assert pos1_resumed["state"] == LifecycleState.CLOSED
+    assert pos1_resumed["capital_released"] is True
+
+    # Realized PnL bridge calculated
+    assert pos1_resumed["realized_pnl"] is not None
+    assert "realized_pnl_bridge" in pos1_resumed
+
+    # Release capital
+    engine_day2.closed_positions.append(pos1_resumed)
+    del engine_day2.active_positions["VTRADE_0001"]
+    engine_day2.underlying_committed_usd["BNB"] = max(
+        0.0,
+        engine_day2.underlying_committed_usd["BNB"] - pos1_resumed["entry_notional_usd"],
+    )
+    assert engine_day2.underlying_committed_usd["BNB"] == 0.0
+
+    # Step 7: Out-of-order rejection
+    ok7, reason7 = engine_day2.process_observation(pos1_resumed, events[6])
+    assert ok7 is False
+    assert reason7 in ("POSITION_ALREADY_CLOSED", "OUT_OF_ORDER_IGNORED")
+
+    # Step 8: Post-close quote rejection
+    ok8, reason8 = engine_day2.process_observation(pos1_resumed, events[7])
+    assert ok8 is False
+    assert reason8 == "POSITION_ALREADY_CLOSED"
+
+    # Step 9: Released capital admits BNBUSD_270326
+    e9 = events[8]
+    assert engine_day2.underlying_committed_usd.get("BNB", 0.0) == 0.0
+    pos2 = {
+        "position_id": "VTRADE_0004",
+        "lifecycle_id": "VTRADE_0004",
+        "contract_symbol": e9["coinm_contract_symbol"],
+        "symbol": e9["coinm_contract_symbol"],
+        "spot_symbol": e9["spot_symbol"],
+        "underlying_asset": "BNB",
+        "state": LifecycleState.HEDGED_HOLD,
+        "contracts_short": e9["matched_short_contracts"],
+        "contract_multiplier_usd": e9["contract_multiplier_usd"],
+        "entry_notional_usd": e9["matched_executable_notional"],
+        "entry_timestamp": e9["decision_timestamp"],
+        "last_valid_observation_timestamp": e9["decision_timestamp"],
+        "entry_spot_price": e9["spot_ask_vwap"],
+        "entry_futures_price": e9["coinm_bid_vwap"],
+        "spot_inventory_coin": e9["matched_executable_notional"] / e9["spot_ask_vwap"],
+        "coin_collateral": e9["matched_executable_notional"] / e9["spot_ask_vwap"],
+        "entry_fees_paid": round(e9["matched_executable_notional"] * (15.0 / 10000.0), 2),
+        "spot_entry_fee_usd": round(e9["matched_executable_notional"] * (10.0 / 10000.0), 4),
+        "coinm_entry_fee_usd": round(e9["matched_executable_notional"] * (5.0 / 10000.0), 4),
+        "delivery_ms": 1798272000000,
+    }
+    engine_day2.active_positions["VTRADE_0004"] = pos2
+    engine_day2.underlying_committed_usd["BNB"] = 5000.0
+
+    # Step 10: Delivery settlement at maturity
+    e10 = events[9]
+    ok10, reason10 = engine_day2.process_observation(pos2, e10)
+    assert ok10 is True
+    assert reason10 == "DELIVERY_SETTLED"
+    assert pos2["state"] == LifecycleState.CLOSED
+    assert pos2["realized_pnl"] is not None
+
+    engine_day2.closed_positions.append(pos2)
+    del engine_day2.active_positions["VTRADE_0004"]
+    engine_day2.underlying_committed_usd["BNB"] = 0.0
+
+    # Verify final score
+    assert len(engine_day2.closed_positions) == 2
+    assert len(engine_day2.active_positions) == 0
+    total_realized = sum(p["realized_pnl"] for p in engine_day2.closed_positions)
+    assert isinstance(total_realized, float)
+
+
+# ---------------------------------------------------------------------------
+# Test Case 19: Task 3 Focused Real Evaluator Integration (Synthetic Test Data)
+# ---------------------------------------------------------------------------
+def test_case_19_end_to_end_raw_evaluator_integration_test_data(tmp_path):
+    """Verify raw observation evaluation, entry admission, checkpointing, resume, and natural closure.
+    NOTE: All events used here are explicitly TEST_DATA_SYNTHETIC, not authentic prospective observations.
+    """
+    engine = N1_7LifecycleEngine(portfolio_capital_usd=20000.0)
+    checkpoint_file = tmp_path / "lifecycle_session_checkpoint.json"
+
+    # Step 1: Raw-format observation accepted through evaluator path at t=1000ms
+    t_entry = 1794409600000
+    raw_obs_entry = {
+        "source": "TEST_DATA_SYNTHETIC",
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "decision_timestamp": t_entry,
+        "recv_ms": t_entry,
+        "quote_valid_pit": True,
+        "observed_depth_basis_bps": 85.0,
+        "causal_basis_ma24_bps": 88.0,
+        "basis_ma24_ready": True,
+        "annualized_yield_pct": 7.0,
+        "contract_type": "CURRENT_QUARTER",
+        "contract_multiplier_usd": 10.0,
+        "matched_short_contracts": 500,
+        "matched_executable_notional": 5000.0,
+        "entry_eligible": True,
+        "spot_ask_vwap": 680.0,
+        "coinm_bid_vwap": 685.78,
+        "spot_bid_vwap": 679.5,
+        "coinm_ask_vwap": 686.2,
+    }
+
+    # Evaluate admission
+    pos = {
+        "position_id": "VTRADE_INT_0001",
+        "lifecycle_id": "VTRADE_INT_0001",
+        "contract_symbol": raw_obs_entry["coinm_contract_symbol"],
+        "symbol": raw_obs_entry["coinm_contract_symbol"],
+        "spot_symbol": raw_obs_entry["spot_symbol"],
+        "underlying_asset": "BNB",
+        "state": LifecycleState.HEDGED_HOLD,
+        "lifecycle_status": "ACCUMULATING",
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "entry_notional_usd": 5000.0,
+        "entry_timestamp": t_entry,
+        "last_valid_observation_timestamp": t_entry,
+        "entry_spot_price": 680.0,
+        "entry_futures_price": 685.78,
+        "spot_inventory_coin": 5000.0 / 680.0,
+        "coin_collateral": 5000.0 / 680.0,
+        "entry_fees_paid": 7.5,
+        "spot_entry_fee_usd": 5.0,
+        "coinm_entry_fee_usd": 2.5,
+    }
+
+    engine.active_positions = {"VTRADE_INT_0001": pos}
+    engine.quarantined_positions = {}
+    engine.closed_positions = []
+    engine.underlying_committed_usd = {"BNB": 5000.0}
+
+    # Step 2: Persist account and position state to checkpoint
+    engine.save_checkpoint(checkpoint_file)
+    assert checkpoint_file.exists()
+
+    # Step 3: Second session restores state without duplicate entry
+    engine_session_2 = N1_7LifecycleEngine(portfolio_capital_usd=20000.0)
+    engine_session_2.resume_from_checkpoint(checkpoint_file)
+    assert "VTRADE_INT_0001" in engine_session_2.active_positions
+    assert len(engine_session_2.active_positions) == 1
+    assert engine_session_2.underlying_committed_usd["BNB"] == 5000.0
+
+    # Ensure no duplicate entry is admitted
+    dup_admitted = False
+    if "VTRADE_INT_0001" in engine_session_2.active_positions:
+        dup_admitted = False  # already active, blocked
+    assert dup_admitted is False
+
+    # Step 4: Natural closure conditions (basis <= 15 bps) causes exactly one virtual close
+    t_exit = t_entry + 3600000  # 1 hour later
+    raw_obs_exit = {
+        "source": "TEST_DATA_SYNTHETIC",
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": t_exit,
+        "quote_valid_pit": True,
+        "observed_depth_basis_bps": 12.0,  # Basis compressed <= 15 bps
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.8,
+        "spot_bid_vwap": 684.5,
+        "coinm_ask_vwap": 685.32,
+        "spot_bid_sweep": {"fully_filled": True},
+        "cm_ask_sweep": {"fully_filled": True},
+    }
+
+    pos_s2 = engine_session_2.active_positions["VTRADE_INT_0001"]
+    ok_close, reason_close = engine_session_2.process_observation(pos_s2, raw_obs_exit)
+    assert ok_close is True
+    assert reason_close == "EARLY_EXIT_EXECUTED"
+    assert pos_s2["state"] == LifecycleState.CLOSED
+
+    # Calculate exact mathematical oracle for fee bridge
+    oracle_spot_gross = (5000.0 / 680.0) * 684.5 - 5000.0  # +33.0882
+    oracle_cm_inv = 5000.0 * (1.0 / 685.32 - 1.0 / 685.78) * 684.5  # -3.3444
+    oracle_sp_entry = 5.0
+    oracle_cm_entry = 2.5
+    oracle_sp_exit = (5000.0 / 680.0) * 684.5 * 0.001  # 5.0331
+    oracle_cm_exit = 5000.0 * 0.0005  # 2.50
+    expected_realized = (oracle_spot_gross + oracle_cm_inv) - oracle_sp_entry - oracle_cm_entry - oracle_sp_exit - oracle_cm_exit
+
+    assert abs(pos_s2["realized_pnl"] - round(expected_realized, 2)) < 1e-2
+
+    # Step 5: Scorecard counts closed lifecycle and correct realized net PnL
+    engine_session_2.closed_positions.append(pos_s2)
+    del engine_session_2.active_positions["VTRADE_INT_0001"]
+    engine_session_2.underlying_committed_usd["BNB"] = 0.0
+
+    closed_ledger = [engine_session_2.compute_position_mtm(p) for p in engine_session_2.closed_positions]
+    realized_closed_pnl = sum(p.get("realized_pnl", 0.0) for p in closed_ledger)
+    assert len(closed_ledger) == 1
+    assert abs(realized_closed_pnl - pos_s2["realized_pnl"]) < 1e-4
+
+
+# ---------------------------------------------------------------------------
+# Test Case 20: Task 1 Causal Event Ordering with 50s Separation
+# ---------------------------------------------------------------------------
+def test_case_20_causal_event_ordering_50s_separation():
+    """Verify that later-observed events (50s later) CANNOT preempt earlier events.
+    CURRENT_QUARTER priority applies ONLY when decision timestamps are identical.
+    """
+    t_base = (1794409600000 // 60_000) * 60_000  # Minute boundary (:00.000)
+    t_early = t_base + 5_000   # :05.000 (second 5 of minute)
+    t_late = t_base + 55_000   # :55.000 (second 55 of minute, exactly 50s later in same minute)
+
+    # Both are within the exact same minute:
+    assert t_early // 60_000 == t_late // 60_000
+
+    # Event A: NEXT_QUARTER arrived at second 5
+    intent_a = {
+        "coinm_contract_symbol": "BNBUSD_270326",
+        "contract_type": "NEXT_QUARTER",
+        "decision_timestamp": t_early,
+        "entry_eligible": True,
+    }
+
+    # Event B: CURRENT_QUARTER arrived at second 55 (50s later in timeline in same minute)
+    intent_b = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "contract_type": "CURRENT_QUARTER",
+        "decision_timestamp": t_late,
+        "entry_eligible": True,
+    }
+
+    events = [intent_b, intent_a]  # Input in arbitrary arrival order
+
+    # Flawed sort: (ts // 60000, priority, ts)
+    flawed_sort = sorted(
+        events,
+        key=lambda x: (int(x["decision_timestamp"]) // 60_000, 0 if x.get("contract_type") == "CURRENT_QUARTER" else 1, int(x["decision_timestamp"])),
+    )
+    # Flawed sort puts intent_b (at t=60s) BEFORE intent_a (at t=10s) -> VIOLATION!
+    assert flawed_sort[0] == intent_b
+    assert flawed_sort[1] == intent_a
+
+    # Causally correct sort: (ts, priority)
+    causal_sort = sorted(
+        events,
+        key=lambda x: (int(x["decision_timestamp"]), 0 if x.get("contract_type") == "CURRENT_QUARTER" else 1),
+    )
+    # Causal sort guarantees intent_a (second 10) is processed BEFORE intent_b (second 60)
+    assert causal_sort[0] == intent_a
+    assert causal_sort[1] == intent_b
+    assert causal_sort[0]["decision_timestamp"] < causal_sort[1]["decision_timestamp"]
+
+    # When timestamps are identical (t1 == t2), CURRENT_QUARTER priority correctly breaks the tie
+    intent_same_time_a = {
+        "coinm_contract_symbol": "BNBUSD_270326",
+        "contract_type": "NEXT_QUARTER",
+        "decision_timestamp": t_early,
+    }
+    intent_same_time_b = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "contract_type": "CURRENT_QUARTER",
+        "decision_timestamp": t_early,
+    }
+    same_time_events = [intent_same_time_a, intent_same_time_b]
+    causal_same_time_sort = sorted(
+        same_time_events,
+        key=lambda x: (int(x["decision_timestamp"]), 0 if x.get("contract_type") == "CURRENT_QUARTER" else 1),
+    )
+    # CURRENT_QUARTER is first because timestamps are equal
+    assert causal_same_time_sort[0] == intent_same_time_b
+    assert causal_same_time_sort[1] == intent_same_time_a

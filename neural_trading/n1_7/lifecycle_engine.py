@@ -48,6 +48,7 @@ def fetch_causal_ma24_history(
     target_end_ms: int,
     frozen_fixture_path: Optional[Path] = None,
     usdt_usd_rate: Optional[float] = None,
+    allow_network: bool = False,
 ) -> Tuple[float, float, bool]:
     """Fetch closed 1h klines to calculate causal MA24 basis and yield prior to target_end_ms.
 
@@ -56,26 +57,40 @@ def fetch_causal_ma24_history(
     2. Uses timestamp-aligned historical USDT/USD observations available as of candle time (never live ticker).
     3. Strictly requires full 24 completed hourly observations (len >= 24) closed strictly <= target_end_ms.
     4. If history is unavailable or insufficient, returns (0.0, 0.0, False) ('MA24_NOT_READY').
-    5. Zero hardcoded overrides (e.g. no forced 74.55).
-    Returns: (basis_ma24_bps, yield_ann_pct, is_ready)
+    5. Fails closed without silent live HTTP fallback during offline replay.
+    6. Zero hardcoded overrides (e.g. no forced 74.55).
+    Returns: (basis_ma24_bps, last_usdt_rate, is_ready)
     """
     fixture_path = frozen_fixture_path or (Path(__file__).resolve().parent / "frozen_causal_klines_20261111.json")
     if fixture_path.exists():
         try:
             data = json.loads(fixture_path.read_text(encoding="utf-8"))
+            rates_map = data.get("timestamped_usdt_usd", {})
             symbol_data = data.get("data", {}).get(cm_symbol)
             if symbol_data:
                 cm_closed = [k for k in symbol_data.get("cm_klines", []) if int(k[6]) <= target_end_ms]
                 sp_closed = [k for k in symbol_data.get("spot_klines", []) if int(k[6]) <= target_end_ms]
-                usdt_usd = usdt_usd_rate if usdt_usd_rate is not None else float(data.get("usdt_usd_at_target", 0.99884))
 
-                sp_map = {int(k[0]): float(k[4]) for k in sp_closed}
+                sp_map = {int(k[0]): (float(k[4]), int(k[6])) for k in sp_closed}
                 bases_bps = []
+                last_usdt_rate = 0.99884
                 for c in cm_closed:
                     ot = int(c[0])
+                    ct = int(c[6])
                     if ot in sp_map:
                         cm_c = float(c[4])
-                        sp_c = sp_map[ot] * usdt_usd
+                        sp_c_raw, _ = sp_map[ot]
+                        # Timestamped USDT/USD observation for this candle's close time
+                        candle_rate = (
+                            rates_map.get(str(ct))
+                            or rates_map.get(ct)
+                            or (usdt_usd_rate if ct >= target_end_ms else None)
+                        )
+                        if candle_rate is None:
+                            # Fails closed if candle has missing rate
+                            return (0.0, 0.0, False)
+                        last_usdt_rate = float(candle_rate)
+                        sp_c = sp_c_raw * last_usdt_rate
                         b_bps = (cm_c / sp_c - 1.0) * 10_000.0
                         bases_bps.append(b_bps)
 
@@ -83,11 +98,15 @@ def fetch_causal_ma24_history(
                     return (0.0, 0.0, False)
 
                 ma24_basis = float(np.mean(bases_bps[-24:]))
-                return (round(ma24_basis, 2), usdt_usd, True)
+                return (round(ma24_basis, 2), last_usdt_rate, True)
         except Exception:  # noqa: BLE001
             pass
 
-    # Fallback to network query if fixture not present (e.g. for live forward sessions)
+    if not allow_network:
+        # Deterministic offline replay strictly fails closed without live network fallback
+        return (0.0, 0.0, False)
+
+    # Optional network query only if explicitly allowed for live sessions
     try:
         cm_resp = requests.get(
             "https://dapi.binance.com/dapi/v1/klines",
@@ -205,6 +224,45 @@ class N1_7LifecycleEngine:
             spot_symbol = PAIR_TO_SPOT.get(cm_symbol.split("_")[0], f"{underlying}USDT")
         return fetch_causal_ma24_history(cm_symbol, spot_symbol, target_end_ms)
 
+    def save_checkpoint(
+        self,
+        checkpoint_path: Union[str, Path],
+        state: Optional[Dict[str, Any]] = None,
+    ) -> Path:
+        """Atomically saves lifecycle state checkpoint to disk."""
+        p = Path(checkpoint_path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        if state is None:
+            state = {
+                "version": "1.0",
+                "saved_at_utc": datetime.now(timezone.utc).isoformat(),
+                "portfolio_capital_usd": self.portfolio_capital_usd,
+                "active_positions": getattr(self, "active_positions", {}),
+                "quarantined_positions": getattr(self, "quarantined_positions", {}),
+                "closed_positions": getattr(self, "closed_positions", []),
+                "underlying_committed_usd": getattr(self, "underlying_committed_usd", {}),
+            }
+        tmp_path = p.with_suffix(".tmp")
+        tmp_path.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
+        tmp_path.replace(p)
+        return p
+
+    def load_checkpoint(self, checkpoint_path: Union[str, Path]) -> Dict[str, Any]:
+        """Loads lifecycle state checkpoint from disk."""
+        p = Path(checkpoint_path)
+        if not p.exists():
+            raise FileNotFoundError(f"Checkpoint file not found: {p}")
+        return json.loads(p.read_text(encoding="utf-8"))
+
+    def resume_from_checkpoint(self, checkpoint_path: Union[str, Path]) -> Dict[str, Any]:
+        """Restores engine state from a saved checkpoint."""
+        data = self.load_checkpoint(checkpoint_path)
+        self.active_positions = data.get("active_positions", {})
+        self.quarantined_positions = data.get("quarantined_positions", {})
+        self.closed_positions = data.get("closed_positions", [])
+        self.underlying_committed_usd = data.get("underlying_committed_usd", {})
+        return data
+
     def process_observation(
         self,
         pos: Dict[str, Any],
@@ -278,19 +336,32 @@ class N1_7LifecycleEngine:
 
                 notional = pos["entry_notional_usd"]
                 entry_fut = pos["entry_futures_price"]
-                inv_pnl_coin = notional * (1.0 / settle_price - 1.0 / entry_fut)
+                inv_pnl_coin = notional * (1.0 / settle_price - 1.0 / entry_fut) if settle_price > 0 else 0.0
                 inv_pnl_usd = inv_pnl_coin * sp_bid_vwap
                 spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
 
-                cm_deliv_fee = notional * (COSTS.cm_delivery_settlement_fee_bps / 10_000.0)
+                # P0-1: Explicit fee bridge - every fee deducted exactly once
+                sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+                cm_entry_fee = pos.get("coinm_entry_fee_usd", notional * (COSTS.cm_entry_fee_bps / 10_000.0))
                 sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
-                tot_fees = pos["entry_fees_paid"] + cm_deliv_fee + sp_exit_fee
+                cm_deliv_fee = notional * (COSTS.cm_delivery_settlement_fee_bps / 10_000.0)
+                residual_cost = pos.get("residual_execution_cost_usd", 0.0)
 
-                realized_net = (spot_realized_usd + inv_pnl_usd) - (cm_deliv_fee + sp_exit_fee)
+                realized_net = (spot_realized_usd + inv_pnl_usd) - sp_entry_fee - cm_entry_fee - sp_exit_fee - cm_deliv_fee - residual_cost
                 pos["realized_pnl"] = round(realized_net, 2)
                 pos["capital_released"] = True
                 pos["released_capital_usd"] = notional
                 pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
+                pos["realized_pnl_bridge"] = {
+                    "gross_spot_pnl_usd": round(spot_realized_usd, 4),
+                    "inverse_coinm_pnl_converted_usd": round(inv_pnl_usd, 4),
+                    "spot_entry_fee_usd": round(sp_entry_fee, 4),
+                    "coinm_entry_fee_usd": round(cm_entry_fee, 4),
+                    "spot_exit_fee_usd": round(sp_exit_fee, 4),
+                    "coinm_exit_or_delivery_fee_usd": round(cm_deliv_fee, 4),
+                    "residual_execution_cost_usd": round(residual_cost, 4),
+                    "realized_net_pnl_usd": round(realized_net, 2),
+                }
                 pos.setdefault("history", []).append({
                     "timestamp_ms": ts,
                     "state": LifecycleState.CLOSED,
@@ -327,14 +398,28 @@ class N1_7LifecycleEngine:
             inv_pnl_usd = inv_pnl_coin * sp_bid_vwap
             spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
 
+            # P0-1: Explicit fee bridge - every fee deducted exactly once
+            sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+            cm_entry_fee = pos.get("coinm_entry_fee_usd", notional * (COSTS.cm_entry_fee_bps / 10_000.0))
             sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
             cm_exit_fee = notional * (COSTS.cm_early_exit_fee_bps / 10_000.0)
+            residual_cost = pos.get("residual_execution_cost_usd", 0.0)
 
-            realized_net = (spot_realized_usd + inv_pnl_usd) - (cm_exit_fee + sp_exit_fee)
+            realized_net = (spot_realized_usd + inv_pnl_usd) - sp_entry_fee - cm_entry_fee - sp_exit_fee - cm_exit_fee - residual_cost
             pos["realized_pnl"] = round(realized_net, 2)
             pos["capital_released"] = True
             pos["released_capital_usd"] = notional
             pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
+            pos["realized_pnl_bridge"] = {
+                "gross_spot_pnl_usd": round(spot_realized_usd, 4),
+                "inverse_coinm_pnl_converted_usd": round(inv_pnl_usd, 4),
+                "spot_entry_fee_usd": round(sp_entry_fee, 4),
+                "coinm_entry_fee_usd": round(cm_entry_fee, 4),
+                "spot_exit_fee_usd": round(sp_exit_fee, 4),
+                "coinm_exit_or_delivery_fee_usd": round(cm_exit_fee, 4),
+                "residual_execution_cost_usd": round(residual_cost, 4),
+                "realized_net_pnl_usd": round(realized_net, 2),
+            }
             pos.setdefault("history", []).append({
                 "timestamp_ms": ts,
                 "state": LifecycleState.CLOSED,
@@ -419,8 +504,28 @@ class N1_7LifecycleEngine:
         gross_mtm = mtm_equity_usd - notional
         unrealized_after_entry_fees = gross_mtm - entry_fees
 
-        est_exit_fees = notional * ((COSTS.spot_exit_fee_bps + COSTS.cm_early_exit_fee_bps) / 10_000.0)
-        est_close_now_pnl = unrealized_after_entry_fees - est_exit_fees
+        # P0-2: Hypothetical Immediate Liquidation (Close-Now) Economics
+        # Uses true closing orderbook depth sweeps: Spot bid VWAP and COIN-M cover ask VWAP
+        sp_sweep = pos.get("spot_bid_sweep") or {}
+        cm_sweep = pos.get("cm_ask_sweep") or {}
+        depth_fillable = (sp_sweep.get("fully_filled", True) and cm_sweep.get("fully_filled", True)) if (sp_sweep or cm_sweep) else True
+        has_executable_depth = exit_spot > 0 and exit_fut > 0
+
+        if not has_executable_depth or not depth_fillable:
+            close_executable = False
+            close_liquidation_status = "CLOSE_NOT_EXECUTABLE"
+            executable_liq_pnl = None
+            est_close_now_pnl = "CLOSE_NOT_EXECUTABLE"
+        else:
+            close_executable = True
+            close_liquidation_status = "EXECUTABLE"
+            liq_gross_spot = pos.get("spot_inventory_coin", collateral) * exit_spot - notional
+            liq_inv_coin = notional * (1.0 / exit_fut - 1.0 / entry_fut)
+            liq_inv_usd = liq_inv_coin * exit_spot
+            liq_sp_exit_fee = pos.get("spot_inventory_coin", collateral) * exit_spot * (COSTS.spot_exit_fee_bps / 10_000.0)
+            liq_cm_exit_fee = notional * (COSTS.cm_early_exit_fee_bps / 10_000.0)
+            executable_liq_pnl = (liq_gross_spot + liq_inv_usd) - entry_fees - (liq_sp_exit_fee + liq_cm_exit_fee)
+            est_close_now_pnl = round(executable_liq_pnl, 2)
 
         duration_hours = round((pos["last_valid_observation_timestamp"] - pos["entry_timestamp"]) / 3_600_000.0, 3)
         rounded_m_ratio = round(margin_ratio, 3)
@@ -457,6 +562,9 @@ class N1_7LifecycleEngine:
             "exit_futures_ask_price": exit_fut,
             "close_now_spot_price": exit_spot,
             "close_now_futures_price": exit_fut,
+            "close_executable": close_executable,
+            "close_liquidation_status": close_liquidation_status,
+            "executable_liquidation_pnl_usd": (round(executable_liq_pnl, 2) if executable_liq_pnl is not None else None),
             "spot_mark_value": round(pos.get("spot_inventory_coin", collateral) * cur_spot, 2),
             "inverse_futures_unrealized_pnl": round(inv_pnl_coin, 6),
             "maintenance_margin": round(maint_coin, 6),
@@ -468,7 +576,7 @@ class N1_7LifecycleEngine:
             "current_mtm_equity_usd": round(mtm_equity_usd, 2),
             "current_unrealized_pnl_usd": round(unrealized_after_entry_fees, 2),
             "unrealized_pnl_after_entry_cost": round(unrealized_after_entry_fees, 2),
-            "estimated_close_now_pnl": round(est_close_now_pnl, 2),
+            "estimated_close_now_pnl": est_close_now_pnl,
             "realized_pnl": 0.0,
             "lifecycle_history": pos.get("history", []),
         }
@@ -793,8 +901,15 @@ class N1_7LifecycleEngine:
         # ----------------------------------------------------------------------
         # PHASE D: Complete Virtual Carry Lifecycle Tracking (Integrated N1.8 Source-of-Truth)
         # ----------------------------------------------------------------------
-        # Ensure chronological event ordering across all symbols
-        chronological_intents = sorted(order_intents, key=lambda x: int(x["decision_timestamp"]))
+        # Ensure strict causal chronological event ordering across all symbols
+        # CURRENT_QUARTER priority breaks ties only for events available at the exact same decision timestamp
+        chronological_intents = sorted(
+            order_intents,
+            key=lambda x: (
+                int(x["decision_timestamp"]),
+                0 if x.get("contract_type") == "CURRENT_QUARTER" else 1,
+            ),
+        )
 
         # Immutable Lifecycle Registry to guarantee persistent identity across runs, restarts, and populations
         IMMUTABLE_LIFECYCLE_REGISTRY: Dict[str, str] = {

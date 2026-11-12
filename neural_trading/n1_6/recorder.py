@@ -94,6 +94,72 @@ def _is_pid_alive(pid: int) -> bool:
         return False
 
 
+class SingleWriterLock:
+    """Atomic single-writer process lock with stale-lock recovery."""
+
+    def __init__(self, lock_path: Path) -> None:
+        self.lock_path = lock_path
+        self.fd: Optional[int] = None
+        self.is_owner = False
+
+    def acquire(self) -> Tuple[bool, Optional[int]]:
+        self.lock_path.parent.mkdir(parents=True, exist_ok=True)
+        for _ in range(2):
+            try:
+                flags = os.O_CREAT | os.O_EXCL | os.O_RDWR
+                self.fd = os.open(str(self.lock_path), flags)
+                payload = json.dumps({"pid": os.getpid(), "started_ms": now_ms(), "host": socket.gethostname()}).encode("utf-8")
+                os.write(self.fd, payload)
+                self.is_owner = True
+                return (True, os.getpid())
+            except FileExistsError:
+                active_pid = None
+                try:
+                    content = self.lock_path.read_text(encoding="utf-8")
+                    try:
+                        info = json.loads(content)
+                        active_pid = int(info.get("pid", 0))
+                    except (json.JSONDecodeError, AttributeError):
+                        active_pid = int(content.strip().splitlines()[0])
+                except Exception:
+                    active_pid = None
+
+                if active_pid and _is_pid_alive(active_pid) and active_pid != os.getpid():
+                    return (False, active_pid)
+                else:
+                    # Stale lock detected (dead process or unparseable file): safely unlink and retry
+                    try:
+                        self.lock_path.unlink(missing_ok=True)
+                    except Exception:
+                        pass
+                    continue
+            except Exception:
+                return (False, None)
+        return (False, None)
+
+    def release(self) -> None:
+        if not self.is_owner:
+            return
+        try:
+            if self.fd is not None:
+                try:
+                    os.close(self.fd)
+                except Exception:
+                    pass
+                self.fd = None
+            if self.lock_path.exists():
+                try:
+                    info = json.loads(self.lock_path.read_text(encoding="utf-8"))
+                    if info.get("pid") == os.getpid():
+                        self.lock_path.unlink(missing_ok=True)
+                except Exception:
+                    self.lock_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+        finally:
+            self.is_owner = False
+
+
 class ForwardRecorder:
     def __init__(self, cfg: Optional[RecorderConfig] = None, raw_dir: Path = RAW_DIR) -> None:
         self.cfg = cfg or RecorderConfig()
@@ -388,23 +454,17 @@ class ForwardRecorder:
     # ------------------------------------------------------------------ main loop
     def run(self, duration_s: Optional[float] = None) -> str:
         CONTROL_DIR.mkdir(parents=True, exist_ok=True)
-        lock_file = CONTROL_DIR / "recorder.lock"
-        if lock_file.exists():
-            try:
-                info = json.loads(lock_file.read_text(encoding="utf-8"))
-                prev_pid = int(info.get("pid", 0))
-                if _is_pid_alive(prev_pid) and prev_pid != os.getpid():
-                    self.store.append("recorder_events", {
-                        "session_id": self.session_id,
-                        "recv_ms": now_ms(),
-                        "event": "single_writer_conflict",
-                        "active_pid": prev_pid,
-                        "status": "ALREADY_RUNNING"
-                    })
-                    return "ALREADY_RUNNING"
-            except Exception:  # noqa: BLE001
-                pass
-        lock_file.write_text(json.dumps({"pid": os.getpid(), "session_id": self.session_id, "started_ms": now_ms()}), encoding="utf-8")
+        self.writer_lock = SingleWriterLock(CONTROL_DIR / "recorder.lock")
+        acquired, active_pid = self.writer_lock.acquire()
+        if not acquired:
+            self.store.append("recorder_events", {
+                "session_id": self.session_id,
+                "recv_ms": now_ms(),
+                "event": "single_writer_conflict",
+                "active_pid": active_pid,
+                "status": "ALREADY_RUNNING"
+            })
+            return "ALREADY_RUNNING"
 
         self.store.append("recorder_events", {"session_id": self.session_id, "recv_ms": now_ms(), "event": "session_start",
                                               "pid": os.getpid(), "config": self.cfg.__dict__})
@@ -456,13 +516,8 @@ class ForwardRecorder:
                                                   "status": status, "record_counts": dict(self.store.counts)})
             self.write_session_manifest(status)
             self.pool.shutdown(wait=False)
-            try:
-                if lock_file.exists():
-                    lock_data = json.loads(lock_file.read_text(encoding="utf-8"))
-                    if lock_data.get("pid") == os.getpid():
-                        lock_file.unlink(missing_ok=True)
-            except Exception:  # noqa: BLE001
-                pass
+            if hasattr(self, "writer_lock"):
+                self.writer_lock.release()
         return status
 
 
