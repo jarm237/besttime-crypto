@@ -207,10 +207,43 @@ def compute_orderbook_sweep(depth_levels: List[List[str]], target_notional_usd: 
 
 
 class N1_7LifecycleEngine:
-    def __init__(self, raw_dir: Path = DATA_ROOT_N1_6 / "raw" / "20261111", portfolio_capital_usd: float = 20_000.0) -> None:
-        self.raw_dir = raw_dir
+    def __init__(
+        self,
+        raw_dir: Optional[Union[str, Path, List[Path]]] = None,
+        portfolio_capital_usd: float = 20_000.0,
+        checkpoint_path: Optional[Union[str, Path]] = None,
+    ) -> None:
         self.portfolio_capital_usd = portfolio_capital_usd
         self.target_per_asset_usd = portfolio_capital_usd * FROZEN_H1.max_single_weight  # $5,000
+
+        # Auto-discover raw daily partitions if raw_dir not explicitly passed or is parent raw dir
+        if raw_dir is None:
+            raw_base = DATA_ROOT_N1_6 / "raw"
+            if raw_base.exists():
+                discovered = sorted([p for p in raw_base.iterdir() if p.is_dir() and p.name.isdigit()])
+                self.raw_dirs = discovered if discovered else [raw_base / "20261111"]
+            else:
+                self.raw_dirs = [raw_base / "20261111"]
+            self.raw_dir = self.raw_dirs[0]
+        elif isinstance(raw_dir, (list, tuple)):
+            self.raw_dirs = [Path(p) for p in raw_dir]
+            self.raw_dir = self.raw_dirs[0] if self.raw_dirs else DATA_ROOT_N1_6 / "raw" / "20261111"
+        else:
+            p_raw = Path(raw_dir)
+            if p_raw.name == "raw" and p_raw.is_dir():
+                discovered = sorted([p for p in p_raw.iterdir() if p.is_dir() and p.name.isdigit()])
+                self.raw_dirs = discovered if discovered else [p_raw / "20261111"]
+                self.raw_dir = self.raw_dirs[0]
+            else:
+                self.raw_dirs = [p_raw]
+                self.raw_dir = p_raw
+
+        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (RESEARCH_DIR_N1_7 / "lifecycle_checkpoint.json")
+        self.last_observation_watermark_ms: int = 0
+        self.active_positions: Dict[str, Dict[str, Any]] = {}
+        self.quarantined_positions: Dict[str, Dict[str, Any]] = {}
+        self.closed_positions: List[Dict[str, Any]] = []
+        self.underlying_committed_usd: Dict[str, float] = {}
 
     def fetch_causal_ma24_history(
         self,
@@ -226,17 +259,18 @@ class N1_7LifecycleEngine:
 
     def save_checkpoint(
         self,
-        checkpoint_path: Union[str, Path],
+        checkpoint_path: Optional[Union[str, Path]] = None,
         state: Optional[Dict[str, Any]] = None,
     ) -> Path:
         """Atomically saves lifecycle state checkpoint to disk."""
-        p = Path(checkpoint_path)
+        p = Path(checkpoint_path) if checkpoint_path else self.checkpoint_path
         p.parent.mkdir(parents=True, exist_ok=True)
         if state is None:
             state = {
                 "version": "1.0",
                 "saved_at_utc": datetime.now(timezone.utc).isoformat(),
                 "portfolio_capital_usd": self.portfolio_capital_usd,
+                "last_observation_watermark_ms": self.last_observation_watermark_ms,
                 "active_positions": getattr(self, "active_positions", {}),
                 "quarantined_positions": getattr(self, "quarantined_positions", {}),
                 "closed_positions": getattr(self, "closed_positions", []),
@@ -257,6 +291,9 @@ class N1_7LifecycleEngine:
     def resume_from_checkpoint(self, checkpoint_path: Union[str, Path]) -> Dict[str, Any]:
         """Restores engine state from a saved checkpoint."""
         data = self.load_checkpoint(checkpoint_path)
+        self.portfolio_capital_usd = float(data.get("portfolio_capital_usd", self.portfolio_capital_usd))
+        self.target_per_asset_usd = self.portfolio_capital_usd * FROZEN_H1.max_single_weight
+        self.last_observation_watermark_ms = int(data.get("last_observation_watermark_ms", 0))
         self.active_positions = data.get("active_positions", {})
         self.quarantined_positions = data.get("quarantined_positions", {})
         self.closed_positions = data.get("closed_positions", [])
@@ -375,11 +412,32 @@ class N1_7LifecycleEngine:
 
         # Check early exit basis-compression trigger (<= 15 bps)
         if depth_basis <= FROZEN_H1.exit_basis_ma24_bps:
-            sp_sweep = observation.get("spot_bid_sweep", {})
-            cm_sweep = observation.get("cm_ask_sweep", {})
-            can_fill = sp_sweep.get("fully_filled", True) and cm_sweep.get("fully_filled", True)
+            sp_sweep = observation.get("spot_bid_sweep")
+            cm_sweep = observation.get("cm_ask_sweep")
 
-            if not can_fill:
+            notional = pos["entry_notional_usd"]
+            c_mult = pos.get("contract_multiplier_usd", 10.0)
+            req_contracts = pos.get("contracts_short", int(math.ceil(notional / c_mult)))
+
+            has_complete_depth = (
+                isinstance(sp_sweep, dict)
+                and isinstance(cm_sweep, dict)
+                and sp_sweep.get("fully_filled") is True
+                and cm_sweep.get("fully_filled") is True
+                and (sp_sweep.get("filled_usd", notional) >= notional - 1.0)
+                and (cm_sweep.get("filled_units", req_contracts) >= req_contracts)
+            )
+
+            # Store depth evidence in position
+            pos["last_depth_evidence"] = {
+                "timestamp_ms": ts,
+                "spot_bid_sweep": sp_sweep if isinstance(sp_sweep, dict) else {},
+                "cm_ask_sweep": cm_sweep if isinstance(cm_sweep, dict) else {},
+                "has_complete_depth": has_complete_depth,
+                "quote_id": observation.get("obs_id") or observation.get("quote_id") or f"OBS_{ts}",
+            }
+
+            if not has_complete_depth:
                 pos["state"] = LifecycleState.EXIT_ELIGIBLE
                 pos["lifecycle_status"] = "EXIT_ELIGIBLE_INSUFFICIENT_DEPTH"
                 return (True, "EXIT_ELIGIBLE_INSUFFICIENT_DEPTH")
@@ -504,11 +562,20 @@ class N1_7LifecycleEngine:
         gross_mtm = mtm_equity_usd - notional
         unrealized_after_entry_fees = gross_mtm - entry_fees
 
-        # P0-2: Hypothetical Immediate Liquidation (Close-Now) Economics
-        # Uses true closing orderbook depth sweeps: Spot bid VWAP and COIN-M cover ask VWAP
-        sp_sweep = pos.get("spot_bid_sweep") or {}
-        cm_sweep = pos.get("cm_ask_sweep") or {}
-        depth_fillable = (sp_sweep.get("fully_filled", True) and cm_sweep.get("fully_filled", True)) if (sp_sweep or cm_sweep) else True
+        # P0-2 & P0-C: Hypothetical Immediate Liquidation (Close-Now) Economics
+        # Require explicit complete Spot bid and COIN-M cover ask depth evidence
+        sp_sweep = pos.get("spot_bid_sweep")
+        cm_sweep = pos.get("cm_ask_sweep")
+        req_contracts = pos.get("contracts_short", int(math.ceil(notional / c_mult)))
+
+        depth_fillable = (
+            isinstance(sp_sweep, dict)
+            and isinstance(cm_sweep, dict)
+            and sp_sweep.get("fully_filled") is True
+            and cm_sweep.get("fully_filled") is True
+            and (sp_sweep.get("filled_usd", notional) >= notional - 1.0)
+            and (cm_sweep.get("filled_units", req_contracts) >= req_contracts)
+        )
         has_executable_depth = exit_spot > 0 and exit_fut > 0
 
         if not has_executable_depth or not depth_fillable:
@@ -582,59 +649,67 @@ class N1_7LifecycleEngine:
         }
 
     def run_lifecycle_analysis(self) -> Dict[str, Any]:
-        # 1. Load raw records
-        spot_depth_p = self.raw_dir / "spot_depth.jsonl"
-        cm_depth_p = self.raw_dir / "cm_depth.jsonl"
-        cm_info_p = self.raw_dir / "cm_exchange_info.jsonl"
-        usdt_p = self.raw_dir / "usdt_usd.jsonl"
-
-        if not (spot_depth_p.exists() and cm_depth_p.exists()):
-            raise RuntimeError(f"Raw data not found in {self.raw_dir}")
-
-        # Metadata
+        # 1. Load raw records across all discovered partitions in chronological order
         contracts_meta: Dict[str, Dict[str, Any]] = {}
-        for line in cm_info_p.open("r", encoding="utf-8"):
-            rec = json.loads(line)
-            for s in rec.get("payload", {}).get("symbols", []):
-                if s.get("contractType") in ("CURRENT_QUARTER", "NEXT_QUARTER") and s.get("contractStatus") == "TRADING":
-                    contracts_meta[s["symbol"]] = {
-                        "pair": s["pair"],
-                        "contract_type": s["contractType"],
-                        "delivery_ms": int(s["deliveryDate"]),
-                        "contract_size_usd": float(s["contractSize"]),
-                    }
-
-        # Spot records organized by symbol
         spot_recs: Dict[str, List[Dict[str, Any]]] = {}
-        for line in spot_depth_p.open("r", encoding="utf-8"):
-            r = json.loads(line)
-            sym = r.get("symbol")
-            if sym:
-                spot_recs.setdefault(sym, []).append(r)
-
-        # CM records organized by symbol
         cm_recs: Dict[str, List[Dict[str, Any]]] = {}
-        for line in cm_depth_p.open("r", encoding="utf-8"):
-            r = json.loads(line)
-            sym = r.get("symbol")
-            if sym:
-                cm_recs.setdefault(sym, []).append(r)
-
-        # Load timestamped USDT/USD records for point-in-time causal lookup
         usdt_recs: List[Dict[str, Any]] = []
-        if usdt_p.exists():
-            for line in usdt_p.open("r", encoding="utf-8"):
+
+        valid_raw_dirs = [d for d in self.raw_dirs if (d / "spot_depth.jsonl").exists() and (d / "cm_depth.jsonl").exists()]
+        if not valid_raw_dirs:
+            raise RuntimeError(f"Raw data not found in {self.raw_dirs}")
+
+        for r_dir in valid_raw_dirs:
+            cm_info_p = r_dir / "cm_exchange_info.jsonl"
+            spot_depth_p = r_dir / "spot_depth.jsonl"
+            cm_depth_p = r_dir / "cm_depth.jsonl"
+            usdt_p = r_dir / "usdt_usd.jsonl"
+
+            if cm_info_p.exists():
+                for line in cm_info_p.open("r", encoding="utf-8"):
+                    rec = json.loads(line)
+                    for s in rec.get("payload", {}).get("symbols", []):
+                        if s.get("contractType") in ("CURRENT_QUARTER", "NEXT_QUARTER") and s.get("contractStatus") == "TRADING":
+                            contracts_meta[s["symbol"]] = {
+                                "pair": s["pair"],
+                                "contract_type": s["contractType"],
+                                "delivery_ms": int(s["deliveryDate"]),
+                                "contract_size_usd": float(s["contractSize"]),
+                            }
+
+            for line in spot_depth_p.open("r", encoding="utf-8"):
                 r = json.loads(line)
-                p = float(r.get("payload", {}).get("price", 0))
-                if p > 0:
-                    usdt_recs.append(r)
+                sym = r.get("symbol")
+                if sym:
+                    spot_recs.setdefault(sym, []).append(r)
+
+            for line in cm_depth_p.open("r", encoding="utf-8"):
+                r = json.loads(line)
+                sym = r.get("symbol")
+                if sym:
+                    cm_recs.setdefault(sym, []).append(r)
+
+            if usdt_p.exists():
+                for line in usdt_p.open("r", encoding="utf-8"):
+                    r = json.loads(line)
+                    p = float(r.get("payload", {}).get("price", 0))
+                    if p > 0:
+                        usdt_recs.append(r)
+
+        for sym in spot_recs:
+            spot_recs[sym].sort(key=lambda x: x.get("recv_ms", 0))
+        for sym in cm_recs:
+            cm_recs[sym].sort(key=lambda x: x.get("recv_ms", 0))
         usdt_recs.sort(key=lambda x: x.get("recv_ms", 0))
         n_usdt = len(usdt_recs)
 
         # Pre-fetch causal MA24 for each active contract
         cm_symbols = sorted(contracts_meta.keys())
         causal_ma24_map: Dict[str, Dict[str, Any]] = {}
-        first_cm_time = json.loads(cm_depth_p.open("r", encoding="utf-8").readline())["recv_ms"]
+        first_cm_time = min(
+            (records[0]["recv_ms"] for records in cm_recs.values() if records),
+            default=int(datetime.now(timezone.utc).timestamp() * 1000),
+        )
 
         for cm_sym in cm_symbols:
             pair = contracts_meta[cm_sym]["pair"]
@@ -993,157 +1068,180 @@ class N1_7LifecycleEngine:
         # Population 2: N1_8_POLICY_COMPLIANT_REPLAY (Integrated Source of Truth)
         # ----------------------------------------------------------------------
         max_underlying_cap = self.portfolio_capital_usd * FROZEN_H1.max_single_weight  # $5,000 max per underlying
-        underlying_committed_usd: Dict[str, float] = {}
-        active_compliant: Dict[str, Dict[str, Any]] = {}
-        quarantined_compliant: Dict[str, Dict[str, Any]] = {}
-        closed_compliant: List[Dict[str, Any]] = []
-        trade_id_seq = 0
+        active_compliant: Dict[str, Dict[str, Any]] = dict(getattr(self, "active_positions", {}))
+        quarantined_compliant: Dict[str, Dict[str, Any]] = dict(getattr(self, "quarantined_positions", {}))
+        closed_compliant: List[Dict[str, Any]] = list(getattr(self, "closed_positions", []))
+        underlying_committed_usd: Dict[str, float] = dict(getattr(self, "underlying_committed_usd", {}))
 
-        # Step 1: Evaluate candidate trade admissions.
-        # Prioritize CURRENT_QUARTER lead delivery contracts before NEXT_QUARTER to enforce carry hierarchy.
-        first_eligible_per_symbol: Dict[str, Dict[str, Any]] = {}
-        for item in order_intents:
-            if item["entry_eligible"]:
-                sym = item["coinm_contract_symbol"]
-                if sym not in first_eligible_per_symbol:
-                    first_eligible_per_symbol[sym] = item
+        allocated_lifecycle_ids: Set[str] = {
+            p.get("lifecycle_id") for p in list(active_compliant.values()) + list(quarantined_compliant.values()) + closed_compliant if p.get("lifecycle_id")
+        }
+        evaluated_entry_symbols: Set[str] = {
+            p.get("contract_symbol") for p in list(active_compliant.values()) + list(quarantined_compliant.values()) + closed_compliant if p.get("contract_symbol")
+        }
+        trade_id_seq = max(len(allocated_lifecycle_ids), 0)
 
-        admission_candidates = sorted(
-            first_eligible_per_symbol.values(),
-            key=lambda x: (0 if x.get("contract_type") == "CURRENT_QUARTER" else 1, x["decision_timestamp"]),
-        )
-
-        allocated_lifecycle_ids: Set[str] = set()
-
-        for candidate in admission_candidates:
-            cm_sym = candidate["coinm_contract_symbol"]
-            ts = candidate["decision_timestamp"]
-            sp_vwap = candidate["spot_ask_vwap"]
-            fu_vwap = candidate["coinm_bid_vwap"]
-            sp_bid_vwap = candidate.get("spot_bid_vwap", sp_vwap)
-            fu_ask_vwap = candidate.get("coinm_ask_vwap", fu_vwap)
-            c_mult = candidate["contract_multiplier_usd"]
-            underlying = cm_sym.split("USD")[0]
-
-            n_contracts = candidate["matched_short_contracts"]
-            target_notional = n_contracts * c_mult
-            cur_comm = underlying_committed_usd.get(underlying, 0.0)
-
-            active_underlyings = {p["underlying_asset"] for p in active_compliant.values() if p["state"] != LifecycleState.CLOSED}
-
-            # Generate persistent immutable lifecycle ID without collision or reuse
-            cand_id = IMMUTABLE_LIFECYCLE_REGISTRY.get(cm_sym)
-            if not cand_id or cand_id in allocated_lifecycle_ids:
-                trade_id_seq = max(trade_id_seq, len(allocated_lifecycle_ids), 3) + 1
-                tid = f"VTRADE_{trade_id_seq:04d}"
-            else:
-                tid = cand_id
-                trade_id_seq += 1
-            allocated_lifecycle_ids.add(tid)
-
-            if underlying not in active_underlyings and len(active_underlyings) >= FROZEN_H1.max_concurrent_assets:
-                # Concurrent asset ceiling
-                quarantined_compliant[cm_sym] = {
-                    "position_id": tid,
-                    "trade_id": tid,
-                    "lifecycle_id": tid,
-                    "contract_symbol": cm_sym,
-                    "symbol": cm_sym,
-                    "spot_symbol": candidate["spot_symbol"],
-                    "underlying_asset": underlying,
-                    "state": LifecycleState.INVALIDATED,
-                    "lifecycle_status": "QUARANTINED",
-                    "quarantine_reason": f"EXCEEDS_MAX_CONCURRENT_ASSETS: Active assets {active_underlyings} reached {FROZEN_H1.max_concurrent_assets} max.",
-                    "contracts_short": n_contracts,
-                    "entry_notional_usd": target_notional,
-                    "entry_timestamp": ts,
-                    "entry_timestamp_ms": ts,
-                    "last_valid_observation_timestamp": ts,
-                    "entry_spot_price": sp_vwap,
-                    "entry_futures_price": fu_vwap,
-                    "coin_collateral": target_notional / sp_vwap,
-                    "collateral_coin": target_notional / sp_vwap,
-                    "entry_fees_paid": round(target_notional * (15.0 / 10_000.0), 2),
-                    "realized_pnl": 0.0,
-                }
-            elif cur_comm + target_notional > max_underlying_cap + 1e-6:
-                # Over-allocation defect detected: quarantine without discarding history or renumbering
-                quarantined_compliant[cm_sym] = {
-                    "position_id": tid,
-                    "trade_id": tid,
-                    "lifecycle_id": tid,
-                    "contract_symbol": cm_sym,
-                    "symbol": cm_sym,
-                    "spot_symbol": candidate["spot_symbol"],
-                    "underlying_asset": underlying,
-                    "state": LifecycleState.INVALIDATED,
-                    "lifecycle_status": "QUARANTINED",
-                    "quarantine_reason": f"EXCEEDS_AGGREGATE_UNDERLYING_CAP: Underlying {underlying} already has ${cur_comm:.2f} committed; adding ${target_notional:.2f} exceeds ${max_underlying_cap:.2f} cap.",
-                    "contracts_short": n_contracts,
-                    "entry_notional_usd": target_notional,
-                    "entry_timestamp": ts,
-                    "entry_timestamp_ms": ts,
-                    "last_valid_observation_timestamp": ts,
-                    "entry_spot_price": sp_vwap,
-                    "entry_futures_price": fu_vwap,
-                    "coin_collateral": target_notional / sp_vwap,
-                    "collateral_coin": target_notional / sp_vwap,
-                    "entry_fees_paid": round(target_notional * (15.0 / 10_000.0), 2),
-                    "realized_pnl": 0.0,
-                }
-            else:
-                # Valid Policy-Compliant Allocation (Deterministic Immutable Lifecycle ID)
-                underlying_committed_usd[underlying] = cur_comm + target_notional
-                coin_acquired = target_notional / sp_vwap
-                entry_fees = target_notional * (15.0 / 10_000.0)  # 10 bps spot + 5 bps futures
-
-                active_compliant[tid] = {
-                    "position_id": tid,
-                    "trade_id": tid,
-                    "lifecycle_id": tid,
-                    "contract_symbol": cm_sym,
-                    "symbol": cm_sym,
-                    "spot_symbol": candidate["spot_symbol"],
-                    "underlying_asset": underlying,
-                    "state": LifecycleState.HEDGED_HOLD,
-                    "lifecycle_status": "ACCUMULATING",
-                    "contracts_short": n_contracts,
-                    "future_contracts_short": n_contracts,
-                    "contract_multiplier_usd": c_mult,
-                    "entry_notional_usd": target_notional,
-                    "entry_timestamp": ts,
-                    "entry_timestamp_ms": ts,
-                    "delivery_ms": contracts_meta[cm_sym].get("delivery_ms", 0),
-                    "last_valid_observation_timestamp": ts,
-                    "last_update_ms": ts,
-                    "entry_spot_price": sp_vwap,
-                    "entry_futures_price": fu_vwap,
-                    "collateral_coin": coin_acquired,
-                    "coin_collateral": coin_acquired,
-                    "coin_collateral_in_wallet": coin_acquired,
-                    "spot_inventory_coin": coin_acquired,
-                    "wallet_balance_coin": coin_acquired,
-                    "entry_fees_paid": round(entry_fees, 2),
-                    "entry_fees_paid_usd": round(entry_fees, 2),
-                    "total_fees_paid_usd": round(entry_fees, 2),
-                    "cur_spot_vwap": sp_vwap,
-                    "cur_fut_vwap": fu_vwap,
-                    "exit_spot_bid_vwap": sp_bid_vwap,
-                    "exit_cm_ask_vwap": fu_ask_vwap,
-                    "history": [
-                        {"timestamp_ms": ts, "state": LifecycleState.PAIR_ENTRY_SIMULATED, "note": f"Entered {n_contracts} contracts at basis {candidate['observed_depth_basis_bps']} bps"},
-                        {"timestamp_ms": ts, "state": LifecycleState.HEDGED_HOLD, "note": "100% floor collateralized, allocated within risk cap"},
-                    ],
-                }
-
-        # Step 2: Process chronological market observations across active positions
+        # Single Causal Chronological Loop (P0-A)
+        # Evaluates events strictly at observation time: update -> close/release -> evaluate entry -> advance watermark
         for item in chronological_intents:
+            ts = int(item["decision_timestamp"])
+            cm_sym = item["coinm_contract_symbol"]
+
+            if ts <= self.last_observation_watermark_ms:
+                continue
+
+            # 1. Validate PIT
+            if not item.get("quote_valid_pit", True):
+                continue
+
+            # 2. Update existing active positions whose entries strictly precede observation
             for pid, pos in list(active_compliant.items()):
-                ok, action = self.process_observation(pos, item)
-                if pos.get("state") == LifecycleState.CLOSED:
-                    closed_compliant.append(pos)
-                    del active_compliant[pid]
-                    underlying_committed_usd[pos["underlying_asset"]] -= pos["entry_notional_usd"]
+                if pos.get("entry_timestamp", 0) < ts:
+                    ok, action = self.process_observation(pos, item)
+                    if pos.get("state") == LifecycleState.CLOSED:
+                        closed_compliant.append(pos)
+                        del active_compliant[pid]
+                        # 4. Release capital once
+                        notional_to_release = pos.get("entry_notional_usd", 0.0)
+                        u_asset = pos["underlying_asset"]
+                        underlying_committed_usd[u_asset] = max(
+                            0.0, underlying_committed_usd.get(u_asset, 0.0) - notional_to_release
+                        )
+
+            # 5. Evaluate new entry eligibility using portfolio state at this timestamp
+            if item.get("entry_eligible") and cm_sym not in evaluated_entry_symbols:
+                evaluated_entry_symbols.add(cm_sym)
+                sp_vwap = item["spot_ask_vwap"]
+                fu_vwap = item["coinm_bid_vwap"]
+                sp_bid_vwap = item.get("spot_bid_vwap", sp_vwap)
+                fu_ask_vwap = item.get("coinm_ask_vwap", fu_vwap)
+                c_mult = item["contract_multiplier_usd"]
+                underlying = cm_sym.split("USD")[0]
+
+                n_contracts = item["matched_short_contracts"]
+                target_notional = n_contracts * c_mult
+                cur_comm = underlying_committed_usd.get(underlying, 0.0)
+
+                active_underlyings = {
+                    p["underlying_asset"]
+                    for p in active_compliant.values()
+                    if p.get("state") != LifecycleState.CLOSED
+                }
+
+                # Generate persistent immutable lifecycle ID without collision or reuse
+                cand_id = IMMUTABLE_LIFECYCLE_REGISTRY.get(cm_sym)
+                if not cand_id or cand_id in allocated_lifecycle_ids:
+                    trade_id_seq = max(trade_id_seq, len(allocated_lifecycle_ids), 3) + 1
+                    tid = f"VTRADE_{trade_id_seq:04d}"
+                else:
+                    tid = cand_id
+                    trade_id_seq += 1
+                allocated_lifecycle_ids.add(tid)
+
+                if underlying not in active_underlyings and len(active_underlyings) >= FROZEN_H1.max_concurrent_assets:
+                    # Concurrent asset ceiling
+                    quarantined_compliant[cm_sym] = {
+                        "position_id": tid,
+                        "trade_id": tid,
+                        "lifecycle_id": tid,
+                        "contract_symbol": cm_sym,
+                        "symbol": cm_sym,
+                        "spot_symbol": item["spot_symbol"],
+                        "underlying_asset": underlying,
+                        "state": LifecycleState.INVALIDATED,
+                        "lifecycle_status": "QUARANTINED",
+                        "quarantine_reason": f"EXCEEDS_MAX_CONCURRENT_ASSETS: Active assets {active_underlyings} reached {FROZEN_H1.max_concurrent_assets} max.",
+                        "contracts_short": n_contracts,
+                        "entry_notional_usd": target_notional,
+                        "entry_timestamp": ts,
+                        "entry_timestamp_ms": ts,
+                        "last_valid_observation_timestamp": ts,
+                        "entry_spot_price": sp_vwap,
+                        "entry_futures_price": fu_vwap,
+                        "coin_collateral": target_notional / sp_vwap,
+                        "collateral_coin": target_notional / sp_vwap,
+                        "entry_fees_paid": round(target_notional * (15.0 / 10_000.0), 2),
+                        "realized_pnl": 0.0,
+                    }
+                elif cur_comm + target_notional > max_underlying_cap + 1e-6:
+                    # Over-allocation defect detected: quarantine without discarding history or renumbering
+                    quarantined_compliant[cm_sym] = {
+                        "position_id": tid,
+                        "trade_id": tid,
+                        "lifecycle_id": tid,
+                        "contract_symbol": cm_sym,
+                        "symbol": cm_sym,
+                        "spot_symbol": item["spot_symbol"],
+                        "underlying_asset": underlying,
+                        "state": LifecycleState.INVALIDATED,
+                        "lifecycle_status": "QUARANTINED",
+                        "quarantine_reason": f"EXCEEDS_AGGREGATE_UNDERLYING_CAP: Underlying {underlying} already has ${cur_comm:.2f} committed; adding ${target_notional:.2f} exceeds ${max_underlying_cap:.2f} cap.",
+                        "contracts_short": n_contracts,
+                        "entry_notional_usd": target_notional,
+                        "entry_timestamp": ts,
+                        "entry_timestamp_ms": ts,
+                        "last_valid_observation_timestamp": ts,
+                        "entry_spot_price": sp_vwap,
+                        "entry_futures_price": fu_vwap,
+                        "coin_collateral": target_notional / sp_vwap,
+                        "collateral_coin": target_notional / sp_vwap,
+                        "entry_fees_paid": round(target_notional * (15.0 / 10_000.0), 2),
+                        "realized_pnl": 0.0,
+                    }
+                else:
+                    # Valid Policy-Compliant Allocation (Deterministic Immutable Lifecycle ID)
+                    underlying_committed_usd[underlying] = cur_comm + target_notional
+                    coin_acquired = target_notional / sp_vwap
+                    entry_fees = target_notional * (15.0 / 10_000.0)  # 10 bps spot + 5 bps futures
+
+                    active_compliant[tid] = {
+                        "position_id": tid,
+                        "trade_id": tid,
+                        "lifecycle_id": tid,
+                        "contract_symbol": cm_sym,
+                        "symbol": cm_sym,
+                        "spot_symbol": item["spot_symbol"],
+                        "underlying_asset": underlying,
+                        "state": LifecycleState.HEDGED_HOLD,
+                        "lifecycle_status": "ACCUMULATING",
+                        "contracts_short": n_contracts,
+                        "future_contracts_short": n_contracts,
+                        "contract_multiplier_usd": c_mult,
+                        "entry_notional_usd": target_notional,
+                        "entry_timestamp": ts,
+                        "entry_timestamp_ms": ts,
+                        "delivery_ms": contracts_meta.get(cm_sym, {}).get("delivery_ms", 0),
+                        "last_valid_observation_timestamp": ts,
+                        "last_update_ms": ts,
+                        "entry_spot_price": sp_vwap,
+                        "entry_futures_price": fu_vwap,
+                        "collateral_coin": coin_acquired,
+                        "coin_collateral": coin_acquired,
+                        "coin_collateral_in_wallet": coin_acquired,
+                        "spot_inventory_coin": coin_acquired,
+                        "wallet_balance_coin": coin_acquired,
+                        "entry_fees_paid": round(entry_fees, 2),
+                        "entry_fees_paid_usd": round(entry_fees, 2),
+                        "total_fees_paid_usd": round(entry_fees, 2),
+                        "cur_spot_vwap": sp_vwap,
+                        "cur_fut_vwap": fu_vwap,
+                        "exit_spot_bid_vwap": sp_bid_vwap,
+                        "exit_cm_ask_vwap": fu_ask_vwap,
+                        "history": [
+                            {"timestamp_ms": ts, "state": LifecycleState.PAIR_ENTRY_SIMULATED, "note": f"Entered {n_contracts} contracts at basis {item['observed_depth_basis_bps']} bps"},
+                            {"timestamp_ms": ts, "state": LifecycleState.HEDGED_HOLD, "note": "100% floor collateralized, allocated within risk cap"},
+                        ],
+                    }
+
+            # 6. Advance observation watermark
+            if ts > self.last_observation_watermark_ms:
+                self.last_observation_watermark_ms = ts
+
+        # Update instance state
+        self.active_positions = active_compliant
+        self.quarantined_positions = quarantined_compliant
+        self.closed_positions = closed_compliant
+        self.underlying_committed_usd = underlying_committed_usd
 
         # Compute repaired economic source of truth for active and closed compliant positions
         compliant_ledger: List[Dict[str, Any]] = [self.compute_position_mtm(pos) for pos in active_compliant.values()]
@@ -1164,6 +1262,8 @@ class N1_7LifecycleEngine:
         total_deployed_usd = sum(p["entry_notional_usd"] for p in compliant_ledger)
         capital_utilization_pct = (total_deployed_usd / self.portfolio_capital_usd) * 100.0
         total_unrealized_pnl = sum(p["unrealized_pnl_after_entry_cost"] for p in compliant_ledger)
+        total_realized_closed_pnl = round(sum(p.get("realized_pnl", 0.0) for p in closed_ledger), 2)
+        total_realized_closed_count = len(closed_ledger)
 
         scorecard = {
             "evaluation_timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -1179,11 +1279,11 @@ class N1_7LifecycleEngine:
             "actively_tracked_lifecycles_count": len(compliant_ledger),
             "quarantined_lifecycles_count": len(quarantined_compliant),
             "total_open_unrealized_pnl_usd": round(total_unrealized_pnl, 2),
-            "realized_closed_pnl_usd": 0.0,
-            "realized_completed_lifecycles_count": 0,
+            "realized_closed_pnl_usd": total_realized_closed_pnl,
+            "realized_completed_lifecycles_count": total_realized_closed_count,
             "comparison_against_holding_cash": {
                 "holding_cash_return_usd": 0.0,
-                "virtual_carry_mtm_delta_usd": round(total_unrealized_pnl, 2),
+                "virtual_carry_mtm_delta_usd": round(total_unrealized_pnl + total_realized_closed_pnl, 2),
                 "unrealized_return_on_deployed_pct": round((total_unrealized_pnl / max(total_deployed_usd, 1.0)) * 100.0, 3),
                 "unrealized_return_on_committed_pct": round((total_unrealized_pnl / self.portfolio_capital_usd) * 100.0, 3),
             },
@@ -1196,8 +1296,8 @@ class N1_7LifecycleEngine:
         signal_valid = bool("causal_basis_ma24_bps" in df_intents.columns and df_intents["basis_ma24_ready"].all())
         paired_sim_valid = bool(len(scenario_results) == 3)
         paired_feasibility = "SUPPORTED" if (df_intents["matched_executable_notional"].mean() >= self.target_per_asset_usd * 0.8) else "INSUFFICIENT"
-        carry_lifecycles = "ACCUMULATING" if len(compliant_ledger) > 0 else "RESOLVED"
-        net_economic_value = "INCONCLUSIVE"  # Natural accumulation ongoing; 0 completed lifecycles, realized PnL = $0.00
+        carry_lifecycles = "ACCUMULATING" if len(compliant_ledger) > 0 else ("RESOLVED" if total_realized_closed_count > 0 else "IDLE")
+        net_economic_value = "INCONCLUSIVE" if total_realized_closed_count == 0 else ("POSITIVE" if total_realized_closed_pnl > 0 else "NEGATIVE")
 
         decision = {
             "H1_FORWARD_QUOTES_VALID": quotes_valid,

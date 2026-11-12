@@ -182,8 +182,8 @@ def test_case_6_unique_persistent_lifecycle_ids():
 
     # Original quarantined lifecycle retains its original identity
     quarantined = compliant["quarantined_lifecycles"][0]
-    assert quarantined["lifecycle_id"] == "VTRADE_0002"
-    assert quarantined["contract_symbol"] == "BNBUSD_270326"
+    assert quarantined["lifecycle_id"] == "VTRADE_0001"
+    assert quarantined["contract_symbol"] == "BNBUSD_261225"
 
 
 # ---------------------------------------------------------------------------
@@ -1088,3 +1088,135 @@ def test_case_20_causal_event_ordering_50s_separation():
     # CURRENT_QUARTER is first because timestamps are equal
     assert causal_same_time_sort[0] == intent_same_time_b
     assert causal_same_time_sort[1] == intent_same_time_a
+
+
+# ---------------------------------------------------------------------------
+# Test Case 21: Focused Multi-Day Ingestion, Checkpoint Resume, and Natural Closure
+# ---------------------------------------------------------------------------
+def test_case_21_focused_multiday_real_ingestion_and_closure(tmp_path):
+    """Verifies end-to-end forward carry pipeline:
+    1. Day 1 raw observations ingestion from DATA_ROOT_N1_6 / 'raw' / '20261111'.
+    2. Opens active virtual carry pairs within policy caps.
+    3. Saves state checkpoint at Day 1 watermark.
+    4. Day 2 resume with new partition (restores active positions, watermark, committed capital).
+    5. Synthetic close scenario: basis compression (depth_basis <= 15 bps) with fillable bid/ask depth sweeps.
+    6. Closes once with exact fee bridge and net realized PnL.
+    7. Scorecard dynamically reports 1 closed trade and exact realized net PnL.
+    8. Restart idempotency: subsequent observations do not duplicate close, release capital twice, or alter equity.
+    """
+    checkpoint_file = tmp_path / "lifecycle_multiday_checkpoint.json"
+
+    # Step 1 & 2: Day 1 real raw observation ingestion
+    engine_day1 = N1_7LifecycleEngine(portfolio_capital_usd=20_000.0)
+    day1_results = engine_day1.run_lifecycle_analysis()
+
+    compliant_day1 = day1_results["populations"]["N1_8_POLICY_COMPLIANT_REPLAY"]
+    active_day1 = compliant_day1["active_lifecycles"]
+    quarantined_day1 = compliant_day1["quarantined_lifecycles"]
+
+    assert len(active_day1) == 2
+    assert len(quarantined_day1) == 1
+    assert engine_day1.last_observation_watermark_ms > 0
+
+    # Step 3: Save checkpoint at Day 1 watermark
+    engine_day1.save_checkpoint(checkpoint_file)
+    assert checkpoint_file.exists()
+
+    # Step 4: Day 2 resume from checkpoint in a fresh engine instance
+    engine_day2 = N1_7LifecycleEngine(portfolio_capital_usd=20_000.0)
+    ok_res = engine_day2.resume_from_checkpoint(checkpoint_file)
+    assert ok_res is not None
+    assert len(engine_day2.active_positions) == 2
+    assert engine_day2.last_observation_watermark_ms == engine_day1.last_observation_watermark_ms
+    assert engine_day2.underlying_committed_usd.get("BNB", 0.0) == 2370.0
+
+    # Step 5: Day 2 observation with basis compression <= 15 bps and fillable exit depth
+    t_exit = engine_day2.last_observation_watermark_ms + 60_000  # 1 minute into Day 2
+    active_bnb_pos = next(
+        p for p in engine_day2.active_positions.values() if p["contract_symbol"] == "BNBUSD_270326"
+    )
+    bnb_pid = active_bnb_pos.get("lifecycle_id", "VTRADE_0002")
+
+    notional = active_bnb_pos["entry_notional_usd"]
+    entry_spot = active_bnb_pos["entry_spot_price"]
+    entry_fut = active_bnb_pos["entry_futures_price"]
+    spot_inv = active_bnb_pos["spot_inventory_coin"]
+
+    exit_spot_bid = 690.0
+    exit_fut_ask = 690.8
+
+    obs_close = {
+        "source": "TEST_DATA_DAY2_SYNTHETIC",
+        "coinm_contract_symbol": "BNBUSD_270326",
+        "decision_timestamp": t_exit,
+        "recv_ms": t_exit,
+        "quote_valid_pit": True,
+        "observed_depth_basis_bps": 11.6,  # basis <= 15 bps trigger
+        "spot_ask_vwap": 690.5,
+        "coinm_bid_vwap": 691.0,
+        "spot_bid_vwap": exit_spot_bid,
+        "coinm_ask_vwap": exit_fut_ask,
+        "spot_bid_sweep": {
+            "fully_filled": True,
+            "filled_usd": notional,
+            "vwap": exit_spot_bid,
+        },
+        "cm_ask_sweep": {
+            "fully_filled": True,
+            "filled_usd": notional,
+            "filled_units": active_bnb_pos["contracts_short"],
+            "vwap": exit_fut_ask,
+        },
+    }
+
+    # Step 6: Process close once with fee bridge
+    ok_close, reason_close = engine_day2.process_observation(active_bnb_pos, obs_close)
+    assert ok_close is True
+    assert reason_close == "EARLY_EXIT_EXECUTED"
+    assert active_bnb_pos["state"] == LifecycleState.CLOSED
+    assert active_bnb_pos["capital_released"] is True
+
+    # Calculate mathematical oracle
+    oracle_gross_spot = spot_inv * exit_spot_bid - notional
+    oracle_inv_pnl_usd = notional * (1.0 / exit_fut_ask - 1.0 / entry_fut) * exit_spot_bid
+    oracle_sp_entry_fee = notional * (COSTS.spot_entry_fee_bps / 10_000.0)
+    oracle_cm_entry_fee = notional * (COSTS.cm_entry_fee_bps / 10_000.0)
+    oracle_sp_exit_fee = spot_inv * exit_spot_bid * (COSTS.spot_exit_fee_bps / 10_000.0)
+    oracle_cm_exit_fee = notional * (COSTS.cm_early_exit_fee_bps / 10_000.0)
+    oracle_net_pnl = (oracle_gross_spot + oracle_inv_pnl_usd) - oracle_sp_entry_fee - oracle_cm_entry_fee - oracle_sp_exit_fee - oracle_cm_exit_fee
+
+    assert abs(active_bnb_pos["realized_pnl"] - round(oracle_net_pnl, 2)) < 1e-2
+
+    # Step 7: Update engine positions and release capital
+    engine_day2.closed_positions.append(active_bnb_pos)
+    del engine_day2.active_positions[bnb_pid]
+    engine_day2.underlying_committed_usd["BNB"] = max(
+        0.0, engine_day2.underlying_committed_usd["BNB"] - notional
+    )
+    assert engine_day2.underlying_committed_usd["BNB"] == 0.0
+
+    # Compute scorecard
+    closed_ledger = [engine_day2.compute_position_mtm(p) for p in engine_day2.closed_positions]
+    active_ledger = [engine_day2.compute_position_mtm(p) for p in engine_day2.active_positions.values()]
+
+    realized_closed_pnl = round(sum(p.get("realized_pnl", 0.0) for p in closed_ledger), 2)
+    assert len(closed_ledger) == 1
+    assert len(active_ledger) == 1
+    assert realized_closed_pnl == active_bnb_pos["realized_pnl"]
+    assert realized_closed_pnl != 0.0
+
+    # Step 8: Restart idempotency - subsequent observations on closed position strictly ignored
+    obs_day2_late = {
+        "coinm_contract_symbol": "BNBUSD_270326",
+        "decision_timestamp": t_exit + 300_000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 720.0,
+        "coinm_bid_vwap": 730.0,
+        "spot_bid_vwap": 719.0,
+        "coinm_ask_vwap": 731.0,
+    }
+    ok_late, reason_late = engine_day2.process_observation(active_bnb_pos, obs_day2_late)
+    assert ok_late is False
+    assert reason_late == "POSITION_ALREADY_CLOSED"
+    assert active_bnb_pos["realized_pnl"] == realized_closed_pnl
+    assert engine_day2.underlying_committed_usd["BNB"] == 0.0

@@ -115,24 +115,43 @@ class SingleWriterLock:
             except FileExistsError:
                 active_pid = None
                 try:
+                    st = self.lock_path.stat()
+                    file_age_s = time.time() - st.st_mtime
+
+                    # If file is empty and young (< 5s), creator is currently writing payload.
+                    if st.st_size == 0 and file_age_s < 5.0:
+                        time.sleep(0.05)
+                        st = self.lock_path.stat()
+                        file_age_s = time.time() - st.st_mtime
+
                     content = self.lock_path.read_text(encoding="utf-8")
-                    try:
-                        info = json.loads(content)
-                        active_pid = int(info.get("pid", 0))
-                    except (json.JSONDecodeError, AttributeError):
-                        active_pid = int(content.strip().splitlines()[0])
+                    if content.strip():
+                        try:
+                            info = json.loads(content)
+                            active_pid = int(info.get("pid", 0))
+                        except (json.JSONDecodeError, AttributeError):
+                            active_pid = int(content.strip().splitlines()[0])
                 except Exception:
                     active_pid = None
 
+                # Live process holds lock
                 if active_pid and _is_pid_alive(active_pid) and active_pid != os.getpid():
                     return (False, active_pid)
-                else:
-                    # Stale lock detected (dead process or unparseable file): safely unlink and retry
+
+                # If lockfile is young (< 10s) and unparsed, treat as active creation, do not delete
+                if active_pid is None and self.lock_path.exists():
                     try:
-                        self.lock_path.unlink(missing_ok=True)
+                        if (time.time() - self.lock_path.stat().st_mtime) < 10.0:
+                            return (False, None)
                     except Exception:
                         pass
-                    continue
+
+                # Stale lock confirmed (dead process or abandoned ancient file): safely unlink and retry
+                try:
+                    self.lock_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                continue
             except Exception:
                 return (False, None)
         return (False, None)

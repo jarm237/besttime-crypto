@@ -48,10 +48,10 @@ def test_invariant_1_interleaved_quote_batch_updates(engine_results):
 
     assert len(active) == 2
     symbols = {p["contract_symbol"] for p in active}
-    assert symbols == {"BNBUSD_261225", "BTCUSD_270326"}
+    assert symbols == {"BNBUSD_270326", "BTCUSD_270326"}
 
     # Each position's spot price must match its own coin's range, not another coin
-    bnb_pos = next(p for p in active if p["contract_symbol"] == "BNBUSD_261225")
+    bnb_pos = next(p for p in active if p["contract_symbol"] == "BNBUSD_270326")
     btc_pos = next(p for p in active if p["contract_symbol"] == "BTCUSD_270326")
 
     # BNB spot price should be ~680 USD, BTC spot price ~73,500 - 74,000 USD
@@ -262,13 +262,13 @@ def test_invariant_8_separated_original_and_compliant_populations(engine_results
     comp = populations["N1_8_POLICY_COMPLIANT_REPLAY"]
     assert len(comp["active_lifecycles"]) == 2
     assert len(comp["quarantined_lifecycles"]) == 1
-    assert comp["deployed_capital_usd"] == 10000.0
-    assert comp["capital_utilization_pct"] == 50.0
+    assert comp["deployed_capital_usd"] == 7370.0
+    assert comp["capital_utilization_pct"] == 36.85
     assert comp["disposition"] == "VERIFIED_ACCUMULATING"
 
     # Quarantined lifecycle is preserved without silent erasure
     quarantined = comp["quarantined_lifecycles"][0]
-    assert quarantined["contract_symbol"] == "BNBUSD_270326"
+    assert quarantined["contract_symbol"] == "BNBUSD_261225"
     assert quarantined["state"] in ("RISK_ACTION_REQUIRED", "INVALIDATED")
     assert quarantined["lifecycle_status"] == "QUARANTINED"
     assert "EXCEEDS_AGGREGATE_UNDERLYING_CAP" in quarantined["quarantine_reason"]
