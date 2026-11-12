@@ -29,7 +29,10 @@ from neural_trading.n1_7.config import (
     LifecycleState,
     RESEARCH_DIR_N1_7,
 )
-from neural_trading.n1_7.lifecycle_engine import N1_7LifecycleEngine
+from neural_trading.n1_7.lifecycle_engine import (
+    ForwardLifecycleRunner,
+    N1_7LifecycleEngine,
+)
 from neural_trading.n1_8.allocation_engine import AccountUnderlyingAllocationLedger
 
 
@@ -303,8 +306,10 @@ def test_case_9_virtual_early_exit_realized_pnl():
         "spot_bid_vwap": 684.5,
         "coinm_ask_vwap": 685.2,
         "observed_depth_basis_bps": 10.0,
-        "spot_bid_sweep": {"fully_filled": True},
-        "cm_ask_sweep": {"fully_filled": True},
+        "causal_basis_ma24_bps": 10.0,
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.2},
     }
 
     ok, reason = engine.process_observation(pos, obs)
@@ -475,8 +480,10 @@ def test_case_13_end_to_end_entry_restart_close_replay_idempotency():
         "spot_bid_vwap": 684.5,
         "coinm_ask_vwap": 685.2,
         "observed_depth_basis_bps": 10.0,
-        "spot_bid_sweep": {"fully_filled": True},
-        "cm_ask_sweep": {"fully_filled": True},
+        "causal_basis_ma24_bps": 10.0,
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.2},
     }
     ok_close, reason_close = engine.process_observation(pos, obs_close)
     assert ok_close is True
@@ -574,8 +581,10 @@ def test_case_14_realized_pnl_fee_bridge_exact_oracle():
         "spot_bid_vwap": exit_spot,
         "coinm_ask_vwap": exit_fut,
         "observed_depth_basis_bps": 10.0,
-        "spot_bid_sweep": {"fully_filled": True},
-        "cm_ask_sweep": {"fully_filled": True},
+        "causal_basis_ma24_bps": 10.0,
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.2},
     }
 
     ok, reason = engine.process_observation(pos, obs_exit)
@@ -982,12 +991,14 @@ def test_case_19_end_to_end_raw_evaluator_integration_test_data(tmp_path):
         "decision_timestamp": t_exit,
         "quote_valid_pit": True,
         "observed_depth_basis_bps": 12.0,  # Basis compressed <= 15 bps
+        "causal_basis_ma24_bps": 12.0,
+        "basis_ma24_ready": True,
         "spot_ask_vwap": 685.0,
         "coinm_bid_vwap": 685.8,
         "spot_bid_vwap": 684.5,
         "coinm_ask_vwap": 685.32,
-        "spot_bid_sweep": {"fully_filled": True},
-        "cm_ask_sweep": {"fully_filled": True},
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.32},
     }
 
     pos_s2 = engine_session_2.active_positions["VTRADE_INT_0001"]
@@ -1152,6 +1163,8 @@ def test_case_21_focused_multiday_real_ingestion_and_closure(tmp_path):
         "recv_ms": t_exit,
         "quote_valid_pit": True,
         "observed_depth_basis_bps": 11.6,  # basis <= 15 bps trigger
+        "causal_basis_ma24_bps": 11.6,
+        "basis_ma24_ready": True,
         "spot_ask_vwap": 690.5,
         "coinm_bid_vwap": 691.0,
         "spot_bid_vwap": exit_spot_bid,
@@ -1220,3 +1233,412 @@ def test_case_21_focused_multiday_real_ingestion_and_closure(tmp_path):
     assert reason_late == "POSITION_ALREADY_CLOSED"
     assert active_bnb_pos["realized_pnl"] == realized_closed_pnl
     assert engine_day2.underlying_committed_usd["BNB"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Test Case 22: Real entrypoint forward runner pipeline (Day 1 -> checkpoint -> Day 2 -> exit)
+# ---------------------------------------------------------------------------
+def test_case_22_real_entrypoint_forward_runner_pipeline(tmp_path: Path):
+    """Verify full forward pipeline:
+    1. Day 1 entry under valid MA24 (85 bps >= 75 bps) and aggregate risk cap.
+    2. Atomic durable checkpoint save.
+    3. Day 2 resumption, dynamic MA24 update (12 bps <= 15 bps), exit via MA24 compression.
+    4. Exact realized PnL bridge verification.
+    5. Engine-generated scorecard updated without manual intervention.
+    6. Third run asserts restart idempotency.
+    """
+    raw_root = tmp_path / "raw"
+    day1_dir = raw_root / "20261111"
+    day2_dir = raw_root / "20261112"
+    day1_dir.mkdir(parents=True)
+    day2_dir.mkdir(parents=True)
+    checkpoint_file = tmp_path / "lifecycle_checkpoint.json"
+
+    t_day1 = 1794412800000  # Nov 11 08:00 UTC
+    t_day2 = 1794499200000  # Nov 12 08:00 UTC
+
+    # Write Day 1 exchange info
+    ex_info = {
+        "stream": "cm_exchange_info",
+        "recv_ms": t_day1,
+        "payload": {
+            "symbols": [
+                {
+                    "symbol": "BNBUSD_261225",
+                    "pair": "BNBUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": 1798272000000,
+                    "contractSize": 10.0,
+                }
+            ]
+        },
+    }
+    (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+
+    # Write Day 1 USDT rate
+    u1 = {"stream": "usdt_usd", "recv_ms": t_day1, "payload": {"price": "1.0000"}}
+    (day1_dir / "usdt_usd.jsonl").write_text(json.dumps(u1) + "\n", encoding="utf-8")
+
+    # Generate 24 completed 1h candles for Day 1 with MA24 basis = 85.0 bps (entry eligible)
+    cm_k1 = []
+    sp_k1 = []
+    for i in range(25):
+        ot = t_day1 - (25 - i) * 3600000
+        ct = ot + 3600000 - 1
+        cm_k1.append([ot, "680.0", "686.0", "679.0", "685.78", "100.0", ct, "0", 10, "0", "0", "0"])
+        sp_k1.append([ot, "680.0", "681.0", "679.0", "680.00", "100.0", ct, "0", 10, "0", "0", "0"])
+
+    k_cm_rec1 = {"symbol": "BNBUSD_261225", "recv_ms": t_day1, "payload": cm_k1}
+    k_sp_rec1 = {"symbol": "BNBUSDT", "recv_ms": t_day1, "payload": sp_k1}
+    (day1_dir / "signal_cm_klines.jsonl").write_text(json.dumps(k_cm_rec1) + "\n", encoding="utf-8")
+    (day1_dir / "signal_spot_klines.jsonl").write_text(json.dumps(k_sp_rec1) + "\n", encoding="utf-8")
+
+    # Day 1 depth snapshots: spot ask = 680.0, cm bid = 685.78 (basis 85 bps)
+    sp_d1 = {
+        "symbol": "BNBUSDT",
+        "recv_ms": t_day1 + 1000,
+        "payload": {
+            "bids": [["679.9", "20.0"]],
+            "asks": [["680.0", "20.0"]],
+        },
+    }
+    cm_d1 = {
+        "symbol": "BNBUSD_261225",
+        "recv_ms": t_day1 + 1000,
+        "payload": {
+            "bids": [["685.78", "1000"]],
+            "asks": [["685.80", "1000"]],
+        },
+    }
+    (day1_dir / "spot_depth.jsonl").write_text(json.dumps(sp_d1) + "\n", encoding="utf-8")
+    (day1_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d1) + "\n", encoding="utf-8")
+
+    # Step 1: Run Day 1 with ForwardLifecycleRunner
+    runner1 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    res_day1 = runner1.run_step(raw_partitions=[day1_dir])
+
+    # Assert Day 1 entered
+    assert checkpoint_file.exists()
+    assert res_day1["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert res_day1["scorecard"]["realized_completed_lifecycles_count"] == 0
+    active_pos = list(runner1.engine.active_positions.values())[0]
+    assert active_pos["contract_symbol"] == "BNBUSD_261225"
+    assert active_pos["state"] == LifecycleState.HEDGED_HOLD
+    assert runner1.engine.underlying_committed_usd["BNB"] == 5000.0
+
+    # Step 2: Prepare Day 2 data (24 hours later)
+    # New klines where basis has compressed to 12.0 bps (<= 15 bps)
+    cm_k2 = list(cm_k1)
+    sp_k2 = list(sp_k1)
+    for i in range(24):
+        ot = t_day2 - (24 - i) * 3600000
+        ct = ot + 3600000 - 1
+        cm_k2.append([ot, "690.0", "691.0", "689.0", "690.828", "100.0", ct, "0", 10, "0", "0", "0"])
+        sp_k2.append([ot, "690.0", "691.0", "689.0", "690.000", "100.0", ct, "0", 10, "0", "0", "0"])
+
+    k_cm_rec2 = {"symbol": "BNBUSD_261225", "recv_ms": t_day2, "payload": cm_k2}
+    k_sp_rec2 = {"symbol": "BNBUSDT", "recv_ms": t_day2, "payload": sp_k2}
+    (day2_dir / "signal_cm_klines.jsonl").write_text(json.dumps(k_cm_rec2) + "\n", encoding="utf-8")
+    (day2_dir / "signal_spot_klines.jsonl").write_text(json.dumps(k_sp_rec2) + "\n", encoding="utf-8")
+
+    u2 = {"stream": "usdt_usd", "recv_ms": t_day2, "payload": {"price": "1.0000"}}
+    (day2_dir / "usdt_usd.jsonl").write_text(json.dumps(u2) + "\n", encoding="utf-8")
+
+    # Day 2 depth with full executable depth: spot bid = 689.5, cm ask = 690.3
+    sp_d2 = {
+        "symbol": "BNBUSDT",
+        "recv_ms": t_day2 + 2000,
+        "payload": {
+            "bids": [["689.5", "20.0"]],
+            "asks": [["689.6", "20.0"]],
+        },
+    }
+    cm_d2 = {
+        "symbol": "BNBUSD_261225",
+        "recv_ms": t_day2 + 2000,
+        "payload": {
+            "bids": [["690.2", "1000"]],
+            "asks": [["690.3", "1000"]],
+        },
+    }
+    (day2_dir / "spot_depth.jsonl").write_text(json.dumps(sp_d2) + "\n", encoding="utf-8")
+    (day2_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d2) + "\n", encoding="utf-8")
+
+    # Step 3: Start FRESH runner instance resuming from checkpoint (simulating next forward run)
+    runner2 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    res_day2 = runner2.run_step(raw_partitions=[day2_dir])
+
+    # Assert Day 2 closed via MA24 compression
+    assert res_day2["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res_day2["scorecard"]["realized_completed_lifecycles_count"] == 1
+    assert len(runner2.engine.closed_positions) == 1
+    closed_pos = runner2.engine.closed_positions[0]
+    assert closed_pos["state"] == LifecycleState.CLOSED
+    assert closed_pos["lifecycle_status"] == "CLOSED_EARLY_EXIT"
+    assert closed_pos["realized_pnl"] != 0.0
+    assert res_day2["scorecard"]["realized_closed_pnl_usd"] == closed_pos["realized_pnl"]
+    # Capital released
+    assert runner2.engine.underlying_committed_usd["BNB"] == 0.0
+
+    # Step 4: Third run asserts idempotency
+    runner3 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    res_day3 = runner3.run_step(raw_partitions=[day2_dir])
+    assert res_day3["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res_day3["scorecard"]["realized_completed_lifecycles_count"] == 1
+    assert res_day3["scorecard"]["realized_closed_pnl_usd"] == closed_pos["realized_pnl"]
+
+
+# ---------------------------------------------------------------------------
+# Test Case 23: Official settlement delivery pipeline
+# ---------------------------------------------------------------------------
+def test_case_23_official_settlement_delivery_pipeline(tmp_path: Path):
+    """Verify official settlement delivery path:
+    1. Day 1 entry.
+    2. Checkpoint saved.
+    3. Day 2 delivery expiry reached with official settlement record.
+    4. Settles cleanly with inverse coin PnL and full fee accounting.
+    """
+    raw_root = tmp_path / "raw"
+    day1_dir = raw_root / "20261111"
+    day2_dir = raw_root / "20261112"
+    day1_dir.mkdir(parents=True)
+    day2_dir.mkdir(parents=True)
+    checkpoint_file = tmp_path / "lifecycle_checkpoint.json"
+
+    t_day1 = 1794412800000
+    deliv_time = t_day1 + 100 * 3600000  # 100h away (> 72h requirement)
+
+    ex_info = {
+        "stream": "cm_exchange_info",
+        "recv_ms": t_day1,
+        "payload": {
+            "symbols": [
+                {
+                    "symbol": "BNBUSD_261225",
+                    "pair": "BNBUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": deliv_time,
+                    "contractSize": 10.0,
+                }
+            ]
+        },
+    }
+    (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+
+    u1 = {"stream": "usdt_usd", "recv_ms": t_day1, "payload": {"price": "1.0000"}}
+    (day1_dir / "usdt_usd.jsonl").write_text(json.dumps(u1) + "\n", encoding="utf-8")
+    u2 = {"stream": "usdt_usd", "recv_ms": deliv_time, "payload": {"price": "1.0000"}}
+    (day2_dir / "usdt_usd.jsonl").write_text(json.dumps(u2) + "\n", encoding="utf-8")
+
+    # Klines for entry (85 bps)
+    cm_k = []
+    sp_k = []
+    for i in range(25):
+        ot = t_day1 - (25 - i) * 3600000
+        ct = ot + 3600000 - 1
+        cm_k.append([ot, "680.0", "686.0", "679.0", "685.78", "100.0", ct, "0", 10, "0", "0", "0"])
+        sp_k.append([ot, "680.0", "681.0", "679.0", "680.00", "100.0", ct, "0", 10, "0", "0", "0"])
+
+    (day1_dir / "signal_cm_klines.jsonl").write_text(json.dumps({"symbol": "BNBUSD_261225", "payload": cm_k}) + "\n", encoding="utf-8")
+    (day1_dir / "signal_spot_klines.jsonl").write_text(json.dumps({"symbol": "BNBUSDT", "payload": sp_k}) + "\n", encoding="utf-8")
+
+    sp_d1 = {"symbol": "BNBUSDT", "recv_ms": t_day1 + 1000, "payload": {"bids": [["679.9", "20.0"]], "asks": [["680.0", "20.0"]]}}
+    cm_d1 = {"symbol": "BNBUSD_261225", "recv_ms": t_day1 + 1000, "payload": {"bids": [["685.78", "1000"]], "asks": [["685.80", "1000"]]}}
+    (day1_dir / "spot_depth.jsonl").write_text(json.dumps(sp_d1) + "\n", encoding="utf-8")
+    (day1_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d1) + "\n", encoding="utf-8")
+
+    # Step 1: Day 1 entry
+    runner1 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    runner1.run_step(raw_partitions=[day1_dir])
+    assert len(runner1.engine.active_positions) == 1
+
+    # Step 2: Day 2 delivery expiry reached with official settlement record
+    official_settle_rec = {
+        "contract_symbol": "BNBUSD_261225",
+        "delivery_ms": deliv_time,
+        "settlement_price": 689.8,
+        "published_ms": deliv_time + 1000,
+        "spot_bid_vwap": 689.5,
+    }
+    (day2_dir / "cm_delivery_settlement.jsonl").write_text(json.dumps(official_settle_rec) + "\n", encoding="utf-8")
+
+    sp_d2 = {"symbol": "BNBUSDT", "recv_ms": deliv_time + 500, "payload": {"bids": [["689.5", "20.0"]], "asks": [["689.6", "20.0"]]}}
+    cm_d2 = {"symbol": "BNBUSD_261225", "recv_ms": deliv_time + 500, "payload": {"bids": [["689.8", "1000"]], "asks": [["689.9", "1000"]]}}
+    (day2_dir / "spot_depth.jsonl").write_text(json.dumps(sp_d2) + "\n", encoding="utf-8")
+    (day2_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d2) + "\n", encoding="utf-8")
+
+    runner2 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    res_day2 = runner2.run_step(raw_partitions=[day2_dir])
+
+    # Assert delivery settled cleanly
+    assert res_day2["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res_day2["scorecard"]["realized_completed_lifecycles_count"] == 1
+    closed_pos = runner2.engine.closed_positions[0]
+    assert closed_pos["state"] == LifecycleState.CLOSED
+    assert closed_pos["lifecycle_status"] == "CLOSED_DELIVERY_SETTLED"
+    assert closed_pos["exit_futures_price"] == 689.8
+    assert closed_pos["realized_pnl"] != 0.0
+
+
+# ---------------------------------------------------------------------------
+# Test Case 24: Instantaneous depth basis compression cannot trigger exit without MA24
+# ---------------------------------------------------------------------------
+def test_case_24_instantaneous_depth_cannot_trigger_exit_without_ma24_compression():
+    """Verify frozen H-1 exit semantics:
+    Instantaneous observed_depth_basis_bps <= 15.0 NEVER triggers exit if causal_basis_ma24_bps > 15.0.
+    """
+    engine = N1_7LifecycleEngine()
+    pos = {
+        "lifecycle_id": "VTRADE_EXIT_SEMANTICS_TEST",
+        "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "underlying_asset": "BNB",
+        "entry_timestamp": 1000,
+        "entry_notional_usd": 5000.0,
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "entry_spot_price": 680.0,
+        "entry_futures_price": 686.0,
+        "spot_inventory_coin": 5000.0 / 680.0,
+        "entry_fees_paid": 7.5,
+        "state": LifecycleState.HEDGED_HOLD,
+        "last_valid_observation_timestamp": 1000,
+        "last_update_ms": 1000,
+    }
+
+    # Observation with instantaneous depth basis = 10.0 bps (compressed),
+    # BUT MA24 = 74.0 bps (NOT compressed <= 15.0 bps)
+    obs_hold = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 2000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.5,
+        "spot_bid_vwap": 684.5,
+        "coinm_ask_vwap": 685.2,
+        "observed_depth_basis_bps": 10.0,  # instantaneous compressed!
+        "causal_basis_ma24_bps": 74.0,     # MA24 NOT compressed!
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.2},
+    }
+
+    ok_hold, reason_hold = engine.process_observation(pos, obs_hold)
+    assert ok_hold is True
+    assert reason_hold != "EARLY_EXIT_EXECUTED"
+    assert pos["state"] == LifecycleState.HEDGED_HOLD
+    assert pos.get("lifecycle_status") != "CLOSED_EARLY_EXIT"
+
+    # Now observation arrives where MA24 HAS compressed <= 15.0 bps
+    obs_exit = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 3000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.5,
+        "spot_bid_vwap": 684.5,
+        "coinm_ask_vwap": 685.2,
+        "observed_depth_basis_bps": 10.0,
+        "causal_basis_ma24_bps": 12.0,     # MA24 IS compressed <= 15 bps!
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.2},
+    }
+
+    ok_exit, reason_exit = engine.process_observation(pos, obs_exit)
+    assert ok_exit is True
+    assert reason_exit == "EARLY_EXIT_EXECUTED"
+    assert pos["state"] == LifecycleState.CLOSED
+
+
+# ---------------------------------------------------------------------------
+# Test Case 25: Missing depth sweep evidence returns CLOSE_NOT_EXECUTABLE
+# ---------------------------------------------------------------------------
+def test_case_25_missing_depth_sweep_returns_close_not_executable():
+    """Verify complete depth evidence contract:
+    Missing spot_bid_sweep.filled_usd or cm_ask_sweep.filled_units returns CLOSE_NOT_EXECUTABLE.
+    """
+    engine = N1_7LifecycleEngine()
+    pos = {
+        "lifecycle_id": "VTRADE_SWEEP_TEST",
+        "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "underlying_asset": "BNB",
+        "entry_timestamp": 1000,
+        "entry_notional_usd": 5000.0,
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "entry_spot_price": 680.0,
+        "entry_futures_price": 686.0,
+        "spot_inventory_coin": 5000.0 / 680.0,
+        "entry_fees_paid": 7.5,
+        "state": LifecycleState.HEDGED_HOLD,
+        "last_valid_observation_timestamp": 1000,
+        "last_update_ms": 1000,
+    }
+
+    # Observation with MA24 <= 15 bps, but missing filled_usd in spot sweep
+    obs_incomplete_spot = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 2000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.5,
+        "spot_bid_vwap": 684.5,
+        "coinm_ask_vwap": 685.2,
+        "causal_basis_ma24_bps": 12.0,
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True},  # missing explicit filled_usd!
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0},
+    }
+
+    ok, reason = engine.process_observation(pos, obs_incomplete_spot)
+    assert ok is True
+    assert reason == "CLOSE_NOT_EXECUTABLE"
+    assert pos["state"] == LifecycleState.EXIT_ELIGIBLE
+    assert pos["lifecycle_status"] == "CLOSE_NOT_EXECUTABLE"
+
+    # Observation with missing filled_units in CM sweep
+    obs_incomplete_cm = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 3000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.5,
+        "spot_bid_vwap": 684.5,
+        "coinm_ask_vwap": 685.2,
+        "causal_basis_ma24_bps": 12.0,
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0},
+        "cm_ask_sweep": {"fully_filled": True, "filled_usd": 5000.0},  # missing filled_units!
+    }
+
+    ok_cm, reason_cm = engine.process_observation(pos, obs_incomplete_cm)
+    assert ok_cm is True
+    assert reason_cm == "CLOSE_NOT_EXECUTABLE"
+
+    # Observation with complete depth evidence executes cleanly
+    obs_complete = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": 4000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.0,
+        "coinm_bid_vwap": 685.5,
+        "spot_bid_vwap": 684.5,
+        "coinm_ask_vwap": 685.2,
+        "causal_basis_ma24_bps": 12.0,
+        "basis_ma24_ready": True,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 684.5},
+        "cm_ask_sweep": {"fully_filled": True, "filled_units": 500, "filled_usd": 5000.0, "vwap": 685.2},
+    }
+
+    ok_full, reason_full = engine.process_observation(pos, obs_complete)
+    assert ok_full is True
+    assert reason_full == "EARLY_EXIT_EXECUTED"
+    assert pos["state"] == LifecycleState.CLOSED

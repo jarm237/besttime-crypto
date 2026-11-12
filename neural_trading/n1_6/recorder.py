@@ -373,7 +373,7 @@ class ForwardRecorder:
         start_ms = hour_close_ms - 30 * 3_600_000
         jobs = []
         for c in self.universe:
-            if c["contract_type"] != "CURRENT_QUARTER":
+            if c["contract_type"] not in ("CURRENT_QUARTER", "NEXT_QUARTER"):
                 continue
             jobs.append(self.pool.submit(
                 self._get, "signal_cm_klines", "binance_dapi", f"{DAPI_BASE}/dapi/v1/klines",

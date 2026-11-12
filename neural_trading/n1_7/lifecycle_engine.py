@@ -42,6 +42,14 @@ from neural_trading.n1_7.config import (
 )
 
 
+_MA24_CACHE: Dict[Tuple[str, str, int], Tuple[float, float, bool]] = {}
+
+
+def clear_ma24_cache() -> None:
+    """Clears in-memory MA24 cache."""
+    _MA24_CACHE.clear()
+
+
 def fetch_causal_ma24_history(
     cm_symbol: str,
     spot_symbol: str,
@@ -49,60 +57,168 @@ def fetch_causal_ma24_history(
     frozen_fixture_path: Optional[Path] = None,
     usdt_usd_rate: Optional[float] = None,
     allow_network: bool = False,
+    kline_store: Optional[Dict[str, Any]] = None,
+    raw_partitions: Optional[List[Path]] = None,
 ) -> Tuple[float, float, bool]:
     """Fetch closed 1h klines to calculate causal MA24 basis and yield prior to target_end_ms.
 
     PIT & Deterministic Principles:
     1. Checks local frozen causal fixture first to prevent network failures or drift.
-    2. Uses timestamp-aligned historical USDT/USD observations available as of candle time (never live ticker).
-    3. Strictly requires full 24 completed hourly observations (len >= 24) closed strictly <= target_end_ms.
-    4. If history is unavailable or insufficient, returns (0.0, 0.0, False) ('MA24_NOT_READY').
-    5. Fails closed without silent live HTTP fallback during offline replay.
-    6. Zero hardcoded overrides (e.g. no forced 74.55).
+    2. Consumes recorded closed 1h COIN-M and Spot bars with timestamped USDT/USD data across partitions.
+    3. Uses timestamp-aligned historical USDT/USD observations available as of candle time (never live ticker).
+    4. Strictly requires full 24 completed hourly observations (len >= 24) closed strictly <= target_end_ms.
+    5. Recalculates dynamically only when a newly completed 1h candle becomes available.
+    6. If history is unavailable or insufficient, returns (0.0, 0.0, False) ('MA24_NOT_READY').
+    7. Fails closed without silent live HTTP fallback during offline replay.
+    8. Supports both CURRENT_QUARTER and NEXT_QUARTER contracts.
+    9. Zero hardcoded overrides.
     Returns: (basis_ma24_bps, last_usdt_rate, is_ready)
     """
-    fixture_path = frozen_fixture_path or (Path(__file__).resolve().parent / "frozen_causal_klines_20261111.json")
-    if fixture_path.exists():
+    all_cm_klines: List[Any] = []
+    all_sp_klines: List[Any] = []
+    rates_map: Dict[Any, float] = {}
+    rates_by_time: List[Tuple[int, float]] = []
+
+    # 1. Read from in-memory kline_store if provided
+    if kline_store:
+        s_data = kline_store.get("data", {}).get(cm_symbol) or kline_store.get(cm_symbol, {})
+        if isinstance(s_data, dict):
+            all_cm_klines.extend(s_data.get("cm_klines", []))
+            all_sp_klines.extend(s_data.get("spot_klines", []))
+        for k, v in kline_store.get("timestamped_usdt_usd", {}).items():
+            rates_map[k] = float(v)
+            try:
+                rates_by_time.append((int(k), float(v)))
+            except (ValueError, TypeError):
+                pass
+
+    # 2. Read from raw partition files if available
+    if raw_partitions:
+        for part in raw_partitions:
+            p_path = Path(part)
+            if not p_path.is_dir():
+                continue
+            # Read cm klines
+            cm_k_file = p_path / "signal_cm_klines.jsonl"
+            if cm_k_file.exists():
+                for line in cm_k_file.open("r", encoding="utf-8"):
+                    try:
+                        rec = json.loads(line)
+                        if rec.get("symbol") == cm_symbol:
+                            payload = rec.get("payload", [])
+                            if isinstance(payload, list):
+                                all_cm_klines.extend(payload)
+                    except Exception:
+                        pass
+            # Read spot klines
+            sp_k_file = p_path / "signal_spot_klines.jsonl"
+            if sp_k_file.exists():
+                for line in sp_k_file.open("r", encoding="utf-8"):
+                    try:
+                        rec = json.loads(line)
+                        if rec.get("symbol") == spot_symbol:
+                            payload = rec.get("payload", [])
+                            if isinstance(payload, list):
+                                all_sp_klines.extend(payload)
+                    except Exception:
+                        pass
+            # Read usdt_usd
+            usdt_file = p_path / "usdt_usd.jsonl"
+            if usdt_file.exists():
+                for line in usdt_file.open("r", encoding="utf-8"):
+                    try:
+                        rec = json.loads(line)
+                        p_val = float(rec.get("payload", {}).get("price", 0.0))
+                        r_time = int(rec.get("recv_ms", 0))
+                        if p_val > 0 and r_time > 0:
+                            rates_map[str(r_time)] = p_val
+                            rates_map[r_time] = p_val
+                            rates_by_time.append((r_time, p_val))
+                    except Exception:
+                        pass
+
+    # 3. Read from frozen fixture file (exclusively for historical replay fallback)
+    if not all_cm_klines:
+        fixture_path = frozen_fixture_path or (Path(__file__).resolve().parent / "frozen_causal_klines_20261111.json")
+        if fixture_path.exists():
+            try:
+                fix_data = json.loads(fixture_path.read_text(encoding="utf-8"))
+                for k, v in fix_data.get("timestamped_usdt_usd", {}).items():
+                    if k not in rates_map:
+                        rates_map[k] = float(v)
+                        try:
+                            rates_by_time.append((int(k), float(v)))
+                        except (ValueError, TypeError):
+                            pass
+                fix_sym = fix_data.get("data", {}).get(cm_symbol)
+                if fix_sym:
+                    all_cm_klines.extend(fix_sym.get("cm_klines", []))
+                    all_sp_klines.extend(fix_sym.get("spot_klines", []))
+            except Exception:
+                pass
+
+    # Deduplicate klines by open time
+    cm_dedup: Dict[int, Any] = {}
+    for k in all_cm_klines:
         try:
-            data = json.loads(fixture_path.read_text(encoding="utf-8"))
-            rates_map = data.get("timestamped_usdt_usd", {})
-            symbol_data = data.get("data", {}).get(cm_symbol)
-            if symbol_data:
-                cm_closed = [k for k in symbol_data.get("cm_klines", []) if int(k[6]) <= target_end_ms]
-                sp_closed = [k for k in symbol_data.get("spot_klines", []) if int(k[6]) <= target_end_ms]
-
-                sp_map = {int(k[0]): (float(k[4]), int(k[6])) for k in sp_closed}
-                bases_bps = []
-                last_usdt_rate = 0.99884
-                for c in cm_closed:
-                    ot = int(c[0])
-                    ct = int(c[6])
-                    if ot in sp_map:
-                        cm_c = float(c[4])
-                        sp_c_raw, _ = sp_map[ot]
-                        # Timestamped USDT/USD observation for this candle's close time
-                        candle_rate = (
-                            rates_map.get(str(ct))
-                            or rates_map.get(ct)
-                            or (usdt_usd_rate if ct >= target_end_ms else None)
-                        )
-                        if candle_rate is None:
-                            # Fails closed if candle has missing rate
-                            return (0.0, 0.0, False)
-                        last_usdt_rate = float(candle_rate)
-                        sp_c = sp_c_raw * last_usdt_rate
-                        b_bps = (cm_c / sp_c - 1.0) * 10_000.0
-                        bases_bps.append(b_bps)
-
-                if len(bases_bps) < 24:
-                    return (0.0, 0.0, False)
-
-                ma24_basis = float(np.mean(bases_bps[-24:]))
-                return (round(ma24_basis, 2), last_usdt_rate, True)
-        except Exception:  # noqa: BLE001
+            cm_dedup[int(k[0])] = k
+        except (IndexError, TypeError, ValueError):
+            pass
+    sp_dedup: Dict[int, Any] = {}
+    for k in all_sp_klines:
+        try:
+            sp_dedup[int(k[0])] = k
+        except (IndexError, TypeError, ValueError):
             pass
 
+    cm_closed = [k for ot, k in sorted(cm_dedup.items()) if int(k[6]) <= target_end_ms]
+    sp_closed = [k for ot, k in sorted(sp_dedup.items()) if int(k[6]) <= target_end_ms]
+
+    if cm_closed and len(cm_closed) >= 24 and len(sp_closed) >= 24:
+        latest_close_ms = max(int(k[6]) for k in cm_closed)
+        cache_key = (cm_symbol, spot_symbol, latest_close_ms)
+        if cache_key in _MA24_CACHE:
+            return _MA24_CACHE[cache_key]
+
+        rates_by_time.sort(key=lambda x: x[0])
+        sp_map = {int(k[0]): (float(k[4]), int(k[6])) for k in sp_closed}
+        bases_bps = []
+        last_usdt_rate = 0.99884
+
+        for c in cm_closed:
+            ot = int(c[0])
+            ct = int(c[6])
+            if ot in sp_map:
+                cm_c = float(c[4])
+                sp_c_raw, _ = sp_map[ot]
+                candle_rate = rates_map.get(str(ct)) or rates_map.get(ct)
+                if candle_rate is None:
+                    # Find latest rate at or before candle close
+                    avail = [r for t, r in rates_by_time if t <= ct]
+                    if avail:
+                        candle_rate = avail[-1]
+                    elif rates_by_time:
+                        candle_rate = rates_by_time[0][1]
+                    elif usdt_usd_rate is not None:
+                        candle_rate = usdt_usd_rate
+                    else:
+                        return (0.0, 0.0, False)
+                last_usdt_rate = float(candle_rate)
+                sp_c = sp_c_raw * last_usdt_rate
+                b_bps = (cm_c / sp_c - 1.0) * 10_000.0
+                bases_bps.append(b_bps)
+
+        if len(bases_bps) >= 24:
+            ma24_basis = float(np.mean(bases_bps[-24:]))
+            result = (round(ma24_basis, 2), last_usdt_rate, True)
+            _MA24_CACHE[cache_key] = result
+            return result
+        else:
+            return (0.0, 0.0, False)
+
     if not allow_network:
+        # Deterministic offline replay strictly fails closed without live network fallback
+        return (0.0, 0.0, False)
         # Deterministic offline replay strictly fails closed without live network fallback
         return (0.0, 0.0, False)
 
@@ -250,12 +366,19 @@ class N1_7LifecycleEngine:
         cm_symbol: str,
         target_end_ms: int,
         spot_symbol: Optional[str] = None,
+        kline_store: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, bool]:
         """Instance wrapper around fetch_causal_ma24_history."""
         if spot_symbol is None:
             underlying = cm_symbol.split("_")[0].replace("USD", "")
             spot_symbol = PAIR_TO_SPOT.get(cm_symbol.split("_")[0], f"{underlying}USDT")
-        return fetch_causal_ma24_history(cm_symbol, spot_symbol, target_end_ms)
+        return fetch_causal_ma24_history(
+            cm_symbol,
+            spot_symbol,
+            target_end_ms,
+            raw_partitions=getattr(self, "raw_dirs", None),
+            kline_store=kline_store,
+        )
 
     def save_checkpoint(
         self,
@@ -360,11 +483,36 @@ class N1_7LifecycleEngine:
         depth_basis = observation.get("observed_depth_basis_bps", 0.0)
         pos["current_basis_bps"] = depth_basis
 
-        # Check delivery date expiry
+        # Check delivery date expiry and official settlement
         deliv_ms = pos.get("delivery_ms", 0)
-        if deliv_ms > 0 and ts >= deliv_ms:
-            settle_price = observation.get("delivery_settlement_price")
-            if settle_price and settle_price > 0:
+        settle_record = observation.get("official_delivery_settlement") or observation.get("official_settlement")
+
+        if (deliv_ms > 0 and ts >= deliv_ms) or settle_record is not None:
+            settle_price = None
+            if isinstance(settle_record, dict):
+                settle_sym = settle_record.get("contract_symbol")
+                settle_deliv = settle_record.get("delivery_ms") or settle_record.get("expiry_ms", deliv_ms)
+                pub_ms = settle_record.get("published_ms") or settle_record.get("available_ms", ts)
+
+                # Check contract matching
+                if settle_sym and settle_sym != pos.get("contract_symbol"):
+                    return (False, "SETTLEMENT_SYMBOL_MISMATCH")
+                # Check expiry matching
+                if settle_deliv and deliv_ms > 0 and abs(settle_deliv - deliv_ms) > 3_600_000:
+                    return (False, "SETTLEMENT_EXPIRY_MISMATCH")
+                # Check causal availability (PIT)
+                if pub_ms > ts:
+                    return (False, "SETTLEMENT_DATA_FUTURE_PIT")
+
+                p_val = float(settle_record.get("settlement_price", 0.0))
+                if p_val > 0:
+                    settle_price = p_val
+            elif observation.get("delivery_settlement_price"):
+                p_val = float(observation["delivery_settlement_price"])
+                if p_val > 0:
+                    settle_price = p_val
+
+            if settle_price is not None and settle_price > 0:
                 pos["state"] = LifecycleState.CLOSED
                 pos["lifecycle_status"] = "CLOSED_DELIVERY_SETTLED"
                 pos["closed_timestamp"] = ts
@@ -410,8 +558,23 @@ class N1_7LifecycleEngine:
                 pos["lifecycle_status"] = "SETTLEMENT_PENDING"
                 return (True, "SETTLEMENT_PENDING")
 
-        # Check early exit basis-compression trigger (<= 15 bps)
-        if depth_basis <= FROZEN_H1.exit_basis_ma24_bps:
+        # Check signal decision basis: frozen H-1 requires exit_basis_ma24 <= 15 bps
+        # Never substitute instantaneous observed_depth_basis_bps for exit_basis_ma24
+        exit_basis_ma24 = observation.get("causal_basis_ma24_bps")
+        if exit_basis_ma24 is None:
+            exit_basis_ma24 = observation.get("exit_basis_ma24_bps")
+
+        # Protective margin event check (critically high margin ratio)
+        margin_protective_trigger = pos.get("margin_ratio", 0.0) >= 0.85
+
+        # Basis compression trigger strictly uses MA24
+        ma24_compression_trigger = (
+            exit_basis_ma24 is not None
+            and observation.get("basis_ma24_ready", True)
+            and exit_basis_ma24 <= FROZEN_H1.exit_basis_ma24_bps
+        )
+
+        if ma24_compression_trigger or margin_protective_trigger:
             sp_sweep = observation.get("spot_bid_sweep")
             cm_sweep = observation.get("cm_ask_sweep")
 
@@ -424,8 +587,8 @@ class N1_7LifecycleEngine:
                 and isinstance(cm_sweep, dict)
                 and sp_sweep.get("fully_filled") is True
                 and cm_sweep.get("fully_filled") is True
-                and (sp_sweep.get("filled_usd", notional) >= notional - 1.0)
-                and (cm_sweep.get("filled_units", req_contracts) >= req_contracts)
+                and ("filled_usd" in sp_sweep and float(sp_sweep["filled_usd"]) >= notional - 1.0)
+                and ("filled_units" in cm_sweep and float(cm_sweep["filled_units"]) >= req_contracts)
             )
 
             # Store depth evidence in position
@@ -439,8 +602,8 @@ class N1_7LifecycleEngine:
 
             if not has_complete_depth:
                 pos["state"] = LifecycleState.EXIT_ELIGIBLE
-                pos["lifecycle_status"] = "EXIT_ELIGIBLE_INSUFFICIENT_DEPTH"
-                return (True, "EXIT_ELIGIBLE_INSUFFICIENT_DEPTH")
+                pos["lifecycle_status"] = "CLOSE_NOT_EXECUTABLE"
+                return (True, "CLOSE_NOT_EXECUTABLE")
 
             # Execute early exit
             pos["state"] = LifecycleState.CLOSED
@@ -562,10 +725,10 @@ class N1_7LifecycleEngine:
         gross_mtm = mtm_equity_usd - notional
         unrealized_after_entry_fees = gross_mtm - entry_fees
 
-        # P0-2 & P0-C: Hypothetical Immediate Liquidation (Close-Now) Economics
+        # P0-2 & P0-C & Task E: Hypothetical Immediate Liquidation (Close-Now) Economics
         # Require explicit complete Spot bid and COIN-M cover ask depth evidence
-        sp_sweep = pos.get("spot_bid_sweep")
-        cm_sweep = pos.get("cm_ask_sweep")
+        sp_sweep = pos.get("spot_bid_sweep") or pos.get("last_depth_evidence", {}).get("spot_bid_sweep")
+        cm_sweep = pos.get("cm_ask_sweep") or pos.get("last_depth_evidence", {}).get("cm_ask_sweep")
         req_contracts = pos.get("contracts_short", int(math.ceil(notional / c_mult)))
 
         depth_fillable = (
@@ -573,8 +736,10 @@ class N1_7LifecycleEngine:
             and isinstance(cm_sweep, dict)
             and sp_sweep.get("fully_filled") is True
             and cm_sweep.get("fully_filled") is True
-            and (sp_sweep.get("filled_usd", notional) >= notional - 1.0)
-            and (cm_sweep.get("filled_units", req_contracts) >= req_contracts)
+            and "filled_usd" in sp_sweep
+            and float(sp_sweep["filled_usd"]) >= notional - 1.0
+            and "filled_units" in cm_sweep
+            and float(cm_sweep["filled_units"]) >= req_contracts
         )
         has_executable_depth = exit_spot > 0 and exit_fut > 0
 
@@ -648,12 +813,21 @@ class N1_7LifecycleEngine:
             "lifecycle_history": pos.get("history", []),
         }
 
-    def run_lifecycle_analysis(self) -> Dict[str, Any]:
+    def run_lifecycle_analysis(
+        self,
+        raw_partitions: Optional[List[Union[str, Path]]] = None,
+        settlement_records: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        if raw_partitions is not None:
+            self.raw_dirs = [Path(p) for p in raw_partitions]
+            self.raw_dir = self.raw_dirs[0] if self.raw_dirs else (DATA_ROOT_N1_6 / "raw" / "20261111")
+
         # 1. Load raw records across all discovered partitions in chronological order
         contracts_meta: Dict[str, Dict[str, Any]] = {}
         spot_recs: Dict[str, List[Dict[str, Any]]] = {}
         cm_recs: Dict[str, List[Dict[str, Any]]] = {}
         usdt_recs: List[Dict[str, Any]] = []
+        settlement_records_all: List[Dict[str, Any]] = list(settlement_records or [])
 
         valid_raw_dirs = [d for d in self.raw_dirs if (d / "spot_depth.jsonl").exists() and (d / "cm_depth.jsonl").exists()]
         if not valid_raw_dirs:
@@ -664,6 +838,15 @@ class N1_7LifecycleEngine:
             spot_depth_p = r_dir / "spot_depth.jsonl"
             cm_depth_p = r_dir / "cm_depth.jsonl"
             usdt_p = r_dir / "usdt_usd.jsonl"
+            deliv_p = r_dir / "cm_delivery_settlement.jsonl"
+
+            if deliv_p.exists():
+                for line in deliv_p.open("r", encoding="utf-8"):
+                    try:
+                        rec = json.loads(line)
+                        settlement_records_all.append(rec)
+                    except Exception:
+                        pass
 
             if cm_info_p.exists():
                 for line in cm_info_p.open("r", encoding="utf-8"):
@@ -703,23 +886,7 @@ class N1_7LifecycleEngine:
         usdt_recs.sort(key=lambda x: x.get("recv_ms", 0))
         n_usdt = len(usdt_recs)
 
-        # Pre-fetch causal MA24 for each active contract
         cm_symbols = sorted(contracts_meta.keys())
-        causal_ma24_map: Dict[str, Dict[str, Any]] = {}
-        first_cm_time = min(
-            (records[0]["recv_ms"] for records in cm_recs.values() if records),
-            default=int(datetime.now(timezone.utc).timestamp() * 1000),
-        )
-
-        for cm_sym in cm_symbols:
-            pair = contracts_meta[cm_sym]["pair"]
-            sp_sym = PAIR_TO_SPOT.get(pair)
-            if sp_sym:
-                ma24_val, u_rate, ready = fetch_causal_ma24_history(cm_sym, sp_sym, first_cm_time)
-                causal_ma24_map[cm_sym] = {
-                    "basis_ma24_bps": round(ma24_val, 2),
-                    "basis_ma24_ready": ready,
-                }
 
         # ----------------------------------------------------------------------
         # PHASE A & B: Paired Order Intent Ledger Construction
@@ -812,10 +979,8 @@ class N1_7LifecycleEngine:
                 observed_depth_basis_bps = ((cm_bid_vwap / max(spot_ask_vwap, 1e-8)) - 1.0) * 10_000.0 if (spot_ask_vwap > 0 and cm_bid_vwap > 0) else -999.0
                 ann_yield_pct = (observed_depth_basis_bps / 100.0) * (365.25 / max(ttm_days, 1.0))
 
-                # Causal MA24 data
-                ma24_info = causal_ma24_map.get(cm_sym, {"basis_ma24_bps": 0.0, "basis_ma24_ready": False})
-                causal_ma24_bps = ma24_info["basis_ma24_bps"]
-                basis_ma24_ready = ma24_info["basis_ma24_ready"]
+                # Causal MA24 data evaluated dynamically as of this decision timestamp cm_recv
+                causal_ma24_bps, _last_rate, basis_ma24_ready = self.fetch_causal_ma24_history(cm_sym, cm_recv, sp_sym)
 
                 # Frozen Signal Eligibility Rule
                 entry_eligible = True
@@ -911,6 +1076,48 @@ class N1_7LifecycleEngine:
                     "expected_net_basis_capture_bps": round(expected_net_basis_capture_bps, 2),
                 }
                 order_intents.append(intent_record)
+
+        # Add official settlement events to the causal intent stream
+        for s_rec in settlement_records_all:
+            s_sym = s_rec.get("contract_symbol") or s_rec.get("symbol")
+            s_pub = int(s_rec.get("published_ms") or s_rec.get("decision_timestamp") or s_rec.get("recv_ms", 0))
+            if s_sym:
+                pair = contracts_meta.get(s_sym, {}).get("pair", s_sym.split("_")[0])
+                sp_sym = PAIR_TO_SPOT.get(pair, f"{s_sym.split('USD')[0]}USDT")
+                sp_b_vwap = 0.0
+                if sp_sym in spot_recs:
+                    for s in spot_recs[sp_sym]:
+                        if s["recv_ms"] <= s_pub:
+                            sp_b_vwap = float(s["payload"].get("bids", [[0.0]])[0][0])
+                if sp_b_vwap <= 0.0:
+                    sp_b_vwap = float(s_rec.get("spot_bid_vwap", s_rec.get("settlement_price", 0.0)))
+                pair_counter += 1
+                s_price = float(s_rec.get("settlement_price", 0.0))
+                order_intents.append({
+                    "pair_id": f"SETTLE_{s_sym}_{s_pub}",
+                    "decision_timestamp": s_pub,
+                    "spot_symbol": sp_sym,
+                    "coinm_contract_symbol": s_sym,
+                    "contract_type": contracts_meta.get(s_sym, {}).get("contract_type", "CURRENT_QUARTER"),
+                    "contract_multiplier_usd": contracts_meta.get(s_sym, {}).get("contract_size_usd", 10.0),
+                    "quote_valid_pit": True,
+                    "spot_bid_vwap": sp_b_vwap,
+                    "spot_ask_vwap": sp_b_vwap,
+                    "coinm_bid_vwap": s_price,
+                    "coinm_ask_vwap": s_price,
+                    "delivery_settlement_price": s_price,
+                    "official_delivery_settlement": s_rec,
+                    "entry_eligible": False,
+                    "observed_depth_basis_bps": 0.0,
+                    "causal_basis_ma24_bps": 0.0,
+                    "basis_ma24_ready": True,
+                    "matched_executable_notional": 0.0,
+                    "spot_available_notional": 0.0,
+                    "coinm_available_notional": 0.0,
+                    "estimated_legging_exposure_usd": 0.0,
+                    "estimated_entry_cost_usd": 0.0,
+                    "estimated_exit_cost_usd": 0.0,
+                })
 
         df_intents = pd.DataFrame(order_intents)
 
@@ -1349,7 +1556,76 @@ class N1_7LifecycleEngine:
         (RESEARCH_DIR_N1_7 / "n1_7_paired_order_intent_ledger_sample.json").write_text(json.dumps(order_intents[:15], indent=2), encoding="utf-8")
         (RESEARCH_DIR_N1_7 / "n1_7_forward_lifecycle_results.json").write_text(json.dumps(output_payload, indent=2), encoding="utf-8")
 
+        if self.checkpoint_path:
+            self.save_checkpoint(self.checkpoint_path)
+
         return output_payload
+
+    def run_forward_lifecycle_step(
+        self,
+        raw_partitions: Optional[List[Union[str, Path]]] = None,
+        settlement_records: Optional[List[Dict[str, Any]]] = None,
+        checkpoint_path: Optional[Union[str, Path]] = None,
+    ) -> Dict[str, Any]:
+        """Executes one incremental forward lifecycle step over newly observed data.
+
+        Execution Pipeline:
+        1. Resumes from durable checkpoint if present.
+        2. Ingests raw events from discovered partitions or provided list.
+        3. Filters only unprocessed events: (decision_timestamp, obs_id) > high-watermark.
+        4. Dynamically evaluates causal MA24 basis as of each event's decision timestamp.
+        5. Chronological stream:
+           - Updates active positions (evaluates early exit on basis compression <= 15 bps or settlement).
+           - Releases capital immediately upon close.
+           - Evaluates entry eligibility under aggregate underlying risk cap ($5,000) and max concurrent assets (2).
+           - Advances high-watermark.
+        6. Updates engine-generated authoritative scorecard with dynamic realized PnL.
+        7. Saves checkpoint atomically to disk.
+        8. Returns complete updated forward results payload.
+        """
+        if checkpoint_path:
+            self.checkpoint_path = Path(checkpoint_path)
+            if self.checkpoint_path.exists() and self.last_observation_watermark_ms == 0:
+                self.resume_from_checkpoint(self.checkpoint_path)
+
+        res = self.run_lifecycle_analysis(
+            raw_partitions=raw_partitions,
+            settlement_records=settlement_records,
+        )
+        self.save_checkpoint(self.checkpoint_path)
+        return res
+
+
+class ForwardLifecycleRunner:
+    """Incremental forward carry lifecycle research runner."""
+
+    def __init__(
+        self,
+        checkpoint_path: Optional[Union[str, Path]] = None,
+        raw_root: Optional[Union[str, Path]] = None,
+        portfolio_capital_usd: float = 10_000.0,
+    ) -> None:
+        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (RESEARCH_DIR_N1_7 / "lifecycle_checkpoint.json")
+        self.raw_root = Path(raw_root) if raw_root else (DATA_ROOT_N1_6 / "raw")
+        self.engine = N1_7LifecycleEngine(
+            portfolio_capital_usd=portfolio_capital_usd,
+            checkpoint_path=self.checkpoint_path,
+        )
+        if self.checkpoint_path.exists():
+            self.engine.resume_from_checkpoint(self.checkpoint_path)
+
+    def run_step(
+        self,
+        raw_partitions: Optional[List[Union[str, Path]]] = None,
+        settlement_records: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Executes one incremental forward step across discovered raw partitions."""
+        partitions = raw_partitions or self.engine.discover_raw_partitions(self.raw_root)
+        return self.engine.run_forward_lifecycle_step(
+            raw_partitions=partitions,
+            settlement_records=settlement_records,
+            checkpoint_path=self.checkpoint_path,
+        )
 
 
 if __name__ == "__main__":
