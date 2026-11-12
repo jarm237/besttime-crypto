@@ -74,9 +74,30 @@ class AppendOnlyStore:
             self.counts[stream] = self.counts.get(stream, 0) + 1
 
 
+def _is_pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        if sys.platform == "win32":
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            SYNCHRONIZE = 0x00100000
+            process = kernel32.OpenProcess(SYNCHRONIZE, False, pid)
+            if process != 0:
+                kernel32.CloseHandle(process)
+                return True
+            return False
+        else:
+            os.kill(pid, 0)
+            return True
+    except (OSError, Exception):
+        return False
+
+
 class ForwardRecorder:
     def __init__(self, cfg: Optional[RecorderConfig] = None, raw_dir: Path = RAW_DIR) -> None:
         self.cfg = cfg or RecorderConfig()
+        self.raw_dir = raw_dir
         self.store = AppendOnlyStore(raw_dir)
         self.session_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid.uuid4().hex[:8]}"
         self.http = requests.Session()
@@ -367,6 +388,24 @@ class ForwardRecorder:
     # ------------------------------------------------------------------ main loop
     def run(self, duration_s: Optional[float] = None) -> str:
         CONTROL_DIR.mkdir(parents=True, exist_ok=True)
+        lock_file = CONTROL_DIR / "recorder.lock"
+        if lock_file.exists():
+            try:
+                info = json.loads(lock_file.read_text(encoding="utf-8"))
+                prev_pid = int(info.get("pid", 0))
+                if _is_pid_alive(prev_pid) and prev_pid != os.getpid():
+                    self.store.append("recorder_events", {
+                        "session_id": self.session_id,
+                        "recv_ms": now_ms(),
+                        "event": "single_writer_conflict",
+                        "active_pid": prev_pid,
+                        "status": "ALREADY_RUNNING"
+                    })
+                    return "ALREADY_RUNNING"
+            except Exception:  # noqa: BLE001
+                pass
+        lock_file.write_text(json.dumps({"pid": os.getpid(), "session_id": self.session_id, "started_ms": now_ms()}), encoding="utf-8")
+
         self.store.append("recorder_events", {"session_id": self.session_id, "recv_ms": now_ms(), "event": "session_start",
                                               "pid": os.getpid(), "config": self.cfg.__dict__})
         self.write_session_manifest("RUNNING")
@@ -417,10 +456,22 @@ class ForwardRecorder:
                                                   "status": status, "record_counts": dict(self.store.counts)})
             self.write_session_manifest(status)
             self.pool.shutdown(wait=False)
+            try:
+                if lock_file.exists():
+                    lock_data = json.loads(lock_file.read_text(encoding="utf-8"))
+                    if lock_data.get("pid") == os.getpid():
+                        lock_file.unlink(missing_ok=True)
+            except Exception:  # noqa: BLE001
+                pass
         return status
 
 
-def supervise(duration_s: Optional[float], max_restarts: int = 50) -> None:
+def supervise(
+    duration_s: Optional[float],
+    max_restarts: int = 50,
+    poll_interval_s: Optional[float] = None,
+    output_dir: Optional[str] = None,
+) -> None:
     """Restart the recorder in a fresh child process after crashes (exponential back-off)."""
     import subprocess
 
@@ -436,6 +487,10 @@ def supervise(duration_s: Optional[float], max_restarts: int = 50) -> None:
         cmd = [sys.executable, "-m", "neural_trading.n1_6.recorder"]
         if remaining is not None:
             cmd += ["--duration-s", str(int(remaining))]
+        if poll_interval_s is not None:
+            cmd += ["--poll-interval-s", str(poll_interval_s)]
+        if output_dir is not None:
+            cmd += ["--output-dir", str(output_dir)]
         rc = subprocess.call(cmd)
         if rc == 0:
             return
@@ -452,8 +507,18 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="N1.6 read-only forward COIN-M carry market-data recorder")
     ap.add_argument("--duration-s", type=float, default=None)
     ap.add_argument("--supervise", action="store_true")
+    ap.add_argument("--poll-interval-s", type=float, default=None, help="Polling interval in seconds for orderbook snapshots")
+    ap.add_argument("--output-dir", type=str, default=None, help="Output root directory for raw data")
     a = ap.parse_args()
+
+    cfg = RecorderConfig()
+    if a.poll_interval_s is not None:
+        cfg.book_interval_s = a.poll_interval_s
+    raw_dir_target = Path(a.output_dir) if a.output_dir else RAW_DIR
+
     if a.supervise:
-        supervise(a.duration_s)
+        supervise(a.duration_s, poll_interval_s=a.poll_interval_s, output_dir=a.output_dir)
     else:
-        sys.exit(0 if ForwardRecorder().run(a.duration_s) in ("COMPLETED", "STOPPED_BY_CONTROL_FILE", "INTERRUPTED") else 1)
+        recorder = ForwardRecorder(cfg=cfg, raw_dir=raw_dir_target)
+        res = recorder.run(a.duration_s)
+        sys.exit(0 if res in ("COMPLETED", "STOPPED_BY_CONTROL_FILE", "INTERRUPTED") else 1)

@@ -8,7 +8,7 @@
       "underlying_asset": "BNB",
       "max_capital_usd": 5000.0,
       "aggregate_position_notional_usd": 7370.0,
-      "aggregate_collateral_coin": 10.838336,
+      "aggregate_collateral_coin": 10.838011,
       "aggregate_committed_capital_usd": 7370.0,
       "capital_utilization_pct": 147.4,
       "active_contracts_count": 2,
@@ -19,7 +19,7 @@
           "contract_symbol": "BNBUSD_261225",
           "contracts_short": 500,
           "entry_notional_usd": 5000.0,
-          "allocated_coin_collateral": 7.353009,
+          "allocated_coin_collateral": 7.352789,
           "status": "HEDGED_HOLD",
           "disposition_note": "ALLOCATED_WITHIN_RISK_CAP"
         },
@@ -27,7 +27,7 @@
           "contract_symbol": "BNBUSD_270326",
           "contracts_short": 237,
           "entry_notional_usd": 2370.0,
-          "allocated_coin_collateral": 3.485326,
+          "allocated_coin_collateral": 3.485222,
           "status": "RISK_ACTION_REQUIRED",
           "disposition_note": "EXCEEDS_AGGREGATE_UNDERLYING_CAP: Underlying BNB already has $5000.00 committed; adding $2370.00 would reach $7370.00, exceeding $5000.00 cap."
         }
@@ -37,7 +37,7 @@
       "underlying_asset": "BTC",
       "max_capital_usd": 5000.0,
       "aggregate_position_notional_usd": 5000.0,
-      "aggregate_collateral_coin": 0.068006,
+      "aggregate_collateral_coin": 0.068004,
       "aggregate_committed_capital_usd": 5000.0,
       "capital_utilization_pct": 100.0,
       "active_contracts_count": 1,
@@ -48,7 +48,7 @@
           "contract_symbol": "BTCUSD_270326",
           "contracts_short": 50,
           "entry_notional_usd": 5000.0,
-          "allocated_coin_collateral": 0.068006,
+          "allocated_coin_collateral": 0.068004,
           "status": "HEDGED_HOLD",
           "disposition_note": "ALLOCATED_WITHIN_RISK_CAP"
         }

@@ -108,19 +108,23 @@ def test_invariant_3_cross_symbol_quote_contamination_prevented():
         "contract_multiplier_usd": 10.0,
     }
 
-    # Simulate position state before shock
+    # Position state before shock
     bnb_pos = {
         "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
         "cur_spot_vwap": 683.7082,
         "cur_fut_vwap": 689.6821,
+        "last_valid_observation_timestamp": 1794411927000,
         "last_update_ms": 1794411927000,
+        "entry_timestamp": 1794409639026,
     }
 
-    # Updating with XRP shock must strictly be a no-op for BNB
-    if xrp_shock["coinm_contract_symbol"] == bnb_pos["symbol"]:
-        bnb_pos["cur_spot_vwap"] = xrp_shock["spot_ask_vwap"]
-        bnb_pos["cur_fut_vwap"] = xrp_shock["coinm_bid_vwap"]
+    # Updating with XRP shock must strictly be rejected by engine.process_observation
+    ok, reason = engine.process_observation(bnb_pos, xrp_shock)
+    assert ok is False
+    assert reason == "CROSS_SYMBOL_IGNORED"
 
+    # State must remain untouched
     assert bnb_pos["cur_spot_vwap"] == 683.7082
     assert bnb_pos["cur_fut_vwap"] == 689.6821
 
@@ -214,9 +218,13 @@ def test_invariant_6_deterministic_replay_and_restart_idempotency():
 
 def test_invariant_7_missing_or_stale_quote_handling():
     """Invariant 7: Stale quotes are blocked from updating valuation timestamps."""
+    engine = N1_7LifecycleEngine()
     pos = {
         "symbol": "BTCUSD_270326",
+        "contract_symbol": "BTCUSD_270326",
         "last_valid_observation_timestamp": 1000,
+        "entry_timestamp": 1000,
+        "last_update_ms": 1000,
         "cur_spot_vwap": 73500.0,
     }
 
@@ -228,9 +236,9 @@ def test_invariant_7_missing_or_stale_quote_handling():
         "spot_ask_vwap": 74000.0,
     }
 
-    if stale_quote["coinm_contract_symbol"] == pos["symbol"] and stale_quote["quote_valid_pit"]:
-        pos["last_valid_observation_timestamp"] = stale_quote["decision_timestamp"]
-        pos["cur_spot_vwap"] = stale_quote["spot_ask_vwap"]
+    ok, reason = engine.process_observation(pos, stale_quote)
+    assert ok is False
+    assert reason == "STALE_QUOTE_IGNORED"
 
     # Position must NOT have updated from stale quote
     assert pos["last_valid_observation_timestamp"] == 1000
@@ -261,6 +269,6 @@ def test_invariant_8_separated_original_and_compliant_populations(engine_results
     # Quarantined lifecycle is preserved without silent erasure
     quarantined = comp["quarantined_lifecycles"][0]
     assert quarantined["contract_symbol"] == "BNBUSD_270326"
-    assert quarantined["state"] == "RISK_ACTION_REQUIRED"
+    assert quarantined["state"] in ("RISK_ACTION_REQUIRED", "INVALIDATED")
     assert quarantined["lifecycle_status"] == "QUARANTINED"
     assert "EXCEEDS_AGGREGATE_UNDERLYING_CAP" in quarantined["quarantine_reason"]

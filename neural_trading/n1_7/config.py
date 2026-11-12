@@ -100,4 +100,14 @@ class FrozenStandardRetailTakerCosts:
     all_in_baseline_rt_bps: float = 39.0
 
 
+class LifecycleState:
+    ENTRY_ELIGIBLE = "ENTRY_ELIGIBLE"
+    PAIR_ENTRY_SIMULATED = "PAIR_ENTRY_SIMULATED"
+    HEDGED_HOLD = "HEDGED_HOLD"
+    EXIT_ELIGIBLE = "EXIT_ELIGIBLE"
+    SETTLEMENT_PENDING = "SETTLEMENT_PENDING"
+    CLOSED = "CLOSED"
+    INVALIDATED = "INVALIDATED"
+
+
 COSTS = FrozenStandardRetailTakerCosts()
