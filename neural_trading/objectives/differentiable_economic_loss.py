@@ -2,10 +2,12 @@
 neural_trading/objectives/differentiable_economic_loss.py
 
 Differentiable economic loss functions for end-to-end neural portfolio optimization.
-Directly optimizes net post-friction Sharpe ratio, turnover penalties, and downside risk.
+Directly optimizes net post-friction Sharpe ratio, turnover penalties, and downside risk
+using exact executed risky-asset notional.
 """
 from __future__ import annotations
 
+from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 
@@ -13,16 +15,16 @@ import torch.nn as nn
 class DifferentiableSharpeLoss(nn.Module):
     """
     End-to-End Differentiable Economic Loss Function.
-    Simulates sequential portfolio weight drift, turnover fees, and net return accumulation,
+    Simulates sequential portfolio weight drift, risky-asset turnover fees, and net return accumulation,
     returning the negative annualized net Sharpe ratio plus economic regularizers.
     """
 
     def __init__(
         self,
-        friction_rate: float = 0.0014,      # 14 bps baseline roundtrip friction
+        friction_rate: float = 0.0014,      # 14 bps baseline roundtrip friction on executed risky notional
         lambda_turnover: float = 0.50,      # Turnover penalty weight
         lambda_downside: float = 2.00,      # Downside risk penalty weight
-        annualization_factor: float = 2920.0,  # sqrt(24 * 365) ~ 93.6, annual multiplier ~ 8760/sqrt(8760)=93.6
+        annualization_factor: float = 2920.0,
         eps: float = 1e-6,
     ):
         super().__init__()
@@ -61,10 +63,10 @@ class DifferentiableSharpeLoss(nn.Module):
             w_t = weights_seq[t]              # Target allocation at step t
             y_t = price_relatives_seq[t]      # Price relatives from step t to t+1
 
-            # 1. Turnover at rebalance: L1 distance between target and drifted weights
-            # Proportional transaction cost
-            turnover_t = torch.sum(torch.abs(w_t - prev_w_drifted))
-            cost_t = self.friction_rate * turnover_t
+            # 1. Turnover at rebalance: L1 distance strictly on RISKY ASSETS (1..N)
+            # Cash has no transaction fee
+            turnover_risky_t = torch.sum(torch.abs(w_t[1:] - prev_w_drifted[1:]))
+            cost_t = self.friction_rate * turnover_risky_t
 
             # 2. Gross return at step t+1
             gross_return_t = torch.sum(w_t * y_t) - 1.0
@@ -73,7 +75,7 @@ class DifferentiableSharpeLoss(nn.Module):
             net_return_t = gross_return_t - cost_t
 
             net_returns.append(net_return_t)
-            turnovers.append(turnover_t)
+            turnovers.append(turnover_risky_t)
 
             # 4. Weight drift for next step: w'_i = (w_i * y_i) / (w^T y)
             gross_factor = torch.sum(w_t * y_t) + self.eps
@@ -98,15 +100,13 @@ class DifferentiableSharpeLoss(nn.Module):
         mean_turnover = torch.mean(turnovers_tensor)
 
         # Total Loss to Minimize
-        loss = -annualized_sharpe + (self.lambda_turnover * mean_turnover) + (self.lambda_downside * downside_penalty)
+        loss = -annualized_sharpe + (self.lambda_turnover * mean_turnover * 100.0) + (self.lambda_downside * downside_penalty)
 
         diagnostics = {
             "loss": float(loss.item()),
             "annualized_sharpe": float(annualized_sharpe.item()),
             "mean_net_return_bps": float(mean_r.item() * 10000.0),
-            "std_net_return_bps": float(std_r.item() * 10000.0),
-            "mean_turnover": float(mean_turnover.item()),
-            "annualized_turnover": float(mean_turnover.item() * 24.0 * 365.0),
+            "mean_turnover_pct": float(mean_turnover.item() * 100.0),
             "downside_penalty": float(downside_penalty.item()),
         }
 

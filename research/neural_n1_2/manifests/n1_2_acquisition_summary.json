@@ -1,0 +1,22 @@
+{
+  "elapsed_seconds": 1581.02,
+  "rejected_probes_count": 4,
+  "hb1_coinbase": {
+    "total_products": 8,
+    "total_candles": 267029,
+    "panel_sha256": "ae3e7ea90c727885216ff9c4c5bef3e327bc370ef7cf3fb1cbca3ad0138108db"
+  },
+  "hb2_5m_perp_spot": {
+    "total_verified_archives": 768,
+    "checksum_verified_count": 384,
+    "total_matched_5m_bars": 3361696,
+    "panel_sha256": "7012f48344df440bf1a3c05d9f99deac8873e0992978ad17f9331b55594ed971"
+  },
+  "ha_aggtrades": {
+    "total_archives": 240,
+    "checksum_verified_count": 240,
+    "total_raw_aggtrades_processed": 555512482,
+    "total_compressed_bytes": 8700611361,
+    "panel_sha256": "47b51b43e0d770bd3163db237cc65fb107b5dcedc2e6df3333715951a087f8d2"
+  }
+}

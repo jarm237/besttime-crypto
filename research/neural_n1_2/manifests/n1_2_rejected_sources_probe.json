@@ -1,0 +1,38 @@
+[
+  {
+    "source": "https://data.binance.vision/data/futures/um/daily/bookTicker/BTCUSDT/BTCUSDT-bookTicker-2023-05-01.zip",
+    "label": "Binance USD-M Daily bookTicker Archive (2023-05-01)",
+    "http_status": 404,
+    "status_note": "HTTP_404_NOT_FOUND",
+    "ingestion_timestamp": "2026-11-11T08:13:52Z",
+    "suitability_disposition": "REJECTED_SOURCE_UNAVAILABLE_AT_AUTHORITATIVE_ARCHIVE",
+    "reason": "Authoritative historical archive returns HTTP 404 / endpoint retired; per Phase C rules, do not fabricate or interpolate missing top-of-book L1 quotes or forced liquidations."
+  },
+  {
+    "source": "https://data.binance.vision/data/futures/um/daily/bookTicker/BTCUSDT/BTCUSDT-bookTicker-2024-06-01.zip",
+    "label": "Binance USD-M Daily bookTicker Archive (2024-06-01)",
+    "http_status": 404,
+    "status_note": "HTTP_404_NOT_FOUND",
+    "ingestion_timestamp": "2026-11-11T08:13:53Z",
+    "suitability_disposition": "REJECTED_SOURCE_UNAVAILABLE_AT_AUTHORITATIVE_ARCHIVE",
+    "reason": "Authoritative historical archive returns HTTP 404 / endpoint retired; per Phase C rules, do not fabricate or interpolate missing top-of-book L1 quotes or forced liquidations."
+  },
+  {
+    "source": "https://data.binance.vision/data/spot/daily/bookTicker/BTCUSDT/BTCUSDT-bookTicker-2024-06-01.zip",
+    "label": "Binance Spot Daily bookTicker Archive (2024-06-01)",
+    "http_status": 404,
+    "status_note": "HTTP_404_NOT_FOUND",
+    "ingestion_timestamp": "2026-11-11T08:13:53Z",
+    "suitability_disposition": "REJECTED_SOURCE_UNAVAILABLE_AT_AUTHORITATIVE_ARCHIVE",
+    "reason": "Authoritative historical archive returns HTTP 404 / endpoint retired; per Phase C rules, do not fabricate or interpolate missing top-of-book L1 quotes or forced liquidations."
+  },
+  {
+    "source": "https://fapi.binance.com/fapi/v1/allForceOrders?symbol=BTCUSDT&limit=5",
+    "label": "Binance USD-M Liquidation Orders Snapshot API (Public Unauthenticated)",
+    "http_status": 404,
+    "status_note": "HTTP_404_NOT_FOUND",
+    "ingestion_timestamp": "2026-11-11T08:13:53Z",
+    "suitability_disposition": "REJECTED_SOURCE_UNAVAILABLE_AT_AUTHORITATIVE_ARCHIVE",
+    "reason": "Authoritative historical archive returns HTTP 404 / endpoint retired; per Phase C rules, do not fabricate or interpolate missing top-of-book L1 quotes or forced liquidations."
+  }
+]

@@ -1,0 +1,3000 @@
+{
+  "created_at": "2026-11-11T09:00:16Z",
+  "elapsed_seconds": 741.15,
+  "ha_experiment": {
+    "hypothesis_id": "H_A_AGGTRADES_ORDER_FLOW_DISLOCATION_MOMENTUM_SIGN",
+    "feature_cols": [
+      "ha_whale_ofi",
+      "ha_whale_minus_retail",
+      "ha_signed_sweep_imb",
+      "ha_multifill_ofi",
+      "ha_impact_asymmetry",
+      "ha_sweep_intensity_z"
+    ],
+    "composite_col": "ha_composite_score",
+    "extra_half_spread_col": "ha_realized_bounce_spread_bps",
+    "splits": {
+      "discovery_cv_2024": {
+        "train_years": [
+          2022,
+          2023
+        ],
+        "eval_years": [
+          2024
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": -18191.17
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": -17234.9,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "ETCUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "TRXUSDT": 0.0,
+              "XLMUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 0.0,
+              "2024-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 18191.17,
+            "gross_return_pct": 90.96,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 618.87,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 17234.9,
+            "net_return_pct": 86.17,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.239
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 29.5
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -51.08
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 3166.51,
+              "ETCUSDT": 2068.92,
+              "LINKUSDT": 2899.74,
+              "TRXUSDT": 4048.42,
+              "XLMUSDT": 5656.12
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -1626.07,
+              "2024-H2": 20496.3
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.272,
+            "net_pnl_ci95_usd": [
+              -9369.49,
+              44034.06
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 1752.52,
+            "gross_return_pct": 8.76,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 77.94,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 1669.87,
+            "net_return_pct": 8.35,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.219
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 4.46
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -6.07
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0967
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 306.3,
+              "ETCUSDT": 200.13,
+              "LINKUSDT": 280.5,
+              "TRXUSDT": 391.61,
+              "XLMUSDT": 547.12
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -4.31,
+              "2024-H2": 1672.8
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.251,
+            "net_pnl_ci95_usd": [
+              -933.83,
+              4232.87
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 6644.65,
+            "gross_return_pct": 33.22,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 254.77,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 6334.04,
+            "net_return_pct": 31.67,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.228
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.73
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -21.12
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3564
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1128.57,
+              "ETCUSDT": 737.38,
+              "LINKUSDT": 1033.49,
+              "TRXUSDT": 1442.89,
+              "XLMUSDT": 2015.89
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -176.13,
+              "2024-H2": 6560.1
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.261,
+            "net_pnl_ci95_usd": [
+              -3394.52,
+              15641.81
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": -0.01879,
+            "ic_nw_se": 0.02006,
+            "ic_nw_tstat": -0.937
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 656.23,
+            "gross_return_pct": 3.28,
+            "gross_excess_vs_exposure_matched_ew_usd": -1096.29
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 1621.15,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1042.21,
+            "net_return_pct": -5.21,
+            "net_excess_vs_exposure_matched_ew_usd": -2712.08,
+            "sharpe_annualized": -0.434
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 97.71
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -13.62
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0967
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 2,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1306.56,
+              "ETCUSDT": 1590.59,
+              "LINKUSDT": -1405.55,
+              "TRXUSDT": -141.5,
+              "XLMUSDT": -584.92
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -1626.2,
+              "2024-H2": 638.15
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.463,
+            "net_pnl_ci95_usd": [
+              -4976.42,
+              3075.59
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": -0.00668,
+            "ic_nw_se": 0.01787,
+            "ic_nw_tstat": -0.374
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 6733.42,
+            "gross_return_pct": 33.67,
+            "gross_excess_vs_exposure_matched_ew_usd": 88.77
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 255.38,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 6420.65,
+            "net_return_pct": 32.1,
+            "net_excess_vs_exposure_matched_ew_usd": 86.61,
+            "sharpe_annualized": 1.236
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.74
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -21.19
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3564
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1165.16,
+              "ETCUSDT": 698.84,
+              "LINKUSDT": 975.08,
+              "TRXUSDT": 1407.08,
+              "XLMUSDT": 2184.82
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -275.48,
+              "2024-H2": 6781.62
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.269,
+            "net_pnl_ci95_usd": [
+              -3375.49,
+              15766.61
+            ]
+          }
+        }
+      },
+      "oos_2025": {
+        "train_years": [
+          2022,
+          2023,
+          2024
+        ],
+        "eval_years": [
+          2025
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": 6904.99
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": 7197.28,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "ETCUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "TRXUSDT": 0.0,
+              "XLMUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": 0.0,
+              "2025-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -6904.99,
+            "gross_return_pct": -34.52,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 422.13,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -7197.28,
+            "net_return_pct": -35.99,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.251
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 26.96
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -50.72
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -1646.5,
+              "ETCUSDT": -1734.77,
+              "LINKUSDT": -177.3,
+              "TRXUSDT": 766.38,
+              "XLMUSDT": -395.53
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -4416.19,
+              "2025-H2": -3583.31
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.258,
+            "net_pnl_ci95_usd": [
+              -31241.47,
+              23962.19
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -424.14,
+            "gross_return_pct": -2.12,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 88.24,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -510.0,
+            "net_return_pct": -2.55,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.273
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 5.32
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -7.06
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.1133
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -186.55,
+              "ETCUSDT": -196.55,
+              "LINKUSDT": -20.09,
+              "TRXUSDT": 86.83,
+              "XLMUSDT": -44.81
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -270.26,
+              "2025-H2": -244.94
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.281,
+            "net_pnl_ci95_usd": [
+              -3577.22,
+              2679.03
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1402.39,
+            "gross_return_pct": -7.01,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 203.78,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1590.29,
+            "net_return_pct": -7.95,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.266
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 12.27
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -18.13
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3038
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -500.13,
+              "ETCUSDT": -526.94,
+              "LINKUSDT": -53.86,
+              "TRXUSDT": 232.79,
+              "XLMUSDT": -120.14
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -872.11,
+              "2025-H2": -755.95
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.274,
+            "net_pnl_ci95_usd": [
+              -9557.16,
+              7214.32
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": -0.00608,
+            "ic_nw_se": 0.01901,
+            "ic_nw_tstat": -0.32
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -2102.1,
+            "gross_return_pct": -10.51,
+            "gross_excess_vs_exposure_matched_ew_usd": -1677.96
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 1864.31,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -3834.35,
+            "net_return_pct": -19.17,
+            "net_excess_vs_exposure_matched_ew_usd": -3324.35,
+            "sharpe_annualized": -1.354
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 121.07
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -22.43
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.1133
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 2,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 739.98,
+              "ETCUSDT": -1881.97,
+              "LINKUSDT": 998.27,
+              "TRXUSDT": -1172.95,
+              "XLMUSDT": -684.25
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -1760.09,
+              "2025-H2": -2275.26
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -1.213,
+            "net_pnl_ci95_usd": [
+              -10558.13,
+              2485.2
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": 0.02679,
+            "ic_nw_se": 0.01872,
+            "ic_nw_tstat": 1.431
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1374.39,
+            "gross_return_pct": -6.87,
+            "gross_excess_vs_exposure_matched_ew_usd": 28.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 202.75,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1561.87,
+            "net_return_pct": -7.81,
+            "net_excess_vs_exposure_matched_ew_usd": 28.42,
+            "sharpe_annualized": -0.264
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 12.19
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -17.92
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3038
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -494.12,
+              "ETCUSDT": -506.52,
+              "LINKUSDT": -57.51,
+              "TRXUSDT": 254.54,
+              "XLMUSDT": -145.67
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -873.29,
+              "2025-H2": -725.07
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.272,
+            "net_pnl_ci95_usd": [
+              -9445.33,
+              7142.03
+            ]
+          }
+        }
+      }
+    }
+  },
+  "ha_exhaustion_reversion_experiment": {
+    "hypothesis_id": "H_A_AGGTRADES_EXHAUSTION_REVERSION_SIGN",
+    "feature_cols": [
+      "ha_whale_ofi",
+      "ha_whale_minus_retail",
+      "ha_signed_sweep_imb",
+      "ha_multifill_ofi",
+      "ha_impact_asymmetry",
+      "ha_sweep_intensity_z"
+    ],
+    "composite_col": "ha_reversion_composite_score",
+    "extra_half_spread_col": "ha_realized_bounce_spread_bps",
+    "splits": {
+      "discovery_cv_2024": {
+        "train_years": [
+          2022,
+          2023
+        ],
+        "eval_years": [
+          2024
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": -18191.17
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": -17234.9,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "ETCUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "TRXUSDT": 0.0,
+              "XLMUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 0.0,
+              "2024-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 18191.17,
+            "gross_return_pct": 90.96,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 618.87,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 17234.9,
+            "net_return_pct": 86.17,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.239
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 29.5
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -51.08
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 3166.51,
+              "ETCUSDT": 2068.92,
+              "LINKUSDT": 2899.74,
+              "TRXUSDT": 4048.42,
+              "XLMUSDT": 5656.12
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -1626.07,
+              "2024-H2": 20496.3
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.272,
+            "net_pnl_ci95_usd": [
+              -9369.49,
+              44034.06
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 1770.96,
+            "gross_return_pct": 8.85,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 78.71,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 1687.45,
+            "net_return_pct": 8.44,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.219
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 4.5
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -6.13
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0977
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 309.48,
+              "ETCUSDT": 202.2,
+              "LINKUSDT": 283.41,
+              "TRXUSDT": 395.67,
+              "XLMUSDT": 552.8
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -4.52,
+              "2024-H2": 1690.59
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.252,
+            "net_pnl_ci95_usd": [
+              -943.47,
+              4276.84
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 6644.65,
+            "gross_return_pct": 33.22,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 254.77,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 6334.04,
+            "net_return_pct": 31.67,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.228
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.73
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -21.12
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3564
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1128.57,
+              "ETCUSDT": 737.38,
+              "LINKUSDT": 1033.49,
+              "TRXUSDT": 1442.89,
+              "XLMUSDT": 2015.89
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -176.13,
+              "2024-H2": 6560.1
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.261,
+            "net_pnl_ci95_usd": [
+              -3394.52,
+              15641.81
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": 0.01879,
+            "ic_nw_se": 0.02006,
+            "ic_nw_tstat": 0.937
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 1123.01,
+            "gross_return_pct": 5.62,
+            "gross_excess_vs_exposure_matched_ew_usd": -647.95
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 1793.13,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -726.54,
+            "net_return_pct": -3.63,
+            "net_excess_vs_exposure_matched_ew_usd": -2413.99,
+            "sharpe_annualized": -0.316
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 103.93
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -8.96
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0977
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 3,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -1.14,
+              "ETCUSDT": -305.39,
+              "LINKUSDT": 993.44,
+              "TRXUSDT": 135.8,
+              "XLMUSDT": 371.7
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -470.85,
+              "2024-H2": -256.69
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.357,
+            "net_pnl_ci95_usd": [
+              -4142.09,
+              2866.0
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": -0.00668,
+            "ic_nw_se": 0.01787,
+            "ic_nw_tstat": -0.374
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 6733.42,
+            "gross_return_pct": 33.67,
+            "gross_excess_vs_exposure_matched_ew_usd": 88.77
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 255.38,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 6420.65,
+            "net_return_pct": 32.1,
+            "net_excess_vs_exposure_matched_ew_usd": 86.61,
+            "sharpe_annualized": 1.236
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.74
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -21.19
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3564
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 5,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1165.16,
+              "ETCUSDT": 698.84,
+              "LINKUSDT": 975.08,
+              "TRXUSDT": 1407.08,
+              "XLMUSDT": 2184.82
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": -275.48,
+              "2024-H2": 6781.62
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.269,
+            "net_pnl_ci95_usd": [
+              -3375.49,
+              15766.61
+            ]
+          }
+        }
+      },
+      "oos_2025": {
+        "train_years": [
+          2022,
+          2023,
+          2024
+        ],
+        "eval_years": [
+          2025
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": 6904.99
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": 7197.28,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "ETCUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "TRXUSDT": 0.0,
+              "XLMUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": 0.0,
+              "2025-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -6904.99,
+            "gross_return_pct": -34.52,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 422.13,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -7197.28,
+            "net_return_pct": -35.99,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.251
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 26.96
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -50.72
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -1646.5,
+              "ETCUSDT": -1734.77,
+              "LINKUSDT": -177.3,
+              "TRXUSDT": 766.38,
+              "XLMUSDT": -395.53
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -4416.19,
+              "2025-H2": -3583.31
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.258,
+            "net_pnl_ci95_usd": [
+              -31241.47,
+              23962.19
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -415.83,
+            "gross_return_pct": -2.08,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 86.85,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -500.38,
+            "net_return_pct": -2.5,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.273
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 5.23
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -6.94
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.1114
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -183.35,
+              "ETCUSDT": -193.18,
+              "LINKUSDT": -19.74,
+              "TRXUSDT": 85.34,
+              "XLMUSDT": -44.05
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -265.06,
+              "2025-H2": -240.37
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.281,
+            "net_pnl_ci95_usd": [
+              -3515.97,
+              2632.93
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1402.39,
+            "gross_return_pct": -7.01,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 203.78,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1590.29,
+            "net_return_pct": -7.95,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.266
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 12.27
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -18.13
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3038
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -500.13,
+              "ETCUSDT": -526.94,
+              "LINKUSDT": -53.86,
+              "TRXUSDT": 232.79,
+              "XLMUSDT": -120.14
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -872.11,
+              "2025-H2": -755.95
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.274,
+            "net_pnl_ci95_usd": [
+              -9557.16,
+              7214.32
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": 0.00608,
+            "ic_nw_se": 0.01901,
+            "ic_nw_tstat": 0.32
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -62.64,
+            "gross_return_pct": -0.31,
+            "gross_excess_vs_exposure_matched_ew_usd": 353.19
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 1974.3,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1977.14,
+            "net_return_pct": -9.89,
+            "net_excess_vs_exposure_matched_ew_usd": -1476.76,
+            "sharpe_annualized": -0.878
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 120.44
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -16.01
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.1114
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 2,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -79.15,
+              "ETCUSDT": -496.45,
+              "LINKUSDT": 158.71,
+              "TRXUSDT": 610.54,
+              "XLMUSDT": -132.39
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -524.94,
+              "2025-H2": -1492.03
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.885,
+            "net_pnl_ci95_usd": [
+              -6294.03,
+              2379.19
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": 0.02679,
+            "ic_nw_se": 0.01872,
+            "ic_nw_tstat": 1.431
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1374.39,
+            "gross_return_pct": -6.87,
+            "gross_excess_vs_exposure_matched_ew_usd": 28.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 202.75,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": true
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1561.87,
+            "net_return_pct": -7.81,
+            "net_excess_vs_exposure_matched_ew_usd": 28.42,
+            "sharpe_annualized": -0.264
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 12.19
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -17.92
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3038
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 1,
+            "total_assets_count": 5,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -494.12,
+              "ETCUSDT": -506.52,
+              "LINKUSDT": -57.51,
+              "TRXUSDT": 254.54,
+              "XLMUSDT": -145.67
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -873.29,
+              "2025-H2": -725.07
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.272,
+            "net_pnl_ci95_usd": [
+              -9445.33,
+              7142.03
+            ]
+          }
+        }
+      }
+    }
+  },
+  "hb_experiment": {
+    "hypothesis_id": "H_B_CROSS_VENUE_AND_5M_LEAD_LAG_12H",
+    "feature_cols": [
+      "hb1_cb_minus_bn_ret_z",
+      "hb1_cb_premium_dev_z",
+      "hb1_cb_signed_vol_shock",
+      "hb1_cb_vol_share_z",
+      "hb2_basis_change_z",
+      "hb2_last15m_perp_lead_z",
+      "hb2_perp_minus_spot_imb_z",
+      "hb2_last15m_imb_diff_z"
+    ],
+    "composite_col": "hb1_composite_score",
+    "extra_half_spread_col": null,
+    "splits": {
+      "discovery_cv_2024": {
+        "train_years": [
+          2022,
+          2023
+        ],
+        "eval_years": [
+          2024
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": -23617.24
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": -22722.36,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "BTCUSDT": 0.0,
+              "DOGEUSDT": 0.0,
+              "ETHUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "LTCUSDT": 0.0,
+              "SOLUSDT": 0.0,
+              "XRPUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 0.0,
+              "2024-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 23617.24,
+            "gross_return_pct": 118.09,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 576.42,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 22722.36,
+            "net_return_pct": 113.61,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.425
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 29.53
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -46.94
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1979.07,
+              "BTCUSDT": 2332.62,
+              "DOGEUSDT": 4673.69,
+              "ETHUSDT": 1464.94,
+              "LINKUSDT": 1812.34,
+              "LTCUSDT": 1691.91,
+              "SOLUSDT": 2615.4,
+              "XRPUSDT": 4070.34
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 3083.92,
+              "2024-H2": 16988.92
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.548,
+            "net_pnl_ci95_usd": [
+              -5383.1,
+              45834.16
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 1443.2,
+            "gross_return_pct": 7.22,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 48.77,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 1392.31,
+            "net_return_pct": 6.96,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.405
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 3.38
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -3.77
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0687
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 135.89,
+              "BTCUSDT": 160.16,
+              "DOGEUSDT": 320.91,
+              "ETHUSDT": 100.59,
+              "LINKUSDT": 124.44,
+              "LTCUSDT": 116.17,
+              "SOLUSDT": 179.58,
+              "XRPUSDT": 279.48
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 337.34,
+              "2024-H2": 1036.46
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.527,
+            "net_pnl_ci95_usd": [
+              -388.94,
+              3128.32
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 10881.39,
+            "gross_return_pct": 54.41,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 287.08,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 10510.36,
+            "net_return_pct": 52.55,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.418
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 17.22
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -24.44
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.4763
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 942.6,
+              "BTCUSDT": 1110.99,
+              "DOGEUSDT": 2226.01,
+              "ETHUSDT": 697.73,
+              "LINKUSDT": 863.19,
+              "LTCUSDT": 805.83,
+              "SOLUSDT": 1245.67,
+              "XRPUSDT": 1938.64
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 2013.91,
+              "2024-H2": 7709.93
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.541,
+            "net_pnl_ci95_usd": [
+              -2609.25,
+              21786.95
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": 0.01461,
+            "ic_nw_se": 0.01364,
+            "ic_nw_tstat": 1.071
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 4074.59,
+            "gross_return_pct": 20.37,
+            "gross_excess_vs_exposure_matched_ew_usd": 2631.39
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 984.2,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 2997.66,
+            "net_return_pct": 14.99,
+            "net_excess_vs_exposure_matched_ew_usd": 1605.35,
+            "sharpe_annualized": 1.415
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 65.19
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -6.05
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0687
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 7,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 296.4,
+              "BTCUSDT": 163.32,
+              "DOGEUSDT": 2079.95,
+              "ETHUSDT": 124.99,
+              "LINKUSDT": 626.97,
+              "LTCUSDT": -470.79,
+              "SOLUSDT": 132.09,
+              "XRPUSDT": 859.87
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 2461.29,
+              "2024-H2": 477.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.441,
+            "net_pnl_ci95_usd": [
+              -1044.35,
+              6839.67
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": -0.02871,
+            "ic_nw_se": 0.0149,
+            "ic_nw_tstat": -1.927
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 12019.21,
+            "gross_return_pct": 60.1,
+            "gross_excess_vs_exposure_matched_ew_usd": 1137.82
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 294.13,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 11628.97,
+            "net_return_pct": 58.14,
+            "net_excess_vs_exposure_matched_ew_usd": 1118.61,
+            "sharpe_annualized": 1.493
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 17.47
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -23.42
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.4763
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1080.06,
+              "BTCUSDT": 1163.62,
+              "DOGEUSDT": 2007.56,
+              "ETHUSDT": 702.56,
+              "LINKUSDT": 895.01,
+              "LTCUSDT": 905.03,
+              "SOLUSDT": 1287.56,
+              "XRPUSDT": 2577.03
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 1692.75,
+              "2024-H2": 9151.46
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.628,
+            "net_pnl_ci95_usd": [
+              -2115.69,
+              22861.91
+            ]
+          }
+        }
+      },
+      "oos_2025": {
+        "train_years": [
+          2022,
+          2023,
+          2024
+        ],
+        "eval_years": [
+          2025
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": 5835.55
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": 6082.66,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "BTCUSDT": 0.0,
+              "DOGEUSDT": 0.0,
+              "ETHUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "LTCUSDT": 0.0,
+              "SOLUSDT": 0.0,
+              "XRPUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": 0.0,
+              "2025-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -5835.55,
+            "gross_return_pct": -29.18,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 341.03,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -6082.66,
+            "net_return_pct": -30.41,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.12
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 25.14
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -53.7
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -1029.07,
+              "BTCUSDT": 83.33,
+              "DOGEUSDT": -1388.18,
+              "ETHUSDT": 365.56,
+              "LINKUSDT": -110.82,
+              "LTCUSDT": 187.97,
+              "SOLUSDT": -107.58,
+              "XRPUSDT": 578.39
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -3598.69,
+              "2025-H2": -3040.85
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.121,
+            "net_pnl_ci95_usd": [
+              -30458.51,
+              26913.18
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -121.82,
+            "gross_return_pct": -0.61,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 47.16,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -168.44,
+            "net_return_pct": -0.84,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.143
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 3.35
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -4.55
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0681
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -70.12,
+              "BTCUSDT": 5.68,
+              "DOGEUSDT": -94.6,
+              "ETHUSDT": 24.91,
+              "LINKUSDT": -7.55,
+              "LTCUSDT": 12.81,
+              "SOLUSDT": -7.33,
+              "XRPUSDT": 39.41
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -70.62,
+              "2025-H2": -99.11
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.144,
+            "net_pnl_ci95_usd": [
+              -2098.84,
+              1811.33
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1232.5,
+            "gross_return_pct": -6.16,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 196.85,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1414.25,
+            "net_return_pct": -7.07,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.132
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.9
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -23.1
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3695
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -380.26,
+              "BTCUSDT": 30.79,
+              "DOGEUSDT": -512.96,
+              "ETHUSDT": 135.08,
+              "LINKUSDT": -40.95,
+              "LTCUSDT": 69.46,
+              "SOLUSDT": -39.75,
+              "XRPUSDT": 213.72
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -709.46,
+              "2025-H2": -735.68
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.133,
+            "net_pnl_ci95_usd": [
+              -11320.53,
+              9881.49
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": -0.00858,
+            "ic_nw_se": 0.01405,
+            "ic_nw_tstat": -0.61
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 141.14,
+            "gross_return_pct": 0.71,
+            "gross_excess_vs_exposure_matched_ew_usd": 262.96
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 869.38,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -729.05,
+            "net_return_pct": -3.65,
+            "net_excess_vs_exposure_matched_ew_usd": -560.61,
+            "sharpe_annualized": -0.388
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 63.09
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -9.34
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0681
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 3,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 149.43,
+              "BTCUSDT": 247.86,
+              "DOGEUSDT": -269.92,
+              "ETHUSDT": -201.75,
+              "LINKUSDT": -10.73,
+              "LTCUSDT": -199.14,
+              "SOLUSDT": 640.42,
+              "XRPUSDT": -141.4
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -100.47,
+              "2025-H2": -630.9
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.38,
+            "net_pnl_ci95_usd": [
+              -4112.27,
+              2775.39
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": 0.01566,
+            "ic_nw_se": 0.01381,
+            "ic_nw_tstat": 1.134
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1393.21,
+            "gross_return_pct": -6.97,
+            "gross_excess_vs_exposure_matched_ew_usd": -160.71
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 196.37,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1574.1,
+            "net_return_pct": -7.87,
+            "net_excess_vs_exposure_matched_ew_usd": -159.85,
+            "sharpe_annualized": -0.161
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.96
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -23.16
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3695
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -436.76,
+              "BTCUSDT": 27.06,
+              "DOGEUSDT": -526.76,
+              "ETHUSDT": 129.62,
+              "LINKUSDT": -66.48,
+              "LTCUSDT": 63.32,
+              "SOLUSDT": -51.02,
+              "XRPUSDT": 173.5
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -849.91,
+              "2025-H2": -761.3
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.162,
+            "net_pnl_ci95_usd": [
+              -11539.12,
+              9773.24
+            ]
+          }
+        }
+      }
+    }
+  },
+  "hb_4h_experiment": {
+    "hypothesis_id": "H_B_CROSS_VENUE_AND_5M_LEAD_LAG_4H",
+    "feature_cols": [
+      "hb1_cb_minus_bn_ret_z",
+      "hb1_cb_premium_dev_z",
+      "hb1_cb_signed_vol_shock",
+      "hb1_cb_vol_share_z",
+      "hb2_basis_change_z",
+      "hb2_last15m_perp_lead_z",
+      "hb2_perp_minus_spot_imb_z",
+      "hb2_last15m_imb_diff_z"
+    ],
+    "composite_col": "hb1_composite_score",
+    "extra_half_spread_col": null,
+    "splits": {
+      "discovery_cv_2024": {
+        "train_years": [
+          2022,
+          2023
+        ],
+        "eval_years": [
+          2024
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": -23617.24
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": -22722.36,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "BTCUSDT": 0.0,
+              "DOGEUSDT": 0.0,
+              "ETHUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "LTCUSDT": 0.0,
+              "SOLUSDT": 0.0,
+              "XRPUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 0.0,
+              "2024-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 23617.24,
+            "gross_return_pct": 118.09,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 576.42,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 22722.36,
+            "net_return_pct": 113.61,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.425
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 29.53
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -46.94
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 1979.07,
+              "BTCUSDT": 2332.62,
+              "DOGEUSDT": 4673.69,
+              "ETHUSDT": 1464.94,
+              "LINKUSDT": 1812.34,
+              "LTCUSDT": 1691.91,
+              "SOLUSDT": 2615.4,
+              "XRPUSDT": 4070.34
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 3083.92,
+              "2024-H2": 16988.92
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.548,
+            "net_pnl_ci95_usd": [
+              -5383.1,
+              45834.16
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 1868.02,
+            "gross_return_pct": 9.34,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 62.37,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 1802.18,
+            "net_return_pct": 9.01,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.406
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 4.3
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -4.84
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0884
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 175.01,
+              "BTCUSDT": 206.27,
+              "DOGEUSDT": 413.29,
+              "ETHUSDT": 129.54,
+              "LINKUSDT": 160.26,
+              "LTCUSDT": 149.61,
+              "SOLUSDT": 231.27,
+              "XRPUSDT": 359.93
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 431.86,
+              "2024-H2": 1340.03
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.527,
+            "net_pnl_ci95_usd": [
+              -500.01,
+              4029.75
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 9295.35,
+            "gross_return_pct": 46.48,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 254.36,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 8976.26,
+            "net_return_pct": 44.88,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": 1.416
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 15.6
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -21.33
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.4111
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 813.53,
+              "BTCUSDT": 958.86,
+              "DOGEUSDT": 1921.2,
+              "ETHUSDT": 602.19,
+              "LINKUSDT": 744.99,
+              "LTCUSDT": 695.49,
+              "SOLUSDT": 1075.1,
+              "XRPUSDT": 1673.19
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 1787.97,
+              "2024-H2": 6590.76
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.539,
+            "net_pnl_ci95_usd": [
+              -2262.48,
+              18793.42
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": 0.01461,
+            "ic_nw_se": 0.01364,
+            "ic_nw_tstat": 1.071
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 5011.68,
+            "gross_return_pct": 25.06,
+            "gross_excess_vs_exposure_matched_ew_usd": 3143.66
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 3659.32,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 914.13,
+            "net_return_pct": 4.57,
+            "net_excess_vs_exposure_matched_ew_usd": -888.05,
+            "sharpe_annualized": 0.41
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 254.87
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -13.9
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0884
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 153.52,
+              "BTCUSDT": 514.97,
+              "DOGEUSDT": 418.13,
+              "ETHUSDT": 403.16,
+              "LINKUSDT": 620.52,
+              "LTCUSDT": 235.63,
+              "SOLUSDT": 713.24,
+              "XRPUSDT": 1578.97
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 1,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 1435.42,
+              "2024-H2": -486.8
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.46,
+            "net_pnl_ci95_usd": [
+              -3459.06,
+              5579.86
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": -0.0057,
+            "ic_nw_se": 0.01315,
+            "ic_nw_tstat": -0.433
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 9495.91,
+            "gross_return_pct": 47.48,
+            "gross_excess_vs_exposure_matched_ew_usd": 200.56
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 255.79,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 9174.98,
+            "net_return_pct": 45.87,
+            "net_excess_vs_exposure_matched_ew_usd": 198.72,
+            "sharpe_annualized": 1.439
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 15.59
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -21.59
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.4111
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 8,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 846.56,
+              "BTCUSDT": 944.83,
+              "DOGEUSDT": 1938.45,
+              "ETHUSDT": 604.38,
+              "LINKUSDT": 735.1,
+              "LTCUSDT": 722.48,
+              "SOLUSDT": 1106.31,
+              "XRPUSDT": 1724.04
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 2,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2024-H1": 1901.23,
+              "2024-H2": 6634.56
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 1.564,
+            "net_pnl_ci95_usd": [
+              -2124.38,
+              18930.99
+            ]
+          }
+        }
+      },
+      "oos_2025": {
+        "train_years": [
+          2022,
+          2023,
+          2024
+        ],
+        "eval_years": [
+          2025
+        ],
+        "cash": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 0.0,
+            "gross_return_pct": 0.0,
+            "gross_excess_vs_exposure_matched_ew_usd": 5835.55
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 0.0,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": 0.0,
+            "net_return_pct": 0.0,
+            "net_excess_vs_exposure_matched_ew_usd": 6082.66,
+            "sharpe_annualized": 0.0
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 0.0
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": 0.0
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 0,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 0.0,
+              "BTCUSDT": 0.0,
+              "DOGEUSDT": 0.0,
+              "ETHUSDT": 0.0,
+              "LINKUSDT": 0.0,
+              "LTCUSDT": 0.0,
+              "SOLUSDT": 0.0,
+              "XRPUSDT": 0.0
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": 0.0,
+              "2025-H2": 0.0
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": 0.0,
+            "net_pnl_ci95_usd": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "passive_equal_weight_100pct": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -5835.55,
+            "gross_return_pct": -29.18,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 341.03,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -6082.66,
+            "net_return_pct": -30.41,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.12
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 25.14
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -53.7
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 1.0
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -1029.07,
+              "BTCUSDT": 83.33,
+              "DOGEUSDT": -1388.18,
+              "ETHUSDT": 365.56,
+              "LINKUSDT": -110.82,
+              "LTCUSDT": 187.97,
+              "SOLUSDT": -107.58,
+              "XRPUSDT": 578.39
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -3598.69,
+              "2025-H2": -3040.85
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.121,
+            "net_pnl_ci95_usd": [
+              -30458.51,
+              26913.18
+            ]
+          }
+        },
+        "passive_exposure_matched_to_simple": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -159.54,
+            "gross_return_pct": -0.8,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 58.04,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -216.73,
+            "net_return_pct": -1.08,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.142
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 4.12
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -5.65
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.085
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -87.44,
+              "BTCUSDT": 7.08,
+              "DOGEUSDT": -117.95,
+              "ETHUSDT": 31.06,
+              "LINKUSDT": -9.42,
+              "LTCUSDT": 15.97,
+              "SOLUSDT": -9.14,
+              "XRPUSDT": 49.14
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -92.32,
+              "2025-H2": -126.17
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.143,
+            "net_pnl_ci95_usd": [
+              -2616.17,
+              2259.32
+            ]
+          }
+        },
+        "passive_exposure_matched_to_neural": {
+          "predictive_information": {
+            "mean_ic_12h": 0.0,
+            "ic_nw_se": 0.0,
+            "ic_nw_tstat": 0.0
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1230.61,
+            "gross_return_pct": -6.15,
+            "gross_excess_vs_exposure_matched_ew_usd": 0.0
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 196.72,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1412.25,
+            "net_return_pct": -7.06,
+            "net_excess_vs_exposure_matched_ew_usd": 0.0,
+            "sharpe_annualized": -0.132
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.89
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -23.07
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3691
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -379.88,
+              "BTCUSDT": 30.76,
+              "DOGEUSDT": -512.44,
+              "ETHUSDT": 134.95,
+              "LINKUSDT": -40.91,
+              "LTCUSDT": 69.39,
+              "SOLUSDT": -39.71,
+              "XRPUSDT": 213.51
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -708.36,
+              "2025-H2": -734.71
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.133,
+            "net_pnl_ci95_usd": [
+              -11309.28,
+              9871.55
+            ]
+          }
+        },
+        "simple_hypothesis_baseline": {
+          "predictive_information": {
+            "mean_ic_12h": -0.00858,
+            "ic_nw_se": 0.01405,
+            "ic_nw_tstat": -0.61
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": 607.51,
+            "gross_return_pct": 3.04,
+            "gross_excess_vs_exposure_matched_ew_usd": 767.05
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 3269.48,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -2578.66,
+            "net_return_pct": -12.89,
+            "net_excess_vs_exposure_matched_ew_usd": -2361.93,
+            "sharpe_annualized": -1.05
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 239.92
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -20.54
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.085
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": 246.32,
+              "BTCUSDT": 152.6,
+              "DOGEUSDT": -102.56,
+              "ETHUSDT": -367.82,
+              "LINKUSDT": 79.0,
+              "LTCUSDT": -121.95,
+              "SOLUSDT": 900.69,
+              "XRPUSDT": -35.53
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -755.12,
+              "2025-H2": -1896.47
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -1.009,
+            "net_pnl_ci95_usd": [
+              -7674.48,
+              2457.72
+            ]
+          }
+        },
+        "neural_policy_pilot": {
+          "predictive_information": {
+            "mean_ic_12h": 0.01497,
+            "ic_nw_se": 0.01348,
+            "ic_nw_tstat": 1.111
+          },
+          "implementable_gross_edge": {
+            "gross_pnl_usd": -1387.72,
+            "gross_return_pct": -6.94,
+            "gross_excess_vs_exposure_matched_ew_usd": -157.11
+          },
+          "realized_execution_cost": {
+            "total_cost_usd": 194.86,
+            "cost_per_leg_bps_base": 7.0,
+            "extra_half_spread_applied": false
+          },
+          "net_economic_value": {
+            "net_pnl_usd": -1567.62,
+            "net_return_pct": -7.84,
+            "net_excess_vs_exposure_matched_ew_usd": -155.37,
+            "sharpe_annualized": -0.162
+          },
+          "turnover": {
+            "annualized_one_way_turnover": 13.88
+          },
+          "max_drawdown": {
+            "max_drawdown_pct": -23.07
+          },
+          "risk_exposure": {
+            "mean_total_risk_exposure": 0.3691
+          },
+          "asset_or_venue_consistency": {
+            "positive_assets_count": 4,
+            "total_assets_count": 8,
+            "per_asset_gross_pnl_usd": {
+              "ADAUSDT": -412.96,
+              "BTCUSDT": 21.81,
+              "DOGEUSDT": -522.07,
+              "ETHUSDT": 124.69,
+              "LINKUSDT": -70.66,
+              "LTCUSDT": 59.24,
+              "SOLUSDT": -63.62,
+              "XRPUSDT": 170.89
+            }
+          },
+          "regime_consistency": {
+            "positive_half_years_count": 0,
+            "total_half_years_count": 2,
+            "half_year_net_pnl_usd": {
+              "2025-H1": -873.11,
+              "2025-H2": -731.19
+            }
+          },
+          "economic_uncertainty": {
+            "net_step_nw_tstat": -0.164,
+            "net_pnl_ci95_usd": [
+              -11460.46,
+              9686.55
+            ]
+          }
+        }
+      }
+    }
+  }
+}

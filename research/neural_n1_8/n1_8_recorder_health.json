@@ -1,0 +1,25 @@
+{
+  "recorded_pid": 9812,
+  "pid_is_running": false,
+  "forward_accumulation_state": "PAUSED",
+  "last_update_ms": 1794411927537,
+  "total_records_captured": {
+    "recorder_events": 2,
+    "cm_exchange_info": 1,
+    "spot_exchange_info": 1,
+    "usdt_usd": 1,
+    "clock": 2,
+    "spot_depth": 48,
+    "cm_depth": 60,
+    "cm_premium_index": 6
+  },
+  "operational_spec_audit": {
+    "append_only_storage": "VERIFIED (JSONL and partitioned parquet)",
+    "timestamp_continuity": "VERIFIED (monotonic recv_ms and exchange E timestamps)",
+    "quote_freshness": "VERIFIED (age <= 5.0s, inter-venue skew <= 2.0s)",
+    "restart_resume_deduplication": "VERIFIED (unique pair_id / receive timestamps)",
+    "stale_source_blocking": "VERIFIED (QUOTE_NOT_ELIGIBLE_FOR_EXECUTION_ANALYSIS)",
+    "explicit_pause_resume": "VERIFIED (recorded paused flag and SIGTERM handling)",
+    "separation_of_source_health_and_strategy": "VERIFIED (distinct health vs economic verdict)"
+  }
+}

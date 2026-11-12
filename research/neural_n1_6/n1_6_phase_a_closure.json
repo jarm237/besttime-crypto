@@ -1,0 +1,238 @@
+{
+  "generated_utc": "2026-11-11T16:47:30.838465+00:00",
+  "label_map": {
+    "EXECUTABLE_NET_CARRY": "LIQUIDITY_CONSTRAINED_SIMULATED_NET_CARRY",
+    "EXECUTABLE_TWAP_CONSTRAINED": "LIQUIDITY_CONSTRAINED_SIMULATED_TWAP (execution_mode string kept unchanged in frozen N1.5 code)",
+    "phase_e_executable_net_carry_by_fee_scenario": "phase_e_liquidity_constrained_simulated_net_carry_by_fee_scenario (alias)"
+  },
+  "settlement_official_vs_approximation": {
+    "events_in_n1_5_cache": 128,
+    "events_matched_to_official": 115,
+    "n1_5_twap_30m_close_mean": {
+      "mean_abs_err_bps": 17.1,
+      "median_abs_err_bps": 12.276,
+      "p95_abs_err_bps": 52.122,
+      "max_abs_err_bps": 68.702,
+      "mean_signed_err_bps": -2.462,
+      "share_within_1bp": 0.1913
+    },
+    "twap_30m_ohlc4": {
+      "mean_abs_err_bps": 16.444,
+      "median_abs_err_bps": 12.048,
+      "p95_abs_err_bps": 50.14,
+      "max_abs_err_bps": 67.666,
+      "mean_signed_err_bps": -2.052,
+      "share_within_1bp": 0.287
+    },
+    "twap_60m": {
+      "mean_abs_err_bps": 10.748,
+      "median_abs_err_bps": 1.448,
+      "p95_abs_err_bps": 48.366,
+      "max_abs_err_bps": 70.815,
+      "mean_signed_err_bps": 10.413,
+      "share_within_1bp": 0.4522
+    },
+    "index_close_0800": {
+      "mean_abs_err_bps": 34.824,
+      "median_abs_err_bps": 26.566,
+      "p95_abs_err_bps": 98.223,
+      "max_abs_err_bps": 143.902,
+      "mean_signed_err_bps": -11.218,
+      "share_within_1bp": 0.0
+    },
+    "unmatched_events": [
+      {
+        "pair": "ADAUSD",
+        "expiry_code": "251226"
+      },
+      {
+        "pair": "LINKUSD",
+        "expiry_code": "251226"
+      },
+      {
+        "pair": "LTCUSD",
+        "expiry_code": "251226"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "220325"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "220624"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "220930"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "221230"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "230331"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "230630"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "230929"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "231229"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "240329"
+      },
+      {
+        "pair": "SOLUSD",
+        "expiry_code": "240628"
+      }
+    ]
+  },
+  "settlement_pnl_impact": {
+    "n1_4_reference_schedule": {
+      "delivery_settlement_exits": 0,
+      "exits_repriced_with_official_price": 0,
+      "net_pnl_delta_usd_if_official_price_used": 0.0,
+      "reported_net_pnl_usd": 6244.56
+    },
+    "verified_historical_fee_schedule": {
+      "delivery_settlement_exits": 7,
+      "exits_repriced_with_official_price": 7,
+      "net_pnl_delta_usd_if_official_price_used": -80.5,
+      "reported_net_pnl_usd": 5826.6
+    },
+    "standard_retail_taker": {
+      "delivery_settlement_exits": 7,
+      "exits_repriced_with_official_price": 7,
+      "net_pnl_delta_usd_if_official_price_used": -80.29,
+      "reported_net_pnl_usd": 5616.56
+    },
+    "bnb_discount_if_eligible": {
+      "delivery_settlement_exits": 0,
+      "exits_repriced_with_official_price": 0,
+      "net_pnl_delta_usd_if_official_price_used": 0.0,
+      "reported_net_pnl_usd": 5773.64
+    },
+    "stressed_execution_cost": {
+      "delivery_settlement_exits": 0,
+      "exits_repriced_with_official_price": 0,
+      "net_pnl_delta_usd_if_official_price_used": 0.0,
+      "reported_net_pnl_usd": 5257.48
+    }
+  },
+  "leg_fill_and_hedge_mismatch": {
+    "scenario": "standard_retail_taker / LIQUIDITY_CONSTRAINED_SIMULATED",
+    "finding_leg_independence": "NOT_INDEPENDENT: N1.5 applies one `filled_fraction` (derived from 4h COIN-M contract volume * 5%) to the whole package. The Spot leg is assumed to fill the same USD amount, the futures leg is then sized as floor(coin * F / (M * (1 + fee))) contracts and excess Spot purchase is trimmed. Spot-side depth/volume never constrains the fill and no leg can fill while the other does not. Hedge mismatch is therefore only the integer-contract rounding residual; legging risk is NOT represented in N1.5.",
+    "finding_volume_window": "The 5% cap uses COIN-M volume of hours t..t+3 (the TWAP execution window). This is execution-concurrent volume, not information available at decision time t; it is a capacity approximation, not a signal leak.",
+    "positions": 90,
+    "partial_fill_positions": 37,
+    "mean_filled_fraction_partial_positions": 0.3661,
+    "positions_with_nonzero_hedge_mismatch": 3,
+    "max_position_hedge_mismatch_usd": 6.54,
+    "portfolio_mean_hedge_mismatch_usd_reported": 0.63,
+    "portfolio_max_hedge_mismatch_usd_reported": 13.87,
+    "monthly_open_position_hedge_mismatch_usd_upper_bound": {
+      "2022-01": 0.0,
+      "2022-02": 0.0,
+      "2022-03": 0.0,
+      "2022-04": 0.0,
+      "2022-05": 0.0,
+      "2022-06": 0.0,
+      "2022-11": 0.0,
+      "2022-12": 0.0,
+      "2023-01": 0.0,
+      "2023-02": 0.0,
+      "2023-03": 0.0,
+      "2023-04": 0.0,
+      "2023-05": 0.0,
+      "2023-06": 0.0,
+      "2023-07": 0.0,
+      "2023-08": 0.0,
+      "2023-09": 0.0,
+      "2023-10": 0.0,
+      "2023-11": 0.0,
+      "2023-12": 0.0,
+      "2024-01": 0.0,
+      "2024-02": 0.0,
+      "2024-03": 14.01,
+      "2024-04": 14.01,
+      "2024-05": 14.01,
+      "2024-06": 14.01,
+      "2024-07": 0.0,
+      "2024-08": 0.0,
+      "2024-09": 0.0,
+      "2024-10": 0.0,
+      "2024-11": 0.0,
+      "2024-12": 0.0,
+      "2025-01": 0.0,
+      "2025-02": 0.0,
+      "2025-03": 0.0,
+      "2025-04": 0.0,
+      "2025-05": 0.0,
+      "2025-06": 0.0,
+      "2025-07": 0.0,
+      "2025-08": 0.0,
+      "2025-09": 0.0,
+      "2025-10": 0.0,
+      "2025-11": 0.0,
+      "2025-12": 0.0,
+      "2026-01": 0.0
+    }
+  },
+  "margin_ratio": {
+    "formula_in_code": "margin_ratio = MM_coin / (wallet_balance_coin + inverse_uPnL_coin); MM_coin = MMR * N*M / F_mark (evaluated at 1h mark high for the worst case). Matches Binance COIN-M definition (maintenance margin / margin balance, margin balance = wallet balance + unrealized PnL).",
+    "ledger_recomputation_positions": 90,
+    "ledger_recomputation_max_abs_deviation_from_tier1_mmr": 6e-06,
+    "identity_note": "For a 1x coin-collateralised short, wallet ~= N*M/F_entry so margin balance = N*M/F_mark and the ratio collapses to MMR. The reported 0.004/0.005 maxima are an identity, not an empirical safety measurement; they only show the position was never under-collateralised in the model.",
+    "tier_model": "Flat Tier-1 MMR (0.40% BTC/ETH, 0.50% alts) plus a 2.50% exchangeInfo stress value. Brackets were not refreshed: `/dapi/v2/leverageBracket` is a SIGNED endpoint and is out of scope (public-only).",
+    "tier1_exceedances_in_capacity_curve": [
+      {
+        "initial_capital_usd": 500000.0,
+        "pair": "BNBUSD",
+        "approx_max_per_asset_notional_usd": 143588.0,
+        "tier1_max_notional_usd": 100000.0
+      },
+      {
+        "initial_capital_usd": 500000.0,
+        "pair": "XRPUSD",
+        "approx_max_per_asset_notional_usd": 143588.0,
+        "tier1_max_notional_usd": 100000.0
+      },
+      {
+        "initial_capital_usd": 500000.0,
+        "pair": "ADAUSD",
+        "approx_max_per_asset_notional_usd": 143588.0,
+        "tier1_max_notional_usd": 100000.0
+      },
+      {
+        "initial_capital_usd": 500000.0,
+        "pair": "LINKUSD",
+        "approx_max_per_asset_notional_usd": 143588.0,
+        "tier1_max_notional_usd": 100000.0
+      },
+      {
+        "initial_capital_usd": 500000.0,
+        "pair": "LTCUSD",
+        "approx_max_per_asset_notional_usd": 143588.0,
+        "tier1_max_notional_usd": 100000.0
+      },
+      {
+        "initial_capital_usd": 500000.0,
+        "pair": "SOLUSD",
+        "approx_max_per_asset_notional_usd": 143588.0,
+        "tier1_max_notional_usd": 100000.0
+      }
+    ],
+    "tier_exceedance_verdict_impact": "None for the 1x structure (ratio = MMR at any tier, < 1.0). Higher tiers would matter only for leveraged/under-collateralised variants, which H-1 does not use."
+  },
+  "settlement_status": "OFFICIAL_DELIVERY_PRICES_AVAILABLE; N1.5 used an APPROXIMATION (30m mean of 1m index closes) with mean |error| 17.1 bps vs official",
+  "verdict_change_required": false,
+  "n1_5_rerun_performed": false
+}

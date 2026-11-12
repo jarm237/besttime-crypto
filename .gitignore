@@ -42,3 +42,6 @@ research/historical_market_replay_v5/*.parquet
 
 # Historical data source feasibility downloads & large raw/normalized partitions
 /data/historical/
+
+# Greenfield neural trading raw market data partitions & forward recorder captures
+/data/neural_*/

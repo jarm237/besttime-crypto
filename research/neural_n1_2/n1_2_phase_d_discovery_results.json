@@ -1,0 +1,2567 @@
+{
+  "created_at": "2026-11-11T08:48:38Z",
+  "ha_microstructure_summary": {
+    "ADAUSDT": {
+      "total_hours": 35062,
+      "total_agg_trades": 176782785,
+      "total_underlying_orders_swept": 405927232,
+      "mean_orders_per_aggtrade": 2.2962,
+      "median_realized_bounce_spread_bps": 1.742,
+      "p90_realized_bounce_spread_bps": 3.437,
+      "whale_volume_share_pct": 10.23,
+      "retail_volume_share_pct": 32.0
+    },
+    "ETCUSDT": {
+      "total_hours": 35062,
+      "total_agg_trades": 62311830,
+      "total_underlying_orders_swept": 128289713,
+      "mean_orders_per_aggtrade": 2.0588,
+      "median_realized_bounce_spread_bps": 2.706,
+      "p90_realized_bounce_spread_bps": 4.32,
+      "whale_volume_share_pct": 7.18,
+      "retail_volume_share_pct": 37.66
+    },
+    "LINKUSDT": {
+      "total_hours": 35062,
+      "total_agg_trades": 125501062,
+      "total_underlying_orders_swept": 267014799,
+      "mean_orders_per_aggtrade": 2.1276,
+      "median_realized_bounce_spread_bps": 1.905,
+      "p90_realized_bounce_spread_bps": 6.85,
+      "whale_volume_share_pct": 12.67,
+      "retail_volume_share_pct": 34.45
+    },
+    "TRXUSDT": {
+      "total_hours": 35062,
+      "total_agg_trades": 130204629,
+      "total_underlying_orders_swept": 222064567,
+      "mean_orders_per_aggtrade": 1.7055,
+      "median_realized_bounce_spread_bps": 1.435,
+      "p90_realized_bounce_spread_bps": 4.278,
+      "whale_volume_share_pct": 22.29,
+      "retail_volume_share_pct": 28.15
+    },
+    "XLMUSDT": {
+      "total_hours": 35062,
+      "total_agg_trades": 60712176,
+      "total_underlying_orders_swept": 147996454,
+      "mean_orders_per_aggtrade": 2.4377,
+      "median_realized_bounce_spread_bps": 5.991,
+      "p90_realized_bounce_spread_bps": 9.6,
+      "whale_volume_share_pct": 5.11,
+      "retail_volume_share_pct": 44.89
+    }
+  },
+  "hypothesis_ha": {
+    "hypothesis_id": "H_A_PERSISTENT_TRADE_LEVEL_ORDER_FLOW_AND_LIQUIDITY_DISLOCATION",
+    "features": {
+      "ha_whale_ofi": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.01477,
+            "discovery_nw_se": 0.00297,
+            "discovery_nw_tstat": -4.981,
+            "discovery_ci95": [
+              -0.02059,
+              -0.00896
+            ],
+            "oos_2025_mean_ic": -0.00648,
+            "oos_2025_nw_tstat": -1.248,
+            "yearly_mean_ic": {
+              "2022": -0.0204,
+              "2023": -0.01641,
+              "2024": -0.00755,
+              "2025": -0.00648
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01748,
+              "ETCUSDT": -0.00858,
+              "LINKUSDT": -0.01549,
+              "TRXUSDT": -0.00178,
+              "XLMUSDT": -0.01251
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.02614,
+            "discovery_nw_se": 0.00617,
+            "discovery_nw_tstat": -4.234,
+            "discovery_ci95": [
+              -0.03824,
+              -0.01404
+            ],
+            "oos_2025_mean_ic": -0.00329,
+            "oos_2025_nw_tstat": -0.302,
+            "yearly_mean_ic": {
+              "2022": -0.02637,
+              "2023": -0.03051,
+              "2024": -0.00616,
+              "2025": 0.0031
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02301,
+              "ETCUSDT": -0.01236,
+              "LINKUSDT": -0.01388,
+              "TRXUSDT": -0.00545,
+              "XLMUSDT": -0.03011
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.03137,
+            "discovery_nw_se": 0.01101,
+            "discovery_nw_tstat": -2.849,
+            "discovery_ci95": [
+              -0.05295,
+              -0.00979
+            ],
+            "oos_2025_mean_ic": -0.01992,
+            "oos_2025_nw_tstat": -1.04,
+            "yearly_mean_ic": {
+              "2022": -0.03215,
+              "2023": -0.03114,
+              "2024": -0.01178,
+              "2025": -0.00045
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02547,
+              "ETCUSDT": 0.00179,
+              "LINKUSDT": -0.01937,
+              "TRXUSDT": -0.00988,
+              "XLMUSDT": -0.01097
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.02895,
+            "discovery_nw_se": 0.0157,
+            "discovery_nw_tstat": -1.844,
+            "discovery_ci95": [
+              -0.05972,
+              0.00181
+            ],
+            "oos_2025_mean_ic": 0.00932,
+            "oos_2025_nw_tstat": 0.392,
+            "yearly_mean_ic": {
+              "2022": -0.01683,
+              "2023": -0.03488,
+              "2024": -0.00832,
+              "2025": 0.0038
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01602,
+              "ETCUSDT": -0.00156,
+              "LINKUSDT": -0.01461,
+              "TRXUSDT": -0.02088,
+              "XLMUSDT": -0.0111
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.01317,
+          "cross_sectional_ic_tstat": 2.097,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.02633,
+            "ETCUSDT": 0.04604,
+            "LINKUSDT": 0.04117,
+            "TRXUSDT": -0.0012,
+            "XLMUSDT": 0.01245
+          },
+          "mean_abs_feature_ts_corr": 0.01443
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.03308,
+          "cross_sectional_ic_tstat": 5.108,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.00782,
+            "ETCUSDT": -0.11725,
+            "LINKUSDT": 0.04359,
+            "TRXUSDT": 0.02738,
+            "XLMUSDT": -0.08147
+          },
+          "mean_abs_feature_ts_corr": -0.02399
+        }
+      },
+      "ha_whale_minus_retail": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.01408,
+            "discovery_nw_se": 0.00297,
+            "discovery_nw_tstat": -4.744,
+            "discovery_ci95": [
+              -0.0199,
+              -0.00826
+            ],
+            "oos_2025_mean_ic": -0.01404,
+            "oos_2025_nw_tstat": -2.657,
+            "yearly_mean_ic": {
+              "2022": -0.01362,
+              "2023": -0.01305,
+              "2024": -0.01556,
+              "2025": -0.01404
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01301,
+              "ETCUSDT": -0.00484,
+              "LINKUSDT": -0.01164,
+              "TRXUSDT": -0.0034,
+              "XLMUSDT": -0.00309
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.02614,
+            "discovery_nw_se": 0.00594,
+            "discovery_nw_tstat": -4.4,
+            "discovery_ci95": [
+              -0.03779,
+              -0.0145
+            ],
+            "oos_2025_mean_ic": -0.01099,
+            "oos_2025_nw_tstat": -1.046,
+            "yearly_mean_ic": {
+              "2022": -0.02615,
+              "2023": -0.0201,
+              "2024": -0.01919,
+              "2025": 1e-05
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.0182,
+              "ETCUSDT": -0.00965,
+              "LINKUSDT": -0.01597,
+              "TRXUSDT": -0.00257,
+              "XLMUSDT": -0.01987
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.03069,
+            "discovery_nw_se": 0.0109,
+            "discovery_nw_tstat": -2.814,
+            "discovery_ci95": [
+              -0.05206,
+              -0.00932
+            ],
+            "oos_2025_mean_ic": -0.01911,
+            "oos_2025_nw_tstat": -1.043,
+            "yearly_mean_ic": {
+              "2022": -0.03049,
+              "2023": -0.01357,
+              "2024": -0.01901,
+              "2025": -0.01274
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02308,
+              "ETCUSDT": -0.00024,
+              "LINKUSDT": -0.03041,
+              "TRXUSDT": -0.00353,
+              "XLMUSDT": -0.00066
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.01931,
+            "discovery_nw_se": 0.01468,
+            "discovery_nw_tstat": -1.315,
+            "discovery_ci95": [
+              -0.04808,
+              0.00947
+            ],
+            "oos_2025_mean_ic": 0.00959,
+            "oos_2025_nw_tstat": 0.374,
+            "yearly_mean_ic": {
+              "2022": -0.00614,
+              "2023": -0.01427,
+              "2024": -0.02621,
+              "2025": -0.0155
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01312,
+              "ETCUSDT": -0.00707,
+              "LINKUSDT": -0.02176,
+              "TRXUSDT": -0.02371,
+              "XLMUSDT": 0.00052
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00748,
+          "cross_sectional_ic_tstat": 1.176,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.00374,
+            "ETCUSDT": 0.01969,
+            "LINKUSDT": 0.00676,
+            "TRXUSDT": 0.01504,
+            "XLMUSDT": 0.00128
+          },
+          "mean_abs_feature_ts_corr": 0.0093
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00707,
+          "cross_sectional_ic_tstat": 1.079,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.00849,
+            "ETCUSDT": 0.00016,
+            "LINKUSDT": 0.00727,
+            "TRXUSDT": -0.00444,
+            "XLMUSDT": 0.00188
+          },
+          "mean_abs_feature_ts_corr": -0.00072
+        }
+      },
+      "ha_signed_sweep_imb": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.00062,
+            "discovery_nw_se": 0.00298,
+            "discovery_nw_tstat": -0.209,
+            "discovery_ci95": [
+              -0.00646,
+              0.00521
+            ],
+            "oos_2025_mean_ic": 0.00448,
+            "oos_2025_nw_tstat": 0.823,
+            "yearly_mean_ic": {
+              "2022": -0.01059,
+              "2023": -0.0037,
+              "2024": 0.01233,
+              "2025": 0.00448
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02013,
+              "ETCUSDT": -0.01921,
+              "LINKUSDT": -0.0179,
+              "TRXUSDT": 0.00065,
+              "XLMUSDT": -0.01731
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.00421,
+            "discovery_nw_se": 0.00635,
+            "discovery_nw_tstat": -0.664,
+            "discovery_ci95": [
+              -0.01666,
+              0.00823
+            ],
+            "oos_2025_mean_ic": 0.01732,
+            "oos_2025_nw_tstat": 1.564,
+            "yearly_mean_ic": {
+              "2022": -0.01082,
+              "2023": -0.00716,
+              "2024": 0.01615,
+              "2025": 0.01481
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01412,
+              "ETCUSDT": -0.01755,
+              "LINKUSDT": -0.01578,
+              "TRXUSDT": -0.0097,
+              "XLMUSDT": -0.01916
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.00692,
+            "discovery_nw_se": 0.01058,
+            "discovery_nw_tstat": 0.654,
+            "discovery_ci95": [
+              -0.01382,
+              0.02766
+            ],
+            "oos_2025_mean_ic": 0.03062,
+            "oos_2025_nw_tstat": 1.738,
+            "yearly_mean_ic": {
+              "2022": -0.01411,
+              "2023": -0.00329,
+              "2024": 0.01582,
+              "2025": 0.01751
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00185,
+              "ETCUSDT": -0.00609,
+              "LINKUSDT": -0.01028,
+              "TRXUSDT": -0.00257,
+              "XLMUSDT": -0.01225
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.01137,
+            "discovery_nw_se": 0.01541,
+            "discovery_nw_tstat": 0.738,
+            "discovery_ci95": [
+              -0.01883,
+              0.04157
+            ],
+            "oos_2025_mean_ic": 0.00877,
+            "oos_2025_nw_tstat": 0.297,
+            "yearly_mean_ic": {
+              "2022": -0.01544,
+              "2023": -0.01164,
+              "2024": 0.03044,
+              "2025": 0.02246
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01311,
+              "ETCUSDT": -0.01358,
+              "LINKUSDT": -0.01731,
+              "TRXUSDT": 0.00276,
+              "XLMUSDT": -0.00944
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.01555,
+          "cross_sectional_ic_tstat": 2.126,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.02973,
+            "ETCUSDT": -0.04558,
+            "LINKUSDT": -0.06009,
+            "TRXUSDT": -0.01863,
+            "XLMUSDT": -0.05323
+          },
+          "mean_abs_feature_ts_corr": -0.04145
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00046,
+          "cross_sectional_ic_tstat": -0.054,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.00187,
+            "ETCUSDT": 0.0383,
+            "LINKUSDT": -0.00585,
+            "TRXUSDT": -0.01519,
+            "XLMUSDT": 0.05286
+          },
+          "mean_abs_feature_ts_corr": 0.01365
+        }
+      },
+      "ha_multifill_ofi": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.02272,
+            "discovery_nw_se": 0.003,
+            "discovery_nw_tstat": -7.568,
+            "discovery_ci95": [
+              -0.0286,
+              -0.01683
+            ],
+            "oos_2025_mean_ic": -0.01114,
+            "oos_2025_nw_tstat": -2.18,
+            "yearly_mean_ic": {
+              "2022": -0.01537,
+              "2023": -0.02732,
+              "2024": -0.02542,
+              "2025": -0.01114
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.03389,
+              "ETCUSDT": -0.0165,
+              "LINKUSDT": -0.02214,
+              "TRXUSDT": -0.00548,
+              "XLMUSDT": -0.02058
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.03566,
+            "discovery_nw_se": 0.00628,
+            "discovery_nw_tstat": -5.682,
+            "discovery_ci95": [
+              -0.04796,
+              -0.02336
+            ],
+            "oos_2025_mean_ic": -0.01494,
+            "oos_2025_nw_tstat": -1.465,
+            "yearly_mean_ic": {
+              "2022": -0.0277,
+              "2023": -0.03441,
+              "2024": -0.02314,
+              "2025": 0.00115
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.03762,
+              "ETCUSDT": -0.01678,
+              "LINKUSDT": -0.01467,
+              "TRXUSDT": 0.00608,
+              "XLMUSDT": -0.01556
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.03879,
+            "discovery_nw_se": 0.01049,
+            "discovery_nw_tstat": -3.698,
+            "discovery_ci95": [
+              -0.05934,
+              -0.01823
+            ],
+            "oos_2025_mean_ic": -0.01099,
+            "oos_2025_nw_tstat": -0.593,
+            "yearly_mean_ic": {
+              "2022": -0.03549,
+              "2023": -0.01308,
+              "2024": -0.00955,
+              "2025": 0.00168
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01569,
+              "ETCUSDT": 0.00773,
+              "LINKUSDT": -0.01699,
+              "TRXUSDT": 0.00404,
+              "XLMUSDT": 0.00412
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.00239,
+            "discovery_nw_se": 0.01575,
+            "discovery_nw_tstat": -0.152,
+            "discovery_ci95": [
+              -0.03326,
+              0.02847
+            ],
+            "oos_2025_mean_ic": 0.02466,
+            "oos_2025_nw_tstat": 0.964,
+            "yearly_mean_ic": {
+              "2022": -0.01414,
+              "2023": 0.00087,
+              "2024": -0.0067,
+              "2025": -0.0001
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02218,
+              "ETCUSDT": 0.01713,
+              "LINKUSDT": -0.00123,
+              "TRXUSDT": 0.00351,
+              "XLMUSDT": 0.01725
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.0159,
+          "cross_sectional_ic_tstat": 2.504,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.03147,
+            "ETCUSDT": -0.03381,
+            "LINKUSDT": -0.03697,
+            "TRXUSDT": -0.00613,
+            "XLMUSDT": -0.04392
+          },
+          "mean_abs_feature_ts_corr": -0.03046
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00355,
+          "cross_sectional_ic_tstat": 0.52,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.02389,
+            "ETCUSDT": 0.0217,
+            "LINKUSDT": -0.00296,
+            "TRXUSDT": -0.00329,
+            "XLMUSDT": 0.01464
+          },
+          "mean_abs_feature_ts_corr": 0.0108
+        }
+      },
+      "ha_impact_asymmetry": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.0138,
+            "discovery_nw_se": 0.00287,
+            "discovery_nw_tstat": -4.81,
+            "discovery_ci95": [
+              -0.01942,
+              -0.00817
+            ],
+            "oos_2025_mean_ic": -0.01084,
+            "oos_2025_nw_tstat": -2.14,
+            "yearly_mean_ic": {
+              "2022": -0.01213,
+              "2023": -0.01664,
+              "2024": -0.01262,
+              "2025": -0.01084
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02661,
+              "ETCUSDT": -0.00955,
+              "LINKUSDT": -0.00645,
+              "TRXUSDT": -0.01862,
+              "XLMUSDT": -0.01058
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.01562,
+            "discovery_nw_se": 0.00631,
+            "discovery_nw_tstat": -2.477,
+            "discovery_ci95": [
+              -0.02799,
+              -0.00326
+            ],
+            "oos_2025_mean_ic": -0.01758,
+            "oos_2025_nw_tstat": -1.678,
+            "yearly_mean_ic": {
+              "2022": -0.02287,
+              "2023": -0.00674,
+              "2024": -0.01749,
+              "2025": -0.01062
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.03151,
+              "ETCUSDT": -0.00925,
+              "LINKUSDT": -0.00184,
+              "TRXUSDT": -0.00658,
+              "XLMUSDT": -0.0111
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.02195,
+            "discovery_nw_se": 0.01065,
+            "discovery_nw_tstat": -2.06,
+            "discovery_ci95": [
+              -0.04283,
+              -0.00107
+            ],
+            "oos_2025_mean_ic": -0.01558,
+            "oos_2025_nw_tstat": -0.819,
+            "yearly_mean_ic": {
+              "2022": -0.02443,
+              "2023": -0.00061,
+              "2024": -0.0108,
+              "2025": -0.01514
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01431,
+              "ETCUSDT": 0.00191,
+              "LINKUSDT": -0.00901,
+              "TRXUSDT": 0.00673,
+              "XLMUSDT": -0.00544
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.00456,
+            "discovery_nw_se": 0.01518,
+            "discovery_nw_tstat": -0.301,
+            "discovery_ci95": [
+              -0.03431,
+              0.02518
+            ],
+            "oos_2025_mean_ic": 0.00795,
+            "oos_2025_nw_tstat": 0.297,
+            "yearly_mean_ic": {
+              "2022": -0.00729,
+              "2023": 0.01659,
+              "2024": -0.01067,
+              "2025": -0.01813
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01492,
+              "ETCUSDT": 0.00906,
+              "LINKUSDT": 0.00939,
+              "TRXUSDT": 0.01144,
+              "XLMUSDT": 0.01061
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00707,
+          "cross_sectional_ic_tstat": -1.0,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.01205,
+            "ETCUSDT": 0.00081,
+            "LINKUSDT": -0.02831,
+            "TRXUSDT": 0.03902,
+            "XLMUSDT": -0.01451
+          },
+          "mean_abs_feature_ts_corr": 0.00181
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00137,
+          "cross_sectional_ic_tstat": 0.177,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.0099,
+            "ETCUSDT": -0.00946,
+            "LINKUSDT": 0.01284,
+            "TRXUSDT": -0.01553,
+            "XLMUSDT": 0.02678
+          },
+          "mean_abs_feature_ts_corr": 0.00095
+        }
+      },
+      "ha_sweep_intensity_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.00158,
+            "discovery_nw_se": 0.00301,
+            "discovery_nw_tstat": -0.526,
+            "discovery_ci95": [
+              -0.00748,
+              0.00431
+            ],
+            "oos_2025_mean_ic": -0.01015,
+            "oos_2025_nw_tstat": -2.094,
+            "yearly_mean_ic": {
+              "2022": -0.0021,
+              "2023": 0.00126,
+              "2024": -0.0039,
+              "2025": -0.01015
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00385,
+              "ETCUSDT": 0.00678,
+              "LINKUSDT": 0.00369,
+              "TRXUSDT": 0.02648,
+              "XLMUSDT": 0.01057
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.00242,
+            "discovery_nw_se": 0.00608,
+            "discovery_nw_tstat": 0.399,
+            "discovery_ci95": [
+              -0.00949,
+              0.01433
+            ],
+            "oos_2025_mean_ic": 0.00446,
+            "oos_2025_nw_tstat": 0.425,
+            "yearly_mean_ic": {
+              "2022": -0.00012,
+              "2023": -0.00075,
+              "2024": 0.00118,
+              "2025": -0.00751
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.00426,
+              "ETCUSDT": 0.00973,
+              "LINKUSDT": -0.00072,
+              "TRXUSDT": 0.03631,
+              "XLMUSDT": 0.01701
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.00321,
+            "discovery_nw_se": 0.01042,
+            "discovery_nw_tstat": -0.308,
+            "discovery_ci95": [
+              -0.02364,
+              0.01721
+            ],
+            "oos_2025_mean_ic": -0.0078,
+            "oos_2025_nw_tstat": -0.4,
+            "yearly_mean_ic": {
+              "2022": -0.00343,
+              "2023": -0.00078,
+              "2024": -0.00217,
+              "2025": -0.00719
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01663,
+              "ETCUSDT": 0.00224,
+              "LINKUSDT": 0.01311,
+              "TRXUSDT": 0.03241,
+              "XLMUSDT": 0.00391
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.02362,
+            "discovery_nw_se": 0.01569,
+            "discovery_nw_tstat": 1.505,
+            "discovery_ci95": [
+              -0.00714,
+              0.05437
+            ],
+            "oos_2025_mean_ic": -0.02055,
+            "oos_2025_nw_tstat": -0.73,
+            "yearly_mean_ic": {
+              "2022": 0.00299,
+              "2023": -0.00551,
+              "2024": -0.00664,
+              "2025": -0.02862
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.01073,
+              "ETCUSDT": 0.01756,
+              "LINKUSDT": 0.01855,
+              "TRXUSDT": 0.03239,
+              "XLMUSDT": 0.01506
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.01577,
+          "cross_sectional_ic_tstat": 1.922,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.0019,
+            "ETCUSDT": 0.01883,
+            "LINKUSDT": 0.01695,
+            "TRXUSDT": 0.02589,
+            "XLMUSDT": -0.01959
+          },
+          "mean_abs_feature_ts_corr": 0.0088
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.0053,
+          "cross_sectional_ic_tstat": 0.506,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.02431,
+            "ETCUSDT": 0.02772,
+            "LINKUSDT": 0.0214,
+            "TRXUSDT": 0.02263,
+            "XLMUSDT": 0.00233
+          },
+          "mean_abs_feature_ts_corr": 0.01968
+        }
+      },
+      "ha_composite_score": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.01944,
+            "discovery_nw_se": 0.00298,
+            "discovery_nw_tstat": -6.527,
+            "discovery_ci95": [
+              -0.02528,
+              -0.0136
+            ],
+            "oos_2025_mean_ic": -0.00632,
+            "oos_2025_nw_tstat": -1.221,
+            "yearly_mean_ic": {
+              "2022": -0.023,
+              "2023": -0.02541,
+              "2024": -0.00996,
+              "2025": -0.00632
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02888,
+              "ETCUSDT": -0.01626,
+              "LINKUSDT": -0.02394,
+              "TRXUSDT": -0.00327,
+              "XLMUSDT": -0.02203
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.02948,
+            "discovery_nw_se": 0.00607,
+            "discovery_nw_tstat": -4.86,
+            "discovery_ci95": [
+              -0.04137,
+              -0.01759
+            ],
+            "oos_2025_mean_ic": -0.00133,
+            "oos_2025_nw_tstat": -0.122,
+            "yearly_mean_ic": {
+              "2022": -0.03199,
+              "2023": -0.03181,
+              "2024": -0.00837,
+              "2025": 0.00578
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.0338,
+              "ETCUSDT": -0.01897,
+              "LINKUSDT": -0.02229,
+              "TRXUSDT": -0.0061,
+              "XLMUSDT": -0.03019
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.03653,
+            "discovery_nw_se": 0.01111,
+            "discovery_nw_tstat": -3.29,
+            "discovery_ci95": [
+              -0.0583,
+              -0.01477
+            ],
+            "oos_2025_mean_ic": -0.00608,
+            "oos_2025_nw_tstat": -0.323,
+            "yearly_mean_ic": {
+              "2022": -0.04588,
+              "2023": -0.0196,
+              "2024": -0.00904,
+              "2025": 0.00075
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.02416,
+              "ETCUSDT": -0.00057,
+              "LINKUSDT": -0.02668,
+              "TRXUSDT": -0.00253,
+              "XLMUSDT": -0.00844
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.01396,
+            "discovery_nw_se": 0.01562,
+            "discovery_nw_tstat": -0.894,
+            "discovery_ci95": [
+              -0.04457,
+              0.01665
+            ],
+            "oos_2025_mean_ic": 0.02959,
+            "oos_2025_nw_tstat": 1.175,
+            "yearly_mean_ic": {
+              "2022": -0.0235,
+              "2023": -0.01853,
+              "2024": -0.00133,
+              "2025": 0.00857
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.0228,
+              "ETCUSDT": -0.00178,
+              "LINKUSDT": -0.02139,
+              "TRXUSDT": -0.01261,
+              "XLMUSDT": 0.00038
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.01548,
+          "cross_sectional_ic_tstat": 2.411,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.02572,
+            "ETCUSDT": -0.00791,
+            "LINKUSDT": 0.00382,
+            "TRXUSDT": -0.00662,
+            "XLMUSDT": -0.02222
+          },
+          "mean_abs_feature_ts_corr": -0.01173
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.01025,
+          "cross_sectional_ic_tstat": 1.552,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.02515,
+            "ETCUSDT": -0.02243,
+            "LINKUSDT": 0.05531,
+            "TRXUSDT": 0.02448,
+            "XLMUSDT": -0.02294
+          },
+          "mean_abs_feature_ts_corr": 0.01191
+        }
+      }
+    }
+  },
+  "hypothesis_hb": {
+    "hypothesis_id": "H_B_CROSS_VENUE_COINBASE_AND_5M_PERP_SPOT_PRICE_DISCOVERY",
+    "features": {
+      "hb1_cb_minus_bn_ret_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.02692,
+            "discovery_nw_se": 0.00248,
+            "discovery_nw_tstat": 10.854,
+            "discovery_ci95": [
+              0.02206,
+              0.03178
+            ],
+            "oos_2025_mean_ic": 0.01506,
+            "oos_2025_nw_tstat": 3.595,
+            "yearly_mean_ic": {
+              "2022": 0.03691,
+              "2023": 0.02843,
+              "2024": 0.01547,
+              "2025": 0.01506
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01181,
+              "BTCUSDT": 0.01848,
+              "DOGEUSDT": 0.00563,
+              "ETHUSDT": 0.0195,
+              "LINKUSDT": 0.00881,
+              "LTCUSDT": 0.02919,
+              "SOLUSDT": 0.01137,
+              "XRPUSDT": 0.03638
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.01759,
+            "discovery_nw_se": 0.00488,
+            "discovery_nw_tstat": 3.606,
+            "discovery_ci95": [
+              0.00803,
+              0.02715
+            ],
+            "oos_2025_mean_ic": 0.00635,
+            "oos_2025_nw_tstat": 0.747,
+            "yearly_mean_ic": {
+              "2022": 0.02216,
+              "2023": 0.01828,
+              "2024": 0.01582,
+              "2025": 0.01412
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00599,
+              "BTCUSDT": 0.01581,
+              "DOGEUSDT": 0.01072,
+              "ETHUSDT": 0.01724,
+              "LINKUSDT": 0.01134,
+              "LTCUSDT": 0.0181,
+              "SOLUSDT": 0.01143,
+              "XRPUSDT": 0.02476
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.01126,
+            "discovery_nw_se": 0.00798,
+            "discovery_nw_tstat": 1.41,
+            "discovery_ci95": [
+              -0.00439,
+              0.02691
+            ],
+            "oos_2025_mean_ic": -0.00516,
+            "oos_2025_nw_tstat": -0.383,
+            "yearly_mean_ic": {
+              "2022": 0.01464,
+              "2023": 0.00967,
+              "2024": 0.00833,
+              "2025": 0.00658
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00476,
+              "BTCUSDT": 0.00641,
+              "DOGEUSDT": 0.00729,
+              "ETHUSDT": 0.00603,
+              "LINKUSDT": 0.00023,
+              "LTCUSDT": 0.01237,
+              "SOLUSDT": 0.00759,
+              "XRPUSDT": 0.01799
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.02117,
+            "discovery_nw_se": 0.01158,
+            "discovery_nw_tstat": 1.829,
+            "discovery_ci95": [
+              -0.00151,
+              0.04386
+            ],
+            "oos_2025_mean_ic": 0.0119,
+            "oos_2025_nw_tstat": 0.645,
+            "yearly_mean_ic": {
+              "2022": 0.00929,
+              "2023": 0.00537,
+              "2024": 0.00547,
+              "2025": 0.00569
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00609,
+              "BTCUSDT": 0.00855,
+              "DOGEUSDT": 0.00135,
+              "ETHUSDT": 0.00399,
+              "LINKUSDT": 0.00428,
+              "LTCUSDT": 0.00689,
+              "SOLUSDT": 0.00098,
+              "XRPUSDT": 0.00608
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00522,
+          "cross_sectional_ic_tstat": 1.066,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.01012,
+            "BTCUSDT": 0.06959,
+            "DOGEUSDT": 0.02817,
+            "ETHUSDT": 0.05057,
+            "LINKUSDT": 0.02538,
+            "LTCUSDT": 0.01523,
+            "SOLUSDT": 0.02717,
+            "XRPUSDT": 0.07194
+          },
+          "mean_abs_feature_ts_corr": 0.03727
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00284,
+          "cross_sectional_ic_tstat": 0.592,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.03983,
+            "BTCUSDT": 0.0631,
+            "DOGEUSDT": 0.05352,
+            "ETHUSDT": 0.04885,
+            "LINKUSDT": 0.02933,
+            "LTCUSDT": 0.06362,
+            "SOLUSDT": -0.00469,
+            "XRPUSDT": 0.02588
+          },
+          "mean_abs_feature_ts_corr": 0.03993
+        }
+      },
+      "hb1_cb_premium_dev_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.03419,
+            "discovery_nw_se": 0.00234,
+            "discovery_nw_tstat": 14.593,
+            "discovery_ci95": [
+              0.0296,
+              0.03878
+            ],
+            "oos_2025_mean_ic": 0.02553,
+            "oos_2025_nw_tstat": 6.303,
+            "yearly_mean_ic": {
+              "2022": 0.0446,
+              "2023": 0.03511,
+              "2024": 0.02292,
+              "2025": 0.02553
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.02489,
+              "BTCUSDT": 0.01415,
+              "DOGEUSDT": 0.01517,
+              "ETHUSDT": 0.01601,
+              "LINKUSDT": 0.02498,
+              "LTCUSDT": 0.03772,
+              "SOLUSDT": 0.02742,
+              "XRPUSDT": 0.00626
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.02454,
+            "discovery_nw_se": 0.00483,
+            "discovery_nw_tstat": 5.081,
+            "discovery_ci95": [
+              0.01507,
+              0.03401
+            ],
+            "oos_2025_mean_ic": 0.00778,
+            "oos_2025_nw_tstat": 0.902,
+            "yearly_mean_ic": {
+              "2022": 0.02335,
+              "2023": 0.02797,
+              "2024": 0.01532,
+              "2025": 0.0145
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01851,
+              "BTCUSDT": 0.01366,
+              "DOGEUSDT": 0.02213,
+              "ETHUSDT": 0.02294,
+              "LINKUSDT": 0.03491,
+              "LTCUSDT": 0.03517,
+              "SOLUSDT": 0.03542,
+              "XRPUSDT": 0.00697
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.02582,
+            "discovery_nw_se": 0.00802,
+            "discovery_nw_tstat": 3.22,
+            "discovery_ci95": [
+              0.01011,
+              0.04154
+            ],
+            "oos_2025_mean_ic": -0.00065,
+            "oos_2025_nw_tstat": -0.048,
+            "yearly_mean_ic": {
+              "2022": 0.01742,
+              "2023": 0.00891,
+              "2024": 0.00158,
+              "2025": 0.00474
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.02501,
+              "BTCUSDT": 0.01751,
+              "DOGEUSDT": 0.02237,
+              "ETHUSDT": 0.03735,
+              "LINKUSDT": 0.02845,
+              "LTCUSDT": 0.02938,
+              "SOLUSDT": 0.03517,
+              "XRPUSDT": 0.01476
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.01735,
+            "discovery_nw_se": 0.01189,
+            "discovery_nw_tstat": 1.458,
+            "discovery_ci95": [
+              -0.00597,
+              0.04066
+            ],
+            "oos_2025_mean_ic": -0.02067,
+            "oos_2025_nw_tstat": -1.099,
+            "yearly_mean_ic": {
+              "2022": 0.01113,
+              "2023": 0.0046,
+              "2024": -0.00116,
+              "2025": -0.00057
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01672,
+              "BTCUSDT": 0.02275,
+              "DOGEUSDT": 0.01938,
+              "ETHUSDT": 0.0231,
+              "LINKUSDT": 0.01708,
+              "LTCUSDT": 0.02246,
+              "SOLUSDT": 0.01624,
+              "XRPUSDT": 0.01108
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00808,
+          "cross_sectional_ic_tstat": 1.534,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.00049,
+            "BTCUSDT": 0.07363,
+            "DOGEUSDT": 0.01627,
+            "ETHUSDT": 0.04458,
+            "LINKUSDT": 0.01892,
+            "LTCUSDT": 0.0114,
+            "SOLUSDT": -0.00071,
+            "XRPUSDT": -0.15925
+          },
+          "mean_abs_feature_ts_corr": 0.00054
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00491,
+          "cross_sectional_ic_tstat": 0.846,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.04846,
+            "BTCUSDT": 0.05928,
+            "DOGEUSDT": 0.06244,
+            "ETHUSDT": 0.04301,
+            "LINKUSDT": 0.04482,
+            "LTCUSDT": 0.05691,
+            "SOLUSDT": 0.0033,
+            "XRPUSDT": -0.47624
+          },
+          "mean_abs_feature_ts_corr": -0.01975
+        }
+      },
+      "hb1_cb_signed_vol_shock": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.00765,
+            "discovery_nw_se": 0.00232,
+            "discovery_nw_tstat": 3.293,
+            "discovery_ci95": [
+              0.0031,
+              0.0122
+            ],
+            "oos_2025_mean_ic": 0.0041,
+            "oos_2025_nw_tstat": 0.963,
+            "yearly_mean_ic": {
+              "2022": 0.00624,
+              "2023": 0.01176,
+              "2024": 0.00496,
+              "2025": 0.0041
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00639,
+              "BTCUSDT": 0.01275,
+              "DOGEUSDT": 0.00985,
+              "ETHUSDT": 0.00703,
+              "LINKUSDT": 0.01202,
+              "LTCUSDT": 0.02419,
+              "SOLUSDT": 0.00762,
+              "XRPUSDT": 0.00858
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.00033,
+            "discovery_nw_se": 0.00462,
+            "discovery_nw_tstat": 0.073,
+            "discovery_ci95": [
+              -0.00871,
+              0.00938
+            ],
+            "oos_2025_mean_ic": -0.00278,
+            "oos_2025_nw_tstat": -0.334,
+            "yearly_mean_ic": {
+              "2022": 0.00961,
+              "2023": 0.00215,
+              "2024": 0.00076,
+              "2025": -2e-05
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00804,
+              "BTCUSDT": 0.00594,
+              "DOGEUSDT": 0.00957,
+              "ETHUSDT": 0.0102,
+              "LINKUSDT": 0.00588,
+              "LTCUSDT": 0.01569,
+              "SOLUSDT": 0.00245,
+              "XRPUSDT": 0.00487
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.00345,
+            "discovery_nw_se": 0.0082,
+            "discovery_nw_tstat": 0.421,
+            "discovery_ci95": [
+              -0.01262,
+              0.01952
+            ],
+            "oos_2025_mean_ic": -0.04651,
+            "oos_2025_nw_tstat": -3.274,
+            "yearly_mean_ic": {
+              "2022": -0.00104,
+              "2023": 4e-05,
+              "2024": 0.00284,
+              "2025": -0.00851
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01421,
+              "BTCUSDT": 0.00279,
+              "DOGEUSDT": 0.00548,
+              "ETHUSDT": 0.00945,
+              "LINKUSDT": 0.00663,
+              "LTCUSDT": -0.00635,
+              "SOLUSDT": 0.00281,
+              "XRPUSDT": 0.00499
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.00214,
+            "discovery_nw_se": 0.01082,
+            "discovery_nw_tstat": 0.198,
+            "discovery_ci95": [
+              -0.01907,
+              0.02335
+            ],
+            "oos_2025_mean_ic": -0.00672,
+            "oos_2025_nw_tstat": -0.329,
+            "yearly_mean_ic": {
+              "2022": -0.0004,
+              "2023": -0.00081,
+              "2024": 0.00271,
+              "2025": -0.00635
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00419,
+              "BTCUSDT": -0.00286,
+              "DOGEUSDT": 0.00743,
+              "ETHUSDT": 0.00194,
+              "LINKUSDT": 0.00676,
+              "LTCUSDT": -0.00741,
+              "SOLUSDT": -0.00319,
+              "XRPUSDT": 0.00504
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00872,
+          "cross_sectional_ic_tstat": -1.816,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.12624,
+            "BTCUSDT": 0.17971,
+            "DOGEUSDT": 0.13853,
+            "ETHUSDT": 0.14021,
+            "LINKUSDT": 0.10732,
+            "LTCUSDT": 0.13097,
+            "SOLUSDT": 0.11569,
+            "XRPUSDT": -0.10972
+          },
+          "mean_abs_feature_ts_corr": 0.10362
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00587,
+          "cross_sectional_ic_tstat": -1.163,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.02235,
+            "BTCUSDT": 0.11335,
+            "DOGEUSDT": 0.04311,
+            "ETHUSDT": 0.07225,
+            "LINKUSDT": 0.04958,
+            "LTCUSDT": 0.06678,
+            "SOLUSDT": 0.02212,
+            "XRPUSDT": -0.46676
+          },
+          "mean_abs_feature_ts_corr": -0.00965
+        }
+      },
+      "hb1_cb_vol_share_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": -0.00201,
+            "discovery_nw_se": 0.00231,
+            "discovery_nw_tstat": -0.867,
+            "discovery_ci95": [
+              -0.00654,
+              0.00253
+            ],
+            "oos_2025_mean_ic": -0.00124,
+            "oos_2025_nw_tstat": -0.309,
+            "yearly_mean_ic": {
+              "2022": -0.00588,
+              "2023": -0.00063,
+              "2024": 0.00047,
+              "2025": -0.00124
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.00314,
+              "BTCUSDT": -0.00566,
+              "DOGEUSDT": 0.01683,
+              "ETHUSDT": -0.00312,
+              "LINKUSDT": 0.00491,
+              "LTCUSDT": -0.00341,
+              "SOLUSDT": -0.00564,
+              "XRPUSDT": -0.00012
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.00025,
+            "discovery_nw_se": 0.00455,
+            "discovery_nw_tstat": -0.054,
+            "discovery_ci95": [
+              -0.00917,
+              0.00867
+            ],
+            "oos_2025_mean_ic": -0.00088,
+            "oos_2025_nw_tstat": -0.107,
+            "yearly_mean_ic": {
+              "2022": -0.00137,
+              "2023": 0.00463,
+              "2024": -0.00319,
+              "2025": -0.00256
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01402,
+              "BTCUSDT": -0.00323,
+              "DOGEUSDT": 0.02459,
+              "ETHUSDT": 0.00435,
+              "LINKUSDT": 0.02732,
+              "LTCUSDT": 0.01355,
+              "SOLUSDT": 0.00589,
+              "XRPUSDT": -0.00492
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.00692,
+            "discovery_nw_se": 0.008,
+            "discovery_nw_tstat": 0.864,
+            "discovery_ci95": [
+              -0.00877,
+              0.02261
+            ],
+            "oos_2025_mean_ic": 0.00603,
+            "oos_2025_nw_tstat": 0.425,
+            "yearly_mean_ic": {
+              "2022": 0.01175,
+              "2023": -0.00532,
+              "2024": -0.00567,
+              "2025": 0.00197
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.02026,
+              "BTCUSDT": 0.00308,
+              "DOGEUSDT": 0.02613,
+              "ETHUSDT": 0.01841,
+              "LINKUSDT": 0.03406,
+              "LTCUSDT": 0.00659,
+              "SOLUSDT": 0.01717,
+              "XRPUSDT": -0.01946
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.02067,
+            "discovery_nw_se": 0.01125,
+            "discovery_nw_tstat": -1.837,
+            "discovery_ci95": [
+              -0.04273,
+              0.00139
+            ],
+            "oos_2025_mean_ic": 0.00568,
+            "oos_2025_nw_tstat": 0.321,
+            "yearly_mean_ic": {
+              "2022": 0.00049,
+              "2023": -0.00776,
+              "2024": -0.0088,
+              "2025": 0.00266
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00261,
+              "BTCUSDT": -0.01727,
+              "DOGEUSDT": -0.0155,
+              "ETHUSDT": 0.0016,
+              "LINKUSDT": 0.00958,
+              "LTCUSDT": -0.00467,
+              "SOLUSDT": -0.00622,
+              "XRPUSDT": -0.00076
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00882,
+          "cross_sectional_ic_tstat": -1.397,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.02746,
+            "BTCUSDT": -0.04266,
+            "DOGEUSDT": -0.03284,
+            "ETHUSDT": -0.02542,
+            "LINKUSDT": -0.04134,
+            "LTCUSDT": -0.00406,
+            "SOLUSDT": -0.02995,
+            "XRPUSDT": -0.1553
+          },
+          "mean_abs_feature_ts_corr": -0.04488
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00665,
+          "cross_sectional_ic_tstat": -0.943,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.00279,
+            "BTCUSDT": 0.01449,
+            "DOGEUSDT": -0.01219,
+            "ETHUSDT": -0.00284,
+            "LINKUSDT": 0.00974,
+            "LTCUSDT": 0.01101,
+            "SOLUSDT": 0.01288,
+            "XRPUSDT": -0.48198
+          },
+          "mean_abs_feature_ts_corr": -0.05576
+        }
+      },
+      "hb2_basis_change_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.00374,
+            "discovery_nw_se": 0.00235,
+            "discovery_nw_tstat": 1.593,
+            "discovery_ci95": [
+              -0.00086,
+              0.00834
+            ],
+            "oos_2025_mean_ic": 0.01123,
+            "oos_2025_nw_tstat": 2.762,
+            "yearly_mean_ic": {
+              "2022": 0.00664,
+              "2023": 0.00247,
+              "2024": 0.00212,
+              "2025": 0.01123
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.00152,
+              "BTCUSDT": 0.00993,
+              "DOGEUSDT": 0.00753,
+              "ETHUSDT": -0.0035,
+              "LINKUSDT": -0.00154,
+              "LTCUSDT": 0.00144,
+              "SOLUSDT": 0.01092,
+              "XRPUSDT": 0.00289
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.0083,
+            "discovery_nw_se": 0.00461,
+            "discovery_nw_tstat": 1.799,
+            "discovery_ci95": [
+              -0.00074,
+              0.01733
+            ],
+            "oos_2025_mean_ic": 0.00334,
+            "oos_2025_nw_tstat": 0.41,
+            "yearly_mean_ic": {
+              "2022": 0.00047,
+              "2023": 0.0023,
+              "2024": -0.00014,
+              "2025": 0.00851
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01046,
+              "BTCUSDT": 0.01257,
+              "DOGEUSDT": 0.00406,
+              "ETHUSDT": -0.00352,
+              "LINKUSDT": -0.00741,
+              "LTCUSDT": -0.00085,
+              "SOLUSDT": 0.01229,
+              "XRPUSDT": 0.00894
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.00325,
+            "discovery_nw_se": 0.00824,
+            "discovery_nw_tstat": 0.394,
+            "discovery_ci95": [
+              -0.01291,
+              0.01941
+            ],
+            "oos_2025_mean_ic": 0.00416,
+            "oos_2025_nw_tstat": 0.283,
+            "yearly_mean_ic": {
+              "2022": 0.00133,
+              "2023": 0.00111,
+              "2024": -0.00692,
+              "2025": 0.00703
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00391,
+              "BTCUSDT": 0.01027,
+              "DOGEUSDT": 0.00558,
+              "ETHUSDT": 0.00607,
+              "LINKUSDT": -0.00932,
+              "LTCUSDT": -0.00394,
+              "SOLUSDT": 0.01618,
+              "XRPUSDT": 0.00867
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.01465,
+            "discovery_nw_se": 0.01227,
+            "discovery_nw_tstat": -1.194,
+            "discovery_ci95": [
+              -0.03871,
+              0.0094
+            ],
+            "oos_2025_mean_ic": 0.00969,
+            "oos_2025_nw_tstat": 0.501,
+            "yearly_mean_ic": {
+              "2022": -0.00886,
+              "2023": -0.00278,
+              "2024": -0.00083,
+              "2025": 0.00517
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.00205,
+              "BTCUSDT": -0.00279,
+              "DOGEUSDT": 0.02146,
+              "ETHUSDT": -0.00135,
+              "LINKUSDT": -0.01361,
+              "LTCUSDT": -0.00811,
+              "SOLUSDT": 0.00301,
+              "XRPUSDT": -0.01789
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.0019,
+          "cross_sectional_ic_tstat": -0.417,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.01513,
+            "BTCUSDT": 0.03204,
+            "DOGEUSDT": 0.02211,
+            "ETHUSDT": 0.0126,
+            "LINKUSDT": 0.00929,
+            "LTCUSDT": -0.0031,
+            "SOLUSDT": 0.02604,
+            "XRPUSDT": -0.00085
+          },
+          "mean_abs_feature_ts_corr": 0.01416
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00094,
+          "cross_sectional_ic_tstat": -0.204,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.04065,
+            "BTCUSDT": 0.033,
+            "DOGEUSDT": 0.04701,
+            "ETHUSDT": 0.04155,
+            "LINKUSDT": 0.03231,
+            "LTCUSDT": 0.01402,
+            "SOLUSDT": 0.02534,
+            "XRPUSDT": 0.03071
+          },
+          "mean_abs_feature_ts_corr": 0.03307
+        }
+      },
+      "hb2_last15m_perp_lead_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.01073,
+            "discovery_nw_se": 0.00243,
+            "discovery_nw_tstat": 4.419,
+            "discovery_ci95": [
+              0.00597,
+              0.01549
+            ],
+            "oos_2025_mean_ic": 0.00639,
+            "oos_2025_nw_tstat": 1.691,
+            "yearly_mean_ic": {
+              "2022": 0.0117,
+              "2023": 0.00955,
+              "2024": 0.01093,
+              "2025": 0.00639
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.00212,
+              "BTCUSDT": 0.01092,
+              "DOGEUSDT": 0.01584,
+              "ETHUSDT": 0.00427,
+              "LINKUSDT": 0.00586,
+              "LTCUSDT": 0.0046,
+              "SOLUSDT": 0.01926,
+              "XRPUSDT": 0.00817
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.00767,
+            "discovery_nw_se": 0.00475,
+            "discovery_nw_tstat": 1.615,
+            "discovery_ci95": [
+              -0.00164,
+              0.01697
+            ],
+            "oos_2025_mean_ic": 0.00011,
+            "oos_2025_nw_tstat": 0.013,
+            "yearly_mean_ic": {
+              "2022": 0.00704,
+              "2023": 0.01154,
+              "2024": -0.00356,
+              "2025": 0.00651
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.0059,
+              "BTCUSDT": 0.00484,
+              "DOGEUSDT": 0.0128,
+              "ETHUSDT": 0.01163,
+              "LINKUSDT": 0.01123,
+              "LTCUSDT": 0.01005,
+              "SOLUSDT": 0.00665,
+              "XRPUSDT": 0.00579
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.00845,
+            "discovery_nw_se": 0.00857,
+            "discovery_nw_tstat": -0.986,
+            "discovery_ci95": [
+              -0.02525,
+              0.00834
+            ],
+            "oos_2025_mean_ic": 0.00153,
+            "oos_2025_nw_tstat": 0.106,
+            "yearly_mean_ic": {
+              "2022": 0.00229,
+              "2023": 0.00211,
+              "2024": -0.01079,
+              "2025": 0.00412
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": -0.00237,
+              "BTCUSDT": 0.00336,
+              "DOGEUSDT": 0.00393,
+              "ETHUSDT": 0.00682,
+              "LINKUSDT": 0.00061,
+              "LTCUSDT": -0.0001,
+              "SOLUSDT": 0.01103,
+              "XRPUSDT": -0.00788
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.00988,
+            "discovery_nw_se": 0.01176,
+            "discovery_nw_tstat": -0.84,
+            "discovery_ci95": [
+              -0.03293,
+              0.01318
+            ],
+            "oos_2025_mean_ic": -0.00992,
+            "oos_2025_nw_tstat": -0.527,
+            "yearly_mean_ic": {
+              "2022": -0.00198,
+              "2023": 0.00295,
+              "2024": -0.00497,
+              "2025": 5e-05
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00206,
+              "BTCUSDT": 0.00182,
+              "DOGEUSDT": 0.01137,
+              "ETHUSDT": 5e-05,
+              "LINKUSDT": -0.00228,
+              "LTCUSDT": 0.00102,
+              "SOLUSDT": 0.00704,
+              "XRPUSDT": -0.0094
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00043,
+          "cross_sectional_ic_tstat": 0.09,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.00672,
+            "BTCUSDT": 0.031,
+            "DOGEUSDT": 0.01013,
+            "ETHUSDT": 0.02886,
+            "LINKUSDT": 0.02238,
+            "LTCUSDT": 0.01555,
+            "SOLUSDT": 0.00324,
+            "XRPUSDT": -0.02599
+          },
+          "mean_abs_feature_ts_corr": 0.01149
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00671,
+          "cross_sectional_ic_tstat": 1.352,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.0244,
+            "BTCUSDT": 0.03985,
+            "DOGEUSDT": 0.04014,
+            "ETHUSDT": 0.02239,
+            "LINKUSDT": 0.04171,
+            "LTCUSDT": 0.02926,
+            "SOLUSDT": 0.00806,
+            "XRPUSDT": 0.0156
+          },
+          "mean_abs_feature_ts_corr": 0.02768
+        }
+      },
+      "hb2_perp_minus_spot_imb_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.00336,
+            "discovery_nw_se": 0.00219,
+            "discovery_nw_tstat": 1.535,
+            "discovery_ci95": [
+              -0.00093,
+              0.00765
+            ],
+            "oos_2025_mean_ic": -0.00492,
+            "oos_2025_nw_tstat": -1.297,
+            "yearly_mean_ic": {
+              "2022": -0.00437,
+              "2023": 0.00389,
+              "2024": 0.0105,
+              "2025": -0.00492
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01562,
+              "BTCUSDT": 0.00752,
+              "DOGEUSDT": 0.00785,
+              "ETHUSDT": 0.00381,
+              "LINKUSDT": 0.0026,
+              "LTCUSDT": 0.00994,
+              "SOLUSDT": 0.0185,
+              "XRPUSDT": -0.01164
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.00669,
+            "discovery_nw_se": 0.00464,
+            "discovery_nw_tstat": 1.443,
+            "discovery_ci95": [
+              -0.0024,
+              0.01577
+            ],
+            "oos_2025_mean_ic": -0.00696,
+            "oos_2025_nw_tstat": -0.884,
+            "yearly_mean_ic": {
+              "2022": -0.00309,
+              "2023": 0.0013,
+              "2024": 0.00589,
+              "2025": -0.00921
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.02287,
+              "BTCUSDT": 0.01698,
+              "DOGEUSDT": 0.00783,
+              "ETHUSDT": 0.00131,
+              "LINKUSDT": 0.00763,
+              "LTCUSDT": 0.00308,
+              "SOLUSDT": 0.01318,
+              "XRPUSDT": -0.00627
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.00416,
+            "discovery_nw_se": 0.008,
+            "discovery_nw_tstat": -0.52,
+            "discovery_ci95": [
+              -0.01985,
+              0.01153
+            ],
+            "oos_2025_mean_ic": -0.0074,
+            "oos_2025_nw_tstat": -0.554,
+            "yearly_mean_ic": {
+              "2022": 0.00418,
+              "2023": -0.00232,
+              "2024": -0.00156,
+              "2025": -0.00576
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01142,
+              "BTCUSDT": 0.01986,
+              "DOGEUSDT": 0.00034,
+              "ETHUSDT": -0.00268,
+              "LINKUSDT": 0.014,
+              "LTCUSDT": -0.01647,
+              "SOLUSDT": 0.01169,
+              "XRPUSDT": -0.0146
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.00627,
+            "discovery_nw_se": 0.01154,
+            "discovery_nw_tstat": 0.543,
+            "discovery_ci95": [
+              -0.01635,
+              0.02889
+            ],
+            "oos_2025_mean_ic": -0.02022,
+            "oos_2025_nw_tstat": -1.108,
+            "yearly_mean_ic": {
+              "2022": 0.00569,
+              "2023": -0.0018,
+              "2024": -0.0053,
+              "2025": 0.00031
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00643,
+              "BTCUSDT": 0.00393,
+              "DOGEUSDT": 0.00097,
+              "ETHUSDT": -0.00745,
+              "LINKUSDT": 0.01172,
+              "LTCUSDT": -0.023,
+              "SOLUSDT": 0.00588,
+              "XRPUSDT": -0.01184
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00338,
+          "cross_sectional_ic_tstat": -0.616,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.05615,
+            "BTCUSDT": -0.08522,
+            "DOGEUSDT": -0.06076,
+            "ETHUSDT": -0.05459,
+            "LINKUSDT": -0.06228,
+            "LTCUSDT": -0.03101,
+            "SOLUSDT": -0.05097,
+            "XRPUSDT": -0.07802
+          },
+          "mean_abs_feature_ts_corr": -0.05987
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00458,
+          "cross_sectional_ic_tstat": 0.813,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.02193,
+            "BTCUSDT": -0.02964,
+            "DOGEUSDT": -0.0325,
+            "ETHUSDT": -0.01082,
+            "LINKUSDT": -0.02348,
+            "LTCUSDT": -0.01599,
+            "SOLUSDT": -0.03258,
+            "XRPUSDT": -0.02939
+          },
+          "mean_abs_feature_ts_corr": -0.02454
+        }
+      },
+      "hb2_last15m_imb_diff_z": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.00073,
+            "discovery_nw_se": 0.00221,
+            "discovery_nw_tstat": 0.331,
+            "discovery_ci95": [
+              -0.00361,
+              0.00507
+            ],
+            "oos_2025_mean_ic": -0.00684,
+            "oos_2025_nw_tstat": -1.753,
+            "yearly_mean_ic": {
+              "2022": -0.0038,
+              "2023": 0.00239,
+              "2024": 0.00358,
+              "2025": -0.00684
+            },
+            "sign_stability_years_positive": 2,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01709,
+              "BTCUSDT": 0.00269,
+              "DOGEUSDT": 0.00718,
+              "ETHUSDT": 0.0063,
+              "LINKUSDT": 0.00489,
+              "LTCUSDT": 0.01397,
+              "SOLUSDT": 0.00796,
+              "XRPUSDT": -0.00948
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": -0.00492,
+            "discovery_nw_se": 0.00468,
+            "discovery_nw_tstat": -1.051,
+            "discovery_ci95": [
+              -0.01409,
+              0.00426
+            ],
+            "oos_2025_mean_ic": -0.01912,
+            "oos_2025_nw_tstat": -2.467,
+            "yearly_mean_ic": {
+              "2022": -0.00644,
+              "2023": 0.00017,
+              "2024": -0.00797,
+              "2025": -0.01955
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01605,
+              "BTCUSDT": -0.00329,
+              "DOGEUSDT": -0.00199,
+              "ETHUSDT": 0.00373,
+              "LINKUSDT": 0.01444,
+              "LTCUSDT": 0.00488,
+              "SOLUSDT": -0.00263,
+              "XRPUSDT": -0.01213
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.0083,
+            "discovery_nw_se": 0.00806,
+            "discovery_nw_tstat": -1.03,
+            "discovery_ci95": [
+              -0.02409,
+              0.00749
+            ],
+            "oos_2025_mean_ic": -0.00753,
+            "oos_2025_nw_tstat": -0.528,
+            "yearly_mean_ic": {
+              "2022": -0.00052,
+              "2023": -0.00065,
+              "2024": -0.01111,
+              "2025": -0.01181
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.0028,
+              "BTCUSDT": -0.00845,
+              "DOGEUSDT": -0.00803,
+              "ETHUSDT": -0.00469,
+              "LINKUSDT": 0.02798,
+              "LTCUSDT": -0.01036,
+              "SOLUSDT": -0.00213,
+              "XRPUSDT": -0.02018
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.0127,
+            "discovery_nw_se": 0.0113,
+            "discovery_nw_tstat": 1.124,
+            "discovery_ci95": [
+              -0.00944,
+              0.03485
+            ],
+            "oos_2025_mean_ic": -0.02081,
+            "oos_2025_nw_tstat": -1.143,
+            "yearly_mean_ic": {
+              "2022": -0.00667,
+              "2023": -4e-05,
+              "2024": -0.01782,
+              "2025": -0.00838
+            },
+            "sign_stability_years_positive": 0,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01395,
+              "BTCUSDT": -0.00477,
+              "DOGEUSDT": -0.00131,
+              "ETHUSDT": -0.01407,
+              "LINKUSDT": 0.02084,
+              "LTCUSDT": -0.01603,
+              "SOLUSDT": -0.01002,
+              "XRPUSDT": -0.01877
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00332,
+          "cross_sectional_ic_tstat": -0.668,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.094,
+            "BTCUSDT": -0.08821,
+            "DOGEUSDT": -0.08728,
+            "ETHUSDT": -0.06122,
+            "LINKUSDT": -0.07578,
+            "LTCUSDT": -0.0621,
+            "SOLUSDT": -0.05748,
+            "XRPUSDT": -0.07289
+          },
+          "mean_abs_feature_ts_corr": -0.07487
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00458,
+          "cross_sectional_ic_tstat": 0.876,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": -0.01239,
+            "BTCUSDT": -0.04065,
+            "DOGEUSDT": -0.04093,
+            "ETHUSDT": -0.01408,
+            "LINKUSDT": -0.01689,
+            "LTCUSDT": -0.02617,
+            "SOLUSDT": -0.02265,
+            "XRPUSDT": -0.02098
+          },
+          "mean_abs_feature_ts_corr": -0.02434
+        }
+      },
+      "hb1_composite_score": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.03097,
+            "discovery_nw_se": 0.00243,
+            "discovery_nw_tstat": 12.753,
+            "discovery_ci95": [
+              0.02621,
+              0.03573
+            ],
+            "oos_2025_mean_ic": 0.01528,
+            "oos_2025_nw_tstat": 3.796,
+            "yearly_mean_ic": {
+              "2022": 0.03791,
+              "2023": 0.0351,
+              "2024": 0.01996,
+              "2025": 0.01528
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.0182,
+              "BTCUSDT": 0.0202,
+              "DOGEUSDT": 0.01008,
+              "ETHUSDT": 0.01821,
+              "LINKUSDT": 0.01759,
+              "LTCUSDT": 0.03831,
+              "SOLUSDT": 0.01947,
+              "XRPUSDT": 0.03687
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.02185,
+            "discovery_nw_se": 0.00486,
+            "discovery_nw_tstat": 4.493,
+            "discovery_ci95": [
+              0.01232,
+              0.03138
+            ],
+            "oos_2025_mean_ic": 0.00451,
+            "oos_2025_nw_tstat": 0.542,
+            "yearly_mean_ic": {
+              "2022": 0.02213,
+              "2023": 0.01925,
+              "2024": 0.01343,
+              "2025": 0.01087
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01555,
+              "BTCUSDT": 0.01702,
+              "DOGEUSDT": 0.01444,
+              "ETHUSDT": 0.01957,
+              "LINKUSDT": 0.01987,
+              "LTCUSDT": 0.02607,
+              "SOLUSDT": 0.01934,
+              "XRPUSDT": 0.02364
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.01454,
+            "discovery_nw_se": 0.00801,
+            "discovery_nw_tstat": 1.816,
+            "discovery_ci95": [
+              -0.00116,
+              0.03024
+            ],
+            "oos_2025_mean_ic": -0.00858,
+            "oos_2025_nw_tstat": -0.606,
+            "yearly_mean_ic": {
+              "2022": 0.01347,
+              "2023": 0.00818,
+              "2024": 0.00615,
+              "2025": 0.00321
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01948,
+              "BTCUSDT": 0.01087,
+              "DOGEUSDT": 0.01357,
+              "ETHUSDT": 0.01533,
+              "LINKUSDT": 0.01162,
+              "LTCUSDT": 0.0112,
+              "SOLUSDT": 0.01625,
+              "XRPUSDT": 0.0179
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.02385,
+            "discovery_nw_se": 0.01144,
+            "discovery_nw_tstat": 2.084,
+            "discovery_ci95": [
+              0.00142,
+              0.04628
+            ],
+            "oos_2025_mean_ic": -0.01305,
+            "oos_2025_nw_tstat": -0.639,
+            "yearly_mean_ic": {
+              "2022": 0.00657,
+              "2023": 0.00318,
+              "2024": 0.0043,
+              "2025": 0.00087
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01236,
+              "BTCUSDT": 0.01341,
+              "DOGEUSDT": 0.00932,
+              "ETHUSDT": 0.00733,
+              "LINKUSDT": 0.01128,
+              "LTCUSDT": 0.00549,
+              "SOLUSDT": 0.00637,
+              "XRPUSDT": 0.00793
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": 0.0024,
+          "cross_sectional_ic_tstat": 0.488,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.02535,
+            "BTCUSDT": 0.11231,
+            "DOGEUSDT": 0.05765,
+            "ETHUSDT": 0.07598,
+            "LINKUSDT": 0.04095,
+            "LTCUSDT": 0.05082,
+            "SOLUSDT": 0.03849,
+            "XRPUSDT": 0.05599
+          },
+          "mean_abs_feature_ts_corr": 0.05719
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00274,
+          "cross_sectional_ic_tstat": 0.559,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.03829,
+            "BTCUSDT": 0.07786,
+            "DOGEUSDT": 0.07589,
+            "ETHUSDT": 0.06255,
+            "LINKUSDT": 0.04908,
+            "LTCUSDT": 0.07277,
+            "SOLUSDT": 0.02825,
+            "XRPUSDT": -0.09827
+          },
+          "mean_abs_feature_ts_corr": 0.0383
+        }
+      },
+      "hb2_composite_score": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.01062,
+            "discovery_nw_se": 0.00234,
+            "discovery_nw_tstat": 4.541,
+            "discovery_ci95": [
+              0.00604,
+              0.01521
+            ],
+            "oos_2025_mean_ic": 0.00627,
+            "oos_2025_nw_tstat": 1.671,
+            "yearly_mean_ic": {
+              "2022": 0.00923,
+              "2023": 0.00777,
+              "2024": 0.01485,
+              "2025": 0.00627
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00783,
+              "BTCUSDT": 0.01401,
+              "DOGEUSDT": 0.01575,
+              "ETHUSDT": 0.00113,
+              "LINKUSDT": 0.00615,
+              "LTCUSDT": 0.012,
+              "SOLUSDT": 0.02765,
+              "XRPUSDT": -0.00211
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.007,
+            "discovery_nw_se": 0.00465,
+            "discovery_nw_tstat": 1.505,
+            "discovery_ci95": [
+              -0.00211,
+              0.01611
+            ],
+            "oos_2025_mean_ic": -0.00689,
+            "oos_2025_nw_tstat": -0.848,
+            "yearly_mean_ic": {
+              "2022": 0.00029,
+              "2023": 0.00586,
+              "2024": 0.00478,
+              "2025": -0.00164
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.02183,
+              "BTCUSDT": 0.01861,
+              "DOGEUSDT": 0.01235,
+              "ETHUSDT": 0.00251,
+              "LINKUSDT": 0.0083,
+              "LTCUSDT": 0.00886,
+              "SOLUSDT": 0.019,
+              "XRPUSDT": 0.00584
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": -0.00976,
+            "discovery_nw_se": 0.00825,
+            "discovery_nw_tstat": -1.183,
+            "discovery_ci95": [
+              -0.02594,
+              0.00642
+            ],
+            "oos_2025_mean_ic": -0.00868,
+            "oos_2025_nw_tstat": -0.651,
+            "yearly_mean_ic": {
+              "2022": 0.00157,
+              "2023": 0.00016,
+              "2024": -0.00969,
+              "2025": 0.00354
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00524,
+              "BTCUSDT": 0.01835,
+              "DOGEUSDT": 0.00335,
+              "ETHUSDT": 0.00531,
+              "LINKUSDT": 0.00608,
+              "LTCUSDT": -0.00813,
+              "SOLUSDT": 0.02085,
+              "XRPUSDT": -0.00498
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": -0.00641,
+            "discovery_nw_se": 0.01216,
+            "discovery_nw_tstat": -0.527,
+            "discovery_ci95": [
+              -0.03024,
+              0.01743
+            ],
+            "oos_2025_mean_ic": -0.00841,
+            "oos_2025_nw_tstat": -0.433,
+            "yearly_mean_ic": {
+              "2022": -0.00493,
+              "2023": -0.00146,
+              "2024": -0.00706,
+              "2025": 0.0017
+            },
+            "sign_stability_years_positive": 1,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.0019,
+              "BTCUSDT": 0.003,
+              "DOGEUSDT": 0.01438,
+              "ETHUSDT": -0.00858,
+              "LINKUSDT": -0.00179,
+              "LTCUSDT": -0.0129,
+              "SOLUSDT": 0.00572,
+              "XRPUSDT": -0.01945
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00331,
+          "cross_sectional_ic_tstat": -0.679,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.00055,
+            "BTCUSDT": -0.015,
+            "DOGEUSDT": 0.00322,
+            "ETHUSDT": 0.00044,
+            "LINKUSDT": -0.01602,
+            "LTCUSDT": 0.00834,
+            "SOLUSDT": 0.00535,
+            "XRPUSDT": -0.03366
+          },
+          "mean_abs_feature_ts_corr": -0.00585
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.00348,
+          "cross_sectional_ic_tstat": 0.721,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.00235,
+            "BTCUSDT": 0.01016,
+            "DOGEUSDT": 0.00203,
+            "ETHUSDT": 0.01598,
+            "LINKUSDT": -0.00154,
+            "LTCUSDT": -0.00498,
+            "SOLUSDT": -0.00126,
+            "XRPUSDT": 0.01095
+          },
+          "mean_abs_feature_ts_corr": 0.00421
+        }
+      },
+      "hb_combined_score": {
+        "directional_return_prediction": {
+          "1h": {
+            "discovery_2022_2024_mean_ic": 0.02516,
+            "discovery_nw_se": 0.00236,
+            "discovery_nw_tstat": 10.665,
+            "discovery_ci95": [
+              0.02053,
+              0.02978
+            ],
+            "oos_2025_mean_ic": 0.01371,
+            "oos_2025_nw_tstat": 3.465,
+            "yearly_mean_ic": {
+              "2022": 0.02932,
+              "2023": 0.02884,
+              "2024": 0.01735,
+              "2025": 0.01371
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01922,
+              "BTCUSDT": 0.02249,
+              "DOGEUSDT": 0.02147,
+              "ETHUSDT": 0.01121,
+              "LINKUSDT": 0.0159,
+              "LTCUSDT": 0.03228,
+              "SOLUSDT": 0.02962,
+              "XRPUSDT": 0.02017
+            }
+          },
+          "4h": {
+            "discovery_2022_2024_mean_ic": 0.01796,
+            "discovery_nw_se": 0.0046,
+            "discovery_nw_tstat": 3.907,
+            "discovery_ci95": [
+              0.00895,
+              0.02697
+            ],
+            "oos_2025_mean_ic": -0.00598,
+            "oos_2025_nw_tstat": -0.717,
+            "yearly_mean_ic": {
+              "2022": 0.01587,
+              "2023": 0.02049,
+              "2024": 0.00721,
+              "2025": 0.00346
+            },
+            "sign_stability_years_positive": 4,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.02481,
+              "BTCUSDT": 0.02394,
+              "DOGEUSDT": 0.02176,
+              "ETHUSDT": 0.01363,
+              "LINKUSDT": 0.01788,
+              "LTCUSDT": 0.0227,
+              "SOLUSDT": 0.02515,
+              "XRPUSDT": 0.01979
+            }
+          },
+          "12h": {
+            "discovery_2022_2024_mean_ic": 0.0021,
+            "discovery_nw_se": 0.00826,
+            "discovery_nw_tstat": 0.254,
+            "discovery_ci95": [
+              -0.0141,
+              0.01829
+            ],
+            "oos_2025_mean_ic": -0.01373,
+            "oos_2025_nw_tstat": -1.031,
+            "yearly_mean_ic": {
+              "2022": 0.01042,
+              "2023": 0.00869,
+              "2024": -0.00595,
+              "2025": 0.00298
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.01581,
+              "BTCUSDT": 0.02008,
+              "DOGEUSDT": 0.01259,
+              "ETHUSDT": 0.01517,
+              "LINKUSDT": 0.01262,
+              "LTCUSDT": 0.00213,
+              "SOLUSDT": 0.02674,
+              "XRPUSDT": 0.00828
+            }
+          },
+          "24h": {
+            "discovery_2022_2024_mean_ic": 0.00642,
+            "discovery_nw_se": 0.01269,
+            "discovery_nw_tstat": 0.506,
+            "discovery_ci95": [
+              -0.01846,
+              0.0313
+            ],
+            "oos_2025_mean_ic": -0.01207,
+            "oos_2025_nw_tstat": -0.629,
+            "yearly_mean_ic": {
+              "2022": 0.00197,
+              "2023": 0.00431,
+              "2024": -0.00278,
+              "2025": 5e-05
+            },
+            "sign_stability_years_positive": 3,
+            "per_asset_ts_ic_discovery": {
+              "ADAUSDT": 0.00833,
+              "BTCUSDT": 0.00942,
+              "DOGEUSDT": 0.01661,
+              "ETHUSDT": -0.00063,
+              "LINKUSDT": 0.00534,
+              "LTCUSDT": -0.00536,
+              "SOLUSDT": 0.01059,
+              "XRPUSDT": -0.00785
+            }
+          }
+        },
+        "volatility_prediction_4h": {
+          "cross_sectional_ic_mean": -0.00195,
+          "cross_sectional_ic_tstat": -0.386,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.01237,
+            "BTCUSDT": 0.05233,
+            "DOGEUSDT": 0.02337,
+            "ETHUSDT": 0.02914,
+            "LINKUSDT": 0.02088,
+            "LTCUSDT": 0.03276,
+            "SOLUSDT": 0.02599,
+            "XRPUSDT": 0.00079
+          },
+          "mean_abs_feature_ts_corr": 0.0247
+        },
+        "liquidity_spread_prediction_4h": {
+          "cross_sectional_ic_mean": 0.0042,
+          "cross_sectional_ic_tstat": 0.847,
+          "abs_feature_ts_corr_by_asset": {
+            "ADAUSDT": 0.03475,
+            "BTCUSDT": 0.04353,
+            "DOGEUSDT": 0.04436,
+            "ETHUSDT": 0.0406,
+            "LINKUSDT": 0.04868,
+            "LTCUSDT": 0.04532,
+            "SOLUSDT": 0.02476,
+            "XRPUSDT": -0.02936
+          },
+          "mean_abs_feature_ts_corr": 0.03158
+        }
+      }
+    }
+  }
+}

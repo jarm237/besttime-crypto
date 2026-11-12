@@ -22,7 +22,7 @@ class GruPortfolioPolicy(BaseNeuralPolicy):
         self,
         num_assets: int,
         lookback_window: int = 48,
-        num_channels: int = 5,
+        num_channels: int = 4,
         hidden_dim: int = 32,
         num_layers: int = 2,
         dropout: float = 0.20,

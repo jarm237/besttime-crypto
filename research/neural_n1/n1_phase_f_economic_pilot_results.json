@@ -1,0 +1,911 @@
+{
+  "Fold1_2022_Bear": {
+    "train_diag": {
+      "final_train_loss": -1.2507,
+      "final_train_sharpe": 1.27
+    },
+    "eval_steps": 724,
+    "scenarios": {
+      "baseline_14bps_rt": {
+        "100% Cash": {
+          "initial_capital": 20000.0,
+          "final_equity": 20000.0,
+          "gross_pnl_usd": 0.0,
+          "net_pnl_usd": 0.0,
+          "gross_return_pct": 0.0,
+          "net_return_pct": 0.0,
+          "annualized_sharpe": 0.0,
+          "max_drawdown_pct": 0.0,
+          "annualized_turnover": 0.0,
+          "transaction_cost_usd": 0.0,
+          "transaction_cost_pct": 0.0,
+          "risk_exposure_pct": 0.0,
+          "average_cash_pct": 100.0,
+          "timing_value_pct": 0.0,
+          "asset_selection_value_pct": 0.0,
+          "gross_excess_vs_matched_pct": 0.0,
+          "net_excess_vs_matched_pct": 0.0,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              0.0,
+              0.0
+            ],
+            "prob_positive_net_excess": 0.0
+          },
+          "actual_trade_count": 0,
+          "hold_rate_pct": 100.0,
+          "risk_forced_rebalance_count": 0
+        },
+        "Passive Diversified (Active EW)": {
+          "initial_capital": 20000.0,
+          "final_equity": 7654.49,
+          "gross_pnl_usd": -12340.42,
+          "net_pnl_usd": -12345.51,
+          "gross_return_pct": -61.7,
+          "net_return_pct": -61.73,
+          "annualized_sharpe": -1.11,
+          "max_drawdown_pct": 62.02,
+          "annualized_turnover": 0.48,
+          "transaction_cost_usd": 13.3,
+          "transaction_cost_pct": 0.07,
+          "risk_exposure_pct": 90.77,
+          "average_cash_pct": 9.23,
+          "timing_value_pct": -2.95,
+          "asset_selection_value_pct": 0.16,
+          "gross_excess_vs_matched_pct": -2.78,
+          "net_excess_vs_matched_pct": -2.78,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -15.27,
+              10.09
+            ],
+            "prob_positive_net_excess": 0.295
+          },
+          "actual_trade_count": 13,
+          "hold_rate_pct": 99.86,
+          "risk_forced_rebalance_count": 2
+        },
+        "Exposure-Matched Passive (10.5% Cash)": {
+          "initial_capital": 20000.0,
+          "final_equity": 8365.91,
+          "gross_pnl_usd": -11628.84,
+          "net_pnl_usd": -11634.09,
+          "gross_return_pct": -58.14,
+          "net_return_pct": -58.17,
+          "annualized_sharpe": -1.15,
+          "max_drawdown_pct": 58.46,
+          "annualized_turnover": 0.45,
+          "transaction_cost_usd": 12.53,
+          "transaction_cost_pct": 0.06,
+          "risk_exposure_pct": 81.71,
+          "average_cash_pct": 18.29,
+          "timing_value_pct": -5.27,
+          "asset_selection_value_pct": 0.15,
+          "gross_excess_vs_matched_pct": -5.12,
+          "net_excess_vs_matched_pct": -5.12,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -17.21,
+              7.19
+            ],
+            "prob_positive_net_excess": 0.198
+          },
+          "actual_trade_count": 13,
+          "hold_rate_pct": 99.86,
+          "risk_forced_rebalance_count": 0
+        },
+        "Simple Info Non-Neural Baseline": {
+          "initial_capital": 20000.0,
+          "final_equity": 12571.72,
+          "gross_pnl_usd": -6713.27,
+          "net_pnl_usd": -7428.28,
+          "gross_return_pct": -33.57,
+          "net_return_pct": -37.14,
+          "annualized_sharpe": -1.04,
+          "max_drawdown_pct": 38.1,
+          "annualized_turnover": 39.84,
+          "transaction_cost_usd": 851.99,
+          "transaction_cost_pct": 4.26,
+          "risk_exposure_pct": 52.14,
+          "average_cash_pct": 47.86,
+          "timing_value_pct": 1.36,
+          "asset_selection_value_pct": 5.46,
+          "gross_excess_vs_matched_pct": 6.82,
+          "net_excess_vs_matched_pct": 1.33,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -23.84,
+              24.55
+            ],
+            "prob_positive_net_excess": 0.545
+          },
+          "actual_trade_count": 5914,
+          "hold_rate_pct": 37.02,
+          "risk_forced_rebalance_count": 0
+        },
+        "Unified Neural Policy (N1)": {
+          "initial_capital": 20000.0,
+          "final_equity": 8065.19,
+          "gross_pnl_usd": -11913.72,
+          "net_pnl_usd": -11934.81,
+          "gross_return_pct": -59.57,
+          "net_return_pct": -59.67,
+          "annualized_sharpe": -0.99,
+          "max_drawdown_pct": 61.24,
+          "annualized_turnover": 1.88,
+          "transaction_cost_usd": 33.59,
+          "transaction_cost_pct": 0.17,
+          "risk_exposure_pct": 89.49,
+          "average_cash_pct": 10.51,
+          "timing_value_pct": 1.04,
+          "asset_selection_value_pct": 1.5,
+          "gross_excess_vs_matched_pct": 2.55,
+          "net_excess_vs_matched_pct": 2.35,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -5.15,
+              9.11
+            ],
+            "prob_positive_net_excess": 0.718
+          },
+          "actual_trade_count": 338,
+          "hold_rate_pct": 96.41,
+          "risk_forced_rebalance_count": 0
+        }
+      },
+      "stress_28bps_rt": {
+        "100% Cash": {
+          "initial_capital": 20000.0,
+          "final_equity": 20000.0,
+          "gross_pnl_usd": 0.0,
+          "net_pnl_usd": 0.0,
+          "gross_return_pct": 0.0,
+          "net_return_pct": 0.0,
+          "annualized_sharpe": 0.0,
+          "max_drawdown_pct": 0.0,
+          "annualized_turnover": 0.0,
+          "transaction_cost_usd": 0.0,
+          "transaction_cost_pct": 0.0,
+          "risk_exposure_pct": 0.0,
+          "average_cash_pct": 100.0,
+          "timing_value_pct": 0.0,
+          "asset_selection_value_pct": 0.0,
+          "gross_excess_vs_matched_pct": 0.0,
+          "net_excess_vs_matched_pct": 0.0,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              0.0,
+              0.0
+            ],
+            "prob_positive_net_excess": 0.0
+          },
+          "actual_trade_count": 0,
+          "hold_rate_pct": 100.0,
+          "risk_forced_rebalance_count": 0
+        },
+        "Passive Diversified (Active EW)": {
+          "initial_capital": 20000.0,
+          "final_equity": 7649.4,
+          "gross_pnl_usd": -12340.42,
+          "net_pnl_usd": -12350.6,
+          "gross_return_pct": -61.7,
+          "net_return_pct": -61.75,
+          "annualized_sharpe": -1.11,
+          "max_drawdown_pct": 62.02,
+          "annualized_turnover": 0.48,
+          "transaction_cost_usd": 26.6,
+          "transaction_cost_pct": 0.13,
+          "risk_exposure_pct": 90.77,
+          "average_cash_pct": 9.23,
+          "timing_value_pct": -2.95,
+          "asset_selection_value_pct": 0.16,
+          "gross_excess_vs_matched_pct": -2.78,
+          "net_excess_vs_matched_pct": -2.79,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -15.27,
+              10.09
+            ],
+            "prob_positive_net_excess": 0.295
+          },
+          "actual_trade_count": 13,
+          "hold_rate_pct": 99.86,
+          "risk_forced_rebalance_count": 2
+        },
+        "Exposure-Matched Passive (10.5% Cash)": {
+          "initial_capital": 20000.0,
+          "final_equity": 8360.67,
+          "gross_pnl_usd": -11628.84,
+          "net_pnl_usd": -11639.33,
+          "gross_return_pct": -58.14,
+          "net_return_pct": -58.2,
+          "annualized_sharpe": -1.15,
+          "max_drawdown_pct": 58.46,
+          "annualized_turnover": 0.45,
+          "transaction_cost_usd": 25.06,
+          "transaction_cost_pct": 0.13,
+          "risk_exposure_pct": 81.71,
+          "average_cash_pct": 18.29,
+          "timing_value_pct": -5.27,
+          "asset_selection_value_pct": 0.15,
+          "gross_excess_vs_matched_pct": -5.12,
+          "net_excess_vs_matched_pct": -5.13,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -17.22,
+              7.19
+            ],
+            "prob_positive_net_excess": 0.198
+          },
+          "actual_trade_count": 13,
+          "hold_rate_pct": 99.86,
+          "risk_forced_rebalance_count": 0
+        },
+        "Simple Info Non-Neural Baseline": {
+          "initial_capital": 20000.0,
+          "final_equity": 11895.1,
+          "gross_pnl_usd": -6713.27,
+          "net_pnl_usd": -8104.9,
+          "gross_return_pct": -33.57,
+          "net_return_pct": -40.52,
+          "annualized_sharpe": -1.19,
+          "max_drawdown_pct": 40.58,
+          "annualized_turnover": 39.84,
+          "transaction_cost_usd": 1660.63,
+          "transaction_cost_pct": 8.3,
+          "risk_exposure_pct": 52.14,
+          "average_cash_pct": 47.86,
+          "timing_value_pct": 1.36,
+          "asset_selection_value_pct": 5.46,
+          "gross_excess_vs_matched_pct": 6.82,
+          "net_excess_vs_matched_pct": -4.17,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -29.44,
+              19.15
+            ],
+            "prob_positive_net_excess": 0.388
+          },
+          "actual_trade_count": 5913,
+          "hold_rate_pct": 37.02,
+          "risk_forced_rebalance_count": 0
+        },
+        "Unified Neural Policy (N1)": {
+          "initial_capital": 20000.0,
+          "final_equity": 8044.14,
+          "gross_pnl_usd": -11913.72,
+          "net_pnl_usd": -11955.86,
+          "gross_return_pct": -59.57,
+          "net_return_pct": -59.78,
+          "annualized_sharpe": -1.0,
+          "max_drawdown_pct": 61.26,
+          "annualized_turnover": 1.88,
+          "transaction_cost_usd": 67.11,
+          "transaction_cost_pct": 0.34,
+          "risk_exposure_pct": 89.49,
+          "average_cash_pct": 10.51,
+          "timing_value_pct": 1.04,
+          "asset_selection_value_pct": 1.5,
+          "gross_excess_vs_matched_pct": 2.55,
+          "net_excess_vs_matched_pct": 2.15,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -5.33,
+              8.87
+            ],
+            "prob_positive_net_excess": 0.705
+          },
+          "actual_trade_count": 338,
+          "hold_rate_pct": 96.41,
+          "risk_forced_rebalance_count": 0
+        }
+      }
+    }
+  },
+  "Fold2_2024_Expansion_BookDepth": {
+    "train_diag": {
+      "final_train_loss": -1.6978,
+      "final_train_sharpe": 1.71
+    },
+    "eval_steps": 726,
+    "scenarios": {
+      "baseline_14bps_rt": {
+        "100% Cash": {
+          "initial_capital": 20000.0,
+          "final_equity": 20000.0,
+          "gross_pnl_usd": 0.0,
+          "net_pnl_usd": 0.0,
+          "gross_return_pct": 0.0,
+          "net_return_pct": 0.0,
+          "annualized_sharpe": 0.0,
+          "max_drawdown_pct": 0.0,
+          "annualized_turnover": 0.0,
+          "transaction_cost_usd": 0.0,
+          "transaction_cost_pct": 0.0,
+          "risk_exposure_pct": 0.0,
+          "average_cash_pct": 100.0,
+          "timing_value_pct": 0.0,
+          "asset_selection_value_pct": 0.0,
+          "gross_excess_vs_matched_pct": 0.0,
+          "net_excess_vs_matched_pct": 0.0,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              0.0,
+              0.0
+            ],
+            "prob_positive_net_excess": 0.0
+          },
+          "actual_trade_count": 0,
+          "hold_rate_pct": 100.0,
+          "risk_forced_rebalance_count": 0
+        },
+        "Passive Diversified (Active EW)": {
+          "initial_capital": 20000.0,
+          "final_equity": 37044.82,
+          "gross_pnl_usd": 17070.47,
+          "net_pnl_usd": 17044.82,
+          "gross_return_pct": 85.35,
+          "net_return_pct": 85.22,
+          "annualized_sharpe": 1.39,
+          "max_drawdown_pct": 38.19,
+          "annualized_turnover": 0.5,
+          "transaction_cost_usd": 14.21,
+          "transaction_cost_pct": 0.07,
+          "risk_exposure_pct": 93.96,
+          "average_cash_pct": 6.04,
+          "timing_value_pct": 0.1,
+          "asset_selection_value_pct": -5.02,
+          "gross_excess_vs_matched_pct": -4.92,
+          "net_excess_vs_matched_pct": -4.92,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -20.38,
+              10.22
+            ],
+            "prob_positive_net_excess": 0.253
+          },
+          "actual_trade_count": 356,
+          "hold_rate_pct": 95.45,
+          "risk_forced_rebalance_count": 45
+        },
+        "Exposure-Matched Passive (8.4% Cash)": {
+          "initial_capital": 20000.0,
+          "final_equity": 36718.07,
+          "gross_pnl_usd": 16742.08,
+          "net_pnl_usd": 16718.07,
+          "gross_return_pct": 83.71,
+          "net_return_pct": 83.59,
+          "annualized_sharpe": 1.39,
+          "max_drawdown_pct": 37.84,
+          "annualized_turnover": 0.47,
+          "transaction_cost_usd": 13.33,
+          "transaction_cost_pct": 0.07,
+          "risk_exposure_pct": 92.64,
+          "average_cash_pct": 7.36,
+          "timing_value_pct": 0.02,
+          "asset_selection_value_pct": -5.03,
+          "gross_excess_vs_matched_pct": -5.02,
+          "net_excess_vs_matched_pct": -5.01,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -20.24,
+              9.67
+            ],
+            "prob_positive_net_excess": 0.242
+          },
+          "actual_trade_count": 147,
+          "hold_rate_pct": 97.93,
+          "risk_forced_rebalance_count": 14
+        },
+        "Simple Info Non-Neural Baseline": {
+          "initial_capital": 20000.0,
+          "final_equity": 31264.75,
+          "gross_pnl_usd": 13848.15,
+          "net_pnl_usd": 11264.75,
+          "gross_return_pct": 69.24,
+          "net_return_pct": 56.32,
+          "annualized_sharpe": 1.53,
+          "max_drawdown_pct": 27.51,
+          "annualized_turnover": 57.02,
+          "transaction_cost_usd": 1731.56,
+          "transaction_cost_pct": 8.66,
+          "risk_exposure_pct": 55.13,
+          "average_cash_pct": 44.87,
+          "timing_value_pct": -1.63,
+          "asset_selection_value_pct": 11.5,
+          "gross_excess_vs_matched_pct": 9.87,
+          "net_excess_vs_matched_pct": 1.96,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -19.42,
+              25.11
+            ],
+            "prob_positive_net_excess": 0.52
+          },
+          "actual_trade_count": 7886,
+          "hold_rate_pct": 16.25,
+          "risk_forced_rebalance_count": 0
+        },
+        "Unified Neural Policy (N1)": {
+          "initial_capital": 20000.0,
+          "final_equity": 42353.7,
+          "gross_pnl_usd": 22400.16,
+          "net_pnl_usd": 22353.7,
+          "gross_return_pct": 112.0,
+          "net_return_pct": 111.77,
+          "annualized_sharpe": 1.64,
+          "max_drawdown_pct": 36.92,
+          "annualized_turnover": 0.79,
+          "transaction_cost_usd": 28.01,
+          "transaction_cost_pct": 0.14,
+          "risk_exposure_pct": 91.64,
+          "average_cash_pct": 8.36,
+          "timing_value_pct": 3.33,
+          "asset_selection_value_pct": 7.07,
+          "gross_excess_vs_matched_pct": 10.4,
+          "net_excess_vs_matched_pct": 10.35,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -5.67,
+              26.18
+            ],
+            "prob_positive_net_excess": 0.853
+          },
+          "actual_trade_count": 430,
+          "hold_rate_pct": 94.77,
+          "risk_forced_rebalance_count": 35
+        }
+      },
+      "stress_28bps_rt": {
+        "100% Cash": {
+          "initial_capital": 20000.0,
+          "final_equity": 20000.0,
+          "gross_pnl_usd": 0.0,
+          "net_pnl_usd": 0.0,
+          "gross_return_pct": 0.0,
+          "net_return_pct": 0.0,
+          "annualized_sharpe": 0.0,
+          "max_drawdown_pct": 0.0,
+          "annualized_turnover": 0.0,
+          "transaction_cost_usd": 0.0,
+          "transaction_cost_pct": 0.0,
+          "risk_exposure_pct": 0.0,
+          "average_cash_pct": 100.0,
+          "timing_value_pct": 0.0,
+          "asset_selection_value_pct": 0.0,
+          "gross_excess_vs_matched_pct": 0.0,
+          "net_excess_vs_matched_pct": 0.0,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              0.0,
+              0.0
+            ],
+            "prob_positive_net_excess": 0.0
+          },
+          "actual_trade_count": 0,
+          "hold_rate_pct": 100.0,
+          "risk_forced_rebalance_count": 0
+        },
+        "Passive Diversified (Active EW)": {
+          "initial_capital": 20000.0,
+          "final_equity": 37019.18,
+          "gross_pnl_usd": 17070.47,
+          "net_pnl_usd": 17019.18,
+          "gross_return_pct": 85.35,
+          "net_return_pct": 85.1,
+          "annualized_sharpe": 1.39,
+          "max_drawdown_pct": 38.19,
+          "annualized_turnover": 0.5,
+          "transaction_cost_usd": 28.42,
+          "transaction_cost_pct": 0.14,
+          "risk_exposure_pct": 93.96,
+          "average_cash_pct": 6.04,
+          "timing_value_pct": 0.1,
+          "asset_selection_value_pct": -5.02,
+          "gross_excess_vs_matched_pct": -4.92,
+          "net_excess_vs_matched_pct": -4.92,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -20.38,
+              10.21
+            ],
+            "prob_positive_net_excess": 0.253
+          },
+          "actual_trade_count": 356,
+          "hold_rate_pct": 95.45,
+          "risk_forced_rebalance_count": 45
+        },
+        "Exposure-Matched Passive (8.4% Cash)": {
+          "initial_capital": 20000.0,
+          "final_equity": 36694.06,
+          "gross_pnl_usd": 16742.08,
+          "net_pnl_usd": 16694.06,
+          "gross_return_pct": 83.71,
+          "net_return_pct": 83.47,
+          "annualized_sharpe": 1.39,
+          "max_drawdown_pct": 37.84,
+          "annualized_turnover": 0.47,
+          "transaction_cost_usd": 26.65,
+          "transaction_cost_pct": 0.13,
+          "risk_exposure_pct": 92.64,
+          "average_cash_pct": 7.36,
+          "timing_value_pct": 0.02,
+          "asset_selection_value_pct": -5.03,
+          "gross_excess_vs_matched_pct": -5.02,
+          "net_excess_vs_matched_pct": -5.01,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -20.24,
+              9.66
+            ],
+            "prob_positive_net_excess": 0.242
+          },
+          "actual_trade_count": 147,
+          "hold_rate_pct": 97.93,
+          "risk_forced_rebalance_count": 14
+        },
+        "Simple Info Non-Neural Baseline": {
+          "initial_capital": 20000.0,
+          "final_equity": 28878.21,
+          "gross_pnl_usd": 13848.15,
+          "net_pnl_usd": 8878.21,
+          "gross_return_pct": 69.24,
+          "net_return_pct": 44.39,
+          "annualized_sharpe": 1.29,
+          "max_drawdown_pct": 30.13,
+          "annualized_turnover": 57.02,
+          "transaction_cost_usd": 3323.05,
+          "transaction_cost_pct": 16.62,
+          "risk_exposure_pct": 55.13,
+          "average_cash_pct": 44.87,
+          "timing_value_pct": -1.63,
+          "asset_selection_value_pct": 11.5,
+          "gross_excess_vs_matched_pct": 9.87,
+          "net_excess_vs_matched_pct": -5.94,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -27.25,
+              17.03
+            ],
+            "prob_positive_net_excess": 0.315
+          },
+          "actual_trade_count": 7885,
+          "hold_rate_pct": 16.25,
+          "risk_forced_rebalance_count": 0
+        },
+        "Unified Neural Policy (N1)": {
+          "initial_capital": 20000.0,
+          "final_equity": 42307.28,
+          "gross_pnl_usd": 22400.16,
+          "net_pnl_usd": 22307.28,
+          "gross_return_pct": 112.0,
+          "net_return_pct": 111.54,
+          "annualized_sharpe": 1.64,
+          "max_drawdown_pct": 36.92,
+          "annualized_turnover": 0.79,
+          "transaction_cost_usd": 55.99,
+          "transaction_cost_pct": 0.28,
+          "risk_exposure_pct": 91.64,
+          "average_cash_pct": 8.36,
+          "timing_value_pct": 3.33,
+          "asset_selection_value_pct": 7.07,
+          "gross_excess_vs_matched_pct": 10.4,
+          "net_excess_vs_matched_pct": 10.31,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -5.73,
+              26.13
+            ],
+            "prob_positive_net_excess": 0.85
+          },
+          "actual_trade_count": 430,
+          "hold_rate_pct": 94.77,
+          "risk_forced_rebalance_count": 35
+        }
+      }
+    }
+  },
+  "Fold3_2025_Adaptive_Comparison": {
+    "train_diag": {
+      "final_train_loss": -1.0372,
+      "final_train_sharpe": 1.05
+    },
+    "eval_steps": 724,
+    "scenarios": {
+      "baseline_14bps_rt": {
+        "100% Cash": {
+          "initial_capital": 20000.0,
+          "final_equity": 20000.0,
+          "gross_pnl_usd": 0.0,
+          "net_pnl_usd": 0.0,
+          "gross_return_pct": 0.0,
+          "net_return_pct": 0.0,
+          "annualized_sharpe": 0.0,
+          "max_drawdown_pct": 0.0,
+          "annualized_turnover": 0.0,
+          "transaction_cost_usd": 0.0,
+          "transaction_cost_pct": 0.0,
+          "risk_exposure_pct": 0.0,
+          "average_cash_pct": 100.0,
+          "timing_value_pct": 0.0,
+          "asset_selection_value_pct": 0.0,
+          "gross_excess_vs_matched_pct": 0.0,
+          "net_excess_vs_matched_pct": 0.0,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              0.0,
+              0.0
+            ],
+            "prob_positive_net_excess": 0.0
+          },
+          "actual_trade_count": 0,
+          "hold_rate_pct": 100.0,
+          "risk_forced_rebalance_count": 0
+        },
+        "Passive Diversified (Active EW)": {
+          "initial_capital": 20000.0,
+          "final_equity": 14150.94,
+          "gross_pnl_usd": -5837.15,
+          "net_pnl_usd": -5849.06,
+          "gross_return_pct": -29.19,
+          "net_return_pct": -29.25,
+          "annualized_sharpe": -0.25,
+          "max_drawdown_pct": 42.52,
+          "annualized_turnover": 0.61,
+          "transaction_cost_usd": 16.35,
+          "transaction_cost_pct": 0.08,
+          "risk_exposure_pct": 93.69,
+          "average_cash_pct": 6.31,
+          "timing_value_pct": -0.84,
+          "asset_selection_value_pct": -4.49,
+          "gross_excess_vs_matched_pct": -5.34,
+          "net_excess_vs_matched_pct": -5.36,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -11.04,
+              0.56
+            ],
+            "prob_positive_net_excess": 0.045
+          },
+          "actual_trade_count": 155,
+          "hold_rate_pct": 98.07,
+          "risk_forced_rebalance_count": 26
+        },
+        "Exposure-Matched Passive (12.6% Cash)": {
+          "initial_capital": 20000.0,
+          "final_equity": 14474.93,
+          "gross_pnl_usd": -5514.0,
+          "net_pnl_usd": -5525.07,
+          "gross_return_pct": -27.57,
+          "net_return_pct": -27.63,
+          "annualized_sharpe": -0.29,
+          "max_drawdown_pct": 39.65,
+          "annualized_turnover": 0.55,
+          "transaction_cost_usd": 14.88,
+          "transaction_cost_pct": 0.07,
+          "risk_exposure_pct": 86.7,
+          "average_cash_pct": 13.3,
+          "timing_value_pct": -2.55,
+          "asset_selection_value_pct": -4.09,
+          "gross_excess_vs_matched_pct": -6.65,
+          "net_excess_vs_matched_pct": -6.66,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -13.12,
+              -0.74
+            ],
+            "prob_positive_net_excess": 0.02
+          },
+          "actual_trade_count": 26,
+          "hold_rate_pct": 99.72,
+          "risk_forced_rebalance_count": 0
+        },
+        "Simple Info Non-Neural Baseline": {
+          "initial_capital": 20000.0,
+          "final_equity": 16216.96,
+          "gross_pnl_usd": -2564.35,
+          "net_pnl_usd": -3783.04,
+          "gross_return_pct": -12.82,
+          "net_return_pct": -18.92,
+          "annualized_sharpe": -0.49,
+          "max_drawdown_pct": 31.03,
+          "annualized_turnover": 52.18,
+          "transaction_cost_usd": 1293.09,
+          "transaction_cost_pct": 6.47,
+          "risk_exposure_pct": 51.66,
+          "average_cash_pct": 48.34,
+          "timing_value_pct": -1.32,
+          "asset_selection_value_pct": -1.56,
+          "gross_excess_vs_matched_pct": -2.88,
+          "net_excess_vs_matched_pct": -10.09,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -26.63,
+              8.33
+            ],
+            "prob_positive_net_excess": 0.105
+          },
+          "actual_trade_count": 6763,
+          "hold_rate_pct": 24.45,
+          "risk_forced_rebalance_count": 0
+        },
+        "Unified Neural Policy (N1)": {
+          "initial_capital": 20000.0,
+          "final_equity": 15011.49,
+          "gross_pnl_usd": -4975.5,
+          "net_pnl_usd": -4988.51,
+          "gross_return_pct": -24.88,
+          "net_return_pct": -24.94,
+          "annualized_sharpe": -0.22,
+          "max_drawdown_pct": 37.84,
+          "annualized_turnover": 0.62,
+          "transaction_cost_usd": 16.05,
+          "transaction_cost_pct": 0.08,
+          "risk_exposure_pct": 87.44,
+          "average_cash_pct": 12.56,
+          "timing_value_pct": -0.34,
+          "asset_selection_value_pct": -2.45,
+          "gross_excess_vs_matched_pct": -2.79,
+          "net_excess_vs_matched_pct": -2.82,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -8.01,
+              6.87
+            ],
+            "prob_positive_net_excess": 0.352
+          },
+          "actual_trade_count": 91,
+          "hold_rate_pct": 98.9,
+          "risk_forced_rebalance_count": 0
+        }
+      },
+      "stress_28bps_rt": {
+        "100% Cash": {
+          "initial_capital": 20000.0,
+          "final_equity": 20000.0,
+          "gross_pnl_usd": 0.0,
+          "net_pnl_usd": 0.0,
+          "gross_return_pct": 0.0,
+          "net_return_pct": 0.0,
+          "annualized_sharpe": 0.0,
+          "max_drawdown_pct": 0.0,
+          "annualized_turnover": 0.0,
+          "transaction_cost_usd": 0.0,
+          "transaction_cost_pct": 0.0,
+          "risk_exposure_pct": 0.0,
+          "average_cash_pct": 100.0,
+          "timing_value_pct": 0.0,
+          "asset_selection_value_pct": 0.0,
+          "gross_excess_vs_matched_pct": 0.0,
+          "net_excess_vs_matched_pct": 0.0,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              0.0,
+              0.0
+            ],
+            "prob_positive_net_excess": 0.0
+          },
+          "actual_trade_count": 0,
+          "hold_rate_pct": 100.0,
+          "risk_forced_rebalance_count": 0
+        },
+        "Passive Diversified (Active EW)": {
+          "initial_capital": 20000.0,
+          "final_equity": 14139.03,
+          "gross_pnl_usd": -5837.15,
+          "net_pnl_usd": -5860.97,
+          "gross_return_pct": -29.19,
+          "net_return_pct": -29.3,
+          "annualized_sharpe": -0.26,
+          "max_drawdown_pct": 42.52,
+          "annualized_turnover": 0.61,
+          "transaction_cost_usd": 32.7,
+          "transaction_cost_pct": 0.16,
+          "risk_exposure_pct": 93.69,
+          "average_cash_pct": 6.31,
+          "timing_value_pct": -0.84,
+          "asset_selection_value_pct": -4.49,
+          "gross_excess_vs_matched_pct": -5.34,
+          "net_excess_vs_matched_pct": -5.38,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -11.06,
+              0.54
+            ],
+            "prob_positive_net_excess": 0.045
+          },
+          "actual_trade_count": 155,
+          "hold_rate_pct": 98.07,
+          "risk_forced_rebalance_count": 26
+        },
+        "Exposure-Matched Passive (12.6% Cash)": {
+          "initial_capital": 20000.0,
+          "final_equity": 14463.86,
+          "gross_pnl_usd": -5514.0,
+          "net_pnl_usd": -5536.14,
+          "gross_return_pct": -27.57,
+          "net_return_pct": -27.68,
+          "annualized_sharpe": -0.29,
+          "max_drawdown_pct": 39.65,
+          "annualized_turnover": 0.55,
+          "transaction_cost_usd": 29.76,
+          "transaction_cost_pct": 0.15,
+          "risk_exposure_pct": 86.7,
+          "average_cash_pct": 13.3,
+          "timing_value_pct": -2.55,
+          "asset_selection_value_pct": -4.09,
+          "gross_excess_vs_matched_pct": -6.65,
+          "net_excess_vs_matched_pct": -6.68,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -13.13,
+              -0.74
+            ],
+            "prob_positive_net_excess": 0.02
+          },
+          "actual_trade_count": 26,
+          "hold_rate_pct": 99.72,
+          "risk_forced_rebalance_count": 0
+        },
+        "Simple Info Non-Neural Baseline": {
+          "initial_capital": 20000.0,
+          "final_equity": 15083.29,
+          "gross_pnl_usd": -2564.35,
+          "net_pnl_usd": -4916.71,
+          "gross_return_pct": -12.82,
+          "net_return_pct": -24.58,
+          "annualized_sharpe": -0.71,
+          "max_drawdown_pct": 32.09,
+          "annualized_turnover": 52.18,
+          "transaction_cost_usd": 2494.78,
+          "transaction_cost_pct": 12.47,
+          "risk_exposure_pct": 51.66,
+          "average_cash_pct": 48.34,
+          "timing_value_pct": -1.32,
+          "asset_selection_value_pct": -1.56,
+          "gross_excess_vs_matched_pct": -2.88,
+          "net_excess_vs_matched_pct": -17.3,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -33.98,
+              1.07
+            ],
+            "prob_positive_net_excess": 0.033
+          },
+          "actual_trade_count": 6763,
+          "hold_rate_pct": 24.45,
+          "risk_forced_rebalance_count": 0
+        },
+        "Unified Neural Policy (N1)": {
+          "initial_capital": 20000.0,
+          "final_equity": 14998.49,
+          "gross_pnl_usd": -4975.5,
+          "net_pnl_usd": -5001.51,
+          "gross_return_pct": -24.88,
+          "net_return_pct": -25.01,
+          "annualized_sharpe": -0.22,
+          "max_drawdown_pct": 37.85,
+          "annualized_turnover": 0.62,
+          "transaction_cost_usd": 32.08,
+          "transaction_cost_pct": 0.16,
+          "risk_exposure_pct": 87.44,
+          "average_cash_pct": 12.56,
+          "timing_value_pct": -0.34,
+          "asset_selection_value_pct": -2.45,
+          "gross_excess_vs_matched_pct": -2.79,
+          "net_excess_vs_matched_pct": -2.84,
+          "economic_uncertainty": {
+            "ann_net_excess_ci95_pct": [
+              -8.03,
+              6.79
+            ],
+            "prob_positive_net_excess": 0.352
+          },
+          "actual_trade_count": 91,
+          "hold_rate_pct": 98.9,
+          "risk_forced_rebalance_count": 0
+        }
+      }
+    }
+  }
+}

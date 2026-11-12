@@ -1,0 +1,328 @@
+{
+  "dataset_id": "N1_2_HB1_COINBASE_USD_1H_2022_2025",
+  "created_at": "2026-11-11T08:24:55Z",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "LTCUSDT",
+    "LINKUSDT",
+    "ADAUSDT",
+    "XRPUSDT",
+    "DOGEUSDT"
+  ],
+  "total_products": 8,
+  "total_candles": 267029,
+  "panel_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/n1_2_hb1_coinbase_1h_panel.parquet",
+  "panel_sha256": "ae3e7ea90c727885216ff9c4c5bef3e327bc370ef7cf3fb1cbca3ad0138108db",
+  "mandatory_provenance_fields": [
+    "source",
+    "original_timestamp",
+    "actual_availability_timestamp",
+    "ingestion_timestamp",
+    "raw_payload",
+    "source_checksum",
+    "local_sha256",
+    "trading_eligibility",
+    "missing_intervals",
+    "execution_constraints"
+  ],
+  "records": [
+    {
+      "symbol": "BTCUSDT",
+      "cb_product": "BTC-USD",
+      "source": "https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:13:53Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/BTC-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/BTC-USD-1h-2022-2025.parquet",
+        "raw_bytes": 2452340,
+        "candle_count": 35056,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:8a945dfd91605c8a0953d2f6e094522d84600c0bb81eb37187ffa95c5ac60dbf",
+      "local_sha256": "8a945dfd91605c8a0953d2f6e094522d84600c0bb81eb37187ffa95c5ac60dbf",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35056,
+        "missing_or_outage_bars": 8,
+        "completeness_ratio": 0.999772
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "ETHUSDT",
+      "cb_product": "ETH-USD",
+      "source": "https://api.exchange.coinbase.com/products/ETH-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:15:12Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/ETH-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/ETH-USD-1h-2022-2025.parquet",
+        "raw_bytes": 2330632,
+        "candle_count": 35056,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:c733cb91a9493db5e82d71aaf4b43471604c0875e58b5ad0b8802228810675c7",
+      "local_sha256": "c733cb91a9493db5e82d71aaf4b43471604c0875e58b5ad0b8802228810675c7",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35056,
+        "missing_or_outage_bars": 8,
+        "completeness_ratio": 0.999772
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "SOLUSDT",
+      "cb_product": "SOL-USD",
+      "source": "https://api.exchange.coinbase.com/products/SOL-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:16:31Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/SOL-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/SOL-USD-1h-2022-2025.parquet",
+        "raw_bytes": 2066557,
+        "candle_count": 35054,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:60a3415123af60303254c70d0f0afa7e5ed6574f778ab793d466b2c7388a8bbd",
+      "local_sha256": "60a3415123af60303254c70d0f0afa7e5ed6574f778ab793d466b2c7388a8bbd",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35054,
+        "missing_or_outage_bars": 10,
+        "completeness_ratio": 0.999715
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "LTCUSDT",
+      "cb_product": "LTC-USD",
+      "source": "https://api.exchange.coinbase.com/products/LTC-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:17:57Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/LTC-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/LTC-USD-1h-2022-2025.parquet",
+        "raw_bytes": 2092219,
+        "candle_count": 35054,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:eef6a8ee58d5e845edd7c7737937b48285fa1ed330ce96f416288190eb171d3c",
+      "local_sha256": "eef6a8ee58d5e845edd7c7737937b48285fa1ed330ce96f416288190eb171d3c",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35054,
+        "missing_or_outage_bars": 10,
+        "completeness_ratio": 0.999715
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "LINKUSDT",
+      "cb_product": "LINK-USD",
+      "source": "https://api.exchange.coinbase.com/products/LINK-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:19:20Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/LINK-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/LINK-USD-1h-2022-2025.parquet",
+        "raw_bytes": 1955330,
+        "candle_count": 35054,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:4dad95ede3220a56833d7fb1ac4de5ae7dced996fb4650b8f7871d3fcab701c7",
+      "local_sha256": "4dad95ede3220a56833d7fb1ac4de5ae7dced996fb4650b8f7871d3fcab701c7",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35054,
+        "missing_or_outage_bars": 10,
+        "completeness_ratio": 0.999715
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "ADAUSDT",
+      "cb_product": "ADA-USD",
+      "source": "https://api.exchange.coinbase.com/products/ADA-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:20:48Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/ADA-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/ADA-USD-1h-2022-2025.parquet",
+        "raw_bytes": 2166782,
+        "candle_count": 35054,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:6ee0c6796c5d7b2871c5cc74864b405edc053fce3f756d3395f0ef9bb985fe0b",
+      "local_sha256": "6ee0c6796c5d7b2871c5cc74864b405edc053fce3f756d3395f0ef9bb985fe0b",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35054,
+        "missing_or_outage_bars": 10,
+        "completeness_ratio": 0.999715
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "XRPUSDT",
+      "cb_product": "XRP-USD",
+      "source": "https://api.exchange.coinbase.com/products/XRP-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:22:08Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/XRP-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/XRP-USD-1h-2022-2025.parquet",
+        "raw_bytes": 1370301,
+        "candle_count": 21647,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:be0679de6e9d98f1ca7275155f61bd2f9823d8db888298bd9c855cf08aaaf430",
+      "local_sha256": "be0679de6e9d98f1ca7275155f61bd2f9823d8db888298bd9c855cf08aaaf430",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 21647,
+        "missing_or_outage_bars": 13417,
+        "completeness_ratio": 0.617357
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    },
+    {
+      "symbol": "DOGEUSDT",
+      "cb_product": "DOGE-USD",
+      "source": "https://api.exchange.coinbase.com/products/DOGE-USD/candles?granularity=3600",
+      "original_timestamp": "2022-01-01T00:00:00Z..2025-12-31T23:00:00Z",
+      "actual_availability_timestamp": "2026-01-01T00:00:00Z",
+      "ingestion_timestamp": "2026-11-11T08:23:31Z",
+      "raw_payload": {
+        "raw_json_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/DOGE-USD-1h-2022-2025.json",
+        "derived_parquet_path": "D:/Workspaces/besttime-crypto/data/neural_n1_2/coinbase_1h/DOGE-USD-1h-2022-2025.parquet",
+        "raw_bytes": 2192297,
+        "candle_count": 35054,
+        "schema": [
+          "time_open_unix_sec",
+          "low",
+          "high",
+          "open",
+          "close",
+          "volume_base"
+        ]
+      },
+      "source_checksum": "REST_JSON_PAYLOAD_SHA256:9330c523bfc39daefe68fbd8a40c811129b6b6c3ef720ed0700f6b210a7f98a7",
+      "local_sha256": "9330c523bfc39daefe68fbd8a40c811129b6b6c3ef720ed0700f6b210a7f98a7",
+      "trading_eligibility": "SIGNAL_AND_CROSS_VENUE_DISCOVERY_ONLY_EXECUTION_ON_BINANCE_SPOT",
+      "missing_intervals": {
+        "expected_hourly_bars": 35064,
+        "actual_hourly_bars": 35054,
+        "missing_or_outage_bars": 10,
+        "completeness_ratio": 0.999715
+      },
+      "execution_constraints": {
+        "signal_venue": "COINBASE_EXCHANGE_USD_SPOT",
+        "execution_venue": "BINANCE_SPOT_USDT",
+        "cross_venue_transfer_latency_assumed": "NO_INSTANT_ARB_SIGNAL_USED_CAUSALLY_AT_BAR_CLOSE",
+        "binance_spot_round_trip_cost_bps": 14.0
+      }
+    }
+  ]
+}
