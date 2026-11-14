@@ -360,7 +360,13 @@ def test_case_10_virtual_delivery_settlement_inverse_accounting():
         "quote_valid_pit": True,
         "spot_ask_vwap": 690.0,
         "spot_bid_vwap": 689.8,
-        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 689.8},
+        "spot_bid_sweep": {
+            "fully_filled": True,
+            "filled_base_qty": 5000.0 / 680.0,
+            "filled_units": 5000.0 / 680.0,
+            "filled_usd": (5000.0 / 680.0) * 689.8,
+            "vwap": 689.8,
+        },
         "delivery_settlement_price": 689.8,  # Converged delivery settlement price
         "observed_depth_basis_bps": 0.0,
     }
@@ -649,7 +655,13 @@ def test_case_14_realized_pnl_fee_bridge_exact_oracle():
         "quote_valid_pit": True,
         "spot_ask_vwap": 690.0,
         "spot_bid_vwap": settle_exit_spot,
-        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": settle_exit_spot},
+        "spot_bid_sweep": {
+            "fully_filled": True,
+            "filled_base_qty": spot_inv_coin,
+            "filled_units": spot_inv_coin,
+            "filled_usd": spot_inv_coin * settle_exit_spot,
+            "vwap": settle_exit_spot,
+        },
         "delivery_settlement_price": settle_price,
         "observed_depth_basis_bps": 0.0,
     }
@@ -888,7 +900,14 @@ def test_case_18_multiday_10step_integration(tmp_path):
 
     # Step 10: Delivery settlement at maturity
     e10 = dict(events[9])
-    e10["spot_bid_sweep"] = {"fully_filled": True, "filled_usd": 5000.0, "vwap": e10["spot_bid_vwap"]}
+    c_qty = pos2["spot_inventory_coin"]
+    e10["spot_bid_sweep"] = {
+        "fully_filled": True,
+        "filled_base_qty": c_qty,
+        "filled_units": c_qty,
+        "filled_usd": c_qty * e10["spot_bid_vwap"],
+        "vwap": e10["spot_bid_vwap"],
+    }
     ok10, reason10 = engine_day2.process_observation(pos2, e10)
     assert ok10 is True
     assert reason10 == "DELIVERY_SETTLED"
@@ -1482,7 +1501,13 @@ def test_case_23_official_settlement_delivery_pipeline(tmp_path: Path):
         "settlement_price": 689.8,
         "published_ms": deliv_time + 1000,
         "spot_bid_vwap": 689.5,
-        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 689.5},
+        "spot_bid_sweep": {
+            "fully_filled": True,
+            "filled_base_qty": 5000.0 / 680.0,
+            "filled_units": 5000.0 / 680.0,
+            "filled_usd": (5000.0 / 680.0) * 689.5,
+            "vwap": 689.5,
+        },
     }
     (day2_dir / "cm_delivery_settlement.jsonl").write_text(json.dumps(official_settle_rec) + "\n", encoding="utf-8")
 
@@ -1842,7 +1867,13 @@ def test_case_26_evidence_integrity_and_natural_forward_observation(tmp_path: Pa
             "settlement_price": 689.8,
             "published_ms": deliv_time + 1000,
             "spot_bid_vwap": 689.5,
-            "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 689.5},
+            "spot_bid_sweep": {
+                "fully_filled": True,
+                "filled_base_qty": 5000.0 / 680.0,
+                "filled_units": 5000.0 / 680.0,
+                "filled_usd": (5000.0 / 680.0) * 689.5,
+                "vwap": 689.5,
+            },
         },
         {
             "contract_symbol": "BTCUSD_261225",
@@ -2104,3 +2135,295 @@ def test_case_27_recorder_format_settlement_and_inventory_lifecycle(tmp_path: Pa
     assert abs(bridge["spot_exit_fee_usd"] - round(sp_exit_fee, 4)) <= 0.01
     assert abs(bridge["realized_spot_pnl_usd"] - round(expected_realized_spot_usd, 2)) <= 0.02
     assert abs(bridge["realized_net_pnl_usd"] - round(expected_net_realized_usd, 2)) <= 0.02
+
+
+# ---------------------------------------------------------------------------
+# Test Case 28: Targeted Settlement Availability, Spot Coin Liquidation & Equity
+# ---------------------------------------------------------------------------
+def test_case_28_targeted_settlement_and_spot_quantity_lifecycle(tmp_path: Path):
+    """Verify:
+    1. P0-A: Official settlement available at T+5m is not processed at T (causal PIT).
+    2. P0-B: Spot liquidation sweeps actual coin quantity (7.352941 BNB), not USD notional.
+             Sweeping $5000 exit notional at $688.50 yields 7.262164 BNB; does NOT close pair.
+             Partial fill preserves remaining 0.090777 BNB and remaining $61.73 committed capital.
+             Subsequent sweep finishes remaining coins and closes pair exactly once.
+    3. P0-C: Disjoint accounting buckets reconcile TOTAL_ACCOUNT_EQUITY across partial settlement.
+    4. Checkpoint idempotency across restart.
+    """
+    raw_root = tmp_path / "raw"
+    raw_root.mkdir(parents=True)
+
+    t_base = 1794409200000  # 2026-11-11 15:00:00 UTC
+    deliv_time = 1798185600000  # Contract expiry T
+
+    ex_info = {
+        "payload": {
+            "symbols": [
+                {
+                    "symbol": "BNBUSD_261225",
+                    "pair": "BNBUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": str(deliv_time),
+                    "contractSize": "10.0",
+                }
+            ]
+        }
+    }
+
+    # Step 1: Day 1 - Enter Virtual Carry Pair
+    day1_dir = raw_root / "20261111"
+    day1_dir.mkdir(parents=True)
+    (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day1_dir / "usdt_usd.jsonl").write_text(
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_base, "payload": {"price": "1.0000"}}) + "\n",
+        encoding="utf-8",
+    )
+    t_entry = t_base + 1000
+    # Spot entry at $680.00 -> $5000 notional requires 5000 / 680 = 7.35294117647 BNB
+    (day1_dir / "spot_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSDT",
+            "recv_ms": t_entry,
+            "payload": {"bids": [["679.9", "20.0"]], "asks": [["680.0", "20.0"]]},
+        }) + "\n",
+        encoding="utf-8",
+    )
+    # COIN-M short entry at $685.78
+    (day1_dir / "cm_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSD_261225",
+            "recv_ms": t_entry,
+            "payload": {"bids": [["685.78", "1000"]], "asks": [["685.80", "1000"]]},
+        }) + "\n",
+        encoding="utf-8",
+    )
+
+    test_out = tmp_path / "research"
+    checkpoint_file = tmp_path / "checkpoint.json"
+
+    runner = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+
+    res1 = runner.run_step(raw_partitions=[day1_dir])
+    assert res1["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert runner.engine.underlying_committed_usd["BNB"] == 5000.0
+
+    pos1 = list(runner.engine.active_positions.values())[0]
+    entry_notional = pos1["entry_notional_usd"]
+    entry_spot = pos1["entry_spot_price"]
+    entry_fut = pos1["entry_futures_price"]
+    spot_coin_qty = pos1["spot_inventory_coin"]
+    assert entry_spot == 680.0
+    assert entry_fut == 685.78
+    assert abs(spot_coin_qty - (5000.0 / 680.0)) < 1e-6
+    # 7.352941176...
+    assert round(spot_coin_qty, 6) == 7.352941
+
+    # Step 2: Day 2 - Settlement Available at T + 300_000 (T + 5 min)
+    day2_dir = raw_root / "20261112"
+    day2_dir.mkdir(parents=True)
+    (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    t_recv = deliv_time + 300_000  # T + 5 min
+    (day2_dir / "usdt_usd.jsonl").write_text(
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_recv, "payload": {"price": "1.0000"}}) + "\n",
+        encoding="utf-8",
+    )
+
+    # Official Binance API settlement received at T + 5m (recv_ms = deliv_time + 300_000)
+    recorder_delivery_payload = {
+        "obs_id": "RECORDER_DELIV_002",
+        "stream": "cm_delivery_settlement",
+        "symbol": "BNBUSD",
+        "params": {"pair": "BNBUSD"},
+        "recv_ms": t_recv,
+        "payload": [
+            {
+                "deliveryPrice": "689.80000000",
+                "deliveryTime": deliv_time,
+            }
+        ],
+    }
+    (day2_dir / "cm_delivery_settlement.jsonl").write_text(
+        json.dumps(recorder_delivery_payload) + "\n", encoding="utf-8"
+    )
+
+    # Verify P0-A: An observation at T (expiry time) must NOT settle the position before data is available
+    obs_at_expiry = {
+        "decision_timestamp": deliv_time,
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.00,
+        "spot_bid_vwap": 684.90,
+        "coinm_bid_vwap": 689.80,
+        "coinm_ask_vwap": 689.90,
+        "official_delivery_settlement": {
+            "contract_symbol": "BNBUSD_261225",
+            "settlement_price": 689.80,
+            "delivery_ms": deliv_time,
+            "available_ms": t_recv,  # Available only at T + 5m!
+        },
+    }
+    ok_early, reason_early = runner.engine.process_observation(pos1, obs_at_expiry)
+    assert ok_early is False
+    assert reason_early == "SETTLEMENT_DATA_FUTURE_PIT"
+    assert pos1.get("futures_leg_settled", False) is False
+
+    # Now run runner step for Day 2 (processes at t_recv = T + 5m)
+    res2 = runner.run_step(raw_partitions=[day2_dir])
+    assert res2["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert res2["scorecard"]["FUTURES_LEGS_SETTLED"] == 1
+    assert res2["scorecard"]["PAIRS_FULLY_CLOSED"] == 0
+    assert res2["scorecard"]["SPOT_INVENTORY_HELD"] == 1
+    assert res2["scorecard"]["CAPITAL_STILL_COMMITTED"] == 5000.0
+    assert res2["scorecard"]["CAPITAL_AVAILABLE"] == 15000.0
+
+    pos2 = list(runner.engine.active_positions.values())[0]
+    assert pos2["state"] == LifecycleState.FUTURES_LEG_SETTLED
+    assert pos2["futures_leg_settled"] is True
+    assert pos2["pair_fully_closed"] is False
+    assert pos2["spot_inventory_held"] is True
+    assert pos2["capital_released"] is False
+
+    # Realized futures PnL math
+    expected_inv_pnl_coin = 5000.0 * (1.0 / 689.80 - 1.0 / 685.78)
+    cm_entry_fee = 5000.0 * (COSTS.cm_entry_fee_bps / 10_000.0)
+    cm_deliv_fee = 5000.0 * (COSTS.cm_delivery_settlement_fee_bps / 10_000.0)
+    expected_realized_fut = (expected_inv_pnl_coin * 689.80) - cm_entry_fee - cm_deliv_fee
+    assert abs(pos2["realized_futures_pnl_usd"] - round(expected_realized_fut, 2)) <= 0.02
+
+    # Verify P0-C Disjoint Accounting Buckets & Equity
+    scorecard2 = res2["scorecard"]
+    assert scorecard2["FULLY_CLOSED_PAIR_REALIZED_NET_PNL"] == 0.0
+    assert scorecard2["ACTIVE_HEDGED_PAIR_UNREALIZED_NET_PNL"] == 0.0
+    assert abs(scorecard2["FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL"] - round(expected_realized_fut, 2)) <= 0.02
+    # Verify equity strictly includes realized futures PnL
+    expected_equity2 = round(
+        20000.0
+        + scorecard2["FULLY_CLOSED_PAIR_REALIZED_NET_PNL"]
+        + scorecard2["ACTIVE_HEDGED_PAIR_UNREALIZED_NET_PNL"]
+        + scorecard2["FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL"]
+        + scorecard2["FUTURES_SETTLED_SPOT_HELD_UNREALIZED_SPOT_PNL"],
+        2,
+    )
+    assert abs(scorecard2["TOTAL_ACCOUNT_EQUITY"] - expected_equity2) <= 0.02
+
+    # Step 3: Day 3 - Partial Spot Liquidation: Sweeping $5000 exit notional at $688.50
+    # At $688.50, $5000 notional is only 7.26216412 BNB, which is LESS than 7.352941 BNB.
+    # Must NOT close the pair!
+    day3_dir = raw_root / "20261113"
+    day3_dir.mkdir(parents=True)
+    t_sweep1 = t_recv + 3600000
+    (day3_dir / "usdt_usd.jsonl").write_text(
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_sweep1, "payload": {"price": "1.0000"}}) + "\n",
+        encoding="utf-8",
+    )
+    # Spot bids with exact depth: 7.262164 BNB at 688.50
+    (day3_dir / "spot_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSDT",
+            "recv_ms": t_sweep1,
+            "payload": {
+                "bids": [["688.50", "7.262164"]],
+                "asks": [["688.60", "10.0"]],
+            },
+        }) + "\n",
+        encoding="utf-8",
+    )
+
+    res3 = runner.run_step(raw_partitions=[day3_dir])
+    # Assert pair is NOT fully closed
+    assert res3["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert res3["scorecard"]["PAIRS_FULLY_CLOSED"] == 0
+    assert res3["scorecard"]["SPOT_INVENTORY_HELD"] == 1
+
+    pos3 = list(runner.engine.active_positions.values())[0]
+    assert pos3["state"] == LifecycleState.FUTURES_LEG_SETTLED
+    assert pos3["pair_fully_closed"] is False
+    assert pos3["spot_inventory_held"] is True
+    # Verify remaining coins: 7.352941 - 7.262164 = 0.090777 BNB
+    expected_remaining_coin = spot_coin_qty - 7.262164
+    assert abs(pos3["spot_inventory_coin"] - expected_remaining_coin) <= 1e-5
+    assert abs(pos3["spot_inventory_coin"] - 0.090777) <= 1e-4
+
+    # Verify remaining committed capital
+    frac_remaining = expected_remaining_coin / spot_coin_qty
+    expected_remaining_notional = 5000.0 * frac_remaining
+    assert abs(pos3["entry_notional_usd"] - expected_remaining_notional) <= 0.1
+    assert abs(res3["scorecard"]["CAPITAL_STILL_COMMITTED"] - round(expected_remaining_notional, 2)) <= 0.1
+    assert abs(runner.engine.underlying_committed_usd["BNB"] - round(expected_remaining_notional, 2)) <= 0.1
+    assert res3["scorecard"]["CAPITAL_STILL_COMMITTED"] > 50.0  # Around $61.73
+
+    # Step 4: Day 4 - Complete Liquidation of Remaining 0.090777 BNB
+    day4_dir = raw_root / "20261114"
+    day4_dir.mkdir(parents=True)
+    t_sweep2 = t_sweep1 + 3600000
+    (day4_dir / "usdt_usd.jsonl").write_text(
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_sweep2, "payload": {"price": "1.0000"}}) + "\n",
+        encoding="utf-8",
+    )
+    # Spot bids with ample size to cover remaining 0.090777 BNB
+    (day4_dir / "spot_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSDT",
+            "recv_ms": t_sweep2,
+            "payload": {
+                "bids": [["688.50", "20.0"]],
+                "asks": [["688.60", "20.0"]],
+            },
+        }) + "\n",
+        encoding="utf-8",
+    )
+
+    res4 = runner.run_step(raw_partitions=[day4_dir])
+    # Assert pair is NOW fully closed
+    assert res4["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res4["scorecard"]["realized_completed_lifecycles_count"] == 1
+    assert res4["scorecard"]["FUTURES_LEGS_SETTLED"] == 1
+    assert res4["scorecard"]["PAIRS_FULLY_CLOSED"] == 1
+    assert res4["scorecard"]["SPOT_INVENTORY_HELD"] == 0
+    assert res4["scorecard"]["CAPITAL_STILL_COMMITTED"] == 0.0
+    assert res4["scorecard"]["CAPITAL_AVAILABLE"] == 20000.0
+    assert runner.engine.underlying_committed_usd.get("BNB", 0.0) == 0.0
+
+    pos_closed = runner.engine.closed_positions[0]
+    assert pos_closed["state"] == LifecycleState.CLOSED
+    assert pos_closed["lifecycle_status"] == "PAIR_FULLY_CLOSED"
+    assert pos_closed["pair_fully_closed"] is True
+    assert pos_closed["spot_inventory_held"] is False
+    assert pos_closed["capital_released"] is True
+
+    # Mathematical fee bridge verification
+    # Total spot sold = 7.352941 BNB at 688.50 = 5062.50 proceeds
+    total_proceeds = spot_coin_qty * 688.50
+    total_spot_gross = total_proceeds - 5000.0
+    sp_entry_fee = 5000.0 * (COSTS.spot_entry_fee_bps / 10_000.0)
+    sp_exit_fee = total_proceeds * (COSTS.spot_exit_fee_bps / 10_000.0)
+    expected_spot_net = total_spot_gross - sp_entry_fee - sp_exit_fee
+    expected_total_net = expected_realized_fut + expected_spot_net
+
+    assert abs(pos_closed["realized_pnl"] - round(expected_total_net, 2)) <= 0.05
+    assert res4["scorecard"]["FULLY_CLOSED_PAIR_REALIZED_NET_PNL"] == pos_closed["realized_pnl"]
+    assert abs(res4["scorecard"]["TOTAL_ACCOUNT_EQUITY"] - round(20000.0 + pos_closed["realized_pnl"], 2)) <= 0.05
+
+    # Step 5: Checkpoint and Restart Idempotency
+    runner_restart = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    # Replay Day 4 partition
+    res_replay = runner_restart.run_step(raw_partitions=[day4_dir])
+    assert res_replay["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res_replay["scorecard"]["realized_completed_lifecycles_count"] == 1
+    assert res_replay["scorecard"]["PAIRS_FULLY_CLOSED"] == 1
+    assert res_replay["scorecard"]["CAPITAL_STILL_COMMITTED"] == 0.0
+    assert res_replay["scorecard"]["CAPITAL_AVAILABLE"] == 20000.0

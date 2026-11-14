@@ -360,6 +360,52 @@ def compute_orderbook_sweep(depth_levels: List[List[str]], target_notional_usd: 
         }
 
 
+def compute_spot_sell_sweep(
+    depth_bids: List[List[Union[str, float]]],
+    target_coin_qty: float,
+) -> Dict[str, Any]:
+    """Sweeps Spot bid orderbook levels targeting an exact coin quantity (target_coin_qty).
+
+    Returns:
+    - filled_base_qty: actual coins filled (<= target_coin_qty)
+    - filled_units: alias for filled_base_qty
+    - filled_quote_usd: total USD received (sum of filled_coin * bid_price)
+    - filled_usd: alias for filled_quote_usd
+    - vwap: volume-weighted average price across executed slices
+    - fully_filled: True if filled_base_qty >= target_coin_qty - 1e-6
+    - remaining_base_qty: max(0.0, target_coin_qty - accum_base)
+    """
+    accum_base = 0.0
+    accum_quote = 0.0
+
+    for lvl in depth_bids:
+        price = float(lvl[0])
+        qty = float(lvl[1])
+        needed_base = target_coin_qty - accum_base
+        if needed_base <= 1e-9:
+            break
+
+        take_base = min(needed_base, qty)
+        accum_base += take_base
+        accum_quote += take_base * price
+
+        if accum_base >= target_coin_qty - 1e-9:
+            break
+
+    vwap = (accum_quote / accum_base) if accum_base > 0 else 0.0
+    fully_filled = bool(target_coin_qty > 0 and accum_base >= (target_coin_qty - 1e-6))
+
+    return {
+        "filled_base_qty": accum_base,
+        "filled_units": accum_base,
+        "filled_quote_usd": accum_quote,
+        "filled_usd": accum_quote,
+        "vwap": vwap,
+        "fully_filled": fully_filled,
+        "remaining_base_qty": max(0.0, target_coin_qty - accum_base),
+    }
+
+
 class N1_7LifecycleEngine:
     def __init__(
         self,
@@ -496,7 +542,7 @@ class N1_7LifecycleEngine:
         - If delivery expiry reached, transitions to SETTLEMENT_PENDING or CLOSED.
         """
         sym = pos.get("contract_symbol") or pos.get("symbol")
-        obs_sym = observation.get("coinm_contract_symbol")
+        obs_sym = observation.get("coinm_contract_symbol") or observation.get("contract_symbol")
 
         # 1. Strict cross-symbol isolation
         if obs_sym != sym:
@@ -545,23 +591,49 @@ class N1_7LifecycleEngine:
             pos["spot_inventory_market_value_usd"] = round(pos.get("spot_inventory_coin", 0.0) * sp_bid_vwap, 2)
             pos["spot_inventory_valuation_usd"] = pos["spot_inventory_market_value_usd"]
 
+            req_coin = float(pos.get("spot_inventory_coin", 0.0))
             sp_sweep = observation.get("spot_bid_sweep")
-            notional = pos["entry_notional_usd"]
-            has_explicit_spot_liquidation = (
-                isinstance(sp_sweep, dict)
-                and sp_sweep.get("fully_filled") is True
-                and float(sp_sweep.get("filled_usd", 0.0)) >= notional - 1.0
+
+            # If depth bids are available in observation, compute sweep targeting required coins
+            depth_bids = observation.get("depth_bids") or observation.get("spot_bids")
+            if depth_bids and req_coin > 1e-9:
+                sp_sweep = compute_spot_sell_sweep(depth_bids, req_coin)
+
+            filled_base = 0.0
+            sweep_quote_usd = 0.0
+            if isinstance(sp_sweep, dict):
+                if "filled_base_qty" in sp_sweep or "filled_units" in sp_sweep:
+                    filled_base = float(sp_sweep.get("filled_base_qty") or sp_sweep.get("filled_units", 0.0))
+                elif "filled_usd" in sp_sweep and sp_bid_vwap > 0.0:
+                    filled_base = float(sp_sweep["filled_usd"]) / sp_bid_vwap
+                elif "filled_quote_usd" in sp_sweep and sp_bid_vwap > 0.0:
+                    filled_base = float(sp_sweep["filled_quote_usd"]) / sp_bid_vwap
+                sweep_quote_usd = float(sp_sweep.get("filled_quote_usd") or sp_sweep.get("filled_usd", 0.0))
+
+            if sweep_quote_usd <= 0.0 and filled_base > 0.0 and sp_bid_vwap > 0.0:
+                sweep_quote_usd = filled_base * sp_bid_vwap
+
+            # Only transition to PAIR_FULLY_CLOSED if full required coin inventory is filled
+            is_full_spot_liquidation = (
+                req_coin > 1e-9
+                and filled_base >= (req_coin - 1e-6)
                 and sp_bid_vwap > 0.0
             )
 
-            if has_explicit_spot_liquidation:
-                spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
-                sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
-                sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
+            if is_full_spot_liquidation:
+                cur_notional = pos["entry_notional_usd"]
+                coins_sold = req_coin
+                proceeds = sweep_quote_usd if sweep_quote_usd > 0.0 else (coins_sold * sp_bid_vwap)
+                spot_realized_usd = proceeds - cur_notional
+                sp_entry_fee = pos.get("spot_entry_fee_usd", cur_notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+                sp_exit_fee = proceeds * (COSTS.spot_exit_fee_bps / 10_000.0)
                 realized_spot_leg_usd = spot_realized_usd - sp_entry_fee - sp_exit_fee
-                realized_futures_leg_usd = pos.get("realized_futures_pnl_usd", 0.0)
-                residual_cost = pos.get("residual_execution_cost_usd", 0.0)
-                realized_net = realized_futures_leg_usd + realized_spot_leg_usd - residual_cost
+                prior_spot_pnl = float(pos.get("accumulated_realized_spot_pnl_usd", 0.0))
+                total_spot_leg_usd = prior_spot_pnl + realized_spot_leg_usd
+
+                realized_futures_leg_usd = float(pos.get("realized_futures_pnl_usd", 0.0))
+                residual_cost = float(pos.get("residual_execution_cost_usd", 0.0))
+                realized_net = realized_futures_leg_usd + total_spot_leg_usd - residual_cost
 
                 pos["state"] = LifecycleState.CLOSED
                 pos["lifecycle_status"] = "PAIR_FULLY_CLOSED"
@@ -569,25 +641,66 @@ class N1_7LifecycleEngine:
                 pos["closed_timestamp"] = ts
                 pos["exit_spot_price"] = sp_bid_vwap
                 pos["spot_inventory_held"] = False
+                pos["spot_inventory_coin"] = 0.0
                 pos["realized_pnl"] = round(realized_net, 2)
-                pos["realized_spot_pnl_usd"] = round(realized_spot_leg_usd, 2)
+                pos["realized_spot_pnl_usd"] = round(total_spot_leg_usd, 2)
                 pos["capital_released"] = True
-                pos["released_capital_usd"] = notional
-                pos["released_collateral_coin"] = pos.get("spot_inventory_coin", 0.0)
+                pos["released_capital_usd"] = cur_notional
+                pos["released_collateral_coin"] = coins_sold
 
                 bridge = pos.setdefault("realized_pnl_bridge", {})
                 bridge["gross_spot_pnl_usd"] = round(spot_realized_usd, 4)
                 bridge["spot_entry_fee_usd"] = round(sp_entry_fee, 4)
                 bridge["spot_exit_fee_usd"] = round(sp_exit_fee, 4)
-                bridge["realized_spot_pnl_usd"] = round(realized_spot_leg_usd, 2)
+                bridge["realized_spot_pnl_usd"] = round(total_spot_leg_usd, 2)
                 bridge["realized_net_pnl_usd"] = round(realized_net, 2)
 
                 pos.setdefault("history", []).append({
                     "timestamp_ms": ts,
                     "state": LifecycleState.CLOSED,
-                    "note": f"Spot inventory fully liquidated at {sp_bid_vwap}. Pair fully closed. Realized net PnL: ${realized_net:.2f}",
+                    "note": f"Spot inventory fully liquidated ({coins_sold:.6f} coins at {sp_bid_vwap}). Pair fully closed. Realized net PnL: ${realized_net:.2f}",
                 })
                 return (True, "SPOT_INVENTORY_LIQUIDATED_PAIR_CLOSED")
+
+            elif req_coin > 1e-9 and filled_base > 1e-6 and filled_base < (req_coin - 1e-6) and sp_bid_vwap > 0.0:
+                # Partial Spot fill: preserve remaining coins and remaining capital
+                coins_sold = min(filled_base, req_coin)
+                remaining_coins = req_coin - coins_sold
+                frac_sold = coins_sold / req_coin
+                cur_notional = pos["entry_notional_usd"]
+                sold_notional = cur_notional * frac_sold
+                remaining_notional = cur_notional - sold_notional
+
+                partial_proceeds = sweep_quote_usd if sweep_quote_usd > 0.0 else (coins_sold * sp_bid_vwap)
+                partial_gross_spot = partial_proceeds - sold_notional
+                sp_entry_fee_total = pos.get("spot_entry_fee_usd", cur_notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+                sold_entry_fee = sp_entry_fee_total * frac_sold
+                remaining_entry_fee = sp_entry_fee_total - sold_entry_fee
+                sold_exit_fee = partial_proceeds * (COSTS.spot_exit_fee_bps / 10_000.0)
+                partial_realized_spot = partial_gross_spot - sold_entry_fee - sold_exit_fee
+
+                pos["accumulated_realized_spot_pnl_usd"] = round(
+                    pos.get("accumulated_realized_spot_pnl_usd", 0.0) + partial_realized_spot, 4
+                )
+                pos["spot_inventory_coin"] = remaining_coins
+                pos["entry_notional_usd"] = round(remaining_notional, 2)
+                pos["spot_entry_fee_usd"] = round(remaining_entry_fee, 4)
+                pos["state"] = LifecycleState.FUTURES_LEG_SETTLED
+                pos["lifecycle_status"] = "PARTIAL_SPOT_LIQUIDATED"
+                pos["pair_fully_closed"] = False
+                pos["spot_inventory_held"] = True
+                pos["capital_released"] = False
+                pos["partial_released_capital_usd"] = round(sold_notional, 2)
+                pos["spot_inventory_market_value_usd"] = round(remaining_coins * sp_bid_vwap, 2)
+                pos["spot_inventory_valuation_usd"] = pos["spot_inventory_market_value_usd"]
+
+                pos.setdefault("history", []).append({
+                    "timestamp_ms": ts,
+                    "state": LifecycleState.FUTURES_LEG_SETTLED,
+                    "note": f"Partial spot liquidation: sold {coins_sold:.6f} coins at {sp_bid_vwap} (proceeds ${partial_proceeds:.2f}), remaining {remaining_coins:.6f} coins, remaining capital ${remaining_notional:.2f}",
+                })
+                return (True, "PARTIAL_SPOT_SALE_PRESERVED")
+
             return (True, "INVENTORY_VALUATION_UPDATED")
 
         depth_basis = observation.get("observed_depth_basis_bps", 0.0)
@@ -606,7 +719,7 @@ class N1_7LifecycleEngine:
             if isinstance(settle_record, dict):
                 settle_sym = settle_record.get("contract_symbol")
                 settle_deliv = settle_record.get("delivery_ms") or settle_record.get("expiry_ms", deliv_ms)
-                pub_ms = settle_record.get("published_ms") or settle_record.get("available_ms", ts)
+                pub_ms = settle_record.get("available_ms") or settle_record.get("published_ms") or settle_record.get("recv_ms", ts)
 
                 # Check contract matching
                 if settle_sym and settle_sym != pos.get("contract_symbol"):
@@ -614,7 +727,9 @@ class N1_7LifecycleEngine:
                 # Check expiry matching
                 if settle_deliv and deliv_ms > 0 and abs(settle_deliv - deliv_ms) > 3_600_000:
                     return (False, "SETTLEMENT_EXPIRY_MISMATCH")
-                # Check causal availability (PIT)
+                # Check causal availability (PIT): never settle before expiry or before data publication
+                if deliv_ms > 0 and ts < deliv_ms:
+                    return (False, "SETTLEMENT_BEFORE_EXPIRY_IGNORED")
                 if pub_ms > ts:
                     return (False, "SETTLEMENT_DATA_FUTURE_PIT")
 
@@ -622,6 +737,8 @@ class N1_7LifecycleEngine:
                 if p_val > 0:
                     settle_price = p_val
             elif observation.get("delivery_settlement_price"):
+                if deliv_ms > 0 and ts < deliv_ms:
+                    return (False, "SETTLEMENT_BEFORE_EXPIRY_IGNORED")
                 p_val = float(observation["delivery_settlement_price"])
                 if p_val > 0:
                     settle_price = p_val
@@ -640,16 +757,28 @@ class N1_7LifecycleEngine:
                 pos["realized_futures_pnl_usd"] = round(realized_futures_leg_usd, 2)
 
                 sp_sweep = observation.get("spot_bid_sweep")
+                req_coin = float(pos.get("spot_inventory_coin", 0.0))
+                filled_base = 0.0
+                sweep_quote_usd = 0.0
+                if isinstance(sp_sweep, dict):
+                    if "filled_base_qty" in sp_sweep or "filled_units" in sp_sweep:
+                        filled_base = float(sp_sweep.get("filled_base_qty") or sp_sweep.get("filled_units", 0.0))
+                    elif "filled_usd" in sp_sweep and sp_bid_vwap > 0.0:
+                        filled_base = float(sp_sweep["filled_usd"]) / sp_bid_vwap
+                    elif "filled_quote_usd" in sp_sweep and sp_bid_vwap > 0.0:
+                        filled_base = float(sp_sweep["filled_quote_usd"]) / sp_bid_vwap
+                    sweep_quote_usd = float(sp_sweep.get("filled_quote_usd") or sp_sweep.get("filled_usd", 0.0))
+
                 has_explicit_spot_liquidation = (
-                    isinstance(sp_sweep, dict)
-                    and sp_sweep.get("fully_filled") is True
-                    and float(sp_sweep.get("filled_usd", 0.0)) >= notional - 1.0
+                    req_coin > 1e-9
+                    and filled_base >= (req_coin - 1e-6)
                     and sp_bid_vwap > 0.0
                 )
 
                 if has_explicit_spot_liquidation:
                     inv_pnl_usd = inv_pnl_coin * sp_bid_vwap
-                    spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
+                    spot_proceeds = sweep_quote_usd if sweep_quote_usd > 0.0 else (req_coin * sp_bid_vwap)
+                    spot_realized_usd = spot_proceeds - pos["entry_notional_usd"]
                     sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
                     sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
                     realized_futures_leg_usd = inv_pnl_usd - cm_entry_fee - cm_deliv_fee
@@ -894,13 +1023,20 @@ class N1_7LifecycleEngine:
             sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
             unrealized_spot = gross_spot - sp_entry_fee
 
-            # Close now economics for held inventory
+            # Close now economics for held inventory: target actual spot coins
             sp_sweep = pos.get("spot_bid_sweep") or pos.get("last_depth_evidence", {}).get("spot_bid_sweep")
+            filled_coin = 0.0
+            if isinstance(sp_sweep, dict):
+                if "filled_base_qty" in sp_sweep or "filled_units" in sp_sweep:
+                    filled_coin = float(sp_sweep.get("filled_base_qty") or sp_sweep.get("filled_units", 0.0))
+                elif "filled_usd" in sp_sweep and exit_spot > 0:
+                    filled_coin = float(sp_sweep["filled_usd"]) / exit_spot
+                elif "filled_quote_usd" in sp_sweep and exit_spot > 0:
+                    filled_coin = float(sp_sweep["filled_quote_usd"]) / exit_spot
+
             depth_fillable = (
                 isinstance(sp_sweep, dict)
-                and sp_sweep.get("fully_filled") is True
-                and "filled_usd" in sp_sweep
-                and float(sp_sweep["filled_usd"]) >= notional - 1.0
+                and (filled_coin >= spot_coin - 1e-6)
             )
             if exit_spot > 0 and depth_fillable:
                 close_exec = True
@@ -1117,8 +1253,14 @@ class N1_7LifecycleEngine:
                                     if isinstance(item, dict) and "deliveryPrice" in item:
                                         p_rec = dict(rec)
                                         p_rec["settlement_price"] = float(item["deliveryPrice"])
-                                        p_rec["delivery_ms"] = int(item.get("deliveryTime", 0))
-                                        p_rec["published_ms"] = int(item.get("deliveryTime", 0))
+                                        deliv_time = int(item.get("deliveryTime", 0))
+                                        p_rec["delivery_ms"] = deliv_time
+                                        # P0-A: Keep delivery_ms as contract expiry; keep recorder recv_ms as system data availability
+                                        recv_time = int(rec.get("recv_ms") or rec.get("timestamp_ms") or 0)
+                                        pub_time = int(rec.get("published_ms") or rec.get("available_ms") or 0)
+                                        rec_avail = pub_time if pub_time > 0 else (recv_time if recv_time > 0 else deliv_time)
+                                        p_rec["published_ms"] = rec_avail
+                                        p_rec["available_ms"] = rec_avail
                                         settlement_records_all.append(p_rec)
                             else:
                                 settlement_records_all.append(rec)
@@ -1361,7 +1503,14 @@ class N1_7LifecycleEngine:
         for s_rec in settlement_records_all:
             raw_sym = s_rec.get("contract_symbol") or s_rec.get("symbol") or s_rec.get("params", {}).get("pair", "")
             deliv_ms = int(s_rec.get("delivery_ms", 0))
-            s_pub = int(s_rec.get("published_ms") or s_rec.get("decision_timestamp") or s_rec.get("recv_ms", 0))
+            s_avail = int(
+                s_rec.get("available_ms")
+                or s_rec.get("published_ms")
+                or s_rec.get("recv_ms")
+                or s_rec.get("decision_timestamp", 0)
+            )
+            # Never process settlement at a decision timestamp earlier than known data availability
+            s_pub = max(s_avail, deliv_ms) if deliv_ms > 0 else s_avail
 
             # Resolve contract symbol:
             resolved_sym = None
@@ -1462,7 +1611,8 @@ class N1_7LifecycleEngine:
                             if u_avail:
                                 u_r = u_avail[-1]
                         sp_b_vwap = float(sp_bids[0][0]) * u_r
-                        sp_exit_sweep = compute_orderbook_sweep(sp_bids, pos["entry_notional_usd"], is_contracts=False)
+                        req_c = float(pos.get("spot_inventory_coin", 0.0))
+                        sp_exit_sweep = compute_spot_sell_sweep(sp_bids, req_c)
                         if sp_exit_sweep.get("vwap"):
                             sp_b_vwap = sp_exit_sweep["vwap"] * u_r
                         pair_counter += 1
@@ -1479,6 +1629,7 @@ class N1_7LifecycleEngine:
                             "spot_ask_vwap": round(sp_b_vwap, 4),
                             "coinm_bid_vwap": 0.0,
                             "coinm_ask_vwap": 0.0,
+                            "depth_bids": sp_bids,
                             "spot_bid_sweep": sp_exit_sweep,
                             "entry_eligible": False,
                             "entry_block_reasons": ["HELD_INVENTORY_SPOT_OBSERVATION"],
@@ -1546,13 +1697,22 @@ class N1_7LifecycleEngine:
                     "status": status,
                 })
             df_scen = pd.DataFrame(runs)
-            scenario_results[scen_name] = {
-                "total_runs": len(df_scen),
-                "mean_unhedged_delta_usd": round(float(df_scen["maximum_unhedged_delta_usd"].mean()), 2),
-                "max_unhedged_delta_usd": round(float(df_scen["maximum_unhedged_delta_usd"].max()), 2),
-                "mean_time_to_hedge_s": round(float(df_scen["time_to_hedge_s"].mean()), 2),
-                "fully_hedged_rate_pct": round(float((df_scen["maximum_unhedged_delta_usd"] <= 100.0).mean() * 100.0), 2),
-            }
+            if len(df_scen) > 0 and "maximum_unhedged_delta_usd" in df_scen.columns:
+                scenario_results[scen_name] = {
+                    "total_runs": len(df_scen),
+                    "mean_unhedged_delta_usd": round(float(df_scen["maximum_unhedged_delta_usd"].mean()), 2),
+                    "max_unhedged_delta_usd": round(float(df_scen["maximum_unhedged_delta_usd"].max()), 2),
+                    "mean_time_to_hedge_s": round(float(df_scen["time_to_hedge_s"].mean()), 2),
+                    "fully_hedged_rate_pct": round(float((df_scen["maximum_unhedged_delta_usd"] <= 100.0).mean() * 100.0), 2),
+                }
+            else:
+                scenario_results[scen_name] = {
+                    "total_runs": 0,
+                    "mean_unhedged_delta_usd": 0.0,
+                    "max_unhedged_delta_usd": 0.0,
+                    "mean_time_to_hedge_s": 0.0,
+                    "fully_hedged_rate_pct": 100.0,
+                }
 
         # ----------------------------------------------------------------------
         # PHASE D: Complete Virtual Carry Lifecycle Tracking (Integrated N1.8 Source-of-Truth)
@@ -1617,11 +1777,11 @@ class N1_7LifecycleEngine:
                 }
 
         # Historical N1.7 valuation (evaluating against batch end, preserving historical artifact)
-        last_intent = order_intents[-1]
+        last_intent = order_intents[-1] if order_intents else {}
         n1_7_ledger = []
         for sym, pos in n1_7_active.items():
-            cur_spot = last_intent["spot_ask_vwap"]
-            cur_fut = last_intent["coinm_bid_vwap"]
+            cur_spot = last_intent.get("spot_ask_vwap", 1.0)
+            cur_fut = last_intent.get("coinm_bid_vwap", 1.0)
             notional = pos["contracts_short"] * pos["contract_multiplier_usd"]
             inv_pnl = notional * (1.0 / cur_fut - 1.0 / pos["entry_futures_price"]) if cur_fut > 0 else 0.0
             margin_bal = pos["coin_collateral_in_wallet"] + inv_pnl
@@ -1688,7 +1848,14 @@ class N1_7LifecycleEngine:
             for pid, pos in list(active_compliant.items()):
                 if pos.get("entry_timestamp", 0) < ts:
                     ok, action = self.process_observation(pos, item)
-                    if pos.get("state") == LifecycleState.CLOSED and pos.get("pair_fully_closed", True):
+                    if action == "PARTIAL_SPOT_SALE_PRESERVED":
+                        partial_release = float(pos.pop("partial_released_capital_usd", 0.0))
+                        if partial_release > 0.0:
+                            u_asset = pos["underlying_asset"]
+                            underlying_committed_usd[u_asset] = max(
+                                0.0, underlying_committed_usd.get(u_asset, 0.0) - partial_release
+                            )
+                    elif pos.get("state") == LifecycleState.CLOSED and pos.get("pair_fully_closed", True):
                         closed_compliant.append(pos)
                         del active_compliant[pid]
                         # 4. Release capital once
@@ -1842,19 +2009,54 @@ class N1_7LifecycleEngine:
         # PHASE E: Economic Scorecard (Based on Compliant Replay)
         # ----------------------------------------------------------------------
         total_intents = len(df_intents)
-        eligible_intents = int(df_intents["entry_eligible"].sum())
+        eligible_intents = int(df_intents["entry_eligible"].sum()) if (total_intents > 0 and "entry_eligible" in df_intents.columns) else 0
         eligibility_rate_pct = (eligible_intents / total_intents * 100.0) if total_intents > 0 else 0.0
 
-        mean_matched_notional = float(df_intents["matched_executable_notional"].mean()) if total_intents else 0.0
-        mean_unhedged_exposure = float(df_intents["estimated_legging_exposure_usd"].mean()) if total_intents else 0.0
-        max_unhedged_exposure = float(df_intents["estimated_legging_exposure_usd"].max()) if total_intents else 0.0
+        mean_matched_notional = float(df_intents["matched_executable_notional"].mean()) if (total_intents and "matched_executable_notional" in df_intents.columns) else 0.0
+        mean_unhedged_exposure = float(df_intents["estimated_legging_exposure_usd"].mean()) if (total_intents and "estimated_legging_exposure_usd" in df_intents.columns) else 0.0
+        max_unhedged_exposure = float(df_intents["estimated_legging_exposure_usd"].max()) if (total_intents and "estimated_legging_exposure_usd" in df_intents.columns) else 0.0
 
         # Capital utilization and PnL for compliant population
         total_deployed_usd = sum(p["entry_notional_usd"] for p in compliant_ledger)
         capital_utilization_pct = (total_deployed_usd / self.portfolio_capital_usd) * 100.0
-        total_unrealized_pnl = sum(p["unrealized_pnl_after_entry_cost"] for p in compliant_ledger)
-        total_realized_closed_pnl = round(sum(p.get("realized_pnl", 0.0) for p in closed_ledger), 2)
+        # Disjoint P0-C accounting buckets
+        fully_closed_pair_realized_net_pnl = round(
+            sum(p.get("realized_pnl", 0.0) for p in closed_compliant), 2
+        )
+        total_realized_closed_pnl = fully_closed_pair_realized_net_pnl
         total_realized_closed_count = len(closed_ledger)
+
+        active_hedged_pair_unrealized_net_pnl = round(
+            sum(
+                p.get("unrealized_pnl_after_entry_cost", p.get("current_unrealized_pnl_usd", 0.0))
+                for p in compliant_ledger
+                if p.get("state") not in (LifecycleState.CLOSED, LifecycleState.FUTURES_LEG_SETTLED)
+                and not p.get("futures_leg_settled", False)
+            ),
+            2
+        )
+
+        futures_settled_realized_fut_pnl = round(
+            sum(
+                p.get("realized_futures_pnl_usd", 0.0)
+                for p in compliant_ledger
+                if p.get("state") == LifecycleState.FUTURES_LEG_SETTLED or p.get("futures_leg_settled", False)
+            ),
+            2
+        )
+
+        futures_settled_unrealized_spot_pnl = round(
+            sum(
+                p.get("unrealized_pnl_after_entry_cost", p.get("current_unrealized_pnl_usd", 0.0))
+                for p in compliant_ledger
+                if p.get("state") == LifecycleState.FUTURES_LEG_SETTLED or p.get("futures_leg_settled", False)
+            ),
+            2
+        )
+
+        total_unrealized_pnl = round(
+            active_hedged_pair_unrealized_net_pnl + futures_settled_unrealized_spot_pnl, 2
+        )
 
         # P0-A explicit metrics
         all_compliant_positions = list(active_compliant.values()) + closed_compliant
@@ -1891,7 +2093,11 @@ class N1_7LifecycleEngine:
             2
         )
         total_account_equity_usd = round(
-            self.portfolio_capital_usd + total_realized_closed_pnl + total_unrealized_pnl,
+            self.portfolio_capital_usd
+            + fully_closed_pair_realized_net_pnl
+            + active_hedged_pair_unrealized_net_pnl
+            + futures_settled_realized_fut_pnl
+            + futures_settled_unrealized_spot_pnl,
             2
         )
 
@@ -1911,6 +2117,15 @@ class N1_7LifecycleEngine:
             "total_open_unrealized_pnl_usd": round(total_unrealized_pnl, 2),
             "realized_closed_pnl_usd": round(total_realized_closed_pnl, 2),
             "realized_completed_lifecycles_count": pairs_fully_closed_count,
+            # Explicit P0-C Disjoint accounting buckets
+            "FULLY_CLOSED_PAIR_REALIZED_NET_PNL": fully_closed_pair_realized_net_pnl,
+            "ACTIVE_HEDGED_PAIR_UNREALIZED_NET_PNL": active_hedged_pair_unrealized_net_pnl,
+            "FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL": futures_settled_realized_fut_pnl,
+            "FUTURES_SETTLED_SPOT_HELD_UNREALIZED_SPOT_PNL": futures_settled_unrealized_spot_pnl,
+            "fully_closed_pair_realized_net_pnl_usd": fully_closed_pair_realized_net_pnl,
+            "active_hedged_pair_unrealized_net_pnl_usd": active_hedged_pair_unrealized_net_pnl,
+            "futures_settled_spot_held_realized_futures_pnl_usd": futures_settled_realized_fut_pnl,
+            "futures_settled_spot_held_unrealized_spot_pnl_usd": futures_settled_unrealized_spot_pnl,
             # Explicit P0-A required scorecard fields
             "FUTURES_LEGS_SETTLED": futures_legs_settled_count,
             "PAIRS_FULLY_CLOSED": pairs_fully_closed_count,
@@ -1941,10 +2156,10 @@ class N1_7LifecycleEngine:
         # ----------------------------------------------------------------------
         # PHASE F: Research Decision States
         # ----------------------------------------------------------------------
-        quotes_valid = bool(total_intents > 0 and (df_intents["quote_valid_pit"].mean() >= 0.90))
+        quotes_valid = bool(total_intents > 0 and "quote_valid_pit" in df_intents.columns and (df_intents["quote_valid_pit"].mean() >= 0.90))
         signal_valid = bool("causal_basis_ma24_bps" in df_intents.columns and df_intents["basis_ma24_ready"].all())
         paired_sim_valid = bool(len(scenario_results) == 3)
-        paired_feasibility = "SUPPORTED" if (df_intents["matched_executable_notional"].mean() >= self.target_per_asset_usd * 0.8) else "INSUFFICIENT"
+        paired_feasibility = "SUPPORTED" if (total_intents > 0 and "matched_executable_notional" in df_intents.columns and df_intents["matched_executable_notional"].mean() >= self.target_per_asset_usd * 0.8) else "INSUFFICIENT"
         carry_lifecycles = "ACCUMULATING" if len(compliant_ledger) > 0 else ("RESOLVED" if pairs_fully_closed_count > 0 else "IDLE")
 
         # P0-A & P1: Distinguish SAMPLE_NET_POSITIVE from confirmed forward edge; keep INCONCLUSIVE
