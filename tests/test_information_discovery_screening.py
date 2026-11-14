@@ -90,7 +90,12 @@ def test_screening_artifact_isolation(tmp_path: Path):
     
     with open(isolated_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-    assert data["phase_6_research_disposition"]["selected_hypothesis"] == "AVRS_TG"
+    assert data["phase_6_research_disposition"]["SFRP_MR"] == "INITIAL_SCREEN_UNFAVORABLE"
+    assert data["phase_6_research_disposition"]["CARP_CS"] == "INITIAL_SCREEN_UNFAVORABLE"
+    assert data["phase_6_research_disposition"]["AVRS_DESCRIPTIVE_REGIME_EVIDENCE"] == "AVAILABLE"
+    assert data["phase_6_research_disposition"]["AVRS_CAUSAL_PREDICTIVE_VALUE"] == "NOT_EVALUATED"
+    assert data["phase_6_research_disposition"]["AVRS_EXECUTABLE_ECONOMIC_VALUE"] == "NOT_EVALUATED"
+    assert data["phase_6_research_disposition"]["AVRS_NEURAL_PILOT"] == "NOT_AUTHORIZED"
     assert data["phase_1_competing_hypotheses_screened"]["CATR_LRP"]["screening_disposition"] == "NON_NEURAL_EDGE_ONLY"
     
     # Ensure canonical file was NOT touched during the test

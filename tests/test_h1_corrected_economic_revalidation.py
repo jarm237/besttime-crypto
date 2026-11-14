@@ -71,12 +71,13 @@ def test_r2_accounting_parity_audit():
     assert inv["account_equity_conservation"]["parity_status"] == "VERIFIED_SHARED"
     assert inv["exactly_once_economic_closure"]["parity_status"] == "VERIFIED_SHARED"
 
-    # Numerical lifecycle comparisons must be present and verified with zero residual
+    # Lifecycle comparisons must be present and labeled SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED
+    assert parity_res["parity_summary"]["numerical_lifecycle_parity_status"] == "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED"
     num_comps = parity_res["representative_lifecycle_numerical_comparisons"]
     assert len(num_comps) >= 2
     for comp in num_comps:
-        assert comp["parity_verified"] is True
-        assert abs(comp["numerical_parity_residual_usd"]) < 0.01
+        assert comp["parity_status"] == "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED"
+        assert comp["r2_7_term_bridge_formula_net_pnl_usd"] is not None
 
 
 def test_revalidation_evidence_integrity_and_injection(tmp_path: Path):

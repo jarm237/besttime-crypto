@@ -224,7 +224,7 @@ def build_information_hypotheses_screening_report(output_dir: Optional[Path] = N
             "6_transaction_costs_and_capacity": "38.0 bps retail round-trip (Spot 10+10, Perp 5+5, 8 bps spread)",
             "7_why_simple_rule_misses": "Static funding filters trade too frequently and ignore perpetual basis divergence",
             "8_falsification_test": "Mean funding (0.45 bps/8h) requires 28 days to break even; expected 10d net PnL is negative (-24.5 bps)",
-            "screening_disposition": "HYPOTHESIS_REJECTED_AFTER_COSTS",
+            "screening_disposition": "INITIAL_SCREEN_UNFAVORABLE",
             "neural_pilot_authorized": False,
         },
         "CARP_CS": {
@@ -237,7 +237,7 @@ def build_information_hypotheses_screening_report(output_dir: Optional[Path] = N
             "6_transaction_costs_and_capacity": "20.0 bps round-trip Spot fee + spread per rebalance",
             "7_why_simple_rule_misses": "Indicator momentum whipsaws on mean-reverting altcoin chop",
             "8_falsification_test": "Cross-sectional correlation is near-zero (0.029 at 168h, -0.001 at 24h); turnover fee drag (~10.4% p.a.) eliminates all edge",
-            "screening_disposition": "HYPOTHESIS_REJECTED_AFTER_COSTS",
+            "screening_disposition": "INITIAL_SCREEN_UNFAVORABLE",
             "neural_pilot_authorized": False,
         },
         "AVRS_TG": {
@@ -249,9 +249,9 @@ def build_information_hypotheses_screening_report(output_dir: Optional[Path] = N
             "5_data_availability_and_lineage": "100% available in Spot OHLCV and Mark panel",
             "6_transaction_costs_and_capacity": "20.0 bps round-trip Spot fee per regime switch; ~6-10 switches/year (~160 bps/year total cost)",
             "7_why_simple_rule_misses": "Trailing ATR/MA bands lag regime onset by 10-20 bars, suffering deep drawdowns before exiting and whipsawing in chop",
-            "8_falsification_test": "Downside regimes produce -29.2% annualized return; avoiding them saves ~14.7% in drawdowns for 160 bps friction (Payoff/Cost = 9.2x)",
-            "screening_disposition": "SELECTED_FOR_NEXT_BOUNDED_EXPERIMENT",
-            "neural_pilot_authorized": True,
+            "8_falsification_test": "Downside regimes produce -29.2% annualized return; descriptive ex-post clustering observed, but causal predictive value unverified",
+            "screening_disposition": "DESCRIPTIVE_EVIDENCE_AVAILABLE_CAUSAL_EVALUATION_REQUIRED",
+            "neural_pilot_authorized": False,
         },
     }
 
@@ -266,39 +266,35 @@ def build_information_hypotheses_screening_report(output_dir: Optional[Path] = N
             "carp_cross_asset_momentum": res_carp,
             "avrs_asymmetric_volatility_tail_gating": res_avrs,
         },
-        "phase_3_non_neural_baseline_hurdles": {
-            "selected_hypothesis": "AVRS_TG_ASYMMETRIC_VOLATILITY_REGIME_SWITCHING",
-            "cash_baseline_net_pnl": 0.0,
-            "passive_spot_ew_net_return_pct": 28.1,
-            "passive_spot_ew_max_drawdown_pct": -68.4,
-            "avrs_rule_based_filter_net_return_pct": 42.8,
-            "avrs_rule_based_filter_max_drawdown_pct": -26.2,
-            "net_excess_vs_passive_pct": 14.7,
-            "annual_friction_paid_bps": 160.0,
+        "phase_3_descriptive_evidence_and_causal_requirements": {
+            "hypothesis": "AVRS_TG_ASYMMETRIC_VOLATILITY_REGIME_SWITCHING",
+            "descriptive_clustering_evidence": "AVAILABLE",
+            "descriptive_downside_avoided_pct": res_avrs["downside_return_avoided_pct"],
+            "caveat": "Descriptive clustering uses full-sample quantile and contemporaneous returns. It must NOT be treated as realized trading profit.",
+            "causal_predictive_evaluation_status": "REQUIRED",
+            "executable_backtest_status": "REQUIRED",
         },
         "phase_4_neural_value_justification": {
-            "why_neural_is_justified_on_avrs": (
-                "Simple moving average / ATR volatility filters have fixed lag and generate frequent whipsaws in transition zones. "
-                "A temporal sequence model (Causal TCN / GRU) processing multi-scale semi-variance and cross-asset correlation tensors "
-                "can learn early-warning state transitions, dynamically allocating Cash slack w_0 without lagging indicators."
-            ),
-            "falsification_gate_before_promotion": (
-                "The neural policy must beat the simple non-neural AVRS rule filter by at least +200 bps annualized net Sharpe-adjusted return "
-                "and achieve max drawdown <= -22% on out-of-sample data under full 20.0 bps Spot round-trip friction."
+            "status": "NOT_AUTHORIZED_PENDING_CAUSAL_FALSIFICATION",
+            "requirement": (
+                "Before authorizing any neural parameters, causal non-neural simulation must demonstrate that downside tail "
+                "risk can be predicted ex-ante and acted upon profitably after turnover, missed rebound, and transaction costs."
             ),
         },
         "phase_5_unified_architecture_direction": {
-            "status": "APPROVED_FOR_BOUNDED_RESEARCH_PILOT",
+            "status": "CONCEPTUAL_TARGET",
             "pipeline": "Causal Multi-Asset Tensor (N x T x F) -> Shared Temporal Encoder -> Portfolio Cash Slack w_0 and Asset Sizing alpha_i -> Deterministic Risk Barrier -> Post-Cost Sortino Utility",
             "decoupled_from_production": True,
             "real_trading": "DISABLED",
         },
         "phase_6_research_disposition": {
-            "selected_hypothesis": "AVRS_TG",
-            "disposition": "INFORMATION_HYPOTHESIS_SUPPORTED_FOR_NEURAL_PILOT",
+            "SFRP_MR": "INITIAL_SCREEN_UNFAVORABLE",
+            "CARP_CS": "INITIAL_SCREEN_UNFAVORABLE",
+            "AVRS_DESCRIPTIVE_REGIME_EVIDENCE": "AVAILABLE",
+            "AVRS_CAUSAL_PREDICTIVE_VALUE": "NOT_EVALUATED",
+            "AVRS_EXECUTABLE_ECONOMIC_VALUE": "NOT_EVALUATED",
+            "AVRS_NEURAL_PILOT": "NOT_AUTHORIZED",
             "h1_carry_role": "RETAINED_AS_INDEPENDENT_NON_NEURAL_BASELINE",
-            "sfrp_funding_status": "REJECTED_AFTER_COSTS",
-            "carp_momentum_status": "REJECTED_AFTER_COSTS",
         },
     }
 

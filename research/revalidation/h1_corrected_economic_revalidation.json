@@ -1,7 +1,7 @@
 {
   "document_id": "H1-CORRECTED-ECONOMIC-REVALIDATION-V2-2026-11-15",
-  "timestamp_utc": "2026-11-14T20:01:41Z",
-  "elapsed_seconds": 66.61,
+  "timestamp_utc": "2026-11-14T20:28:04Z",
+  "elapsed_seconds": 70.68,
   "task_1_evidence_integrity": {
     "output_path_injectable": true,
     "canonical_artifact_preservation_enforced": true,
@@ -211,8 +211,8 @@
       "partial_modelled_invariants_count": 2,
       "accounting_parity_status": "PARTIAL_SHARED_SUBSET",
       "historical_simulator_attribution": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION",
-      "numerical_lifecycle_parity_tested": true,
-      "numerical_parity_residual_usd": 0.0
+      "numerical_lifecycle_parity_status": "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED",
+      "numerical_parity_residual_usd": null
     },
     "invariant_details": {
       "inverse_futures_pnl": {
@@ -281,9 +281,9 @@
         "entry_committed_cost_usd": 5187.285,
         "exit_spot_proceeds_usd": 5426.8854,
         "n1_5_reported_net_pnl_usd": 239.6004,
-        "r2_7_term_bridge_net_pnl_usd": 239.6004,
-        "numerical_parity_residual_usd": 0.0,
-        "parity_verified": true
+        "r2_7_term_bridge_formula_net_pnl_usd": 239.6004,
+        "parity_status": "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED",
+        "note": "Static ledger records reviewed against accounting formula; full dynamic cross-runtime numerical parity not independently executed"
       },
       {
         "position_id": 2,
@@ -293,9 +293,9 @@
         "entry_committed_cost_usd": 4990.314,
         "exit_spot_proceeds_usd": 5064.4783,
         "n1_5_reported_net_pnl_usd": 74.1643,
-        "r2_7_term_bridge_net_pnl_usd": 74.1643,
-        "numerical_parity_residual_usd": 0.0,
-        "parity_verified": true
+        "r2_7_term_bridge_formula_net_pnl_usd": 74.1643,
+        "parity_status": "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED",
+        "note": "Static ledger records reviewed against accounting formula; full dynamic cross-runtime numerical parity not independently executed"
       }
     ]
   },

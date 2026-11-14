@@ -207,7 +207,7 @@ def audit_r2_accounting_parity() -> Dict[str, Any]:
     shared_count = sum(1 for v in invariants.values() if v["parity_status"] == "VERIFIED_SHARED")
     total_count = len(invariants)
 
-    # Numerical lifecycle parity comparisons on representative closed positions from the N1.5 ledger
+    # Representative closed positions reviewed from the N1.5 ledger against R2 accounting formulas
     numerical_lifecycle_comparisons = [
         {
             "position_id": 32,
@@ -217,9 +217,9 @@ def audit_r2_accounting_parity() -> Dict[str, Any]:
             "entry_committed_cost_usd": 5187.2850,
             "exit_spot_proceeds_usd": 5426.8854,
             "n1_5_reported_net_pnl_usd": 239.6004,
-            "r2_7_term_bridge_net_pnl_usd": 239.6004,
-            "numerical_parity_residual_usd": 0.0,
-            "parity_verified": True,
+            "r2_7_term_bridge_formula_net_pnl_usd": 239.6004,
+            "parity_status": "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED",
+            "note": "Static ledger records reviewed against accounting formula; full dynamic cross-runtime numerical parity not independently executed",
         },
         {
             "position_id": 2,
@@ -229,9 +229,9 @@ def audit_r2_accounting_parity() -> Dict[str, Any]:
             "entry_committed_cost_usd": 4990.3140,
             "exit_spot_proceeds_usd": 5064.4783,
             "n1_5_reported_net_pnl_usd": 74.1643,
-            "r2_7_term_bridge_net_pnl_usd": 74.1643,
-            "numerical_parity_residual_usd": 0.0,
-            "parity_verified": True,
+            "r2_7_term_bridge_formula_net_pnl_usd": 74.1643,
+            "parity_status": "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED",
+            "note": "Static ledger records reviewed against accounting formula; full dynamic cross-runtime numerical parity not independently executed",
         },
     ]
 
@@ -242,8 +242,8 @@ def audit_r2_accounting_parity() -> Dict[str, Any]:
             "partial_modelled_invariants_count": total_count - shared_count,
             "accounting_parity_status": "PARTIAL_SHARED_SUBSET",
             "historical_simulator_attribution": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION",
-            "numerical_lifecycle_parity_tested": True,
-            "numerical_parity_residual_usd": 0.0,
+            "numerical_lifecycle_parity_status": "SOURCE_REVIEWED_NOT_NUMERICALLY_VERIFIED",
+            "numerical_parity_residual_usd": None,
         },
         "invariant_details": invariants,
         "representative_lifecycle_numerical_comparisons": numerical_lifecycle_comparisons,
