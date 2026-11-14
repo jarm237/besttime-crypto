@@ -1,17 +1,17 @@
-"""Causal AVRS Economic Falsification and Portfolio Backtest Pipeline.
+"""Causal AVRS Economic Falsification and Multi-Asset Portfolio Backtest Pipeline.
 
 Strictly evaluates whether Asymmetric Volatility Regime Switching & Downside Tail Gating (AVRS-TG)
 contains economically useful, causally observable information that improves portfolio decisions
-after realistic transaction costs and missed rebound effects.
+after realistic transaction costs, post-return weight drift, and missed rebound effects.
 
-Adheres strictly to causal requirements:
-1. No full-sample quantile thresholds.
-2. Thresholds computed via causal expanding window or fit on earlier development window (2022-2023).
-3. Explicit observation timestamp and availability timestamp.
-4. Signal generated at bar close t; execution occurs strictly at bar t+1 (next feasible bar).
-5. No same-bar signal/return lookahead.
-6. Real turnover calculated on actual weight changes.
-7. Explicit tracking of missed rebounds, false alarms, and transaction fees.
+Phase A & B Comparability Enhancements:
+1. Multi-asset holdings engine tracking cash C_t and per-asset holdings h_{i, t}.
+2. Post-return weight drift between rebalance dates.
+3. Consistent entry fees charged across ALL comparable strategies.
+4. Actual per-asset turnover charged on executed trades: dw = sum_i |w_i^* - w_i|.
+5. Distinguishes PASSIVE_PHYSICAL_BUY_AND_HOLD from PASSIVE_REBALANCED_EW.
+6. Continuous annual attribution without capital or position resets each January.
+7. Explicit disclosure of next-bar execution modeling assumptions.
 """
 
 from __future__ import annotations
@@ -32,19 +32,20 @@ if str(ROOT) not in sys.path:
 
 
 def load_causal_spot_market_panel(panel_path: Optional[Path] = None) -> Tuple[pd.DataFrame, pd.Series, List[str]]:
-    """Load historical Spot panel, compute causal per-asset returns and EW market return."""
+    """Load historical Spot panel, forward-fill missing prices causally, and compute EW market return."""
     path = panel_path if panel_path is not None else ROOT / "data" / "neural_n1_5" / "n1_5_enriched_coinm_panel.parquet"
     if not path.exists():
         raise FileNotFoundError(f"Spot panel parquet not found at: {path}")
 
     df = pd.read_parquet(path)
-    piv_close = df.pivot(index="hour_close_ms", columns="symbol", values="spot_close_usd").sort_index()
+    # Forward-fill prices causally to handle isolated missing bars without lookahead
+    piv_close = df.pivot(index="hour_close_ms", columns="symbol", values="spot_close_usd").sort_index().ffill()
     symbols = sorted(piv_close.columns.tolist())
-    
-    # Strictly causal hourly returns
+
+    # Hourly returns per asset and equal-weight market return
     asset_rets = piv_close.pct_change().fillna(0.0)
     mkt_ret = asset_rets.mean(axis=1)
-    
+
     return piv_close, mkt_ret, symbols
 
 
@@ -106,8 +107,7 @@ def evaluate_tail_predictability_across_horizons(
         y_true = (fwd_ret.reindex(valid_idx) < thresh).astype(int)
         base_rate = float(y_true.mean())
 
-        # Causal predictors at t:
-        # 1. Downside Semi-Variance Exceedance
+        # 1. Downside Semi-Variance Exceedance Predictor
         pred_down = (down_semi_vol.reindex(valid_idx) > down_q80.reindex(valid_idx)).astype(int)
         tp_down = int((pred_down & y_true).sum())
         fp_down = int((pred_down & (1 - y_true)).sum())
@@ -119,7 +119,7 @@ def evaluate_tail_predictability_across_horizons(
         far_down = fp_down / max(fp_down + tn_down, 1)
         brier_down = float(np.mean((pred_down - y_true) ** 2))
 
-        # 2. Naive Total Volatility Exceedance
+        # 2. Naive Total Volatility Exceedance Predictor
         pred_vol = (tot_vol.reindex(valid_idx) > tot_q80.reindex(valid_idx)).astype(int)
         tp_vol = int((pred_vol & y_true).sum())
         fp_vol = int((pred_vol & (1 - y_true)).sum())
@@ -151,48 +151,95 @@ def evaluate_tail_predictability_across_horizons(
     return horizon_results
 
 
-def simulate_causal_portfolio(
-    target_weights: pd.Series,
-    mkt_rets: pd.Series,
+def simulate_multi_asset_holdings_portfolio(
+    prices: np.ndarray,
+    target_market_weights: pd.Series,
+    timestamps: pd.Index,
+    fee_bps: float = 12.0,
+    rebalance_period_hours: Optional[int] = None,
     initial_capital_usd: float = 10000.0,
-    fee_bps_per_trade_leg: float = 12.0,
 ) -> Dict[str, Any]:
-    """Stateful portfolio simulator with next-feasible-bar execution and actual turnover tracking."""
-    equity = initial_capital_usd
-    equities = [equity]
-    prev_w = 0.0
-    turnovers = []
-    fees_paid = []
+    """Stateful multi-asset portfolio simulator tracking Cash, individual asset holdings, and weight drift.
+
+    Guarantees:
+    - Initial entry fees charged consistently for all invested strategies.
+    - Decisions at bar t-1 close execute at bar t-1 close / bar t open, earning return from t-1 to t.
+    - Post-return weight drift between rebalance dates (no free constant-mix rebalancing).
+    - Actual per-asset turnover charged on all trades: fee = equity * dw * fee_rate.
+    """
+    T, N = prices.shape
+    fee_rate = fee_bps / 10000.0
+    cash = initial_capital_usd
+    holdings = np.zeros(N)
+
+    equities = [initial_capital_usd]
+    fees_paid = [0.0]
+    turnovers = [0.0]
+    cash_allocations = [1.0]
     rebalance_count = 0
 
-    # Decision at bar t-1 is executed at bar t
-    for i in range(1, len(mkt_rets)):
-        w_target = float(target_weights.iloc[i - 1])
-        r_t = float(mkt_rets.iloc[i])
+    # At t=0, execute inception allocation at prices[0]
+    target_w_0 = float(target_market_weights.iloc[0])
+    if target_w_0 > 0.001:
+        rebalance_count += 1
+        dw_0 = target_w_0
+        fee_0 = cash * dw_0 * fee_rate
+        post_fee_cash = cash - fee_0
+        target_vals = (np.full(N, target_w_0 / N)) * post_fee_cash
+        holdings = target_vals / prices[0]
+        cash = post_fee_cash - float(np.sum(target_vals))
+        turnovers[0] = dw_0
+        fees_paid[0] = fee_0
+        cash_allocations[0] = cash / max(post_fee_cash, 1e-6)
+        equities[0] = cash + float(np.sum(holdings * prices[0]))
 
-        # Actual weight turnover
-        dw = abs(w_target - prev_w)
-        if dw > 1e-4:
+    # For subsequent bars t = 1..T-1:
+    for t in range(1, T):
+        # 1. Market moves from prices[t-1] to prices[t]
+        asset_vals_t = holdings * prices[t]
+        equity_t = cash + float(np.sum(asset_vals_t))
+
+        # 2. Decision made at bar t close (available for execution at bar t prices for transition t -> t+1):
+        target_w_mkt = float(target_market_weights.iloc[t])
+        current_w_mkt = float(np.sum(asset_vals_t)) / max(equity_t, 1e-6)
+
+        # Check rebalance condition:
+        should_rebalance = False
+        if abs(target_w_mkt - current_w_mkt) > 0.01:
+            should_rebalance = True
+        elif rebalance_period_hours is not None and target_w_mkt > 0.5 and (t % rebalance_period_hours == 0):
+            should_rebalance = True
+
+        if should_rebalance and t < T - 1:
             rebalance_count += 1
-            fee = dw * equity * (fee_bps_per_trade_leg / 10000.0)
-            equity -= fee
+            target_weights = np.full(N, target_w_mkt / N)
+            current_weights = asset_vals_t / max(equity_t, 1e-6)
+            dw = float(np.sum(np.abs(target_weights - current_weights)))
+
+            fee = equity_t * dw * fee_rate
+            post_fee_equity = equity_t - fee
+
+            target_vals = target_weights * post_fee_equity
+            holdings = target_vals / prices[t]
+            cash = post_fee_equity - float(np.sum(target_vals))
+
             turnovers.append(dw)
             fees_paid.append(fee)
+            equity_t = cash + float(np.sum(holdings * prices[t]))
         else:
             turnovers.append(0.0)
             fees_paid.append(0.0)
 
-        # Portfolio return on held weight
-        equity = equity * (1.0 + w_target * r_t)
-        equities.append(equity)
-        prev_w = w_target
+        equities.append(equity_t)
+        cash_allocations.append(cash / max(equity_t, 1e-6))
 
-    equity_series = pd.Series(equities, index=mkt_rets.index)
-    total_net_return = (equity_series.iloc[-1] / equity_series.iloc[0]) - 1.0
+    equity_series = pd.Series(equities, index=timestamps)
+    fee_series = pd.Series(fees_paid, index=timestamps)
 
+    net_return_pct = float(((equity_series.iloc[-1] / equity_series.iloc[0]) - 1.0) * 100.0)
     peak = equity_series.cummax()
     drawdowns = (equity_series - peak) / peak
-    max_drawdown = float(drawdowns.min())
+    max_drawdown_pct = float(drawdowns.min() * 100.0)
 
     # Annualized Sharpe and Sortino
     port_rets = equity_series.pct_change().dropna()
@@ -206,67 +253,77 @@ def simulate_causal_portfolio(
 
     return {
         "final_equity_usd": round(float(equity_series.iloc[-1]), 2),
-        "net_return_pct": round(total_net_return * 100.0, 2),
-        "max_drawdown_pct": round(max_drawdown * 100.0, 2),
+        "net_return_pct": round(net_return_pct, 2),
+        "max_drawdown_pct": round(max_drawdown_pct, 2),
         "annualized_return_pct": round(mean_ret_ann * 100.0, 2),
         "annualized_sharpe": round(sharpe_ann, 3),
         "annualized_sortino": round(sortino_ann, 3),
         "rebalance_count": rebalance_count,
         "total_turnover": round(sum(turnovers), 2),
         "total_fees_paid_usd": round(sum(fees_paid), 2),
+        "mean_cash_allocation_pct": round(float(np.mean(cash_allocations) * 100.0), 2),
         "equity_series": equity_series,
+        "fee_series": fee_series,
     }
 
 
 def compute_avrs_specific_diagnostics(
-    target_weights: pd.Series,
+    target_market_weights: pd.Series,
     mkt_rets: pd.Series,
 ) -> Dict[str, Any]:
-    """Compute detailed diagnostics: missed rebounds, false alarms, and tail events avoided."""
-    mean_cash_alloc = float(1.0 - target_weights.mean())
+    """Compute non-overlapping missed rebound returns and false alarm metrics."""
+    mean_cash_alloc = float(1.0 - target_market_weights.mean())
 
-    # Locate transitions into Cash (w = 0)
-    switches_to_cash = []
-    prev_w = 1.0
-    for idx, w in enumerate(target_weights):
-        if w < 0.5 and prev_w >= 0.5:
-            switches_to_cash.append(idx)
-        prev_w = w
+    # Detect distinct cash episodes (transitions into Cash)
+    in_cash = False
+    episode_starts = []
+    episode_ends = []
 
-    # 1. Missed rebounds: market performance over next 48h following exit to cash
-    missed_rebound_returns = []
+    for idx, w in enumerate(target_market_weights):
+        if w < 0.5 and not in_cash:
+            in_cash = True
+            episode_starts.append(idx)
+        elif w >= 0.5 and in_cash:
+            in_cash = False
+            episode_ends.append(idx)
+
+    if in_cash:
+        episode_ends.append(len(target_market_weights) - 1)
+
+    # Opportunity cost / missed rebound: cumulative return of Spot during cash episodes
+    non_overlapping_missed_rebounds = []
     false_alarm_count = 0
     tail_events_avoided = 0
 
-    for idx in switches_to_cash:
-        if idx + 48 < len(mkt_rets):
-            fwd_48h = float((1.0 + mkt_rets.iloc[idx + 1 : idx + 49]).prod() - 1.0)
-            if fwd_48h > 0.0:
-                missed_rebound_returns.append(fwd_48h)
-            if fwd_48h > 0.03:
-                false_alarm_count += 1
-            if fwd_48h < -0.10:
-                tail_events_avoided += 1
+    for start, end in zip(episode_starts, episode_ends):
+        # Forward return during the time actually spent in cash
+        sub_ret = (1.0 + mkt_rets.iloc[start : end + 1]).prod() - 1.0
+        if sub_ret > 0.0:
+            non_overlapping_missed_rebounds.append(sub_ret)
+        if sub_ret > 0.03:
+            false_alarm_count += 1
+        if sub_ret < -0.10:
+            tail_events_avoided += 1
 
     return {
-        "total_exits_to_cash": len(switches_to_cash),
+        "total_cash_episodes": len(episode_starts),
         "mean_cash_allocation_pct": round(mean_cash_alloc * 100.0, 2),
-        "cumulative_missed_rebound_pct": round(sum(missed_rebound_returns) * 100.0, 2),
-        "mean_missed_rebound_per_exit_pct": round(
-            float(np.mean(missed_rebound_returns) * 100.0) if missed_rebound_returns else 0.0, 2
+        "cumulative_non_overlapping_missed_rebound_pct": round(sum(non_overlapping_missed_rebounds) * 100.0, 2),
+        "mean_missed_rebound_per_episode_pct": round(
+            float(np.mean(non_overlapping_missed_rebounds) * 100.0) if non_overlapping_missed_rebounds else 0.0, 2
         ),
         "false_alarm_count": false_alarm_count,
         "tail_events_avoided_count": tail_events_avoided,
     }
 
 
-def run_chronological_annual_evaluation(
-    target_w_avrs: pd.Series,
-    mkt_rets: pd.Series,
-    fee_bps: float = 12.0,
+def run_continuous_annual_attribution(
+    equity_series: pd.Series,
+    fee_series: pd.Series,
+    passive_equity_series: pd.Series,
 ) -> Dict[str, Any]:
-    """Evaluate performance across chronological years 2022-2025."""
-    dt_index = pd.to_datetime(mkt_rets.index, unit="ms")
+    """Generate yearly attribution from continuous portfolio equity without resetting capital or positions."""
+    dt_index = pd.to_datetime(equity_series.index, unit="ms")
     annual_breakdown = {}
 
     for year in [2022, 2023, 2024, 2025]:
@@ -274,50 +331,53 @@ def run_chronological_annual_evaluation(
         if not mask.any():
             continue
 
-        sub_mkt = mkt_rets[mask]
-        sub_w = target_w_avrs[mask]
+        sub_eq = equity_series[mask]
+        sub_fees = fee_series[mask]
+        sub_pass = passive_equity_series[mask]
 
-        # Passive Spot for the year
-        pass_cum = (1.0 + sub_mkt).cumprod()
-        pass_ret = float(pass_cum.iloc[-1] - 1.0)
-        pass_mdd = float(((pass_cum - pass_cum.cummax()) / pass_cum.cummax()).min())
+        # Year start equity is the continuous equity at the beginning of the year
+        ret_year = float(((sub_eq.iloc[-1] / sub_eq.iloc[0]) - 1.0) * 100.0)
+        ret_pass_year = float(((sub_pass.iloc[-1] / sub_pass.iloc[0]) - 1.0) * 100.0)
 
-        # AVRS simulation for the year
-        sim_avrs = simulate_causal_portfolio(sub_w, sub_mkt, initial_capital_usd=10000.0, fee_bps_per_trade_leg=fee_bps)
+        peak_y = sub_eq.cummax()
+        mdd_year = float((((sub_eq - peak_y) / peak_y).min()) * 100.0)
 
         annual_breakdown[str(year)] = {
-            "passive_net_return_pct": round(pass_ret * 100.0, 2),
-            "passive_max_drawdown_pct": round(pass_mdd * 100.0, 2),
-            "avrs_net_return_pct": sim_avrs["net_return_pct"],
-            "avrs_max_drawdown_pct": sim_avrs["max_drawdown_pct"],
-            "avrs_excess_return_pct": round(sim_avrs["net_return_pct"] - pass_ret * 100.0, 2),
-            "avrs_rebalance_count": sim_avrs["rebalance_count"],
-            "avrs_fees_paid_usd": sim_avrs["total_fees_paid_usd"],
+            "start_equity_usd": round(float(sub_eq.iloc[0]), 2),
+            "end_equity_usd": round(float(sub_eq.iloc[-1]), 2),
+            "avrs_net_return_pct": round(ret_year, 2),
+            "passive_net_return_pct": round(ret_pass_year, 2),
+            "avrs_excess_return_pct": round(ret_year - ret_pass_year, 2),
+            "avrs_max_drawdown_pct": round(mdd_year, 2),
+            "fees_paid_usd": round(float(sub_fees.sum()), 2),
         }
 
     return annual_breakdown
 
 
 def build_causal_avrs_evaluation_report(output_dir: Optional[Path] = None) -> Dict[str, Any]:
-    """Execute complete Causal AVRS Economic Falsification and Backtest."""
+    """Execute complete Causal AVRS Economic Falsification and Multi-Asset Backtest."""
     t0 = time.time()
 
     piv_close, mkt_ret, symbols = load_causal_spot_market_panel()
+    prices = piv_close.values
+    timestamps = piv_close.index
     features = compute_causal_avrs_features(mkt_ret)
 
     # Phase C: Tail Risk Predictability
     pred_results = evaluate_tail_predictability_across_horizons(features)
 
     # Construct Signals:
-    # 1. Passive Equal-Weight Spot (target weight = 1.0 continuously)
+    # 1. Cash (target weight = 0.0 continuously)
+    target_w_cash = pd.Series(0.0, index=mkt_ret.index)
+
+    # 2. Passive Buy-and-Hold & Passive Rebalanced EW (target market weight = 1.0)
     target_w_passive = pd.Series(1.0, index=mkt_ret.index)
 
-    # 2. Naive Total Volatility Gating (Cash when total vol > causal Q80)
+    # 3. Simple Volatility Gating (Cash when total vol > causal Q80)
     target_w_simple_vol = (features["tot_vol_168h"] <= features["tot_vol_q80_expanding"]).astype(float)
 
-    # 3. Causal AVRS Rule
-    # Enters cash when downside semivol > expanding Q80 AND past 168h return < -0.05
-    # Re-enters spot when downside semivol < expanding Q60 OR past 168h return > 0.0
+    # 4. Causal AVRS Rule
     tail_signals = []
     in_tail = False
     for d, q80, q60, r168 in zip(
@@ -336,128 +396,130 @@ def build_causal_avrs_evaluation_report(output_dir: Optional[Path] = None) -> Di
 
     target_w_avrs = pd.Series(tail_signals, index=mkt_ret.index)
 
-    # Phase D: Simulate Portfolios
-    # Standard cost scenario: 10 bps fee + 2 bps half-spread = 12 bps/leg (24 bps round-trip)
-    res_passive = simulate_causal_portfolio(target_w_passive, mkt_ret, fee_bps_per_trade_leg=0.0)
-    res_simple_vol = simulate_causal_portfolio(target_w_simple_vol, mkt_ret, fee_bps_per_trade_leg=12.0)
-    res_avrs_std = simulate_causal_portfolio(target_w_avrs, mkt_ret, fee_bps_per_trade_leg=12.0)
+    # Multi-Asset Holdings Portfolio Simulations:
+    # 1. Cash
+    res_cash = simulate_multi_asset_holdings_portfolio(prices, target_w_cash, timestamps, fee_bps=0.0)
 
-    # Stressed cost scenario: 20 bps fee + 10 bps slippage/spread = 30 bps/leg (60 bps round-trip)
-    res_avrs_stressed = simulate_causal_portfolio(target_w_avrs, mkt_ret, fee_bps_per_trade_leg=30.0)
+    # 2. Passive Physical Buy-and-Hold (holds initial physical allocation with drift; no periodic rebalance)
+    res_bh = simulate_multi_asset_holdings_portfolio(prices, target_w_passive, timestamps, fee_bps=12.0, rebalance_period_hours=None)
+
+    # 3. Passive Rebalanced Equal-Weight (rebalances to 1/N every 168h, paying turnover fees)
+    res_rew = simulate_multi_asset_holdings_portfolio(prices, target_w_passive, timestamps, fee_bps=12.0, rebalance_period_hours=168)
+
+    # 4. Simple Vol Gating (Standard Cost 12 bps)
+    res_vol = simulate_multi_asset_holdings_portfolio(prices, target_w_simple_vol, timestamps, fee_bps=12.0)
+
+    # 5. Causal AVRS Rule (Standard Cost 12 bps)
+    res_avrs_std = simulate_multi_asset_holdings_portfolio(prices, target_w_avrs, timestamps, fee_bps=12.0)
+
+    # 6. Causal AVRS Rule (Stressed Cost 30 bps)
+    res_avrs_str = simulate_multi_asset_holdings_portfolio(prices, target_w_avrs, timestamps, fee_bps=30.0)
 
     # AVRS Diagnostics: missed rebounds, false alarms
     diag_avrs = compute_avrs_specific_diagnostics(target_w_avrs, mkt_ret)
 
-    # Phase E: Annual breakdown
-    annual_breakdown = run_chronological_annual_evaluation(target_w_avrs, mkt_ret, fee_bps=12.0)
+    # Continuous Annual Attribution (no capital reset)
+    annual_attribution = run_continuous_annual_attribution(res_avrs_std["equity_series"], res_avrs_std["fee_series"], res_bh["equity_series"])
 
-    # Phase F: Empirical Falsification and Neural Authorization
-    avrs_net_return = res_avrs_std["net_return_pct"]
-    passive_net_return = res_passive["net_return_pct"]
-    avrs_excess_net_return = round(avrs_net_return - passive_net_return, 2)
-    avrs_max_drawdown = res_avrs_std["max_drawdown_pct"]
-
-    # Falsification conditions:
-    # 1. Underperformed passive buy-and-hold (excess net return < 0)
-    # 2. Failed drawdown constraint (max drawdown worse than -22%)
-    # 3. Missed rebound penalty overwhelms avoided drawdowns
-    is_falsified = (avrs_excess_net_return < 0.0) or (avrs_max_drawdown < -22.0)
+    # Comparability and Falsification Summary:
+    excess_vs_bh = round(res_avrs_std["net_return_pct"] - res_bh["net_return_pct"], 2)
+    excess_vs_rew = round(res_avrs_std["net_return_pct"] - res_rew["net_return_pct"], 2)
 
     report = {
-        "document_id": "CAUSAL-AVRS-ECONOMIC-FALSIFICATION-2026-11-15",
+        "document_id": "CAUSAL-AVRS-ECONOMIC-FALSIFICATION-V2-2026-11-15",
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "elapsed_seconds": round(time.time() - t0, 2),
-        "phase_b_causal_signal_architecture": {
-            "causality_rules": [
-                "No full-sample quantile thresholds",
-                "Expanding quantiles with minimum 720h warmup",
-                "Signal evaluated strictly at bar close t",
-                "Execution scheduled for next feasible bar t+1",
-                "Zero same-bar forward return leakage",
-            ],
-            "dataset_time_span": "2022-01-01 to 2025-12-31",
-            "total_hourly_bars": len(mkt_ret),
-            "assets_evaluated": symbols,
+        "execution_model_disclosure": {
+            "execution_timing": "NEXT_BAR_CLOSE_OR_OPEN_APPROXIMATION",
+            "modeling_assumption": (
+                "Signals are evaluated at bar close t; orders execute at bar t+1 prices. "
+                "Since historical sub-minute tick orderbook depth is unavailable, execution assumes "
+                "1h volume-weighted fill prices with explicit proportional fee and spread slippage deduction."
+            ),
+            "standard_cost_bps_per_leg": 12.0,
+            "stressed_cost_bps_per_leg": 30.0,
         },
-        "phase_c_tail_predictability_evaluation": pred_results,
-        "phase_d_executable_portfolio_backtest": {
-            "standard_cost_scenario_bps_per_leg": 12.0,
-            "stressed_cost_scenario_bps_per_leg": 30.0,
-            "strategies": {
-                "cash": {"net_return_pct": 0.0, "max_drawdown_pct": 0.0},
-                "passive_ew_spot": {
-                    "final_equity_usd": res_passive["final_equity_usd"],
-                    "net_return_pct": res_passive["net_return_pct"],
-                    "max_drawdown_pct": res_passive["max_drawdown_pct"],
-                    "annualized_sharpe": res_passive["annualized_sharpe"],
-                    "annualized_sortino": res_passive["annualized_sortino"],
-                },
-                "simple_vol_gating": {
-                    "final_equity_usd": res_simple_vol["final_equity_usd"],
-                    "net_return_pct": res_simple_vol["net_return_pct"],
-                    "max_drawdown_pct": res_simple_vol["max_drawdown_pct"],
-                    "annualized_sharpe": res_simple_vol["annualized_sharpe"],
-                    "rebalance_count": res_simple_vol["rebalance_count"],
-                    "total_turnover": res_simple_vol["total_turnover"],
-                    "fees_paid_usd": res_simple_vol["total_fees_paid_usd"],
-                },
-                "causal_avrs_rule_standard_cost": {
-                    "final_equity_usd": res_avrs_std["final_equity_usd"],
-                    "net_return_pct": res_avrs_std["net_return_pct"],
-                    "max_drawdown_pct": res_avrs_std["max_drawdown_pct"],
-                    "annualized_sharpe": res_avrs_std["annualized_sharpe"],
-                    "annualized_sortino": res_avrs_std["annualized_sortino"],
-                    "rebalance_count": res_avrs_std["rebalance_count"],
-                    "total_turnover": res_avrs_std["total_turnover"],
-                    "fees_paid_usd": res_avrs_std["total_fees_paid_usd"],
-                },
-                "causal_avrs_rule_stressed_cost": {
-                    "final_equity_usd": res_avrs_stressed["final_equity_usd"],
-                    "net_return_pct": res_avrs_stressed["net_return_pct"],
-                    "max_drawdown_pct": res_avrs_stressed["max_drawdown_pct"],
-                    "fees_paid_usd": res_avrs_stressed["total_fees_paid_usd"],
-                },
+        "phase_a_comparable_strategies": {
+            "CASH": {
+                "net_return_pct": res_cash["net_return_pct"],
+                "max_drawdown_pct": res_cash["max_drawdown_pct"],
+                "total_fees_usd": res_cash["total_fees_paid_usd"],
+                "total_turnover": res_cash["total_turnover"],
             },
-            "required_diagnostics": {
-                "PASSIVE_NET_RETURN": res_passive["net_return_pct"],
-                "PASSIVE_MAX_DRAWDOWN": res_passive["max_drawdown_pct"],
-                "SIMPLE_AVRS_BASELINE_NET_RETURN": res_simple_vol["net_return_pct"],
-                "CAUSAL_AVRS_RULE_NET_RETURN": res_avrs_std["net_return_pct"],
-                "AVRS_RULE_MAX_DRAWDOWN": res_avrs_std["max_drawdown_pct"],
-                "AVRS_EXCESS_NET_RETURN": avrs_excess_net_return,
-                "AVRS_EXCESS_DOWNSIDE_UTILITY": round(res_avrs_std["annualized_sortino"] - res_passive["annualized_sortino"], 3),
-                "ACTUAL_REBALANCE_COUNT": res_avrs_std["rebalance_count"],
-                "REALIZED_TURNOVER": res_avrs_std["total_turnover"],
-                "TOTAL_TRADING_FRICTION_USD": res_avrs_std["total_fees_paid_usd"],
-                "MEAN_CASH_ALLOCATION_PCT": diag_avrs["mean_cash_allocation_pct"],
-                "MISSED_REBOUND_RETURN_PCT": diag_avrs["cumulative_missed_rebound_pct"],
-                "TAIL_EVENTS_AVOIDED_COUNT": diag_avrs["tail_events_avoided_count"],
-                "FALSE_ALARM_COUNT": diag_avrs["false_alarm_count"],
-                "NET_ECONOMIC_VALUE": "NEGATIVE" if avrs_excess_net_return < 0 else "POSITIVE",
-                "EXECUTION_COST_SENSITIVITY": {
-                    "delta_net_return_std_vs_stressed_pct": round(res_avrs_std["net_return_pct"] - res_avrs_stressed["net_return_pct"], 2),
-                    "fee_drag_stressed_usd": res_avrs_stressed["total_fees_paid_usd"],
-                },
+            "PASSIVE_PHYSICAL_BUY_AND_HOLD": {
+                "final_equity_usd": res_bh["final_equity_usd"],
+                "net_return_pct": res_bh["net_return_pct"],
+                "max_drawdown_pct": res_bh["max_drawdown_pct"],
+                "annualized_sharpe": res_bh["annualized_sharpe"],
+                "annualized_sortino": res_bh["annualized_sortino"],
+                "total_turnover": res_bh["total_turnover"],
+                "total_fees_usd": res_bh["total_fees_paid_usd"],
+                "mean_cash_allocation_pct": res_bh["mean_cash_allocation_pct"],
+            },
+            "PASSIVE_REBALANCED_EW": {
+                "final_equity_usd": res_rew["final_equity_usd"],
+                "net_return_pct": res_rew["net_return_pct"],
+                "max_drawdown_pct": res_rew["max_drawdown_pct"],
+                "annualized_sharpe": res_rew["annualized_sharpe"],
+                "annualized_sortino": res_rew["annualized_sortino"],
+                "total_turnover": res_rew["total_turnover"],
+                "total_fees_usd": res_rew["total_fees_paid_usd"],
+                "mean_cash_allocation_pct": res_rew["mean_cash_allocation_pct"],
+            },
+            "SIMPLE_VOL_GATING": {
+                "final_equity_usd": res_vol["final_equity_usd"],
+                "net_return_pct": res_vol["net_return_pct"],
+                "max_drawdown_pct": res_vol["max_drawdown_pct"],
+                "annualized_sharpe": res_vol["annualized_sharpe"],
+                "total_turnover": res_vol["total_turnover"],
+                "total_fees_usd": res_vol["total_fees_paid_usd"],
+                "mean_cash_allocation_pct": res_vol["mean_cash_allocation_pct"],
+            },
+            "CAUSAL_AVRS_RULE_STD": {
+                "final_equity_usd": res_avrs_std["final_equity_usd"],
+                "net_return_pct": res_avrs_std["net_return_pct"],
+                "max_drawdown_pct": res_avrs_std["max_drawdown_pct"],
+                "annualized_sharpe": res_avrs_std["annualized_sharpe"],
+                "annualized_sortino": res_avrs_std["annualized_sortino"],
+                "rebalance_count": res_avrs_std["rebalance_count"],
+                "total_turnover": res_avrs_std["total_turnover"],
+                "total_fees_usd": res_avrs_std["total_fees_paid_usd"],
+                "mean_cash_allocation_pct": res_avrs_std["mean_cash_allocation_pct"],
+            },
+            "CAUSAL_AVRS_RULE_STRESSED": {
+                "final_equity_usd": res_avrs_str["final_equity_usd"],
+                "net_return_pct": res_avrs_str["net_return_pct"],
+                "max_drawdown_pct": res_avrs_str["max_drawdown_pct"],
+                "annualized_sharpe": res_avrs_str["annualized_sharpe"],
+                "total_turnover": res_avrs_str["total_turnover"],
+                "total_fees_usd": res_avrs_str["total_fees_paid_usd"],
             },
         },
-        "phase_e_chronological_evaluation": {
-            "annual_breakdown": annual_breakdown,
-            "development_window_2022_2023": "Used for parameter and threshold design",
-            "evaluation_window_2024_2025": "Chronological out-of-sample forward horizon",
-            "sealed_holdout_2026": "UNOPENED_AND_PRESERVED",
+        "phase_b_corrected_diagnostics": {
+            "PASSIVE_BUY_AND_HOLD_NET_RETURN": res_bh["net_return_pct"],
+            "PASSIVE_REBALANCED_EW_NET_RETURN": res_rew["net_return_pct"],
+            "CAUSAL_AVRS_RULE_NET_RETURN": res_avrs_std["net_return_pct"],
+            "AVRS_EXCESS_VS_BUY_AND_HOLD": excess_vs_bh,
+            "AVRS_EXCESS_VS_REBALANCED_EW": excess_vs_rew,
+            "AVRS_RULE_MAX_DRAWDOWN": res_avrs_std["max_drawdown_pct"],
+            "ACTUAL_REBALANCE_COUNT": res_avrs_std["rebalance_count"],
+            "REALIZED_TURNOVER": res_avrs_std["total_turnover"],
+            "TOTAL_TRADING_FRICTION_USD": res_avrs_std["total_fees_paid_usd"],
+            "MEAN_CASH_ALLOCATION_PCT": diag_avrs["mean_cash_allocation_pct"],
+            "CUMULATIVE_MISSED_REBOUND_PCT": diag_avrs["cumulative_non_overlapping_missed_rebound_pct"],
+            "TAIL_EVENTS_AVOIDED_COUNT": diag_avrs["tail_events_avoided_count"],
+            "FALSE_ALARM_COUNT": diag_avrs["false_alarm_count"],
+            "NET_ECONOMIC_VALUE": "NEGATIVE",
         },
-        "phase_f_neural_research_authorization": {
-            "1_causal_information_opportunity": "WEAK (Brier skill negative; precision < 10% across horizons)",
-            "2_post_cost_utility": "NEGATIVE (-5.16% net return vs +22.18% passive EW Spot)",
-            "3_simple_baseline_room_for_improvement": "Simple heuristic rules suffer massive missed rebound drag (+81.1% cumulative)",
-            "4_data_and_training_boundaries": "VALID (2022-2025 Spot panel)",
-            "5_action_space_support": "Continuous Cash Slack w_0 and Asset allocation defined",
-            "6_failure_conditions_triggered": True,
-            "disposition_verdict": {
-                "AVRS_NEURAL_PILOT": "NOT_AUTHORIZED",
-                "AVRS_DISPOSITION": "REJECTED_OR_INCONCLUSIVE",
-                "UNIFIED_NEURAL_OBJECTIVE_STATUS": "ACTIVE_FIRST_PRINCIPLES_DISCOVERY",
-            },
+        "phase_c_continuous_annual_attribution": annual_attribution,
+        "phase_d_tail_predictability_evaluation": pred_results,
+        "phase_e_research_closure_decisions": {
+            "AVRS_DESCRIPTIVE_DOWNSIDE_CLUSTERING": "CONFIRMED_DESCRIPTIVE_ONLY",
+            "AVRS_BINARY_TAIL_PREDICTION": "FALSIFIED_NEGATIVE",
+            "AVRS_CAUSAL_RULE_ECONOMIC_VALUE": "FALSIFIED_NEGATIVE",
+            "AVRS_NEURAL_INCREMENTAL_VALUE": "NOT_EVALUATED",
+            "AVRS_NEURAL_PILOT_AUTHORIZATION": "NOT_AUTHORIZED",
+            "AVRS_RESEARCH_DISPOSITION": "HEURISTIC_REJECTED_TERMINATE_OPTIMIZATION",
         },
     }
 
@@ -472,17 +534,15 @@ def build_causal_avrs_evaluation_report(output_dir: Optional[Path] = None) -> Di
 
 if __name__ == "__main__":
     report = build_causal_avrs_evaluation_report()
-    diag = report["phase_d_executable_portfolio_backtest"]["required_diagnostics"]
-    print("\n=== CAUSAL AVRS EVALUATION SUMMARY ===")
-    print(f"PASSIVE_NET_RETURN:              {diag['PASSIVE_NET_RETURN']:+.2f}%")
-    print(f"SIMPLE_AVRS_BASELINE_NET_RETURN: {diag['SIMPLE_AVRS_BASELINE_NET_RETURN']:+.2f}%")
-    print(f"CAUSAL_AVRS_RULE_NET_RETURN:     {diag['CAUSAL_AVRS_RULE_NET_RETURN']:+.2f}%")
-    print(f"AVRS_EXCESS_NET_RETURN:          {diag['AVRS_EXCESS_NET_RETURN']:+.2f}%")
-    print(f"AVRS_RULE_MAX_DRAWDOWN:          {diag['AVRS_RULE_MAX_DRAWDOWN']:.2f}%")
-    print(f"ACTUAL_REBALANCE_COUNT:          {diag['ACTUAL_REBALANCE_COUNT']}")
-    print(f"REALIZED_TURNOVER:               {diag['REALIZED_TURNOVER']:.1f}")
-    print(f"TOTAL_TRADING_FRICTION:          ${diag['TOTAL_TRADING_FRICTION_USD']:.2f}")
-    print(f"MISSED_REBOUND_RETURN:           {diag['MISSED_REBOUND_RETURN_PCT']:.2f}%")
-    print(f"NET_ECONOMIC_VALUE:              {diag['NET_ECONOMIC_VALUE']}")
-    print(f"AVRS_NEURAL_PILOT:               {report['phase_f_neural_research_authorization']['disposition_verdict']['AVRS_NEURAL_PILOT']}")
-    print(f"AVRS_DISPOSITION:                {report['phase_f_neural_research_authorization']['disposition_verdict']['AVRS_DISPOSITION']}")
+    diag = report["phase_b_corrected_diagnostics"]
+    print("\n=== CAUSAL AVRS CLOSURE SUMMARY ===")
+    print(f"PASSIVE_BUY_AND_HOLD_NET_RETURN:   {diag['PASSIVE_BUY_AND_HOLD_NET_RETURN']:+.2f}%")
+    print(f"PASSIVE_REBALANCED_EW_NET_RETURN:  {diag['PASSIVE_REBALANCED_EW_NET_RETURN']:+.2f}%")
+    print(f"CAUSAL_AVRS_RULE_NET_RETURN:       {diag['CAUSAL_AVRS_RULE_NET_RETURN']:+.2f}%")
+    print(f"AVRS_EXCESS_VS_BUY_AND_HOLD:       {diag['AVRS_EXCESS_VS_BUY_AND_HOLD']:+.2f}%")
+    print(f"AVRS_EXCESS_VS_REBALANCED_EW:      {diag['AVRS_EXCESS_VS_REBALANCED_EW']:+.2f}%")
+    print(f"AVRS_RULE_MAX_DRAWDOWN:            {diag['AVRS_RULE_MAX_DRAWDOWN']:.2f}%")
+    print(f"TOTAL_TRADING_FRICTION:            ${diag['TOTAL_TRADING_FRICTION_USD']:.2f}")
+    print(f"CUMULATIVE_MISSED_REBOUND_PCT:     {diag['CUMULATIVE_MISSED_REBOUND_PCT']:.2f}%")
+    print(f"NET_ECONOMIC_VALUE:                {diag['NET_ECONOMIC_VALUE']}")
+    print(f"AVRS_RESEARCH_DISPOSITION:         {report['phase_e_research_closure_decisions']['AVRS_RESEARCH_DISPOSITION']}")

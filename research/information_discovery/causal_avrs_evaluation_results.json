@@ -1,29 +1,124 @@
 {
-  "document_id": "CAUSAL-AVRS-ECONOMIC-FALSIFICATION-2026-11-15",
-  "timestamp_utc": "2026-11-14T20:30:07Z",
-  "elapsed_seconds": 1.36,
-  "phase_b_causal_signal_architecture": {
-    "causality_rules": [
-      "No full-sample quantile thresholds",
-      "Expanding quantiles with minimum 720h warmup",
-      "Signal evaluated strictly at bar close t",
-      "Execution scheduled for next feasible bar t+1",
-      "Zero same-bar forward return leakage"
-    ],
-    "dataset_time_span": "2022-01-01 to 2025-12-31",
-    "total_hourly_bars": 35063,
-    "assets_evaluated": [
-      "ADAUSDT",
-      "BNBUSDT",
-      "BTCUSDT",
-      "ETHUSDT",
-      "LINKUSDT",
-      "LTCUSDT",
-      "SOLUSDT",
-      "XRPUSDT"
-    ]
+  "document_id": "CAUSAL-AVRS-ECONOMIC-FALSIFICATION-V2-2026-11-15",
+  "timestamp_utc": "2026-11-14T20:49:44Z",
+  "elapsed_seconds": 2.18,
+  "execution_model_disclosure": {
+    "execution_timing": "NEXT_BAR_CLOSE_OR_OPEN_APPROXIMATION",
+    "modeling_assumption": "Signals are evaluated at bar close t; orders execute at bar t+1 prices. Since historical sub-minute tick orderbook depth is unavailable, execution assumes 1h volume-weighted fill prices with explicit proportional fee and spread slippage deduction.",
+    "standard_cost_bps_per_leg": 12.0,
+    "stressed_cost_bps_per_leg": 30.0
   },
-  "phase_c_tail_predictability_evaluation": {
+  "phase_a_comparable_strategies": {
+    "CASH": {
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "total_fees_usd": 0.0,
+      "total_turnover": 0.0
+    },
+    "PASSIVE_PHYSICAL_BUY_AND_HOLD": {
+      "final_equity_usd": 10775.51,
+      "net_return_pct": 7.88,
+      "max_drawdown_pct": -71.34,
+      "annualized_sharpe": 0.355,
+      "annualized_sortino": 0.487,
+      "total_turnover": 1.0,
+      "total_fees_usd": 12.0,
+      "mean_cash_allocation_pct": 0.0
+    },
+    "PASSIVE_REBALANCED_EW": {
+      "final_equity_usd": 12275.82,
+      "net_return_pct": 22.91,
+      "max_drawdown_pct": -71.83,
+      "annualized_sharpe": 0.416,
+      "annualized_sortino": 0.571,
+      "total_turnover": 9.56,
+      "total_fees_usd": 103.99,
+      "mean_cash_allocation_pct": 0.0
+    },
+    "SIMPLE_VOL_GATING": {
+      "final_equity_usd": 6364.68,
+      "net_return_pct": -36.35,
+      "max_drawdown_pct": -64.78,
+      "annualized_sharpe": 0.061,
+      "total_turnover": 81.0,
+      "total_fees_usd": 802.06,
+      "mean_cash_allocation_pct": 16.84
+    },
+    "CAUSAL_AVRS_RULE_STD": {
+      "final_equity_usd": 10253.56,
+      "net_return_pct": 2.66,
+      "max_drawdown_pct": -65.59,
+      "annualized_sharpe": 0.306,
+      "annualized_sortino": 0.413,
+      "rebalance_count": 61,
+      "total_turnover": 61.0,
+      "total_fees_usd": 734.99,
+      "mean_cash_allocation_pct": 9.45
+    },
+    "CAUSAL_AVRS_RULE_STRESSED": {
+      "final_equity_usd": 9185.21,
+      "net_return_pct": -7.87,
+      "max_drawdown_pct": -66.69,
+      "annualized_sharpe": 0.26,
+      "total_turnover": 61.0,
+      "total_fees_usd": 1721.69
+    }
+  },
+  "phase_b_corrected_diagnostics": {
+    "PASSIVE_BUY_AND_HOLD_NET_RETURN": 7.88,
+    "PASSIVE_REBALANCED_EW_NET_RETURN": 22.91,
+    "CAUSAL_AVRS_RULE_NET_RETURN": 2.66,
+    "AVRS_EXCESS_VS_BUY_AND_HOLD": -5.22,
+    "AVRS_EXCESS_VS_REBALANCED_EW": -20.25,
+    "AVRS_RULE_MAX_DRAWDOWN": -65.59,
+    "ACTUAL_REBALANCE_COUNT": 61,
+    "REALIZED_TURNOVER": 61.0,
+    "TOTAL_TRADING_FRICTION_USD": 734.99,
+    "MEAN_CASH_ALLOCATION_PCT": 9.45,
+    "CUMULATIVE_MISSED_REBOUND_PCT": 55.66,
+    "TAIL_EVENTS_AVOIDED_COUNT": 3,
+    "FALSE_ALARM_COUNT": 8,
+    "NET_ECONOMIC_VALUE": "NEGATIVE"
+  },
+  "phase_c_continuous_annual_attribution": {
+    "2022": {
+      "start_equity_usd": 9988.0,
+      "end_equity_usd": 3684.85,
+      "avrs_net_return_pct": -63.11,
+      "passive_net_return_pct": -68.15,
+      "avrs_excess_return_pct": 5.04,
+      "avrs_max_drawdown_pct": -65.59,
+      "fees_paid_usd": 109.13
+    },
+    "2023": {
+      "start_equity_usd": 3684.17,
+      "end_equity_usd": 9671.2,
+      "avrs_net_return_pct": 162.51,
+      "passive_net_return_pct": 100.37,
+      "avrs_excess_return_pct": 62.14,
+      "avrs_max_drawdown_pct": -33.03,
+      "fees_paid_usd": 42.88
+    },
+    "2024": {
+      "start_equity_usd": 9724.08,
+      "end_equity_usd": 16268.03,
+      "avrs_net_return_pct": 67.3,
+      "passive_net_return_pct": 97.97,
+      "avrs_excess_return_pct": -30.68,
+      "avrs_max_drawdown_pct": -48.61,
+      "fees_paid_usd": 287.3
+    },
+    "2025": {
+      "start_equity_usd": 16254.56,
+      "end_equity_usd": 10261.15,
+      "avrs_net_return_pct": -36.87,
+      "passive_net_return_pct": -14.91,
+      "avrs_excess_return_pct": -21.96,
+      "avrs_max_drawdown_pct": -54.41,
+      "fees_paid_usd": 295.67
+    }
+  },
+  "phase_d_tail_predictability_evaluation": {
     "horizon_24h": {
       "adverse_threshold_return": -0.05,
       "sample_size_valid_bars": 34153,
@@ -37,9 +132,9 @@
         "brier_skill_vs_base": -2.3158
       },
       "naive_total_vol_predictor": {
-        "precision": 0.083,
+        "precision": 0.0831,
         "recall": 0.2112,
-        "brier_score": 0.1805
+        "brier_score": 0.1804
       }
     },
     "horizon_168h": {
@@ -57,145 +152,34 @@
       "naive_total_vol_predictor": {
         "precision": 0.0153,
         "recall": 0.0618,
-        "brier_score": 0.1798
+        "brier_score": 0.1797
       }
     },
     "horizon_672h": {
       "adverse_threshold_return": -0.25,
       "sample_size_valid_bars": 33505,
-      "unconditional_tail_base_rate": 0.0391,
-      "unconditional_brier_score": 0.0376,
+      "unconditional_tail_base_rate": 0.0383,
+      "unconditional_brier_score": 0.0368,
       "causal_downside_semivol_predictor": {
         "precision": 0.0228,
-        "recall": 0.09,
-        "false_alarm_rate": 0.1568,
-        "brier_score": 0.1862,
-        "brier_skill_vs_base": -3.9536
+        "recall": 0.092,
+        "false_alarm_rate": 0.1566,
+        "brier_score": 0.1854,
+        "brier_skill_vs_base": -4.0346
       },
       "naive_total_vol_predictor": {
-        "precision": 0.0261,
-        "recall": 0.0999,
-        "brier_score": 0.1812
+        "precision": 0.0257,
+        "recall": 0.1005,
+        "brier_score": 0.1804
       }
     }
   },
-  "phase_d_executable_portfolio_backtest": {
-    "standard_cost_scenario_bps_per_leg": 12.0,
-    "stressed_cost_scenario_bps_per_leg": 30.0,
-    "strategies": {
-      "cash": {
-        "net_return_pct": 0.0,
-        "max_drawdown_pct": 0.0
-      },
-      "passive_ew_spot": {
-        "final_equity_usd": 12218.33,
-        "net_return_pct": 22.18,
-        "max_drawdown_pct": -72.63,
-        "annualized_sharpe": 0.414,
-        "annualized_sortino": 0.567
-      },
-      "simple_vol_gating": {
-        "final_equity_usd": 5633.19,
-        "net_return_pct": -43.67,
-        "max_drawdown_pct": -66.08,
-        "annualized_sharpe": -0.002,
-        "rebalance_count": 83,
-        "total_turnover": 83.0,
-        "fees_paid_usd": 746.63
-      },
-      "causal_avrs_rule_standard_cost": {
-        "final_equity_usd": 9483.77,
-        "net_return_pct": -5.16,
-        "max_drawdown_pct": -65.83,
-        "annualized_sharpe": 0.268,
-        "annualized_sortino": 0.361,
-        "rebalance_count": 61,
-        "total_turnover": 61.0,
-        "fees_paid_usd": 692.79
-      },
-      "causal_avrs_rule_stressed_cost": {
-        "final_equity_usd": 8495.62,
-        "net_return_pct": -15.04,
-        "max_drawdown_pct": -66.92,
-        "fees_paid_usd": 1623.89
-      }
-    },
-    "required_diagnostics": {
-      "PASSIVE_NET_RETURN": 22.18,
-      "PASSIVE_MAX_DRAWDOWN": -72.63,
-      "SIMPLE_AVRS_BASELINE_NET_RETURN": -43.67,
-      "CAUSAL_AVRS_RULE_NET_RETURN": -5.16,
-      "AVRS_RULE_MAX_DRAWDOWN": -65.83,
-      "AVRS_EXCESS_NET_RETURN": -27.34,
-      "AVRS_EXCESS_DOWNSIDE_UTILITY": -0.206,
-      "ACTUAL_REBALANCE_COUNT": 61,
-      "REALIZED_TURNOVER": 61.0,
-      "TOTAL_TRADING_FRICTION_USD": 692.79,
-      "MEAN_CASH_ALLOCATION_PCT": 9.45,
-      "MISSED_REBOUND_RETURN_PCT": 81.14,
-      "TAIL_EVENTS_AVOIDED_COUNT": 2,
-      "FALSE_ALARM_COUNT": 10,
-      "NET_ECONOMIC_VALUE": "NEGATIVE",
-      "EXECUTION_COST_SENSITIVITY": {
-        "delta_net_return_std_vs_stressed_pct": 9.88,
-        "fee_drag_stressed_usd": 1623.89
-      }
-    }
-  },
-  "phase_e_chronological_evaluation": {
-    "annual_breakdown": {
-      "2022": {
-        "passive_net_return_pct": -70.6,
-        "passive_max_drawdown_pct": -72.63,
-        "avrs_net_return_pct": -63.33,
-        "avrs_max_drawdown_pct": -65.83,
-        "avrs_excess_return_pct": 7.27,
-        "avrs_rebalance_count": 19,
-        "avrs_fees_paid_usd": 108.02
-      },
-      "2023": {
-        "passive_net_return_pct": 148.12,
-        "passive_max_drawdown_pct": -30.76,
-        "avrs_net_return_pct": 149.88,
-        "avrs_max_drawdown_pct": -33.0,
-        "avrs_excess_return_pct": 1.76,
-        "avrs_rebalance_count": 7,
-        "avrs_fees_paid_usd": 126.36
-      },
-      "2024": {
-        "passive_net_return_pct": 103.27,
-        "passive_max_drawdown_pct": -43.97,
-        "avrs_net_return_pct": 62.74,
-        "avrs_max_drawdown_pct": -48.94,
-        "avrs_excess_return_pct": -40.53,
-        "avrs_rebalance_count": 19,
-        "avrs_fees_paid_usd": 302.7
-      },
-      "2025": {
-        "passive_net_return_pct": -17.56,
-        "passive_max_drawdown_pct": -48.68,
-        "avrs_net_return_pct": -36.86,
-        "avrs_max_drawdown_pct": -54.08,
-        "avrs_excess_return_pct": -19.3,
-        "avrs_rebalance_count": 19,
-        "avrs_fees_paid_usd": 194.56
-      }
-    },
-    "development_window_2022_2023": "Used for parameter and threshold design",
-    "evaluation_window_2024_2025": "Chronological out-of-sample forward horizon",
-    "sealed_holdout_2026": "UNOPENED_AND_PRESERVED"
-  },
-  "phase_f_neural_research_authorization": {
-    "1_causal_information_opportunity": "WEAK (Brier skill negative; precision < 10% across horizons)",
-    "2_post_cost_utility": "NEGATIVE (-5.16% net return vs +22.18% passive EW Spot)",
-    "3_simple_baseline_room_for_improvement": "Simple heuristic rules suffer massive missed rebound drag (+81.1% cumulative)",
-    "4_data_and_training_boundaries": "VALID (2022-2025 Spot panel)",
-    "5_action_space_support": "Continuous Cash Slack w_0 and Asset allocation defined",
-    "6_failure_conditions_triggered": true,
-    "disposition_verdict": {
-      "AVRS_NEURAL_PILOT": "NOT_AUTHORIZED",
-      "AVRS_DISPOSITION": "REJECTED_OR_INCONCLUSIVE",
-      "UNIFIED_NEURAL_OBJECTIVE_STATUS": "ACTIVE_FIRST_PRINCIPLES_DISCOVERY"
-    }
+  "phase_e_research_closure_decisions": {
+    "AVRS_DESCRIPTIVE_DOWNSIDE_CLUSTERING": "CONFIRMED_DESCRIPTIVE_ONLY",
+    "AVRS_BINARY_TAIL_PREDICTION": "FALSIFIED_NEGATIVE",
+    "AVRS_CAUSAL_RULE_ECONOMIC_VALUE": "FALSIFIED_NEGATIVE",
+    "AVRS_NEURAL_INCREMENTAL_VALUE": "NOT_EVALUATED",
+    "AVRS_NEURAL_PILOT_AUTHORIZATION": "NOT_AUTHORIZED",
+    "AVRS_RESEARCH_DISPOSITION": "HEURISTIC_REJECTED_TERMINATE_OPTIMIZATION"
   }
 }

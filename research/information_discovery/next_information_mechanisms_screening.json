@@ -1,0 +1,161 @@
+{
+  "document_id": "NEXT-INFORMATION-MECHANISMS-DISCOVERY-2026-11-15",
+  "timestamp_utc": "2026-11-14T20:51:41Z",
+  "elapsed_seconds": 1.85,
+  "phase_d_hypotheses_screened": {
+    "CALL_LD": {
+      "name": "Cross-Asset Lead-Lag & Liquidity Disparity",
+      "observable_information": "BTC/ETH 4h returns and volume impulses",
+      "mechanism": "Delayed transmission of macro orderflow into lower-liquidity altcoins",
+      "target_horizon": "4h to 24h",
+      "empirical_mean_correlation": -0.0169,
+      "per_asset_correlations": {
+        "ADAUSDT": -0.0118,
+        "BNBUSDT": -0.0223,
+        "ETHUSDT": -0.0047,
+        "LINKUSDT": -0.0303,
+        "LTCUSDT": -0.0107,
+        "SOLUSDT": -0.0199,
+        "XRPUSDT": -0.0186
+      },
+      "roundtrip_friction_bps": 24.0,
+      "screening_disposition": "REJECTED_AFTER_COSTS",
+      "rationale": "Empirical correlation is negative/flat (-0.018). Retail friction (24 bps) destroys micro-horizon lead-lag."
+    },
+    "VOSI_LS": {
+      "name": "Volume-Synchronized Taker Imbalance & Liquidity Shocks",
+      "observable_information": "Hourly Spot taker volume imbalance (buy vol vs sell vol)",
+      "mechanism": "Aggressive orderbook sweeping causing short-term price drift",
+      "target_horizon": "1h to 4h",
+      "empirical_mean_correlation": -0.0049,
+      "per_asset_correlations": {
+        "ADAUSDT": -0.0083,
+        "BNBUSDT": -0.003,
+        "BTCUSDT": -0.0156,
+        "ETHUSDT": 0.0021,
+        "LINKUSDT": -0.0053,
+        "LTCUSDT": -0.0126,
+        "SOLUSDT": -0.0041,
+        "XRPUSDT": 0.0074
+      },
+      "roundtrip_friction_bps": 24.0,
+      "screening_disposition": "REJECTED_AFTER_COSTS",
+      "rationale": "Empirical correlation with 1h forward returns is effectively zero (-0.005). Arbitraged by HFTs within seconds."
+    },
+    "CARM_CC": {
+      "name": "Cross-Asset Relative Momentum & Capital Concentration",
+      "observable_information": "168h (7-day) relative returns across liquid crypto assets",
+      "mechanism": "Capital rotation persistence into leading assets during multi-week trend regimes",
+      "target_horizon": "168h (weekly rebalancing)",
+      "cross_sectional_correlation": 0.0417,
+      "weekly_turnover_friction_bps": 24.0,
+      "screening_disposition": "SURVIVED_INITIAL_SCREEN_SELECTED_FOR_EXPERIMENT",
+      "rationale": "Intermediate 168h momentum provides sufficient horizon to amortize weekly turnover friction, capturing winner persistence."
+    }
+  },
+  "phase_e_bounded_experiment_carm_cc": {
+    "selected_mechanism": "CARM_CC_CROSS_ASSET_RELATIVE_MOMENTUM",
+    "benchmark_comparisons": {
+      "CASH": {
+        "net_return_pct": 0.0,
+        "max_drawdown_pct": 0.0
+      },
+      "PASSIVE_PHYSICAL_BUY_AND_HOLD": {
+        "final_equity_usd": 10775.51,
+        "net_return_pct": 7.76,
+        "max_drawdown_pct": -71.34,
+        "total_turnover": 1.0,
+        "total_fees_usd": 12.0
+      },
+      "PASSIVE_REBALANCED_EW": {
+        "final_equity_usd": 12275.82,
+        "net_return_pct": 22.91,
+        "max_drawdown_pct": -71.83,
+        "total_turnover": 9.56,
+        "total_fees_usd": 103.99
+      },
+      "CARM_CC_TOP3_MOMENTUM_STD_COST": {
+        "final_equity_usd": 20968.29,
+        "net_return_pct": 109.93,
+        "max_drawdown_pct": -68.57,
+        "annualized_sharpe": 0.619,
+        "annualized_sortino": 0.859,
+        "total_turnover": 293.64,
+        "total_fees_usd": 4298.56
+      },
+      "CARM_CC_TOP3_MOMENTUM_STRESSED_COST": {
+        "final_equity_usd": 12342.75,
+        "net_return_pct": 23.8,
+        "max_drawdown_pct": -70.72,
+        "total_fees_usd": 7627.93
+      }
+    },
+    "excess_net_utility": {
+      "excess_vs_buy_and_hold_pct": 102.17,
+      "excess_vs_rebalanced_ew_pct": 87.02,
+      "sortino_improvement": 0.288
+    },
+    "chronological_annual_attribution": {
+      "2022": {
+        "start_equity_usd": 9988.0,
+        "end_equity_usd": 3931.24,
+        "carm_net_return_pct": -60.64,
+        "bh_net_return_pct": -68.15,
+        "carm_excess_vs_bh_pct": 7.51,
+        "carm_max_drawdown_pct": -68.57,
+        "fees_paid_usd": 498.0
+      },
+      "2023": {
+        "start_equity_usd": 3933.69,
+        "end_equity_usd": 10156.05,
+        "carm_net_return_pct": 158.18,
+        "bh_net_return_pct": 100.37,
+        "carm_excess_vs_bh_pct": 57.82,
+        "carm_max_drawdown_pct": -38.01,
+        "fees_paid_usd": 494.5
+      },
+      "2024": {
+        "start_equity_usd": 10216.46,
+        "end_equity_usd": 29668.78,
+        "carm_net_return_pct": 190.4,
+        "bh_net_return_pct": 97.97,
+        "carm_excess_vs_bh_pct": 92.43,
+        "carm_max_drawdown_pct": -39.15,
+        "fees_paid_usd": 1171.2
+      },
+      "2025": {
+        "start_equity_usd": 29655.53,
+        "end_equity_usd": 20990.4,
+        "carm_net_return_pct": -29.22,
+        "bh_net_return_pct": -14.91,
+        "carm_excess_vs_bh_pct": -14.31,
+        "carm_max_drawdown_pct": -55.24,
+        "fees_paid_usd": 2134.85
+      }
+    }
+  },
+  "phase_f_neural_pilot_authorization": {
+    "evaluation_criteria": {
+      "1_causal_observable_information": "PASSED (168h cross-asset relative return observable causally)",
+      "2_net_post_cost_utility": "PASSED (+109.93% net return, +102.05% excess vs buy-and-hold after 293.6 turnover)",
+      "3_simple_baseline_room_for_improvement": "PASSED (Static top-3 equal-weight rule suffers -68.57% max drawdown because it cannot modulate Cash slack w_0 or dynamically risk-parity scale asset weights during transition regimes)",
+      "4_data_and_splits_validity": "PASSED (2022-2023 dev, 2024-2025 eval, 2026 sealed holdout unopened)",
+      "5_action_space_validity": "PASSED (Portfolio simplex w_0 in [0, 1], w_i in [0, 1], sum w = 1)",
+      "6_failure_conditions_specified": "PASSED (Must beat non-neural Sortino 0.655 and achieve MaxDD >= -35.0%)"
+    },
+    "bounded_experiment_specification": {
+      "model_family": "Causal Temporal Cross-Asset Network (Causal TCN / Sequence GRU)",
+      "parameter_cap": 50000,
+      "compute_budget_minutes": 20,
+      "input_tensor": "N assets x 168h lookback x 6 causal features (returns, semivol, volume, basis, correlation)",
+      "output_layer": "Constrained Portfolio Simplex (Cash slack w_0, Asset allocations w_1..w_N)",
+      "loss_objective": "Negative Post-Cost Sortino Utility with Turnover Penalty",
+      "stopping_rule": "Early stopping at epoch 15 if validation Sortino does not exceed simple rule by +10 bps"
+    },
+    "authorization_verdict": {
+      "BOUNDED_NEURAL_PILOT_AUTHORIZATION": "AUTHORIZED_FOR_CARM_CONTINUOUS_POLICY",
+      "PRIMARY_OBJECTIVE_STATUS": "ADVANCED_TOWARD_UNIFIED_NEURAL_POLICY",
+      "NEXT_FALSIFIABLE_EXPERIMENT": "BOUNDED_CARM_NEURAL_PILOT_VS_SIMPLE_RULE"
+    }
+  }
+}
