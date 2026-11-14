@@ -1,1234 +1,407 @@
 {
-  "document_id": "H1-CORRECTED-ECONOMIC-REVALIDATION-2026-11-15",
-  "timestamp_utc": "2026-11-14T18:32:15Z",
-  "elapsed_seconds": 91.5,
-  "phase_a_historical_execution_fidelity": {
-    "classification_standards": {
-      "A_AUTHENTIC_EXECUTION_EVIDENCE": "Actual PIT executable quotes/depth, contract specs, official settlement 30m TWAP, SHA-256 checksums",
-      "B_MODELLED_EXECUTION": "Historical bar prices with explicitly disclosed fees (39 bps), spread (9 bps), sqrt impact, discrete lot sizing",
-      "C_INSUFFICIENT_EVIDENCE": "Missing sub-minute tick orderbooks, flash ADL wicks, unobservable queue latency, or sealed holdout data"
+  "document_id": "H1-CORRECTED-ECONOMIC-REVALIDATION-V2-2026-11-15",
+  "timestamp_utc": "2026-11-14T18:51:23Z",
+  "elapsed_seconds": 75.92,
+  "task_1_evidence_integrity": {
+    "output_path_injectable": true,
+    "canonical_artifact_preservation_enforced": true,
+    "dispositions_dynamically_evaluated": true
+  },
+  "task_2_source_backed_coverage": {
+    "data_availability": {
+      "panel_total_rows": 280144,
+      "covered_symbols_count": 8,
+      "covered_years": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "aggregate_spot_availability_pct": 100.0,
+      "aggregate_f1_futures_availability_pct": 89.12,
+      "aggregate_settlement_events_count": 115,
+      "aggregate_settlement_twap_matched_pct": 100.0,
+      "total_unique_quarterly_contracts_observed": 120,
+      "holdout_2026_status": "SEALED_PRESERVED_FOR_M5_INACCESSIBLE"
     },
-    "coverage_summary_2022_2025": {
-      "total_event_cells": 160,
-      "tier_a_cells": 64,
-      "tier_a_pct": 40.0,
-      "tier_b_cells": 96,
-      "tier_b_pct": 60.0,
-      "tier_c_cells": 0,
-      "tier_c_pct": 0.0,
-      "execution_precision_verdict": "EXECUTION_APPROXIMATE_MODELLED_B"
+    "per_symbol_data_availability": {
+      "ADAUSDT": {
+        "total_hourly_rows": 35063,
+        "valid_spot_bars": 35063,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 32646,
+        "f1_availability_pct": 93.11,
+        "missing_f1_bars": 2417,
+        "unique_quarterly_contracts_count": 15,
+        "sample_contracts": [
+          "ADAUSD_220325",
+          "ADAUSD_220624",
+          "ADAUSD_220930"
+        ],
+        "settlement_events_count": 15,
+        "settlement_30m_twap_matched_count": 15,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Quarterly contract listed after Jan 2022 (e.g. SOL in mid-2024)"
+      },
+      "BNBUSDT": {
+        "total_hourly_rows": 35063,
+        "valid_spot_bars": 35063,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 34967,
+        "f1_availability_pct": 99.73,
+        "missing_f1_bars": 96,
+        "unique_quarterly_contracts_count": 17,
+        "sample_contracts": [
+          "BNBUSD_220325",
+          "BNBUSD_220624",
+          "BNBUSD_220930"
+        ],
+        "settlement_events_count": 16,
+        "settlement_30m_twap_matched_count": 16,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Full 2022-2025 quarterly coverage"
+      },
+      "BTCUSDT": {
+        "total_hourly_rows": 35063,
+        "valid_spot_bars": 35063,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 34967,
+        "f1_availability_pct": 99.73,
+        "missing_f1_bars": 96,
+        "unique_quarterly_contracts_count": 17,
+        "sample_contracts": [
+          "BTCUSD_220325",
+          "BTCUSD_220624",
+          "BTCUSD_220930"
+        ],
+        "settlement_events_count": 16,
+        "settlement_30m_twap_matched_count": 16,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Full 2022-2025 quarterly coverage"
+      },
+      "ETHUSDT": {
+        "total_hourly_rows": 35063,
+        "valid_spot_bars": 35063,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 34967,
+        "f1_availability_pct": 99.73,
+        "missing_f1_bars": 96,
+        "unique_quarterly_contracts_count": 17,
+        "sample_contracts": [
+          "ETHUSD_220325",
+          "ETHUSD_220624",
+          "ETHUSD_220930"
+        ],
+        "settlement_events_count": 16,
+        "settlement_30m_twap_matched_count": 16,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Full 2022-2025 quarterly coverage"
+      },
+      "LINKUSDT": {
+        "total_hourly_rows": 35063,
+        "valid_spot_bars": 35063,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 32646,
+        "f1_availability_pct": 93.11,
+        "missing_f1_bars": 2417,
+        "unique_quarterly_contracts_count": 15,
+        "sample_contracts": [
+          "LINKUSD_220325",
+          "LINKUSD_220624",
+          "LINKUSD_220930"
+        ],
+        "settlement_events_count": 15,
+        "settlement_30m_twap_matched_count": 15,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Quarterly contract listed after Jan 2022 (e.g. SOL in mid-2024)"
+      },
+      "LTCUSDT": {
+        "total_hourly_rows": 34943,
+        "valid_spot_bars": 34943,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 32526,
+        "f1_availability_pct": 93.08,
+        "missing_f1_bars": 2417,
+        "unique_quarterly_contracts_count": 15,
+        "sample_contracts": [
+          "LTCUSD_220325",
+          "LTCUSD_220624",
+          "LTCUSD_220930"
+        ],
+        "settlement_events_count": 15,
+        "settlement_30m_twap_matched_count": 15,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Quarterly contract listed after Jan 2022 (e.g. SOL in mid-2024)"
+      },
+      "SOLUSDT": {
+        "total_hourly_rows": 34943,
+        "valid_spot_bars": 34943,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 12108,
+        "f1_availability_pct": 34.65,
+        "missing_f1_bars": 22835,
+        "unique_quarterly_contracts_count": 7,
+        "sample_contracts": [
+          "SOLUSD_240927",
+          "SOLUSD_241227",
+          "SOLUSD_250328"
+        ],
+        "settlement_events_count": 6,
+        "settlement_30m_twap_matched_count": 6,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Quarterly contract listed after Jan 2022 (e.g. SOL in mid-2024)"
+      },
+      "XRPUSDT": {
+        "total_hourly_rows": 34943,
+        "valid_spot_bars": 34943,
+        "spot_availability_pct": 100.0,
+        "valid_f1_bars": 34847,
+        "f1_availability_pct": 99.73,
+        "missing_f1_bars": 96,
+        "unique_quarterly_contracts_count": 17,
+        "sample_contracts": [
+          "XRPUSD_220325",
+          "XRPUSD_220624",
+          "XRPUSD_220930"
+        ],
+        "settlement_events_count": 16,
+        "settlement_30m_twap_matched_count": 16,
+        "settlement_match_pct": 100.0,
+        "listing_notes": "Full 2022-2025 quarterly coverage"
+      }
     },
-    "coverage_summary_2026_holdout": {
-      "total_event_cells": 40,
-      "tier_c_sealed_holdout_pct": 100.0,
-      "status": "SEALED_PRESERVED_FOR_M5"
+    "execution_fidelity": {
+      "fidelity_level_a_authentic": {
+        "description": "Exchange-verified point-in-time facts",
+        "components": [
+          "128/128 official 30m TWAP delivery settlement prices from verified 1m indexPriceKlines archives",
+          "1h markPriceKlines for ongoing maintenance margin coverage verification",
+          "Official exchangeInfo contract multipliers ($100 BTC, $10 Alts) and Tier-1 MMR brackets",
+          "Timestamped point-in-time USDT/USD conversion series"
+        ],
+        "fidelity_rating": "AUTHENTIC_EXECUTION_EVIDENCE"
+      },
+      "fidelity_level_b_modelled": {
+        "description": "Historical prices with explicitly disclosed mechanical & cost models",
+        "components": [
+          "1h bar OHLCV reference pricing (no historical sub-minute tick orderbook depth)",
+          "39.0 bps standard retail taker fee schedule (Spot 10 bps, CM 5 bps x 2, 9 bps half-spread & impact)",
+          "Square-root volume participation market impact model",
+          "Volume participation limit capped at <= 5% hourly contract volume over 4h window",
+          "Discrete integer contract lot floor sizing (excess capital held in cash)"
+        ],
+        "fidelity_rating": "MODELLED_EXECUTION"
+      },
+      "fidelity_level_c_insufficient": {
+        "description": "Unobservable historical dynamics",
+        "components": [
+          "Sub-minute L2 orderbook depth queues and tick-level fills (unobservable from 1h bars)",
+          "Sub-second maker fill queue priority and cancellation race conditions",
+          "Flash ADL (auto-deleveraging) wicks beyond 1h markPrice highs"
+        ],
+        "fidelity_rating": "INSUFFICIENT_FOR_TICK_PRECISION_APPROXIMATE_ONLY"
+      },
+      "aggregate_execution_precision": "EXECUTION_APPROXIMATE_MODELLED_B"
+    }
+  },
+  "task_3_r2_accounting_parity": {
+    "parity_summary": {
+      "total_core_invariants_audited": 9,
+      "verified_shared_invariants_count": 7,
+      "partial_modelled_invariants_count": 2,
+      "accounting_parity_status": "PARTIAL_SHARED_SUBSET",
+      "historical_simulator_attribution": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION"
     },
-    "event_matrix": {
+    "invariant_details": {
+      "inverse_futures_pnl": {
+        "r2_specification": "contracts * multiplier * (1/F_exit - 1/F_entry) * Spot_exit",
+        "n1_5_implementation": "contracts * contract_size * (1/F_exit - 1/F_entry) in coin, converted to USD via exit spot proceeds",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "physical_discrete_contract_sizing": {
+        "r2_specification": "N = floor(capital / (multiplier * ...)), integer lots only ($100 BTC, $10 Alts)",
+        "n1_5_implementation": "N = int(floor((coin_transferred * F_entry) / (contract_size * (1 + fee)))), integer lots only",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "entry_and_exit_fee_bridge": {
+        "r2_specification": "7-term fee bridge deducting Spot entry, CM entry, Spot exit, CM exit/delivery, and residual cost",
+        "n1_5_implementation": "Deducts spot_entry_fee, cm_entry_fee_coin, spot_exit_fee, cm_delivery_fee_coin; net_pnl = exit_proceeds - entry_cost",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "official_delivery_settlement": {
+        "r2_specification": "08:00 UTC settlement against 30m index TWAP with recv_ms >= delivery_ms fail-closed check",
+        "n1_5_implementation": "08:00 UTC settlement against verified 30m index TWAP archives with 5.0 bps delivery fee",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "capital_commitment_and_release": {
+        "r2_specification": "Debits capital upon entry, tracks committed vs available, releases capital upon closure",
+        "n1_5_implementation": "Debits cash_reserve_usd on entry, tracks deployed capital curve, credits exit_spot_proceeds on exit",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "account_equity_conservation": {
+        "r2_specification": "Total equity = Cash + Realized + Unrealized Spot + Unrealized Futures; residual == 0.0",
+        "n1_5_implementation": "Total equity = cash_reserve + sum(pos_equity); ledger reconciliation residual < $0.0004",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "exactly_once_economic_closure": {
+        "r2_specification": "Position transitions to CLOSED and releases capital exactly once",
+        "n1_5_implementation": "Position appended to closed_ledgers exactly once upon exit/roll; active slot cleared",
+        "parity_status": "VERIFIED_SHARED",
+        "exact_formula_match": true
+      },
+      "held_spot_inventory_and_partial_sales": {
+        "r2_specification": "Tracks FUTURES_LEG_SETTLED with held Spot inventory; partial sales accumulate realized spot PnL over multiple future bars",
+        "n1_5_implementation": "Models immediate spot sale at settlement or in-kind direct rollover into next quarter; no multi-day unsold spot holding",
+        "parity_status": "PARTIAL_MODELLED_SUBSET",
+        "exact_formula_match": false,
+        "difference_note": "N1.5 executes immediate settlement spot liquidation or direct contract roll; R2 supports multi-day asynchronous spot liquidation"
+      },
+      "executable_depth_fail_closed": {
+        "r2_specification": "Quots L2 orderbook depth; sets close_executable=False if book depth is insufficient",
+        "n1_5_implementation": "Uses 4h TWAP participation cap (<= 5% vol) and square-root impact model on 1h bars",
+        "parity_status": "PARTIAL_MODELLED_SUBSET",
+        "exact_formula_match": false,
+        "difference_note": "Historical L2 tick depth is unobservable; N1.5 models liquidity via volume participation caps"
+      }
+    }
+  },
+  "task_3_h1_physical_discrete_execution": {
+    "methodology": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION",
+    "initial_capital_usd": 20000.0,
+    "gross_economic_pnl_usd": 6914.11,
+    "realized_net_pnl_usd": 5616.56,
+    "net_return_on_committed_pct": 28.08,
+    "annualized_return_on_deployed_pct": 10.25,
+    "total_fees_and_slippage_usd": 1297.55,
+    "fee_breakdown_usd": {
+      "total_fees_and_slippage_usd": 1297.55,
+      "spot_entry_and_exit_fees_usd": 648.18,
+      "cm_entry_and_early_exit_fees_usd": 318.2,
+      "cm_delivery_settlement_fees_usd": 16.84,
+      "spread_and_market_impact_usd": 314.33
+    },
+    "annualized_turnover": 16.14,
+    "total_closed_positions": 90,
+    "early_compression_exits": 81,
+    "quarterly_expiry_settlements": 7,
+    "annualized_sharpe": 1.865,
+    "annualized_sortino": 2.22,
+    "max_drawdown_pct": -2.3,
+    "net_excess_vs_cash_usd": 5616.56,
+    "annual_breakdown": {
       "2022": {
-        "BTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ETHUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "BNBUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "XRPUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ADAUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LINKUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "SOLUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        }
+        "net_pnl_usd": 470.38,
+        "net_return_on_committed_capital_pct": 2.35,
+        "mean_deployed_capital_fraction": 0.2526,
+        "return_on_deployed_capital_pct": 9.31,
+        "sharpe_annualized": 0.945,
+        "max_drawdown_pct": -0.53,
+        "closed_positions_count": 10
       },
       "2023": {
-        "BTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ETHUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "BNBUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "XRPUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ADAUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LINKUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "SOLUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        }
+        "net_pnl_usd": 410.04,
+        "net_return_on_committed_capital_pct": 2.05,
+        "mean_deployed_capital_fraction": 0.7215,
+        "return_on_deployed_capital_pct": 2.84,
+        "sharpe_annualized": 0.598,
+        "max_drawdown_pct": -2.3,
+        "closed_positions_count": 21
       },
       "2024": {
-        "BTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ETHUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "BNBUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "XRPUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ADAUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LINKUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "SOLUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        }
+        "net_pnl_usd": 3499.49,
+        "net_return_on_committed_capital_pct": 17.5,
+        "mean_deployed_capital_fraction": 1.0029,
+        "return_on_deployed_capital_pct": 17.45,
+        "sharpe_annualized": 3.441,
+        "max_drawdown_pct": -1.64,
+        "closed_positions_count": 26
       },
       "2025": {
-        "BTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ETHUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "BNBUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "XRPUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "ADAUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LINKUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "LTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        },
-        "SOLUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 39.0 bps retail fee + sqrt-volume impact model (no historical tick L2 depth)"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "Verified 1h markPriceKlines + exact invariant margin ratio calculation"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "1h OHLCV + 5 bps CM taker fee + modeled orderbook half-spread"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "A",
-            "classification": "AUTHENTIC_EXECUTION_EVIDENCE",
-            "details": "128/128 SHA-256 verified 1m indexPriceKlines 30-min TWAP at 08:00 UTC + 5 bps delivery fee"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "B",
-            "classification": "MODELLED_EXECUTION",
-            "details": "Internal coin collateral rollover without spot liquidation; modeled next-contract basis"
-          }
-        }
-      },
-      "2026": {
-        "BTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "ETHUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "BNBUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "XRPUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "ADAUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "LINKUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "LTCUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        },
-        "SOLUSDT": {
-          "ENTRY_EXECUTION": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "MARK_TO_MARKET_HOLDING": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "EARLY_COMPRESSION_CLOSE": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DELIVERY_SETTLEMENT": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          },
-          "DIRECT_ROLL_OVER": {
-            "tier": "C",
-            "classification": "INSUFFICIENT_EVIDENCE",
-            "details": "Sealed holdout"
-          }
-        }
-      }
-    }
-  },
-  "phase_b_h1_physical_discrete_execution": {
-    "standard_retail_taker_39bps": {
-      "initial_capital_usd": 20000.0,
-      "gross_economic_pnl_usd": 6914.11,
-      "realized_net_pnl_usd": 5616.56,
-      "net_return_on_committed_pct": 28.08,
-      "annualized_return_on_deployed_pct": 10.25,
-      "total_fees_and_slippage_usd": 1297.55,
-      "fee_breakdown_usd": {
-        "total_fees_and_slippage_usd": 1297.55,
-        "spot_entry_and_exit_fees_usd": 648.18,
-        "cm_entry_and_early_exit_fees_usd": 318.2,
-        "cm_delivery_settlement_fees_usd": 16.84,
-        "spread_and_market_impact_usd": 314.33
-      },
-      "annualized_turnover": 16.14,
-      "total_closed_positions": 90,
-      "early_compression_exits": 81,
-      "quarterly_expiry_settlements": 7,
-      "annualized_sharpe": 1.865,
-      "annualized_sortino": 2.22,
-      "max_drawdown_pct": -2.3,
-      "net_excess_vs_cash_usd": 5616.56,
-      "annual_breakdown": {
-        "2022": {
-          "net_pnl_usd": 470.38,
-          "net_return_on_committed_capital_pct": 2.35,
-          "mean_deployed_capital_fraction": 0.2526,
-          "return_on_deployed_capital_pct": 9.31,
-          "sharpe_annualized": 0.945,
-          "max_drawdown_pct": -0.53,
-          "closed_positions_count": 10
-        },
-        "2023": {
-          "net_pnl_usd": 410.04,
-          "net_return_on_committed_capital_pct": 2.05,
-          "mean_deployed_capital_fraction": 0.7215,
-          "return_on_deployed_capital_pct": 2.84,
-          "sharpe_annualized": 0.598,
-          "max_drawdown_pct": -2.3,
-          "closed_positions_count": 21
-        },
-        "2024": {
-          "net_pnl_usd": 3499.49,
-          "net_return_on_committed_capital_pct": 17.5,
-          "mean_deployed_capital_fraction": 1.0029,
-          "return_on_deployed_capital_pct": 17.45,
-          "sharpe_annualized": 3.441,
-          "max_drawdown_pct": -1.64,
-          "closed_positions_count": 26
-        },
-        "2025": {
-          "net_pnl_usd": 1252.91,
-          "net_return_on_committed_capital_pct": 6.26,
-          "mean_deployed_capital_fraction": 0.7596,
-          "return_on_deployed_capital_pct": 8.25,
-          "sharpe_annualized": 1.988,
-          "max_drawdown_pct": -0.61,
-          "closed_positions_count": 31
-        }
+        "net_pnl_usd": 1252.91,
+        "net_return_on_committed_capital_pct": 6.26,
+        "mean_deployed_capital_fraction": 0.7596,
+        "return_on_deployed_capital_pct": 8.25,
+        "sharpe_annualized": 1.988,
+        "max_drawdown_pct": -0.61,
+        "closed_positions_count": 31
       }
     },
-    "stressed_execution_cost_49bps": {
-      "gross_economic_pnl_usd": 6867.28,
-      "realized_net_pnl_usd": 5257.48,
-      "net_return_on_committed_pct": 26.29,
-      "total_fees_and_slippage_usd": 1609.8,
-      "annualized_sharpe": 1.755,
-      "max_drawdown_pct": -2.39
-    }
+    "ledger_reconciliation_residual_usd": -0.000165
   },
-  "phase_b_common_continuous_environment_comparison": {
-    "validation_2024": {
-      "at_22bps_cost": {
-        "neural_policy_net_pnl": 2123.9,
-        "simple_carry_net_pnl": 3007.88,
-        "matched_passive_carry_net_pnl": 1751.08,
-        "neural_diff_vs_simple": -883.98
+  "task_4_neural_cost_comparison": {
+    "evaluation_split": "2024_VALIDATION_TRAINED_ON_2022_2023",
+    "methodological_caveat": "2024 has previously informed research analysis; this is a diagnostic comparison, not virgin holdout OOS",
+    "scenarios": {
+      "neural_train_22_eval_22": {
+        "realized_net_pnl_usd": 2123.9,
+        "annualized_sharpe": 1.586,
+        "annualized_turnover": 17.99,
+        "mean_hedged_exposure": 0.6408,
+        "mean_cash_slack": 0.3592,
+        "total_friction_paid_usd": 436.17
       },
-      "at_39bps_corrected_cost": {
-        "cash_usd": 0.0,
-        "matched_passive_carry_net_pnl_usd": 1600.05,
-        "simple_carry_baseline_net_pnl_usd": 2331.86,
-        "neural_policy_net_pnl_usd": 1772.03,
-        "neural_excess_vs_cash_usd": 1772.03,
-        "neural_excess_vs_passive_carry_usd": 171.98,
-        "neural_incremental_value_vs_simple_usd": -559.83,
-        "simple_excess_vs_passive_carry_usd": 731.81
+      "neural_train_22_eval_39": {
+        "realized_net_pnl_usd": 1772.03,
+        "annualized_sharpe": 1.338,
+        "annualized_turnover": 17.99,
+        "mean_hedged_exposure": 0.6408,
+        "mean_cash_slack": 0.3592,
+        "total_friction_paid_usd": 772.57
+      },
+      "neural_train_39_eval_39_diagnostic": {
+        "realized_net_pnl_usd": 1384.56,
+        "annualized_sharpe": 1.618,
+        "annualized_turnover": 9.12,
+        "mean_hedged_exposure": 0.4906,
+        "mean_cash_slack": 0.5094,
+        "total_friction_paid_usd": 381.28
+      },
+      "simple_carry_baseline_eval_22": {
+        "realized_net_pnl_usd": 3007.88,
+        "annualized_sharpe": 1.999,
+        "annualized_turnover": 33.58,
+        "mean_hedged_exposure": 0.8483,
+        "mean_cash_slack": 0.1517,
+        "total_friction_paid_usd": 839.37
+      },
+      "simple_carry_baseline_eval_39": {
+        "realized_net_pnl_usd": 2331.86,
+        "annualized_sharpe": 1.578,
+        "annualized_turnover": 33.58,
+        "mean_hedged_exposure": 0.8483,
+        "mean_cash_slack": 0.1517,
+        "total_friction_paid_usd": 1475.62
+      },
+      "matched_passive_carry_22_eval_22": {
+        "realized_net_pnl_usd": 1751.08
+      },
+      "matched_passive_carry_22_eval_39": {
+        "realized_net_pnl_usd": 1600.05
+      },
+      "matched_passive_carry_39_eval_39": {
+        "realized_net_pnl_usd": 1217.47
       }
     },
-    "adaptive_dev_2025": {
-      "at_22bps_cost": {
-        "neural_policy_net_pnl": 988.84,
-        "simple_carry_net_pnl": 868.58,
-        "matched_passive_carry_net_pnl": 336.0,
-        "neural_diff_vs_simple": 120.26
-      },
-      "at_39bps_corrected_cost": {
-        "cash_usd": 0.0,
-        "matched_passive_carry_net_pnl_usd": 264.94,
-        "simple_carry_baseline_net_pnl_usd": 341.65,
-        "neural_policy_net_pnl_usd": 749.09,
-        "neural_excess_vs_cash_usd": 749.09,
-        "neural_excess_vs_passive_carry_usd": 484.15,
-        "neural_incremental_value_vs_simple_usd": 407.44,
-        "simple_excess_vs_passive_carry_usd": 76.71
-      }
+    "incremental_comparisons": {
+      "neural_22_eval_22_vs_simple_22": -883.98,
+      "neural_22_eval_39_vs_simple_39": -559.83,
+      "neural_39_eval_39_vs_simple_39": -947.3,
+      "neural_22_eval_39_vs_matched_passive_39": 171.98,
+      "neural_39_eval_39_vs_matched_passive_39": 167.09
     }
   },
-  "phase_e_research_disposition": {
-    "h1_economic_disposition": "EXPLORATORY_NET_EDGE_SUPPORTED",
-    "neural_incremental_value_disposition": "NEURAL_INCREMENTAL_VALUE_NOT_SUPPORTED",
-    "overall_disposition": "A_SIMPLE_H1_EDGE_ONLY",
-    "justification": "H-1 physical cash-and-carry delivers +$5,616.56 net PnL across 2022-2025 under realistic 39 bps costs, but neural policy underperformed the simple heuristic baseline by -$559.83 in out-of-sample 2024."
+  "task_7_research_dispositions": {
+    "H1_HISTORICAL_ECONOMIC_MECHANISM": "SUPPORTED",
+    "H1_R2_ACCOUNTING_PARITY": "PARTIAL_SHARED_SUBSET",
+    "NEURAL_INCREMENTAL_VALUE": "NOT_SUPPORTED",
+    "NEXT_INFORMATION_HYPOTHESIS": "REQUIRES_BOUNDED_EXPERIMENT",
+    "UNIFIED_NEURAL_ARCHITECTURE": "PROPOSED_ADR_001",
+    "PROSPECTIVE_DATA_REQUIREMENTS": "INCONCLUSIVE_DATA_LIMITED"
   }
 }

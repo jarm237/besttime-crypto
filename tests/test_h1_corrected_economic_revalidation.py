@@ -1,65 +1,109 @@
-"""Targeted unit tests for H-1 corrected economic revalidation and unified neural evaluation."""
+"""Targeted unit tests for H-1 corrected economic revalidation, historical coverage, and R2 parity.
+
+Guarantees:
+1. Strict test isolation: output directory is injected using pytest `tmp_path`.
+2. Canonical research files are never touched or modified during test execution.
+3. Assertions verify economic reconciliation, invariant preservation, and deterministic accounting,
+   NOT predetermined profitability amounts (economic failure is a valid research outcome).
+"""
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from scripts.run_h1_corrected_economic_revalidation import (
-    build_historical_execution_coverage_matrix,
+    audit_r2_accounting_parity,
+    audit_source_backed_historical_coverage,
     run_corrected_h1_revalidation,
 )
 
-
-def test_historical_execution_coverage_matrix():
-    """Verify classification of A, B, C execution tiers across 2022-2025 and 2026 holdout."""
-    matrix_res = build_historical_execution_coverage_matrix()
-    summary = matrix_res["coverage_summary_2022_2025"]
-
-    # 8 symbols * 4 years * 5 lifecycle events = 160 cells
-    assert summary["total_event_cells"] == 160
-
-    # Events in Tier A: MARK_TO_MARKET_HOLDING and DELIVERY_SETTLEMENT = 2 events * 8 symbols * 4 years = 64
-    assert summary["tier_a_cells"] == 64
-    assert summary["tier_a_pct"] == 40.0
-
-    # Events in Tier B: ENTRY_EXECUTION, EARLY_COMPRESSION_CLOSE, DIRECT_ROLL_OVER = 3 events * 8 symbols * 4 years = 96
-    assert summary["tier_b_cells"] == 96
-    assert summary["tier_b_pct"] == 60.0
-
-    # Tier C in active 2022-2025 is 0
-    assert summary["tier_c_cells"] == 0
-
-    # 2026 holdout is 100% Tier C (sealed)
-    assert matrix_res["coverage_summary_2026_holdout"]["tier_c_sealed_holdout_pct"] == 100.0
+ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_revalidation_execution_and_disposition(tmp_path: Path):
-    """Test full economic revalidation output structure, accounting consistency, and disposition."""
-    reval_res = run_corrected_h1_revalidation()
+def test_source_backed_historical_coverage_inspection():
+    """Verify source-backed coverage audit from actual panel data."""
+    panel_path = ROOT / "data" / "neural_n1_5" / "n1_5_enriched_coinm_panel.parquet"
+    assert panel_path.exists(), f"Enriched panel must exist at {panel_path}"
 
-    # Verify physical discrete execution under standard retail taker (39.0 bps)
-    discrete_res = reval_res["phase_b_h1_physical_discrete_execution"]["standard_retail_taker_39bps"]
-    assert discrete_res["gross_economic_pnl_usd"] > 6000.0
-    assert discrete_res["realized_net_pnl_usd"] > 5000.0
-    assert discrete_res["net_return_on_committed_pct"] > 25.0
-    assert discrete_res["annualized_turnover"] < 20.0  # Discrete contracts reduce turnover vs 21.8x continuous
-    assert discrete_res["total_closed_positions"] > 80
+    df = pd.read_parquet(panel_path)
+    res = audit_source_backed_historical_coverage(df)
 
-    # Verify annual positive net PnL across all years (2022, 2023, 2024, 2025)
-    annual = discrete_res["annual_breakdown"]
-    for yr in ["2022", "2023", "2024", "2025"]:
-        assert annual[yr]["net_pnl_usd"] > 0.0
+    data_avail = res["data_availability"]
+    assert data_avail["panel_total_rows"] == 280144
+    assert data_avail["covered_symbols_count"] == 8
+    assert data_avail["aggregate_spot_availability_pct"] == 100.0  # Zero missing spot bars
+    assert data_avail["total_unique_quarterly_contracts_observed"] == 120
+    assert data_avail["aggregate_settlement_events_count"] == 115
+    assert data_avail["aggregate_settlement_twap_matched_pct"] == 100.0  # All 115 matched 30m TWAPs
 
-    # Verify neural vs simple comparison in 2024
-    comp_2024 = reval_res["phase_b_common_continuous_environment_comparison"]["validation_2024"]["at_39bps_corrected_cost"]
-    # In 2024, simple carry beat neural policy due to neural exposure conservatism
-    assert comp_2024["simple_carry_baseline_net_pnl_usd"] > comp_2024["neural_policy_net_pnl_usd"]
-    assert comp_2024["neural_incremental_value_vs_simple_usd"] < 0.0
+    # Verify per-symbol listing differences are captured
+    per_sym = res["per_symbol_data_availability"]
+    assert per_sym["BTCUSDT"]["missing_f1_bars"] < 200
+    assert per_sym["SOLUSDT"]["missing_f1_bars"] > 20000  # SOL quarterly launched in mid-2024
 
-    # Verify disposition
-    disp = reval_res["phase_e_research_disposition"]
-    assert disp["overall_disposition"] == "A_SIMPLE_H1_EDGE_ONLY"
-    assert disp["neural_incremental_value_disposition"] == "NEURAL_INCREMENTAL_VALUE_NOT_SUPPORTED"
-    assert disp["h1_economic_disposition"] == "EXPLORATORY_NET_EDGE_SUPPORTED"
+    # Verify execution fidelity separation
+    exec_fid = res["execution_fidelity"]
+    assert exec_fid["aggregate_execution_precision"] == "EXECUTION_APPROXIMATE_MODELLED_B"
+    assert "fidelity_level_a_authentic" in exec_fid
+    assert "fidelity_level_b_modelled" in exec_fid
+    assert "fidelity_level_c_insufficient" in exec_fid
+
+
+def test_r2_accounting_parity_audit():
+    """Verify accounting parity mapping between N1.5 simulator and R2 specifications."""
+    parity_res = audit_r2_accounting_parity()
+    summary = parity_res["parity_summary"]
+
+    assert summary["total_core_invariants_audited"] == 9
+    assert summary["verified_shared_invariants_count"] == 7
+    assert summary["partial_modelled_invariants_count"] == 2
+    assert summary["accounting_parity_status"] == "PARTIAL_SHARED_SUBSET"
+    assert summary["historical_simulator_attribution"] == "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION"
+
+    # Invariants that must be verified as identical
+    inv = parity_res["invariant_details"]
+    assert inv["inverse_futures_pnl"]["parity_status"] == "VERIFIED_SHARED"
+    assert inv["physical_discrete_contract_sizing"]["parity_status"] == "VERIFIED_SHARED"
+    assert inv["entry_and_exit_fee_bridge"]["parity_status"] == "VERIFIED_SHARED"
+    assert inv["account_equity_conservation"]["parity_status"] == "VERIFIED_SHARED"
+    assert inv["exactly_once_economic_closure"]["parity_status"] == "VERIFIED_SHARED"
+
+    # Invariants that are modeled approximations due to absence of historical L2 depth
+    assert inv["held_spot_inventory_and_partial_sales"]["parity_status"] == "PARTIAL_MODELLED_SUBSET"
+    assert inv["executable_depth_fail_closed"]["parity_status"] == "PARTIAL_MODELLED_SUBSET"
+
+
+def test_revalidation_evidence_integrity_and_injection(tmp_path: Path):
+    """Verify that revalidation respects injected output_dir and preserves canonical research files."""
+    canonical_file = ROOT / "research" / "revalidation" / "h1_corrected_economic_revalidation.json"
+    canonical_mtime_before = canonical_file.stat().st_mtime if canonical_file.exists() else None
+
+    # Run revalidation targeting the temporary directory (fast run without neural retrain)
+    report = run_corrected_h1_revalidation(output_dir=tmp_path, run_neural=False)
+
+    # 1. Output must be saved in tmp_path
+    injected_output_file = tmp_path / "h1_corrected_economic_revalidation.json"
+    assert injected_output_file.exists(), "Output file must be written to injected tmp_path"
+
+    # 2. Canonical file must NOT have been modified
+    if canonical_mtime_before is not None:
+        assert canonical_file.stat().st_mtime == canonical_mtime_before, "Canonical research file must not be modified during test"
+
+    # 3. Assert economic reconciliation invariants (NOT hardcoded profits)
+    discrete = report["task_3_h1_physical_discrete_execution"]
+    # Ledger reconciliation residual must be zero / within roundoff tolerance (< 5 cents across 4 years)
+    assert abs(discrete["ledger_reconciliation_residual_usd"]) < 0.05
+
+    # Exactly-once closure & valid turnover
+    assert discrete["total_closed_positions"] > 0
+    assert discrete["annualized_turnover"] > 0.0
+
+    # Dynamic dispositions must be derived from metrics
+    disp = report["task_7_research_dispositions"]
+    expected_h1_disp = "SUPPORTED" if discrete["realized_net_pnl_usd"] > 0.0 else "NOT_SUPPORTED"
+    assert disp["H1_HISTORICAL_ECONOMIC_MECHANISM"] == expected_h1_disp
+    assert disp["H1_R2_ACCOUNTING_PARITY"] == "PARTIAL_SHARED_SUBSET"
+    assert disp["UNIFIED_NEURAL_ARCHITECTURE"] == "PROPOSED_ADR_001"
