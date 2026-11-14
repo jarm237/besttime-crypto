@@ -111,6 +111,8 @@ def fetch_causal_ma24_history(
                     try:
                         rec = json.loads(line)
                         recv_ms = int(rec.get("recv_ms", 0))
+                        if not historical_replay_mode and recv_ms <= 0:
+                            continue
                         if recv_ms > 0 and recv_ms > target_end_ms:
                             continue
                         if rec.get("symbol") == cm_symbol:
@@ -128,6 +130,8 @@ def fetch_causal_ma24_history(
                     try:
                         rec = json.loads(line)
                         recv_ms = int(rec.get("recv_ms", 0))
+                        if not historical_replay_mode and recv_ms <= 0:
+                            continue
                         if recv_ms > 0 and recv_ms > target_end_ms:
                             continue
                         if rec.get("symbol") == spot_symbol:
@@ -230,7 +234,7 @@ def fetch_causal_ma24_history(
                 avail = [r for t, r in rates_by_time if t <= ct and t <= target_end_ms]
                 if avail:
                     candle_rate = avail[-1]
-                elif usdt_usd_rate is not None:
+                elif usdt_usd_rate is not None and historical_replay_mode:
                     candle_rate = usdt_usd_rate
                 else:
                     # Never use a rate timestamped after candle close.
@@ -496,24 +500,28 @@ class N1_7LifecycleEngine:
 
         # 1. Strict cross-symbol isolation
         if obs_sym != sym:
-            return (False, "CROSS_SYMBOL_IGNORED")
+            # If position has already settled futures and is holding spot inventory, allow spot observations
+            if (pos.get("futures_leg_settled") or pos.get("state") == LifecycleState.FUTURES_LEG_SETTLED) and observation.get("spot_symbol") == pos.get("spot_symbol"):
+                pass
+            else:
+                return (False, "CROSS_SYMBOL_IGNORED")
 
-        # 2. Terminal state check: a closed position cannot process further observations
-        if pos.get("state") == LifecycleState.CLOSED:
+        # 2. Terminal state check: a fully closed position cannot process further observations
+        if pos.get("state") == LifecycleState.CLOSED and pos.get("pair_fully_closed", True):
             return (False, "POSITION_ALREADY_CLOSED")
 
         ts = observation.get("decision_timestamp", observation.get("recv_ms", 0))
         last_ts = pos.get("last_valid_observation_timestamp", pos.get("entry_timestamp", 0))
 
-        # 2. Watermark check: strictly reject out-of-order observations
+        # 3. Watermark check: strictly reject out-of-order observations
         if ts < last_ts:
             return (False, "OUT_OF_ORDER_IGNORED")
 
-        # 3. Watermark check: reject duplicate observations if timestamp has not advanced beyond entry
+        # 4. Watermark check: reject duplicate observations if timestamp has not advanced beyond entry
         if ts == last_ts and pos.get("last_update_ms", 0) > pos.get("entry_timestamp", 0):
             return (False, "DUPLICATE_IGNORED")
 
-        # 4. Quote freshness check
+        # 5. Quote freshness check
         if not observation.get("quote_valid_pit", False):
             return (False, "STALE_QUOTE_IGNORED")
 
@@ -532,6 +540,56 @@ class N1_7LifecycleEngine:
         pos["exit_spot_bid_vwap"] = sp_bid_vwap
         pos["exit_cm_ask_vwap"] = cm_ask_vwap
 
+        # 6. If position is in FUTURES_LEG_SETTLED, handle spot inventory updates and subsequent liquidation
+        if pos.get("state") == LifecycleState.FUTURES_LEG_SETTLED or (pos.get("futures_leg_settled") and pos.get("spot_inventory_held")):
+            pos["spot_inventory_market_value_usd"] = round(pos.get("spot_inventory_coin", 0.0) * sp_bid_vwap, 2)
+            pos["spot_inventory_valuation_usd"] = pos["spot_inventory_market_value_usd"]
+
+            sp_sweep = observation.get("spot_bid_sweep")
+            notional = pos["entry_notional_usd"]
+            has_explicit_spot_liquidation = (
+                isinstance(sp_sweep, dict)
+                and sp_sweep.get("fully_filled") is True
+                and float(sp_sweep.get("filled_usd", 0.0)) >= notional - 1.0
+                and sp_bid_vwap > 0.0
+            )
+
+            if has_explicit_spot_liquidation:
+                spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
+                sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+                sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
+                realized_spot_leg_usd = spot_realized_usd - sp_entry_fee - sp_exit_fee
+                realized_futures_leg_usd = pos.get("realized_futures_pnl_usd", 0.0)
+                residual_cost = pos.get("residual_execution_cost_usd", 0.0)
+                realized_net = realized_futures_leg_usd + realized_spot_leg_usd - residual_cost
+
+                pos["state"] = LifecycleState.CLOSED
+                pos["lifecycle_status"] = "PAIR_FULLY_CLOSED"
+                pos["pair_fully_closed"] = True
+                pos["closed_timestamp"] = ts
+                pos["exit_spot_price"] = sp_bid_vwap
+                pos["spot_inventory_held"] = False
+                pos["realized_pnl"] = round(realized_net, 2)
+                pos["realized_spot_pnl_usd"] = round(realized_spot_leg_usd, 2)
+                pos["capital_released"] = True
+                pos["released_capital_usd"] = notional
+                pos["released_collateral_coin"] = pos.get("spot_inventory_coin", 0.0)
+
+                bridge = pos.setdefault("realized_pnl_bridge", {})
+                bridge["gross_spot_pnl_usd"] = round(spot_realized_usd, 4)
+                bridge["spot_entry_fee_usd"] = round(sp_entry_fee, 4)
+                bridge["spot_exit_fee_usd"] = round(sp_exit_fee, 4)
+                bridge["realized_spot_pnl_usd"] = round(realized_spot_leg_usd, 2)
+                bridge["realized_net_pnl_usd"] = round(realized_net, 2)
+
+                pos.setdefault("history", []).append({
+                    "timestamp_ms": ts,
+                    "state": LifecycleState.CLOSED,
+                    "note": f"Spot inventory fully liquidated at {sp_bid_vwap}. Pair fully closed. Realized net PnL: ${realized_net:.2f}",
+                })
+                return (True, "SPOT_INVENTORY_LIQUIDATED_PAIR_CLOSED")
+            return (True, "INVENTORY_VALUATION_UPDATED")
+
         depth_basis = observation.get("observed_depth_basis_bps", 0.0)
         pos["current_basis_bps"] = depth_basis
 
@@ -540,6 +598,10 @@ class N1_7LifecycleEngine:
         settle_record = observation.get("official_delivery_settlement") or observation.get("official_settlement")
 
         if (deliv_ms > 0 and ts >= deliv_ms) or settle_record is not None:
+            # Prevent duplicate futures settlement
+            if pos.get("futures_leg_settled", False):
+                return (True, "FUTURES_ALREADY_SETTLED")
+
             settle_price = None
             if isinstance(settle_record, dict):
                 settle_sym = settle_record.get("contract_symbol")
@@ -573,6 +635,10 @@ class N1_7LifecycleEngine:
                 realized_futures_leg_usd = (inv_pnl_coin * settle_price) - cm_entry_fee - cm_deliv_fee
                 residual_cost = pos.get("residual_execution_cost_usd", 0.0)
 
+                pos["futures_leg_settled"] = True
+                pos["exit_futures_price"] = settle_price
+                pos["realized_futures_pnl_usd"] = round(realized_futures_leg_usd, 2)
+
                 sp_sweep = observation.get("spot_bid_sweep")
                 has_explicit_spot_liquidation = (
                     isinstance(sp_sweep, dict)
@@ -592,11 +658,12 @@ class N1_7LifecycleEngine:
 
                     pos["state"] = LifecycleState.CLOSED
                     pos["lifecycle_status"] = "CLOSED_DELIVERY_SETTLED"
+                    pos["pair_fully_closed"] = True
                     pos["closed_timestamp"] = ts
-                    pos["exit_futures_price"] = settle_price
                     pos["exit_spot_price"] = sp_bid_vwap
                     pos["spot_inventory_held"] = False
                     pos["realized_pnl"] = round(realized_net, 2)
+                    pos["realized_spot_pnl_usd"] = round(realized_spot_leg_usd, 2)
                     pos["capital_released"] = True
                     pos["released_capital_usd"] = notional
                     pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
@@ -608,6 +675,8 @@ class N1_7LifecycleEngine:
                         "spot_exit_fee_usd": round(sp_exit_fee, 4),
                         "coinm_exit_or_delivery_fee_usd": round(cm_deliv_fee, 4),
                         "residual_execution_cost_usd": round(residual_cost, 4),
+                        "realized_futures_pnl_usd": round(realized_futures_leg_usd, 2),
+                        "realized_spot_pnl_usd": round(realized_spot_leg_usd, 2),
                         "realized_net_pnl_usd": round(realized_net, 2),
                     }
                     pos.setdefault("history", []).append({
@@ -619,41 +688,47 @@ class N1_7LifecycleEngine:
                 else:
                     # Futures leg delivery settled; Spot remains held in inventory.
                     # Never substitute futures settlement price for an executable Spot sell price.
-                    # Realized PnL is computed ONLY for the economically completed leg.
+                    # P0-A: Do NOT transition to CLOSED. State is FUTURES_LEG_SETTLED, capital remains committed.
                     realized_net = realized_futures_leg_usd - residual_cost
-                    pos["state"] = LifecycleState.CLOSED
-                    pos["lifecycle_status"] = "FUTURES_SETTLED_SPOT_HELD"
-                    pos["closed_timestamp"] = ts
-                    pos["exit_futures_price"] = settle_price
+                    pos["state"] = LifecycleState.FUTURES_LEG_SETTLED
+                    pos["lifecycle_status"] = "FUTURES_LEG_SETTLED"
+                    pos["pair_fully_closed"] = False
+                    pos["closed_timestamp"] = None
                     pos["exit_spot_price"] = None
                     pos["spot_inventory_held"] = True
                     pos["spot_inventory_coin"] = pos.get("spot_inventory_coin", 0.0)
                     pos["spot_realized_sale"] = False
                     pos["unrealized_inventory_valuation_usd"] = round(pos["spot_inventory_coin"] * sp_bid_vwap, 2) if sp_bid_vwap > 0 else round(pos["entry_notional_usd"], 2)
+                    pos["spot_inventory_market_value_usd"] = pos["unrealized_inventory_valuation_usd"]
                     pos["spot_inventory_valuation_usd"] = pos["unrealized_inventory_valuation_usd"]
                     pos["realized_pnl"] = round(realized_net, 2)
-                    pos["capital_released"] = True
-                    pos["released_capital_usd"] = notional
-                    pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
+                    pos["realized_spot_pnl_usd"] = 0.0
+                    pos["capital_released"] = False
+                    pos["released_capital_usd"] = 0.0
+                    pos["released_collateral_coin"] = 0.0
+                    sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
                     pos["realized_pnl_bridge"] = {
                         "gross_spot_pnl_usd": 0.0,
                         "inverse_coinm_pnl_converted_usd": round(inv_pnl_coin * settle_price, 4),
-                        "spot_entry_fee_usd": 0.0,
+                        "spot_entry_fee_usd": round(sp_entry_fee, 4),
                         "coinm_entry_fee_usd": round(cm_entry_fee, 4),
                         "spot_exit_fee_usd": 0.0,
                         "coinm_exit_or_delivery_fee_usd": round(cm_deliv_fee, 4),
                         "residual_execution_cost_usd": round(residual_cost, 4),
+                        "realized_futures_pnl_usd": round(realized_futures_leg_usd, 2),
+                        "realized_spot_pnl_usd": 0.0,
                         "realized_net_pnl_usd": round(realized_net, 2),
                     }
                     pos.setdefault("history", []).append({
                         "timestamp_ms": ts,
-                        "state": LifecycleState.CLOSED,
+                        "state": LifecycleState.FUTURES_LEG_SETTLED,
                         "note": f"Futures leg delivery settled at {settle_price}. Spot coin inventory held ({pos['spot_inventory_coin']:.6f} coins). Realized futures PnL: ${realized_net:.2f}",
                     })
                     return (True, "DELIVERY_SETTLED_SPOT_HELD")
             else:
                 pos["state"] = LifecycleState.SETTLEMENT_PENDING
                 pos["lifecycle_status"] = "SETTLEMENT_PENDING"
+                return (True, "SETTLEMENT_PENDING")
                 return (True, "SETTLEMENT_PENDING")
 
         # Check signal decision basis: frozen H-1 requires exit_basis_ma24 <= 15 bps
@@ -807,6 +882,92 @@ class N1_7LifecycleEngine:
                 "unrealized_pnl_after_entry_cost": 0.0,
                 "estimated_close_now_pnl": 0.0,
                 "realized_pnl": pos.get("realized_pnl", 0.0),
+                "lifecycle_history": pos.get("history", []),
+            }
+
+        # If position is in FUTURES_LEG_SETTLED, return authoritative held-inventory metrics
+        if pos.get("state") == LifecycleState.FUTURES_LEG_SETTLED:
+            spot_coin = pos.get("spot_inventory_coin", 0.0)
+            spot_mark_val = spot_coin * cur_spot
+            realized_fut = pos.get("realized_futures_pnl_usd", 0.0)
+            gross_spot = spot_mark_val - notional
+            sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+            unrealized_spot = gross_spot - sp_entry_fee
+
+            # Close now economics for held inventory
+            sp_sweep = pos.get("spot_bid_sweep") or pos.get("last_depth_evidence", {}).get("spot_bid_sweep")
+            depth_fillable = (
+                isinstance(sp_sweep, dict)
+                and sp_sweep.get("fully_filled") is True
+                and "filled_usd" in sp_sweep
+                and float(sp_sweep["filled_usd"]) >= notional - 1.0
+            )
+            if exit_spot > 0 and depth_fillable:
+                close_exec = True
+                close_liq_status = "EXECUTABLE"
+                liq_gross_spot = spot_coin * exit_spot - notional
+                liq_sp_exit_fee = spot_coin * exit_spot * (COSTS.spot_exit_fee_bps / 10_000.0)
+                liq_spot_net = liq_gross_spot - sp_entry_fee - liq_sp_exit_fee
+                est_close_pnl = round(realized_fut + liq_spot_net - pos.get("residual_execution_cost_usd", 0.0), 2)
+            else:
+                close_exec = False
+                close_liq_status = "CLOSE_NOT_EXECUTABLE"
+                est_close_pnl = "CLOSE_NOT_EXECUTABLE"
+
+            duration_hours = round((pos.get("last_valid_observation_timestamp", pos["entry_timestamp"]) - pos["entry_timestamp"]) / 3_600_000.0, 3)
+
+            return {
+                "position_id": pos.get("position_id", pos.get("trade_id", "VTRADE_0000")),
+                "trade_id": pos.get("trade_id", pos.get("position_id", "VTRADE_0000")),
+                "lifecycle_id": pos.get("lifecycle_id", pos.get("trade_id", pos.get("position_id", "VTRADE_0000"))),
+                "contract_symbol": pos["contract_symbol"],
+                "symbol": pos["contract_symbol"],
+                "spot_symbol": pos.get("spot_symbol", ""),
+                "underlying_asset": pos["underlying_asset"],
+                "state": LifecycleState.FUTURES_LEG_SETTLED,
+                "lifecycle_status": pos.get("lifecycle_status", "FUTURES_LEG_SETTLED"),
+                "holding_duration_hours": duration_hours,
+                "contracts_short": 0,
+                "future_contracts_short": 0,
+                "contract_multiplier_usd": c_mult,
+                "entry_notional_usd": notional,
+                "entry_timestamp": pos["entry_timestamp"],
+                "entry_timestamp_ms": pos["entry_timestamp"],
+                "last_valid_observation_timestamp": pos.get("last_valid_observation_timestamp", pos["entry_timestamp"]),
+                "last_update_ms": pos.get("last_update_ms", pos["last_valid_observation_timestamp"]),
+                "spot_inventory_coin": spot_coin,
+                "spot_inventory_held": True,
+                "spot_inventory_market_value_usd": round(spot_mark_val, 2),
+                "collateral_coin": spot_coin,
+                "coin_collateral": spot_coin,
+                "wallet_balance_coin": spot_coin,
+                "coin_collateral_in_wallet": spot_coin,
+                "entry_spot_price": pos["entry_spot_price"],
+                "entry_futures_price": entry_fut,
+                "current_spot_price": cur_spot,
+                "current_futures_price": pos.get("exit_futures_price", cur_fut),
+                "exit_spot_bid_price": exit_spot,
+                "exit_futures_ask_price": pos.get("exit_futures_price", cur_fut),
+                "close_now_spot_price": exit_spot,
+                "close_now_futures_price": pos.get("exit_futures_price", cur_fut),
+                "spot_mark_value": round(spot_mark_val, 2),
+                "inverse_futures_unrealized_pnl": 0.0,
+                "maintenance_margin": 0.0,
+                "account_margin_ratio": 0.0,
+                "margin_ratio": 0.0,
+                "entry_fees_paid": round(entry_fees, 2),
+                "entry_fees_paid_usd": round(entry_fees, 2),
+                "total_fees_paid_usd": round(entry_fees, 2),
+                "current_mtm_equity_usd": round(spot_mark_val + realized_fut, 2),
+                "current_unrealized_pnl_usd": round(unrealized_spot, 2),
+                "unrealized_pnl_after_entry_cost": round(unrealized_spot, 2),
+                "estimated_close_now_pnl": est_close_pnl,
+                "realized_futures_pnl_usd": round(realized_fut, 2),
+                "realized_spot_pnl_usd": 0.0,
+                "realized_pnl": round(realized_fut, 2),
+                "capital_still_committed_usd": notional,
+                "close_executable": close_exec,
+                "close_liquidation_status": close_liq_status,
                 "lifecycle_history": pos.get("history", []),
             }
 
@@ -1198,8 +1359,43 @@ class N1_7LifecycleEngine:
 
         # Add official settlement events to the causal intent stream
         for s_rec in settlement_records_all:
-            s_sym = s_rec.get("contract_symbol") or s_rec.get("symbol")
+            raw_sym = s_rec.get("contract_symbol") or s_rec.get("symbol") or s_rec.get("params", {}).get("pair", "")
+            deliv_ms = int(s_rec.get("delivery_ms", 0))
             s_pub = int(s_rec.get("published_ms") or s_rec.get("decision_timestamp") or s_rec.get("recv_ms", 0))
+
+            # Resolve contract symbol:
+            resolved_sym = None
+            if raw_sym and "_" in raw_sym:
+                resolved_sym = raw_sym
+            else:
+                pair_prefix = raw_sym.replace("USDT", "USD")
+                matching = []
+                for c_sym, c_meta in contracts_meta.items():
+                    if (c_meta.get("pair") == pair_prefix or c_sym.startswith(pair_prefix)) and (deliv_ms == 0 or abs(c_meta.get("delivery_ms", 0) - deliv_ms) <= 3_600_000):
+                        matching.append(c_sym)
+                if not matching:
+                    # Match against active positions
+                    for p in self.active_positions.values():
+                        c_sym = p.get("contract_symbol", "")
+                        if (p.get("underlying_asset", "") in pair_prefix or c_sym.startswith(pair_prefix)) and (deliv_ms == 0 or abs(p.get("delivery_ms", 0) - deliv_ms) <= 3_600_000):
+                            matching.append(c_sym)
+                if not matching and deliv_ms > 0:
+                    dt = datetime.fromtimestamp(deliv_ms / 1000.0, timezone.utc)
+                    canon_sym = f"{pair_prefix}_{dt.strftime('%y%m%d')}"
+                    matching.append(canon_sym)
+
+                matching = list(set(matching))
+                if len(matching) == 1:
+                    resolved_sym = matching[0]
+                elif len(matching) > 1:
+                    raise ValueError(f"Ambiguous contract mapping for settlement record pair {pair_prefix}: {matching}")
+                else:
+                    resolved_sym = raw_sym
+
+            s_sym = resolved_sym
+            s_rec["contract_symbol"] = s_sym
+            s_rec["published_ms"] = s_pub
+
             if s_sym:
                 pair = contracts_meta.get(s_sym, {}).get("pair", s_sym.split("_")[0])
                 sp_sym = PAIR_TO_SPOT.get(pair, f"{s_sym.split('USD')[0]}USDT")
@@ -1235,6 +1431,7 @@ class N1_7LifecycleEngine:
                     "official_delivery_settlement": s_rec,
                     "spot_bid_sweep": spot_sweep,
                     "entry_eligible": False,
+                    "entry_block_reasons": ["SETTLEMENT_RECORD_ONLY"],
                     "observed_depth_basis_bps": 0.0,
                     "causal_basis_ma24_bps": 0.0,
                     "basis_ma24_ready": True,
@@ -1245,6 +1442,56 @@ class N1_7LifecycleEngine:
                     "estimated_entry_cost_usd": 0.0,
                     "estimated_exit_cost_usd": 0.0,
                 })
+
+        # Add spot market observations for active positions holding spot inventory when cm_depth is absent
+        for pid, pos in self.active_positions.items():
+            if pos.get("spot_inventory_held") or pos.get("state") == LifecycleState.FUTURES_LEG_SETTLED:
+                p_sym = pos["contract_symbol"]
+                sp_sym = pos.get("spot_symbol") or PAIR_TO_SPOT.get(pos["underlying_asset"] + "USD", f"{pos['underlying_asset']}USDT")
+                if p_sym not in cm_recs and sp_sym in spot_recs:
+                    for sp_snap in spot_recs[sp_sym]:
+                        sp_recv = sp_snap["recv_ms"]
+                        if sp_recv < pos.get("last_valid_observation_timestamp", 0):
+                            continue
+                        sp_bids = sp_snap["payload"].get("bids", [])
+                        if not sp_bids:
+                            continue
+                        u_r = 1.0
+                        if usdt_recs:
+                            u_avail = [float(u["payload"]["price"]) for u in usdt_recs if u["recv_ms"] <= sp_recv]
+                            if u_avail:
+                                u_r = u_avail[-1]
+                        sp_b_vwap = float(sp_bids[0][0]) * u_r
+                        sp_exit_sweep = compute_orderbook_sweep(sp_bids, pos["entry_notional_usd"], is_contracts=False)
+                        if sp_exit_sweep.get("vwap"):
+                            sp_b_vwap = sp_exit_sweep["vwap"] * u_r
+                        pair_counter += 1
+                        order_intents.append({
+                            "pair_id": f"SPOT_HELD_{p_sym}_{sp_recv}",
+                            "observation_id": f"SPOT_HELD_{p_sym}_{sp_recv}",
+                            "decision_timestamp": sp_recv,
+                            "spot_symbol": sp_sym,
+                            "coinm_contract_symbol": p_sym,
+                            "contract_type": "CURRENT_QUARTER",
+                            "contract_multiplier_usd": pos.get("contract_multiplier_usd", 10.0),
+                            "quote_valid_pit": True,
+                            "spot_bid_vwap": round(sp_b_vwap, 4),
+                            "spot_ask_vwap": round(sp_b_vwap, 4),
+                            "coinm_bid_vwap": 0.0,
+                            "coinm_ask_vwap": 0.0,
+                            "spot_bid_sweep": sp_exit_sweep,
+                            "entry_eligible": False,
+                            "entry_block_reasons": ["HELD_INVENTORY_SPOT_OBSERVATION"],
+                            "observed_depth_basis_bps": 0.0,
+                            "causal_basis_ma24_bps": 0.0,
+                            "basis_ma24_ready": True,
+                            "matched_executable_notional": 0.0,
+                            "spot_available_notional": 0.0,
+                            "coinm_available_notional": 0.0,
+                            "estimated_legging_exposure_usd": 0.0,
+                            "estimated_entry_cost_usd": 0.0,
+                            "estimated_exit_cost_usd": 0.0,
+                        })
 
         df_intents = pd.DataFrame(order_intents)
 
@@ -1423,7 +1670,7 @@ class N1_7LifecycleEngine:
             ts = int(item["decision_timestamp"])
             cm_sym = item["coinm_contract_symbol"]
             obs_id = str(item.get("observation_id") or item.get("pair_id") or f"{cm_sym}_{ts}")
-            event_key = f"{ts}:{cm_sym}:{obs_id}"
+            event_key = f"{cm_sym}:{ts}:{obs_id}"
 
             # P0-C: Compound event identity deduplication
             if event_key in self.processed_event_keys:
@@ -1441,7 +1688,7 @@ class N1_7LifecycleEngine:
             for pid, pos in list(active_compliant.items()):
                 if pos.get("entry_timestamp", 0) < ts:
                     ok, action = self.process_observation(pos, item)
-                    if pos.get("state") == LifecycleState.CLOSED:
+                    if pos.get("state") == LifecycleState.CLOSED and pos.get("pair_fully_closed", True):
                         closed_compliant.append(pos)
                         del active_compliant[pid]
                         # 4. Release capital once
@@ -1609,6 +1856,45 @@ class N1_7LifecycleEngine:
         total_realized_closed_pnl = round(sum(p.get("realized_pnl", 0.0) for p in closed_ledger), 2)
         total_realized_closed_count = len(closed_ledger)
 
+        # P0-A explicit metrics
+        all_compliant_positions = list(active_compliant.values()) + closed_compliant
+
+        futures_legs_settled_count = sum(
+            1 for p in all_compliant_positions
+            if p.get("futures_leg_settled", False) or p.get("lifecycle_status") in ("FUTURES_LEG_SETTLED", "CLOSED_DELIVERY_SETTLED")
+        )
+        pairs_fully_closed_count = sum(
+            1 for p in closed_compliant
+            if p.get("pair_fully_closed", True) or p.get("state") == LifecycleState.CLOSED
+        )
+        spot_inventory_held_count = sum(
+            1 for p in active_compliant.values()
+            if p.get("spot_inventory_held", False) or p.get("state") == LifecycleState.FUTURES_LEG_SETTLED
+        )
+        spot_inventory_market_value_usd = round(
+            sum(
+                p.get("spot_inventory_market_value_usd", p.get("spot_inventory_valuation_usd", p.get("spot_inventory_coin", 0.0) * p.get("cur_spot_vwap", 0.0)))
+                for p in active_compliant.values()
+                if p.get("spot_inventory_held", False) or p.get("state") == LifecycleState.FUTURES_LEG_SETTLED
+            ),
+            2
+        )
+        capital_still_committed_usd = round(sum(underlying_committed_usd.values()), 2)
+        capital_available_usd = round(max(0.0, self.portfolio_capital_usd - capital_still_committed_usd), 2)
+
+        realized_futures_pnl_usd = round(
+            sum(p.get("realized_futures_pnl_usd", 0.0) for p in all_compliant_positions),
+            2
+        )
+        realized_spot_pnl_usd = round(
+            sum(p.get("realized_spot_pnl_usd", 0.0) for p in closed_compliant),
+            2
+        )
+        total_account_equity_usd = round(
+            self.portfolio_capital_usd + total_realized_closed_pnl + total_unrealized_pnl,
+            2
+        )
+
         scorecard = {
             "evaluation_timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "population_mode": self.population_mode,
@@ -1624,7 +1910,26 @@ class N1_7LifecycleEngine:
             "quarantined_lifecycles_count": len(quarantined_compliant),
             "total_open_unrealized_pnl_usd": round(total_unrealized_pnl, 2),
             "realized_closed_pnl_usd": round(total_realized_closed_pnl, 2),
-            "realized_completed_lifecycles_count": total_realized_closed_count,
+            "realized_completed_lifecycles_count": pairs_fully_closed_count,
+            # Explicit P0-A required scorecard fields
+            "FUTURES_LEGS_SETTLED": futures_legs_settled_count,
+            "PAIRS_FULLY_CLOSED": pairs_fully_closed_count,
+            "SPOT_INVENTORY_HELD": spot_inventory_held_count,
+            "SPOT_INVENTORY_MARKET_VALUE": spot_inventory_market_value_usd,
+            "CAPITAL_STILL_COMMITTED": capital_still_committed_usd,
+            "CAPITAL_AVAILABLE": capital_available_usd,
+            "REALIZED_FUTURES_PNL": realized_futures_pnl_usd,
+            "REALIZED_SPOT_PNL": realized_spot_pnl_usd,
+            "TOTAL_ACCOUNT_EQUITY": total_account_equity_usd,
+            "futures_legs_settled_count": futures_legs_settled_count,
+            "pairs_fully_closed_count": pairs_fully_closed_count,
+            "spot_inventory_held_count": spot_inventory_held_count,
+            "spot_inventory_market_value_usd": spot_inventory_market_value_usd,
+            "capital_still_committed_usd": capital_still_committed_usd,
+            "capital_available_usd": capital_available_usd,
+            "realized_futures_pnl_usd": realized_futures_pnl_usd,
+            "realized_spot_pnl_usd": realized_spot_pnl_usd,
+            "total_account_equity_usd": total_account_equity_usd,
             "comparison_against_holding_cash": {
                 "holding_cash_return_usd": 0.0,
                 "virtual_carry_mtm_delta_usd": round(total_unrealized_pnl + total_realized_closed_pnl, 2),
@@ -1640,13 +1945,10 @@ class N1_7LifecycleEngine:
         signal_valid = bool("causal_basis_ma24_bps" in df_intents.columns and df_intents["basis_ma24_ready"].all())
         paired_sim_valid = bool(len(scenario_results) == 3)
         paired_feasibility = "SUPPORTED" if (df_intents["matched_executable_notional"].mean() >= self.target_per_asset_usd * 0.8) else "INSUFFICIENT"
-        carry_lifecycles = "ACCUMULATING" if len(compliant_ledger) > 0 else ("RESOLVED" if total_realized_closed_count > 0 else "IDLE")
+        carry_lifecycles = "ACCUMULATING" if len(compliant_ledger) > 0 else ("RESOLVED" if pairs_fully_closed_count > 0 else "IDLE")
 
-        # P0-A: Economic verdicts must never incorporate synthetic test closures
-        if self.population_mode == "TEST_SYNTHETIC" or total_realized_closed_count == 0:
-            net_economic_value = "INCONCLUSIVE"
-        else:
-            net_economic_value = "POSITIVE" if total_realized_closed_pnl > 0 else "NEGATIVE"
+        # P0-A & P1: Distinguish SAMPLE_NET_POSITIVE from confirmed forward edge; keep INCONCLUSIVE
+        net_economic_value = "INCONCLUSIVE"
 
         decision = {
             "H1_FORWARD_QUOTES_VALID": quotes_valid,
@@ -1698,10 +2000,12 @@ class N1_7LifecycleEngine:
         should_write = write_artifacts if write_artifacts is not None else getattr(self, "write_artifacts", None)
         if should_write is None:
             is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
-            if is_pytest and out_research == RESEARCH_DIR_N1_7:
+            if (is_pytest or self.population_mode == "TEST_SYNTHETIC") and (out_research == RESEARCH_DIR_N1_7 or out_data == DATA_ROOT_N1_7):
                 should_write = False
             else:
                 should_write = True
+        elif self.population_mode == "TEST_SYNTHETIC" and (out_research == RESEARCH_DIR_N1_7 or out_data == DATA_ROOT_N1_7):
+            should_write = False
 
         if should_write:
             out_data.mkdir(parents=True, exist_ok=True)

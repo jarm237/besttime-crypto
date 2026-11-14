@@ -1864,23 +1864,37 @@ def test_case_26_evidence_integrity_and_natural_forward_observation(tmp_path: Pa
     )
     res2 = runner2.run_step(raw_partitions=[day2_dir])
 
-    # Assert Criterion 4 & 5:
-    assert res2["scorecard"]["actively_tracked_lifecycles_count"] == 0
-    assert res2["scorecard"]["realized_completed_lifecycles_count"] == 2
+    # Assert Criterion 4 & 5 with P0-A Partial Settlement Accounting:
+    # BNB is fully closed; BTC futures leg is settled while Spot is held in active inventory
+    assert res2["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert res2["scorecard"]["realized_completed_lifecycles_count"] == 1
+    assert res2["scorecard"]["FUTURES_LEGS_SETTLED"] == 2
+    assert res2["scorecard"]["PAIRS_FULLY_CLOSED"] == 1
+    assert res2["scorecard"]["SPOT_INVENTORY_HELD"] == 1
+    assert res2["scorecard"]["CAPITAL_STILL_COMMITTED"] == 5000.0
+    assert res2["scorecard"]["CAPITAL_AVAILABLE"] == 15000.0
+    assert runner2.engine.underlying_committed_usd["BNB"] == 0.0
+    assert runner2.engine.underlying_committed_usd["BTC"] == 5000.0
 
     # Check BNB: full settlement
     bnb_pos = [p for p in runner2.engine.closed_positions if p["contract_symbol"] == "BNBUSD_261225"][0]
     assert bnb_pos["lifecycle_status"] == "CLOSED_DELIVERY_SETTLED"
+    assert bnb_pos["pair_fully_closed"] is True
     assert bnb_pos["exit_spot_price"] == 689.5
+    assert bnb_pos["capital_released"] is True
 
-    # Check BTC: futures settled, spot held
-    btc_pos = [p for p in runner2.engine.closed_positions if p["contract_symbol"] == "BTCUSD_261225"][0]
-    assert btc_pos["lifecycle_status"] == "FUTURES_SETTLED_SPOT_HELD"
+    # Check BTC: futures settled, spot held in active inventory
+    btc_pos = [p for p in runner2.engine.active_positions.values() if p["contract_symbol"] == "BTCUSD_261225"][0]
+    assert btc_pos["state"] == LifecycleState.FUTURES_LEG_SETTLED
+    assert btc_pos["lifecycle_status"] == "FUTURES_LEG_SETTLED"
+    assert btc_pos["pair_fully_closed"] is False
     assert btc_pos["spot_inventory_held"] is True
     assert btc_pos["exit_spot_price"] is None
+    assert btc_pos["capital_released"] is False
+    assert btc_pos["released_capital_usd"] == 0.0
     # Realized PnL only realized on futures leg; gross spot pnl is 0.0
     assert btc_pos["realized_pnl_bridge"]["gross_spot_pnl_usd"] == 0.0
-    assert btc_pos["spot_inventory_valuation_usd"] > 0.0
+    assert btc_pos["spot_inventory_market_value_usd"] > 0.0
 
     # Assert Criterion 7: Scorecard reflects population mode
     assert res2["scorecard"]["population_mode"] == "TEST_SYNTHETIC"
@@ -1888,3 +1902,205 @@ def test_case_26_evidence_integrity_and_natural_forward_observation(tmp_path: Pa
     # Assert Criterion 3 (Final Check): Authentic research artifacts were NEVER touched
     canonical_content_after = canonical_res_file.read_text(encoding="utf-8")
     assert canonical_content_before == canonical_content_after, "Canonical forward evidence was contaminated by test run!"
+
+
+# ---------------------------------------------------------------------------
+# Test Case 27: Official Recorder Delivery Ingestion & Held Inventory Liquidation
+# ---------------------------------------------------------------------------
+def test_case_27_recorder_format_settlement_and_inventory_lifecycle(tmp_path: Path):
+    """P0-B & P0-A End-to-End Test:
+
+    Pipeline:
+    1. Day 1: Ingests raw recorder feed and admits BNBUSD_261225 into HEDGED_HOLD ($5,000 committed).
+    2. Day 2: Ingests raw official Binance settlement payload (keyed by pair 'BNBUSD' per API contract).
+       Resolves pair to contract symbol BNBUSD_261225.
+       Futures leg settles without Spot liquidation -> FUTURES_LEG_SETTLED.
+       Spot inventory preserved, capital remains reserved ($5,000 committed).
+    3. Checkpoint & Restart: Saves checkpoint, restarts runner, confirms zero capital leakage and idempotency.
+    4. Day 3: Ingests Spot depth partition with executable sweep -> liquidates held Spot inventory.
+       Transitions to PAIR_FULLY_CLOSED, reconciles exact realized fee bridge, releases capital to $0.
+    """
+    raw_root = tmp_path / "raw"
+    day1_dir = raw_root / "20261111"
+    day1_dir.mkdir(parents=True)
+    t_base = 1794412800000
+    deliv_time = t_base + 100 * 3600000
+
+    # 1. Day 1 Feed: 25 completed 1h candles
+    cm_k_bnb = []
+    sp_k_bnb = []
+    u_lines = []
+    for i in range(25):
+        ot = t_base - (25 - i) * 3600000
+        ct = ot + 3600000 - 1
+        cm_k_bnb.append([ot, "680.0", "686.0", "679.0", "685.78", "100.0", ct, "0", 10, "0", "0", "0"])
+        sp_k_bnb.append([ot, "680.0", "681.0", "679.0", "680.00", "100.0", ct, "0", 10, "0", "0", "0"])
+        u_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": ct, "payload": {"price": "1.0000"}}))
+
+    u_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": t_base, "payload": {"price": "1.0000"}}))
+    (day1_dir / "usdt_usd.jsonl").write_text("\n".join(u_lines) + "\n", encoding="utf-8")
+
+    k_cm_all = [{"symbol": "BNBUSD_261225", "recv_ms": t_base, "payload": cm_k_bnb}]
+    k_sp_all = [{"symbol": "BNBUSDT", "recv_ms": t_base, "payload": sp_k_bnb}]
+    (day1_dir / "signal_cm_klines.jsonl").write_text("\n".join(json.dumps(x) for x in k_cm_all) + "\n", encoding="utf-8")
+    (day1_dir / "signal_spot_klines.jsonl").write_text("\n".join(json.dumps(x) for x in k_sp_all) + "\n", encoding="utf-8")
+
+    ex_info = {
+        "stream": "cm_exchange_info",
+        "recv_ms": t_base,
+        "payload": {
+            "symbols": [
+                {
+                    "symbol": "BNBUSD_261225",
+                    "pair": "BNBUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": deliv_time,
+                    "contractSize": 10.0,
+                }
+            ]
+        },
+    }
+    (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+
+    t_entry = t_base + 1000
+    (day1_dir / "spot_depth.jsonl").write_text(
+        json.dumps({"symbol": "BNBUSDT", "recv_ms": t_entry, "payload": {"bids": [["679.9", "20.0"]], "asks": [["680.0", "20.0"]]}}) + "\n",
+        encoding="utf-8",
+    )
+    (day1_dir / "cm_depth.jsonl").write_text(
+        json.dumps({"symbol": "BNBUSD_261225", "recv_ms": t_entry, "payload": {"bids": [["685.78", "1000"]], "asks": [["685.80", "1000"]]}}) + "\n",
+        encoding="utf-8",
+    )
+
+    test_out = tmp_path / "research"
+    checkpoint_file = tmp_path / "checkpoint.json"
+
+    # Step 1: Run Day 1
+    runner = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    res1 = runner.run_step(raw_partitions=[day1_dir])
+    assert res1["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert runner.engine.underlying_committed_usd["BNB"] == 5000.0
+    pos1 = list(runner.engine.active_positions.values())[0]
+    entry_fut_price = pos1["entry_futures_price"]
+    entry_spot_price = pos1["entry_spot_price"]
+    spot_coin_qty = pos1["spot_inventory_coin"]
+    assert entry_fut_price == 685.78
+    assert entry_spot_price == 680.0
+
+    # Step 2: Day 2 Official Delivery Ingestion (keyed by pair 'BNBUSD' from Binance API)
+    day2_dir = raw_root / "20261112"
+    day2_dir.mkdir(parents=True)
+    (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day2_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": deliv_time, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+
+    # Official Binance API delivery payload format recorded by upstream recorder
+    recorder_delivery_payload = {
+        "obs_id": "RECORDER_DELIV_OBS_001",
+        "stream": "cm_delivery_settlement",
+        "symbol": "BNBUSD",  # Note: upstream endpoint returns pair!
+        "params": {"pair": "BNBUSD"},
+        "recv_ms": deliv_time + 500,  # Official receipt watermark
+        "payload": [
+            {
+                "deliveryPrice": "689.80000000",
+                "deliveryTime": deliv_time,
+            }
+        ],
+    }
+    (day2_dir / "cm_delivery_settlement.jsonl").write_text(json.dumps(recorder_delivery_payload) + "\n", encoding="utf-8")
+
+    res2 = runner.run_step(raw_partitions=[day2_dir])
+
+    # Assert Step 2: Mapped cleanly to BNBUSD_261225; futures settled, Spot held, capital reserved
+    assert res2["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert res2["scorecard"]["FUTURES_LEGS_SETTLED"] == 1
+    assert res2["scorecard"]["PAIRS_FULLY_CLOSED"] == 0
+    assert res2["scorecard"]["SPOT_INVENTORY_HELD"] == 1
+    assert res2["scorecard"]["CAPITAL_STILL_COMMITTED"] == 5000.0
+    assert res2["scorecard"]["CAPITAL_AVAILABLE"] == 15000.0
+    assert runner.engine.underlying_committed_usd["BNB"] == 5000.0
+
+    pos2 = list(runner.engine.active_positions.values())[0]
+    assert pos2["state"] == LifecycleState.FUTURES_LEG_SETTLED
+    assert pos2["futures_leg_settled"] is True
+    assert pos2["pair_fully_closed"] is False
+    assert pos2["spot_inventory_held"] is True
+    assert pos2["capital_released"] is False
+    assert pos2["released_capital_usd"] == 0.0
+    assert pos2["exit_futures_price"] == 689.8
+
+    # Independent mathematical verification of realized futures PnL
+    notional = 5000.0
+    expected_inv_pnl_coin = notional * (1.0 / 689.8 - 1.0 / entry_fut_price)
+    expected_cm_entry_fee = notional * (COSTS.cm_entry_fee_bps / 10_000.0)
+    expected_cm_deliv_fee = notional * (COSTS.cm_delivery_settlement_fee_bps / 10_000.0)
+    expected_realized_fut_usd = (expected_inv_pnl_coin * 689.8) - expected_cm_entry_fee - expected_cm_deliv_fee
+    assert abs(pos2["realized_futures_pnl_usd"] - round(expected_realized_fut_usd, 2)) <= 0.02
+
+    # Step 3: Checkpoint and Restart Idempotency
+    runner_restart = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    res_restart = runner_restart.run_step(raw_partitions=[day2_dir])
+    assert res_restart["scorecard"]["actively_tracked_lifecycles_count"] == 1
+    assert res_restart["scorecard"]["CAPITAL_STILL_COMMITTED"] == 5000.0
+
+    # Step 4: Day 3 Liquidation Partition (Only Spot depth available for BNBUSDT)
+    day3_dir = raw_root / "20261113"
+    day3_dir.mkdir(parents=True)
+    t_liq = deliv_time + 3600000
+    (day3_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": t_liq, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+    (day3_dir / "spot_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSDT",
+            "recv_ms": t_liq,
+            "payload": {"bids": [["688.50", "50.0"]], "asks": [["688.60", "50.0"]]},
+        }) + "\n",
+        encoding="utf-8",
+    )
+
+    res3 = runner_restart.run_step(raw_partitions=[day3_dir])
+
+    # Assert Step 4: Held inventory fully liquidated, pair fully closed, capital released
+    assert res3["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res3["scorecard"]["realized_completed_lifecycles_count"] == 1
+    assert res3["scorecard"]["FUTURES_LEGS_SETTLED"] == 1
+    assert res3["scorecard"]["PAIRS_FULLY_CLOSED"] == 1
+    assert res3["scorecard"]["SPOT_INVENTORY_HELD"] == 0
+    assert res3["scorecard"]["CAPITAL_STILL_COMMITTED"] == 0.0
+    assert res3["scorecard"]["CAPITAL_AVAILABLE"] == 20000.0
+    assert runner_restart.engine.underlying_committed_usd.get("BNB", 0.0) == 0.0
+
+    pos_closed = runner_restart.engine.closed_positions[0]
+    assert pos_closed["state"] == LifecycleState.CLOSED
+    assert pos_closed["lifecycle_status"] == "PAIR_FULLY_CLOSED"
+    assert pos_closed["pair_fully_closed"] is True
+    assert pos_closed["spot_inventory_held"] is False
+    assert pos_closed["capital_released"] is True
+    assert pos_closed["released_capital_usd"] == 5000.0
+    assert pos_closed["exit_spot_price"] == 688.50
+
+    # Independent mathematical verification of complete realized PnL bridge
+    spot_gross = spot_coin_qty * 688.50 - notional
+    sp_entry_fee = notional * (COSTS.spot_entry_fee_bps / 10_000.0)
+    sp_exit_fee = spot_coin_qty * 688.50 * (COSTS.spot_exit_fee_bps / 10_000.0)
+    expected_realized_spot_usd = spot_gross - sp_entry_fee - sp_exit_fee
+    expected_net_realized_usd = expected_realized_fut_usd + expected_realized_spot_usd
+
+    bridge = pos_closed["realized_pnl_bridge"]
+    assert abs(bridge["gross_spot_pnl_usd"] - round(spot_gross, 4)) <= 0.01
+    assert abs(bridge["spot_entry_fee_usd"] - round(sp_entry_fee, 4)) <= 0.01
+    assert abs(bridge["spot_exit_fee_usd"] - round(sp_exit_fee, 4)) <= 0.01
+    assert abs(bridge["realized_spot_pnl_usd"] - round(expected_realized_spot_usd, 2)) <= 0.02
+    assert abs(bridge["realized_net_pnl_usd"] - round(expected_net_realized_usd, 2)) <= 0.02
