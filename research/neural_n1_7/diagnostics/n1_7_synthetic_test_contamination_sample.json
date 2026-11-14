@@ -1,0 +1,212 @@
+{
+  "document_id": "NEURAL-N1-8-FORWARD-PAIRED-CARRY-LIFECYCLE-INTEGRATED",
+  "population_mode": "N1_8_POLICY_COMPLIANT_REPLAY",
+  "scorecard": {
+    "evaluation_timestamp_utc": "2026-11-14T09:20:39.273770+00:00",
+    "population_mode": "N1_8_POLICY_COMPLIANT_REPLAY",
+    "assumed_portfolio_capital_usd": 20000.0,
+    "total_intents_evaluated": 2,
+    "entry_eligible_intents_count": 0,
+    "entry_eligibility_rate_pct": 0.0,
+    "mean_matched_executable_notional_usd": 2500.0,
+    "mean_unhedged_legging_exposure_usd": 0.0,
+    "max_unhedged_legging_exposure_usd": 0.0,
+    "capital_utilization_pct": 0.0,
+    "actively_tracked_lifecycles_count": 0,
+    "quarantined_lifecycles_count": 0,
+    "total_open_unrealized_pnl_usd": 0,
+    "realized_closed_pnl_usd": 25.49,
+    "realized_completed_lifecycles_count": 1,
+    "comparison_against_holding_cash": {
+      "holding_cash_return_usd": 0.0,
+      "virtual_carry_mtm_delta_usd": 25.49,
+      "unrealized_return_on_deployed_pct": 0.0,
+      "unrealized_return_on_committed_pct": 0.0
+    }
+  },
+  "execution_scenarios": {
+    "scenario_1_spot_fills_first": {
+      "total_runs": 2,
+      "mean_unhedged_delta_usd": 0.0,
+      "max_unhedged_delta_usd": 0.0,
+      "mean_time_to_hedge_s": 0.5,
+      "fully_hedged_rate_pct": 100.0
+    },
+    "scenario_2_coinm_fills_first": {
+      "total_runs": 2,
+      "mean_unhedged_delta_usd": 0.0,
+      "max_unhedged_delta_usd": 0.0,
+      "mean_time_to_hedge_s": 0.5,
+      "fully_hedged_rate_pct": 100.0
+    },
+    "scenario_3_matched_virtual_fills": {
+      "total_runs": 2,
+      "mean_unhedged_delta_usd": 0.0,
+      "max_unhedged_delta_usd": 0.0,
+      "mean_time_to_hedge_s": 0.2,
+      "fully_hedged_rate_pct": 100.0
+    }
+  },
+  "active_lifecycles": [],
+  "quarantined_lifecycles": [],
+  "closed_lifecycles": [
+    {
+      "position_id": "VTRADE_0001",
+      "trade_id": "VTRADE_0001",
+      "lifecycle_id": "VTRADE_0001",
+      "contract_symbol": "BNBUSD_261225",
+      "symbol": "BNBUSD_261225",
+      "spot_symbol": "BNBUSDT",
+      "underlying_asset": "BNB",
+      "state": "CLOSED",
+      "lifecycle_status": "CLOSED_DELIVERY_SETTLED",
+      "holding_duration_hours": 100.0,
+      "contracts_short": 500,
+      "future_contracts_short": 500,
+      "contract_multiplier_usd": 10.0,
+      "entry_notional_usd": 5000.0,
+      "entry_timestamp": 1794412801000,
+      "entry_timestamp_ms": 1794412801000,
+      "last_valid_observation_timestamp": 1794772801000,
+      "last_update_ms": 1794772801000,
+      "spot_inventory_coin": 7.352941176470588,
+      "collateral_coin": 7.352941176470588,
+      "coin_collateral": 7.352941176470588,
+      "wallet_balance_coin": 7.352941176470588,
+      "coin_collateral_in_wallet": 7.352941176470588,
+      "entry_spot_price": 680.0,
+      "entry_futures_price": 685.78,
+      "current_spot_price": 689.5,
+      "current_futures_price": 689.8,
+      "exit_spot_bid_price": 689.5,
+      "exit_futures_ask_price": 689.8,
+      "close_now_spot_price": 689.5,
+      "close_now_futures_price": 689.8,
+      "spot_mark_value": 0.0,
+      "inverse_futures_unrealized_pnl": 0.0,
+      "maintenance_margin": 0.0,
+      "account_margin_ratio": 0.0,
+      "margin_ratio": 0.0,
+      "entry_fees_paid": 7.5,
+      "entry_fees_paid_usd": 7.5,
+      "total_fees_paid_usd": 7.5,
+      "current_mtm_equity_usd": 0.0,
+      "current_unrealized_pnl_usd": 0.0,
+      "unrealized_pnl_after_entry_cost": 0.0,
+      "estimated_close_now_pnl": 0.0,
+      "realized_pnl": 25.49,
+      "lifecycle_history": [
+        {
+          "timestamp_ms": 1794412801000,
+          "state": "PAIR_ENTRY_SIMULATED",
+          "note": "Entered 500 contracts at basis 85.0 bps"
+        },
+        {
+          "timestamp_ms": 1794412801000,
+          "state": "HEDGED_HOLD",
+          "note": "100% floor collateralized, allocated within risk cap"
+        },
+        {
+          "timestamp_ms": 1794772801000,
+          "state": "CLOSED",
+          "note": "Delivery settled at 689.8, realized net PnL: $25.49"
+        }
+      ]
+    }
+  ],
+  "populations": {
+    "N1_7_AS_RECORDED": {
+      "active_lifecycles": [],
+      "total_unrealized_pnl_usd": -167.96,
+      "deployed_capital_usd": 12370.0,
+      "defect_notes": [
+        "CROSS_SYMBOL_VALUATION_CORRUPTION: Evaluated against XRP orderbook, artificially inflating drawdown by -$153.04",
+        "EXCEEDS_AGGREGATE_UNDERLYING_CAP: BNB notional reached $7,370, exceeding $5,000 cap by $2,370"
+      ]
+    },
+    "N1_8_POLICY_COMPLIANT_REPLAY": {
+      "active_lifecycles": [],
+      "quarantined_lifecycles": [],
+      "closed_lifecycles": [
+        {
+          "position_id": "VTRADE_0001",
+          "trade_id": "VTRADE_0001",
+          "lifecycle_id": "VTRADE_0001",
+          "contract_symbol": "BNBUSD_261225",
+          "symbol": "BNBUSD_261225",
+          "spot_symbol": "BNBUSDT",
+          "underlying_asset": "BNB",
+          "state": "CLOSED",
+          "lifecycle_status": "CLOSED_DELIVERY_SETTLED",
+          "holding_duration_hours": 100.0,
+          "contracts_short": 500,
+          "future_contracts_short": 500,
+          "contract_multiplier_usd": 10.0,
+          "entry_notional_usd": 5000.0,
+          "entry_timestamp": 1794412801000,
+          "entry_timestamp_ms": 1794412801000,
+          "last_valid_observation_timestamp": 1794772801000,
+          "last_update_ms": 1794772801000,
+          "spot_inventory_coin": 7.352941176470588,
+          "collateral_coin": 7.352941176470588,
+          "coin_collateral": 7.352941176470588,
+          "wallet_balance_coin": 7.352941176470588,
+          "coin_collateral_in_wallet": 7.352941176470588,
+          "entry_spot_price": 680.0,
+          "entry_futures_price": 685.78,
+          "current_spot_price": 689.5,
+          "current_futures_price": 689.8,
+          "exit_spot_bid_price": 689.5,
+          "exit_futures_ask_price": 689.8,
+          "close_now_spot_price": 689.5,
+          "close_now_futures_price": 689.8,
+          "spot_mark_value": 0.0,
+          "inverse_futures_unrealized_pnl": 0.0,
+          "maintenance_margin": 0.0,
+          "account_margin_ratio": 0.0,
+          "margin_ratio": 0.0,
+          "entry_fees_paid": 7.5,
+          "entry_fees_paid_usd": 7.5,
+          "total_fees_paid_usd": 7.5,
+          "current_mtm_equity_usd": 0.0,
+          "current_unrealized_pnl_usd": 0.0,
+          "unrealized_pnl_after_entry_cost": 0.0,
+          "estimated_close_now_pnl": 0.0,
+          "realized_pnl": 25.49,
+          "lifecycle_history": [
+            {
+              "timestamp_ms": 1794412801000,
+              "state": "PAIR_ENTRY_SIMULATED",
+              "note": "Entered 500 contracts at basis 85.0 bps"
+            },
+            {
+              "timestamp_ms": 1794412801000,
+              "state": "HEDGED_HOLD",
+              "note": "100% floor collateralized, allocated within risk cap"
+            },
+            {
+              "timestamp_ms": 1794772801000,
+              "state": "CLOSED",
+              "note": "Delivery settled at 689.8, realized net PnL: $25.49"
+            }
+          ]
+        }
+      ],
+      "total_unrealized_pnl_usd": 0,
+      "total_realized_pnl_usd": 25.49,
+      "deployed_capital_usd": 0,
+      "capital_utilization_pct": 0.0,
+      "disposition": "VERIFIED_ACCUMULATING"
+    }
+  },
+  "phase_f_decision": {
+    "H1_FORWARD_QUOTES_VALID": true,
+    "H1_FROZEN_SIGNAL_ELIGIBILITY_VALID": true,
+    "H1_PAIRED_EXECUTION_SIMULATOR_VALID": true,
+    "H1_PAIRED_EXECUTION_FEASIBILITY": "INSUFFICIENT",
+    "H1_FORWARD_CARRY_LIFECYCLES": "RESOLVED",
+    "H1_FORWARD_NET_ECONOMIC_VALUE": "POSITIVE",
+    "H1_PRODUCTION_CANDIDATE": false,
+    "REAL_TRADING": "DISABLED"
+  }
+}

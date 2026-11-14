@@ -363,7 +363,39 @@ class ForwardRecorder:
             self._get("usdt_usd_fallback", "kraken", KRAKEN_TICKER)
         self._get("clock", "binance_spot", f"{SPOT_BASE}/api/v3/time", event_ms_fn=lambda p: p.get("serverTime"))
         self._get("clock", "binance_dapi", f"{DAPI_BASE}/dapi/v1/time", event_ms_fn=lambda p: p.get("serverTime"))
+        self.delivery_settlement_cycle()
         self.last_slow_ms = now_ms()
+
+    def delivery_settlement_cycle(self) -> None:
+        """Polls official Binance COIN-M delivery / settlement price endpoint for contracts in universe.
+
+        Official Binance documentation: https://dapi.binance.com/futures/data/delivery-price
+        Query parameter: pair (e.g. BTCUSD, BNBUSD)
+        Returns: list of {"deliveryPrice": float, "deliveryTime": int (ms)}
+        """
+        pairs = sorted({c["pair"] for c in getattr(self, "universe", []) if "pair" in c})
+        if not pairs:
+            pairs = ["BTCUSD", "ETHUSD", "BNBUSD"]
+        jobs = []
+        for pair in pairs:
+            jobs.append(self.pool.submit(
+                self._get, "cm_delivery_settlement", "binance_dapi", f"{DAPI_BASE}/futures/data/delivery-price",
+                {"pair": pair}, pair,
+                lambda p: max(int(r.get("deliveryTime", 0)) for r in p) if isinstance(p, list) and p else None,
+            ))
+        for j in jobs:
+            try:
+                j.result(timeout=self.cfg.http_timeout_s * 2)
+            except Exception:
+                pass
+
+    def poll_delivery_settlement(self, pair: str) -> Optional[List[Dict[str, Any]]]:
+        """Polls official delivery settlement prices for a specific pair on demand."""
+        return self._get(
+            "cm_delivery_settlement", "binance_dapi", f"{DAPI_BASE}/futures/data/delivery-price",
+            {"pair": pair}, pair,
+            lambda p: max(int(r.get("deliveryTime", 0)) for r in p) if isinstance(p, list) and p else None,
+        )
 
     def signal_inputs_cycle(self, hour_close_ms: int) -> None:
         """Hourly snapshot of the closed 1h bars required by the frozen H-1 signal (basis_ma24, yield_ma24).
@@ -455,6 +487,7 @@ class ForwardRecorder:
                         "cm_premium_index": f"{DAPI_BASE}/dapi/v1/premiumIndex",
                         "cm_exchange_info": f"{DAPI_BASE}/dapi/v1/exchangeInfo",
                         "spot_exchange_info": f"{SPOT_BASE}/api/v3/exchangeInfo",
+                        "cm_delivery_settlement": f"{DAPI_BASE}/futures/data/delivery-price",
                         "usdt_usd": f"{COINBASE_USDT_USD}/ticker",
                         "usdt_usd_fallback": KRAKEN_TICKER,
                         "clock": [f"{SPOT_BASE}/api/v3/time", f"{DAPI_BASE}/dapi/v1/time"],

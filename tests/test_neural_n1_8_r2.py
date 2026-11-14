@@ -360,6 +360,7 @@ def test_case_10_virtual_delivery_settlement_inverse_accounting():
         "quote_valid_pit": True,
         "spot_ask_vwap": 690.0,
         "spot_bid_vwap": 689.8,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 689.8},
         "delivery_settlement_price": 689.8,  # Converged delivery settlement price
         "observed_depth_basis_bps": 0.0,
     }
@@ -648,6 +649,7 @@ def test_case_14_realized_pnl_fee_bridge_exact_oracle():
         "quote_valid_pit": True,
         "spot_ask_vwap": 690.0,
         "spot_bid_vwap": settle_exit_spot,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": settle_exit_spot},
         "delivery_settlement_price": settle_price,
         "observed_depth_basis_bps": 0.0,
     }
@@ -885,7 +887,8 @@ def test_case_18_multiday_10step_integration(tmp_path):
     engine_day2.underlying_committed_usd["BNB"] = 5000.0
 
     # Step 10: Delivery settlement at maturity
-    e10 = events[9]
+    e10 = dict(events[9])
+    e10["spot_bid_sweep"] = {"fully_filled": True, "filled_usd": 5000.0, "vwap": e10["spot_bid_vwap"]}
     ok10, reason10 = engine_day2.process_observation(pos2, e10)
     assert ok10 is True
     assert reason10 == "DELIVERY_SETTLED"
@@ -1277,9 +1280,13 @@ def test_case_22_real_entrypoint_forward_runner_pipeline(tmp_path: Path):
     (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
     (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
 
-    # Write Day 1 USDT rate
-    u1 = {"stream": "usdt_usd", "recv_ms": t_day1, "payload": {"price": "1.0000"}}
-    (day1_dir / "usdt_usd.jsonl").write_text(json.dumps(u1) + "\n", encoding="utf-8")
+    # Write timestamp-aligned hourly USDT rates for Day 1
+    u1_lines = [
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_day1 - (25 - i) * 3600000 + 3600000 - 1, "payload": {"price": "1.0000"}})
+        for i in range(25)
+    ]
+    u1_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": t_day1, "payload": {"price": "1.0000"}}))
+    (day1_dir / "usdt_usd.jsonl").write_text("\n".join(u1_lines) + "\n", encoding="utf-8")
 
     # Generate 24 completed 1h candles for Day 1 with MA24 basis = 85.0 bps (entry eligible)
     cm_k1 = []
@@ -1316,7 +1323,8 @@ def test_case_22_real_entrypoint_forward_runner_pipeline(tmp_path: Path):
     (day1_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d1) + "\n", encoding="utf-8")
 
     # Step 1: Run Day 1 with ForwardLifecycleRunner
-    runner1 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    test_out = tmp_path / "research"
+    runner1 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, output_dir=test_out, portfolio_capital_usd=20000.0)
     res_day1 = runner1.run_step(raw_partitions=[day1_dir])
 
     # Assert Day 1 entered
@@ -1343,8 +1351,12 @@ def test_case_22_real_entrypoint_forward_runner_pipeline(tmp_path: Path):
     (day2_dir / "signal_cm_klines.jsonl").write_text(json.dumps(k_cm_rec2) + "\n", encoding="utf-8")
     (day2_dir / "signal_spot_klines.jsonl").write_text(json.dumps(k_sp_rec2) + "\n", encoding="utf-8")
 
-    u2 = {"stream": "usdt_usd", "recv_ms": t_day2, "payload": {"price": "1.0000"}}
-    (day2_dir / "usdt_usd.jsonl").write_text(json.dumps(u2) + "\n", encoding="utf-8")
+    u2_lines = [
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_day2 - (24 - i) * 3600000 + 3600000 - 1, "payload": {"price": "1.0000"}})
+        for i in range(24)
+    ]
+    u2_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": t_day2, "payload": {"price": "1.0000"}}))
+    (day2_dir / "usdt_usd.jsonl").write_text("\n".join(u2_lines) + "\n", encoding="utf-8")
 
     # Day 2 depth with full executable depth: spot bid = 689.5, cm ask = 690.3
     sp_d2 = {
@@ -1367,7 +1379,7 @@ def test_case_22_real_entrypoint_forward_runner_pipeline(tmp_path: Path):
     (day2_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d2) + "\n", encoding="utf-8")
 
     # Step 3: Start FRESH runner instance resuming from checkpoint (simulating next forward run)
-    runner2 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    runner2 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, output_dir=test_out, portfolio_capital_usd=20000.0)
     res_day2 = runner2.run_step(raw_partitions=[day2_dir])
 
     # Assert Day 2 closed via MA24 compression
@@ -1383,7 +1395,7 @@ def test_case_22_real_entrypoint_forward_runner_pipeline(tmp_path: Path):
     assert runner2.engine.underlying_committed_usd["BNB"] == 0.0
 
     # Step 4: Third run asserts idempotency
-    runner3 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    runner3 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, output_dir=test_out, portfolio_capital_usd=20000.0)
     res_day3 = runner3.run_step(raw_partitions=[day2_dir])
     assert res_day3["scorecard"]["actively_tracked_lifecycles_count"] == 0
     assert res_day3["scorecard"]["realized_completed_lifecycles_count"] == 1
@@ -1429,8 +1441,14 @@ def test_case_23_official_settlement_delivery_pipeline(tmp_path: Path):
     (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
     (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
 
-    u1 = {"stream": "usdt_usd", "recv_ms": t_day1, "payload": {"price": "1.0000"}}
-    (day1_dir / "usdt_usd.jsonl").write_text(json.dumps(u1) + "\n", encoding="utf-8")
+    # USDT/USD rates covering the 25 warmup candles plus current time
+    u1_lines = [
+        json.dumps({"stream": "usdt_usd", "recv_ms": t_day1 - (25 - i) * 3600000 + 3600000 - 1, "payload": {"price": "1.0000"}})
+        for i in range(25)
+    ]
+    u1_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": t_day1, "payload": {"price": "1.0000"}}))
+    (day1_dir / "usdt_usd.jsonl").write_text("\n".join(u1_lines) + "\n", encoding="utf-8")
+
     u2 = {"stream": "usdt_usd", "recv_ms": deliv_time, "payload": {"price": "1.0000"}}
     (day2_dir / "usdt_usd.jsonl").write_text(json.dumps(u2) + "\n", encoding="utf-8")
 
@@ -1452,7 +1470,8 @@ def test_case_23_official_settlement_delivery_pipeline(tmp_path: Path):
     (day1_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d1) + "\n", encoding="utf-8")
 
     # Step 1: Day 1 entry
-    runner1 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    test_out = tmp_path / "research"
+    runner1 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, output_dir=test_out, portfolio_capital_usd=20000.0)
     runner1.run_step(raw_partitions=[day1_dir])
     assert len(runner1.engine.active_positions) == 1
 
@@ -1463,6 +1482,7 @@ def test_case_23_official_settlement_delivery_pipeline(tmp_path: Path):
         "settlement_price": 689.8,
         "published_ms": deliv_time + 1000,
         "spot_bid_vwap": 689.5,
+        "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 689.5},
     }
     (day2_dir / "cm_delivery_settlement.jsonl").write_text(json.dumps(official_settle_rec) + "\n", encoding="utf-8")
 
@@ -1471,7 +1491,7 @@ def test_case_23_official_settlement_delivery_pipeline(tmp_path: Path):
     (day2_dir / "spot_depth.jsonl").write_text(json.dumps(sp_d2) + "\n", encoding="utf-8")
     (day2_dir / "cm_depth.jsonl").write_text(json.dumps(cm_d2) + "\n", encoding="utf-8")
 
-    runner2 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, portfolio_capital_usd=20000.0)
+    runner2 = ForwardLifecycleRunner(checkpoint_path=checkpoint_file, raw_root=raw_root, output_dir=test_out, portfolio_capital_usd=20000.0)
     res_day2 = runner2.run_step(raw_partitions=[day2_dir])
 
     # Assert delivery settled cleanly
@@ -1642,3 +1662,229 @@ def test_case_25_missing_depth_sweep_returns_close_not_executable():
     assert ok_full is True
     assert reason_full == "EARLY_EXIT_EXECUTED"
     assert pos["state"] == LifecycleState.CLOSED
+
+
+# ---------------------------------------------------------------------------
+# Test Case 26: Evidence Integrity & Natural Forward Observation Finalization
+# ---------------------------------------------------------------------------
+def test_case_26_evidence_integrity_and_natural_forward_observation(tmp_path: Path):
+    """Verify all 7 P0 evidence integrity and forward readiness criteria:
+    1. Compound event identity processes two events sharing the exact same timestamp.
+    2. Missing causal PIT USDT/USD rate or insufficient candles returns MA24_NOT_READY.
+    3. Synthetic test execution cannot mutate authentic research/neural_n1_7 artifacts.
+    4. Official settlement completes futures leg even if delisted from depth feeds.
+    5. Incomplete spot liquidation leaves spot in inventory without fabricating spot sale.
+    6. Checkpoint restart does not duplicate lifecycles or re-commit capital.
+    7. Scorecard reporting isolates TEST_SYNTHETIC from AUTHENTIC_FORWARD.
+    """
+    from neural_trading.n1_7.lifecycle_engine import (
+        RESEARCH_DIR_N1_7,
+        fetch_causal_ma24_history,
+    )
+
+    # -----------------------------------------------------------------------
+    # Criterion 3: Canonical research evidence isolation
+    # -----------------------------------------------------------------------
+    canonical_res_file = RESEARCH_DIR_N1_7 / "n1_7_forward_lifecycle_results.json"
+    assert canonical_res_file.exists(), "Canonical forward evidence file must exist"
+    canonical_content_before = canonical_res_file.read_text(encoding="utf-8")
+    canonical_data = json.loads(canonical_content_before)
+    # Assert restored canonical baseline: 0 closed lifecycles, 0.0 realized PnL
+    scorecard = canonical_data.get("scorecard", {})
+    assert scorecard.get("realized_completed_lifecycles_count") == 0
+    assert scorecard.get("realized_closed_pnl_usd") == 0.0
+
+    # -----------------------------------------------------------------------
+    # Criterion 2: Missing PIT source returns MA24_NOT_READY
+    # -----------------------------------------------------------------------
+    raw_root = tmp_path / "raw"
+    day1_dir = raw_root / "20261111"
+    day1_dir.mkdir(parents=True)
+    t_base = 1794412800000
+
+    # Only 10 hourly candles provided (insufficient for 24h warmup)
+    short_klines = []
+    for i in range(10):
+        ot = t_base - (10 - i) * 3600000
+        ct = ot + 3600000 - 1
+        short_klines.append([ot, "680.0", "686.0", "679.0", "685.0", "100.0", ct, "0", 10, "0", "0", "0"])
+
+    basis_val, basis_bps, is_ready = fetch_causal_ma24_history(
+        cm_symbol="BNBUSD_261225",
+        spot_symbol="BNBUSDT",
+        target_end_ms=t_base,
+        raw_partitions=[day1_dir],
+        historical_replay_mode=False,
+    )
+    assert is_ready is False
+    assert basis_bps == 0.0  # MA24_NOT_READY
+
+    # -----------------------------------------------------------------------
+    # Criterion 1 & 6: Same-timestamp compound cursor + checkpoint idempotency
+    # -----------------------------------------------------------------------
+    # Create 25 hourly candles and matching causal USDT rates for BNB and BTC
+    cm_k_bnb = []
+    sp_k_bnb = []
+    cm_k_btc = []
+    sp_k_btc = []
+    u_lines = []
+    for i in range(25):
+        ot = t_base - (25 - i) * 3600000
+        ct = ot + 3600000 - 1
+        cm_k_bnb.append([ot, "680.0", "686.0", "679.0", "685.78", "100.0", ct, "0", 10, "0", "0", "0"])
+        sp_k_bnb.append([ot, "680.0", "681.0", "679.0", "680.00", "100.0", ct, "0", 10, "0", "0", "0"])
+        cm_k_btc.append([ot, "98000.0", "98900.0", "97900.0", "98833.0", "10.0", ct, "0", 10, "0", "0", "0"])
+        sp_k_btc.append([ot, "98000.0", "98100.0", "97900.0", "98000.0", "10.0", ct, "0", 10, "0", "0", "0"])
+        u_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": ct, "payload": {"price": "1.0000"}}))
+
+    u_lines.append(json.dumps({"stream": "usdt_usd", "recv_ms": t_base, "payload": {"price": "1.0000"}}))
+    (day1_dir / "usdt_usd.jsonl").write_text("\n".join(u_lines) + "\n", encoding="utf-8")
+
+    k_cm_all = [
+        {"symbol": "BNBUSD_261225", "recv_ms": t_base, "payload": cm_k_bnb},
+        {"symbol": "BTCUSD_261225", "recv_ms": t_base, "payload": cm_k_btc},
+    ]
+    k_sp_all = [
+        {"symbol": "BNBUSDT", "recv_ms": t_base, "payload": sp_k_bnb},
+        {"symbol": "BTCUSDT", "recv_ms": t_base, "payload": sp_k_btc},
+    ]
+    (day1_dir / "signal_cm_klines.jsonl").write_text("\n".join(json.dumps(x) for x in k_cm_all) + "\n", encoding="utf-8")
+    (day1_dir / "signal_spot_klines.jsonl").write_text("\n".join(json.dumps(x) for x in k_sp_all) + "\n", encoding="utf-8")
+
+    deliv_time = t_base + 100 * 3600000
+    ex_info = {
+        "stream": "cm_exchange_info",
+        "recv_ms": t_base,
+        "payload": {
+            "symbols": [
+                {
+                    "symbol": "BNBUSD_261225",
+                    "pair": "BNBUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": deliv_time,
+                    "contractSize": 10.0,
+                },
+                {
+                    "symbol": "BTCUSD_261225",
+                    "pair": "BTCUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": deliv_time,
+                    "contractSize": 100.0,
+                },
+            ]
+        },
+    }
+    (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+
+    # Depth snapshots for both contracts at the EXACT SAME millisecond: t_base + 1000
+    t_same = t_base + 1000
+    depth_sp_lines = [
+        json.dumps({"symbol": "BNBUSDT", "recv_ms": t_same, "payload": {"bids": [["679.9", "20.0"]], "asks": [["680.0", "20.0"]]}}),
+        json.dumps({"symbol": "BTCUSDT", "recv_ms": t_same, "payload": {"bids": [["97990.0", "5.0"]], "asks": [["98000.0", "5.0"]]}}),
+    ]
+    depth_cm_lines = [
+        json.dumps({"symbol": "BNBUSD_261225", "recv_ms": t_same, "payload": {"bids": [["685.78", "1000"]], "asks": [["685.80", "1000"]]}}),
+        json.dumps({"symbol": "BTCUSD_261225", "recv_ms": t_same, "payload": {"bids": [["98833.0", "100"]], "asks": [["98835.0", "100"]]}}),
+    ]
+    (day1_dir / "spot_depth.jsonl").write_text("\n".join(depth_sp_lines) + "\n", encoding="utf-8")
+    (day1_dir / "cm_depth.jsonl").write_text("\n".join(depth_cm_lines) + "\n", encoding="utf-8")
+
+    # Run ForwardLifecycleRunner with explicit test output directory and TEST_SYNTHETIC population
+    test_out = tmp_path / "research"
+    checkpoint_file = tmp_path / "checkpoint.json"
+    runner1 = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    res1 = runner1.run_step(raw_partitions=[day1_dir])
+
+    # Assert Criterion 1: BOTH same-timestamp contracts were evaluated and admitted!
+    assert res1["scorecard"]["actively_tracked_lifecycles_count"] == 2
+    active_syms = {p["contract_symbol"] for p in runner1.engine.active_positions.values()}
+    assert active_syms == {"BNBUSD_261225", "BTCUSD_261225"}
+    assert runner1.engine.underlying_committed_usd["BNB"] == 5000.0
+    assert runner1.engine.underlying_committed_usd["BTC"] == 5000.0
+
+    # Assert Criterion 6: Checkpoint restart does not duplicate or re-commit capital
+    runner1_restart = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    res1_replay = runner1_restart.run_step(raw_partitions=[day1_dir])
+    assert res1_replay["scorecard"]["actively_tracked_lifecycles_count"] == 2
+    assert runner1_restart.engine.underlying_committed_usd["BNB"] == 5000.0
+    assert runner1_restart.engine.underlying_committed_usd["BTC"] == 5000.0
+
+    # -----------------------------------------------------------------------
+    # Criterion 4 & 5: Settlement-only partition + Spot Inventory Held
+    # -----------------------------------------------------------------------
+    # Day 2 has ONLY cm_delivery_settlement.jsonl (delisted from cm_depth.jsonl)
+    day2_dir = raw_root / "20261112"
+    day2_dir.mkdir(parents=True)
+    (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day2_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": deliv_time, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+
+    # Settlement records:
+    # - BNBUSD: has spot_bid_sweep -> full delivery settlement
+    # - BTCUSD: MISSING spot_bid_sweep -> futures settled, spot held in inventory!
+    settle_records = [
+        {
+            "contract_symbol": "BNBUSD_261225",
+            "delivery_ms": deliv_time,
+            "settlement_price": 689.8,
+            "published_ms": deliv_time + 1000,
+            "spot_bid_vwap": 689.5,
+            "spot_bid_sweep": {"fully_filled": True, "filled_usd": 5000.0, "vwap": 689.5},
+        },
+        {
+            "contract_symbol": "BTCUSD_261225",
+            "delivery_ms": deliv_time,
+            "settlement_price": 99500.0,
+            "published_ms": deliv_time + 1000,
+            # Deliberately omit spot_bid_sweep to trigger inventory-held handling!
+        },
+    ]
+    (day2_dir / "cm_delivery_settlement.jsonl").write_text("\n".join(json.dumps(r) for r in settle_records) + "\n", encoding="utf-8")
+
+    # Run Day 2 settlement
+    runner2 = ForwardLifecycleRunner(
+        checkpoint_path=checkpoint_file,
+        raw_root=raw_root,
+        output_dir=test_out,
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    res2 = runner2.run_step(raw_partitions=[day2_dir])
+
+    # Assert Criterion 4 & 5:
+    assert res2["scorecard"]["actively_tracked_lifecycles_count"] == 0
+    assert res2["scorecard"]["realized_completed_lifecycles_count"] == 2
+
+    # Check BNB: full settlement
+    bnb_pos = [p for p in runner2.engine.closed_positions if p["contract_symbol"] == "BNBUSD_261225"][0]
+    assert bnb_pos["lifecycle_status"] == "CLOSED_DELIVERY_SETTLED"
+    assert bnb_pos["exit_spot_price"] == 689.5
+
+    # Check BTC: futures settled, spot held
+    btc_pos = [p for p in runner2.engine.closed_positions if p["contract_symbol"] == "BTCUSD_261225"][0]
+    assert btc_pos["lifecycle_status"] == "FUTURES_SETTLED_SPOT_HELD"
+    assert btc_pos["spot_inventory_held"] is True
+    assert btc_pos["exit_spot_price"] is None
+    # Realized PnL only realized on futures leg; gross spot pnl is 0.0
+    assert btc_pos["realized_pnl_bridge"]["gross_spot_pnl_usd"] == 0.0
+    assert btc_pos["spot_inventory_valuation_usd"] > 0.0
+
+    # Assert Criterion 7: Scorecard reflects population mode
+    assert res2["scorecard"]["population_mode"] == "TEST_SYNTHETIC"
+
+    # Assert Criterion 3 (Final Check): Authentic research artifacts were NEVER touched
+    canonical_content_after = canonical_res_file.read_text(encoding="utf-8")
+    assert canonical_content_before == canonical_content_after, "Canonical forward evidence was contaminated by test run!"

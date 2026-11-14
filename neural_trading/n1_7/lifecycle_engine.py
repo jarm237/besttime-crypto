@@ -59,19 +59,19 @@ def fetch_causal_ma24_history(
     allow_network: bool = False,
     kline_store: Optional[Dict[str, Any]] = None,
     raw_partitions: Optional[List[Path]] = None,
+    historical_replay_mode: bool = False,
 ) -> Tuple[float, float, bool]:
     """Fetch closed 1h klines to calculate causal MA24 basis and yield prior to target_end_ms.
 
     PIT & Deterministic Principles:
-    1. Checks local frozen causal fixture first to prevent network failures or drift.
-    2. Consumes recorded closed 1h COIN-M and Spot bars with timestamped USDT/USD data across partitions.
-    3. Uses timestamp-aligned historical USDT/USD observations available as of candle time (never live ticker).
-    4. Strictly requires full 24 completed hourly observations (len >= 24) closed strictly <= target_end_ms.
-    5. Recalculates dynamically only when a newly completed 1h candle becomes available.
-    6. If history is unavailable or insufficient, returns (0.0, 0.0, False) ('MA24_NOT_READY').
-    7. Fails closed without silent live HTTP fallback during offline replay.
-    8. Supports both CURRENT_QUARTER and NEXT_QUARTER contracts.
-    9. Zero hardcoded overrides.
+    1. Consumes recorded closed 1h COIN-M and Spot bars with timestamped USDT/USD data across partitions.
+    2. Uses timestamp-aligned historical USDT/USD observations available as of candle time (never live ticker or future rates).
+    3. Strictly requires full 24 completed hourly observations (len >= 24) closed strictly <= target_end_ms.
+    4. Recalculates dynamically only when a newly completed 1h candle becomes available.
+    5. If history is unavailable or insufficient, returns (0.0, 0.0, False) ('MA24_NOT_READY').
+    6. Fails closed without silent live HTTP fallback during offline replay.
+    7. Supports both CURRENT_QUARTER and NEXT_QUARTER contracts.
+    8. Historical fixture is available exclusively when explicit historical_replay_mode is set.
     Returns: (basis_ma24_bps, last_usdt_rate, is_ready)
     """
     all_cm_klines: List[Any] = []
@@ -83,12 +83,18 @@ def fetch_causal_ma24_history(
     if kline_store:
         s_data = kline_store.get("data", {}).get(cm_symbol) or kline_store.get(cm_symbol, {})
         if isinstance(s_data, dict):
-            all_cm_klines.extend(s_data.get("cm_klines", []))
-            all_sp_klines.extend(s_data.get("spot_klines", []))
+            for k in s_data.get("cm_klines", []):
+                if len(k) > 6 and int(k[6]) <= target_end_ms:
+                    all_cm_klines.append(k)
+            for k in s_data.get("spot_klines", []):
+                if len(k) > 6 and int(k[6]) <= target_end_ms:
+                    all_sp_klines.append(k)
         for k, v in kline_store.get("timestamped_usdt_usd", {}).items():
-            rates_map[k] = float(v)
             try:
-                rates_by_time.append((int(k), float(v)))
+                t_val = int(k)
+                if t_val <= target_end_ms:
+                    rates_map[k] = float(v)
+                    rates_by_time.append((t_val, float(v)))
             except (ValueError, TypeError):
                 pass
 
@@ -98,31 +104,41 @@ def fetch_causal_ma24_history(
             p_path = Path(part)
             if not p_path.is_dir():
                 continue
-            # Read cm klines
+            # Read cm klines: filter by source receipt timestamp and candle close <= target_end_ms
             cm_k_file = p_path / "signal_cm_klines.jsonl"
             if cm_k_file.exists():
                 for line in cm_k_file.open("r", encoding="utf-8"):
                     try:
                         rec = json.loads(line)
+                        recv_ms = int(rec.get("recv_ms", 0))
+                        if recv_ms > 0 and recv_ms > target_end_ms:
+                            continue
                         if rec.get("symbol") == cm_symbol:
                             payload = rec.get("payload", [])
                             if isinstance(payload, list):
-                                all_cm_klines.extend(payload)
+                                for k in payload:
+                                    if len(k) > 6 and int(k[6]) <= target_end_ms:
+                                        all_cm_klines.append(k)
                     except Exception:
                         pass
-            # Read spot klines
+            # Read spot klines: filter by source receipt timestamp and candle close <= target_end_ms
             sp_k_file = p_path / "signal_spot_klines.jsonl"
             if sp_k_file.exists():
                 for line in sp_k_file.open("r", encoding="utf-8"):
                     try:
                         rec = json.loads(line)
+                        recv_ms = int(rec.get("recv_ms", 0))
+                        if recv_ms > 0 and recv_ms > target_end_ms:
+                            continue
                         if rec.get("symbol") == spot_symbol:
                             payload = rec.get("payload", [])
                             if isinstance(payload, list):
-                                all_sp_klines.extend(payload)
+                                for k in payload:
+                                    if len(k) > 6 and int(k[6]) <= target_end_ms:
+                                        all_sp_klines.append(k)
                     except Exception:
                         pass
-            # Read usdt_usd
+            # Read usdt_usd: source observation must precede or equal decision timestamp
             usdt_file = p_path / "usdt_usd.jsonl"
             if usdt_file.exists():
                 for line in usdt_file.open("r", encoding="utf-8"):
@@ -130,30 +146,37 @@ def fetch_causal_ma24_history(
                         rec = json.loads(line)
                         p_val = float(rec.get("payload", {}).get("price", 0.0))
                         r_time = int(rec.get("recv_ms", 0))
-                        if p_val > 0 and r_time > 0:
+                        if p_val > 0 and 0 < r_time <= target_end_ms:
                             rates_map[str(r_time)] = p_val
                             rates_map[r_time] = p_val
                             rates_by_time.append((r_time, p_val))
                     except Exception:
                         pass
 
-    # 3. Read from frozen fixture file (exclusively for historical replay fallback)
-    if not all_cm_klines:
+    # 3. Read from frozen fixture file (EXCLUSIVELY in explicit historical replay mode)
+    # Missing forward source data must NEVER silently fall back to historical fixture!
+    if (historical_replay_mode or frozen_fixture_path is not None) and not all_cm_klines:
         fixture_path = frozen_fixture_path or (Path(__file__).resolve().parent / "frozen_causal_klines_20261111.json")
         if fixture_path.exists():
             try:
                 fix_data = json.loads(fixture_path.read_text(encoding="utf-8"))
                 for k, v in fix_data.get("timestamped_usdt_usd", {}).items():
-                    if k not in rates_map:
-                        rates_map[k] = float(v)
-                        try:
-                            rates_by_time.append((int(k), float(v)))
-                        except (ValueError, TypeError):
-                            pass
+                    try:
+                        t_val = int(k)
+                        if t_val <= target_end_ms:
+                            rates_map[str(t_val)] = float(v)
+                            rates_map[t_val] = float(v)
+                            rates_by_time.append((t_val, float(v)))
+                    except (ValueError, TypeError):
+                        pass
                 fix_sym = fix_data.get("data", {}).get(cm_symbol)
                 if fix_sym:
-                    all_cm_klines.extend(fix_sym.get("cm_klines", []))
-                    all_sp_klines.extend(fix_sym.get("spot_klines", []))
+                    for k in fix_sym.get("cm_klines", []):
+                        if len(k) > 6 and int(k[6]) <= target_end_ms:
+                            all_cm_klines.append(k)
+                    for k in fix_sym.get("spot_klines", []):
+                        if len(k) > 6 and int(k[6]) <= target_end_ms:
+                            all_sp_klines.append(k)
             except Exception:
                 pass
 
@@ -176,40 +199,51 @@ def fetch_causal_ma24_history(
 
     if cm_closed and len(cm_closed) >= 24 and len(sp_closed) >= 24:
         latest_close_ms = max(int(k[6]) for k in cm_closed)
-        cache_key = (cm_symbol, spot_symbol, latest_close_ms)
+        rates_by_time.sort(key=lambda x: x[0])
+        cache_key = (
+            cm_symbol,
+            spot_symbol,
+            latest_close_ms,
+            len(cm_closed),
+            len(sp_closed),
+            len(rates_by_time),
+            rates_by_time[-1][0] if rates_by_time else 0,
+            rates_by_time[-1][1] if rates_by_time else 0.0,
+            historical_replay_mode,
+        )
         if cache_key in _MA24_CACHE:
             return _MA24_CACHE[cache_key]
 
-        rates_by_time.sort(key=lambda x: x[0])
         sp_map = {int(k[0]): (float(k[4]), int(k[6])) for k in sp_closed}
         bases_bps = []
-        last_usdt_rate = 0.99884
+        last_usdt_rate = 0.0
 
-        for c in cm_closed:
+        # Evaluate the 24-hour moving average window strictly over the latest 24 completed hourly candles
+        cand_cm = cm_closed[-24:]
+        for c in cand_cm:
             ot = int(c[0])
             ct = int(c[6])
             if ot in sp_map:
                 cm_c = float(c[4])
                 sp_c_raw, _ = sp_map[ot]
-                candle_rate = rates_map.get(str(ct)) or rates_map.get(ct)
-                if candle_rate is None:
-                    # Find latest rate at or before candle close
-                    avail = [r for t, r in rates_by_time if t <= ct]
-                    if avail:
-                        candle_rate = avail[-1]
-                    elif rates_by_time:
-                        candle_rate = rates_by_time[0][1]
-                    elif usdt_usd_rate is not None:
-                        candle_rate = usdt_usd_rate
-                    else:
-                        return (0.0, 0.0, False)
+                # PIT rate lookup: Must be observed at or before candle close AND at or before decision time
+                avail = [r for t, r in rates_by_time if t <= ct and t <= target_end_ms]
+                if avail:
+                    candle_rate = avail[-1]
+                elif usdt_usd_rate is not None:
+                    candle_rate = usdt_usd_rate
+                else:
+                    # Never use a rate timestamped after candle close.
+                    # Missing PIT source rate for any candle invalidates the 24h moving average.
+                    return (0.0, 0.0, False)
+
                 last_usdt_rate = float(candle_rate)
                 sp_c = sp_c_raw * last_usdt_rate
                 b_bps = (cm_c / sp_c - 1.0) * 10_000.0
                 bases_bps.append(b_bps)
 
-        if len(bases_bps) >= 24:
-            ma24_basis = float(np.mean(bases_bps[-24:]))
+        if len(bases_bps) == 24:
+            ma24_basis = float(np.mean(bases_bps))
             result = (round(ma24_basis, 2), last_usdt_rate, True)
             _MA24_CACHE[cache_key] = result
             return result
@@ -328,9 +362,18 @@ class N1_7LifecycleEngine:
         raw_dir: Optional[Union[str, Path, List[Path]]] = None,
         portfolio_capital_usd: float = 20_000.0,
         checkpoint_path: Optional[Union[str, Path]] = None,
+        output_dir: Optional[Union[str, Path]] = None,
+        data_dir: Optional[Union[str, Path]] = None,
+        population_mode: str = "AUTHENTIC_FORWARD",
+        historical_fixture_mode: Optional[bool] = None,
+        write_artifacts: Optional[bool] = None,
     ) -> None:
         self.portfolio_capital_usd = portfolio_capital_usd
         self.target_per_asset_usd = portfolio_capital_usd * FROZEN_H1.max_single_weight  # $5,000
+        self.output_dir = Path(output_dir) if output_dir else RESEARCH_DIR_N1_7
+        self.data_dir = Path(data_dir) if data_dir else DATA_ROOT_N1_7
+        self.population_mode = population_mode
+        self.write_artifacts = write_artifacts
 
         # Auto-discover raw daily partitions if raw_dir not explicitly passed or is parent raw dir
         if raw_dir is None:
@@ -354,8 +397,14 @@ class N1_7LifecycleEngine:
                 self.raw_dirs = [p_raw]
                 self.raw_dir = p_raw
 
-        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (RESEARCH_DIR_N1_7 / "lifecycle_checkpoint.json")
+        if historical_fixture_mode is not None:
+            self.historical_fixture_mode = historical_fixture_mode
+        else:
+            self.historical_fixture_mode = bool(self.raw_dirs and all(d.name == "20261111" for d in self.raw_dirs))
+
+        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (self.output_dir / "lifecycle_checkpoint.json")
         self.last_observation_watermark_ms: int = 0
+        self.processed_event_keys: Set[str] = set()
         self.active_positions: Dict[str, Dict[str, Any]] = {}
         self.quarantined_positions: Dict[str, Dict[str, Any]] = {}
         self.closed_positions: List[Dict[str, Any]] = []
@@ -378,6 +427,7 @@ class N1_7LifecycleEngine:
             target_end_ms,
             raw_partitions=getattr(self, "raw_dirs", None),
             kline_store=kline_store,
+            historical_replay_mode=getattr(self, "historical_fixture_mode", False),
         )
 
     def save_checkpoint(
@@ -390,10 +440,11 @@ class N1_7LifecycleEngine:
         p.parent.mkdir(parents=True, exist_ok=True)
         if state is None:
             state = {
-                "version": "1.0",
+                "version": "1.1",
                 "saved_at_utc": datetime.now(timezone.utc).isoformat(),
                 "portfolio_capital_usd": self.portfolio_capital_usd,
                 "last_observation_watermark_ms": self.last_observation_watermark_ms,
+                "processed_event_keys": sorted(list(getattr(self, "processed_event_keys", set()))),
                 "active_positions": getattr(self, "active_positions", {}),
                 "quarantined_positions": getattr(self, "quarantined_positions", {}),
                 "closed_positions": getattr(self, "closed_positions", []),
@@ -417,6 +468,7 @@ class N1_7LifecycleEngine:
         self.portfolio_capital_usd = float(data.get("portfolio_capital_usd", self.portfolio_capital_usd))
         self.target_per_asset_usd = self.portfolio_capital_usd * FROZEN_H1.max_single_weight
         self.last_observation_watermark_ms = int(data.get("last_observation_watermark_ms", 0))
+        self.processed_event_keys = set(data.get("processed_event_keys", []))
         self.active_positions = data.get("active_positions", {})
         self.quarantined_positions = data.get("quarantined_positions", {})
         self.closed_positions = data.get("closed_positions", [])
@@ -513,46 +565,92 @@ class N1_7LifecycleEngine:
                     settle_price = p_val
 
             if settle_price is not None and settle_price > 0:
-                pos["state"] = LifecycleState.CLOSED
-                pos["lifecycle_status"] = "CLOSED_DELIVERY_SETTLED"
-                pos["closed_timestamp"] = ts
-                pos["exit_futures_price"] = settle_price
-                pos["exit_spot_price"] = sp_bid_vwap
-
                 notional = pos["entry_notional_usd"]
                 entry_fut = pos["entry_futures_price"]
                 inv_pnl_coin = notional * (1.0 / settle_price - 1.0 / entry_fut) if settle_price > 0 else 0.0
-                inv_pnl_usd = inv_pnl_coin * sp_bid_vwap
-                spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
-
-                # P0-1: Explicit fee bridge - every fee deducted exactly once
-                sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
                 cm_entry_fee = pos.get("coinm_entry_fee_usd", notional * (COSTS.cm_entry_fee_bps / 10_000.0))
-                sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
                 cm_deliv_fee = notional * (COSTS.cm_delivery_settlement_fee_bps / 10_000.0)
+                realized_futures_leg_usd = (inv_pnl_coin * settle_price) - cm_entry_fee - cm_deliv_fee
                 residual_cost = pos.get("residual_execution_cost_usd", 0.0)
 
-                realized_net = (spot_realized_usd + inv_pnl_usd) - sp_entry_fee - cm_entry_fee - sp_exit_fee - cm_deliv_fee - residual_cost
-                pos["realized_pnl"] = round(realized_net, 2)
-                pos["capital_released"] = True
-                pos["released_capital_usd"] = notional
-                pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
-                pos["realized_pnl_bridge"] = {
-                    "gross_spot_pnl_usd": round(spot_realized_usd, 4),
-                    "inverse_coinm_pnl_converted_usd": round(inv_pnl_usd, 4),
-                    "spot_entry_fee_usd": round(sp_entry_fee, 4),
-                    "coinm_entry_fee_usd": round(cm_entry_fee, 4),
-                    "spot_exit_fee_usd": round(sp_exit_fee, 4),
-                    "coinm_exit_or_delivery_fee_usd": round(cm_deliv_fee, 4),
-                    "residual_execution_cost_usd": round(residual_cost, 4),
-                    "realized_net_pnl_usd": round(realized_net, 2),
-                }
-                pos.setdefault("history", []).append({
-                    "timestamp_ms": ts,
-                    "state": LifecycleState.CLOSED,
-                    "note": f"Delivery settled at {settle_price}, realized net PnL: ${realized_net:.2f}",
-                })
-                return (True, "DELIVERY_SETTLED")
+                sp_sweep = observation.get("spot_bid_sweep")
+                has_explicit_spot_liquidation = (
+                    isinstance(sp_sweep, dict)
+                    and sp_sweep.get("fully_filled") is True
+                    and float(sp_sweep.get("filled_usd", 0.0)) >= notional - 1.0
+                    and sp_bid_vwap > 0.0
+                )
+
+                if has_explicit_spot_liquidation:
+                    inv_pnl_usd = inv_pnl_coin * sp_bid_vwap
+                    spot_realized_usd = pos["spot_inventory_coin"] * sp_bid_vwap - pos["entry_notional_usd"]
+                    sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
+                    sp_exit_fee = pos["spot_inventory_coin"] * sp_bid_vwap * (COSTS.spot_exit_fee_bps / 10_000.0)
+                    realized_futures_leg_usd = inv_pnl_usd - cm_entry_fee - cm_deliv_fee
+                    realized_spot_leg_usd = spot_realized_usd - sp_entry_fee - sp_exit_fee
+                    realized_net = (realized_futures_leg_usd + realized_spot_leg_usd) - residual_cost
+
+                    pos["state"] = LifecycleState.CLOSED
+                    pos["lifecycle_status"] = "CLOSED_DELIVERY_SETTLED"
+                    pos["closed_timestamp"] = ts
+                    pos["exit_futures_price"] = settle_price
+                    pos["exit_spot_price"] = sp_bid_vwap
+                    pos["spot_inventory_held"] = False
+                    pos["realized_pnl"] = round(realized_net, 2)
+                    pos["capital_released"] = True
+                    pos["released_capital_usd"] = notional
+                    pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
+                    pos["realized_pnl_bridge"] = {
+                        "gross_spot_pnl_usd": round(spot_realized_usd, 4),
+                        "inverse_coinm_pnl_converted_usd": round(inv_pnl_coin * sp_bid_vwap, 4),
+                        "spot_entry_fee_usd": round(sp_entry_fee, 4),
+                        "coinm_entry_fee_usd": round(cm_entry_fee, 4),
+                        "spot_exit_fee_usd": round(sp_exit_fee, 4),
+                        "coinm_exit_or_delivery_fee_usd": round(cm_deliv_fee, 4),
+                        "residual_execution_cost_usd": round(residual_cost, 4),
+                        "realized_net_pnl_usd": round(realized_net, 2),
+                    }
+                    pos.setdefault("history", []).append({
+                        "timestamp_ms": ts,
+                        "state": LifecycleState.CLOSED,
+                        "note": f"Delivery settled at {settle_price} with spot liquidation at {sp_bid_vwap}, realized net PnL: ${realized_net:.2f}",
+                    })
+                    return (True, "DELIVERY_SETTLED")
+                else:
+                    # Futures leg delivery settled; Spot remains held in inventory.
+                    # Never substitute futures settlement price for an executable Spot sell price.
+                    # Realized PnL is computed ONLY for the economically completed leg.
+                    realized_net = realized_futures_leg_usd - residual_cost
+                    pos["state"] = LifecycleState.CLOSED
+                    pos["lifecycle_status"] = "FUTURES_SETTLED_SPOT_HELD"
+                    pos["closed_timestamp"] = ts
+                    pos["exit_futures_price"] = settle_price
+                    pos["exit_spot_price"] = None
+                    pos["spot_inventory_held"] = True
+                    pos["spot_inventory_coin"] = pos.get("spot_inventory_coin", 0.0)
+                    pos["spot_realized_sale"] = False
+                    pos["unrealized_inventory_valuation_usd"] = round(pos["spot_inventory_coin"] * sp_bid_vwap, 2) if sp_bid_vwap > 0 else round(pos["entry_notional_usd"], 2)
+                    pos["spot_inventory_valuation_usd"] = pos["unrealized_inventory_valuation_usd"]
+                    pos["realized_pnl"] = round(realized_net, 2)
+                    pos["capital_released"] = True
+                    pos["released_capital_usd"] = notional
+                    pos["released_collateral_coin"] = pos.get("coin_collateral", pos.get("spot_inventory_coin", 0.0))
+                    pos["realized_pnl_bridge"] = {
+                        "gross_spot_pnl_usd": 0.0,
+                        "inverse_coinm_pnl_converted_usd": round(inv_pnl_coin * settle_price, 4),
+                        "spot_entry_fee_usd": 0.0,
+                        "coinm_entry_fee_usd": round(cm_entry_fee, 4),
+                        "spot_exit_fee_usd": 0.0,
+                        "coinm_exit_or_delivery_fee_usd": round(cm_deliv_fee, 4),
+                        "residual_execution_cost_usd": round(residual_cost, 4),
+                        "realized_net_pnl_usd": round(realized_net, 2),
+                    }
+                    pos.setdefault("history", []).append({
+                        "timestamp_ms": ts,
+                        "state": LifecycleState.CLOSED,
+                        "note": f"Futures leg delivery settled at {settle_price}. Spot coin inventory held ({pos['spot_inventory_coin']:.6f} coins). Realized futures PnL: ${realized_net:.2f}",
+                    })
+                    return (True, "DELIVERY_SETTLED_SPOT_HELD")
             else:
                 pos["state"] = LifecycleState.SETTLEMENT_PENDING
                 pos["lifecycle_status"] = "SETTLEMENT_PENDING"
@@ -817,6 +915,9 @@ class N1_7LifecycleEngine:
         self,
         raw_partitions: Optional[List[Union[str, Path]]] = None,
         settlement_records: Optional[List[Dict[str, Any]]] = None,
+        output_dir: Optional[Union[str, Path]] = None,
+        data_dir: Optional[Union[str, Path]] = None,
+        write_artifacts: Optional[bool] = None,
     ) -> Dict[str, Any]:
         if raw_partitions is not None:
             self.raw_dirs = [Path(p) for p in raw_partitions]
@@ -829,7 +930,11 @@ class N1_7LifecycleEngine:
         usdt_recs: List[Dict[str, Any]] = []
         settlement_records_all: List[Dict[str, Any]] = list(settlement_records or [])
 
-        valid_raw_dirs = [d for d in self.raw_dirs if (d / "spot_depth.jsonl").exists() and (d / "cm_depth.jsonl").exists()]
+        # Support regular partitions and settlement-only partitions where delisted contracts have no fresh cm_depth
+        valid_raw_dirs = [
+            d for d in self.raw_dirs
+            if (d / "spot_depth.jsonl").exists() or (d / "cm_depth.jsonl").exists() or (d / "cm_delivery_settlement.jsonl").exists()
+        ]
         if not valid_raw_dirs:
             raise RuntimeError(f"Raw data not found in {self.raw_dirs}")
 
@@ -844,7 +949,18 @@ class N1_7LifecycleEngine:
                 for line in deliv_p.open("r", encoding="utf-8"):
                     try:
                         rec = json.loads(line)
-                        settlement_records_all.append(rec)
+                        if isinstance(rec, dict):
+                            payload = rec.get("payload")
+                            if isinstance(payload, list):
+                                for item in payload:
+                                    if isinstance(item, dict) and "deliveryPrice" in item:
+                                        p_rec = dict(rec)
+                                        p_rec["settlement_price"] = float(item["deliveryPrice"])
+                                        p_rec["delivery_ms"] = int(item.get("deliveryTime", 0))
+                                        p_rec["published_ms"] = int(item.get("deliveryTime", 0))
+                                        settlement_records_all.append(p_rec)
+                            else:
+                                settlement_records_all.append(rec)
                     except Exception:
                         pass
 
@@ -860,17 +976,19 @@ class N1_7LifecycleEngine:
                                 "contract_size_usd": float(s["contractSize"]),
                             }
 
-            for line in spot_depth_p.open("r", encoding="utf-8"):
-                r = json.loads(line)
-                sym = r.get("symbol")
-                if sym:
-                    spot_recs.setdefault(sym, []).append(r)
+            if spot_depth_p.exists():
+                for line in spot_depth_p.open("r", encoding="utf-8"):
+                    r = json.loads(line)
+                    sym = r.get("symbol")
+                    if sym:
+                        spot_recs.setdefault(sym, []).append(r)
 
-            for line in cm_depth_p.open("r", encoding="utf-8"):
-                r = json.loads(line)
-                sym = r.get("symbol")
-                if sym:
-                    cm_recs.setdefault(sym, []).append(r)
+            if cm_depth_p.exists():
+                for line in cm_depth_p.open("r", encoding="utf-8"):
+                    r = json.loads(line)
+                    sym = r.get("symbol")
+                    if sym:
+                        cm_recs.setdefault(sym, []).append(r)
 
             if usdt_p.exists():
                 for line in usdt_p.open("r", encoding="utf-8"):
@@ -1037,6 +1155,7 @@ class N1_7LifecycleEngine:
 
                 intent_record = {
                     "pair_id": f"P{pair_counter:05d}",
+                    "observation_id": f"{cm_sym}_{cm_recv}",
                     "decision_timestamp": cm_recv,
                     "spot_symbol": sp_sym,
                     "coinm_contract_symbol": cm_sym,
@@ -1085,16 +1204,23 @@ class N1_7LifecycleEngine:
                 pair = contracts_meta.get(s_sym, {}).get("pair", s_sym.split("_")[0])
                 sp_sym = PAIR_TO_SPOT.get(pair, f"{s_sym.split('USD')[0]}USDT")
                 sp_b_vwap = 0.0
+                spot_sweep = s_rec.get("spot_bid_sweep")
                 if sp_sym in spot_recs:
                     for s in spot_recs[sp_sym]:
                         if s["recv_ms"] <= s_pub:
-                            sp_b_vwap = float(s["payload"].get("bids", [[0.0]])[0][0])
-                if sp_b_vwap <= 0.0:
-                    sp_b_vwap = float(s_rec.get("spot_bid_vwap", s_rec.get("settlement_price", 0.0)))
+                            bids = s["payload"].get("bids", [])
+                            if bids and float(bids[0][0]) > 0:
+                                sp_b_vwap = float(bids[0][0])
+                            if "spot_bid_sweep" in s:
+                                spot_sweep = s["spot_bid_sweep"]
+                if s_rec.get("spot_bid_vwap"):
+                    sp_b_vwap = float(s_rec["spot_bid_vwap"])
+                # P0-D: Never substitute futures settlement price for an executable Spot sell price!
                 pair_counter += 1
                 s_price = float(s_rec.get("settlement_price", 0.0))
                 order_intents.append({
                     "pair_id": f"SETTLE_{s_sym}_{s_pub}",
+                    "observation_id": f"SETTLE_{s_sym}_{s_pub}",
                     "decision_timestamp": s_pub,
                     "spot_symbol": sp_sym,
                     "coinm_contract_symbol": s_sym,
@@ -1107,6 +1233,7 @@ class N1_7LifecycleEngine:
                     "coinm_ask_vwap": s_price,
                     "delivery_settlement_price": s_price,
                     "official_delivery_settlement": s_rec,
+                    "spot_bid_sweep": spot_sweep,
                     "entry_eligible": False,
                     "observed_depth_basis_bps": 0.0,
                     "causal_basis_ma24_bps": 0.0,
@@ -1190,6 +1317,8 @@ class N1_7LifecycleEngine:
             key=lambda x: (
                 int(x["decision_timestamp"]),
                 0 if x.get("contract_type") == "CURRENT_QUARTER" else 1,
+                str(x.get("coinm_contract_symbol", "")),
+                str(x.get("observation_id", x.get("pair_id", ""))),
             ),
         )
 
@@ -1288,13 +1417,20 @@ class N1_7LifecycleEngine:
         }
         trade_id_seq = max(len(allocated_lifecycle_ids), 0)
 
-        # Single Causal Chronological Loop (P0-A)
+        # Single Causal Chronological Loop (P0-A & P0-C)
         # Evaluates events strictly at observation time: update -> close/release -> evaluate entry -> advance watermark
         for item in chronological_intents:
             ts = int(item["decision_timestamp"])
             cm_sym = item["coinm_contract_symbol"]
+            obs_id = str(item.get("observation_id") or item.get("pair_id") or f"{cm_sym}_{ts}")
+            event_key = f"{ts}:{cm_sym}:{obs_id}"
 
-            if ts <= self.last_observation_watermark_ms:
+            # P0-C: Compound event identity deduplication
+            if event_key in self.processed_event_keys:
+                continue
+
+            # Causal out-of-order policy: events strictly earlier than watermark arriving late are rejected
+            if ts < self.last_observation_watermark_ms:
                 continue
 
             # 1. Validate PIT
@@ -1440,7 +1576,8 @@ class N1_7LifecycleEngine:
                         ],
                     }
 
-            # 6. Advance observation watermark
+            # 6. Advance observation watermark and record processed compound event key
+            self.processed_event_keys.add(event_key)
             if ts > self.last_observation_watermark_ms:
                 self.last_observation_watermark_ms = ts
 
@@ -1474,7 +1611,7 @@ class N1_7LifecycleEngine:
 
         scorecard = {
             "evaluation_timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "population_mode": "N1_8_POLICY_COMPLIANT_REPLAY",
+            "population_mode": self.population_mode,
             "assumed_portfolio_capital_usd": self.portfolio_capital_usd,
             "total_intents_evaluated": total_intents,
             "entry_eligible_intents_count": eligible_intents,
@@ -1486,7 +1623,7 @@ class N1_7LifecycleEngine:
             "actively_tracked_lifecycles_count": len(compliant_ledger),
             "quarantined_lifecycles_count": len(quarantined_compliant),
             "total_open_unrealized_pnl_usd": round(total_unrealized_pnl, 2),
-            "realized_closed_pnl_usd": total_realized_closed_pnl,
+            "realized_closed_pnl_usd": round(total_realized_closed_pnl, 2),
             "realized_completed_lifecycles_count": total_realized_closed_count,
             "comparison_against_holding_cash": {
                 "holding_cash_return_usd": 0.0,
@@ -1504,7 +1641,12 @@ class N1_7LifecycleEngine:
         paired_sim_valid = bool(len(scenario_results) == 3)
         paired_feasibility = "SUPPORTED" if (df_intents["matched_executable_notional"].mean() >= self.target_per_asset_usd * 0.8) else "INSUFFICIENT"
         carry_lifecycles = "ACCUMULATING" if len(compliant_ledger) > 0 else ("RESOLVED" if total_realized_closed_count > 0 else "IDLE")
-        net_economic_value = "INCONCLUSIVE" if total_realized_closed_count == 0 else ("POSITIVE" if total_realized_closed_pnl > 0 else "NEGATIVE")
+
+        # P0-A: Economic verdicts must never incorporate synthetic test closures
+        if self.population_mode == "TEST_SYNTHETIC" or total_realized_closed_count == 0:
+            net_economic_value = "INCONCLUSIVE"
+        else:
+            net_economic_value = "POSITIVE" if total_realized_closed_pnl > 0 else "NEGATIVE"
 
         decision = {
             "H1_FORWARD_QUOTES_VALID": quotes_valid,
@@ -1519,7 +1661,7 @@ class N1_7LifecycleEngine:
 
         output_payload = {
             "document_id": "NEURAL-N1-8-FORWARD-PAIRED-CARRY-LIFECYCLE-INTEGRATED",
-            "population_mode": "N1_8_POLICY_COMPLIANT_REPLAY",
+            "population_mode": self.population_mode,
             "scorecard": scorecard,
             "execution_scenarios": scenario_results,
             "active_lifecycles": compliant_ledger,
@@ -1549,14 +1691,26 @@ class N1_7LifecycleEngine:
             "phase_f_decision": decision,
         }
 
-        DATA_ROOT_N1_7.mkdir(parents=True, exist_ok=True)
-        RESEARCH_DIR_N1_7.mkdir(parents=True, exist_ok=True)
+        # P0-A: Isolate synthetic test artifacts and protect canonical research files
+        out_research = Path(output_dir) if output_dir else getattr(self, "output_dir", RESEARCH_DIR_N1_7)
+        out_data = Path(data_dir) if data_dir else getattr(self, "data_dir", DATA_ROOT_N1_7)
 
-        (DATA_ROOT_N1_7 / "n1_7_paired_order_intent_ledger.parquet").write_bytes(df_intents.to_parquet(index=False))
-        (RESEARCH_DIR_N1_7 / "n1_7_paired_order_intent_ledger_sample.json").write_text(json.dumps(order_intents[:15], indent=2), encoding="utf-8")
-        (RESEARCH_DIR_N1_7 / "n1_7_forward_lifecycle_results.json").write_text(json.dumps(output_payload, indent=2), encoding="utf-8")
+        should_write = write_artifacts if write_artifacts is not None else getattr(self, "write_artifacts", None)
+        if should_write is None:
+            is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+            if is_pytest and out_research == RESEARCH_DIR_N1_7:
+                should_write = False
+            else:
+                should_write = True
 
-        if self.checkpoint_path:
+        if should_write:
+            out_data.mkdir(parents=True, exist_ok=True)
+            out_research.mkdir(parents=True, exist_ok=True)
+            (out_data / "n1_7_paired_order_intent_ledger.parquet").write_bytes(df_intents.to_parquet(index=False))
+            (out_research / "n1_7_paired_order_intent_ledger_sample.json").write_text(json.dumps(order_intents[:15], indent=2), encoding="utf-8")
+            (out_research / "n1_7_forward_lifecycle_results.json").write_text(json.dumps(output_payload, indent=2), encoding="utf-8")
+
+        if self.checkpoint_path and should_write:
             self.save_checkpoint(self.checkpoint_path)
 
         return output_payload
@@ -1566,6 +1720,9 @@ class N1_7LifecycleEngine:
         raw_partitions: Optional[List[Union[str, Path]]] = None,
         settlement_records: Optional[List[Dict[str, Any]]] = None,
         checkpoint_path: Optional[Union[str, Path]] = None,
+        output_dir: Optional[Union[str, Path]] = None,
+        data_dir: Optional[Union[str, Path]] = None,
+        write_artifacts: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Executes one incremental forward lifecycle step over newly observed data.
 
@@ -1591,8 +1748,12 @@ class N1_7LifecycleEngine:
         res = self.run_lifecycle_analysis(
             raw_partitions=raw_partitions,
             settlement_records=settlement_records,
+            output_dir=output_dir or self.output_dir,
+            data_dir=data_dir or self.data_dir,
+            write_artifacts=write_artifacts if write_artifacts is not None else self.write_artifacts,
         )
-        self.save_checkpoint(self.checkpoint_path)
+        if (write_artifacts if write_artifacts is not None else self.write_artifacts) is not False:
+            self.save_checkpoint(self.checkpoint_path)
         return res
 
 
@@ -1603,13 +1764,26 @@ class ForwardLifecycleRunner:
         self,
         checkpoint_path: Optional[Union[str, Path]] = None,
         raw_root: Optional[Union[str, Path]] = None,
-        portfolio_capital_usd: float = 10_000.0,
+        output_dir: Optional[Union[str, Path]] = None,
+        data_dir: Optional[Union[str, Path]] = None,
+        portfolio_capital_usd: float = 20_000.0,
+        historical_fixture_mode: Optional[bool] = None,
+        population_mode: str = "AUTHENTIC_FORWARD",
+        write_artifacts: Optional[bool] = None,
     ) -> None:
-        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (RESEARCH_DIR_N1_7 / "lifecycle_checkpoint.json")
+        self.output_dir = Path(output_dir) if output_dir else RESEARCH_DIR_N1_7
+        self.data_dir = Path(data_dir) if data_dir else DATA_ROOT_N1_7
+        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (self.output_dir / "lifecycle_checkpoint.json")
         self.raw_root = Path(raw_root) if raw_root else (DATA_ROOT_N1_6 / "raw")
+        self.write_artifacts = write_artifacts
         self.engine = N1_7LifecycleEngine(
             portfolio_capital_usd=portfolio_capital_usd,
             checkpoint_path=self.checkpoint_path,
+            output_dir=self.output_dir,
+            data_dir=self.data_dir,
+            population_mode=population_mode,
+            historical_fixture_mode=historical_fixture_mode,
+            write_artifacts=self.write_artifacts,
         )
         if self.checkpoint_path.exists():
             self.engine.resume_from_checkpoint(self.checkpoint_path)
@@ -1625,12 +1799,46 @@ class ForwardLifecycleRunner:
             raw_partitions=partitions,
             settlement_records=settlement_records,
             checkpoint_path=self.checkpoint_path,
+            output_dir=self.output_dir,
+            data_dir=self.data_dir,
+            write_artifacts=self.write_artifacts,
         )
 
 
+def main() -> None:
+    import argparse
+    parser = argparse.ArgumentParser(description="N1.7 / N1.8 Forward Carry Lifecycle Runner")
+    parser.add_argument("--mode", choices=["runner", "batch"], default="runner", help="Execution mode")
+    parser.add_argument("--raw-root", type=str, default=str(DATA_ROOT_N1_6 / "raw"), help="Raw root directory")
+    parser.add_argument("--checkpoint", type=str, default=None, help="Checkpoint file path")
+    parser.add_argument("--output-dir", type=str, default=str(RESEARCH_DIR_N1_7), help="Output directory")
+    parser.add_argument("--capital", type=float, default=20_000.0, help="Portfolio capital in USD")
+    parser.add_argument("--historical-replay", action="store_true", help="Enable explicit historical fixture replay fallback")
+    args = parser.parse_args()
+
+    if args.mode == "runner":
+        runner = ForwardLifecycleRunner(
+            checkpoint_path=args.checkpoint,
+            raw_root=args.raw_root,
+            output_dir=args.output_dir,
+            portfolio_capital_usd=args.capital,
+            historical_fixture_mode=args.historical_replay,
+        )
+        res = runner.run_step()
+        print("Forward Lifecycle Step Completed (Runner Mode):")
+        print(json.dumps(res["scorecard"], indent=2))
+        print(json.dumps(res["phase_f_decision"], indent=2))
+    else:
+        engine = N1_7LifecycleEngine(
+            portfolio_capital_usd=args.capital,
+            output_dir=args.output_dir,
+            historical_fixture_mode=args.historical_replay,
+        )
+        res = engine.run_lifecycle_analysis()
+        print("Lifecycle Analysis Completed (Batch Mode):")
+        print(json.dumps(res["scorecard"], indent=2))
+        print(json.dumps(res["phase_f_decision"], indent=2))
+
+
 if __name__ == "__main__":
-    engine = N1_7LifecycleEngine()
-    res = engine.run_lifecycle_analysis()
-    print("N1.7 Lifecycle Analysis Completed:")
-    print(json.dumps(res["scorecard"], indent=2))
-    print(json.dumps(res["phase_f_decision"], indent=2))
+    main()
