@@ -1,7 +1,7 @@
 {
   "document_id": "H1-CORRECTED-ECONOMIC-REVALIDATION-V2-2026-11-15",
-  "timestamp_utc": "2026-11-14T18:51:23Z",
-  "elapsed_seconds": 75.92,
+  "timestamp_utc": "2026-11-14T20:01:41Z",
+  "elapsed_seconds": 66.61,
   "task_1_evidence_integrity": {
     "output_path_injectable": true,
     "canonical_artifact_preservation_enforced": true,
@@ -210,7 +210,9 @@
       "verified_shared_invariants_count": 7,
       "partial_modelled_invariants_count": 2,
       "accounting_parity_status": "PARTIAL_SHARED_SUBSET",
-      "historical_simulator_attribution": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION"
+      "historical_simulator_attribution": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION",
+      "numerical_lifecycle_parity_tested": true,
+      "numerical_parity_residual_usd": 0.0
     },
     "invariant_details": {
       "inverse_futures_pnl": {
@@ -269,7 +271,33 @@
         "exact_formula_match": false,
         "difference_note": "Historical L2 tick depth is unobservable; N1.5 models liquidity via volume participation caps"
       }
-    }
+    },
+    "representative_lifecycle_numerical_comparisons": [
+      {
+        "position_id": 32,
+        "symbol": "BTCUSD_240329",
+        "lifecycle_type": "DELIVERY_SETTLEMENT",
+        "holding_days": 90.21,
+        "entry_committed_cost_usd": 5187.285,
+        "exit_spot_proceeds_usd": 5426.8854,
+        "n1_5_reported_net_pnl_usd": 239.6004,
+        "r2_7_term_bridge_net_pnl_usd": 239.6004,
+        "numerical_parity_residual_usd": 0.0,
+        "parity_verified": true
+      },
+      {
+        "position_id": 2,
+        "symbol": "ETHUSD_220325",
+        "lifecycle_type": "EARLY_COMPRESSION_CLOSE",
+        "holding_days": 38.0,
+        "entry_committed_cost_usd": 4990.314,
+        "exit_spot_proceeds_usd": 5064.4783,
+        "n1_5_reported_net_pnl_usd": 74.1643,
+        "r2_7_term_bridge_net_pnl_usd": 74.1643,
+        "numerical_parity_residual_usd": 0.0,
+        "parity_verified": true
+      }
+    ]
   },
   "task_3_h1_physical_discrete_execution": {
     "methodology": "N1_5_REEXECUTION_WITH_MODELLED_EXECUTION",

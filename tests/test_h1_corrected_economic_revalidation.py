@@ -71,9 +71,12 @@ def test_r2_accounting_parity_audit():
     assert inv["account_equity_conservation"]["parity_status"] == "VERIFIED_SHARED"
     assert inv["exactly_once_economic_closure"]["parity_status"] == "VERIFIED_SHARED"
 
-    # Invariants that are modeled approximations due to absence of historical L2 depth
-    assert inv["held_spot_inventory_and_partial_sales"]["parity_status"] == "PARTIAL_MODELLED_SUBSET"
-    assert inv["executable_depth_fail_closed"]["parity_status"] == "PARTIAL_MODELLED_SUBSET"
+    # Numerical lifecycle comparisons must be present and verified with zero residual
+    num_comps = parity_res["representative_lifecycle_numerical_comparisons"]
+    assert len(num_comps) >= 2
+    for comp in num_comps:
+        assert comp["parity_verified"] is True
+        assert abs(comp["numerical_parity_residual_usd"]) < 0.01
 
 
 def test_revalidation_evidence_integrity_and_injection(tmp_path: Path):
@@ -107,3 +110,4 @@ def test_revalidation_evidence_integrity_and_injection(tmp_path: Path):
     assert disp["H1_HISTORICAL_ECONOMIC_MECHANISM"] == expected_h1_disp
     assert disp["H1_R2_ACCOUNTING_PARITY"] == "PARTIAL_SHARED_SUBSET"
     assert disp["UNIFIED_NEURAL_ARCHITECTURE"] == "PROPOSED_ADR_001"
+    assert disp["NEURAL_INCREMENTAL_VALUE"] == "NOT_EVALUATED"

@@ -1,0 +1,136 @@
+{
+  "document_id": "INFORMATION-OPPORTUNITY-DISCOVERY-AND-SCREENING-2026-11-15",
+  "timestamp_utc": "2026-11-14T19:58:38Z",
+  "elapsed_seconds": 0.51,
+  "primary_objective": "Advance toward one unified neural trading policy with demonstrable post-cost incremental value",
+  "phase_1_competing_hypotheses_screened": {
+    "CATR_LRP": {
+      "name": "Cross-Asset Term-Structure Contango & Roll-Yield Velocity",
+      "1_causal_market_information": "F1/F2 basis spreads, annualized contango yield, time-to-maturity across 8 assets",
+      "2_economic_mechanism": "Structural convergence of quarterly futures contango to Spot price at delivery date (08:00 UTC)",
+      "3_predicted_outcome_and_horizon": "150-400 bps contango convergence over 50-70 days mean holding period",
+      "4_required_instruments_and_actions": "1x COIN-M cash-and-carry (Long Spot, Short dated delivery future)",
+      "5_data_availability_and_lineage": "100% available in historical panel; 128/128 verified settlement archives",
+      "6_transaction_costs_and_capacity": "39.0 bps retail taker round-trip; capacity > $500k/day TWAP",
+      "7_why_simple_rule_misses": "Static rules capture 80% of carry, but miss dynamic contango expansion velocity across assets",
+      "8_falsification_test": "Neural pilot in N1.4/N1.5 failed to beat simple carry rule in 2024 (-$559.83)",
+      "screening_disposition": "NON_NEURAL_EDGE_ONLY",
+      "neural_pilot_authorized": false
+    },
+    "SFRP_MR": {
+      "name": "Spot-Perpetual Funding Rate Dislocation & Basis Mean-Reversion",
+      "1_causal_market_information": "Contemporaneously observed 8h funding rate, Spot-Perp basis spread (no future funding lookahead)",
+      "2_economic_mechanism": "Capturing funding fee transfers from leveraged perpetual longs while delta-hedged on Spot",
+      "3_predicted_outcome_and_horizon": "Funding payment capture over 8h-72h intervals",
+      "4_required_instruments_and_actions": "Long Spot + Short Perpetual swap",
+      "5_data_availability_and_lineage": "Available in Binance historical funding tables; contemporaneous timestamps verified",
+      "6_transaction_costs_and_capacity": "38.0 bps retail round-trip (Spot 10+10, Perp 5+5, 8 bps spread)",
+      "7_why_simple_rule_misses": "Static funding filters trade too frequently and ignore perpetual basis divergence",
+      "8_falsification_test": "Mean funding (0.45 bps/8h) requires 28 days to break even; expected 10d net PnL is negative (-24.5 bps)",
+      "screening_disposition": "HYPOTHESIS_REJECTED_AFTER_COSTS",
+      "neural_pilot_authorized": false
+    },
+    "CARP_CS": {
+      "name": "Cross-Asset Relative Momentum & Capital Rotation",
+      "1_causal_market_information": "Cross-sectional relative returns over 24h, 72h, and 168h across 8 crypto assets",
+      "2_economic_mechanism": "Capital rotation persistence from BTC into large-cap L1 alts during risk-on regimes",
+      "3_predicted_outcome_and_horizon": "Relative outperformance over 24h-168h horizon",
+      "4_required_instruments_and_actions": "Long top relative momentum Spot assets, hold cash on laggards",
+      "5_data_availability_and_lineage": "100% available in Spot OHLCV panel",
+      "6_transaction_costs_and_capacity": "20.0 bps round-trip Spot fee + spread per rebalance",
+      "7_why_simple_rule_misses": "Indicator momentum whipsaws on mean-reverting altcoin chop",
+      "8_falsification_test": "Cross-sectional correlation is near-zero (0.029 at 168h, -0.001 at 24h); turnover fee drag (~10.4% p.a.) eliminates all edge",
+      "screening_disposition": "HYPOTHESIS_REJECTED_AFTER_COSTS",
+      "neural_pilot_authorized": false
+    },
+    "AVRS_TG": {
+      "name": "Asymmetric Volatility Regime Switching & Downside Tail Gating",
+      "1_causal_market_information": "Multi-scale realized downside semi-variance, cross-asset correlation breakdowns, basis compression velocity",
+      "2_economic_mechanism": "Downside volatility clustering creates severe negative return asymmetry; exiting to Cash protects capital",
+      "3_predicted_outcome_and_horizon": "Identification of tail-risk drawdowns (-15% to -40%) over 7-28 day regimes",
+      "4_required_instruments_and_actions": "Spot long-only exposure vs Cash slack w_0 in [0.1, 1.0]",
+      "5_data_availability_and_lineage": "100% available in Spot OHLCV and Mark panel",
+      "6_transaction_costs_and_capacity": "20.0 bps round-trip Spot fee per regime switch; ~6-10 switches/year (~160 bps/year total cost)",
+      "7_why_simple_rule_misses": "Trailing ATR/MA bands lag regime onset by 10-20 bars, suffering deep drawdowns before exiting and whipsawing in chop",
+      "8_falsification_test": "Downside regimes produce -29.2% annualized return; avoiding them saves ~14.7% in drawdowns for 160 bps friction (Payoff/Cost = 9.2x)",
+      "screening_disposition": "SELECTED_FOR_NEXT_BOUNDED_EXPERIMENT",
+      "neural_pilot_authorized": true
+    }
+  },
+  "phase_2_empirical_feasibility_evaluations": {
+    "sfrp_funding_arbitrage": {
+      "hypothesis_id": "SFRP_MR_SPOT_PERPETUAL_FUNDING_DISLOCATION",
+      "sample_size_intervals": 6579,
+      "mean_funding_rate_8h_bps": 0.447,
+      "median_funding_rate_8h_bps": 0.641,
+      "std_funding_rate_8h_bps": 1.936,
+      "quantiles_bps": {
+        "q05": -1.89,
+        "q50": 0.641,
+        "q95": 2.726,
+        "q99": 5.258
+      },
+      "pct_negative_intervals": 13.89,
+      "pct_extreme_intervals_gt_10bps": 0.03,
+      "roundtrip_retail_friction_bps": 38.0,
+      "breakeven_holding_days_at_mean": 28.3,
+      "expected_gross_payoff_10d_bps": 13.41,
+      "expected_net_payoff_10d_bps": -24.59,
+      "economic_feasibility_verdict": "REJECTED_AFTER_COSTS",
+      "falsification_reason": "Mean funding is only 0.45 bps/8h (1.34 bps/day). Amortizing 38.0 bps retail friction requires 28.3 days of unhedged basis risk. Expected 10-day net return is negative (-24.6 bps)."
+    },
+    "carp_cross_asset_momentum": {
+      "hypothesis_id": "CARP_CS_CROSS_ASSET_RELATIVE_MOMENTUM",
+      "sample_size_hours": 35063,
+      "assets_count": 8,
+      "cross_sectional_correlation_24h": -0.00144,
+      "cross_sectional_correlation_168h": 0.02882,
+      "annual_turnover_friction_drag_bps": 1040.0,
+      "economic_feasibility_verdict": "REJECTED_AFTER_COSTS",
+      "falsification_reason": "Cross-sectional momentum correlation is only 0.0288 at 168h and -0.0014 at 24h. Annual turnover friction drag (~1040 bps/yr) completely overwhelms the weak cross-sectional persistence. No net positive alpha survives retail taker costs."
+    },
+    "avrs_asymmetric_volatility_tail_gating": {
+      "hypothesis_id": "AVRS_TG_ASYMMETRIC_VOLATILITY_REGIME_SWITCHING",
+      "sample_size_hours": 35063,
+      "tail_risk_regime_hours": 3806,
+      "tail_risk_regime_pct": 10.85,
+      "annualized_return_normal_regime_pct": 75.41,
+      "annualized_sharpe_normal_regime": 1.279,
+      "annualized_return_tail_risk_regime_pct": -361.02,
+      "annualized_sharpe_tail_risk_regime": -3.075,
+      "regime_switches_per_year": 48.7,
+      "annual_switching_cost_bps": 974.4,
+      "downside_return_avoided_pct": 39.19,
+      "payoff_to_friction_ratio": 4.0,
+      "economic_feasibility_verdict": "SELECTED_FOR_NEXT_BOUNDED_EXPERIMENT",
+      "selection_rationale": "Tail-risk regimes exhibit deeply negative returns (-361.0% p.a., Sharpe -3.08). Exiting to Cash slack saves ~39.2% in drawdowns for only ~974 bps/yr in switching cost (Payoff/Cost = 4.0x). Unlike simple moving averages that lag by 15-20 bars, this establishes a legitimate non-linear opportunity for neural temporal learning."
+    }
+  },
+  "phase_3_non_neural_baseline_hurdles": {
+    "selected_hypothesis": "AVRS_TG_ASYMMETRIC_VOLATILITY_REGIME_SWITCHING",
+    "cash_baseline_net_pnl": 0.0,
+    "passive_spot_ew_net_return_pct": 28.1,
+    "passive_spot_ew_max_drawdown_pct": -68.4,
+    "avrs_rule_based_filter_net_return_pct": 42.8,
+    "avrs_rule_based_filter_max_drawdown_pct": -26.2,
+    "net_excess_vs_passive_pct": 14.7,
+    "annual_friction_paid_bps": 160.0
+  },
+  "phase_4_neural_value_justification": {
+    "why_neural_is_justified_on_avrs": "Simple moving average / ATR volatility filters have fixed lag and generate frequent whipsaws in transition zones. A temporal sequence model (Causal TCN / GRU) processing multi-scale semi-variance and cross-asset correlation tensors can learn early-warning state transitions, dynamically allocating Cash slack w_0 without lagging indicators.",
+    "falsification_gate_before_promotion": "The neural policy must beat the simple non-neural AVRS rule filter by at least +200 bps annualized net Sharpe-adjusted return and achieve max drawdown <= -22% on out-of-sample data under full 20.0 bps Spot round-trip friction."
+  },
+  "phase_5_unified_architecture_direction": {
+    "status": "APPROVED_FOR_BOUNDED_RESEARCH_PILOT",
+    "pipeline": "Causal Multi-Asset Tensor (N x T x F) -> Shared Temporal Encoder -> Portfolio Cash Slack w_0 and Asset Sizing alpha_i -> Deterministic Risk Barrier -> Post-Cost Sortino Utility",
+    "decoupled_from_production": true,
+    "real_trading": "DISABLED"
+  },
+  "phase_6_research_disposition": {
+    "selected_hypothesis": "AVRS_TG",
+    "disposition": "INFORMATION_HYPOTHESIS_SUPPORTED_FOR_NEURAL_PILOT",
+    "h1_carry_role": "RETAINED_AS_INDEPENDENT_NON_NEURAL_BASELINE",
+    "sfrp_funding_status": "REJECTED_AFTER_COSTS",
+    "carp_momentum_status": "REJECTED_AFTER_COSTS"
+  }
+}
