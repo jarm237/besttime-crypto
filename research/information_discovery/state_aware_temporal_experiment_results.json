@@ -1,0 +1,782 @@
+{
+  "metadata": {
+    "pipeline_name": "State-Aware Temporal Policy & Expanded Benchmark Experiment",
+    "execution_timestamp": "2026-11-14T21:57:14Z",
+    "git_commit": "0d9f66602f56b57cbc15ce7c7176b64293a38840",
+    "production_candidate": false,
+    "real_trading": "DISABLED",
+    "dataset_range": "2022-01-01 to 2025-12-31 (35,063 hourly bars, 8 liquid assets)",
+    "sealed_holdouts_accessed": false
+  },
+  "phase_0_parity_and_boundary_purge": {
+    "purge_summary": {
+      "total_weekly_steps": 207,
+      "train_steps_before_purge": 104,
+      "train_steps_after_purge": 103,
+      "purged_steps_count": 1,
+      "purged_step_timestamps": [
+        "2023-12-30 02:00:00"
+      ],
+      "purged_label_end_timestamps": [
+        "2024-01-06 02:00:00"
+      ],
+      "eval_steps_count": 103,
+      "first_eval_step_timestamp": "2024-01-06 02:00:00"
+    },
+    "spot_fee_parity_semantics": {
+      "traded_notional_definition": "sum(|V_target - V_current|) over assets",
+      "cash_fee_charged": false,
+      "entry_fee_double_charge_removed": true,
+      "initial_capital_usd": 10000.0,
+      "standard_fee_bps": 12.0,
+      "stressed_fee_bps": 30.0
+    }
+  },
+  "phase_1_temporal_policy_architecture": {
+    "model_type": "StateAwareTemporalPolicy (Causal GRU + Cross-Asset Head + State Interaction)",
+    "lookback_hours": 24,
+    "in_features": 4,
+    "feature_names": [
+      "r24",
+      "r168",
+      "vol24",
+      "downside_semivariance_24"
+    ],
+    "drift_hold_threshold": 0.02,
+    "training_metadata": {
+      "model_parameter_count": 15801,
+      "epochs": 25,
+      "initial_loss": -0.0135,
+      "final_loss": -9.974,
+      "loss_converged": true
+    }
+  },
+  "phase_2_expanded_benchmarks_summary_table": {
+    "CASH": {
+      "full_lifecycle_net_return_pct": 0.0,
+      "full_lifecycle_max_dd_pct": 0.0,
+      "full_lifecycle_sharpe": 0.0,
+      "full_lifecycle_sortino": 0.0,
+      "full_lifecycle_calmar": 0.0,
+      "out_of_sample_2024_2025_net_return_pct": 0.0,
+      "out_of_sample_2024_2025_max_dd_pct": 0.0,
+      "out_of_sample_2024_2025_sharpe": 0.0,
+      "out_of_sample_2024_2025_sortino": 0.0,
+      "in_sample_2022_2023_net_return_pct": 0.0,
+      "rebalance_count": 0,
+      "hold_count": 1,
+      "total_turnover": 0.0,
+      "total_fees_paid_usd": 0.0,
+      "avg_cash_allocation_pct": 100.0,
+      "avg_herfindahl_index": 0.0
+    },
+    "BTC_PHYSICAL_BUY_AND_HOLD": {
+      "full_lifecycle_net_return_pct": 87.37,
+      "full_lifecycle_max_dd_pct": -67.44,
+      "full_lifecycle_sharpe": 0.563,
+      "full_lifecycle_sortino": 0.795,
+      "full_lifecycle_calmar": 0.431,
+      "out_of_sample_2024_2025_net_return_pct": 107.24,
+      "out_of_sample_2024_2025_max_dd_pct": -34.88,
+      "out_of_sample_2024_2025_sharpe": 0.99,
+      "out_of_sample_2024_2025_sortino": 1.394,
+      "in_sample_2022_2023_net_return_pct": -9.45,
+      "rebalance_count": 1,
+      "hold_count": 0,
+      "total_turnover": 1.0,
+      "total_fees_paid_usd": 12.0,
+      "avg_cash_allocation_pct": 0.0,
+      "avg_herfindahl_index": 1.0
+    },
+    "ETH_PHYSICAL_BUY_AND_HOLD": {
+      "full_lifecycle_net_return_pct": -20.39,
+      "full_lifecycle_max_dd_pct": -76.71,
+      "full_lifecycle_sharpe": 0.261,
+      "full_lifecycle_sortino": 0.365,
+      "full_lifecycle_calmar": 0.234,
+      "out_of_sample_2024_2025_net_return_pct": 30.32,
+      "out_of_sample_2024_2025_max_dd_pct": -65.32,
+      "out_of_sample_2024_2025_sharpe": 0.536,
+      "out_of_sample_2024_2025_sortino": 0.745,
+      "in_sample_2022_2023_net_return_pct": -38.92,
+      "rebalance_count": 1,
+      "hold_count": 0,
+      "total_turnover": 1.0,
+      "total_fees_paid_usd": 12.0,
+      "avg_cash_allocation_pct": 0.0,
+      "avg_herfindahl_index": 1.0
+    },
+    "EW_8ASSET_PHYSICAL_BUY_AND_HOLD": {
+      "full_lifecycle_net_return_pct": 7.76,
+      "full_lifecycle_max_dd_pct": -71.34,
+      "full_lifecycle_sharpe": 0.355,
+      "full_lifecycle_sortino": 0.487,
+      "full_lifecycle_calmar": 0.324,
+      "out_of_sample_2024_2025_net_return_pct": 68.43,
+      "out_of_sample_2024_2025_max_dd_pct": -47.25,
+      "out_of_sample_2024_2025_sharpe": 0.727,
+      "out_of_sample_2024_2025_sortino": 0.998,
+      "in_sample_2022_2023_net_return_pct": -36.22,
+      "rebalance_count": 1,
+      "hold_count": 0,
+      "total_turnover": 1.0,
+      "total_fees_paid_usd": 12.0,
+      "avg_cash_allocation_pct": 0.0,
+      "avg_herfindahl_index": 0.1484
+    },
+    "EW_8ASSET_WEEKLY_REBALANCED": {
+      "full_lifecycle_net_return_pct": 22.76,
+      "full_lifecycle_max_dd_pct": -71.83,
+      "full_lifecycle_sharpe": 0.416,
+      "full_lifecycle_sortino": 0.571,
+      "full_lifecycle_calmar": 0.393,
+      "out_of_sample_2024_2025_net_return_pct": 62.78,
+      "out_of_sample_2024_2025_max_dd_pct": -49.24,
+      "out_of_sample_2024_2025_sharpe": 0.699,
+      "out_of_sample_2024_2025_sortino": 0.957,
+      "in_sample_2022_2023_net_return_pct": -24.83,
+      "rebalance_count": 209,
+      "hold_count": 0,
+      "total_turnover": 9.56,
+      "total_fees_paid_usd": 103.99,
+      "avg_cash_allocation_pct": 0.0,
+      "avg_herfindahl_index": 0.1252
+    },
+    "CARM_WEEKLY_ONLY": {
+      "full_lifecycle_net_return_pct": 121.34,
+      "full_lifecycle_max_dd_pct": -68.53,
+      "full_lifecycle_sharpe": 0.638,
+      "full_lifecycle_sortino": 0.886,
+      "full_lifecycle_calmar": 0.675,
+      "out_of_sample_2024_2025_net_return_pct": 112.06,
+      "out_of_sample_2024_2025_max_dd_pct": -58.92,
+      "out_of_sample_2024_2025_sharpe": 0.882,
+      "out_of_sample_2024_2025_sortino": 1.223,
+      "in_sample_2022_2023_net_return_pct": 3.99,
+      "rebalance_count": 208,
+      "hold_count": 0,
+      "total_turnover": 257.41,
+      "total_fees_paid_usd": 3830.81,
+      "avg_cash_allocation_pct": 0.0,
+      "avg_herfindahl_index": 0.3328
+    },
+    "CORRECTED_SHARED_MLP": {
+      "full_lifecycle_net_return_pct": 376.16,
+      "full_lifecycle_max_dd_pct": -60.96,
+      "full_lifecycle_sharpe": 0.969,
+      "full_lifecycle_sortino": 1.408,
+      "full_lifecycle_calmar": 0.905,
+      "out_of_sample_2024_2025_net_return_pct": 19.73,
+      "out_of_sample_2024_2025_max_dd_pct": -60.96,
+      "out_of_sample_2024_2025_sharpe": 0.443,
+      "out_of_sample_2024_2025_sortino": 0.623,
+      "in_sample_2022_2023_net_return_pct": 293.7,
+      "rebalance_count": 207,
+      "hold_count": 1,
+      "total_turnover": 98.77,
+      "total_fees_paid_usd": 4272.02,
+      "avg_cash_allocation_pct": 66.83,
+      "avg_herfindahl_index": 0.1736
+    },
+    "STATE_AWARE_TEMPORAL_POLICY": {
+      "full_lifecycle_net_return_pct": 428.57,
+      "full_lifecycle_max_dd_pct": -18.69,
+      "full_lifecycle_sharpe": 1.763,
+      "full_lifecycle_sortino": 2.994,
+      "full_lifecycle_calmar": 2.396,
+      "out_of_sample_2024_2025_net_return_pct": 6.64,
+      "out_of_sample_2024_2025_max_dd_pct": -7.71,
+      "out_of_sample_2024_2025_sharpe": 0.51,
+      "out_of_sample_2024_2025_sortino": 0.671,
+      "in_sample_2022_2023_net_return_pct": 395.54,
+      "rebalance_count": 43,
+      "hold_count": 165,
+      "total_turnover": 10.0,
+      "total_fees_paid_usd": 393.14,
+      "avg_cash_allocation_pct": 94.29,
+      "avg_herfindahl_index": 0.0337
+    }
+  },
+  "phase_2_stressed_friction_comparison": {
+    "CARM_WEEKLY_ONLY": {
+      "full_lifecycle_net_return_pct": 39.07,
+      "out_of_sample_2024_2025_net_return_pct": 69.27,
+      "total_fees_paid_usd": 7075.12
+    },
+    "CORRECTED_SHARED_MLP": {
+      "full_lifecycle_net_return_pct": 298.45,
+      "out_of_sample_2024_2025_net_return_pct": 9.89,
+      "total_fees_paid_usd": 9490.92
+    },
+    "STATE_AWARE_TEMPORAL_POLICY": {
+      "full_lifecycle_net_return_pct": 419.13,
+      "out_of_sample_2024_2025_net_return_pct": 6.29,
+      "total_fees_paid_usd": 972.53
+    }
+  },
+  "phase_2_detailed_benchmarks": {
+    "CASH": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_return_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "annualized_calmar": 0.0,
+      "rebalance_count": 0,
+      "hold_count": 1,
+      "total_turnover": 0.0,
+      "total_fees_paid_usd": 0.0,
+      "average_cash_allocation_pct": 100.0,
+      "average_herfindahl_index": 0.0,
+      "in_sample_2022_2023": {
+        "net_return_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "sharpe": 0.0,
+        "sortino": 0.0
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "sharpe": 0.0,
+        "sortino": 0.0,
+        "calmar": 0.0
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 10000.0,
+          "end_equity_usd": 10000.0,
+          "net_return_pct": 0.0,
+          "max_drawdown_pct": 0.0,
+          "fees_paid_usd": 0.0
+        },
+        "2023": {
+          "start_equity_usd": 10000.0,
+          "end_equity_usd": 10000.0,
+          "net_return_pct": 0.0,
+          "max_drawdown_pct": 0.0,
+          "fees_paid_usd": 0.0
+        },
+        "2024": {
+          "start_equity_usd": 10000.0,
+          "end_equity_usd": 10000.0,
+          "net_return_pct": 0.0,
+          "max_drawdown_pct": 0.0,
+          "fees_paid_usd": 0.0
+        },
+        "2025": {
+          "start_equity_usd": 10000.0,
+          "end_equity_usd": 10000.0,
+          "net_return_pct": 0.0,
+          "max_drawdown_pct": 0.0,
+          "fees_paid_usd": 0.0
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": 0.0,
+        "BNBUSDT": 0.0,
+        "BTCUSDT": 0.0,
+        "ETHUSDT": 0.0,
+        "LINKUSDT": 0.0,
+        "LTCUSDT": 0.0,
+        "SOLUSDT": 0.0,
+        "XRPUSDT": 0.0
+      }
+    },
+    "BTC_PHYSICAL_BUY_AND_HOLD": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 18737.0,
+      "net_return_pct": 87.37,
+      "max_drawdown_pct": -67.44,
+      "annualized_return_pct": 29.07,
+      "annualized_sharpe": 0.563,
+      "annualized_sortino": 0.795,
+      "annualized_calmar": 0.431,
+      "rebalance_count": 1,
+      "hold_count": 0,
+      "total_turnover": 1.0,
+      "total_fees_paid_usd": 12.0,
+      "average_cash_allocation_pct": 0.0,
+      "average_herfindahl_index": 1.0,
+      "in_sample_2022_2023": {
+        "net_return_pct": -9.45,
+        "max_drawdown_pct": -67.44,
+        "sharpe": 0.181,
+        "sortino": 0.256
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 107.24,
+        "max_drawdown_pct": -34.88,
+        "sharpe": 0.99,
+        "sortino": 1.394,
+        "calmar": 1.385
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 9988.0,
+          "end_equity_usd": 3534.92,
+          "net_return_pct": -64.61,
+          "max_drawdown_pct": -67.44,
+          "fees_paid_usd": 12.0
+        },
+        "2023": {
+          "start_equity_usd": 3539.36,
+          "end_equity_usd": 9044.08,
+          "net_return_pct": 155.53,
+          "max_drawdown_pct": -21.76,
+          "fees_paid_usd": 0.0
+        },
+        "2024": {
+          "start_equity_usd": 9049.49,
+          "end_equity_usd": 19976.58,
+          "net_return_pct": 120.75,
+          "max_drawdown_pct": -32.34,
+          "fees_paid_usd": 0.0
+        },
+        "2025": {
+          "start_equity_usd": 19990.59,
+          "end_equity_usd": 18754.12,
+          "net_return_pct": -6.19,
+          "max_drawdown_pct": -34.88,
+          "fees_paid_usd": 0.0
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": 0.0,
+        "BNBUSDT": 0.0,
+        "BTCUSDT": 8749.0,
+        "ETHUSDT": 0.0,
+        "LINKUSDT": 0.0,
+        "LTCUSDT": 0.0,
+        "SOLUSDT": 0.0,
+        "XRPUSDT": 0.0
+      }
+    },
+    "ETH_PHYSICAL_BUY_AND_HOLD": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 7960.94,
+      "net_return_pct": -20.39,
+      "max_drawdown_pct": -76.71,
+      "annualized_return_pct": 17.94,
+      "annualized_sharpe": 0.261,
+      "annualized_sortino": 0.365,
+      "annualized_calmar": 0.234,
+      "rebalance_count": 1,
+      "hold_count": 0,
+      "total_turnover": 1.0,
+      "total_fees_paid_usd": 12.0,
+      "average_cash_allocation_pct": 0.0,
+      "average_herfindahl_index": 1.0,
+      "in_sample_2022_2023": {
+        "net_return_pct": -38.92,
+        "max_drawdown_pct": -76.71,
+        "sharpe": -0.012,
+        "sortino": -0.017
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 30.32,
+        "max_drawdown_pct": -65.32,
+        "sharpe": 0.536,
+        "sortino": 0.745,
+        "calmar": 0.561
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 9988.0,
+          "end_equity_usd": 3207.45,
+          "net_return_pct": -67.89,
+          "max_drawdown_pct": -76.71,
+          "fees_paid_usd": 12.0
+        },
+        "2023": {
+          "start_equity_usd": 3207.13,
+          "end_equity_usd": 6101.06,
+          "net_return_pct": 90.23,
+          "max_drawdown_pct": -28.23,
+          "fees_paid_usd": 0.0
+        },
+        "2024": {
+          "start_equity_usd": 6120.04,
+          "end_equity_usd": 8943.41,
+          "net_return_pct": 46.13,
+          "max_drawdown_pct": -46.69,
+          "fees_paid_usd": 0.0
+        },
+        "2025": {
+          "start_equity_usd": 8935.73,
+          "end_equity_usd": 7975.67,
+          "net_return_pct": -10.74,
+          "max_drawdown_pct": -61.83,
+          "fees_paid_usd": 0.0
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": 0.0,
+        "BNBUSDT": 0.0,
+        "BTCUSDT": 0.0,
+        "ETHUSDT": -2027.06,
+        "LINKUSDT": 0.0,
+        "LTCUSDT": 0.0,
+        "SOLUSDT": 0.0,
+        "XRPUSDT": 0.0
+      }
+    },
+    "EW_8ASSET_PHYSICAL_BUY_AND_HOLD": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10775.51,
+      "net_return_pct": 7.76,
+      "max_drawdown_pct": -71.34,
+      "annualized_return_pct": 23.14,
+      "annualized_sharpe": 0.355,
+      "annualized_sortino": 0.487,
+      "annualized_calmar": 0.324,
+      "rebalance_count": 1,
+      "hold_count": 0,
+      "total_turnover": 1.0,
+      "total_fees_paid_usd": 12.0,
+      "average_cash_allocation_pct": 0.0,
+      "average_herfindahl_index": 0.1484,
+      "in_sample_2022_2023": {
+        "net_return_pct": -36.22,
+        "max_drawdown_pct": -71.34,
+        "sharpe": -0.013,
+        "sortino": -0.018
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 68.43,
+        "max_drawdown_pct": -47.25,
+        "sharpe": 0.727,
+        "sortino": 0.998,
+        "calmar": 0.993
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 9988.0,
+          "end_equity_usd": 3181.02,
+          "net_return_pct": -68.15,
+          "max_drawdown_pct": -71.34,
+          "fees_paid_usd": 12.0
+        },
+        "2023": {
+          "start_equity_usd": 3179.49,
+          "end_equity_usd": 6370.61,
+          "net_return_pct": 100.37,
+          "max_drawdown_pct": -31.08,
+          "fees_paid_usd": 0.0
+        },
+        "2024": {
+          "start_equity_usd": 6401.28,
+          "end_equity_usd": 12672.87,
+          "net_return_pct": 97.97,
+          "max_drawdown_pct": -42.17,
+          "fees_paid_usd": 0.0
+        },
+        "2025": {
+          "start_equity_usd": 12670.78,
+          "end_equity_usd": 10781.47,
+          "net_return_pct": -14.91,
+          "max_drawdown_pct": -47.25,
+          "fees_paid_usd": 0.0
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": -936.11,
+        "BNBUSDT": 834.54,
+        "BTCUSDT": 1093.63,
+        "ETHUSDT": -253.38,
+        "LINKUSDT": -486.22,
+        "LTCUSDT": -605.47,
+        "SOLUSDT": -346.97,
+        "XRPUSDT": 1487.5
+      }
+    },
+    "EW_8ASSET_WEEKLY_REBALANCED": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 12275.82,
+      "net_return_pct": 22.76,
+      "max_drawdown_pct": -71.83,
+      "annualized_return_pct": 28.22,
+      "annualized_sharpe": 0.416,
+      "annualized_sortino": 0.571,
+      "annualized_calmar": 0.393,
+      "rebalance_count": 209,
+      "hold_count": 0,
+      "total_turnover": 9.56,
+      "total_fees_paid_usd": 103.99,
+      "average_cash_allocation_pct": 0.0,
+      "average_herfindahl_index": 0.1252,
+      "in_sample_2022_2023": {
+        "net_return_pct": -24.83,
+        "max_drawdown_pct": -71.83,
+        "sharpe": 0.132,
+        "sortino": 0.181
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 62.78,
+        "max_drawdown_pct": -49.24,
+        "sharpe": 0.699,
+        "sortino": 0.957,
+        "calmar": 0.959
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 9988.0,
+          "end_equity_usd": 3018.94,
+          "net_return_pct": -69.77,
+          "max_drawdown_pct": -71.83,
+          "fees_paid_usd": 26.41
+        },
+        "2023": {
+          "start_equity_usd": 3018.31,
+          "end_equity_usd": 7507.76,
+          "net_return_pct": 148.74,
+          "max_drawdown_pct": -31.04,
+          "fees_paid_usd": 12.54
+        },
+        "2024": {
+          "start_equity_usd": 7546.76,
+          "end_equity_usd": 15252.76,
+          "net_return_pct": 102.11,
+          "max_drawdown_pct": -44.26,
+          "fees_paid_usd": 29.53
+        },
+        "2025": {
+          "start_equity_usd": 15240.13,
+          "end_equity_usd": 12284.33,
+          "net_return_pct": -19.39,
+          "max_drawdown_pct": -49.24,
+          "fees_paid_usd": 35.51
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": -1171.18,
+        "BNBUSDT": 1284.72,
+        "BTCUSDT": 463.43,
+        "ETHUSDT": -41.08,
+        "LINKUSDT": -4.99,
+        "LTCUSDT": -294.04,
+        "SOLUSDT": 58.98,
+        "XRPUSDT": 2083.97
+      }
+    },
+    "CARM_WEEKLY_ONLY": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 22133.71,
+      "net_return_pct": 121.34,
+      "max_drawdown_pct": -68.53,
+      "annualized_return_pct": 46.22,
+      "annualized_sharpe": 0.638,
+      "annualized_sortino": 0.886,
+      "annualized_calmar": 0.675,
+      "rebalance_count": 208,
+      "hold_count": 0,
+      "total_turnover": 257.41,
+      "total_fees_paid_usd": 3830.81,
+      "average_cash_allocation_pct": 0.0,
+      "average_herfindahl_index": 0.3328,
+      "in_sample_2022_2023": {
+        "net_return_pct": 3.99,
+        "max_drawdown_pct": -68.53,
+        "sharpe": 0.392,
+        "sortino": 0.546
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 112.06,
+        "max_drawdown_pct": -58.92,
+        "sharpe": 0.882,
+        "sortino": 1.223,
+        "calmar": 1.08
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 9988.0,
+          "end_equity_usd": 3972.8,
+          "net_return_pct": -60.22,
+          "max_drawdown_pct": -68.53,
+          "fees_paid_usd": 445.73
+        },
+        "2023": {
+          "start_equity_usd": 3975.27,
+          "end_equity_usd": 10386.53,
+          "net_return_pct": 161.28,
+          "max_drawdown_pct": -38.12,
+          "fees_paid_usd": 439.6
+        },
+        "2024": {
+          "start_equity_usd": 10447.73,
+          "end_equity_usd": 31008.3,
+          "net_return_pct": 196.79,
+          "max_drawdown_pct": -39.08,
+          "fees_paid_usd": 976.96
+        },
+        "2025": {
+          "start_equity_usd": 30993.85,
+          "end_equity_usd": 22155.55,
+          "net_return_pct": -28.52,
+          "max_drawdown_pct": -55.41,
+          "fees_paid_usd": 1968.53
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": 2503.5,
+        "BNBUSDT": 2761.77,
+        "BTCUSDT": 2428.17,
+        "ETHUSDT": 6155.18,
+        "LINKUSDT": -2672.85,
+        "LTCUSDT": -5413.7,
+        "SOLUSDT": -1775.77,
+        "XRPUSDT": 11978.24
+      }
+    },
+    "CORRECTED_SHARED_MLP": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 47615.88,
+      "net_return_pct": 376.16,
+      "max_drawdown_pct": -60.96,
+      "annualized_return_pct": 55.19,
+      "annualized_sharpe": 0.969,
+      "annualized_sortino": 1.408,
+      "annualized_calmar": 0.905,
+      "rebalance_count": 207,
+      "hold_count": 1,
+      "total_turnover": 98.77,
+      "total_fees_paid_usd": 4272.02,
+      "average_cash_allocation_pct": 66.83,
+      "average_herfindahl_index": 0.1736,
+      "in_sample_2022_2023": {
+        "net_return_pct": 293.7,
+        "max_drawdown_pct": -46.31,
+        "sharpe": 1.487,
+        "sortino": 2.239
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 19.73,
+        "max_drawdown_pct": -60.96,
+        "sharpe": 0.443,
+        "sortino": 0.623,
+        "calmar": 0.414
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 10000.0,
+          "end_equity_usd": 8846.51,
+          "net_return_pct": -11.53,
+          "max_drawdown_pct": -46.31,
+          "fees_paid_usd": 315.35
+        },
+        "2023": {
+          "start_equity_usd": 8862.7,
+          "end_equity_usd": 39370.43,
+          "net_return_pct": 344.23,
+          "max_drawdown_pct": -20.32,
+          "fees_paid_usd": 682.87
+        },
+        "2024": {
+          "start_equity_usd": 39769.91,
+          "end_equity_usd": 90191.96,
+          "net_return_pct": 126.78,
+          "max_drawdown_pct": -30.87,
+          "fees_paid_usd": 1314.39
+        },
+        "2025": {
+          "start_equity_usd": 90191.12,
+          "end_equity_usd": 47616.46,
+          "net_return_pct": -47.2,
+          "max_drawdown_pct": -49.77,
+          "fees_paid_usd": 1959.41
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": -8635.3,
+        "BNBUSDT": 6612.45,
+        "BTCUSDT": -2.77,
+        "ETHUSDT": 3944.57,
+        "LINKUSDT": 4373.29,
+        "LTCUSDT": -8540.17,
+        "SOLUSDT": 28448.27,
+        "XRPUSDT": 15687.58
+      }
+    },
+    "STATE_AWARE_TEMPORAL_POLICY": {
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 52856.66,
+      "net_return_pct": 428.57,
+      "max_drawdown_pct": -18.69,
+      "annualized_return_pct": 44.78,
+      "annualized_sharpe": 1.763,
+      "annualized_sortino": 2.994,
+      "annualized_calmar": 2.396,
+      "rebalance_count": 43,
+      "hold_count": 165,
+      "total_turnover": 10.0,
+      "total_fees_paid_usd": 393.14,
+      "average_cash_allocation_pct": 94.29,
+      "average_herfindahl_index": 0.0337,
+      "in_sample_2022_2023": {
+        "net_return_pct": 395.54,
+        "max_drawdown_pct": -18.69,
+        "sharpe": 2.442,
+        "sortino": 4.197
+      },
+      "out_of_sample_2024_2025": {
+        "net_return_pct": 6.64,
+        "max_drawdown_pct": -7.71,
+        "sharpe": 0.51,
+        "sortino": 0.671,
+        "calmar": 0.446
+      },
+      "annual_attribution": {
+        "2022": {
+          "start_equity_usd": 10000.0,
+          "end_equity_usd": 10106.58,
+          "net_return_pct": 1.07,
+          "max_drawdown_pct": -4.23,
+          "fees_paid_usd": 16.29
+        },
+        "2023": {
+          "start_equity_usd": 10126.07,
+          "end_equity_usd": 49553.9,
+          "net_return_pct": 389.37,
+          "max_drawdown_pct": -18.69,
+          "fees_paid_usd": 265.02
+        },
+        "2024": {
+          "start_equity_usd": 49567.66,
+          "end_equity_usd": 54016.97,
+          "net_return_pct": 8.98,
+          "max_drawdown_pct": -7.71,
+          "fees_paid_usd": 94.47
+        },
+        "2025": {
+          "start_equity_usd": 54016.67,
+          "end_equity_usd": 52856.87,
+          "net_return_pct": -2.15,
+          "max_drawdown_pct": -2.63,
+          "fees_paid_usd": 17.37
+        }
+      },
+      "per_asset_pnl_usd": {
+        "ADAUSDT": 37.47,
+        "BNBUSDT": 150.7,
+        "BTCUSDT": 128.0,
+        "ETHUSDT": 52.99,
+        "LINKUSDT": 444.45,
+        "LTCUSDT": 18.1,
+        "SOLUSDT": 41697.43,
+        "XRPUSDT": 720.65
+      }
+    }
+  },
+  "phase_3_research_stop_rule_disposition": {
+    "current_neural_information_hypothesis": "NOT_SUPPORTED",
+    "current_model_family_search": "STOPPED",
+    "disposition": "HYPOTHESIS_FALSIFIED_SEARCH_TERMINATED",
+    "carm_oos_net_return_pct": 112.06,
+    "mlp_oos_net_return_pct": 19.73,
+    "temporal_oos_net_return_pct": 6.64,
+    "temporal_incremental_value_vs_carm_pct": -105.42,
+    "mlp_incremental_value_vs_carm_pct": -92.33,
+    "rationale": "Both the Shared Cross-Asset MLP (OOS return: 19.73%) and the State-Aware Temporal GRU Policy (OOS return: 6.64%) substantially underperformed the simple CARM weekly momentum rule (OOS return: 112.06%) in the 2024-2025 prospective evaluation window. While both neural policies exhibited massive in-sample overfitting (MLP: +293.70%, Temporal: +395.54% in 2022-2023), they failed to generalize out-of-sample, lagging CARM by 105.42% and 92.33%. In accordance with the pre-registered research stop rule, neural portfolio policy search on these observable temporal/cross-asset representations is formally terminated."
+  }
+}
