@@ -575,11 +575,15 @@ class N1_7LifecycleEngine:
         pos["last_valid_observation_timestamp"] = ts
         pos["last_update_ms"] = ts
 
-        # Update entry and exit market levels
-        sp_ask_vwap = observation.get("spot_ask_vwap", pos.get("cur_spot_vwap", 0.0))
-        cm_bid_vwap = observation.get("coinm_bid_vwap", pos.get("cur_fut_vwap", 0.0))
-        sp_bid_vwap = observation.get("spot_bid_vwap", sp_ask_vwap)
-        cm_ask_vwap = observation.get("coinm_ask_vwap", cm_bid_vwap)
+        # Update entry and exit market levels without overwriting valid levels with zero
+        sp_ask_obs = observation.get("spot_ask_vwap")
+        sp_ask_vwap = float(sp_ask_obs) if (sp_ask_obs is not None and float(sp_ask_obs) > 0) else pos.get("cur_spot_vwap", pos.get("entry_spot_price", 1.0))
+        cm_bid_obs = observation.get("coinm_bid_vwap")
+        cm_bid_vwap = float(cm_bid_obs) if (cm_bid_obs is not None and float(cm_bid_obs) > 0) else pos.get("cur_fut_vwap", pos.get("entry_futures_price", 1.0))
+        sp_bid_obs = observation.get("spot_bid_vwap")
+        sp_bid_vwap = float(sp_bid_obs) if (sp_bid_obs is not None and float(sp_bid_obs) > 0) else pos.get("exit_spot_bid_vwap", sp_ask_vwap)
+        cm_ask_obs = observation.get("coinm_ask_vwap")
+        cm_ask_vwap = float(cm_ask_obs) if (cm_ask_obs is not None and float(cm_ask_obs) > 0) else pos.get("exit_cm_ask_vwap", cm_bid_vwap)
 
         pos["cur_spot_vwap"] = sp_ask_vwap
         pos["cur_fut_vwap"] = cm_bid_vwap
@@ -682,6 +686,7 @@ class N1_7LifecycleEngine:
                 pos["accumulated_realized_spot_pnl_usd"] = round(
                     pos.get("accumulated_realized_spot_pnl_usd", 0.0) + partial_realized_spot, 4
                 )
+                pos["realized_spot_pnl_usd"] = round(pos["accumulated_realized_spot_pnl_usd"], 2)
                 pos["spot_inventory_coin"] = remaining_coins
                 pos["entry_notional_usd"] = round(remaining_notional, 2)
                 pos["spot_entry_fee_usd"] = round(remaining_entry_fee, 4)
@@ -693,6 +698,9 @@ class N1_7LifecycleEngine:
                 pos["partial_released_capital_usd"] = round(sold_notional, 2)
                 pos["spot_inventory_market_value_usd"] = round(remaining_coins * sp_bid_vwap, 2)
                 pos["spot_inventory_valuation_usd"] = pos["spot_inventory_market_value_usd"]
+                pos["realized_pnl"] = round(
+                    float(pos.get("realized_futures_pnl_usd", 0.0)) + pos["accumulated_realized_spot_pnl_usd"], 2
+                )
 
                 pos.setdefault("history", []).append({
                     "timestamp_ms": ts,
@@ -719,7 +727,8 @@ class N1_7LifecycleEngine:
             if isinstance(settle_record, dict):
                 settle_sym = settle_record.get("contract_symbol")
                 settle_deliv = settle_record.get("delivery_ms") or settle_record.get("expiry_ms", deliv_ms)
-                pub_ms = settle_record.get("available_ms") or settle_record.get("published_ms") or settle_record.get("recv_ms", ts)
+                recv_ms = int(settle_record.get("recv_ms", 0))
+                pub_ms = int(settle_record.get("published_ms") or settle_record.get("available_ms", 0))
 
                 # Check contract matching
                 if settle_sym and settle_sym != pos.get("contract_symbol"):
@@ -727,10 +736,15 @@ class N1_7LifecycleEngine:
                 # Check expiry matching
                 if settle_deliv and deliv_ms > 0 and abs(settle_deliv - deliv_ms) > 3_600_000:
                     return (False, "SETTLEMENT_EXPIRY_MISMATCH")
-                # Check causal availability (PIT): never settle before expiry or before data publication
+                # Task B: Reject forward records without sufficient trustworthy receipt/availability metadata
+                if recv_ms <= 0 and pub_ms <= 0:
+                    return (False, "SETTLEMENT_METADATA_UNTRUSTWORTHY")
+
+                # Check causal availability (PIT): never settle before expiry or before data publication / receipt
+                avail_ms = max(recv_ms, pub_ms) if (recv_ms > 0 and pub_ms > 0) else (recv_ms if recv_ms > 0 else pub_ms)
                 if deliv_ms > 0 and ts < deliv_ms:
                     return (False, "SETTLEMENT_BEFORE_EXPIRY_IGNORED")
-                if pub_ms > ts:
+                if ts < avail_ms:
                     return (False, "SETTLEMENT_DATA_FUTURE_PIT")
 
                 p_val = float(settle_record.get("settlement_price", 0.0))
@@ -1022,6 +1036,7 @@ class N1_7LifecycleEngine:
             gross_spot = spot_mark_val - notional
             sp_entry_fee = pos.get("spot_entry_fee_usd", notional * (COSTS.spot_entry_fee_bps / 10_000.0))
             unrealized_spot = gross_spot - sp_entry_fee
+            accum_realized_spot = float(pos.get("accumulated_realized_spot_pnl_usd", pos.get("realized_spot_pnl_usd", 0.0)))
 
             # Close now economics for held inventory: target actual spot coins
             sp_sweep = pos.get("spot_bid_sweep") or pos.get("last_depth_evidence", {}).get("spot_bid_sweep")
@@ -1044,7 +1059,7 @@ class N1_7LifecycleEngine:
                 liq_gross_spot = spot_coin * exit_spot - notional
                 liq_sp_exit_fee = spot_coin * exit_spot * (COSTS.spot_exit_fee_bps / 10_000.0)
                 liq_spot_net = liq_gross_spot - sp_entry_fee - liq_sp_exit_fee
-                est_close_pnl = round(realized_fut + liq_spot_net - pos.get("residual_execution_cost_usd", 0.0), 2)
+                est_close_pnl = round(realized_fut + accum_realized_spot + liq_spot_net - pos.get("residual_execution_cost_usd", 0.0), 2)
             else:
                 close_exec = False
                 close_liq_status = "CLOSE_NOT_EXECUTABLE"
@@ -1094,13 +1109,14 @@ class N1_7LifecycleEngine:
                 "entry_fees_paid": round(entry_fees, 2),
                 "entry_fees_paid_usd": round(entry_fees, 2),
                 "total_fees_paid_usd": round(entry_fees, 2),
-                "current_mtm_equity_usd": round(spot_mark_val + realized_fut, 2),
+                "current_mtm_equity_usd": round(notional + realized_fut + accum_realized_spot + unrealized_spot, 2),
                 "current_unrealized_pnl_usd": round(unrealized_spot, 2),
                 "unrealized_pnl_after_entry_cost": round(unrealized_spot, 2),
                 "estimated_close_now_pnl": est_close_pnl,
                 "realized_futures_pnl_usd": round(realized_fut, 2),
-                "realized_spot_pnl_usd": 0.0,
-                "realized_pnl": round(realized_fut, 2),
+                "realized_spot_pnl_usd": round(accum_realized_spot, 2),
+                "accumulated_realized_spot_pnl_usd": round(accum_realized_spot, 2),
+                "realized_pnl": round(realized_fut + accum_realized_spot, 2),
                 "capital_still_committed_usd": notional,
                 "close_executable": close_exec,
                 "close_liquidation_status": close_liq_status,
@@ -1255,11 +1271,17 @@ class N1_7LifecycleEngine:
                                         p_rec["settlement_price"] = float(item["deliveryPrice"])
                                         deliv_time = int(item.get("deliveryTime", 0))
                                         p_rec["delivery_ms"] = deliv_time
-                                        # P0-A: Keep delivery_ms as contract expiry; keep recorder recv_ms as system data availability
+                                        # Task B: Preserve delivery expiry and recorder receive timestamps separately.
+                                        # Do not use deliveryTime as a fallback for missing forward availability.
+                                        # Reject forward records without sufficient trustworthy receipt/availability metadata.
                                         recv_time = int(rec.get("recv_ms") or rec.get("timestamp_ms") or 0)
                                         pub_time = int(rec.get("published_ms") or rec.get("available_ms") or 0)
-                                        rec_avail = pub_time if pub_time > 0 else (recv_time if recv_time > 0 else deliv_time)
-                                        p_rec["published_ms"] = rec_avail
+                                        if recv_time <= 0 and pub_time <= 0:
+                                            # Fail closed on missing settlement availability
+                                            continue
+                                        rec_avail = max(recv_time, pub_time) if (recv_time > 0 and pub_time > 0) else (recv_time if recv_time > 0 else pub_time)
+                                        p_rec["recv_ms"] = recv_time
+                                        p_rec["published_ms"] = pub_time
                                         p_rec["available_ms"] = rec_avail
                                         settlement_records_all.append(p_rec)
                             else:
@@ -1503,14 +1525,21 @@ class N1_7LifecycleEngine:
         for s_rec in settlement_records_all:
             raw_sym = s_rec.get("contract_symbol") or s_rec.get("symbol") or s_rec.get("params", {}).get("pair", "")
             deliv_ms = int(s_rec.get("delivery_ms", 0))
-            s_avail = int(
-                s_rec.get("available_ms")
-                or s_rec.get("published_ms")
-                or s_rec.get("recv_ms")
-                or s_rec.get("decision_timestamp", 0)
-            )
-            # Never process settlement at a decision timestamp earlier than known data availability
-            s_pub = max(s_avail, deliv_ms) if deliv_ms > 0 else s_avail
+            recv_ms = int(s_rec.get("recv_ms", 0))
+            pub_ms = int(s_rec.get("published_ms") or s_rec.get("available_ms", 0))
+
+            # Task B: Reject forward records without sufficient trustworthy receipt/availability metadata
+            if recv_ms <= 0 and pub_ms <= 0:
+                continue
+
+            # Ensure decision timestamp is not earlier than actual recorder receipt
+            avail_ms = max(recv_ms, pub_ms) if (recv_ms > 0 and pub_ms > 0) else (recv_ms if recv_ms > 0 else pub_ms)
+            s_pub = max(avail_ms, deliv_ms) if deliv_ms > 0 else avail_ms
+
+            s_rec["delivery_ms"] = deliv_ms
+            s_rec["recv_ms"] = recv_ms
+            s_rec["published_ms"] = pub_ms
+            s_rec["available_ms"] = avail_ms
 
             # Resolve contract symbol:
             resolved_sym = None
@@ -2045,6 +2074,15 @@ class N1_7LifecycleEngine:
             2
         )
 
+        futures_settled_realized_spot_pnl = round(
+            sum(
+                float(p.get("accumulated_realized_spot_pnl_usd", p.get("realized_spot_pnl_usd", 0.0)))
+                for p in compliant_ledger
+                if p.get("state") == LifecycleState.FUTURES_LEG_SETTLED or p.get("futures_leg_settled", False)
+            ),
+            2
+        )
+
         futures_settled_unrealized_spot_pnl = round(
             sum(
                 p.get("unrealized_pnl_after_entry_cost", p.get("current_unrealized_pnl_usd", 0.0))
@@ -2089,7 +2127,8 @@ class N1_7LifecycleEngine:
             2
         )
         realized_spot_pnl_usd = round(
-            sum(p.get("realized_spot_pnl_usd", 0.0) for p in closed_compliant),
+            sum(p.get("realized_spot_pnl_usd", 0.0) for p in closed_compliant)
+            + futures_settled_realized_spot_pnl,
             2
         )
         total_account_equity_usd = round(
@@ -2097,6 +2136,7 @@ class N1_7LifecycleEngine:
             + fully_closed_pair_realized_net_pnl
             + active_hedged_pair_unrealized_net_pnl
             + futures_settled_realized_fut_pnl
+            + futures_settled_realized_spot_pnl
             + futures_settled_unrealized_spot_pnl,
             2
         )
@@ -2117,14 +2157,16 @@ class N1_7LifecycleEngine:
             "total_open_unrealized_pnl_usd": round(total_unrealized_pnl, 2),
             "realized_closed_pnl_usd": round(total_realized_closed_pnl, 2),
             "realized_completed_lifecycles_count": pairs_fully_closed_count,
-            # Explicit P0-C Disjoint accounting buckets
+            # Explicit Disjoint accounting buckets
             "FULLY_CLOSED_PAIR_REALIZED_NET_PNL": fully_closed_pair_realized_net_pnl,
             "ACTIVE_HEDGED_PAIR_UNREALIZED_NET_PNL": active_hedged_pair_unrealized_net_pnl,
             "FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL": futures_settled_realized_fut_pnl,
+            "FUTURES_SETTLED_SPOT_HELD_REALIZED_SPOT_PNL": futures_settled_realized_spot_pnl,
             "FUTURES_SETTLED_SPOT_HELD_UNREALIZED_SPOT_PNL": futures_settled_unrealized_spot_pnl,
             "fully_closed_pair_realized_net_pnl_usd": fully_closed_pair_realized_net_pnl,
             "active_hedged_pair_unrealized_net_pnl_usd": active_hedged_pair_unrealized_net_pnl,
             "futures_settled_spot_held_realized_futures_pnl_usd": futures_settled_realized_fut_pnl,
+            "futures_settled_spot_held_realized_spot_pnl_usd": futures_settled_realized_spot_pnl,
             "futures_settled_spot_held_unrealized_spot_pnl_usd": futures_settled_unrealized_spot_pnl,
             # Explicit P0-A required scorecard fields
             "FUTURES_LEGS_SETTLED": futures_legs_settled_count,

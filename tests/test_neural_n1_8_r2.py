@@ -2360,6 +2360,13 @@ def test_case_28_targeted_settlement_and_spot_quantity_lifecycle(tmp_path: Path)
     assert abs(runner.engine.underlying_committed_usd["BNB"] - round(expected_remaining_notional, 2)) <= 0.1
     assert res3["scorecard"]["CAPITAL_STILL_COMMITTED"] > 50.0  # Around $61.73
 
+    # Task A: Verify accumulated realized partial Spot PnL (approximately +$51.79)
+    assert abs(pos3["accumulated_realized_spot_pnl_usd"] - 51.79) <= 0.05
+    assert abs(res3["scorecard"]["FUTURES_SETTLED_SPOT_HELD_REALIZED_SPOT_PNL"] - 51.79) <= 0.05
+    expected_unrealized_spot3 = round(expected_remaining_coin * 688.50 - expected_remaining_notional - (expected_remaining_notional * (COSTS.spot_entry_fee_bps / 10_000.0)), 2)
+    expected_total_equity3 = round(20000.0 + expected_realized_fut + 51.79 + expected_unrealized_spot3, 2)
+    assert abs(res3["scorecard"]["TOTAL_ACCOUNT_EQUITY"] - expected_total_equity3) <= 0.05
+
     # Step 4: Day 4 - Complete Liquidation of Remaining 0.090777 BNB
     day4_dir = raw_root / "20261114"
     day4_dir.mkdir(parents=True)
@@ -2427,3 +2434,303 @@ def test_case_28_targeted_settlement_and_spot_quantity_lifecycle(tmp_path: Path)
     assert res_replay["scorecard"]["PAIRS_FULLY_CLOSED"] == 1
     assert res_replay["scorecard"]["CAPITAL_STILL_COMMITTED"] == 0.0
     assert res_replay["scorecard"]["CAPITAL_AVAILABLE"] == 20000.0
+
+
+# ---------------------------------------------------------------------------
+# Test Case 29: Partial-Realization Accounting Across All Three States (Oracle)
+# ---------------------------------------------------------------------------
+def test_case_29_partial_spot_realization_three_states_oracle(tmp_path: Path):
+    """Verify Task A across all three states with an independent mathematical oracle:
+    1. Futures settled, Spot fully held.
+    2. Futures settled, Spot partially sold (+51.79 realized spot net PnL).
+    3. Futures settled, remaining Spot sold, pair fully closed.
+    Asserts disjoint buckets, equity reconciliation, cash proceeds vs reserved cost basis.
+    """
+    raw_root = tmp_path / "raw"
+    raw_root.mkdir(parents=True)
+
+    t_base = 1794409200000
+    deliv_time = 1798185600000
+
+    ex_info = {
+        "payload": {
+            "symbols": [
+                {
+                    "symbol": "BNBUSD_261225",
+                    "pair": "BNBUSD",
+                    "contractType": "CURRENT_QUARTER",
+                    "contractStatus": "TRADING",
+                    "deliveryDate": str(deliv_time),
+                    "contractSize": "10.0",
+                }
+            ]
+        }
+    }
+
+    # Setup Day 1: Enter position ($5000 notional, entry spot 680.0 -> 7.352941176 BNB, fut 685.78)
+    day1_dir = raw_root / "20261111"
+    day1_dir.mkdir(parents=True)
+    (day1_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day1_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": t_base, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+    (day1_dir / "spot_depth.jsonl").write_text(
+        json.dumps({"symbol": "BNBUSDT", "recv_ms": t_base + 1000, "payload": {"bids": [["679.9", "20.0"]], "asks": [["680.0", "20.0"]]}}) + "\n",
+        encoding="utf-8",
+    )
+    (day1_dir / "cm_depth.jsonl").write_text(
+        json.dumps({"symbol": "BNBUSD_261225", "recv_ms": t_base + 1000, "payload": {"bids": [["685.78", "1000"]], "asks": [["685.80", "1000"]]}}) + "\n",
+        encoding="utf-8",
+    )
+
+    runner = ForwardLifecycleRunner(
+        checkpoint_path=tmp_path / "ckpt.json",
+        raw_root=raw_root,
+        output_dir=tmp_path / "out",
+        portfolio_capital_usd=20000.0,
+        population_mode="TEST_SYNTHETIC",
+    )
+    res1 = runner.run_step(raw_partitions=[day1_dir])
+    assert res1["scorecard"]["actively_tracked_lifecycles_count"] == 1
+
+    # --- STATE 1: Futures Settled, Spot Fully Held ---
+    day2_dir = raw_root / "20261112"
+    day2_dir.mkdir(parents=True)
+    t_settle = deliv_time + 300_000
+    (day2_dir / "cm_exchange_info.jsonl").write_text(json.dumps(ex_info) + "\n", encoding="utf-8")
+    (day2_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": t_settle, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+    (day2_dir / "cm_delivery_settlement.jsonl").write_text(
+        json.dumps({
+            "stream": "cm_delivery_settlement",
+            "symbol": "BNBUSD",
+            "recv_ms": t_settle,
+            "payload": [{"deliveryPrice": "689.80000000", "deliveryTime": deliv_time}],
+        }) + "\n",
+        encoding="utf-8",
+    )
+    res2 = runner.run_step(raw_partitions=[day2_dir])
+    sc2 = res2["scorecard"]
+
+    # Oracle 1:
+    oracle_inv_pnl = 5000.0 * (1.0 / 689.80 - 1.0 / 685.78) * 689.80
+    oracle_cm_fees = 5000.0 * 0.0005 + 5000.0 * 0.0005  # entry 5 bps + deliv 5 bps = 5.0
+    oracle_realized_fut = oracle_inv_pnl - oracle_cm_fees  # approx -35.10
+    oracle_spot_entry_fee = 5000.0 * 0.0010  # 5.0
+    oracle_unrealized_spot1 = 0.0 - oracle_spot_entry_fee  # spot marked at entry spot -> -5.0
+    oracle_equity_state1 = round(20000.0 + oracle_realized_fut + oracle_unrealized_spot1, 2)
+
+    assert sc2["FUTURES_LEGS_SETTLED"] == 1
+    assert sc2["PAIRS_FULLY_CLOSED"] == 0
+    assert sc2["SPOT_INVENTORY_HELD"] == 1
+    assert sc2["FULLY_CLOSED_PAIR_REALIZED_NET_PNL"] == 0.0
+    assert abs(sc2["FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL"] - round(oracle_realized_fut, 2)) <= 0.02
+    assert sc2["FUTURES_SETTLED_SPOT_HELD_REALIZED_SPOT_PNL"] == 0.0
+    assert abs(sc2["TOTAL_ACCOUNT_EQUITY"] - oracle_equity_state1) <= 0.05
+    assert sc2["CAPITAL_STILL_COMMITTED"] == 5000.0
+
+    # --- STATE 2: Futures Settled, Spot Partially Sold (7.262164 BNB at $688.50) ---
+    day3_dir = raw_root / "20261113"
+    day3_dir.mkdir(parents=True)
+    t_sweep1 = t_settle + 3600000
+    (day3_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": t_sweep1, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+    (day3_dir / "spot_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSDT",
+            "recv_ms": t_sweep1,
+            "payload": {"bids": [["688.50", "7.262164"]], "asks": [["688.60", "10.0"]]},
+        }) + "\n",
+        encoding="utf-8",
+    )
+    res3 = runner.run_step(raw_partitions=[day3_dir])
+    sc3 = res3["scorecard"]
+
+    # Oracle 2:
+    coins_sold = 7.262164
+    initial_coins = 5000.0 / 680.0
+    frac_sold = coins_sold / initial_coins
+    sold_notional = 5000.0 * frac_sold  # 4938.2715
+    sold_proceeds = coins_sold * 688.50  # 4999.9999
+    sold_gross = sold_proceeds - sold_notional  # 61.7284
+    sold_entry_fee = 5.0 * frac_sold  # 4.9383
+    sold_exit_fee = sold_proceeds * 0.0010  # 5.0000
+    oracle_partial_spot_realized = round(sold_gross - sold_entry_fee - sold_exit_fee, 2)  # +51.79!
+
+    rem_coins = initial_coins - coins_sold
+    rem_notional = 5000.0 - sold_notional  # 61.7285
+    rem_entry_fee = 5.0 - sold_entry_fee  # 0.0617
+    oracle_rem_unrealized_spot = round(rem_coins * 688.50 - rem_notional - rem_entry_fee, 2)  # +0.71
+    oracle_equity_state2 = round(20000.0 + oracle_realized_fut + oracle_partial_spot_realized + oracle_rem_unrealized_spot, 2)
+
+    assert abs(oracle_partial_spot_realized - 51.79) <= 0.02
+    assert sc3["PAIRS_FULLY_CLOSED"] == 0
+    assert sc3["SPOT_INVENTORY_HELD"] == 1
+    assert sc3["FULLY_CLOSED_PAIR_REALIZED_NET_PNL"] == 0.0
+    assert abs(sc3["FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL"] - round(oracle_realized_fut, 2)) <= 0.02
+    assert abs(sc3["FUTURES_SETTLED_SPOT_HELD_REALIZED_SPOT_PNL"] - 51.79) <= 0.02
+    assert abs(sc3["FUTURES_SETTLED_SPOT_HELD_UNREALIZED_SPOT_PNL"] - oracle_rem_unrealized_spot) <= 0.02
+    assert abs(sc3["TOTAL_ACCOUNT_EQUITY"] - oracle_equity_state2) <= 0.05
+    assert abs(sc3["CAPITAL_STILL_COMMITTED"] - round(rem_notional, 2)) <= 0.05
+
+    # --- STATE 3: Futures Settled, Remaining Spot Sold, Pair Fully Closed ---
+    day4_dir = raw_root / "20261114"
+    day4_dir.mkdir(parents=True)
+    t_sweep2 = t_sweep1 + 3600000
+    (day4_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": t_sweep2, "payload": {"price": "1.0000"}}) + "\n", encoding="utf-8")
+    (day4_dir / "spot_depth.jsonl").write_text(
+        json.dumps({
+            "symbol": "BNBUSDT",
+            "recv_ms": t_sweep2,
+            "payload": {"bids": [["688.50", "10.0"]], "asks": [["688.60", "10.0"]]},
+        }) + "\n",
+        encoding="utf-8",
+    )
+    res4 = runner.run_step(raw_partitions=[day4_dir])
+    sc4 = res4["scorecard"]
+
+    # Oracle 3:
+    total_spot_proceeds = initial_coins * 688.50  # 5062.50
+    total_spot_gross = total_spot_proceeds - 5000.0  # 62.50
+    total_spot_fees = 5.0 + total_spot_proceeds * 0.0010  # 5.0 + 5.0625 = 10.0625
+    oracle_total_spot_net = round(total_spot_gross - total_spot_fees, 2)  # +52.44
+    oracle_total_net_realized = round(oracle_realized_fut + oracle_total_spot_net, 2)  # -35.10 + 52.44 = +17.34
+    oracle_equity_state3 = round(20000.0 + oracle_total_net_realized, 2)
+
+    assert sc4["PAIRS_FULLY_CLOSED"] == 1
+    assert sc4["SPOT_INVENTORY_HELD"] == 0
+    assert abs(sc4["FULLY_CLOSED_PAIR_REALIZED_NET_PNL"] - oracle_total_net_realized) <= 0.05
+    assert sc4["ACTIVE_HEDGED_PAIR_UNREALIZED_NET_PNL"] == 0.0
+    assert sc4["FUTURES_SETTLED_SPOT_HELD_REALIZED_FUTURES_PNL"] == 0.0
+    assert sc4["FUTURES_SETTLED_SPOT_HELD_REALIZED_SPOT_PNL"] == 0.0
+    assert sc4["FUTURES_SETTLED_SPOT_HELD_UNREALIZED_SPOT_PNL"] == 0.0
+    assert abs(sc4["TOTAL_ACCOUNT_EQUITY"] - oracle_equity_state3) <= 0.05
+    assert sc4["CAPITAL_STILL_COMMITTED"] == 0.0
+    assert sc4["CAPITAL_AVAILABLE"] == 20000.0
+
+
+# ---------------------------------------------------------------------------
+# Test Case 30: Settlement Availability PIT & Metadata Validation (Fail-Closed)
+# ---------------------------------------------------------------------------
+def test_case_30_settlement_availability_pit_fail_closed(tmp_path: Path):
+    """Verify Task B:
+    1. Receipt after expiry (deliv_time = T, recv_ms = T + 5m): cannot settle at T, settles at T + 5m.
+    2. Receipt later than source publication (pub_ms = T + 1m, recv_ms = T + 5m): decision timestamp is T + 5m, not T + 1m.
+    3. Missing receipt timestamps (recv_ms = 0, pub_ms = 0): rejected with SETTLEMENT_METADATA_UNTRUSTWORTHY, fails closed.
+    4. Parser drops untrustworthy forward records without falling back to deliveryTime.
+    """
+    engine = N1_7LifecycleEngine()
+    deliv_time = 1798185600000  # Expiry T
+
+    pos = {
+        "lifecycle_id": "VTRADE_PIT_TEST",
+        "symbol": "BNBUSD_261225",
+        "contract_symbol": "BNBUSD_261225",
+        "spot_symbol": "BNBUSDT",
+        "underlying_asset": "BNB",
+        "entry_timestamp": 1000,
+        "entry_notional_usd": 5000.0,
+        "entry_spot_price": 680.0,
+        "entry_futures_price": 685.78,
+        "spot_inventory_coin": 5000.0 / 680.0,
+        "contracts_short": 500,
+        "contract_multiplier_usd": 10.0,
+        "delivery_ms": deliv_time,
+        "state": LifecycleState.HEDGED_HOLD,
+        "last_valid_observation_timestamp": 1000,
+        "last_update_ms": 1000,
+    }
+
+    # Case 1: Observation at T when data is available only at T + 5m -> rejects with SETTLEMENT_DATA_FUTURE_PIT
+    obs_early = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": deliv_time,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.00,
+        "spot_bid_vwap": 684.90,
+        "official_delivery_settlement": {
+            "contract_symbol": "BNBUSD_261225",
+            "settlement_price": 689.80,
+            "delivery_ms": deliv_time,
+            "recv_ms": deliv_time + 300_000,  # T + 5m
+        },
+    }
+    ok1, reason1 = engine.process_observation(pos, obs_early)
+    assert ok1 is False
+    assert reason1 == "SETTLEMENT_DATA_FUTURE_PIT"
+    assert pos.get("futures_leg_settled", False) is False
+
+    # Case 2: Receipt later than source publication (pub_ms = T + 1m, recv_ms = T + 5m)
+    # Decision at T + 1m must be rejected because actual receipt was T + 5m
+    obs_pub_early = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": deliv_time + 60_000,  # T + 1m
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.00,
+        "spot_bid_vwap": 684.90,
+        "official_delivery_settlement": {
+            "contract_symbol": "BNBUSD_261225",
+            "settlement_price": 689.80,
+            "delivery_ms": deliv_time,
+            "published_ms": deliv_time + 60_000,   # Exchange published at T + 1m
+            "recv_ms": deliv_time + 300_000,        # System received at T + 5m
+        },
+    }
+    ok2, reason2 = engine.process_observation(pos, obs_pub_early)
+    assert ok2 is False
+    assert reason2 == "SETTLEMENT_DATA_FUTURE_PIT"
+    assert pos.get("futures_leg_settled", False) is False
+
+    # Case 3: Missing receipt/publication metadata (both recv_ms and published_ms missing/zero)
+    # Must fail closed with SETTLEMENT_METADATA_UNTRUSTWORTHY, never falling back to deliveryTime
+    obs_untrusted = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": deliv_time + 300_000,
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.00,
+        "spot_bid_vwap": 684.90,
+        "official_delivery_settlement": {
+            "contract_symbol": "BNBUSD_261225",
+            "settlement_price": 689.80,
+            "delivery_ms": deliv_time,
+            # No recv_ms or published_ms provided!
+        },
+    }
+    ok3, reason3 = engine.process_observation(pos, obs_untrusted)
+    assert ok3 is False
+    assert reason3 == "SETTLEMENT_METADATA_UNTRUSTWORTHY"
+    assert pos.get("futures_leg_settled", False) is False
+
+    # Case 4: Causal evaluation at or after receipt (ts >= T + 5m) succeeds
+    obs_valid = {
+        "coinm_contract_symbol": "BNBUSD_261225",
+        "decision_timestamp": deliv_time + 301_000,  # T + 5m + 1s (advancing watermark)
+        "quote_valid_pit": True,
+        "spot_ask_vwap": 685.00,
+        "spot_bid_vwap": 684.90,
+        "official_delivery_settlement": {
+            "contract_symbol": "BNBUSD_261225",
+            "settlement_price": 689.80,
+            "delivery_ms": deliv_time,
+            "published_ms": deliv_time + 60_000,
+            "recv_ms": deliv_time + 300_000,
+        },
+    }
+    ok4, reason4 = engine.process_observation(pos, obs_valid)
+    assert ok4 is True
+    assert pos["futures_leg_settled"] is True
+    assert pos["state"] == LifecycleState.FUTURES_LEG_SETTLED
+
+    # Case 5: Parser ignores raw record without receipt timestamps (fails closed)
+    test_raw_dir = tmp_path / "raw_untrusted"
+    test_raw_dir.mkdir(parents=True)
+    untrusted_file = test_raw_dir / "cm_delivery_settlement.jsonl"
+    untrusted_file.write_text(
+        json.dumps({
+            "stream": "cm_delivery_settlement",
+            "payload": [{"deliveryPrice": "689.80", "deliveryTime": deliv_time}],
+            # No recv_ms or timestamp_ms on record!
+        }) + "\n",
+        encoding="utf-8",
+    )
+    (test_raw_dir / "usdt_usd.jsonl").write_text(json.dumps({"stream": "usdt_usd", "recv_ms": 1000, "payload": {"price": "1.0"}}) + "\n", encoding="utf-8")
+    engine2 = N1_7LifecycleEngine()
+    res_untrusted = engine2.run_lifecycle_analysis(raw_partitions=[test_raw_dir], write_artifacts=False)
+    # Confirm no settlement was ingested or processed from untrusted record
+    assert res_untrusted["scorecard"]["FUTURES_LEGS_SETTLED"] == 0
