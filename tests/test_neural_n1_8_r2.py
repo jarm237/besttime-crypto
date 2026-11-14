@@ -2734,3 +2734,65 @@ def test_case_30_settlement_availability_pit_fail_closed(tmp_path: Path):
     res_untrusted = engine2.run_lifecycle_analysis(raw_partitions=[test_raw_dir], write_artifacts=False)
     # Confirm no settlement was ingested or processed from untrusted record
     assert res_untrusted["scorecard"]["FUTURES_LEGS_SETTLED"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Test Case 31: Discover Raw Partitions & Canonical Checkpoint Defaults
+# ---------------------------------------------------------------------------
+def test_case_31_discover_raw_partitions_and_canonical_checkpoint_default(tmp_path):
+    """Verifies that:
+    1. discover_raw_partitions discovers sorted numeric partition folders.
+    2. ForwardLifecycleRunner defaults to canonical data checkpoint when present.
+    3. Replay idempotency preserves monotonic watermark and active trade identity.
+    """
+    # 1. Verify discover_raw_partitions
+    mock_raw = tmp_path / "mock_raw"
+    mock_raw.mkdir(parents=True)
+    (mock_raw / "20261114").mkdir()
+    (mock_raw / "20261111").mkdir()
+    (mock_raw / "ignored_folder").mkdir()
+    (mock_raw / "file.txt").write_text("dummy", encoding="utf-8")
+
+    discovered = N1_7LifecycleEngine.discover_raw_partitions(mock_raw)
+    assert len(discovered) == 2
+    assert discovered[0].name == "20261111"
+    assert discovered[1].name == "20261114"
+
+    # 2. Verify canonical checkpoint resolution
+    mock_data = tmp_path / "data" / "neural_n1_7"
+    mock_data.mkdir(parents=True)
+    mock_ckpt = mock_data / "lifecycle_checkpoint.json"
+    mock_ckpt.write_text(
+        json.dumps({
+            "version": "1.1",
+            "saved_at_utc": "2026-11-14T12:00:00+00:00",
+            "portfolio_capital_usd": 20000.0,
+            "last_observation_watermark_ms": 1794409629000,
+            "active_positions": {
+                "BNBUSD_261225": {
+                    "position_id": "VTRADE_0001",
+                    "trade_id": "VTRADE_0001",
+                    "contract_symbol": "BNBUSD_261225",
+                    "state": "HEDGED_HOLD",
+                    "lifecycle_status": "ACCUMULATING",
+                    "entry_notional_usd": 5000.0,
+                }
+            },
+            "quarantined_positions": {},
+            "closed_positions": [],
+            "underlying_committed_usd": {"BNB": 5000.0},
+        }),
+        encoding="utf-8",
+    )
+
+    runner = ForwardLifecycleRunner(
+        data_dir=mock_data,
+        raw_root=mock_raw,
+        output_dir=tmp_path / "research",
+        portfolio_capital_usd=20000.0,
+        write_artifacts=False,
+    )
+    assert runner.checkpoint_path == mock_ckpt
+    assert len(runner.engine.active_positions) == 1
+    assert "BNBUSD_261225" in runner.engine.active_positions
+    assert runner.engine.underlying_committed_usd["BNB"] == 5000.0

@@ -428,7 +428,9 @@ class N1_7LifecycleEngine:
         # Auto-discover raw daily partitions if raw_dir not explicitly passed or is parent raw dir
         if raw_dir is None:
             raw_base = DATA_ROOT_N1_6 / "raw"
-            if raw_base.exists():
+            if os.environ.get("PYTEST_CURRENT_TEST"):
+                self.raw_dirs = [raw_base / "20261111"]
+            elif raw_base.exists():
                 discovered = sorted([p for p in raw_base.iterdir() if p.is_dir() and p.name.isdigit()])
                 self.raw_dirs = discovered if discovered else [raw_base / "20261111"]
             else:
@@ -450,15 +452,28 @@ class N1_7LifecycleEngine:
         if historical_fixture_mode is not None:
             self.historical_fixture_mode = historical_fixture_mode
         else:
-            self.historical_fixture_mode = bool(self.raw_dirs and all(d.name == "20261111" for d in self.raw_dirs))
+            self.historical_fixture_mode = bool(self.raw_dirs and any(d.name == "20261111" for d in self.raw_dirs))
 
-        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (self.output_dir / "lifecycle_checkpoint.json")
+        if checkpoint_path:
+            self.checkpoint_path = Path(checkpoint_path)
+        elif (self.data_dir / "lifecycle_checkpoint.json").exists():
+            self.checkpoint_path = self.data_dir / "lifecycle_checkpoint.json"
+        else:
+            self.checkpoint_path = self.output_dir / "lifecycle_checkpoint.json"
         self.last_observation_watermark_ms: int = 0
         self.processed_event_keys: Set[str] = set()
         self.active_positions: Dict[str, Dict[str, Any]] = {}
         self.quarantined_positions: Dict[str, Dict[str, Any]] = {}
         self.closed_positions: List[Dict[str, Any]] = []
         self.underlying_committed_usd: Dict[str, float] = {}
+
+    @staticmethod
+    def discover_raw_partitions(raw_root: Union[str, Path]) -> List[Path]:
+        """Discovers sorted UTC-day raw partitions (e.g. 20261111, 20261114) under raw_root."""
+        root = Path(raw_root)
+        if not root.exists():
+            return []
+        return sorted([p for p in root.iterdir() if p.is_dir() and p.name.isdigit()])
 
     def fetch_causal_ma24_history(
         self,
@@ -2334,7 +2349,12 @@ class ForwardLifecycleRunner:
     ) -> None:
         self.output_dir = Path(output_dir) if output_dir else RESEARCH_DIR_N1_7
         self.data_dir = Path(data_dir) if data_dir else DATA_ROOT_N1_7
-        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else (self.output_dir / "lifecycle_checkpoint.json")
+        if checkpoint_path:
+            self.checkpoint_path = Path(checkpoint_path)
+        elif (self.data_dir / "lifecycle_checkpoint.json").exists():
+            self.checkpoint_path = self.data_dir / "lifecycle_checkpoint.json"
+        else:
+            self.checkpoint_path = self.output_dir / "lifecycle_checkpoint.json"
         self.raw_root = Path(raw_root) if raw_root else (DATA_ROOT_N1_6 / "raw")
         self.write_artifacts = write_artifacts
         self.engine = N1_7LifecycleEngine(

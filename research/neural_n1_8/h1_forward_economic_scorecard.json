@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "document_id": "H1-FORWARD-ECONOMIC-SCORECARD",
+    "generated_at_utc": "2026-11-14T23:53:47.650759+00:00",
+    "target_branch": "research/m2-historical-sources-pilot",
+    "evidence_mode": "AUTHENTIC_PROSPECTIVE_FORWARD",
+    "production_candidate": false,
+    "real_trading": "DISABLED",
+    "live_exchange_order_permission": false
+  },
+  "operational_status": {
+    "recorder_operational_status": "STOPPED",
+    "pid": 11036,
+    "pid_is_running": false,
+    "runtime_host": "DESKTOP-J6OUM73",
+    "session_id": "20261114T233320Z-059434f3",
+    "single_writer_status": "UNOWNED",
+    "single_writer_lock_owner": null,
+    "last_authentic_observation_ms": 1794699212956,
+    "data_integrity_status": "PASS",
+    "accounting_reconciliation_status": "PASS"
+  },
+  "checkpoint_integrity": {
+    "active_checkpoint_path": "D:\\Workspaces\\besttime-crypto\\data\\neural_n1_7\\lifecycle_checkpoint.json",
+    "checkpoint_version": "1.1",
+    "high_watermark_ms": 1794699212955,
+    "high_watermark_monotonic": true,
+    "active_positions_count": 2,
+    "quarantined_positions_count": 1,
+    "closed_positions_count": 0,
+    "committed_capital_usd": 7370.0
+  },
+  "forward_economic_measurements": {
+    "forward_open_positions_count": 2,
+    "forward_natural_closed_lifecycles": 0,
+    "gross_carry_captured_usd": 0.0,
+    "fees_and_slippage_usd": 11.06,
+    "net_realized_virtual_pnl_usd": 0.0,
+    "total_open_unrealized_pnl_usd": -7.34,
+    "total_account_equity_usd": 19992.66,
+    "capital_committed_usd": 7370.0,
+    "capital_utilization_pct": 36.85,
+    "early_close_count": 0,
+    "delivery_settlement_count": 0,
+    "partial_spot_realization_count": 0,
+    "forward_economic_evidence_status": "ACCUMULATING",
+    "forward_net_economic_value": "INCONCLUSIVE"
+  },
+  "active_positions_detail": [
+    {
+      "trade_id": "VTRADE_0002",
+      "symbol": "BNBUSD_270326",
+      "spot_symbol": "BNBUSDT",
+      "state": "HEDGED_HOLD",
+      "entry_notional_usd": 2370.0,
+      "contracts_short": 237,
+      "entry_spot_price": 680.0141,
+      "entry_futures_price": 694.6663,
+      "current_spot_price": 683.7082,
+      "current_futures_price": 698.2289,
+      "current_unrealized_pnl_usd": -2.59,
+      "last_update_ms": 1794411927432
+    },
+    {
+      "trade_id": "VTRADE_0003",
+      "symbol": "BTCUSD_270326",
+      "spot_symbol": "BTCUSDT",
+      "state": "HEDGED_HOLD",
+      "entry_notional_usd": 5000.0,
+      "contracts_short": 50,
+      "entry_spot_price": 73524.6124,
+      "entry_futures_price": 75093.188,
+      "current_spot_price": 73911.0011,
+      "current_futures_price": 75453.9,
+      "current_unrealized_pnl_usd": -4.75,
+      "last_update_ms": 1794411927427
+    }
+  ],
+  "evidence_categories": {
+    "authentic_forward_market_observation": "COLLECTED_AND_VERIFIED",
+    "virtual_position_intent": "POLICY_COMPLIANT_CONSTRUCTED",
+    "modelled_forward_fill": "INDEPENDENT_DEPTH_SWEEP_SIMULATED",
+    "naturally_matured_forward_outcome": "ZERO_CLOSURES_OBSERVED (MATURITY_DEC_2026_MAR_2027)",
+    "actual_exchange_fill": "ABSENT (REAL_TRADING_DISABLED)"
+  }
+}
