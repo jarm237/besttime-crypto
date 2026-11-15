@@ -644,6 +644,48 @@ class ReservationStore:
                 if not candidate_rows:
                     return 0
 
+                def _evidence_rank(rec: Any) -> tuple:
+                    status = getattr(rec, "status", None) or (rec.get("status") if isinstance(rec, dict) else "")
+                    status_str = str(status).upper()
+                    filled_qty = getattr(rec, "filled_qty", None) or (rec.get("filled_qty") if isinstance(rec, dict) else 0.0)
+                    try:
+                        filled_qty = float(filled_qty or 0.0)
+                    except (ValueError, TypeError):
+                        filled_qty = 0.0
+
+                    timestamp = (
+                        getattr(rec, "last_fill_time", None)
+                        or getattr(rec, "submit_time", None)
+                        or (rec.get("last_fill_time") if isinstance(rec, dict) else None)
+                        or (rec.get("submit_time") if isinstance(rec, dict) else "")
+                        or ""
+                    )
+
+                    # Tier 5: Confirmed full fill
+                    # Tier 4: Partial fill with positive quantity
+                    # Tier 3: Cancelled/rejected with positive fill
+                    # Tier 2: Cancelled/rejected with zero fill
+                    # Tier 1: Timeout
+                    # Tier 0: Pending or unknown
+                    if status_str in ("FILLED", "STATUS_FILLED"):
+                        tier = 5
+                    elif status_str in ("PARTIAL_FILL", "PARTIALLY_FILLED"):
+                        tier = 4 if filled_qty > 0.0 else 1
+                    elif status_str in ("CANCELLED", "REJECTED"):
+                        tier = 3 if filled_qty > 0.0 else 2
+                    elif status_str == "TIMEOUT":
+                        tier = 1
+                    else:
+                        tier = 0
+                    return (tier, filled_qty, str(timestamp))
+
+                def _update_best_record(mapping: dict, key: str, record: Any) -> None:
+                    if not key:
+                        return
+                    existing = mapping.get(key)
+                    if existing is None or _evidence_rank(record) > _evidence_rank(existing):
+                        mapping[key] = record
+
                 records_by_res = {}
                 records_by_idemp = {}
                 records_by_client_id = {}
@@ -652,11 +694,11 @@ class ReservationStore:
                     idemp = getattr(r, "idempotency_key", None) or (r.get("idempotency_key") if isinstance(r, dict) else None)
                     cid = getattr(r, "client_order_id", None) or (r.get("client_order_id") if isinstance(r, dict) else None)
                     if res_id:
-                        records_by_res[str(res_id)] = r
+                        _update_best_record(records_by_res, str(res_id), r)
                     if idemp:
-                        records_by_idemp[str(idemp)] = r
+                        _update_best_record(records_by_idemp, str(idemp), r)
                     if cid:
-                        records_by_client_id[str(cid)] = r
+                        _update_best_record(records_by_client_id, str(cid), r)
 
                 now = datetime.now(timezone.utc).isoformat()
                 for row in candidate_rows:
@@ -664,7 +706,14 @@ class ReservationStore:
                     idemp = str(row["idempotency_key"])
                     cid = str(row["client_order_id"]) if row["client_order_id"] else ""
                     current_status = row["status"]
-                    rec = records_by_res.get(res_id) or records_by_idemp.get(idemp) or (records_by_client_id.get(cid) if cid else None)
+                    candidates = [
+                        c for c in (
+                            records_by_res.get(res_id),
+                            records_by_idemp.get(idemp),
+                            records_by_client_id.get(cid) if cid else None,
+                        ) if c is not None
+                    ]
+                    rec = max(candidates, key=_evidence_rank) if candidates else None
                     if rec:
                         status = getattr(rec, "status", None) or (rec.get("status") if isinstance(rec, dict) else "")
                         status_str = str(status).upper()

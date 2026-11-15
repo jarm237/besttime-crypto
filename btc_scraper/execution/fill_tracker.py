@@ -346,7 +346,14 @@ class FillTracker:
             remaining = limit - len(unique_records)
             chunk_records = _tail_read_jsonl(file_path, max_records=remaining)
             for d in chunk_records:
-                key = str(d.get("execution_id") or d.get("reservation_id") or d.get("idempotency_key") or "")
+                exec_id = d.get("execution_id")
+                if exec_id:
+                    key = f"exec:{exec_id}"
+                else:
+                    res_id = d.get("reservation_id") or d.get("idempotency_key")
+                    st = d.get("status")
+                    fq = d.get("filled_qty")
+                    key = f"res:{res_id}:{st}:{fq}" if res_id else ""
                 if key and key in seen_keys:
                     continue
                 if key:

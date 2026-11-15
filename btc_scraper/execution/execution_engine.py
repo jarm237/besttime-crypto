@@ -486,27 +486,77 @@ class ExecutionEngine:
             record.reservation_id = rec_res.reservation_id
             record.idempotency_key = rec_res.idempotency_key
             record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
-            if not created_new and rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
-                record.status = OrderStatus.FILLED
-                record.reason = "duplicate_idempotency_key_already_committed"
-                record.filled_qty = rec_res.filled_notional / decision_price if decision_price > 0 else 0.0
-                record.avg_fill_price = decision_price
-                record.submit_time = datetime.now(timezone.utc).isoformat()
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
-            if not created_new and rec_res.status in (ReservationStatus.RELEASED, ReservationStatus.EXPIRED):
-                record.status = OrderStatus.REJECTED
-                record.reason = f"reservation_{rec_res.status.value}"
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
-            if not created_new and rec_res.status == ReservationStatus.RECONCILIATION_REQUIRED:
-                record.status = OrderStatus.REJECTED
-                record.reason = "duplicate_idempotency_key_reconciliation_required"
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
+            if not created_new:
+                if rec_res.status == ReservationStatus.COMMITTED:
+                    record.status = OrderStatus.FILLED
+                    record.reason = "duplicate_idempotency_key_already_committed"
+                    record.filled_qty = (
+                        rec_res.reserved_qty if rec_res.reserved_qty and rec_res.reserved_qty > 0
+                        else (rec_res.filled_notional / decision_price if decision_price > 0 else 0.0)
+                    )
+                    record.unfilled_qty = 0.0
+                    record.avg_fill_price = (
+                        rec_res.filled_notional / record.filled_qty if record.filled_qty > 0 else decision_price
+                    )
+                    record.executed_notional = rec_res.filled_notional or (record.filled_qty * record.avg_fill_price)
+                    record.submit_time = datetime.now(timezone.utc).isoformat()
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                elif rec_res.status == ReservationStatus.PARTIALLY_COMMITTED:
+                    record.status = OrderStatus.PARTIAL_FILL
+                    record.reason = "duplicate_idempotency_key_partially_committed"
+                    record.filled_qty = (
+                        rec_res.filled_qty if rec_res.filled_qty and rec_res.filled_qty > 0
+                        else (rec_res.filled_notional / decision_price if decision_price > 0 else 0.0)
+                    )
+                    intended = record.intended_qty if record.intended_qty > 0 else (rec_res.reserved_qty or 0.0)
+                    record.unfilled_qty = max(0.0, intended - record.filled_qty)
+                    record.avg_fill_price = (
+                        rec_res.filled_notional / record.filled_qty if record.filled_qty > 0 else decision_price
+                    )
+                    record.executed_notional = rec_res.filled_notional or (record.filled_qty * record.avg_fill_price)
+                    record.submit_time = datetime.now(timezone.utc).isoformat()
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                elif rec_res.status == ReservationStatus.PENDING:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = "duplicate_idempotency_key_pending"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                elif rec_res.status == ReservationStatus.RECONCILIATION_REQUIRED:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = "duplicate_idempotency_key_reconciliation_required"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                elif rec_res.status in (
+                    ReservationStatus.RELEASED,
+                    ReservationStatus.EXPIRED,
+                    ReservationStatus.CANCELLED_WITH_PARTIAL_FILL,
+                ):
+                    record.status = OrderStatus.REJECTED
+                    record.reason = f"reservation_{rec_res.status.value}"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                else:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = f"duplicate_idempotency_key_unknown_status_{rec_res.status}"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+
             if signal.get("simulate_timeout_after_reserve"):
                 record.status = OrderStatus.TIMEOUT
                 record.reason = "simulated_timeout_after_reserve"
@@ -1315,9 +1365,13 @@ class ExecutionEngine:
 
                 if not created_new:
                     logger.warning(f"[ExecutionEngine] Duplicate request detected via idempotency: {idempotency_key}")
-                    if rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
+                    if rec_res.status == ReservationStatus.COMMITTED:
                         record.status = OrderStatus.FILLED
                         record.reason = "Duplicate request already completed"
+                        return record
+                    elif rec_res.status == ReservationStatus.PARTIALLY_COMMITTED:
+                        record.status = OrderStatus.PARTIAL_FILL
+                        record.reason = "Duplicate request partially completed"
                         return record
                     elif rec_res.status == ReservationStatus.PENDING:
                         record.guard_action = "REJECT"
