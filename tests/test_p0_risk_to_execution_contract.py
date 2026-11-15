@@ -1647,3 +1647,327 @@ def test_phase4_9_equity_snapshot_provenance_validation():
 
     asyncio.run(_run())
 
+
+# ─── Phase 5: Reservation Lifecycle Correctness & Edge Cases ───────────────────
+
+def test_phase5_1_partial_fill_cancellation_remainder_lifecycle(tmp_path, monkeypatch):
+    """
+    Test Phase 5.1: Partial fill followed by cancellation of remainder.
+    Initial: 1.0 BTC.
+    Exit 1: Intended 0.7 BTC, filled 0.3 BTC, remainder cancelled.
+    Asserts:
+      - Confirmed filled = 0.3 BTC permanently protected.
+      - Outstanding executable = 0.0 BTC.
+      - Remaining position capacity = 0.7 BTC.
+      - Unclipped exit of 0.8 BTC rejects with OVER_REDUCTION.
+      - Clipped exit of 0.8 BTC safely clips to 0.7 BTC and fills.
+      - Further exit attempts fail with NO_REMAINING_POSITION_EXPOSURE.
+    """
+    db_file = tmp_path / "reservations.db"
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
+    monkeypatch.setattr("btc_scraper.execution.execution_engine.runtime_evidence_eligible", lambda: False)
+
+    pos = {
+        "id": "pos_part_cancel_01",
+        "coin": "BTC",
+        "direction": "BUY",
+        "amount": 1.0,
+        "status": "open",
+        "execution_mode": "paper",
+    }
+    monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [pos])
+    candle = _make_sample_candle(100.0)
+    engine = ExecutionEngine(reservation_db_path=db_file)
+
+    # 1. Submit partial fill of 0.3 BTC (intended 0.7 BTC, notional = 70 USDT at price 100)
+    sig1 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_cancel_01",
+        "reservation_id": "res_part_01",
+        "idempotency_key": "idemp_part_01",
+        "paper_fill_fraction": 0.3 / 0.7,
+        "paper_cancel_remaining": True,
+    }
+    rec1 = engine.submit_paper(sig1, candle, notional_usdt=70.0)
+    assert rec1.status == OrderStatus.CANCELLED
+    assert rec1.filled_qty == pytest.approx(0.3)
+    assert rec1.unfilled_qty == pytest.approx(0.4)
+
+    # Check reservation store record
+    store = engine._reservation_store
+    res1 = store.get_reservation("res_part_01")
+    assert res1.status == ReservationStatus.CANCELLED_WITH_PARTIAL_FILL
+    assert res1.filled_qty == pytest.approx(0.3)
+
+    # Check position exit allocations
+    exec_qty, pending_qty, total_alloc = store.get_position_exit_allocations("pos_part_cancel_01", "paper")
+    assert exec_qty == pytest.approx(0.3)
+    assert pending_qty == pytest.approx(0.0)
+    assert total_alloc == pytest.approx(0.3)
+
+    # 2. Attempt unclipped exit of 0.8 BTC (80 USDT at price 100) -> OVER_REDUCTION
+    sig2 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_cancel_01",
+        "reservation_id": "res_part_02",
+        "idempotency_key": "idemp_part_02",
+        "clip_to_open_qty": False,
+    }
+    rec2 = engine.submit_paper(sig2, candle, notional_usdt=80.0)
+    assert rec2.status == OrderStatus.REJECTED
+    assert "OVER_REDUCTION" in rec2.reason
+
+    # 3. Attempt clipped exit of 0.8 BTC -> safely clipped to 0.7 BTC (70 USDT) and filled
+    sig3 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_cancel_01",
+        "reservation_id": "res_part_03",
+        "idempotency_key": "idemp_part_03",
+        "clip_to_open_qty": True,
+    }
+    rec3 = engine.submit_paper(sig3, candle, notional_usdt=80.0)
+    assert rec3.status == OrderStatus.FILLED
+    assert rec3.filled_qty == pytest.approx(0.7)
+
+    # Now total executed should be 0.3 + 0.7 = 1.0 BTC
+    exec_qty3, pending_qty3, total_alloc3 = store.get_position_exit_allocations("pos_part_cancel_01", "paper")
+    assert exec_qty3 == pytest.approx(1.0)
+    assert total_alloc3 == pytest.approx(1.0)
+
+    # 4. Attempt any further exit -> NO_REMAINING_POSITION_EXPOSURE
+    sig4 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_cancel_01",
+        "reservation_id": "res_part_04",
+        "idempotency_key": "idemp_part_04",
+        "clip_to_open_qty": True,
+    }
+    rec4 = engine.submit_paper(sig4, candle, notional_usdt=10.0)
+    assert rec4.status == OrderStatus.REJECTED
+    assert "NO_REMAINING_POSITION_EXPOSURE" in rec4.reason
+
+
+def test_phase5_2_active_partial_fill_reserves_unfilled_remainder(tmp_path, monkeypatch):
+    """
+    Test Phase 5.2: Partially filled order remains active/open without cancellation.
+    Initial: 1.0 BTC.
+    Exit 1: Intended 0.7 BTC, filled 0.3 BTC, paper_cancel_remaining = False.
+    Asserts:
+      - Reservation store record status: PARTIALLY_COMMITTED.
+      - executed_qty = 0.3, pending_reserved_qty = 0.4, total_allocated = 0.7.
+      - Remaining position capacity = 0.3 BTC.
+      - Unclipped exit of 0.4 BTC rejects with OVER_REDUCTION.
+      - Exit of 0.3 BTC succeeds and fills.
+    """
+    db_file = tmp_path / "reservations.db"
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
+    monkeypatch.setattr("btc_scraper.execution.execution_engine.runtime_evidence_eligible", lambda: False)
+
+    pos = {
+        "id": "pos_part_active_01",
+        "coin": "BTC",
+        "direction": "BUY",
+        "amount": 1.0,
+        "status": "open",
+        "execution_mode": "paper",
+    }
+    monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [pos])
+    candle = _make_sample_candle(100.0)
+    engine = ExecutionEngine(reservation_db_path=db_file)
+
+    # 1. Submit partial fill with paper_cancel_remaining = False (order remains active)
+    sig1 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_active_01",
+        "reservation_id": "res_act_01",
+        "idempotency_key": "idemp_act_01",
+        "paper_fill_fraction": 0.3 / 0.7,
+        "paper_cancel_remaining": False,
+    }
+    rec1 = engine.submit_paper(sig1, candle, notional_usdt=70.0)
+    assert rec1.status == OrderStatus.PARTIAL_FILL
+    assert rec1.filled_qty == pytest.approx(0.3)
+
+    store = engine._reservation_store
+    res1 = store.get_reservation("res_act_01")
+    assert res1.status == ReservationStatus.PARTIALLY_COMMITTED
+    assert res1.filled_qty == pytest.approx(0.3)
+
+    # Check allocations: executed = 0.3, pending = 0.4, total = 0.7
+    exec_qty, pending_qty, total_alloc = store.get_position_exit_allocations("pos_part_active_01", "paper")
+    assert exec_qty == pytest.approx(0.3)
+    assert pending_qty == pytest.approx(0.4)
+    assert total_alloc == pytest.approx(0.7)
+
+    # 2. Attempt unclipped exit of 0.4 BTC -> OVER_REDUCTION (available is only 1.0 - 0.7 = 0.3)
+    sig2 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_active_01",
+        "reservation_id": "res_act_02",
+        "idempotency_key": "idemp_act_02",
+        "clip_to_open_qty": False,
+    }
+    rec2 = engine.submit_paper(sig2, candle, notional_usdt=40.0)
+    assert rec2.status == OrderStatus.REJECTED
+    assert "OVER_REDUCTION" in rec2.reason
+
+    # 3. Attempt exit of 0.3 BTC -> succeeds
+    sig3 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_part_active_01",
+        "reservation_id": "res_act_03",
+        "idempotency_key": "idemp_act_03",
+        "clip_to_open_qty": False,
+    }
+    rec3 = engine.submit_paper(sig3, candle, notional_usdt=30.0)
+    assert rec3.status == OrderStatus.FILLED
+    assert rec3.filled_qty == pytest.approx(0.3)
+
+    # Now total allocated is 0.7 + 0.3 = 1.0 BTC
+    exec_qty3, pending_qty3, total_alloc3 = store.get_position_exit_allocations("pos_part_active_01", "paper")
+    assert total_alloc3 == pytest.approx(1.0)
+
+
+def test_phase5_3_crash_recovery_ttl_expiry_and_authoritative_reconciliation(tmp_path, monkeypatch):
+    """
+    Test Phase 5.3: Crash after fill before SQLite commit, followed by >60s TTL expiry.
+    Asserts:
+      - Before reconciliation, unconfirmed expired reservation transitions to RECONCILIATION_REQUIRED.
+      - Allocated quantity remains protected (new engine rejects over-reduction).
+      - Authoritative reconciliation confirms fill and commits status.
+      - Retry of reconciliation is strictly idempotent (0 changes).
+      - Zero-fill rejected order releases reservation to RELEASED.
+    """
+    db_file = tmp_path / "reservations.db"
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
+    monkeypatch.setattr("btc_scraper.execution.execution_engine.runtime_evidence_eligible", lambda: False)
+
+    pos = {
+        "id": "pos_crash_ttl_01",
+        "coin": "BTC",
+        "direction": "BUY",
+        "amount": 1.0,
+        "status": "open",
+        "execution_mode": "paper",
+    }
+    monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [pos])
+    candle = _make_sample_candle(100.0)
+    engine_a = ExecutionEngine(reservation_db_path=db_file)
+
+    # 1. Exit of 0.7 BTC crashes after fill before SQLite commit
+    sig1 = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_crash_ttl_01",
+        "reservation_id": "res_crash_ttl_01",
+        "idempotency_key": "idemp_crash_ttl_01",
+        "simulate_crash_after_fill_before_commit": True,
+    }
+    rec1 = engine_a.submit_paper(sig1, candle, notional_usdt=70.0)
+    assert rec1.status == OrderStatus.FILLED
+    assert rec1.filled_qty == pytest.approx(0.7)
+
+    # In SQLite, reservation is currently PENDING
+    store_a = engine_a._reservation_store
+    r1 = store_a.get_reservation("res_crash_ttl_01")
+    assert r1.status == ReservationStatus.PENDING
+
+    # 2. Simulate >60s elapsing: age the reservation past its TTL in SQLite
+    past_ts = datetime.datetime.fromtimestamp(time.time() - 120.0, tz=timezone.utc).isoformat()
+    with store_a._get_conn() as conn:
+        conn.execute(
+            "UPDATE reservations SET expires_at = ? WHERE reservation_id = ?",
+            (past_ts, "res_crash_ttl_01"),
+        )
+
+    # 3. Engine B starts up sharing the same database
+    engine_b = ExecutionEngine(reservation_db_path=db_file)
+    store_b = engine_b._reservation_store
+
+    # Expiry check / allocation check transitions it to RECONCILIATION_REQUIRED, preserving protection
+    exec_qty, pending_qty, total_alloc = store_b.get_position_exit_allocations("pos_crash_ttl_01", "paper")
+    r1_expired = store_b.get_reservation("res_crash_ttl_01")
+    assert r1_expired.status == ReservationStatus.RECONCILIATION_REQUIRED
+    assert total_alloc == pytest.approx(0.7)
+
+    # Attempting to exit 0.7 BTC from Engine B MUST reject with OVER_REDUCTION
+    sig_b = {
+        "coin": "BTC",
+        "signal": "SELL",
+        "canonical_action": "SELL",
+        "intent": OrderIntent.EXIT,
+        "position_id": "pos_crash_ttl_01",
+        "reservation_id": "res_engine_b_01",
+        "idempotency_key": "idemp_engine_b_01",
+        "clip_to_open_qty": False,
+    }
+    rec_b = engine_b.submit_paper(sig_b, candle, notional_usdt=70.0)
+    assert rec_b.status == OrderStatus.REJECTED
+    assert "OVER_REDUCTION" in rec_b.reason
+
+    # 4. Authoritative reconciliation with rec1
+    reconciled = store_b.reconcile_crashed_reservations([rec1])
+    assert reconciled == 1
+
+    r1_committed = store_b.get_reservation("res_crash_ttl_01")
+    assert r1_committed.status == ReservationStatus.COMMITTED
+    assert r1_committed.filled_qty == pytest.approx(0.7)
+
+    exec_qty2, pending_qty2, total_alloc2 = store_b.get_position_exit_allocations("pos_crash_ttl_01", "paper")
+    assert exec_qty2 == pytest.approx(0.7)
+    assert pending_qty2 == pytest.approx(0.0)
+    assert total_alloc2 == pytest.approx(0.7)
+
+    # 5. Retry reconciliation is idempotent
+    reconciled_again = store_b.reconcile_crashed_reservations([rec1])
+    assert reconciled_again == 0
+
+    # 6. Test zero-fill rejection properly releases reservation
+    # Reserve exit
+    rec_rej_res, final_qty, created = store_b.reserve_position_exit(
+        reservation_id="res_rej_01",
+        idempotency_key="idemp_rej_01",
+        position_id="pos_crash_ttl_01",
+        execution_mode="paper",
+        available_position_qty=1.0,
+        intended_qty=0.2,
+        notional_usdt=20.0,
+        symbol="BTC/USDT",
+        side="SELL",
+    )
+    assert created is True
+    # Release it (zero fill)
+    released_rec = store_b.release("res_rej_01")
+    assert released_rec.status == ReservationStatus.RELEASED
+
+    # Verify idempotent release
+    released_again = store_b.release("res_rej_01")
+    assert released_again.status == ReservationStatus.RELEASED
+
+    # Verify idempotent commit
+    committed_again = store_b.commit("res_crash_ttl_01", filled_notional=70.0, filled_qty=0.7)
+    assert committed_again.status == ReservationStatus.COMMITTED
+

@@ -370,14 +370,10 @@ class ReservationStore:
                 FROM reservations
                 WHERE position_id = ?
                   AND execution_mode = ?
-                  AND status IN (?, ?, ?)
             """
             params = [
                 str(position_id),
                 str(execution_mode).lower(),
-                ReservationStatus.COMMITTED.value,
-                ReservationStatus.PARTIALLY_COMMITTED.value,
-                ReservationStatus.PENDING.value,
             ]
             if exclude_reservation_id:
                 sql += " AND reservation_id != ?"
@@ -392,10 +388,20 @@ class ReservationStore:
                     status = row["status"]
                     res_qty = float(row["reserved_qty"] or 0.0)
                     fill_qty = float(row["filled_qty"] or 0.0)
-                    if status in (ReservationStatus.COMMITTED.value, ReservationStatus.PARTIALLY_COMMITTED.value):
+                    if status == ReservationStatus.COMMITTED.value:
                         executed_qty += fill_qty if fill_qty > 0.0 else res_qty
-                    elif status == ReservationStatus.PENDING.value:
-                        pending_reserved_qty += res_qty
+                    elif status in (
+                        ReservationStatus.PARTIALLY_COMMITTED.value,
+                        ReservationStatus.PENDING.value,
+                        ReservationStatus.RECONCILIATION_REQUIRED.value,
+                        ReservationStatus.EXPIRED.value,
+                    ):
+                        executed_qty += fill_qty
+                        pending_reserved_qty += max(0.0, res_qty - fill_qty)
+                    elif status == ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value:
+                        executed_qty += fill_qty
+                    elif status == ReservationStatus.RELEASED.value:
+                        executed_qty += fill_qty
                         
             return executed_qty, pending_reserved_qty, (executed_qty + pending_reserved_qty)
 
@@ -450,7 +456,15 @@ class ReservationStore:
                         """
                         UPDATE reservations
                         SET status = ?, updated_at = ?
-                        WHERE status = ? AND expires_at <= ?
+                        WHERE status = ? AND expires_at <= ? AND (intent = 'EXIT' OR position_id IS NOT NULL)
+                        """,
+                        (ReservationStatus.RECONCILIATION_REQUIRED.value, now, ReservationStatus.PENDING.value, now),
+                    )
+                    conn.execute(
+                        """
+                        UPDATE reservations
+                        SET status = ?, updated_at = ?
+                        WHERE status = ? AND expires_at <= ? AND (intent != 'EXIT' OR intent IS NULL) AND position_id IS NULL
                         """,
                         (ReservationStatus.EXPIRED.value, now, ReservationStatus.PENDING.value, now),
                     )
@@ -469,14 +483,10 @@ class ReservationStore:
                         FROM reservations
                         WHERE position_id = ?
                           AND execution_mode = ?
-                          AND status IN (?, ?, ?)
                         """,
                         (
                             str(position_id),
                             str(execution_mode).lower(),
-                            ReservationStatus.COMMITTED.value,
-                            ReservationStatus.PARTIALLY_COMMITTED.value,
-                            ReservationStatus.PENDING.value,
                         ),
                     )
                     executed = 0.0
@@ -485,10 +495,20 @@ class ReservationStore:
                         st = row["status"]
                         r_q = float(row["reserved_qty"] or 0.0)
                         f_q = float(row["filled_qty"] or 0.0)
-                        if st in (ReservationStatus.COMMITTED.value, ReservationStatus.PARTIALLY_COMMITTED.value):
+                        if st == ReservationStatus.COMMITTED.value:
                             executed += f_q if f_q > 0.0 else r_q
-                        elif st == ReservationStatus.PENDING.value:
-                            pending += r_q
+                        elif st in (
+                            ReservationStatus.PARTIALLY_COMMITTED.value,
+                            ReservationStatus.PENDING.value,
+                            ReservationStatus.RECONCILIATION_REQUIRED.value,
+                            ReservationStatus.EXPIRED.value,
+                        ):
+                            executed += f_q
+                            pending += max(0.0, r_q - f_q)
+                        elif st == ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value:
+                            executed += f_q
+                        elif st == ReservationStatus.RELEASED.value:
+                            executed += f_q
                     allocated = executed + pending
                     remaining_qty = float(available_position_qty) - allocated
 
@@ -592,71 +612,118 @@ class ReservationStore:
         )
 
     def reconcile_crashed_reservations(self, execution_records: List[Any]) -> int:
-        """Reconciles uncommitted PENDING reservations against fill tracker / execution records.
+        """Reconciles uncommitted PENDING, RECONCILIATION_REQUIRED, EXPIRED, and PARTIALLY_COMMITTED
+        reservations against authoritative fill tracker / execution records.
         
-        Returns the count of reconciled reservations.
+        Returns the count of transitioned reservations.
         """
         with self._lock:
             reconciled = 0
             with self._get_conn() as conn:
                 cursor = conn.execute(
-                    "SELECT reservation_id, idempotency_key FROM reservations WHERE status = ?",
-                    (ReservationStatus.PENDING.value,),
+                    """
+                    SELECT reservation_id, idempotency_key, client_order_id, status, intent, position_id, expires_at, reserved_qty, filled_qty
+                    FROM reservations
+                    WHERE status IN (?, ?, ?, ?)
+                    """,
+                    (
+                        ReservationStatus.PENDING.value,
+                        ReservationStatus.RECONCILIATION_REQUIRED.value,
+                        ReservationStatus.EXPIRED.value,
+                        ReservationStatus.PARTIALLY_COMMITTED.value,
+                    ),
                 )
-                pending_rows = cursor.fetchall()
-                if not pending_rows:
+                candidate_rows = cursor.fetchall()
+                if not candidate_rows:
                     return 0
 
                 records_by_res = {}
                 records_by_idemp = {}
+                records_by_client_id = {}
                 for r in execution_records:
                     res_id = getattr(r, "reservation_id", None) or (r.get("reservation_id") if isinstance(r, dict) else None)
                     idemp = getattr(r, "idempotency_key", None) or (r.get("idempotency_key") if isinstance(r, dict) else None)
+                    cid = getattr(r, "client_order_id", None) or (r.get("client_order_id") if isinstance(r, dict) else None)
                     if res_id:
                         records_by_res[str(res_id)] = r
                     if idemp:
                         records_by_idemp[str(idemp)] = r
+                    if cid:
+                        records_by_client_id[str(cid)] = r
 
                 now = datetime.now(timezone.utc).isoformat()
-                for row in pending_rows:
+                for row in candidate_rows:
                     res_id = str(row["reservation_id"])
                     idemp = str(row["idempotency_key"])
-                    rec = records_by_res.get(res_id) or records_by_idemp.get(idemp)
+                    cid = str(row["client_order_id"]) if row["client_order_id"] else ""
+                    current_status = row["status"]
+                    rec = records_by_res.get(res_id) or records_by_idemp.get(idemp) or (records_by_client_id.get(cid) if cid else None)
                     if rec:
                         status = getattr(rec, "status", None) or (rec.get("status") if isinstance(rec, dict) else "")
+                        status_str = str(status).upper()
                         filled_qty = getattr(rec, "filled_qty", None) or (rec.get("filled_qty") if isinstance(rec, dict) else 0.0)
+                        filled_qty = float(filled_qty or 0.0)
                         filled_notional = getattr(rec, "executed_notional", None) or (rec.get("executed_notional") if isinstance(rec, dict) else 0.0)
-                        
-                        if status in ("FILLED", "STATUS_FILLED"):
+                        if not filled_notional and filled_qty > 0.0:
+                            avg_p = getattr(rec, "avg_fill_price", None) or (rec.get("avg_fill_price") if isinstance(rec, dict) else 0.0)
+                            filled_notional = filled_qty * float(avg_p or 0.0)
+                        filled_notional = float(filled_notional or 0.0)
+
+                        if status_str in ("FILLED", "STATUS_FILLED"):
                             conn.execute(
                                 """
                                 UPDATE reservations
                                 SET status = ?, filled_qty = ?, filled_notional = ?, updated_at = ?
                                 WHERE reservation_id = ?
                                 """,
-                                (ReservationStatus.COMMITTED.value, float(filled_qty or 0.0), float(filled_notional or 0.0), now, res_id),
+                                (ReservationStatus.COMMITTED.value, filled_qty, filled_notional, now, res_id),
                             )
                             reconciled += 1
-                        elif status in ("PARTIAL_FILL", "PARTIALLY_FILLED"):
+                        elif status_str in ("PARTIAL_FILL", "PARTIALLY_FILLED"):
                             conn.execute(
                                 """
                                 UPDATE reservations
                                 SET status = ?, filled_qty = ?, filled_notional = ?, updated_at = ?
                                 WHERE reservation_id = ?
                                 """,
-                                (ReservationStatus.PARTIALLY_COMMITTED.value, float(filled_qty or 0.0), float(filled_notional or 0.0), now, res_id),
+                                (ReservationStatus.PARTIALLY_COMMITTED.value, filled_qty, filled_notional, now, res_id),
                             )
                             reconciled += 1
-                        elif status in ("REJECTED", "CANCELLED", "TIMEOUT"):
+                        elif status_str in ("REJECTED", "CANCELLED", "TIMEOUT"):
+                            target_status = (
+                                ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value
+                                if filled_qty > 0.0
+                                else ReservationStatus.RELEASED.value
+                            )
                             conn.execute(
                                 """
                                 UPDATE reservations
-                                SET status = ?, updated_at = ?
+                                SET status = ?, filled_qty = ?, filled_notional = ?, updated_at = ?
                                 WHERE reservation_id = ?
                                 """,
-                                (ReservationStatus.RELEASED.value, now, res_id),
+                                (target_status, filled_qty, filled_notional, now, res_id),
                             )
                             reconciled += 1
+                    else:
+                        # No execution record found. Check if expired.
+                        exp_at = row["expires_at"]
+                        is_exit = (row["intent"] == "EXIT") or (row["position_id"] is not None)
+                        if exp_at and exp_at <= now:
+                            target_status = (
+                                ReservationStatus.RECONCILIATION_REQUIRED.value
+                                if is_exit
+                                else ReservationStatus.EXPIRED.value
+                            )
+                            if current_status != target_status:
+                                conn.execute(
+                                    """
+                                    UPDATE reservations
+                                    SET status = ?, updated_at = ?
+                                    WHERE reservation_id = ?
+                                    """,
+                                    (target_status, now, res_id),
+                                )
+                                reconciled += 1
             return reconciled
 
     def attach_order(
@@ -693,9 +760,26 @@ class ReservationStore:
             return self.get_reservation(reservation_id)
 
     def release(self, reservation_id: str) -> Optional[ReservationRecord]:
-        """Release the reservation if the order was rejected or failed."""
+        """Release the unexecuted portion of a reservation if rejected, failed, or cancelled.
+        
+        If the reservation has confirmed filled quantity or notional > 0,
+        it transitions to CANCELLED_WITH_PARTIAL_FILL so confirmed fills are permanently protected.
+        Otherwise, transitions to RELEASED (confirmed zero fill).
+        """
         with self._lock:
+            current = self.get_reservation(reservation_id)
+            if current is None:
+                return None
             now = datetime.now(timezone.utc).isoformat()
+            has_partial_fill = (
+                (current.filled_qty is not None and float(current.filled_qty) > 0.0)
+                or (current.filled_notional is not None and float(current.filled_notional) > 0.0)
+            )
+            new_status = (
+                ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value
+                if has_partial_fill
+                else ReservationStatus.RELEASED.value
+            )
             with self._get_conn() as conn:
                 conn.execute(
                     """
@@ -703,7 +787,7 @@ class ReservationStore:
                     SET status = ?, updated_at = ?
                     WHERE reservation_id = ?
                     """,
-                    (ReservationStatus.RELEASED.value, now, reservation_id),
+                    (new_status, now, reservation_id),
                 )
             return self.get_reservation(reservation_id)
 
@@ -715,11 +799,24 @@ class ReservationStore:
         with self._lock:
             now = datetime.now(timezone.utc).isoformat()
             with self._get_conn() as conn:
-                cursor = conn.execute(
+                cursor_exit = conn.execute(
                     """
                     UPDATE reservations
                     SET status = ?, updated_at = ?
-                    WHERE status = ? AND expires_at <= ?
+                    WHERE status = ? AND expires_at <= ? AND (intent = 'EXIT' OR position_id IS NOT NULL)
+                    """,
+                    (
+                        ReservationStatus.RECONCILIATION_REQUIRED.value,
+                        now,
+                        ReservationStatus.PENDING.value,
+                        now,
+                    ),
+                )
+                cursor_entry = conn.execute(
+                    """
+                    UPDATE reservations
+                    SET status = ?, updated_at = ?
+                    WHERE status = ? AND expires_at <= ? AND (intent != 'EXIT' OR intent IS NULL) AND position_id IS NULL
                     """,
                     (
                         ReservationStatus.EXPIRED.value,
@@ -728,7 +825,7 @@ class ReservationStore:
                         now,
                     ),
                 )
-                return cursor.rowcount
+                return cursor_exit.rowcount + cursor_entry.rowcount
 
     def get_reservation(self, reservation_id: str) -> Optional[ReservationRecord]:
         with self._lock:

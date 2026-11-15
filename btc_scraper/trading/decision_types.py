@@ -88,6 +88,8 @@ class ReservationStatus(str, Enum):
     PARTIALLY_COMMITTED = "partially_committed"
     RELEASED = "released"
     EXPIRED = "expired"
+    CANCELLED_WITH_PARTIAL_FILL = "cancelled_with_partial_fill"
+    RECONCILIATION_REQUIRED = "reconciliation_required"
 
 
 class FinalDecisionStatus(str, Enum):
