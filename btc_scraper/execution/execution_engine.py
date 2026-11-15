@@ -104,6 +104,14 @@ class ExecutionEngine:
         self._planner = ExecutionPlanner(self.config.twap.__dict__)
         self._post_trade = PostTradeAnalyzer(reports_dir=reports_dir)
         self._reservation_store = ReservationStore(db_path=reservation_db_path)
+        # Authoritative runtime startup reconciliation:
+        # Reconcile any uncommitted or crashed reservations against disk fill records.
+        try:
+            startup_records = self._tracker.get_history(limit=5000)
+            if startup_records:
+                self._reservation_store.reconcile_crashed_reservations(startup_records)
+        except Exception as exc:
+            logger.warning(f"[ExecutionEngine] Startup crash reconciliation skipped: {exc}")
         import asyncio
         self._execution_lock = asyncio.Lock()
         import threading
@@ -448,6 +456,55 @@ class ExecutionEngine:
                 self._record_entry_quarantine(signal, authorization_failure)
                 record.execution_recheck_result = "BLOCKED"
                 return self._tracker.reject(record, authorization_failure)
+
+            symbol = f"{coin}/USDT"
+            reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
+            idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
+            rec_res, created_new = self._reservation_store.reserve(
+                reservation_id=reservation_id,
+                idempotency_key=idempotency_key,
+                entry_decision_id=record.entry_decision_id or record.signal_id,
+                symbol=symbol,
+                side=side.lower(),
+                reserved_notional=notional_usdt,
+                signal_id=record.signal_id,
+                prediction_id=record.prediction_id,
+                model_version=record.model_version,
+                model_artifact_sha256=record.model_artifact_sha256,
+                feature_schema_version=record.feature_schema_version,
+                deployment_id=record.deployment_id,
+                paper_run_id=record.paper_run_id,
+                cycle_id=record.cycle_id,
+                decision_context=record.decision_context,
+                caller_context=record.caller_context,
+                execution_mode="paper",
+                reserved_qty=qty,
+                intent=intent_str,
+            )
+            record.reservation_id = rec_res.reservation_id
+            record.idempotency_key = rec_res.idempotency_key
+            record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
+            if not created_new and rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
+                record.status = OrderStatus.FILLED
+                record.reason = "duplicate_idempotency_key_already_committed"
+                record.filled_qty = rec_res.filled_notional / decision_price if decision_price > 0 else 0.0
+                record.avg_fill_price = decision_price
+                record.submit_time = datetime.now(timezone.utc).isoformat()
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
+            if not created_new and rec_res.status in (ReservationStatus.RELEASED, ReservationStatus.EXPIRED):
+                record.status = OrderStatus.REJECTED
+                record.reason = f"reservation_{rec_res.status.value}"
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
+            if signal.get("simulate_timeout_after_reserve"):
+                record.status = OrderStatus.TIMEOUT
+                record.reason = "simulated_timeout_after_reserve"
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
         elif is_exit:
             # Phase H3: Authoritative Reduce-Only Verification against Open Position Ledger
             ledger_error = False

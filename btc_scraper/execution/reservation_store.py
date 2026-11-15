@@ -7,13 +7,15 @@ to prevent double-entry and race conditions during live execution.
 """
 from __future__ import annotations
 
+import math
 import sqlite3
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import RLock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple
 
 from btc_scraper.core.paths import get_runtime_paths
 from btc_scraper.trading.decision_types import ReservationStatus
@@ -95,10 +97,15 @@ class ReservationStore:
         self._lock = RLock()
         self._init_db()
 
-    def _get_conn(self) -> sqlite3.Connection:
+    @contextmanager
+    def _get_conn(self) -> Generator[sqlite3.Connection, None, None]:
         conn = sqlite3.connect(str(self._db_path), timeout=10.0)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_db(self) -> None:
         with self._lock:
@@ -198,65 +205,65 @@ class ReservationStore:
             now = datetime.now(timezone.utc).isoformat()
             expires = datetime.fromtimestamp(time.time() + ttl_seconds, tz=timezone.utc).isoformat()
 
-            conn = self._get_conn()
-            try:
-                with conn:
-                    # Attempt insertion
-                    conn.execute(
-                        """
-                        INSERT INTO reservations (
-                            reservation_id, idempotency_key, entry_decision_id, symbol, side,
-                            reserved_notional, filled_notional, reserved_position_slots, status,
-                            exchange_order_id, client_order_id, created_at, expires_at, updated_at,
-                            signal_id, prediction_id, model_version, model_artifact_sha256,
-                            feature_schema_version, deployment_id, paper_run_id, cycle_id,
-                            decision_context, caller_context, position_id, execution_mode,
-                            reserved_qty, filled_qty, intent
-                        ) VALUES (?, ?, ?, ?, ?, ?, 0.0, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.0, ?)
-                        """,
-                        (
-                            reservation_id,
-                            idempotency_key,
-                            entry_decision_id,
-                            symbol,
-                            side,
-                            reserved_notional,
-                            reserved_position_slots,
-                            ReservationStatus.PENDING.value,
-                            now,
-                            expires,
-                            now,
-                            signal_id,
-                            prediction_id,
-                            model_version,
-                            model_artifact_sha256,
-                            feature_schema_version,
-                            deployment_id,
-                            paper_run_id,
-                            cycle_id,
-                            decision_context,
-                            caller_context,
-                            position_id,
-                            execution_mode,
-                            float(reserved_qty),
-                            intent,
-                        ),
+            with self._get_conn() as conn:
+                try:
+                    with conn:
+                        # Attempt insertion
+                        conn.execute(
+                            """
+                            INSERT INTO reservations (
+                                reservation_id, idempotency_key, entry_decision_id, symbol, side,
+                                reserved_notional, filled_notional, reserved_position_slots, status,
+                                exchange_order_id, client_order_id, created_at, expires_at, updated_at,
+                                signal_id, prediction_id, model_version, model_artifact_sha256,
+                                feature_schema_version, deployment_id, paper_run_id, cycle_id,
+                                decision_context, caller_context, position_id, execution_mode,
+                                reserved_qty, filled_qty, intent
+                            ) VALUES (?, ?, ?, ?, ?, ?, 0.0, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.0, ?)
+                            """,
+                            (
+                                reservation_id,
+                                idempotency_key,
+                                entry_decision_id,
+                                symbol,
+                                side,
+                                reserved_notional,
+                                reserved_position_slots,
+                                ReservationStatus.PENDING.value,
+                                now,
+                                expires,
+                                now,
+                                signal_id,
+                                prediction_id,
+                                model_version,
+                                model_artifact_sha256,
+                                feature_schema_version,
+                                deployment_id,
+                                paper_run_id,
+                                cycle_id,
+                                decision_context,
+                                caller_context,
+                                position_id,
+                                execution_mode,
+                                float(reserved_qty),
+                                intent,
+                            ),
+                        )
+                except sqlite3.IntegrityError:
+                    # Idempotency key already exists, fetch it
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT * FROM reservations WHERE idempotency_key = ?",
+                        (idempotency_key,),
                     )
-                record = self.get_reservation(reservation_id)
-                assert record is not None
-                return record, True
-            except sqlite3.IntegrityError:
-                # Idempotency key already exists, fetch it
-                cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT * FROM reservations WHERE idempotency_key = ?",
-                    (idempotency_key,),
-                )
-                row = cursor.fetchone()
-                if row:
-                    rec = self._row_to_record(row)
-                    return rec, False
-                raise
+                    row = cursor.fetchone()
+                    if row:
+                        rec = self._row_to_record(row)
+                        return rec, False
+                    raise
+            record = self.get_reservation(reservation_id)
+            assert record is not None
+            return record, True
 
     def commit(
         self,
@@ -439,145 +446,145 @@ class ReservationStore:
           - OVER_REDUCTION
         """
         with self._lock:
-            conn = self._get_conn()
-            try:
-                with conn:
-                    # Execute immediate transaction to serialize writes across processes
-                    try:
-                        conn.execute("BEGIN IMMEDIATE")
-                    except sqlite3.OperationalError:
-                        pass
+            with self._get_conn() as conn:
+                try:
+                    with conn:
+                        # Execute immediate transaction to serialize writes across processes
+                        try:
+                            conn.execute("BEGIN IMMEDIATE")
+                        except sqlite3.OperationalError:
+                            pass
 
-                    now = datetime.now(timezone.utc).isoformat()
-                    expires = datetime.fromtimestamp(time.time() + ttl_seconds, tz=timezone.utc).isoformat()
+                        now = datetime.now(timezone.utc).isoformat()
+                        expires = datetime.fromtimestamp(time.time() + ttl_seconds, tz=timezone.utc).isoformat()
 
-                    # Expire stale pending in this transaction
-                    conn.execute(
-                        """
-                        UPDATE reservations
-                        SET status = ?, updated_at = ?
-                        WHERE status = ? AND expires_at <= ? AND (intent = 'EXIT' OR position_id IS NOT NULL)
-                        """,
-                        (ReservationStatus.RECONCILIATION_REQUIRED.value, now, ReservationStatus.PENDING.value, now),
+                        # Expire stale pending in this transaction
+                        conn.execute(
+                            """
+                            UPDATE reservations
+                            SET status = ?, updated_at = ?
+                            WHERE status = ? AND expires_at <= ? AND (intent = 'EXIT' OR position_id IS NOT NULL)
+                            """,
+                            (ReservationStatus.RECONCILIATION_REQUIRED.value, now, ReservationStatus.PENDING.value, now),
+                        )
+                        conn.execute(
+                            """
+                            UPDATE reservations
+                            SET status = ?, updated_at = ?
+                            WHERE status = ? AND expires_at <= ? AND (intent != 'EXIT' OR intent IS NULL) AND position_id IS NULL
+                            """,
+                            (ReservationStatus.EXPIRED.value, now, ReservationStatus.PENDING.value, now),
+                        )
+
+                        # Check for existing idempotency key
+                        cursor = conn.execute("SELECT * FROM reservations WHERE idempotency_key = ?", (idempotency_key,))
+                        existing_row = cursor.fetchone()
+                        if existing_row:
+                            rec = self._row_to_record(existing_row)
+                            return rec, float(rec.reserved_qty), False
+
+                        # Compute current allocated exit quantity
+                        cursor = conn.execute(
+                            """
+                            SELECT status, reserved_qty, filled_qty
+                            FROM reservations
+                            WHERE position_id = ?
+                              AND execution_mode = ?
+                            """,
+                            (
+                                str(position_id),
+                                str(execution_mode).lower(),
+                            ),
+                        )
+                        executed = 0.0
+                        pending = 0.0
+                        for row in cursor.fetchall():
+                            st = row["status"]
+                            r_q = float(row["reserved_qty"] or 0.0)
+                            f_q = float(row["filled_qty"] or 0.0)
+                            if st == ReservationStatus.COMMITTED.value:
+                                executed += f_q if f_q > 0.0 else r_q
+                            elif st in (
+                                ReservationStatus.PARTIALLY_COMMITTED.value,
+                                ReservationStatus.PENDING.value,
+                                ReservationStatus.RECONCILIATION_REQUIRED.value,
+                                ReservationStatus.EXPIRED.value,
+                            ):
+                                executed += f_q
+                                pending += max(0.0, r_q - f_q)
+                            elif st == ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value:
+                                executed += f_q
+                            elif st == ReservationStatus.RELEASED.value:
+                                executed += f_q
+                        allocated = executed + pending
+                        remaining_qty = float(available_position_qty) - allocated
+
+                        if remaining_qty <= 1e-9:
+                            raise ValueError("NO_REMAINING_POSITION_EXPOSURE")
+
+                        final_qty = float(intended_qty)
+                        if final_qty > (remaining_qty * 1.0001):
+                            if clip_to_open_qty:
+                                final_qty = max(0.0, remaining_qty)
+                            else:
+                                raise ValueError("OVER_REDUCTION")
+
+                        proportional_notional = (final_qty / intended_qty * notional_usdt) if intended_qty > 0 else notional_usdt
+
+                        conn.execute(
+                            """
+                            INSERT INTO reservations (
+                                reservation_id, idempotency_key, entry_decision_id, symbol, side,
+                                reserved_notional, filled_notional, reserved_position_slots, status,
+                                exchange_order_id, client_order_id, created_at, expires_at, updated_at,
+                                signal_id, prediction_id, model_version, model_artifact_sha256,
+                                feature_schema_version, deployment_id, paper_run_id, cycle_id,
+                                decision_context, caller_context, position_id, execution_mode,
+                                reserved_qty, filled_qty, intent
+                            ) VALUES (?, ?, ?, ?, ?, ?, 0.0, 0, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.0, 'EXIT')
+                            """,
+                            (
+                                reservation_id,
+                                idempotency_key,
+                                entry_decision_id,
+                                symbol,
+                                side,
+                                proportional_notional,
+                                ReservationStatus.PENDING.value,
+                                now,
+                                expires,
+                                now,
+                                signal_id,
+                                prediction_id,
+                                model_version,
+                                model_artifact_sha256,
+                                feature_schema_version,
+                                deployment_id,
+                                paper_run_id,
+                                cycle_id,
+                                decision_context,
+                                caller_context,
+                                str(position_id),
+                                str(execution_mode).lower(),
+                                final_qty,
+                            ),
+                        )
+                except sqlite3.IntegrityError:
+                    # Race check fallback
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT * FROM reservations WHERE idempotency_key = ?",
+                        (idempotency_key,),
                     )
-                    conn.execute(
-                        """
-                        UPDATE reservations
-                        SET status = ?, updated_at = ?
-                        WHERE status = ? AND expires_at <= ? AND (intent != 'EXIT' OR intent IS NULL) AND position_id IS NULL
-                        """,
-                        (ReservationStatus.EXPIRED.value, now, ReservationStatus.PENDING.value, now),
-                    )
-
-                    # Check for existing idempotency key
-                    cursor = conn.execute("SELECT * FROM reservations WHERE idempotency_key = ?", (idempotency_key,))
-                    existing_row = cursor.fetchone()
-                    if existing_row:
-                        rec = self._row_to_record(existing_row)
+                    row = cursor.fetchone()
+                    if row:
+                        rec = self._row_to_record(row)
                         return rec, float(rec.reserved_qty), False
+                    raise
 
-                    # Compute current allocated exit quantity
-                    cursor = conn.execute(
-                        """
-                        SELECT status, reserved_qty, filled_qty
-                        FROM reservations
-                        WHERE position_id = ?
-                          AND execution_mode = ?
-                        """,
-                        (
-                            str(position_id),
-                            str(execution_mode).lower(),
-                        ),
-                    )
-                    executed = 0.0
-                    pending = 0.0
-                    for row in cursor.fetchall():
-                        st = row["status"]
-                        r_q = float(row["reserved_qty"] or 0.0)
-                        f_q = float(row["filled_qty"] or 0.0)
-                        if st == ReservationStatus.COMMITTED.value:
-                            executed += f_q if f_q > 0.0 else r_q
-                        elif st in (
-                            ReservationStatus.PARTIALLY_COMMITTED.value,
-                            ReservationStatus.PENDING.value,
-                            ReservationStatus.RECONCILIATION_REQUIRED.value,
-                            ReservationStatus.EXPIRED.value,
-                        ):
-                            executed += f_q
-                            pending += max(0.0, r_q - f_q)
-                        elif st == ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value:
-                            executed += f_q
-                        elif st == ReservationStatus.RELEASED.value:
-                            executed += f_q
-                    allocated = executed + pending
-                    remaining_qty = float(available_position_qty) - allocated
-
-                    if remaining_qty <= 1e-9:
-                        raise ValueError("NO_REMAINING_POSITION_EXPOSURE")
-
-                    final_qty = float(intended_qty)
-                    if final_qty > (remaining_qty * 1.0001):
-                        if clip_to_open_qty:
-                            final_qty = max(0.0, remaining_qty)
-                        else:
-                            raise ValueError("OVER_REDUCTION")
-
-                    proportional_notional = (final_qty / intended_qty * notional_usdt) if intended_qty > 0 else notional_usdt
-
-                    conn.execute(
-                        """
-                        INSERT INTO reservations (
-                            reservation_id, idempotency_key, entry_decision_id, symbol, side,
-                            reserved_notional, filled_notional, reserved_position_slots, status,
-                            exchange_order_id, client_order_id, created_at, expires_at, updated_at,
-                            signal_id, prediction_id, model_version, model_artifact_sha256,
-                            feature_schema_version, deployment_id, paper_run_id, cycle_id,
-                            decision_context, caller_context, position_id, execution_mode,
-                            reserved_qty, filled_qty, intent
-                        ) VALUES (?, ?, ?, ?, ?, ?, 0.0, 0, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.0, 'EXIT')
-                        """,
-                        (
-                            reservation_id,
-                            idempotency_key,
-                            entry_decision_id,
-                            symbol,
-                            side,
-                            proportional_notional,
-                            ReservationStatus.PENDING.value,
-                            now,
-                            expires,
-                            now,
-                            signal_id,
-                            prediction_id,
-                            model_version,
-                            model_artifact_sha256,
-                            feature_schema_version,
-                            deployment_id,
-                            paper_run_id,
-                            cycle_id,
-                            decision_context,
-                            caller_context,
-                            str(position_id),
-                            str(execution_mode).lower(),
-                            final_qty,
-                        ),
-                    )
-
-                rec = self.get_reservation(reservation_id)
-                assert rec is not None
-                return rec, final_qty, True
-            except sqlite3.IntegrityError:
-                # Race check fallback
-                cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT * FROM reservations WHERE idempotency_key = ?",
-                    (idempotency_key,),
-                )
-                row = cursor.fetchone()
-                if row:
-                    rec = self._row_to_record(row)
-                    return rec, float(rec.reserved_qty), False
-                raise
+            rec = self.get_reservation(reservation_id)
+            assert rec is not None
+            return rec, final_qty, True
 
     def commit_position_exit(
         self,
@@ -670,6 +677,8 @@ class ReservationStore:
                         filled_notional = float(filled_notional or 0.0)
 
                         if status_str in ("FILLED", "STATUS_FILLED"):
+                            if current_status == ReservationStatus.COMMITTED.value and math.isclose(float(row["filled_qty"] or 0.0), filled_qty, rel_tol=1e-7, abs_tol=1e-7):
+                                continue
                             conn.execute(
                                 """
                                 UPDATE reservations
@@ -680,6 +689,8 @@ class ReservationStore:
                             )
                             reconciled += 1
                         elif status_str in ("PARTIAL_FILL", "PARTIALLY_FILLED"):
+                            if current_status == ReservationStatus.PARTIALLY_COMMITTED.value and math.isclose(float(row["filled_qty"] or 0.0), filled_qty, rel_tol=1e-7, abs_tol=1e-7):
+                                continue
                             conn.execute(
                                 """
                                 UPDATE reservations
@@ -689,12 +700,36 @@ class ReservationStore:
                                 (ReservationStatus.PARTIALLY_COMMITTED.value, filled_qty, filled_notional, now, res_id),
                             )
                             reconciled += 1
-                        elif status_str in ("REJECTED", "CANCELLED", "TIMEOUT"):
+                        elif status_str in ("REJECTED", "CANCELLED"):
                             target_status = (
                                 ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value
                                 if filled_qty > 0.0
                                 else ReservationStatus.RELEASED.value
                             )
+                            if current_status == target_status and math.isclose(float(row["filled_qty"] or 0.0), filled_qty, rel_tol=1e-7, abs_tol=1e-7):
+                                continue
+                            conn.execute(
+                                """
+                                UPDATE reservations
+                                SET status = ?, filled_qty = ?, filled_notional = ?, updated_at = ?
+                                WHERE reservation_id = ?
+                                """,
+                                (target_status, filled_qty, filled_notional, now, res_id),
+                            )
+                            reconciled += 1
+                        elif status_str == "TIMEOUT":
+                            # TIMEOUT is an ambiguous state, not proof of zero-fill!
+                            is_exit = (row["intent"] == "EXIT") or (row["position_id"] is not None)
+                            if filled_qty > 0.0:
+                                target_status = ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value
+                            else:
+                                target_status = (
+                                    ReservationStatus.RECONCILIATION_REQUIRED.value
+                                    if is_exit
+                                    else ReservationStatus.PENDING.value
+                                )
+                            if current_status == target_status and math.isclose(float(row["filled_qty"] or 0.0), filled_qty, rel_tol=1e-7, abs_tol=1e-7):
+                                continue
                             conn.execute(
                                 """
                                 UPDATE reservations
@@ -762,6 +797,7 @@ class ReservationStore:
     def release(self, reservation_id: str) -> Optional[ReservationRecord]:
         """Release the unexecuted portion of a reservation if rejected, failed, or cancelled.
         
+        If already terminal (COMMITTED, CANCELLED_WITH_PARTIAL_FILL, RELEASED), returns unchanged.
         If the reservation has confirmed filled quantity or notional > 0,
         it transitions to CANCELLED_WITH_PARTIAL_FILL so confirmed fills are permanently protected.
         Otherwise, transitions to RELEASED (confirmed zero fill).
@@ -770,6 +806,13 @@ class ReservationStore:
             current = self.get_reservation(reservation_id)
             if current is None:
                 return None
+            if current.status in (
+                ReservationStatus.COMMITTED,
+                ReservationStatus.CANCELLED_WITH_PARTIAL_FILL,
+                ReservationStatus.RELEASED,
+            ):
+                return current
+
             now = datetime.now(timezone.utc).isoformat()
             has_partial_fill = (
                 (current.filled_qty is not None and float(current.filled_qty) > 0.0)
