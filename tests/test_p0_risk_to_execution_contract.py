@@ -1400,7 +1400,11 @@ def test_phase4_1_to_4_durable_exit_across_engine_instances(tmp_path, monkeypatc
     candle = _make_sample_candle(100.0)
 
     # 1) Engine A: Exit 0.7 BTC ($70 at $100/BTC)
-    engine_a = ExecutionEngine(reservation_db_path=db_file)
+    engine_a = ExecutionEngine(
+        reservation_db_path=db_file,
+        log_dir=str(tmp_path / "log_a"),
+        fills_dir=str(tmp_path / "fills_a"),
+    )
     sig_1 = {
         "coin": "BTC",
         "signal": "SELL",
@@ -1415,7 +1419,11 @@ def test_phase4_1_to_4_durable_exit_across_engine_instances(tmp_path, monkeypatc
     assert rec_a.filled_qty == pytest.approx(0.7)
 
     # 2) Recreate Engine B pointing to the exact same reservation database
-    engine_b = ExecutionEngine(reservation_db_path=db_file)
+    engine_b = ExecutionEngine(
+        reservation_db_path=db_file,
+        log_dir=str(tmp_path / "log_b"),
+        fills_dir=str(tmp_path / "fills_b"),
+    )
 
     # 3) Engine B: Attempt another 0.7 BTC exit ($70) without clip_to_open_qty
     sig_2 = {
@@ -1482,7 +1490,11 @@ def test_phase4_5_restart_recovery_and_reconciliation(tmp_path, monkeypatch):
     monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [pos])
     candle = _make_sample_candle(100.0)
 
-    engine_a = ExecutionEngine(reservation_db_path=db_file)
+    engine_a = ExecutionEngine(
+        reservation_db_path=db_file,
+        log_dir=str(tmp_path / "log_a"),
+        fills_dir=str(tmp_path / "fills_a"),
+    )
     sig_crash = {
         "coin": "BTC",
         "signal": "SELL",
@@ -1503,7 +1515,11 @@ def test_phase4_5_restart_recovery_and_reconciliation(tmp_path, monkeypatch):
     assert res_record.status == ReservationStatus.PENDING
 
     # Even while PENDING, cross-instance position allocation counts it (preventing over-reduction)
-    engine_b = ExecutionEngine(reservation_db_path=db_file)
+    engine_b = ExecutionEngine(
+        reservation_db_path=db_file,
+        log_dir=str(tmp_path / "log_b"),
+        fills_dir=str(tmp_path / "fills_b"),
+    )
     exec_qty, pending_qty, total_alloc = engine_b._reservation_store.get_position_exit_allocations("pos_crash_01", "paper")
     assert pending_qty == pytest.approx(0.4)
     assert total_alloc == pytest.approx(0.4)
@@ -1873,7 +1889,11 @@ def test_phase5_3_crash_recovery_ttl_expiry_and_authoritative_reconciliation(tmp
     }
     monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [pos])
     candle = _make_sample_candle(100.0)
-    engine_a = ExecutionEngine(reservation_db_path=db_file)
+    engine_a = ExecutionEngine(
+        reservation_db_path=db_file,
+        log_dir=str(tmp_path / "log_a"),
+        fills_dir=str(tmp_path / "fills_a"),
+    )
 
     # 1. Exit of 0.7 BTC crashes after fill before SQLite commit
     sig1 = {
@@ -1904,7 +1924,11 @@ def test_phase5_3_crash_recovery_ttl_expiry_and_authoritative_reconciliation(tmp
         )
 
     # 3. Engine B starts up sharing the same database
-    engine_b = ExecutionEngine(reservation_db_path=db_file)
+    engine_b = ExecutionEngine(
+        reservation_db_path=db_file,
+        log_dir=str(tmp_path / "log_b"),
+        fills_dir=str(tmp_path / "fills_b"),
+    )
     store_b = engine_b._reservation_store
 
     # Expiry check / allocation check transitions it to RECONCILIATION_REQUIRED, preserving protection

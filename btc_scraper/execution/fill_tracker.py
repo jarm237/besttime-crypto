@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import uuid
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from datetime import datetime, timezone
@@ -185,6 +185,53 @@ class ExecutionRecord:
             self.status = OrderStatus.PARTIAL_FILL
 
 
+def _tail_read_jsonl(path: Path, max_records: int, buffer_size: int = 65536) -> List[Dict[str, Any]]:
+    """Bounded, memory-efficient reverse line reader for JSONL files.
+
+    Reads backwards from the end of the file in chunks without loading
+    the full file into memory. Safely handles:
+    - Missing or empty files
+    - Truncated trailing lines (e.g. from crash during write)
+    - Corrupt JSON records
+    - Non-dict JSON objects
+    """
+    if not path.is_file() or path.stat().st_size == 0 or max_records <= 0:
+        return []
+    records: List[Dict[str, Any]] = []
+    with open(path, "rb") as f:
+        f.seek(0, 2)
+        file_size = f.tell()
+        remainder = b""
+        pos = file_size
+        while pos > 0 and len(records) < max_records:
+            read_size = min(buffer_size, pos)
+            pos -= read_size
+            f.seek(pos)
+            chunk = f.read(read_size) + remainder
+            lines = chunk.split(b"\n")
+            remainder = lines[0]
+            for raw_line in reversed(lines[1:]):
+                raw_line = raw_line.strip()
+                if not raw_line:
+                    continue
+                try:
+                    obj = json.loads(raw_line.decode("utf-8", errors="replace"))
+                    if isinstance(obj, dict):
+                        records.append(obj)
+                        if len(records) >= max_records:
+                            break
+                except Exception:
+                    continue
+        if pos == 0 and remainder.strip() and len(records) < max_records:
+            try:
+                obj = json.loads(remainder.strip().decode("utf-8", errors="replace"))
+                if isinstance(obj, dict):
+                    records.append(obj)
+            except Exception:
+                pass
+    return records
+
+
 class FillTracker:
     """
     Manages active orders and persists fill records.
@@ -267,8 +314,65 @@ class FillTracker:
     def get_active(self) -> List[ExecutionRecord]:
         return list(self._active.values())
 
-    def get_history(self, limit: int = 200) -> List[ExecutionRecord]:
+    def get_history(self, limit: int = 200, include_persisted: bool = False) -> List[ExecutionRecord]:
+        if not self._history and include_persisted:
+            return list(reversed(self.load_persisted_records(limit=limit)))
         return self._history[-limit:]
+
+    def load_persisted_records(self, limit: int = 5000) -> List[ExecutionRecord]:
+        """Bounded loader that recovers at most `limit` execution records from persisted disk stores.
+
+        Reads newest files and records first. Deduplicates records by execution_id /
+        reservation_id / idempotency_key to retain the latest known lifecycle state.
+        Never loads entire large files into memory.
+        """
+        candidate_files: List[Path] = []
+        # Search fills_dir (authoritative store for completed/persisted fills)
+        if self.fills_dir.exists():
+            candidate_files.extend(self.fills_dir.rglob("fills_*.jsonl"))
+        # Also check execution logs for non-fill transitions or fallback
+        if self.log_dir.exists():
+            candidate_files.extend(self.log_dir.rglob("execution_*.jsonl"))
+
+        # Sort candidate files by mtime descending (newest files first)
+        candidate_files = sorted(set(candidate_files), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+
+        unique_records: List[Dict[str, Any]] = []
+        seen_keys = set()
+
+        for file_path in candidate_files:
+            if len(unique_records) >= limit:
+                break
+            remaining = limit - len(unique_records)
+            chunk_records = _tail_read_jsonl(file_path, max_records=remaining)
+            for d in chunk_records:
+                key = str(d.get("execution_id") or d.get("reservation_id") or d.get("idempotency_key") or "")
+                if key and key in seen_keys:
+                    continue
+                if key:
+                    seen_keys.add(key)
+                unique_records.append(d)
+                if len(unique_records) >= limit:
+                    break
+
+        record_field_names = {f.name for f in fields(ExecutionRecord)}
+        fill_event_field_names = {f.name for f in fields(FillEvent)}
+
+        result: List[ExecutionRecord] = []
+        for d in unique_records:
+            try:
+                filtered = {k: v for k, v in d.items() if k in record_field_names and k != "fills"}
+                rec = ExecutionRecord(**filtered)
+                if "fills" in d and isinstance(d["fills"], list):
+                    rec.fills = [
+                        FillEvent(**{k: v for k, v in f.items() if k in fill_event_field_names})
+                        for f in d["fills"]
+                        if isinstance(f, dict)
+                    ]
+                result.append(rec)
+            except Exception:
+                continue
+        return result
 
     def reject_rate(self) -> float:
         total = len(self._history)

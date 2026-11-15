@@ -107,9 +107,11 @@ class ExecutionEngine:
         # Authoritative runtime startup reconciliation:
         # Reconcile any uncommitted or crashed reservations against disk fill records.
         try:
-            startup_records = self._tracker.get_history(limit=5000)
+            startup_records = self._tracker.load_persisted_records(limit=5000)
             if startup_records:
                 self._reservation_store.reconcile_crashed_reservations(startup_records)
+                if not self._tracker._history:
+                    self._tracker._history.extend(list(reversed(startup_records[:200])))
         except Exception as exc:
             logger.warning(f"[ExecutionEngine] Startup crash reconciliation skipped: {exc}")
         import asyncio
@@ -496,6 +498,12 @@ class ExecutionEngine:
             if not created_new and rec_res.status in (ReservationStatus.RELEASED, ReservationStatus.EXPIRED):
                 record.status = OrderStatus.REJECTED
                 record.reason = f"reservation_{rec_res.status.value}"
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
+            if not created_new and rec_res.status == ReservationStatus.RECONCILIATION_REQUIRED:
+                record.status = OrderStatus.REJECTED
+                record.reason = "duplicate_idempotency_key_reconciliation_required"
                 self._tracker._history.append(record)
                 self._tracker._write_jsonl(record)
                 return record
