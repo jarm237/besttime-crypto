@@ -6,6 +6,7 @@ import os
 import time
 import copy
 import uuid
+import math
 from typing import Dict, Any, Iterable, List
 from rich.console import Console
 
@@ -432,8 +433,49 @@ class PortfolioManagerAgent(BaseAgent):
         signals_info = context.get("signals_info", [])
         raw_candles = context.get("raw_candles", {})
         analysis = context.get("analysis", {})
-        account_balance = float(context.get("account_balance", 500.0))
         
+        # Phase H2: Resolve equity from authoritative snapshot / context without arbitrary fallback
+        account_balance = context.get("account_balance")
+        if account_balance is None:
+            account_balance = context.get("account_equity")
+        if account_balance is None:
+            risk_m = context.get("risk_metrics")
+            if isinstance(risk_m, dict):
+                account_balance = risk_m.get("account_equity") or risk_m.get("account_balance")
+
+        is_valid_balance = False
+        try:
+            if account_balance is not None:
+                bal = float(account_balance)
+                if math.isfinite(bal) and bal > 0.0:
+                    account_balance = bal
+                    is_valid_balance = True
+        except (TypeError, ValueError):
+            pass
+
+        if not is_valid_balance:
+            # Block all allocations safely when no authoritative balance is established
+            for s in signals_info:
+                s["portfolio_weight"] = 0.0
+                s["approved_notional"] = 0.0
+                s["entry_eligible"] = False
+                s["unallocated_portfolio"] = True
+                s["action"] = "NEUTRAL"
+            for key, ana in analysis.items():
+                ana["portfolio_weight"] = 0.0
+                ana["approved_notional"] = 0.0
+                ana["entry_eligible"] = False
+                ana["unallocated_portfolio"] = True
+                sig_score = ana.get("signal_score")
+                if isinstance(sig_score, dict):
+                    sig_score["portfolio_weight"] = 0.0
+                    sig_score["approved_notional"] = 0.0
+                    sig_score["kelly_fraction"] = 0.0
+                    sig_score["action"] = "NEUTRAL"
+                    sig_score["entry_eligible"] = False
+                    sig_score["unallocated_portfolio"] = True
+            return context
+
         # Chỉ chạy phân bổ nếu có tối thiểu 2 tín hiệu trở lên
         active_sigs = [s for s in signals_info if s.get("action") in ("BUY", "SELL")]
         
@@ -444,20 +486,31 @@ class PortfolioManagerAgent(BaseAgent):
             for s in signals_info:
                 coin = s["coin"]
                 weight = weights.get(coin, 0.0)
-                s["portfolio_weight"] = weight
-                s["approved_notional"] = account_balance * weight
-                s["kelly_fraction"] = weight
-                if weight <= 0.0:
+                try:
+                    w = float(weight)
+                    if not math.isfinite(w) or w < 0.0:
+                        w = 0.0
+                except (TypeError, ValueError):
+                    w = 0.0
+                s["portfolio_weight"] = w
+                s["approved_notional"] = account_balance * w
+                s["kelly_fraction"] = w
+                if w <= 0.0:
                     s["action"] = "NEUTRAL"
                     s["entry_eligible"] = False
                     s["unallocated_portfolio"] = True
-                console.print(f"  ↳ Allocation {coin}: {weight*100:.2f}% vốn")
+                console.print(f"  ↳ Allocation {coin}: {w*100:.2f}% vốn")
         else:
             for s in signals_info:
-                weight = float(s.get("kelly_fraction", 0.0))
-                s["portfolio_weight"] = weight
-                s["approved_notional"] = account_balance * weight
-                if weight <= 0.0:
+                try:
+                    w = float(s.get("kelly_fraction", 0.0))
+                    if not math.isfinite(w) or w < 0.0:
+                        w = 0.0
+                except (TypeError, ValueError):
+                    w = 0.0
+                s["portfolio_weight"] = w
+                s["approved_notional"] = account_balance * w
+                if w <= 0.0:
                     s["entry_eligible"] = False
                     s["unallocated_portfolio"] = True
                 

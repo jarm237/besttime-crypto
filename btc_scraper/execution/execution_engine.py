@@ -308,6 +308,8 @@ class ExecutionEngine:
             if signal.get("approved_notional") is not None:
                 try:
                     appr_cap = float(signal["approved_notional"])
+                    if not math.isfinite(appr_cap) or appr_cap <= 0.0:
+                        appr_cap = 0.0
                 except (TypeError, ValueError):
                     appr_cap = 0.0
                 if appr_cap <= 0.0:
@@ -329,16 +331,28 @@ class ExecutionEngine:
                 if not ks.allows_entry():
                     recheck_failed = True
                     recheck_reason = "KILL_SWITCH_ACTIVE"
-            except Exception:
-                pass
+            except Exception as exc:
+                recheck_failed = True
+                recheck_reason = f"KILL_SWITCH_ERROR: {exc}"
+
+            if not recheck_failed:
+                try:
+                    from btc_scraper.trading.risk_manager import calculate_risk_metrics
+                    current_risk = calculate_risk_metrics()
+                    if current_risk.get("blocked", False):
+                        recheck_failed = True
+                        recheck_reason = f"DYNAMIC_RISK_BLOCKED: {current_risk.get('failure_reason', 'drawdown_breach')}"
+                except Exception as exc:
+                    recheck_failed = True
+                    recheck_reason = f"RISK_METRICS_ERROR: {exc}"
 
             if not recheck_failed and signal.get("execution_risk_blocked"):
                 recheck_failed = True
                 recheck_reason = "EXECUTION_RISK_BLOCKED"
 
             if recheck_failed:
-                record.execution_recheck_result = "BLOCKED"
-                return self._tracker.reject(record, f"EXECUTION_RECHECK_BLOCKED: {recheck_reason}")
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, f"EXECUTION_RECHECK_FAILED: {recheck_reason}")
 
             record.execution_recheck_result = "PASSED"
 
@@ -350,7 +364,68 @@ class ExecutionEngine:
                 record.execution_recheck_result = "BLOCKED"
                 return self._tracker.reject(record, authorization_failure)
         elif is_exit:
-            record.execution_recheck_result = "PASSED"
+            # Phase H3: Authoritative Reduce-Only Verification against Open Position Ledger
+            open_positions = []
+            try:
+                from btc_scraper.trading.position_tracker import get_open_positions
+                open_positions = get_open_positions() or []
+            except Exception:
+                try:
+                    from btc_scraper.trading.exposure_manager import exposure_manager
+                    open_positions = exposure_manager.get_open_positions() or []
+                except Exception:
+                    open_positions = []
+
+            # 1. Position availability check
+            target_pos_id = signal.get("position_id") or record.position_id
+            matching_pos = None
+            if target_pos_id:
+                for p in open_positions:
+                    if p.get("id") == target_pos_id or p.get("position_id") == target_pos_id:
+                        matching_pos = p
+                        break
+                if matching_pos is None:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "UNKNOWN_POSITION_ID")
+            else:
+                matching = [p for p in open_positions if p.get("coin", "").upper() == coin.upper()]
+                if not matching:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "NO_POSITION_AVAILABLE")
+                matching_pos = matching[0]
+
+            # 2. Symbol check
+            pos_coin = str(matching_pos.get("coin", "")).upper()
+            pos_symbol = str(matching_pos.get("symbol", f"{pos_coin}/USDT")).upper()
+            if pos_coin != coin.upper() and pos_symbol != f"{coin.upper()}/USDT":
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISMATCHED_SYMBOL")
+
+            # 3. Direction check
+            pos_direction = str(matching_pos.get("direction") or matching_pos.get("side") or "BUY").upper()
+            expected_exit_side = "SELL" if pos_direction in ("BUY", "LONG") else "BUY"
+            if side.upper() != expected_exit_side:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "WRONG_DIRECTION")
+
+            # 4. Over-reduction check
+            pos_qty = float(matching_pos.get("amount") or matching_pos.get("qty") or 0.0)
+            if pos_qty <= 0.0 and matching_pos.get("invested_usdt"):
+                pos_qty = float(matching_pos["invested_usdt"]) / float(matching_pos.get("entry_price") or decision_price or 1.0)
+
+            intended_qty = record.intended_qty
+            if pos_qty > 0.0 and intended_qty > (pos_qty * 1.0001):
+                if signal.get("clip_to_open_qty"):
+                    record.intended_qty = pos_qty
+                    record.intended_notional = pos_qty * decision_price
+                    record.executed_notional = record.intended_notional
+                    notional_usdt = record.intended_notional
+                    qty = pos_qty
+                else:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "OVER_REDUCTION")
+
+            # 5. Duplicate exit check & reservation
             symbol = f"{coin}/USDT"
             reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
             idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
@@ -375,21 +450,26 @@ class ExecutionEngine:
             record.reservation_id = rec_res.reservation_id
             record.idempotency_key = rec_res.idempotency_key
             record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
-            if not created_new and rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
-                record.status = OrderStatus.FILLED
-                record.reason = "duplicate_idempotency_key_already_committed"
-                record.filled_qty = rec_res.filled_notional / decision_price if decision_price > 0 else 0.0
-                record.avg_fill_price = decision_price
-                record.submit_time = datetime.now(timezone.utc).isoformat()
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
-            if not created_new and rec_res.status in (ReservationStatus.RELEASED, ReservationStatus.EXPIRED):
-                record.status = OrderStatus.REJECTED
-                record.reason = f"reservation_{rec_res.status.value}"
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
+
+            if not created_new:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "DUPLICATE_EXIT")
+
+            # 6. Kill Switch exit check (preserve emergency exit privileges)
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if intent == OrderIntent.EMERGENCY_EXIT:
+                    pass
+                elif not ks.allows_exit():
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "KILL_SWITCH_BLOCKS_EXIT")
+            except Exception as exc:
+                if intent != OrderIntent.EMERGENCY_EXIT:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, f"KILL_SWITCH_ERROR: {exc}")
+
+            record.execution_recheck_result = "PASSED"
             if signal.get("simulate_timeout_after_reserve"):
                 record.status = OrderStatus.TIMEOUT
                 record.reason = "simulated_timeout_after_reserve"
@@ -650,6 +730,8 @@ class ExecutionEngine:
             if signal.get("approved_notional") is not None:
                 try:
                     appr_cap = float(signal["approved_notional"])
+                    if not math.isfinite(appr_cap) or appr_cap <= 0.0:
+                        appr_cap = 0.0
                 except (TypeError, ValueError):
                     appr_cap = 0.0
                 if appr_cap <= 0.0:
@@ -671,16 +753,28 @@ class ExecutionEngine:
                 if not ks.allows_entry():
                     recheck_failed = True
                     recheck_reason = "KILL_SWITCH_ACTIVE"
-            except Exception:
-                pass
+            except Exception as exc:
+                recheck_failed = True
+                recheck_reason = f"KILL_SWITCH_ERROR: {exc}"
+
+            if not recheck_failed:
+                try:
+                    from btc_scraper.trading.risk_manager import calculate_risk_metrics
+                    current_risk = calculate_risk_metrics()
+                    if current_risk.get("blocked", False):
+                        recheck_failed = True
+                        recheck_reason = f"DYNAMIC_RISK_BLOCKED: {current_risk.get('failure_reason', 'drawdown_breach')}"
+                except Exception as exc:
+                    recheck_failed = True
+                    recheck_reason = f"RISK_METRICS_ERROR: {exc}"
 
             if not recheck_failed and signal.get("execution_risk_blocked"):
                 recheck_failed = True
                 recheck_reason = "EXECUTION_RISK_BLOCKED"
 
             if recheck_failed:
-                record.execution_recheck_result = "BLOCKED"
-                return self._tracker.reject(record, f"EXECUTION_RECHECK_BLOCKED: {recheck_reason}")
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, f"EXECUTION_RECHECK_FAILED: {recheck_reason}")
 
             record.execution_recheck_result = "PASSED"
 
@@ -692,6 +786,81 @@ class ExecutionEngine:
                 record.execution_recheck_result = "BLOCKED"
                 return self._tracker.reject(record, authorization_failure)
         elif is_exit:
+            # Phase H3: Authoritative Reduce-Only Verification against Open Position Ledger
+            open_positions = []
+            try:
+                from btc_scraper.trading.position_tracker import get_open_positions
+                open_positions = get_open_positions() or []
+            except Exception:
+                try:
+                    from btc_scraper.trading.exposure_manager import exposure_manager
+                    open_positions = exposure_manager.get_open_positions() or []
+                except Exception:
+                    open_positions = []
+
+            # 1. Position availability check
+            target_pos_id = signal.get("position_id") or record.position_id
+            matching_pos = None
+            if target_pos_id:
+                for p in open_positions:
+                    if p.get("id") == target_pos_id or p.get("position_id") == target_pos_id:
+                        matching_pos = p
+                        break
+                if matching_pos is None:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "UNKNOWN_POSITION_ID")
+            else:
+                matching = [p for p in open_positions if p.get("coin", "").upper() == coin.upper()]
+                if not matching:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "NO_POSITION_AVAILABLE")
+                matching_pos = matching[0]
+
+            # 2. Symbol check
+            pos_coin = str(matching_pos.get("coin", "")).upper()
+            pos_symbol = str(matching_pos.get("symbol", f"{pos_coin}/USDT")).upper()
+            if pos_coin != coin.upper() and pos_symbol != f"{coin.upper()}/USDT":
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISMATCHED_SYMBOL")
+
+            # 3. Direction check
+            pos_direction = str(matching_pos.get("direction") or matching_pos.get("side") or "BUY").upper()
+            expected_exit_side = "SELL" if pos_direction in ("BUY", "LONG") else "BUY"
+            if side.upper() != expected_exit_side:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "WRONG_DIRECTION")
+
+            # 4. Over-reduction check
+            pos_qty = float(matching_pos.get("amount") or matching_pos.get("qty") or 0.0)
+            if pos_qty <= 0.0 and matching_pos.get("invested_usdt"):
+                pos_qty = float(matching_pos["invested_usdt"]) / float(matching_pos.get("entry_price") or decision_price or 1.0)
+
+            intended_qty = record.intended_qty
+            if pos_qty > 0.0 and intended_qty > (pos_qty * 1.0001):
+                if signal.get("clip_to_open_qty"):
+                    record.intended_qty = pos_qty
+                    record.intended_notional = pos_qty * decision_price
+                    record.executed_notional = record.intended_notional
+                    notional_usdt = record.intended_notional
+                    qty = pos_qty
+                else:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "OVER_REDUCTION")
+
+            # 5. Kill Switch exit check (preserve emergency exit privileges)
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if intent == OrderIntent.EMERGENCY_EXIT:
+                    pass
+                elif not ks.allows_exit():
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "KILL_SWITCH_BLOCKS_EXIT")
+            except Exception as exc:
+                if intent != OrderIntent.EMERGENCY_EXIT:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, f"KILL_SWITCH_ERROR: {exc}")
+
             record.execution_recheck_result = "PASSED"
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────

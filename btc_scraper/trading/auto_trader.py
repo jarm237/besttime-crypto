@@ -43,6 +43,7 @@ Config (từ .env):
 from __future__ import annotations
 
 import json
+import math
 import os
 import time
 import uuid
@@ -526,6 +527,8 @@ class AutoTrader:
         if approved_notional is not None:
             try:
                 approved_val = float(approved_notional)
+                if not math.isfinite(approved_val) or approved_val <= 0.0:
+                    approved_val = 0.0
             except (TypeError, ValueError):
                 approved_val = 0.0
             if approved_val <= 0.0:
@@ -619,7 +622,19 @@ class AutoTrader:
 
         # 7b. Gate 2: Enforce approved portfolio sizing cap
         if approved_notional is not None:
-            notional = min(notional, float(approved_notional))
+            notional = min(notional, approved_val)
+
+        if not math.isfinite(notional) or notional <= 0.0:
+            return SizingDecision(
+                entry_price=entry_price,
+                sl_price=sl_price,
+                stop_distance_pct=sl_distance_pct,
+                risk_pct=risk_pct,
+                risk_notional=risk_notional,
+                raw_notional=raw_notional,
+                rejected=True,
+                rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
+            )
 
         risk_adjusted_notional = max(0.0, notional)
 
