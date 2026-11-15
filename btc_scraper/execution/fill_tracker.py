@@ -65,6 +65,8 @@ class ExecutionRecord:
     signal_id: str = ""
     prediction_id: str = ""
     entry_decision_id: str = ""
+    decision_id: str = ""
+    final_decision_id: str = ""
     model_version: str = ""
     model_artifact_sha256: str = ""
     feature_schema_version: str = ""
@@ -88,6 +90,8 @@ class ExecutionRecord:
     # Sizing
     intended_qty: float = 0.0
     intended_notional: float = 0.0
+    approved_notional: Optional[float] = None
+    executed_notional: Optional[float] = None
 
     # Order spec
     order_type: str = "LIMIT"
@@ -149,6 +153,13 @@ class ExecutionRecord:
     liquidity_score: float = 0.0
     max_safe_order_size: float = 0.0
     guard_action: str = "PASS"   # PASS | REDUCE | REJECT
+    execution_recheck_result: Optional[str] = None
+
+    def __post_init__(self):
+        if not self.decision_id and self.entry_decision_id:
+            self.decision_id = self.entry_decision_id
+        elif not self.entry_decision_id and self.decision_id:
+            self.entry_decision_id = self.decision_id
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)

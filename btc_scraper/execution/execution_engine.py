@@ -263,6 +263,8 @@ class ExecutionEngine:
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
             prediction_id=signal.get("prediction_id", ""),
             entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            decision_id=signal.get("decision_id") or signal.get("entry_decision_id", ""),
+            final_decision_id=signal.get("final_decision_id", ""),
             model_version=signal.get("model_version", ""),
             model_artifact_sha256=signal.get("model_artifact_sha256", ""),
             feature_schema_version=signal.get("feature_schema_version", ""),
@@ -280,6 +282,8 @@ class ExecutionEngine:
             side=side,
             intended_qty=qty,
             intended_notional=notional_usdt,
+            approved_notional=signal.get("approved_notional"),
+            executed_notional=notional_usdt,
             decision_price=decision_price,
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
             fill_source="real_paper",
@@ -293,13 +297,60 @@ class ExecutionEngine:
 
         intent = signal.get("intent", OrderIntent.ENTRY)
         is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
+        is_exit = intent in (OrderIntent.EXIT, OrderIntent.REDUCE_POSITION, OrderIntent.EMERGENCY_EXIT)
         if is_entry:
+            # Gate 1: Upstream risk block
+            if signal.get("risk_blocked") or signal.get("entry_eligible") is False:
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, "RISK_BLOCKED")
+
+            # Gate 2: Sizing caps - approved_notional strictly caps executable notional
+            if signal.get("approved_notional") is not None:
+                try:
+                    appr_cap = float(signal["approved_notional"])
+                except (TypeError, ValueError):
+                    appr_cap = 0.0
+                if appr_cap <= 0.0:
+                    record.execution_recheck_result = "BLOCKED"
+                    return self._tracker.reject(record, "ZERO_APPROVED_NOTIONAL")
+                if notional_usdt > appr_cap:
+                    notional_usdt = appr_cap
+                    qty = notional_usdt / decision_price if decision_price > 0 else 0.0
+                    record.intended_qty = qty
+                    record.intended_notional = notional_usdt
+                    record.executed_notional = notional_usdt
+
+            # Gate 3: Execution-time risk recheck (Kill Switch & Dynamic Block)
+            recheck_failed = False
+            recheck_reason = ""
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if not ks.allows_entry():
+                    recheck_failed = True
+                    recheck_reason = "KILL_SWITCH_ACTIVE"
+            except Exception:
+                pass
+
+            if not recheck_failed and signal.get("execution_risk_blocked"):
+                recheck_failed = True
+                recheck_reason = "EXECUTION_RISK_BLOCKED"
+
+            if recheck_failed:
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, f"EXECUTION_RECHECK_BLOCKED: {recheck_reason}")
+
+            record.execution_recheck_result = "PASSED"
+
             authorization_failure = self._entry_authorization_failure(
                 signal, side=side, require_paper_lineage=True
             )
             if authorization_failure:
                 self._record_entry_quarantine(signal, authorization_failure)
+                record.execution_recheck_result = "BLOCKED"
                 return self._tracker.reject(record, authorization_failure)
+        elif is_exit:
+            record.execution_recheck_result = "PASSED"
             symbol = f"{coin}/USDT"
             reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
             idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
@@ -558,6 +609,8 @@ class ExecutionEngine:
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
             prediction_id=signal.get("prediction_id", ""),
             entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            decision_id=signal.get("decision_id") or signal.get("entry_decision_id", ""),
+            final_decision_id=signal.get("final_decision_id", ""),
             model_version=signal.get("model_version", ""),
             model_artifact_sha256=signal.get("model_artifact_sha256", ""),
             feature_schema_version=signal.get("feature_schema_version", ""),
@@ -575,18 +628,71 @@ class ExecutionEngine:
             side=side,
             intended_qty=qty,
             intended_notional=notional_usdt,
+            approved_notional=signal.get("approved_notional"),
+            executed_notional=notional_usdt,
             decision_price=decision_price,
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
             latency_ms=latency_ms,
             fill_source="live",
             execution_mode="live",
         )
-        authorization_failure = self._entry_authorization_failure(
-            signal, side=side, require_paper_lineage=False
-        )
-        if authorization_failure:
-            self._record_entry_quarantine(signal, authorization_failure)
-            return self._tracker.reject(record, authorization_failure)
+
+        intent = signal.get("intent", OrderIntent.ENTRY)
+        is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
+        is_exit = intent in (OrderIntent.EXIT, OrderIntent.REDUCE_POSITION, OrderIntent.EMERGENCY_EXIT)
+        if is_entry:
+            # Gate 1: Upstream risk block
+            if signal.get("risk_blocked") or signal.get("entry_eligible") is False:
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, "RISK_BLOCKED")
+
+            # Gate 2: Sizing caps - approved_notional strictly caps executable notional
+            if signal.get("approved_notional") is not None:
+                try:
+                    appr_cap = float(signal["approved_notional"])
+                except (TypeError, ValueError):
+                    appr_cap = 0.0
+                if appr_cap <= 0.0:
+                    record.execution_recheck_result = "BLOCKED"
+                    return self._tracker.reject(record, "ZERO_APPROVED_NOTIONAL")
+                if notional_usdt > appr_cap:
+                    notional_usdt = appr_cap
+                    qty = notional_usdt / decision_price if decision_price > 0 else 0.0
+                    record.intended_qty = qty
+                    record.intended_notional = notional_usdt
+                    record.executed_notional = notional_usdt
+
+            # Gate 3: Execution-time risk recheck
+            recheck_failed = False
+            recheck_reason = ""
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if not ks.allows_entry():
+                    recheck_failed = True
+                    recheck_reason = "KILL_SWITCH_ACTIVE"
+            except Exception:
+                pass
+
+            if not recheck_failed and signal.get("execution_risk_blocked"):
+                recheck_failed = True
+                recheck_reason = "EXECUTION_RISK_BLOCKED"
+
+            if recheck_failed:
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, f"EXECUTION_RECHECK_BLOCKED: {recheck_reason}")
+
+            record.execution_recheck_result = "PASSED"
+
+            authorization_failure = self._entry_authorization_failure(
+                signal, side=side, require_paper_lineage=False
+            )
+            if authorization_failure:
+                self._record_entry_quarantine(signal, authorization_failure)
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, authorization_failure)
+        elif is_exit:
+            record.execution_recheck_result = "PASSED"
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────
         snap = self._liquidity.analyze_from_candle(
@@ -608,7 +714,6 @@ class ExecutionEngine:
 
         # ── Central LiveExecutionGuard validation with atomic snapshot and concurrency lock ──
         from .live_execution_guard import OrderContext, LiveStateSnapshot
-        from .hard_risk_limits import OrderIntent
         from pathlib import Path
         import json
 

@@ -378,22 +378,44 @@ class RiskManagerAgent(BaseAgent):
         # Tính toán các chỉ số rủi ro dựa trên closed_positions.json
         risk_metrics = calculate_risk_metrics()
         context["risk_metrics"] = risk_metrics
+        analysis = context.get("analysis", {})
+        signals_info = context.get("signals_info", [])
         
         # Nếu bị block do drawdown vượt mức, hạ cấp tất cả tín hiệu về NEUTRAL
         if risk_metrics.get("blocked", True):
             failure_reason = risk_metrics.get("failure_reason") or f"drawdown={risk_metrics.get('drawdown_pct')}%"
             console.print(f"[bold red][RiskManager] BLOCK_ENTRY: {failure_reason}[/bold red]")
-            for s in context["signals_info"]:
+            for s in signals_info:
                 s["action"] = "NEUTRAL"
+                s["entry_eligible"] = False
+                s["risk_blocked"] = True
                 s["risk_status"] = risk_metrics.get("status", "UNAVAILABLE")
                 s["risk_failure_reason"] = failure_reason
+            
+            for key, ana in analysis.items():
+                ana["risk_blocked"] = True
+                ana["entry_eligible"] = False
+                ana["risk_status"] = risk_metrics.get("status", "UNAVAILABLE")
+                ana["risk_failure_reason"] = failure_reason
+                ana["risk_metrics"] = risk_metrics
+                sig_score = ana.get("signal_score")
+                if isinstance(sig_score, dict):
+                    sig_score["risk_blocked"] = True
+                    sig_score["action"] = "NEUTRAL"
+                    sig_score["entry_eligible"] = False
+                    sig_score["risk_status"] = risk_metrics.get("status", "UNAVAILABLE")
+                    sig_score["risk_failure_reason"] = failure_reason
                 
         # Áp dụng risk multiplier nếu gặp chuỗi thua
         risk_mult = risk_metrics.get("risk_multiplier", 0.0)
         if risk_mult < 1.0:
             console.print(f"[bold yellow][RiskManager] Áp dụng Risk Multiplier {risk_mult} do chuỗi thua liên tiếp ({risk_metrics.get('consecutive_losses')} lệnh)[/bold yellow]")
-            for s in context["signals_info"]:
-                s["kelly_fraction"] = float(s["kelly_fraction"]) * risk_mult
+            for s in signals_info:
+                s["kelly_fraction"] = float(s.get("kelly_fraction", 0.0)) * risk_mult
+            for key, ana in analysis.items():
+                sig_score = ana.get("signal_score")
+                if isinstance(sig_score, dict):
+                    sig_score["kelly_fraction"] = float(sig_score.get("kelly_fraction", 0.0)) * risk_mult
 
         return context
 
@@ -407,28 +429,60 @@ class PortfolioManagerAgent(BaseAgent):
         self.pm = PortfolioManager(method="MVO", risk_aversion=2.0, max_weight=0.30)
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        signals_info = context["signals_info"]
-        raw_candles = context["raw_candles"]
+        signals_info = context.get("signals_info", [])
+        raw_candles = context.get("raw_candles", {})
+        analysis = context.get("analysis", {})
+        account_balance = float(context.get("account_balance", 500.0))
         
         # Chỉ chạy phân bổ nếu có tối thiểu 2 tín hiệu trở lên
-        active_sigs = [s for s in signals_info if s["action"] in ("BUY", "SELL")]
+        active_sigs = [s for s in signals_info if s.get("action") in ("BUY", "SELL")]
         
         if len(active_sigs) >= 2:
             console.print(f"[bold cyan][PortfolioManager] Tìm thấy {len(active_sigs)} tín hiệu đồng thời. Bắt đầu tối ưu danh mục (MVO)...[/bold cyan]")
             weights = self.pm.allocate_weights(signals_info, raw_candles)
             
-            # Ghi đè tỷ lệ phân bổ vốn tối ưu vào kelly_fraction
             for s in signals_info:
                 coin = s["coin"]
-                if coin in weights:
-                    s["portfolio_weight"] = weights[coin]
-                    s["kelly_fraction"] = weights[coin]  # Ghi đè kelly_fraction để auto_trader sử dụng
-                    console.print(f"  ↳ Allocation {coin}: {weights[coin]*100:.2f}% vốn")
+                weight = weights.get(coin, 0.0)
+                s["portfolio_weight"] = weight
+                s["approved_notional"] = account_balance * weight
+                s["kelly_fraction"] = weight
+                if weight <= 0.0:
+                    s["action"] = "NEUTRAL"
+                    s["entry_eligible"] = False
+                    s["unallocated_portfolio"] = True
+                console.print(f"  ↳ Allocation {coin}: {weight*100:.2f}% vốn")
         else:
-            # Nếu chỉ có 1 tín hiệu, gán portfolio_weight bằng kelly_fraction hiện tại
             for s in signals_info:
-                s["portfolio_weight"] = s["kelly_fraction"]
+                weight = float(s.get("kelly_fraction", 0.0))
+                s["portfolio_weight"] = weight
+                s["approved_notional"] = account_balance * weight
+                if weight <= 0.0:
+                    s["entry_eligible"] = False
+                    s["unallocated_portfolio"] = True
                 
+        # Đồng bộ hóa phân bổ vốn sang analysis dict để evaluator và AutoTrader tiêu thụ
+        for key, ana in analysis.items():
+            coin = key.split(":")[0]
+            sig_match = next((s for s in signals_info if s.get("coin") == coin), None)
+            if sig_match is not None:
+                p_weight = sig_match.get("portfolio_weight", 0.0)
+                approved_notional = sig_match.get("approved_notional", 0.0)
+                ana["portfolio_weight"] = p_weight
+                ana["approved_notional"] = approved_notional
+                if sig_match.get("unallocated_portfolio") or p_weight <= 0.0:
+                    ana["entry_eligible"] = False
+                    ana["unallocated_portfolio"] = True
+                sig_score = ana.get("signal_score")
+                if isinstance(sig_score, dict):
+                    sig_score["portfolio_weight"] = p_weight
+                    sig_score["approved_notional"] = approved_notional
+                    sig_score["kelly_fraction"] = p_weight
+                    if sig_match.get("unallocated_portfolio") or p_weight <= 0.0:
+                        sig_score["action"] = "NEUTRAL"
+                        sig_score["entry_eligible"] = False
+                        sig_score["unallocated_portfolio"] = True
+
         return context
 
 class RLExitAgent(BaseAgent):
@@ -482,7 +536,7 @@ class ExecutionAgent(BaseAgent):
         try:
             from btc_scraper.trading.auto_trader import auto_trader
             from btc_scraper.core.milestones import milestone_tracker
-            await auto_trader.evaluate_and_trade(analysis, mtf_analysis=mtf_analysis)
+            await auto_trader.evaluate_and_trade(analysis, mtf_analysis=mtf_analysis, context=context)
             milestone_tracker.record("first_final_decision_ready")
         except Exception as e:
             console.print(f"[dim red][ExecutionAgent] Lỗi giao dịch CCXT: {e}[/dim red]")

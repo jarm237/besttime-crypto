@@ -514,6 +514,7 @@ class AutoTrader:
         exposure_cap: Optional[float] = None,
         max_trade_cap: Optional[float] = None,
         min_trade_cap: Optional[float] = None,
+        approved_notional: Optional[float] = None,
     ) -> SizingDecision:
         """Tính position size dựa trên fixed fractional risk (2% mặc định)
         nhân với setup multiplier (Kelly/Regime) và áp dụng các cap rủi ro.
@@ -521,6 +522,24 @@ class AutoTrader:
         Returns:
             SizingDecision object.
         """
+        # 0. Gate 2: Approved portfolio sizing cap check
+        if approved_notional is not None:
+            try:
+                approved_val = float(approved_notional)
+            except (TypeError, ValueError):
+                approved_val = 0.0
+            if approved_val <= 0.0:
+                return SizingDecision(
+                    entry_price=entry_price,
+                    sl_price=sl_price,
+                    stop_distance_pct=0.0,
+                    risk_pct=0.0,
+                    risk_notional=0.0,
+                    raw_notional=0.0,
+                    rejected=True,
+                    rejection_reason=EntryRejectionReason.PORTFOLIO_CAP_EXCEEDED,
+                )
+
         # 1. Validate prices
         if entry_price <= 0.0 or sl_price <= 0.0:
             return SizingDecision(
@@ -598,6 +617,10 @@ class AutoTrader:
             max_trade_capped = max_limit
             notional = min(notional, max_limit)
 
+        # 7b. Gate 2: Enforce approved portfolio sizing cap
+        if approved_notional is not None:
+            notional = min(notional, float(approved_notional))
+
         risk_adjusted_notional = max(0.0, notional)
 
         # 8. Min Notional Validation
@@ -608,6 +631,24 @@ class AutoTrader:
             allowed_risk = min(allowed_risk, balance * kelly_risk_pct / 100.0)
 
         if notional < min_limit:
+            # If approved_notional strictly caps below min_limit, DO NOT bump above cap — reject!
+            if approved_notional is not None and float(approved_notional) < min_limit:
+                return SizingDecision(
+                    entry_price=entry_price,
+                    sl_price=sl_price,
+                    stop_distance_pct=sl_distance_pct,
+                    risk_pct=risk_pct,
+                    risk_notional=risk_notional,
+                    raw_notional=raw_notional,
+                    kelly_adjusted=kelly_adjusted,
+                    var_capped=var_capped,
+                    exposure_capped=exposure_capped,
+                    max_trade_capped=max_trade_capped,
+                    risk_adjusted_notional=risk_adjusted_notional,
+                    final_notional=0.0,
+                    rejected=True,
+                    rejection_reason=EntryRejectionReason.PORTFOLIO_CAP_EXCEEDED,
+                )
             # Reject if min notional exceeds allowed risk
             min_notional_risk = min_limit * sl_distance_pct
             if min_notional_risk > allowed_risk:
@@ -629,6 +670,10 @@ class AutoTrader:
                 )
             else:
                 notional = min_limit
+
+        # Final invariant: final notional must never exceed approved_notional
+        if approved_notional is not None:
+            notional = min(notional, float(approved_notional))
 
         return SizingDecision(
             entry_price=entry_price,
@@ -841,6 +886,30 @@ class AutoTrader:
             return _reject(
                 EntryRejectionReason.NO_VIABLE_ECONOMIC_CANDIDATE,
                 stage=DecisionStage.EDGE,
+            )
+
+        # Gate 1: Upstream Risk Block
+        if (
+            analysis.get("risk_blocked")
+            or sig_score.get("risk_blocked")
+            or analysis.get("entry_eligible") is False
+            or sig_score.get("entry_eligible") is False
+        ):
+            return _reject(
+                EntryRejectionReason.RISK_BLOCKED,
+                stage=DecisionStage.ELIGIBILITY,
+            )
+
+        # Gate 2: Unallocated portfolio candidate
+        if (
+            analysis.get("unallocated_portfolio")
+            or sig_score.get("unallocated_portfolio")
+            or (analysis.get("approved_notional") is not None and float(analysis.get("approved_notional")) <= 0.0)
+            or (sig_score.get("approved_notional") is not None and float(sig_score.get("approved_notional")) <= 0.0)
+        ):
+            return _reject(
+                EntryRejectionReason.PORTFOLIO_CAP_EXCEEDED,
+                stage=DecisionStage.ELIGIBILITY,
             )
 
         # 1. Coin whitelist
@@ -1108,16 +1177,49 @@ class AutoTrader:
 
     # ─── Core: Evaluate & Trade ─────────────────────────────────────────────────
 
-    async def evaluate_and_trade(self, analysis: Dict[str, Any], mtf_analysis: Optional[Dict[str, Any]] = None) -> List[Dict]:
+    async def evaluate_and_trade(
+        self,
+        analysis: Dict[str, Any],
+        mtf_analysis: Optional[Dict[str, Any]] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict]:
         """
         Entry point chính. Gọi sau mỗi cycle fetch_and_display().
 
         Args:
             analysis: dict {coin:exchange → analysis_dict} từ analyze_market()
+            mtf_analysis: dict phân tích MTF
+            context: dict context chung của Multi-Agent Orchestrator
 
         Returns:
             List các lệnh đã được xử lý (để log/notify)
         """
+        if context is not None:
+            # Sync context risk metrics
+            risk_metrics = context.get("risk_metrics", {})
+            if risk_metrics.get("blocked", False):
+                for ana in analysis.values():
+                    ana["risk_blocked"] = True
+                    ana["entry_eligible"] = False
+                    if "signal_score" in ana and isinstance(ana["signal_score"], dict):
+                        ana["signal_score"]["risk_blocked"] = True
+                        ana["signal_score"]["entry_eligible"] = False
+
+            # Sync context signals info
+            signals_info = context.get("signals_info", [])
+            for key, ana in analysis.items():
+                coin = key.split(":")[0]
+                sig_match = next((s for s in signals_info if s.get("coin") == coin), None)
+                if sig_match is not None:
+                    if sig_match.get("risk_blocked"):
+                        ana["risk_blocked"] = True
+                    if "approved_notional" in sig_match:
+                        ana["approved_notional"] = sig_match["approved_notional"]
+                    if sig_match.get("unallocated_portfolio"):
+                        ana["unallocated_portfolio"] = True
+                    if "portfolio_weight" in sig_match:
+                        ana["portfolio_weight"] = sig_match["portfolio_weight"]
+
         placed = []
 
         # 1. Run cycle-level candidate batch for prospective shadow logger (once per cycle)
@@ -1431,6 +1533,14 @@ class AutoTrader:
         # The order boundary consumes one authoritative field. Rejected and
         # non-actionable decisions can never recover exposure through a floor.
         usdt_amount = decision.final_position_size
+        approved_notional = ana.get("approved_notional")
+        if approved_notional is not None:
+            try:
+                approved_val = float(approved_notional)
+                if usdt_amount > approved_val:
+                    usdt_amount = approved_val
+            except (TypeError, ValueError):
+                pass
 
         # Đặt lệnh qua ExecutionEngine (Phase 1: tất cả write đi qua đây)
         log_mode = "DRY_RUN" if self.dry_run else "TESTNET"
@@ -1457,6 +1567,8 @@ class AutoTrader:
             "sl_price": float(sl_price),
             "tp1_price": float(tp1_price),
             "usdt_amount": usdt_amount,
+            "approved_notional": approved_notional,
+            "executed_notional": usdt_amount,
             "raw_position_size": sizing_decision.raw_position_size,
             "risk_adjusted_size": sizing_decision.risk_adjusted_size,
             "final_position_size": decision.final_position_size,
@@ -1518,6 +1630,10 @@ class AutoTrader:
                 "final_decision_superseded": final_decision.get("superseded", False),
                 "canonical_action": decision.action.value,
                 "decision_sha256": decision.decision_sha256,
+                "approved_notional": approved_notional,
+                "executed_notional": usdt_amount,
+                "risk_blocked": ana.get("risk_blocked", False),
+                "position_id": ana.get("position_id"),
                 "idempotency_key": ana.get("idempotency_key"),
                 "lifecycle_schema_version": ana.get("lifecycle_schema_version", "trade-lifecycle-v1"),
                 "entry_time": datetime.now().isoformat(),
