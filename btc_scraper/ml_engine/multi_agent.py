@@ -435,13 +435,16 @@ class PortfolioManagerAgent(BaseAgent):
         analysis = context.get("analysis", {})
         
         # Phase H2: Resolve equity from authoritative snapshot / context without arbitrary fallback
-        account_balance = context.get("account_balance")
-        if account_balance is None:
-            account_balance = context.get("account_equity")
-        if account_balance is None:
-            risk_m = context.get("risk_metrics")
-            if isinstance(risk_m, dict):
-                account_balance = risk_m.get("account_equity") or risk_m.get("account_balance")
+        equity_snapshot = context.get("account_equity_snapshot")
+        if isinstance(equity_snapshot, dict):
+            if not equity_snapshot.get("valid", False) or equity_snapshot.get("is_stale", False):
+                account_balance = None
+            else:
+                account_balance = equity_snapshot.get("equity")
+        else:
+            account_balance = context.get("account_balance")
+            if account_balance is None:
+                account_balance = context.get("account_equity")
 
         is_valid_balance = False
         try:
@@ -654,10 +657,129 @@ class AgentOrchestrator:
         self.rl_exit = RLExitAgent()
         self.execution = ExecutionAgent()
 
+    async def resolve_authoritative_equity(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Resolves authoritative equity snapshot.
+        Live owner: adapter.get_usdt_balance()
+        Paper owner: AUTO_TRADE_ACCOUNT_USDT / PAPER_ACCOUNT_EQUITY
+        Validates:
+          - finite, strictly positive (> 0.0)
+          - max age (not stale, e.g. within 300s)
+        Returns:
+          dict with:
+            equity: float | None
+            timestamp: float
+            source_identity: str
+            is_stale: bool
+            valid: bool
+            reason: str
+        """
+        if context and isinstance(context.get("account_equity_snapshot"), dict):
+            snap = dict(context["account_equity_snapshot"])
+            ts = float(snap.get("timestamp") or 0.0)
+            now = time.time()
+            if snap.get("is_stale") or (ts > 0.0 and (now - ts) > 300.0):
+                snap["is_stale"] = True
+                snap["valid"] = False
+                snap["reason"] = "STALE_EQUITY_SNAPSHOT"
+            return snap
+
+        is_dry_run = os.getenv("AUTO_TRADE_DRY_RUN", "true").lower() in ("true", "1", "yes")
+        if not is_dry_run:
+            try:
+                from btc_scraper.trading.auto_trader import auto_trader
+                engine = auto_trader._get_execution_engine()
+                adapter = getattr(engine, "_adapter", None)
+                if adapter is not None and not auto_trader.dry_run:
+                    bal = await adapter.get_usdt_balance()
+                    if bal is not None and math.isfinite(float(bal)) and float(bal) > 0.0:
+                        return {
+                            "equity": float(bal),
+                            "timestamp": time.time(),
+                            "source_identity": "exchange_adapter",
+                            "is_stale": False,
+                            "valid": True,
+                            "reason": "OK",
+                        }
+                    else:
+                        return {
+                            "equity": None,
+                            "timestamp": time.time(),
+                            "source_identity": "exchange_adapter",
+                            "is_stale": False,
+                            "valid": False,
+                            "reason": "NON_FINITE_OR_NON_POSITIVE_ADAPTER_BALANCE",
+                        }
+            except Exception as exc:
+                return {
+                    "equity": None,
+                    "timestamp": time.time(),
+                    "source_identity": "exchange_adapter",
+                    "is_stale": False,
+                    "valid": False,
+                    "reason": f"ADAPTER_BALANCE_ERROR: {exc}",
+                }
+
+        # Paper mode resolution: check explicit context override if provided
+        if context and context.get("account_balance") is not None:
+            try:
+                c_bal = float(context["account_balance"])
+                if math.isfinite(c_bal) and c_bal > 0.0:
+                    return {
+                        "equity": c_bal,
+                        "timestamp": time.time(),
+                        "source_identity": "context_override",
+                        "is_stale": False,
+                        "valid": True,
+                        "reason": "OK",
+                    }
+            except (TypeError, ValueError):
+                pass
+
+        val_str = os.getenv("AUTO_TRADE_ACCOUNT_USDT") or os.getenv("PAPER_ACCOUNT_EQUITY")
+        if val_str is None or str(val_str).strip() == "":
+            return {
+                "equity": None,
+                "timestamp": time.time(),
+                "source_identity": "paper_config",
+                "is_stale": False,
+                "valid": False,
+                "reason": "MISSING_PAPER_ACCOUNT_EQUITY",
+            }
+        try:
+            eq = float(val_str)
+            if math.isfinite(eq) and eq > 0.0:
+                return {
+                    "equity": eq,
+                    "timestamp": time.time(),
+                    "source_identity": "paper_config",
+                    "is_stale": False,
+                    "valid": True,
+                    "reason": "OK",
+                }
+            return {
+                "equity": None,
+                "timestamp": time.time(),
+                "source_identity": "paper_config",
+                "is_stale": False,
+                "valid": False,
+                "reason": "NON_FINITE_OR_NON_POSITIVE_PAPER_EQUITY",
+            }
+        except (ValueError, TypeError):
+            return {
+                "equity": None,
+                "timestamp": time.time(),
+                "source_identity": "paper_config",
+                "is_stale": False,
+                "valid": False,
+                "reason": "INVALID_PAPER_ACCOUNT_EQUITY_STRING",
+            }
+
     async def run_cycle(
         self,
         raw_candles_dict: Dict[str, List[Dict]],
-        mtf_candles_dict: Dict[str, Dict[str, List[Dict]]]
+        mtf_candles_dict: Dict[str, Dict[str, List[Dict]]],
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Kích hoạt Core Loop chạy qua tất cả các Agent.
@@ -669,13 +791,21 @@ class AgentOrchestrator:
         except Exception:
             open_positions = []
 
-        context = {
-            "raw_candles": raw_candles_dict,
-            "mtf_candles": mtf_candles_dict,
-            "open_positions": open_positions,
-            "timestamp": time.time(),
-            "cycle_id": f"cycle-{uuid.uuid4().hex}",
-        }
+        if context is None:
+            context = {}
+
+        equity_snapshot = await self.resolve_authoritative_equity(context)
+
+        context.setdefault("raw_candles", raw_candles_dict)
+        context.setdefault("mtf_candles", mtf_candles_dict)
+        context.setdefault("open_positions", open_positions)
+        context.setdefault("timestamp", time.time())
+        context.setdefault("cycle_id", f"cycle-{uuid.uuid4().hex}")
+        context["account_equity_snapshot"] = equity_snapshot
+        context["account_equity"] = equity_snapshot["equity"] if equity_snapshot.get("valid") else None
+        context["account_balance"] = equity_snapshot["equity"] if equity_snapshot.get("valid") else None
+        context["account_equity_timestamp"] = equity_snapshot.get("timestamp")
+        context["account_equity_source"] = equity_snapshot.get("source_identity")
         
         # Thực thi tuần tự chuỗi Agent
         context = self.market_analyst.run(context)

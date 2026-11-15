@@ -357,8 +357,17 @@ class AutoTrader:
         return _env_int("AUTO_TRADE_SCORE_THRESHOLD", 75)
 
     @property
-    def account_usdt(self) -> float:
-        return _env_float("AUTO_TRADE_ACCOUNT_USDT", 500.0)
+    def account_usdt(self) -> float | None:
+        val_str = os.getenv("AUTO_TRADE_ACCOUNT_USDT") or os.getenv("PAPER_ACCOUNT_EQUITY")
+        if val_str is None or str(val_str).strip() == "":
+            return None
+        try:
+            val = float(val_str)
+            if math.isfinite(val) and val > 0.0:
+                return val
+            return None
+        except (ValueError, TypeError):
+            return None
 
     @property
     def risk_pct(self) -> float:
@@ -570,7 +579,18 @@ class AutoTrader:
                 rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
             )
 
-        balance = current_balance if current_balance and current_balance > 0 else self.account_usdt
+        balance = current_balance if (current_balance is not None and math.isfinite(current_balance) and current_balance > 0) else self.account_usdt
+        if balance is None or not math.isfinite(balance) or balance <= 0.0:
+            return SizingDecision(
+                entry_price=entry_price,
+                sl_price=sl_price,
+                stop_distance_pct=sl_distance_pct,
+                risk_pct=0.0,
+                risk_notional=0.0,
+                raw_notional=0.0,
+                rejected=True,
+                rejection_reason=EntryRejectionReason.INVALID_SIZING_INPUT,
+            )
 
         # 3. Risk-based sizing
         risk_pct = self.risk_pct * max(0.01, min(1.0, multiplier))
@@ -1243,7 +1263,7 @@ class AutoTrader:
         shadow_batch_logs: list[dict] = []
         for key, ana in analysis.items():
             try:
-                result = await self._process_signal(key, ana, shadow_batch_collector=shadow_batch_logs)
+                result = await self._process_signal(key, ana, shadow_batch_collector=shadow_batch_logs, context=context)
                 if result:
                     placed.append(result)
             except Exception as e:
@@ -1341,6 +1361,7 @@ class AutoTrader:
         key: str,
         ana: Dict,
         shadow_batch_collector: Optional[List[Dict]] = None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict]:
         """Xử lý một signal từ một coin."""
         coin = key.split(":")[0].upper()
@@ -1371,17 +1392,32 @@ class AutoTrader:
         # Resolve adapter-only account/exposure inputs before the canonical
         # evaluator. Eligibility and sizing themselves execute inside its
         # production EvaluationPipeline exactly once.
-        real_balance = self.account_usdt
+        real_balance = None
         if not self.dry_run:
             try:
                 engine = self._get_execution_engine()
                 adapter = getattr(engine, "_adapter", None)
                 if adapter is not None:
                     balance = await adapter.get_usdt_balance()
-                    if balance and balance > 0:
+                    if balance is not None and math.isfinite(float(balance)) and float(balance) > 0:
                         real_balance = float(balance)
             except Exception:
+                real_balance = None
+        else:
+            if context and isinstance(context.get("account_equity_snapshot"), dict) and context["account_equity_snapshot"].get("valid"):
+                real_balance = context["account_equity_snapshot"].get("equity")
+            elif context and context.get("account_equity") is not None:
+                try:
+                    c_eq = float(context["account_equity"])
+                    if math.isfinite(c_eq) and c_eq > 0.0:
+                        real_balance = c_eq
+                except (TypeError, ValueError):
+                    pass
+            if real_balance is None:
                 real_balance = self.account_usdt
+
+        if real_balance is None or not math.isfinite(real_balance) or real_balance <= 0.0:
+            real_balance = 0.0
 
         open_positions = exposure_manager.get_open_positions()
         max_var_size = exposure_manager.calculate_max_size_by_var_limit(

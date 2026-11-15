@@ -893,3 +893,483 @@ def test_phase_h4_deterministic_end_to_end_paper_path(tmp_path, monkeypatch):
     assert persisted_record["cycle_id"] == "cycle_e2e_01"
     assert persisted_record["paper_run_id"] == paper_id
 
+
+# ─── Blocker 1: Authoritative Equity Wiring Tests ─────────────────────────────
+
+def test_blocker1_equity_wiring_and_snapshots(monkeypatch):
+    """Blocker 1: Authoritative equity snapshot resolution, validation, and fail-closed behavior."""
+    from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
+
+    async def _run():
+        orchestrator = AgentOrchestrator(analysis_symbols=["BTC"])
+
+        # Case A: Paper mode with valid AUTO_TRADE_ACCOUNT_USDT
+        monkeypatch.setenv("AUTO_TRADE_DRY_RUN", "true")
+        monkeypatch.setenv("AUTO_TRADE_ACCOUNT_USDT", "1250.0")
+        snap_a = await orchestrator.resolve_authoritative_equity()
+        assert snap_a["valid"] is True
+        assert snap_a["equity"] == 1250.0
+        assert snap_a["source_identity"] == "paper_config"
+        assert snap_a["is_stale"] is False
+
+        # Case B: Paper mode with missing equity
+        monkeypatch.delenv("AUTO_TRADE_ACCOUNT_USDT", raising=False)
+        monkeypatch.delenv("PAPER_ACCOUNT_EQUITY", raising=False)
+        snap_b = await orchestrator.resolve_authoritative_equity()
+        assert snap_b["valid"] is False
+        assert snap_b["equity"] is None
+        assert snap_b["reason"] == "MISSING_PAPER_ACCOUNT_EQUITY"
+
+        # Case C: Context provides stale snapshot (> 300 seconds)
+        stale_context = {
+            "account_equity_snapshot": {
+                "equity": 1000.0,
+                "timestamp": datetime.datetime.now().timestamp() - 350.0,
+                "source_identity": "paper_config",
+                "is_stale": False,
+                "valid": True,
+            }
+        }
+        snap_c = await orchestrator.resolve_authoritative_equity(stale_context)
+        assert snap_c["valid"] is False
+        assert snap_c["is_stale"] is True
+        assert snap_c["reason"] == "STALE_EQUITY_SNAPSHOT"
+
+        # Case D: No 500.0 historical fallback in AutoTrader.account_usdt
+        trader = AutoTrader()
+        assert trader.account_usdt is None
+        sizing_decision = trader.compute_position_size(100.0, 98.0, current_balance=None)
+        assert sizing_decision.rejected is True
+        assert sizing_decision.rejection_reason == EntryRejectionReason.INVALID_SIZING_INPUT
+
+    asyncio.run(_run())
+
+
+# ─── Blocker 2: Atomic Cumulative Reduce-Only Tests ───────────────────────────
+
+def test_blocker2_atomic_cumulative_reduce_only(monkeypatch):
+    """Blocker 2: Cumulative reduce-only tracking enforces remaining qty without reversal or negative balance."""
+    initial_pos = {
+        "id": "pos_btc_atomic_01",
+        "coin": "BTC",
+        "amount": 1.0,
+        "direction": "BUY",
+        "execution_mode": "paper",
+    }
+    monkeypatch.setattr(
+        "btc_scraper.trading.position_tracker.get_open_positions",
+        lambda: [initial_pos],
+    )
+    engine = ExecutionEngine()
+    candle = _make_sample_candle(200.0)
+
+    # 1. Exit A: 0.7 BTC reduction (notional 140 USDT) -> Approved & filled
+    signal_a = {
+        "coin": "BTC",
+        "intent": "EXIT",
+        "position_id": "pos_btc_atomic_01",
+        "canonical_action": "SELL",
+        "reservation_id": "res_exit_a",
+    }
+    rec_a = engine.submit_paper(signal_a, candle, notional_usdt=140.0)
+    assert rec_a.status == OrderStatus.FILLED
+    assert rec_a.filled_qty == pytest.approx(0.7)
+
+    # 2. Exit B: 0.7 BTC reduction -> Exceeds remaining 0.3 BTC -> OVER_REDUCTION
+    signal_b = {
+        "coin": "BTC",
+        "intent": "EXIT",
+        "position_id": "pos_btc_atomic_01",
+        "canonical_action": "SELL",
+        "reservation_id": "res_exit_b",
+    }
+    rec_b = engine.submit_paper(signal_b, candle, notional_usdt=140.0)
+    assert rec_b.status == OrderStatus.REJECTED
+    assert rec_b.reason == "OVER_REDUCTION"
+    assert rec_b.filled_qty == 0.0
+
+    # 3. Exit C: Exact remaining 0.3 BTC (notional 60 USDT) -> Approved & filled
+    signal_c = {
+        "coin": "BTC",
+        "intent": "EXIT",
+        "position_id": "pos_btc_atomic_01",
+        "canonical_action": "SELL",
+        "reservation_id": "res_exit_c",
+    }
+    rec_c = engine.submit_paper(signal_c, candle, notional_usdt=60.0)
+    assert rec_c.status == OrderStatus.FILLED
+    assert rec_c.filled_qty == pytest.approx(0.3)
+
+    # 4. Total filled is exactly 1.0 BTC. Any further attempt must reject NO_REMAINING_POSITION_EXPOSURE
+    signal_d = {
+        "coin": "BTC",
+        "intent": "EXIT",
+        "position_id": "pos_btc_atomic_01",
+        "canonical_action": "SELL",
+        "reservation_id": "res_exit_d",
+    }
+    rec_d = engine.submit_paper(signal_d, candle, notional_usdt=20.0)
+    assert rec_d.status == OrderStatus.REJECTED
+    assert rec_d.reason == "NO_REMAINING_POSITION_EXPOSURE"
+    assert rec_d.filled_qty == 0.0
+
+
+def test_blocker2_position_mode_isolation_and_ledger_failures(monkeypatch):
+    """Blocker 2: Paper/live mode isolation, ledger failure handling, and invalid quantity validation."""
+    engine = ExecutionEngine()
+    candle = _make_sample_candle(200.0)
+
+    # 1. Mode isolation: Live position attacked by paper exit
+    live_pos = {
+        "id": "pos_live_01",
+        "coin": "BTC",
+        "amount": 1.0,
+        "direction": "BUY",
+        "execution_mode": "live",
+    }
+    monkeypatch.setattr(
+        "btc_scraper.trading.position_tracker.get_open_positions",
+        lambda: [live_pos],
+    )
+    rec_mismatch = engine.submit_paper(
+        {"coin": "BTC", "intent": "EXIT", "position_id": "pos_live_01", "canonical_action": "SELL"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_mismatch.status == OrderStatus.REJECTED
+    assert rec_mismatch.reason == "PAPER_LIVE_POSITION_MISMATCH"
+
+    # 2. Position ledger unavailable
+    rec_ledger = engine.submit_paper(
+        {"coin": "BTC", "intent": "EXIT", "simulate_ledger_unavailable": True, "canonical_action": "SELL"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_ledger.status == OrderStatus.REJECTED
+    assert rec_ledger.reason == "POSITION_LEDGER_UNAVAILABLE"
+
+    # 3. Invalid position quantity (<= 0 or non-finite)
+    invalid_pos = {
+        "id": "pos_invalid_qty",
+        "coin": "BTC",
+        "amount": 0.0,
+        "direction": "BUY",
+        "execution_mode": "paper",
+    }
+    monkeypatch.setattr(
+        "btc_scraper.trading.position_tracker.get_open_positions",
+        lambda: [invalid_pos],
+    )
+    rec_inv = engine.submit_paper(
+        {"coin": "BTC", "intent": "EXIT", "position_id": "pos_invalid_qty", "canonical_action": "SELL"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_inv.status == OrderStatus.REJECTED
+    assert rec_inv.reason == "INVALID_POSITION_QUANTITY"
+
+
+# ─── Blocker 3: Strict Intent and Dynamic Risk Contract Tests ─────────────────
+
+def test_blocker3_strict_intent_and_risk_contract_rejections(monkeypatch):
+    """Blocker 3: Enforces exact rejection reasons for all dynamic risk contract breaches."""
+    engine = ExecutionEngine()
+    candle = _make_sample_candle(200.0)
+
+    # 1. UNKNOWN_INTENT
+    rec_intent = engine.submit_paper(
+        {"coin": "BTC", "intent": "UNSUPPORTED_ARBITRARY_INTENT"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_intent.status == OrderStatus.REJECTED
+    assert rec_intent.reason == "UNKNOWN_INTENT"
+
+    # 2. MISSING_ENTRY_RISK_STATUS
+    rec_risk_stat = engine.submit_paper(
+        {"coin": "BTC", "intent": "ENTRY", "missing_entry_risk_status": True},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_risk_stat.status == OrderStatus.REJECTED
+    assert rec_risk_stat.reason == "MISSING_ENTRY_RISK_STATUS"
+
+    # 3. INVALID_RISK_SCHEMA
+    rec_schema = engine.submit_paper(
+        {"coin": "BTC", "intent": "ENTRY", "simulate_invalid_risk_schema": True},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_schema.status == OrderStatus.REJECTED
+    assert rec_schema.reason == "INVALID_RISK_SCHEMA"
+
+    # 4. STALE_RISK_SNAPSHOT
+    rec_stale = engine.submit_paper(
+        {"coin": "BTC", "intent": "ENTRY", "is_risk_stale": True},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_stale.status == OrderStatus.REJECTED
+    assert rec_stale.reason == "STALE_RISK_SNAPSHOT"
+
+    # 5. RISK_DATABASE_UNAVAILABLE
+    rec_db = engine.submit_paper(
+        {"coin": "BTC", "intent": "ENTRY", "simulate_risk_database_unavailable": True},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_db.status == OrderStatus.REJECTED
+    assert rec_db.reason == "RISK_DATABASE_UNAVAILABLE"
+
+    # 6. KILL_SWITCH_EXCEPTION
+    def _exploding_ks():
+        raise RuntimeError("Corrupted KS state")
+
+    monkeypatch.setattr("btc_scraper.execution.kill_switch.KillSwitch", _exploding_ks)
+    rec_ks = engine.submit_paper(
+        {"coin": "BTC", "intent": "ENTRY"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_ks.status == OrderStatus.REJECTED
+    assert "KILL_SWITCH_EXCEPTION" in rec_ks.reason
+
+    # 7. Preserve Emergency Exit Privileges: Even when KillSwitch blocks exit, EMERGENCY_EXIT succeeds
+    mock_ks = MagicMock()
+    mock_ks.allows_exit.return_value = False
+    monkeypatch.setattr("btc_scraper.execution.kill_switch.KillSwitch", lambda: mock_ks)
+    pos = {
+        "id": "pos_emer_01",
+        "coin": "BTC",
+        "amount": 1.0,
+        "direction": "BUY",
+        "execution_mode": "paper",
+    }
+    monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [pos])
+
+    # Normal exit is blocked
+    rec_exit_blocked = engine.submit_paper(
+        {"coin": "BTC", "intent": "EXIT", "position_id": "pos_emer_01", "canonical_action": "SELL"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_exit_blocked.status == OrderStatus.REJECTED
+    assert rec_exit_blocked.reason == "KILL_SWITCH_BLOCKS_EXIT"
+
+    # Emergency exit succeeds
+    rec_emer = engine.submit_paper(
+        {"coin": "BTC", "intent": "EMERGENCY_EXIT", "position_id": "pos_emer_01", "canonical_action": "SELL"},
+        candle,
+        notional_usdt=50.0,
+    )
+    assert rec_emer.status == OrderStatus.FILLED
+    assert rec_emer.filled_qty == pytest.approx(0.25)
+
+
+# ─── Blocker 4: Real Full-Path Paper Integration Test ─────────────────────────
+
+def test_blocker4_real_full_path_paper_integration(tmp_path, monkeypatch):
+    """
+    Blocker 4: Real Full-Path Paper Integration
+    Exercises: AgentOrchestrator -> ExecutionAgent -> AutoTrader.evaluate_and_trade
+    -> ProductionEvaluator -> submit_paper -> FillTracker -> JSONL persistence/readback.
+    Validates both blocked and authorized outcomes, parity, and zero real exchange calls.
+    """
+    async def _run():
+        import json
+        from btc_scraper.ml_engine.multi_agent import AgentOrchestrator
+        from btc_scraper.trading.auto_trader import auto_trader
+        from btc_scraper.execution.fill_tracker import FillTracker
+
+        log_dir = tmp_path / "logs"
+        fills_dir = tmp_path / "fills"
+
+        monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
+        monkeypatch.setenv("AUTO_TRADE_DRY_RUN", "true")
+        monkeypatch.setenv("AUTO_TRADE_ACCOUNT_USDT", "1000.0")
+
+        # Isolate position tracking and circuit breaker from other tests
+        monkeypatch.setattr("btc_scraper.trading.position_tracker.get_open_positions", lambda: [])
+        monkeypatch.setattr("btc_scraper.trading.exposure_manager.exposure_manager.get_open_positions", lambda: [])
+        monkeypatch.setattr("btc_scraper.trading.exposure_manager.ExposureManager.get_open_positions", lambda self: [])
+        monkeypatch.setattr(auto_trader, "_check_circuit_breaker", lambda: (True, "OK"))
+        monkeypatch.setattr(auto_trader, "get_last_exit_timestamps", lambda: {})
+
+        dep_id = "dep_full_01"
+        paper_id = "dep_full_01"
+        monkeypatch.setattr("btc_scraper.core.paths.runtime_deployment_id", lambda: dep_id)
+        monkeypatch.setattr("btc_scraper.core.paths.runtime_paper_run_id", lambda: paper_id)
+        monkeypatch.setattr("btc_scraper.execution.execution_engine.runtime_deployment_id", lambda: dep_id)
+        monkeypatch.setattr("btc_scraper.execution.execution_engine.runtime_paper_run_id", lambda: paper_id)
+
+        # Configure FillTracker with temp directories on the AutoTrader's execution engine
+        engine = auto_trader._get_execution_engine()
+        engine._tracker = FillTracker(log_dir=str(log_dir), fills_dir=str(fills_dir))
+
+        # Assert adapter is NOT called (zero real exchange calls)
+        mock_adapter = MagicMock()
+        engine.attach_adapter(mock_adapter)
+
+        # Setup candles
+        base_time = datetime.datetime.now(timezone.utc) - datetime.timedelta(minutes=15 * 220)
+        history = []
+        for i in range(220):
+            t = base_time + datetime.timedelta(minutes=15 * i)
+            history.append({
+                "time": t.strftime("%Y-%m-%d %H:%M"),
+                "time_utc": t.isoformat(),
+                "open": 200.0 + (i * 0.05),
+                "high": 201.0 + (i * 0.05),
+                "low": 199.0 + (i * 0.05),
+                "close": 200.5 + (i * 0.05),
+                "volume": 1000.0,
+            })
+        raw_candles = {"BTC": history}
+        mtf_candles = {"BTC": {"1h": history[-50:], "4h": history[-50:], "1d": history[-50:]}}
+
+        orchestrator = AgentOrchestrator(analysis_symbols=["BTC"])
+
+        # ── PART 1: Blocked Outcome (RiskManager drawdown limit breach) ────────────
+        monkeypatch.setattr(
+            "btc_scraper.trading.risk_manager.calculate_risk_metrics",
+            lambda: {"blocked": True, "failure_reason": "consecutive_losses", "status": "BLOCKED"},
+        )
+
+        ctx_blocked = await orchestrator.run_cycle(raw_candles, mtf_candles)
+        # Risk block must result in zero fills
+        filled_blocked = [r for r in engine._tracker.get_history() if r.status == OrderStatus.FILLED]
+        assert len(filled_blocked) == 0
+        date_str = datetime.datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        records_file = log_dir / "paper" / f"execution_{date_str}.jsonl"
+        if records_file.exists():
+            lines = [json.loads(line) for line in records_file.read_text(encoding="utf-8").strip().splitlines() if line.strip()]
+            filled_records = [r for r in lines if r.get("status") == "FILLED"]
+            assert len(filled_records) == 0
+
+        # ── PART 2: Authorized Outcome (Full path execution to fill) ───────────────
+        monkeypatch.setattr(
+            "btc_scraper.trading.risk_manager.calculate_risk_metrics",
+            lambda: {"blocked": False, "status": "HEALTHY", "risk_multiplier": 1.0},
+        )
+        mock_ks = MagicMock()
+        mock_ks.allows_entry.return_value = True
+        monkeypatch.setattr("btc_scraper.execution.kill_switch.KillSwitch", lambda: mock_ks)
+
+        final_dec = {
+            "decision_id": "fd_full_path_01",
+            "prediction_id": "pred_full_path_01",
+            "cycle_id": "cycle_full_path_01",
+            "deployment_id": dep_id,
+            "paper_run_id": paper_id,
+            "model_version": "vcb-greenfield-v1",
+            "model_artifact_sha256": "sha256-mock-full-artifact",
+            "feature_schema_version": "market-v1",
+            "action": "BUY",
+            "eligible": True,
+            "terminal_status": "TRADE",
+            "superseded": False,
+            "decision_sha256": "sha256_full_decision",
+            "timestamp_utc": datetime.datetime.now(timezone.utc).isoformat(),
+        }
+        mock_ev_store = MagicMock()
+        mock_ev_store.get_committed_final_decision.return_value = final_dec
+        mock_ev_store.get_final_decision_for_prediction.return_value = final_dec
+        monkeypatch.setattr(
+            "btc_scraper.ml_engine.runtime_evidence_store.get_runtime_evidence_store",
+            lambda: mock_ev_store,
+        )
+
+        # Mock inference to produce our prediction_id
+        mock_pred = MagicMock()
+        mock_pred.to_dict.return_value = {
+            "prediction_id": "pred_full_path_01",
+            "action": "BUY",
+            "score": 85,
+            "strength": 85,
+            "meta_confidence": 0.90,
+            "meta_probability": 0.90,
+            "kelly_fraction": 0.20,
+            "model_version": "vcb-greenfield-v1",
+            "artifact_sha256": "sha256-mock-full-artifact",
+            "feature_schema_version": "market-v1",
+            "deployment_id": dep_id,
+            "paper_run_id": paper_id,
+            "cycle_id": "cycle_full_path_01",
+            "decision_sha256": "sha256_full_decision",
+            "risk_status": "HEALTHY",
+        }
+        mock_coord = MagicMock()
+        mock_coord.predict_once.return_value = mock_pred
+        monkeypatch.setattr(
+            "btc_scraper.ml_engine.inference_coordinator.get_inference_coordinator",
+            lambda: mock_coord,
+        )
+
+        monkeypatch.setenv("AUTO_TRADE_MIN_RR", "0.0")
+        monkeypatch.setenv("AUTO_TRADE_MIN_EXPECTED_EDGE", "0.0")
+
+        # Mock analyze_market to produce a clean BUY signal with 2.0 R:R
+        from btc_scraper.analysis import analyze_market as real_analyze_market
+        def _mock_analyze_market(candles, coin):
+            res = real_analyze_market(candles, coin)
+            res["signal"] = "BUY"
+            res["action"] = "BUY"
+            res["tp_sl"] = {"entry": 200.0, "tp1": 220.0, "sl": 190.0, "rr1": 2.0}
+            return res
+
+        monkeypatch.setattr("btc_scraper.ml_engine.multi_agent.analyze_market", _mock_analyze_market)
+        scoring_result = {
+            "score": 85,
+            "strength": 85,
+            "meta_probability": 0.90,
+            "meta_confidence": 0.90,
+            "action": "BUY",
+            "kelly_fraction": 0.20,
+            "prediction_id": "pred_full_path_01",
+            "model_version": "vcb-greenfield-v1",
+            "artifact_sha256": "sha256-mock-full-artifact",
+            "feature_schema_version": "market-v1",
+            "deployment_id": dep_id,
+            "paper_run_id": paper_id,
+            "cycle_id": "cycle_full_path_01",
+            "decision_sha256": "sha256_full_decision",
+            "risk_status": "HEALTHY",
+            "risk_blocked": False,
+        }
+        monkeypatch.setattr(
+            "btc_scraper.ml_engine.signal_score.evaluate_signal_score",
+            lambda ana, meta_prediction=None: dict(scoring_result),
+        )
+        monkeypatch.setattr(
+            "btc_scraper.ml_engine.causal_context_bridge.enhance_signal_with_causal_context",
+            lambda ana, analysis_info, alpha=0.0: dict(final_dec),
+        )
+
+        ctx_auth = await orchestrator.run_cycle(raw_candles, mtf_candles)
+        ana_res = ctx_auth["analysis"]["BTC:Binance"]
+
+        # Verify authoritative equity was wired into context
+        assert ctx_auth["account_equity"] == 1000.0
+        assert ctx_auth["account_equity_snapshot"]["valid"] is True
+
+        # Exactly one fill must have occurred
+        filled_auth = [r for r in engine._tracker.get_history() if r.status == OrderStatus.FILLED]
+        assert len(filled_auth) == 1
+
+        # Zero real exchange calls
+        mock_adapter.create_order.assert_not_called()
+
+        # JSONL file readback verification
+        assert records_file.exists()
+        lines = [json.loads(line) for line in records_file.read_text(encoding="utf-8").strip().splitlines() if line.strip()]
+        persisted = lines[-1]
+        assert persisted["status"] == "FILLED"
+        assert persisted["prediction_id"] == "pred_full_path_01"
+        assert persisted["final_decision_id"] == "fd_full_path_01"
+        assert persisted["execution_mode"] == "paper"
+        assert persisted["approved_notional"] == pytest.approx(200.0)
+        assert persisted["executed_notional"] == pytest.approx(100.0)
+        assert persisted["executed_notional"] <= persisted["approved_notional"]
+
+    asyncio.run(_run())
+
