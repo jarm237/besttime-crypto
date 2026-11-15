@@ -676,12 +676,59 @@ class AgentOrchestrator:
         """
         if context and isinstance(context.get("account_equity_snapshot"), dict):
             snap = dict(context["account_equity_snapshot"])
-            ts = float(snap.get("timestamp") or 0.0)
+            raw_ts = snap.get("timestamp")
+            if raw_ts is None:
+                snap["equity"] = None
+                snap["is_stale"] = False
+                snap["valid"] = False
+                snap["reason"] = "MISSING_EQUITY_TIMESTAMP"
+                return snap
+            try:
+                ts = float(raw_ts)
+                if not math.isfinite(ts) or ts <= 0.0:
+                    snap["equity"] = None
+                    snap["is_stale"] = False
+                    snap["valid"] = False
+                    snap["reason"] = "INVALID_EQUITY_TIMESTAMP"
+                    return snap
+            except (TypeError, ValueError):
+                snap["equity"] = None
+                snap["is_stale"] = False
+                snap["valid"] = False
+                snap["reason"] = "INVALID_EQUITY_TIMESTAMP"
+                return snap
+
             now = time.time()
-            if snap.get("is_stale") or (ts > 0.0 and (now - ts) > 300.0):
+            if snap.get("is_stale") or (now - ts) > 300.0:
                 snap["is_stale"] = True
                 snap["valid"] = False
                 snap["reason"] = "STALE_EQUITY_SNAPSHOT"
+                return snap
+
+            src = snap.get("source_identity")
+            if src not in {"exchange_adapter", "paper_config", "context_override"}:
+                snap["equity"] = None
+                snap["valid"] = False
+                snap["reason"] = "INVALID_EQUITY_SOURCE_IDENTITY"
+                return snap
+
+            raw_eq = snap.get("equity")
+            try:
+                eq_val = float(raw_eq) if raw_eq is not None else None
+                if eq_val is None or not math.isfinite(eq_val) or eq_val <= 0.0:
+                    snap["equity"] = None
+                    snap["valid"] = False
+                    snap["reason"] = "NON_FINITE_OR_NON_POSITIVE_EQUITY"
+                    return snap
+            except (TypeError, ValueError):
+                snap["equity"] = None
+                snap["valid"] = False
+                snap["reason"] = "NON_FINITE_OR_NON_POSITIVE_EQUITY"
+                return snap
+
+            snap["valid"] = True
+            snap["is_stale"] = False
+            snap["reason"] = "OK"
             return snap
 
         is_dry_run = os.getenv("AUTO_TRADE_DRY_RUN", "true").lower() in ("true", "1", "yes")
