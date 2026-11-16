@@ -65,6 +65,7 @@ $EpochDir = if ($Probe) {
 }
 $SnapshotPath = Join-Path $EpochDir "first_forward_evidence_snapshot.json"
 $StatePath = Join-Path $EpochDir "carm_state.json"
+$LogPath = Join-Path $EpochDir "watcher.log"
 
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "    CARM SHADOW OBSERVER -- MANUAL FOREGROUND MONITOR       " -ForegroundColor Yellow
@@ -72,9 +73,13 @@ Write-Host "============================================================" -Foreg
 Write-Host "  Mode:             MANUAL FOREGROUND ONLY (No background/cron)" -ForegroundColor White
 Write-Host "  Epoch Target:     $(if ($Probe) { 'PROBE_SANDBOX (Isolated)' } else { 'CANONICAL_EPOCH (EPOCH_20261116_02)' })" -ForegroundColor White
 Write-Host "  Interval:         $IntervalSeconds seconds (Once: $Once)" -ForegroundColor White
+Write-Host "  Log File:         $LogPath" -ForegroundColor White
 Write-Host "  Safety:           REAL_TRADING = False (Zero live orders)" -ForegroundColor Green
 Write-Host "  Control:          Press Ctrl+C to halt safely at any time" -ForegroundColor Magenta
 Write-Host "============================================================`n" -ForegroundColor Cyan
+
+$sessionStart = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+Add-Content -Path $LogPath -Value "[$sessionStart] [START] Observer session initialized (Interval: ${IntervalSeconds}s, Once: $Once, Target: $EpochDir)" -Encoding ASCII -ErrorAction SilentlyContinue
 
 $tickCount = 0
 
@@ -94,6 +99,7 @@ while ($true) {
 
     if ($exitCode -ne 0) {
         Write-Host "`n[API/DATA ERROR] Runner exited with code $exitCode. Market data or API issue." -ForegroundColor Red
+        Add-Content -Path $LogPath -Value "[$nowLocal] [ERROR] Tick $tickCount exited with code $exitCode" -Encoding ASCII -ErrorAction SilentlyContinue
     } else {
         # Parse and display real-time telemetry from evidence snapshot
         if (Test-Path $SnapshotPath) {
@@ -110,6 +116,14 @@ while ($true) {
                 Write-Host ("  CARM Equity:        `${0:N2} ({1:P2})" -f $snap.latest_portfolio_equity.carm_equity_usd, ($snap.latest_portfolio_equity.carm_net_return_pct / 100.0)) -ForegroundColor Yellow
                 Write-Host ("  BTC Buy&Hold:       `${0:N2} ({1:P2})" -f $snap.latest_portfolio_equity.btc_bh_equity_usd, ($snap.latest_portfolio_equity.btc_bh_net_return_pct / 100.0)) -ForegroundColor Gray
                 Write-Host ("  Cash Benchmark:     `${0:N2}" -f $snap.latest_portfolio_equity.cash_equity_usd) -ForegroundColor Gray
+
+                # Log tick summary to file
+                $logLine = ("[{0}] [TICK] #{1} | Obvs: {2} | Bars: {3} | CARM: `${4:N2} ({5:P2}) | BTC: `${6:N2} ({7:P2}) | Cash: `${8:N2}" -f `
+                    $nowLocal, $tickCount, $snap.counters.authentic_forward_observations, $snap.hourly_bars_in_buffer, `
+                    $snap.latest_portfolio_equity.carm_equity_usd, ($snap.latest_portfolio_equity.carm_net_return_pct / 100.0), `
+                    $snap.latest_portfolio_equity.btc_bh_equity_usd, ($snap.latest_portfolio_equity.btc_bh_net_return_pct / 100.0), `
+                    $snap.latest_portfolio_equity.cash_equity_usd)
+                Add-Content -Path $LogPath -Value $logLine -Encoding ASCII -ErrorAction SilentlyContinue
 
                 # Universe Spot Prices
                 if ($snap.latest_prices) {
