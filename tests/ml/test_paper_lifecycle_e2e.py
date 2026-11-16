@@ -976,3 +976,84 @@ def test_crash_recovery_persisted_fill_count_strictly_one(tmp_path):
     # Exactly one persisted fill across the crash and restart
     assert total_fill_lines == 1
 
+
+def test_committed_duplicate_retry_does_not_inflate_stats_or_recent_fills_and_prioritizes_filled_qty(tmp_path):
+    """Verify that retrying a COMMITTED reservation does NOT inflate n_fills, get_recent_fills, or disk records,
+
+    and reconstructs volume strictly from committed filled_qty/filled_notional (not reserved_qty).
+    """
+    db_path = tmp_path / "reservations.db"
+    res_store = ReservationStore(db_path=str(db_path))
+
+    # Simulate a reservation where reserved_qty was 1.5, but actual fill was reduced to 1.0 @ 100 USDT (notional 100.0)
+    rec_res, _ = res_store.reserve(
+        reservation_id="res-stats-1",
+        idempotency_key="idem-stats-1",
+        entry_decision_id="dec-stats-1",
+        symbol="BTC/USDT",
+        side="buy",
+        reserved_notional=150.0,
+        reserved_qty=1.5,
+    )
+    res_store.commit(
+        reservation_id="res-stats-1",
+        filled_notional=100.0,
+        filled_qty=1.0,
+        client_order_id="client-stats-1",
+    )
+    committed = res_store.get_reservation("res-stats-1")
+    assert committed.status == ReservationStatus.COMMITTED
+    assert committed.reserved_qty == 1.5
+    assert committed.filled_qty == 1.0
+    assert committed.filled_notional == 100.0
+
+    engine = ExecutionEngine(
+        log_dir=str(tmp_path / "exec"),
+        fills_dir=str(tmp_path / "fills"),
+        reports_dir=str(tmp_path / "reports"),
+        reservation_db_path=str(db_path),
+    )
+
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-stats-1",
+        "prediction_id": "pred-stats-1",
+        "entry_decision_id": "dec-stats-1",
+        "idempotency_key": "idem-stats-1",
+        "client_order_id": "client-stats-1",
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+
+    # First retry attempt of the already committed reservation
+    first_retry = engine.submit_paper(signal, candle, notional_usdt=150.0)
+    assert first_retry.status == OrderStatus.FILLED
+    assert first_retry.reason == "duplicate_idempotency_key_already_committed"
+    assert first_retry.fills == []
+    # Priority check: must reflect actual committed filled_qty (1.0), NOT reserved_qty (1.5)
+    assert first_retry.filled_qty == 1.0
+    assert first_retry.executed_notional == 100.0
+    assert first_retry.avg_fill_price == 100.0
+
+    # Stats and recent fills must NOT count this pseudo-event
+    stats_after_first = engine.get_stats()
+    assert stats_after_first["n_fills"] == 0
+    assert len(engine.get_recent_fills()) == 0
+
+    # Second retry attempt
+    second_retry = engine.submit_paper(signal, candle, notional_usdt=150.0)
+    assert second_retry.status == OrderStatus.FILLED
+    assert second_retry.reason == "duplicate_idempotency_key_already_committed"
+    assert second_retry.fills == []
+    assert second_retry.filled_qty == 1.0
+
+    stats_after_second = engine.get_stats()
+    assert stats_after_second["n_fills"] == 0
+    assert len(engine.get_recent_fills()) == 0
+
+    # No fill records must have been written to disk by the retries
+    fill_files = list((tmp_path / "fills").rglob("fills_*.jsonl"))
+    assert len(fill_files) == 0
+
+

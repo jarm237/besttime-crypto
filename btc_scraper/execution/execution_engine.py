@@ -490,35 +490,41 @@ class ExecutionEngine:
                 if rec_res.status == ReservationStatus.COMMITTED:
                     record.status = OrderStatus.FILLED
                     record.reason = "duplicate_idempotency_key_already_committed"
-                    record.filled_qty = (
-                        rec_res.reserved_qty if rec_res.reserved_qty and rec_res.reserved_qty > 0
-                        else (rec_res.filled_notional / decision_price if decision_price > 0 else 0.0)
-                    )
+                    filled_qty = float(rec_res.filled_qty or 0.0)
+                    filled_notional = float(rec_res.filled_notional or 0.0)
+                    if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                        filled_qty = filled_notional / decision_price
+                    elif filled_qty <= 0.0 and float(rec_res.reserved_qty or 0.0) > 0.0:
+                        filled_qty = float(rec_res.reserved_qty)
+                    record.filled_qty = filled_qty
                     record.unfilled_qty = 0.0
-                    record.avg_fill_price = (
-                        rec_res.filled_notional / record.filled_qty if record.filled_qty > 0 else decision_price
+                    record.executed_notional = (
+                        filled_notional if filled_notional > 0.0
+                        else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
                     )
-                    record.executed_notional = rec_res.filled_notional or (record.filled_qty * record.avg_fill_price)
+                    record.avg_fill_price = (
+                        filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                    )
                     record.submit_time = datetime.now(timezone.utc).isoformat()
-                    self._tracker._history.append(record)
-                    self._tracker._write_jsonl(record)
                     return record
                 elif rec_res.status == ReservationStatus.PARTIALLY_COMMITTED:
                     record.status = OrderStatus.PARTIAL_FILL
                     record.reason = "duplicate_idempotency_key_partially_committed"
-                    record.filled_qty = (
-                        rec_res.filled_qty if rec_res.filled_qty and rec_res.filled_qty > 0
-                        else (rec_res.filled_notional / decision_price if decision_price > 0 else 0.0)
+                    filled_qty = float(rec_res.filled_qty or 0.0)
+                    filled_notional = float(rec_res.filled_notional or 0.0)
+                    if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                        filled_qty = filled_notional / decision_price
+                    record.filled_qty = filled_qty
+                    intended = record.intended_qty if record.intended_qty > 0.0 else (float(rec_res.reserved_qty or 0.0) or filled_qty)
+                    record.unfilled_qty = max(0.0, intended - filled_qty)
+                    record.executed_notional = (
+                        filled_notional if filled_notional > 0.0
+                        else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
                     )
-                    intended = record.intended_qty if record.intended_qty > 0 else (rec_res.reserved_qty or 0.0)
-                    record.unfilled_qty = max(0.0, intended - record.filled_qty)
                     record.avg_fill_price = (
-                        rec_res.filled_notional / record.filled_qty if record.filled_qty > 0 else decision_price
+                        filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
                     )
-                    record.executed_notional = rec_res.filled_notional or (record.filled_qty * record.avg_fill_price)
                     record.submit_time = datetime.now(timezone.utc).isoformat()
-                    self._tracker._history.append(record)
-                    self._tracker._write_jsonl(record)
                     return record
                 elif rec_res.status == ReservationStatus.PENDING:
                     record.status = OrderStatus.REJECTED
@@ -1368,10 +1374,39 @@ class ExecutionEngine:
                     if rec_res.status == ReservationStatus.COMMITTED:
                         record.status = OrderStatus.FILLED
                         record.reason = "Duplicate request already completed"
+                        filled_qty = float(rec_res.filled_qty or 0.0)
+                        filled_notional = float(rec_res.filled_notional or 0.0)
+                        if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                            filled_qty = filled_notional / decision_price
+                        elif filled_qty <= 0.0 and float(rec_res.reserved_qty or 0.0) > 0.0:
+                            filled_qty = float(rec_res.reserved_qty)
+                        record.filled_qty = filled_qty
+                        record.unfilled_qty = 0.0
+                        record.executed_notional = (
+                            filled_notional if filled_notional > 0.0
+                            else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
+                        )
+                        record.avg_fill_price = (
+                            filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                        )
                         return record
                     elif rec_res.status == ReservationStatus.PARTIALLY_COMMITTED:
                         record.status = OrderStatus.PARTIAL_FILL
                         record.reason = "Duplicate request partially completed"
+                        filled_qty = float(rec_res.filled_qty or 0.0)
+                        filled_notional = float(rec_res.filled_notional or 0.0)
+                        if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                            filled_qty = filled_notional / decision_price
+                        record.filled_qty = filled_qty
+                        intended = record.intended_qty if record.intended_qty > 0.0 else (float(rec_res.reserved_qty or 0.0) or filled_qty)
+                        record.unfilled_qty = max(0.0, intended - filled_qty)
+                        record.executed_notional = (
+                            filled_notional if filled_notional > 0.0
+                            else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
+                        )
+                        record.avg_fill_price = (
+                            filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                        )
                         return record
                     elif rec_res.status == ReservationStatus.PENDING:
                         record.guard_action = "REJECT"
@@ -1701,7 +1736,11 @@ class ExecutionEngine:
         if not history:
             return {"n_fills": 0, "reject_rate": 0.0}
 
-        filled = [r for r in history if r.status == OrderStatus.FILLED]
+        filled = [
+            r for r in history
+            if r.status == OrderStatus.FILLED
+            and getattr(r, "reason", "") != "duplicate_idempotency_key_already_committed"
+        ]
         rejected = [r for r in history if r.status == OrderStatus.REJECTED]
 
         avg_slip = (
@@ -1739,12 +1778,18 @@ class ExecutionEngine:
         }
 
     def get_recent_fills(self, limit: int = 50) -> List[Dict[str, Any]]:
-        return [r.to_dict() for r in self._tracker.get_history(limit=limit)
-                if r.status == OrderStatus.FILLED]
+        return [
+            r.to_dict() for r in self._tracker.get_history(limit=limit)
+            if r.status == OrderStatus.FILLED
+            and getattr(r, "reason", "") != "duplicate_idempotency_key_already_committed"
+        ]
 
     def analyze_quality(self, limit: int = 200) -> Dict[str, Any]:
-        filled = [r.to_dict() for r in self._tracker.get_history(limit=limit)
-                  if r.status == OrderStatus.FILLED]
+        filled = [
+            r.to_dict() for r in self._tracker.get_history(limit=limit)
+            if r.status == OrderStatus.FILLED
+            and getattr(r, "reason", "") != "duplicate_idempotency_key_already_committed"
+        ]
         if not filled:
             return {}
         return self._post_trade.generate_report(filled)
