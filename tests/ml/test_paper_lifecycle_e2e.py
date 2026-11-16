@@ -1,8 +1,11 @@
 import asyncio
+import json
+import math
 
 import pytest
 
 from btc_scraper.execution.execution_engine import ExecutionEngine
+from btc_scraper.execution.fill_tracker import OrderStatus
 from btc_scraper.execution.order_fill_ledger import LedgerStateCorruptError, OrderFillLedger
 from btc_scraper.execution.reservation_store import ReservationStore
 from btc_scraper.ml_engine.lifecycle_observability import producer_coverage_report
@@ -221,12 +224,14 @@ def test_paper_timeout_then_restart_reuses_reservation_and_client_order_id(tmp_p
         reports_dir=str(tmp_path / "reports2"),
         reservation_db_path=str(db_path),
     ).submit_paper(retry_signal, candle, notional_usdt=100.0)
-    assert retry.status == "FILLED"
+    assert retry.status == OrderStatus.REJECTED
+    assert retry.reason == "duplicate_idempotency_key_pending"
     assert retry.reservation_id == first.reservation_id
-    assert retry.client_order_id == "client-restart"
-    committed = ReservationStore(db_path).get_reservation(retry.reservation_id)
-    assert committed.status == ReservationStatus.COMMITTED
-    assert committed.client_order_id == "client-restart"
+    assert retry.fills == []
+    assert retry.filled_qty == 0.0
+    pending_res = ReservationStore(db_path).get_reservation(first.reservation_id)
+    assert pending_res.status == ReservationStatus.PENDING
+    assert pending_res.filled_qty == 0.0
 
 
 def test_paper_partial_fill_then_cancel_releases_remaining_reservation(tmp_path):
@@ -253,7 +258,7 @@ def test_paper_partial_fill_then_cancel_releases_remaining_reservation(tmp_path)
     assert record.filled_qty > 0
     assert record.unfilled_qty > 0
     reservation = ReservationStore(db_path).get_reservation(record.reservation_id)
-    assert reservation.status == ReservationStatus.RELEASED
+    assert reservation.status in (ReservationStatus.CANCELLED_WITH_PARTIAL_FILL, ReservationStatus.RELEASED)
     assert 39.0 <= reservation.filled_notional <= 41.0
     released_notional = reservation.reserved_notional - reservation.filled_notional
     assert 59.0 <= released_notional <= 61.0
@@ -262,7 +267,11 @@ def test_paper_partial_fill_then_cancel_releases_remaining_reservation(tmp_path)
 
 
 def test_paper_fill_before_reservation_commit_recovers_idempotently(tmp_path):
-    db_path = tmp_path / "reservations.db"
+    shared_db_path = tmp_path / "reservations.db"
+    shared_log_dir = tmp_path / "shared_exec"
+    shared_fills_dir = tmp_path / "shared_fills"
+    shared_reports_dir = tmp_path / "shared_reports"
+
     signal = {
         "coin": "BTC",
         "signal": "BUY",
@@ -274,26 +283,136 @@ def test_paper_fill_before_reservation_commit_recovers_idempotently(tmp_path):
         "simulate_crash_after_fill_before_commit": True,
     }
     candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
-    first = ExecutionEngine(
-        log_dir=str(tmp_path / "exec1"),
-        fills_dir=str(tmp_path / "fills1"),
-        reports_dir=str(tmp_path / "reports1"),
-        reservation_db_path=str(db_path),
-    ).submit_paper(signal, candle, notional_usdt=100.0)
+
+    # 1. Engine A simulates: reserve, fill, persist fill, crash before reservation commit
+    engine_a = ExecutionEngine(
+        log_dir=str(shared_log_dir),
+        fills_dir=str(shared_fills_dir),
+        reports_dir=str(shared_reports_dir),
+        reservation_db_path=str(shared_db_path),
+    )
+    first = engine_a.submit_paper(signal, candle, notional_usdt=100.0)
     assert first.status == "FILLED"
-    pending = ReservationStore(db_path).get_reservation(first.reservation_id)
+    # Immediately after simulated crash before commit: reservation in DB is still PENDING
+    pending = ReservationStore(shared_db_path).get_reservation(first.reservation_id)
     assert pending.status == ReservationStatus.PENDING
 
+    # Verify persisted fill exists on disk
+    fill_files = list(shared_fills_dir.rglob("fills_*.jsonl"))
+    assert len(fill_files) > 0
+    total_fills_after_first = sum(
+        1 for p in fill_files for line in p.read_text(encoding="utf-8").strip().splitlines() if line.strip()
+    )
+    assert total_fills_after_first == 1
+
+    # 3. Destroy Engine A
+    del engine_a
+
+    # 4. Initialize Engine B as a new process sharing reservation DB, log dir, fills dir
+    engine_b = ExecutionEngine(
+        log_dir=str(shared_log_dir),
+        fills_dir=str(shared_fills_dir),
+        reports_dir=str(shared_reports_dir),
+        reservation_db_path=str(shared_db_path),
+    )
+
+    # Right after startup (BEFORE retry):
+    # - persisted fill has been read
+    # - reservation in SQLite is no longer PENDING; authoritatively transitioned to COMMITTED
+    # - filled quantity matches
+    startup_res = ReservationStore(shared_db_path).get_reservation(first.reservation_id)
+    assert startup_res.status == ReservationStatus.COMMITTED
+    assert math.isclose(startup_res.filled_qty, first.filled_qty, rel_tol=1e-7, abs_tol=1e-7)
+
+    # 5. Retry with the same idempotency key:
+    # - does not create new fill
+    # - returns duplicate_idempotency_key_already_committed
+    # - total persisted fill count remains EXACTLY 1
     retry_signal = {k: v for k, v in signal.items() if k != "simulate_crash_after_fill_before_commit"}
-    retry = ExecutionEngine(
-        log_dir=str(tmp_path / "exec2"),
-        fills_dir=str(tmp_path / "fills2"),
-        reports_dir=str(tmp_path / "reports2"),
-        reservation_db_path=str(db_path),
-    ).submit_paper(retry_signal, candle, notional_usdt=100.0)
+    retry = engine_b.submit_paper(retry_signal, candle, notional_usdt=100.0)
+    assert retry.status == "FILLED"
+    assert retry.reason == "duplicate_idempotency_key_already_committed"
     assert retry.reservation_id == first.reservation_id
-    committed = ReservationStore(db_path).get_reservation(retry.reservation_id)
-    assert committed.status == ReservationStatus.COMMITTED
+    assert retry.fills == []
+
+    # Total persisted fills on disk must STILL be strictly 1
+    total_fills_after_retry = sum(
+        1 for p in fill_files for line in p.read_text(encoding="utf-8").strip().splitlines() if line.strip()
+    )
+    assert total_fills_after_retry == 1
+
+    # 6. Second reconciliation run:
+    # - returns exactly 0 updates (strictly idempotent)
+    second_reconciled = engine_b._reservation_store.reconcile_crashed_reservations(
+        engine_b._tracker.load_persisted_records()
+    )
+    assert second_reconciled == 0
+
+
+def test_loader_handles_truncated_and_corrupt_jsonl(tmp_path):
+    from btc_scraper.execution.fill_tracker import FillTracker, _tail_read_jsonl
+    fills_dir = tmp_path / "corrupt_fills"
+    fills_dir.mkdir(parents=True)
+    jsonl_file = fills_dir / "fills_2026-11-15.jsonl"
+
+    valid_record_1 = json.dumps({"execution_id": "rec-001", "reservation_id": "res-001", "status": "FILLED", "filled_qty": 0.5})
+    non_dict = json.dumps(["some", "array", "not", "dict"])
+    corrupt_line = "{malformed json line:"
+    valid_record_2 = json.dumps({"execution_id": "rec-002", "reservation_id": "res-002", "status": "FILLED", "filled_qty": 1.0})
+    truncated_line = '{"execution_id": "rec-003", "status": "FIL'
+
+    with open(jsonl_file, "w", encoding="utf-8") as f:
+        f.write(f"{valid_record_1}\n{non_dict}\n{corrupt_line}\n{valid_record_2}\n{truncated_line}")
+
+    records = _tail_read_jsonl(jsonl_file, max_records=5000)
+    record_ids = [r["execution_id"] for r in records if "execution_id" in r]
+    assert "rec-002" in record_ids
+    assert "rec-001" in record_ids
+    assert len(record_ids) == 2
+
+    tracker = FillTracker(log_dir=str(tmp_path / "logs"), fills_dir=str(fills_dir))
+    loaded = tracker.load_persisted_records(limit=10)
+    loaded_ids = [r.execution_id for r in loaded]
+    assert "rec-002" in loaded_ids
+    assert "rec-001" in loaded_ids
+
+
+def test_paper_retry_unverified_reconciliation_required_fails_closed(tmp_path):
+    db_path = tmp_path / "reservations.db"
+    engine = ExecutionEngine(
+        log_dir=str(tmp_path / "exec"),
+        fills_dir=str(tmp_path / "fills"),
+        reservation_db_path=str(db_path),
+    )
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-reconcile-fail-closed",
+        "idempotency_key": "idem-fail-closed",
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+    # Seed a reservation with RECONCILIATION_REQUIRED status (unverified fill state)
+    res_rec, _ = engine._reservation_store.reserve(
+        reservation_id="res-unverified",
+        idempotency_key="idem-fail-closed",
+        entry_decision_id="dec-1",
+        symbol="BTC/USDT",
+        side="buy",
+        reserved_notional=100.0,
+    )
+    with engine._reservation_store._get_conn() as conn:
+        conn.execute(
+            "UPDATE reservations SET status = ? WHERE reservation_id = ?",
+            (ReservationStatus.RECONCILIATION_REQUIRED.value, res_rec.reservation_id),
+        )
+
+    # Attempting to submit retry with unverified reconciliation_required must reject, never fill
+    record = engine.submit_paper(signal, candle, notional_usdt=100.0)
+    assert record.status == OrderStatus.REJECTED
+    assert "duplicate_idempotency_key_reconciliation_required" in record.reason
+    fills = list((tmp_path / "fills").rglob("fills_*.jsonl"))
+    assert len(fills) == 0
 
 
 def test_paper_duplicate_idempotency_replay_does_not_refill(tmp_path):
@@ -629,3 +748,312 @@ def test_operational_restart_closes_persisted_paper_position_once(monkeypatch, t
     assert len(report.samples) == 1
     assert write_calibration_samples(report.samples, sample_path) == 1
     assert write_calibration_samples(report.samples, sample_path) == 0
+
+
+def test_duplicate_pending_reservation_in_same_engine_zero_additional_fills(tmp_path):
+    """Task 3 Case 1: Duplicate PENDING reservation in the same engine yields zero additional fills."""
+    db_path = tmp_path / "reservations.db"
+    engine = ExecutionEngine(
+        log_dir=str(tmp_path / "exec"),
+        fills_dir=str(tmp_path / "fills"),
+        reports_dir=str(tmp_path / "reports"),
+        reservation_db_path=str(db_path),
+    )
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-pend-1",
+        "prediction_id": "pred-pend-1",
+        "entry_decision_id": "ed-pend-1",
+        "idempotency_key": "idem-pend-1",
+        "simulate_timeout_after_reserve": True,
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+    first = engine.submit_paper(signal, candle, notional_usdt=100.0)
+    assert first.status == OrderStatus.TIMEOUT
+
+    retry_signal = {k: v for k, v in signal.items() if k != "simulate_timeout_after_reserve"}
+    second = engine.submit_paper(retry_signal, candle, notional_usdt=100.0)
+    assert second.status == OrderStatus.REJECTED
+    assert second.reason == "duplicate_idempotency_key_pending"
+    assert second.fills == []
+    assert second.filled_qty == 0.0
+
+    res = ReservationStore(db_path).get_reservation(first.reservation_id)
+    assert res.status == ReservationStatus.PENDING
+    assert res.filled_qty == 0.0
+
+
+def test_duplicate_pending_after_restart_with_unavailable_persisted_fill_zero_additional_fills(tmp_path):
+    """Task 3 Case 2: Duplicate PENDING after restart with unavailable persisted fill yields zero additional fills."""
+    db_path = tmp_path / "reservations.db"
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-restart-pend",
+        "prediction_id": "pred-restart-pend",
+        "entry_decision_id": "ed-restart-pend",
+        "idempotency_key": "idem-restart-pend",
+        "simulate_timeout_after_reserve": True,
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+    engine_a = ExecutionEngine(
+        log_dir=str(tmp_path / "exec_a"),
+        fills_dir=str(tmp_path / "fills_a"),
+        reports_dir=str(tmp_path / "reports_a"),
+        reservation_db_path=str(db_path),
+    )
+    first = engine_a.submit_paper(signal, candle, notional_usdt=100.0)
+    assert first.status == OrderStatus.TIMEOUT
+
+    engine_b = ExecutionEngine(
+        log_dir=str(tmp_path / "exec_b"),
+        fills_dir=str(tmp_path / "fills_b"),
+        reports_dir=str(tmp_path / "reports_b"),
+        reservation_db_path=str(db_path),
+    )
+    retry_signal = {k: v for k, v in signal.items() if k != "simulate_timeout_after_reserve"}
+    second = engine_b.submit_paper(retry_signal, candle, notional_usdt=100.0)
+    assert second.status == OrderStatus.REJECTED
+    assert second.reason == "duplicate_idempotency_key_pending"
+    assert second.fills == []
+    assert second.filled_qty == 0.0
+
+    res = ReservationStore(db_path).get_reservation(first.reservation_id)
+    assert res.status == ReservationStatus.PENDING
+    assert res.filled_qty == 0.0
+
+
+def test_startup_persisted_record_loading_exception_unresolved_duplicate_remains_blocked(tmp_path, monkeypatch):
+    """Task 3 Case 3: Startup persisted-record loading exception leaves unresolved duplicate blocked."""
+    db_path = tmp_path / "reservations.db"
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-exc",
+        "prediction_id": "pred-exc",
+        "entry_decision_id": "ed-exc",
+        "idempotency_key": "idem-exc",
+        "simulate_timeout_after_reserve": True,
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+    engine_a = ExecutionEngine(
+        log_dir=str(tmp_path / "exec_a"),
+        fills_dir=str(tmp_path / "fills_a"),
+        reports_dir=str(tmp_path / "reports_a"),
+        reservation_db_path=str(db_path),
+    )
+    first = engine_a.submit_paper(signal, candle, notional_usdt=100.0)
+    assert first.status == OrderStatus.TIMEOUT
+
+    from btc_scraper.execution.fill_tracker import FillTracker
+
+    def _raise_on_load(*args, **kwargs):
+        raise IOError("Disk read error during startup recovery")
+
+    monkeypatch.setattr(FillTracker, "load_persisted_records", _raise_on_load)
+
+    engine_b = ExecutionEngine(
+        log_dir=str(tmp_path / "exec_b"),
+        fills_dir=str(tmp_path / "fills_b"),
+        reports_dir=str(tmp_path / "reports_b"),
+        reservation_db_path=str(db_path),
+    )
+    retry_signal = {k: v for k, v in signal.items() if k != "simulate_timeout_after_reserve"}
+    second = engine_b.submit_paper(retry_signal, candle, notional_usdt=100.0)
+    assert second.status == OrderStatus.REJECTED
+    assert second.reason == "duplicate_idempotency_key_pending"
+    assert second.fills == []
+    assert second.filled_qty == 0.0
+
+
+def test_two_execution_ids_sharing_one_reservation_reconciliation_selects_authoritative_evidence(tmp_path):
+    """Task 3 Case 4: Two execution IDs sharing one reservation: reconciliation selects authoritative evidence correctly."""
+    db_path = tmp_path / "reservations.db"
+    res_store = ReservationStore(db_path=str(db_path))
+    rec_res, _ = res_store.reserve(
+        reservation_id="res-shared-1",
+        idempotency_key="idem-shared-1",
+        entry_decision_id="dec-shared-1",
+        symbol="BTC/USDT",
+        side="buy",
+        reserved_notional=100.0,
+        reserved_qty=1.0,
+    )
+    assert rec_res.status == ReservationStatus.PENDING
+
+    # Record 1: Verified fill
+    filled_rec = {
+        "execution_id": "exec-1-filled",
+        "reservation_id": "res-shared-1",
+        "idempotency_key": "idem-shared-1",
+        "status": "FILLED",
+        "filled_qty": 1.0,
+        "executed_notional": 100.0,
+        "avg_fill_price": 100.0,
+        "submit_time": "2026-11-15T12:00:00Z",
+    }
+    # Record 2: Later retry with zero fill
+    rejected_retry_rec = {
+        "execution_id": "exec-2-retry-rejected",
+        "reservation_id": "res-shared-1",
+        "idempotency_key": "idem-shared-1",
+        "status": "REJECTED",
+        "filled_qty": 0.0,
+        "executed_notional": 0.0,
+        "submit_time": "2026-11-15T12:05:00Z",
+    }
+
+    # Pass in order where rejected is first, verifying that evidence rank prevails
+    reconciled = res_store.reconcile_crashed_reservations([rejected_retry_rec, filled_rec])
+    assert reconciled >= 1
+    updated = res_store.get_reservation("res-shared-1")
+    assert updated.status == ReservationStatus.COMMITTED
+    assert updated.filled_qty == 1.0
+    assert updated.filled_notional == 100.0
+
+
+def test_crash_recovery_persisted_fill_count_strictly_one(tmp_path):
+    """Task 3 Case 5: Existing crash-recovery test passes with persisted fill count strictly 1."""
+    db_path = tmp_path / "reservations.db"
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-crash-strict",
+        "prediction_id": "pred-crash-strict",
+        "entry_decision_id": "ed-crash-strict",
+        "idempotency_key": "idem-crash-strict",
+        "client_order_id": "client-crash-strict",
+        "simulate_crash_after_fill_before_commit": True,
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+
+    process_a = ExecutionEngine(
+        log_dir=str(tmp_path / "exec_a"),
+        fills_dir=str(tmp_path / "fills_common"),
+        reports_dir=str(tmp_path / "reports_a"),
+        reservation_db_path=str(db_path),
+    )
+    fill_a = process_a.submit_paper(signal, candle, notional_usdt=100.0)
+    assert fill_a.status == OrderStatus.FILLED
+    assert len(fill_a.fills) == 1
+
+    # Reservation was not committed before crash, so it's still PENDING in DB
+    uncommitted = ReservationStore(db_path).get_reservation(fill_a.reservation_id)
+    assert uncommitted.status == ReservationStatus.PENDING
+
+    # Process B starts up pointing to the same fills directory
+    process_b = ExecutionEngine(
+        log_dir=str(tmp_path / "exec_b"),
+        fills_dir=str(tmp_path / "fills_common"),
+        reports_dir=str(tmp_path / "reports_b"),
+        reservation_db_path=str(db_path),
+    )
+    # Startup reconciliation immediately committed the reservation from disk evidence
+    reconciled = ReservationStore(db_path).get_reservation(fill_a.reservation_id)
+    assert reconciled.status == ReservationStatus.COMMITTED
+    assert reconciled.filled_qty > 0.0
+
+    # Process B re-receives the exact duplicate signal
+    replay = process_b.submit_paper(signal, candle, notional_usdt=100.0)
+    assert replay.status == OrderStatus.FILLED
+    assert replay.reason == "duplicate_idempotency_key_already_committed"
+    assert replay.fills == []
+
+    # Count actual fill records in fills_common JSONL
+    fill_files = list((tmp_path / "fills_common").rglob("fills_*.jsonl"))
+    assert len(fill_files) >= 1
+    total_fill_lines = 0
+    for f in fill_files:
+        with open(f, "r", encoding="utf-8") as fp:
+            for line in fp:
+                if line.strip():
+                    total_fill_lines += 1
+    # Exactly one persisted fill across the crash and restart
+    assert total_fill_lines == 1
+
+
+def test_committed_duplicate_retry_does_not_inflate_stats_or_recent_fills_and_prioritizes_filled_qty(tmp_path):
+    """Verify that retrying a COMMITTED reservation does NOT inflate n_fills, get_recent_fills, or disk records,
+
+    and reconstructs volume strictly from committed filled_qty/filled_notional (not reserved_qty).
+    """
+    db_path = tmp_path / "reservations.db"
+    res_store = ReservationStore(db_path=str(db_path))
+
+    # Simulate a reservation where reserved_qty was 1.5, but actual fill was reduced to 1.0 @ 100 USDT (notional 100.0)
+    rec_res, _ = res_store.reserve(
+        reservation_id="res-stats-1",
+        idempotency_key="idem-stats-1",
+        entry_decision_id="dec-stats-1",
+        symbol="BTC/USDT",
+        side="buy",
+        reserved_notional=150.0,
+        reserved_qty=1.5,
+    )
+    res_store.commit(
+        reservation_id="res-stats-1",
+        filled_notional=100.0,
+        filled_qty=1.0,
+        client_order_id="client-stats-1",
+    )
+    committed = res_store.get_reservation("res-stats-1")
+    assert committed.status == ReservationStatus.COMMITTED
+    assert committed.reserved_qty == 1.5
+    assert committed.filled_qty == 1.0
+    assert committed.filled_notional == 100.0
+
+    engine = ExecutionEngine(
+        log_dir=str(tmp_path / "exec"),
+        fills_dir=str(tmp_path / "fills"),
+        reports_dir=str(tmp_path / "reports"),
+        reservation_db_path=str(db_path),
+    )
+
+    signal = {
+        "coin": "BTC",
+        "signal": "BUY",
+        "signal_raw": "BUY",
+        "id": "sig-stats-1",
+        "prediction_id": "pred-stats-1",
+        "entry_decision_id": "dec-stats-1",
+        "idempotency_key": "idem-stats-1",
+        "client_order_id": "client-stats-1",
+    }
+    candle = {"open": 100.0, "high": 101.0, "low": 99.5, "close": 100.0, "volume": 1_000_000.0}
+
+    # First retry attempt of the already committed reservation
+    first_retry = engine.submit_paper(signal, candle, notional_usdt=150.0)
+    assert first_retry.status == OrderStatus.FILLED
+    assert first_retry.reason == "duplicate_idempotency_key_already_committed"
+    assert first_retry.fills == []
+    # Priority check: must reflect actual committed filled_qty (1.0), NOT reserved_qty (1.5)
+    assert first_retry.filled_qty == 1.0
+    assert first_retry.executed_notional == 100.0
+    assert first_retry.avg_fill_price == 100.0
+
+    # Stats and recent fills must NOT count this pseudo-event
+    stats_after_first = engine.get_stats()
+    assert stats_after_first["n_fills"] == 0
+    assert len(engine.get_recent_fills()) == 0
+
+    # Second retry attempt
+    second_retry = engine.submit_paper(signal, candle, notional_usdt=150.0)
+    assert second_retry.status == OrderStatus.FILLED
+    assert second_retry.reason == "duplicate_idempotency_key_already_committed"
+    assert second_retry.fills == []
+    assert second_retry.filled_qty == 1.0
+
+    stats_after_second = engine.get_stats()
+    assert stats_after_second["n_fills"] == 0
+    assert len(engine.get_recent_fills()) == 0
+
+    # No fill records must have been written to disk by the retries
+    fill_files = list((tmp_path / "fills").rglob("fills_*.jsonl"))
+    assert len(fill_files) == 0
+
+

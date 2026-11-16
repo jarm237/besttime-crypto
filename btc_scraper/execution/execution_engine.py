@@ -104,8 +104,40 @@ class ExecutionEngine:
         self._planner = ExecutionPlanner(self.config.twap.__dict__)
         self._post_trade = PostTradeAnalyzer(reports_dir=reports_dir)
         self._reservation_store = ReservationStore(db_path=reservation_db_path)
+        # Authoritative runtime startup reconciliation:
+        # Reconcile any uncommitted or crashed reservations against disk fill records.
+        try:
+            startup_records = self._tracker.load_persisted_records(limit=5000)
+            if startup_records:
+                self._reservation_store.reconcile_crashed_reservations(startup_records)
+                if not self._tracker._history:
+                    self._tracker._history.extend(list(reversed(startup_records[:200])))
+        except Exception as exc:
+            logger.warning(f"[ExecutionEngine] Startup crash reconciliation skipped: {exc}")
         import asyncio
         self._execution_lock = asyncio.Lock()
+        import threading
+        self._position_lock = threading.RLock()
+        self._position_reserved_exits: Dict[str, Dict[str, float]] = {}
+        self._position_executed_exits: Dict[str, float] = {}
+
+    def _get_position_allocated_exit_qty(self, pos_key: str, execution_mode: str = "paper") -> float:
+        with self._position_lock:
+            _, _, total_allocated = self._reservation_store.get_position_exit_allocations(pos_key, execution_mode)
+            return total_allocated
+
+    def _reserve_position_exit(self, pos_key: str, reservation_id: str, qty: float) -> None:
+        pass
+
+    def _release_position_exit(self, pos_key: str, reservation_id: str) -> None:
+        self._reservation_store.release(reservation_id)
+
+    def _commit_position_exit(self, pos_key: str, reservation_id: str, filled_qty: float) -> None:
+        self._reservation_store.commit_position_exit(
+            reservation_id,
+            filled_qty=filled_qty,
+            filled_notional=0.0,
+        )
 
     def attach_adapter(self, adapter: WriteExchangeAdapter) -> None:
         """Attach (or replace) the exchange write adapter at runtime."""
@@ -263,6 +295,8 @@ class ExecutionEngine:
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
             prediction_id=signal.get("prediction_id", ""),
             entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            decision_id=signal.get("decision_id") or signal.get("entry_decision_id", ""),
+            final_decision_id=signal.get("final_decision_id", ""),
             model_version=signal.get("model_version", ""),
             model_artifact_sha256=signal.get("model_artifact_sha256", ""),
             feature_schema_version=signal.get("feature_schema_version", ""),
@@ -280,6 +314,8 @@ class ExecutionEngine:
             side=side,
             intended_qty=qty,
             intended_notional=notional_usdt,
+            approved_notional=signal.get("approved_notional"),
+            executed_notional=notional_usdt,
             decision_price=decision_price,
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
             fill_source="real_paper",
@@ -291,15 +327,138 @@ class ExecutionEngine:
             ),
         )
 
-        intent = signal.get("intent", OrderIntent.ENTRY)
-        is_entry = intent in (OrderIntent.ENTRY, OrderIntent.ADD_POSITION)
+        VALID_ENTRY_INTENTS = {OrderIntent.ENTRY, OrderIntent.ADD_POSITION}
+        VALID_EXIT_INTENTS = {OrderIntent.REDUCE_POSITION, OrderIntent.EXIT, OrderIntent.EMERGENCY_EXIT}
+
+        raw_intent = signal.get("intent", OrderIntent.ENTRY)
+        intent_str = str(raw_intent.value if hasattr(raw_intent, "value") else raw_intent).upper()
+        if intent_str in VALID_ENTRY_INTENTS:
+            is_entry = True
+            is_exit = False
+        elif intent_str in VALID_EXIT_INTENTS:
+            is_entry = False
+            is_exit = True
+        else:
+            record.execution_recheck_result = "REJECTED"
+            return self._tracker.reject(record, "UNKNOWN_INTENT")
+
+        target_pos_key = None
+        reservation_id = None
+
         if is_entry:
+            # Strict Entry Risk Status Check
+            if signal.get("missing_entry_risk_status") or (
+                "risk_status" in signal and signal["risk_status"] is None
+            ) or (
+                signal.get("require_risk_status") and not signal.get("risk_status")
+            ):
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISSING_ENTRY_RISK_STATUS")
+
+            # Gate 1: Upstream risk block
+            if signal.get("risk_blocked") or signal.get("entry_eligible") is False:
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, "RISK_BLOCKED")
+
+            # Gate 2: Sizing caps - approved_notional strictly caps executable notional
+            if signal.get("approved_notional") is not None:
+                try:
+                    appr_cap = float(signal["approved_notional"])
+                    if not math.isfinite(appr_cap) or appr_cap <= 0.0:
+                        appr_cap = 0.0
+                except (TypeError, ValueError):
+                    appr_cap = 0.0
+                if appr_cap <= 0.0:
+                    record.execution_recheck_result = "BLOCKED"
+                    return self._tracker.reject(record, "ZERO_APPROVED_NOTIONAL")
+                if notional_usdt > appr_cap:
+                    notional_usdt = appr_cap
+                    qty = notional_usdt / decision_price if decision_price > 0 else 0.0
+                    record.intended_qty = qty
+                    record.intended_notional = notional_usdt
+                    record.executed_notional = notional_usdt
+
+            # Gate 3: Execution-time risk recheck (Kill Switch & Dynamic Block)
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if not ks.allows_entry():
+                    record.execution_recheck_result = "FAILED"
+                    return self._tracker.reject(record, "KILL_SWITCH_ACTIVE")
+            except Exception as exc:
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, f"KILL_SWITCH_EXCEPTION: KILL_SWITCH_ERROR: {exc}")
+
+            current_risk = None
+            try:
+                from btc_scraper.trading.risk_manager import calculate_risk_metrics
+                risk_obs_time = signal.get("risk_data_observed_at") or signal.get("risk_observed_at")
+                if risk_obs_time:
+                    current_risk = calculate_risk_metrics(data_observed_at=risk_obs_time, max_data_age_seconds=300.0)
+                else:
+                    current_risk = calculate_risk_metrics()
+            except Exception as exc:
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "RISK_DATABASE_UNAVAILABLE")
+
+            if not isinstance(current_risk, dict):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "INVALID_RISK_SCHEMA")
+
+            if "blocked" not in current_risk or not isinstance(current_risk.get("blocked"), bool):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "INVALID_RISK_SCHEMA")
+
+            failure_reason = str(current_risk.get("failure_reason") or "")
+            if signal.get("simulate_invalid_risk_schema") or failure_reason in ("invalid_trade_record", "invalid_base_capital", "invalid_risk_schema"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "INVALID_RISK_SCHEMA")
+
+            if signal.get("simulate_risk_database_unavailable") or failure_reason.startswith("risk_database_unavailable"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "RISK_DATABASE_UNAVAILABLE")
+
+            obs_ts = (
+                current_risk.get("observation_timestamp")
+                or current_risk.get("data_observed_at")
+                or current_risk.get("observed_at")
+                or current_risk.get("timestamp")
+                or signal.get("risk_data_observed_at")
+                or signal.get("risk_observed_at")
+            )
+            is_stale_obs = False
+            if obs_ts is not None:
+                try:
+                    if isinstance(obs_ts, (int, float)):
+                        ts_val = float(obs_ts)
+                        age = time.time() - ts_val
+                    else:
+                        parsed = datetime.fromisoformat(str(obs_ts).replace("Z", "+00:00"))
+                        parsed = parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
+                        age = (datetime.now(timezone.utc) - parsed).total_seconds()
+                    if not math.isfinite(age) or age < 0 or age > 300.0:
+                        is_stale_obs = True
+                except Exception:
+                    is_stale_obs = True
+
+            if is_stale_obs or signal.get("is_risk_stale") or current_risk.get("is_stale") or failure_reason in ("drawdown_data_stale", "stale_risk_snapshot"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "STALE_RISK_SNAPSHOT")
+
+            if current_risk.get("blocked") is True or signal.get("execution_risk_blocked"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, f"EXECUTION_RECHECK_FAILED: DYNAMIC_RISK_BLOCKED: {failure_reason or 'drawdown_breach'}")
+
+            record.execution_recheck_result = "PASSED"
+
             authorization_failure = self._entry_authorization_failure(
                 signal, side=side, require_paper_lineage=True
             )
             if authorization_failure:
                 self._record_entry_quarantine(signal, authorization_failure)
+                record.execution_recheck_result = "BLOCKED"
                 return self._tracker.reject(record, authorization_failure)
+
             symbol = f"{coin}/USDT"
             reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
             idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
@@ -320,26 +479,247 @@ class ExecutionEngine:
                 cycle_id=record.cycle_id,
                 decision_context=record.decision_context,
                 caller_context=record.caller_context,
+                execution_mode="paper",
+                reserved_qty=qty,
+                intent=intent_str,
             )
             record.reservation_id = rec_res.reservation_id
             record.idempotency_key = rec_res.idempotency_key
             record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
-            if not created_new and rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
-                record.status = OrderStatus.FILLED
-                record.reason = "duplicate_idempotency_key_already_committed"
-                record.filled_qty = rec_res.filled_notional / decision_price if decision_price > 0 else 0.0
-                record.avg_fill_price = decision_price
-                record.submit_time = datetime.now(timezone.utc).isoformat()
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
-            if not created_new and rec_res.status in (ReservationStatus.RELEASED, ReservationStatus.EXPIRED):
-                record.status = OrderStatus.REJECTED
-                record.reason = f"reservation_{rec_res.status.value}"
-                self._tracker._history.append(record)
-                self._tracker._write_jsonl(record)
-                return record
+            if not created_new:
+                if rec_res.status == ReservationStatus.COMMITTED:
+                    record.status = OrderStatus.FILLED
+                    record.reason = "duplicate_idempotency_key_already_committed"
+                    filled_qty = float(rec_res.filled_qty or 0.0)
+                    filled_notional = float(rec_res.filled_notional or 0.0)
+                    if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                        filled_qty = filled_notional / decision_price
+                    elif filled_qty <= 0.0 and float(rec_res.reserved_qty or 0.0) > 0.0:
+                        filled_qty = float(rec_res.reserved_qty)
+                    record.filled_qty = filled_qty
+                    record.unfilled_qty = 0.0
+                    record.executed_notional = (
+                        filled_notional if filled_notional > 0.0
+                        else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
+                    )
+                    record.avg_fill_price = (
+                        filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                    )
+                    record.submit_time = datetime.now(timezone.utc).isoformat()
+                    return record
+                elif rec_res.status == ReservationStatus.PARTIALLY_COMMITTED:
+                    record.status = OrderStatus.PARTIAL_FILL
+                    record.reason = "duplicate_idempotency_key_partially_committed"
+                    filled_qty = float(rec_res.filled_qty or 0.0)
+                    filled_notional = float(rec_res.filled_notional or 0.0)
+                    if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                        filled_qty = filled_notional / decision_price
+                    record.filled_qty = filled_qty
+                    intended = record.intended_qty if record.intended_qty > 0.0 else (float(rec_res.reserved_qty or 0.0) or filled_qty)
+                    record.unfilled_qty = max(0.0, intended - filled_qty)
+                    record.executed_notional = (
+                        filled_notional if filled_notional > 0.0
+                        else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
+                    )
+                    record.avg_fill_price = (
+                        filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                    )
+                    record.submit_time = datetime.now(timezone.utc).isoformat()
+                    return record
+                elif rec_res.status == ReservationStatus.PENDING:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = "duplicate_idempotency_key_pending"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                elif rec_res.status == ReservationStatus.RECONCILIATION_REQUIRED:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = "duplicate_idempotency_key_reconciliation_required"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                elif rec_res.status in (
+                    ReservationStatus.RELEASED,
+                    ReservationStatus.EXPIRED,
+                    ReservationStatus.CANCELLED_WITH_PARTIAL_FILL,
+                ):
+                    record.status = OrderStatus.REJECTED
+                    record.reason = f"reservation_{rec_res.status.value}"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+                else:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = f"duplicate_idempotency_key_unknown_status_{rec_res.status}"
+                    record.filled_qty = 0.0
+                    record.unfilled_qty = record.intended_qty
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+
             if signal.get("simulate_timeout_after_reserve"):
+                record.status = OrderStatus.TIMEOUT
+                record.reason = "simulated_timeout_after_reserve"
+                self._tracker._history.append(record)
+                self._tracker._write_jsonl(record)
+                return record
+        elif is_exit:
+            # Phase H3: Authoritative Reduce-Only Verification against Open Position Ledger
+            ledger_error = False
+            open_positions = None
+            try:
+                from btc_scraper.trading.position_tracker import get_open_positions
+                open_positions = get_open_positions()
+            except Exception:
+                try:
+                    from btc_scraper.trading.exposure_manager import exposure_manager
+                    open_positions = exposure_manager.get_open_positions()
+                except Exception:
+                    ledger_error = True
+
+            if ledger_error or signal.get("simulate_ledger_unavailable"):
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "POSITION_LEDGER_UNAVAILABLE")
+
+            if open_positions is None:
+                open_positions = []
+
+            # 1. Position availability check
+            target_pos_id = signal.get("position_id") or record.position_id
+            matching_pos = None
+            if target_pos_id:
+                for p in open_positions:
+                    if p.get("id") == target_pos_id or p.get("position_id") == target_pos_id:
+                        matching_pos = p
+                        break
+                if matching_pos is None:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "UNKNOWN_POSITION_ID")
+            else:
+                matching = [p for p in open_positions if str(p.get("coin", "")).upper() == coin.upper()]
+                if not matching:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "NO_POSITION_AVAILABLE")
+                matching_pos = matching[0]
+
+            # 2. Mode isolation check (paper vs live)
+            raw_mode = matching_pos.get("execution_mode") or matching_pos.get("mode")
+            if not raw_mode or str(raw_mode).strip().lower() not in ("paper", "live"):
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISSING_EXECUTION_MODE")
+
+            pos_mode = str(raw_mode).strip().lower()
+            if pos_mode != "paper":
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "PAPER_LIVE_POSITION_MISMATCH")
+
+            # 3. Symbol check
+            pos_coin = str(matching_pos.get("coin", "")).upper()
+            pos_symbol = str(matching_pos.get("symbol", f"{pos_coin}/USDT")).upper()
+            if pos_coin != coin.upper() and pos_symbol != f"{coin.upper()}/USDT":
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISMATCHED_SYMBOL")
+
+            # 4. Direction check
+            pos_direction = str(matching_pos.get("direction") or matching_pos.get("side") or "BUY").upper()
+            expected_exit_side = "SELL" if pos_direction in ("BUY", "LONG") else "BUY"
+            if side.upper() != expected_exit_side:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "WRONG_DIRECTION")
+
+            # 5. Position quantity validity and atomic cumulative reduce-only check
+            pos_qty = None
+            try:
+                raw_qty = matching_pos.get("amount") if matching_pos.get("amount") is not None else matching_pos.get("qty")
+                if raw_qty is not None:
+                    val = float(raw_qty)
+                    if math.isfinite(val) and val > 0.0:
+                        pos_qty = val
+                if pos_qty is None and matching_pos.get("invested_usdt"):
+                    inv = float(matching_pos["invested_usdt"])
+                    ep = float(matching_pos.get("entry_price") or decision_price or 1.0)
+                    if math.isfinite(inv) and inv > 0.0 and math.isfinite(ep) and ep > 0.0:
+                        pos_qty = inv / ep
+            except (TypeError, ValueError):
+                pos_qty = None
+
+            if pos_qty is None or not math.isfinite(pos_qty) or pos_qty <= 0.0:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "INVALID_POSITION_QUANTITY")
+
+            target_pos_key = str(matching_pos.get("id") or matching_pos.get("position_id") or f"{pos_coin}:{pos_direction}")
+            reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
+            symbol = f"{coin}/USDT"
+            idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
+
+            try:
+                rec_res, final_qty, created_new = self._reservation_store.reserve_position_exit(
+                    reservation_id=reservation_id,
+                    idempotency_key=idempotency_key,
+                    position_id=target_pos_key,
+                    execution_mode="paper",
+                    available_position_qty=pos_qty,
+                    intended_qty=record.intended_qty,
+                    notional_usdt=notional_usdt,
+                    symbol=symbol,
+                    side=side.lower(),
+                    clip_to_open_qty=bool(signal.get("clip_to_open_qty")),
+                    entry_decision_id=record.entry_decision_id or record.signal_id,
+                    signal_id=record.signal_id,
+                    prediction_id=record.prediction_id,
+                    model_version=record.model_version,
+                    model_artifact_sha256=record.model_artifact_sha256,
+                    feature_schema_version=record.feature_schema_version,
+                    deployment_id=record.deployment_id,
+                    paper_run_id=record.paper_run_id,
+                    cycle_id=record.cycle_id,
+                    decision_context=record.decision_context,
+                    caller_context=record.caller_context,
+                )
+            except ValueError as exc:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, str(exc))
+
+            if not created_new:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "DUPLICATE_EXIT")
+
+            record.reservation_id = rec_res.reservation_id
+            record.idempotency_key = rec_res.idempotency_key
+            record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
+
+            if final_qty != record.intended_qty:
+                record.intended_qty = final_qty
+                record.intended_notional = final_qty * decision_price
+                record.executed_notional = record.intended_notional
+                notional_usdt = record.intended_notional
+                qty = final_qty
+
+            # 7. Kill Switch exit check (preserve emergency exit privileges)
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if intent_str == OrderIntent.EMERGENCY_EXIT:
+                    pass
+                elif not ks.allows_exit():
+                    self._reservation_store.release(reservation_id)
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "KILL_SWITCH_BLOCKS_EXIT")
+            except Exception as exc:
+                if intent_str != OrderIntent.EMERGENCY_EXIT:
+                    self._reservation_store.release(reservation_id)
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, f"KILL_SWITCH_ERROR: {exc}")
+
+            record.execution_recheck_result = "PASSED"
+            if signal.get("simulate_timeout_after_reserve"):
+                self._reservation_store.release(reservation_id)
                 record.status = OrderStatus.TIMEOUT
                 record.reason = "simulated_timeout_after_reserve"
                 self._tracker._history.append(record)
@@ -430,11 +810,19 @@ class ExecutionEngine:
             record.add_fill(fill)
             self._tracker._write_jsonl(record)
             if record.reservation_id:
-                self._reservation_store.partial_commit(
-                    record.reservation_id,
-                    filled_notional=record.filled_qty * record.avg_fill_price,
-                    client_order_id=record.client_order_id,
-                )
+                if is_exit:
+                    self._reservation_store.partial_commit_position_exit(
+                        record.reservation_id,
+                        filled_qty=record.filled_qty,
+                        filled_notional=record.filled_qty * record.avg_fill_price,
+                        client_order_id=record.client_order_id,
+                    )
+                else:
+                    self._reservation_store.partial_commit(
+                        record.reservation_id,
+                        filled_notional=record.filled_qty * record.avg_fill_price,
+                        client_order_id=record.client_order_id,
+                    )
             if signal.get("paper_cancel_remaining"):
                 self._tracker.cancel(record.execution_id, reason="paper_cancel_remaining")
                 if record.reservation_id:
@@ -446,18 +834,34 @@ class ExecutionEngine:
             return record
         if record.reservation_id:
             filled_notional = record.filled_qty * record.avg_fill_price
-            if filled_notional < 0.9 * notional_usdt:
-                self._reservation_store.partial_commit(
-                    record.reservation_id,
-                    filled_notional=filled_notional,
-                    client_order_id=record.client_order_id,
-                )
+            if is_exit:
+                if filled_notional < 0.9 * notional_usdt:
+                    self._reservation_store.partial_commit_position_exit(
+                        record.reservation_id,
+                        filled_qty=record.filled_qty,
+                        filled_notional=filled_notional,
+                        client_order_id=record.client_order_id,
+                    )
+                else:
+                    self._reservation_store.commit_position_exit(
+                        record.reservation_id,
+                        filled_qty=record.filled_qty,
+                        filled_notional=filled_notional,
+                        client_order_id=record.client_order_id,
+                    )
             else:
-                self._reservation_store.commit(
-                    record.reservation_id,
-                    filled_notional=filled_notional,
-                    client_order_id=record.client_order_id,
-                )
+                if filled_notional < 0.9 * notional_usdt:
+                    self._reservation_store.partial_commit(
+                        record.reservation_id,
+                        filled_notional=filled_notional,
+                        client_order_id=record.client_order_id,
+                    )
+                else:
+                    self._reservation_store.commit(
+                        record.reservation_id,
+                        filled_notional=filled_notional,
+                        client_order_id=record.client_order_id,
+                    )
 
         logger.debug(
             f"[Execution] FILLED {coin} {side} @ {fill_price:.4f} "
@@ -558,6 +962,8 @@ class ExecutionEngine:
             signal_id=signal.get("id", str(uuid.uuid4())[:8]),
             prediction_id=signal.get("prediction_id", ""),
             entry_decision_id=signal.get("entry_decision_id") or signal.get("decision_id", ""),
+            decision_id=signal.get("decision_id") or signal.get("entry_decision_id", ""),
+            final_decision_id=signal.get("final_decision_id", ""),
             model_version=signal.get("model_version", ""),
             model_artifact_sha256=signal.get("model_artifact_sha256", ""),
             feature_schema_version=signal.get("feature_schema_version", ""),
@@ -575,18 +981,295 @@ class ExecutionEngine:
             side=side,
             intended_qty=qty,
             intended_notional=notional_usdt,
+            approved_notional=signal.get("approved_notional"),
+            executed_notional=notional_usdt,
             decision_price=decision_price,
             timestamp=signal.get("entry_time", datetime.now(timezone.utc).isoformat()),
             latency_ms=latency_ms,
             fill_source="live",
             execution_mode="live",
         )
-        authorization_failure = self._entry_authorization_failure(
-            signal, side=side, require_paper_lineage=False
-        )
-        if authorization_failure:
-            self._record_entry_quarantine(signal, authorization_failure)
-            return self._tracker.reject(record, authorization_failure)
+
+        VALID_ENTRY_INTENTS = {OrderIntent.ENTRY, OrderIntent.ADD_POSITION}
+        VALID_EXIT_INTENTS = {OrderIntent.REDUCE_POSITION, OrderIntent.EXIT, OrderIntent.EMERGENCY_EXIT}
+
+        raw_intent = signal.get("intent", OrderIntent.ENTRY)
+        intent_str = str(raw_intent.value if hasattr(raw_intent, "value") else raw_intent).upper()
+        if intent_str in VALID_ENTRY_INTENTS:
+            is_entry = True
+            is_exit = False
+        elif intent_str in VALID_EXIT_INTENTS:
+            is_entry = False
+            is_exit = True
+        else:
+            record.execution_recheck_result = "REJECTED"
+            return self._tracker.reject(record, "UNKNOWN_INTENT")
+
+        target_pos_key = None
+        reservation_id = None
+
+        if is_entry:
+            # Strict Entry Risk Status Check
+            if signal.get("missing_entry_risk_status") or (
+                "risk_status" in signal and signal["risk_status"] is None
+            ) or (
+                signal.get("require_risk_status") and not signal.get("risk_status")
+            ):
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISSING_ENTRY_RISK_STATUS")
+
+            # Gate 1: Upstream risk block
+            if signal.get("risk_blocked") or signal.get("entry_eligible") is False:
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, "RISK_BLOCKED")
+
+            # Gate 2: Sizing caps - approved_notional strictly caps executable notional
+            if signal.get("approved_notional") is not None:
+                try:
+                    appr_cap = float(signal["approved_notional"])
+                    if not math.isfinite(appr_cap) or appr_cap <= 0.0:
+                        appr_cap = 0.0
+                except (TypeError, ValueError):
+                    appr_cap = 0.0
+                if appr_cap <= 0.0:
+                    record.execution_recheck_result = "BLOCKED"
+                    return self._tracker.reject(record, "ZERO_APPROVED_NOTIONAL")
+                if notional_usdt > appr_cap:
+                    notional_usdt = appr_cap
+                    qty = notional_usdt / decision_price if decision_price > 0 else 0.0
+                    record.intended_qty = qty
+                    record.intended_notional = notional_usdt
+                    record.executed_notional = notional_usdt
+
+            # Gate 3: Execution-time risk recheck
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if not ks.allows_entry():
+                    record.execution_recheck_result = "FAILED"
+                    return self._tracker.reject(record, "KILL_SWITCH_ACTIVE")
+            except Exception as exc:
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, f"KILL_SWITCH_EXCEPTION: KILL_SWITCH_ERROR: {exc}")
+
+            current_risk = None
+            try:
+                from btc_scraper.trading.risk_manager import calculate_risk_metrics
+                risk_obs_time = signal.get("risk_data_observed_at") or signal.get("risk_observed_at")
+                if risk_obs_time:
+                    current_risk = calculate_risk_metrics(data_observed_at=risk_obs_time, max_data_age_seconds=300.0)
+                else:
+                    current_risk = calculate_risk_metrics()
+            except Exception as exc:
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "RISK_DATABASE_UNAVAILABLE")
+
+            if not isinstance(current_risk, dict):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "INVALID_RISK_SCHEMA")
+
+            if "blocked" not in current_risk or not isinstance(current_risk.get("blocked"), bool):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "INVALID_RISK_SCHEMA")
+
+            failure_reason = str(current_risk.get("failure_reason") or "")
+            if signal.get("simulate_invalid_risk_schema") or failure_reason in ("invalid_trade_record", "invalid_base_capital", "invalid_risk_schema"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "INVALID_RISK_SCHEMA")
+
+            if signal.get("simulate_risk_database_unavailable") or failure_reason.startswith("risk_database_unavailable"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "RISK_DATABASE_UNAVAILABLE")
+
+            obs_ts = (
+                current_risk.get("observation_timestamp")
+                or current_risk.get("data_observed_at")
+                or current_risk.get("observed_at")
+                or current_risk.get("timestamp")
+                or signal.get("risk_data_observed_at")
+                or signal.get("risk_observed_at")
+            )
+            is_stale_obs = False
+            if obs_ts is not None:
+                try:
+                    if isinstance(obs_ts, (int, float)):
+                        ts_val = float(obs_ts)
+                        age = time.time() - ts_val
+                    else:
+                        parsed = datetime.fromisoformat(str(obs_ts).replace("Z", "+00:00"))
+                        parsed = parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
+                        age = (datetime.now(timezone.utc) - parsed).total_seconds()
+                    if not math.isfinite(age) or age < 0 or age > 300.0:
+                        is_stale_obs = True
+                except Exception:
+                    is_stale_obs = True
+
+            if is_stale_obs or signal.get("is_risk_stale") or current_risk.get("is_stale") or failure_reason in ("drawdown_data_stale", "stale_risk_snapshot"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, "STALE_RISK_SNAPSHOT")
+
+            if current_risk.get("blocked") is True or signal.get("execution_risk_blocked"):
+                record.execution_recheck_result = "FAILED"
+                return self._tracker.reject(record, f"EXECUTION_RECHECK_FAILED: DYNAMIC_RISK_BLOCKED: {failure_reason or 'drawdown_breach'}")
+
+            record.execution_recheck_result = "PASSED"
+
+            authorization_failure = self._entry_authorization_failure(
+                signal, side=side, require_paper_lineage=False
+            )
+            if authorization_failure:
+                self._record_entry_quarantine(signal, authorization_failure)
+                record.execution_recheck_result = "BLOCKED"
+                return self._tracker.reject(record, authorization_failure)
+        elif is_exit:
+            # Phase H3: Authoritative Reduce-Only Verification against Open Position Ledger
+            ledger_error = False
+            open_positions = None
+            try:
+                from btc_scraper.trading.position_tracker import get_open_positions
+                open_positions = get_open_positions()
+            except Exception:
+                try:
+                    from btc_scraper.trading.exposure_manager import exposure_manager
+                    open_positions = exposure_manager.get_open_positions()
+                except Exception:
+                    ledger_error = True
+
+            if ledger_error or signal.get("simulate_ledger_unavailable"):
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "POSITION_LEDGER_UNAVAILABLE")
+
+            if open_positions is None:
+                open_positions = []
+
+            # 1. Position availability check
+            target_pos_id = signal.get("position_id") or record.position_id
+            matching_pos = None
+            if target_pos_id:
+                for p in open_positions:
+                    if p.get("id") == target_pos_id or p.get("position_id") == target_pos_id:
+                        matching_pos = p
+                        break
+                if matching_pos is None:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "UNKNOWN_POSITION_ID")
+            else:
+                matching = [p for p in open_positions if str(p.get("coin", "")).upper() == coin.upper()]
+                if not matching:
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "NO_POSITION_AVAILABLE")
+                matching_pos = matching[0]
+
+            # 2. Mode isolation check (paper vs live)
+            raw_mode = matching_pos.get("execution_mode") or matching_pos.get("mode")
+            if not raw_mode or str(raw_mode).strip().lower() not in ("paper", "live"):
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISSING_EXECUTION_MODE")
+
+            pos_mode = str(raw_mode).strip().lower()
+            if pos_mode != "live":
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "PAPER_LIVE_POSITION_MISMATCH")
+
+            # 3. Symbol check
+            pos_coin = str(matching_pos.get("coin", "")).upper()
+            pos_symbol = str(matching_pos.get("symbol", f"{pos_coin}/USDT")).upper()
+            if pos_coin != coin.upper() and pos_symbol != f"{coin.upper()}/USDT":
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "MISMATCHED_SYMBOL")
+
+            # 4. Direction check
+            pos_direction = str(matching_pos.get("direction") or matching_pos.get("side") or "BUY").upper()
+            expected_exit_side = "SELL" if pos_direction in ("BUY", "LONG") else "BUY"
+            if side.upper() != expected_exit_side:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "WRONG_DIRECTION")
+
+            # 5. Position quantity validity and atomic cumulative reduce-only check
+            pos_qty = None
+            try:
+                raw_qty = matching_pos.get("amount") if matching_pos.get("amount") is not None else matching_pos.get("qty")
+                if raw_qty is not None:
+                    val = float(raw_qty)
+                    if math.isfinite(val) and val > 0.0:
+                        pos_qty = val
+                if pos_qty is None and matching_pos.get("invested_usdt"):
+                    inv = float(matching_pos["invested_usdt"])
+                    ep = float(matching_pos.get("entry_price") or decision_price or 1.0)
+                    if math.isfinite(inv) and inv > 0.0 and math.isfinite(ep) and ep > 0.0:
+                        pos_qty = inv / ep
+            except (TypeError, ValueError):
+                pos_qty = None
+
+            if pos_qty is None or not math.isfinite(pos_qty) or pos_qty <= 0.0:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "INVALID_POSITION_QUANTITY")
+
+            target_pos_key = str(matching_pos.get("id") or matching_pos.get("position_id") or f"{pos_coin}:{pos_direction}")
+            reservation_id = signal.get("reservation_id") or f"res-{uuid.uuid4()}"
+            symbol = f"{coin}/USDT"
+            idempotency_key = signal.get("idempotency_key") or self._build_idempotency_key(signal, record, symbol, side)
+
+            try:
+                rec_res, final_qty, created_new = self._reservation_store.reserve_position_exit(
+                    reservation_id=reservation_id,
+                    idempotency_key=idempotency_key,
+                    position_id=target_pos_key,
+                    execution_mode="live",
+                    available_position_qty=pos_qty,
+                    intended_qty=record.intended_qty,
+                    notional_usdt=notional_usdt,
+                    symbol=symbol,
+                    side=side.lower(),
+                    clip_to_open_qty=bool(signal.get("clip_to_open_qty")),
+                    entry_decision_id=record.entry_decision_id or record.signal_id,
+                    signal_id=record.signal_id,
+                    prediction_id=record.prediction_id,
+                    model_version=record.model_version,
+                    model_artifact_sha256=record.model_artifact_sha256,
+                    feature_schema_version=record.feature_schema_version,
+                    deployment_id=record.deployment_id,
+                    paper_run_id=record.paper_run_id,
+                    cycle_id=record.cycle_id,
+                    decision_context=record.decision_context,
+                    caller_context=record.caller_context,
+                )
+            except ValueError as exc:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, str(exc))
+
+            if not created_new:
+                record.execution_recheck_result = "REJECTED"
+                return self._tracker.reject(record, "DUPLICATE_EXIT")
+
+            record.reservation_id = rec_res.reservation_id
+            record.idempotency_key = rec_res.idempotency_key
+            record.client_order_id = signal.get("client_order_id") or rec_res.idempotency_key
+
+            if final_qty != record.intended_qty:
+                record.intended_qty = final_qty
+                record.intended_notional = final_qty * decision_price
+                record.executed_notional = record.intended_notional
+                notional_usdt = record.intended_notional
+                qty = final_qty
+
+            # 7. Kill Switch exit check (preserve emergency exit privileges)
+            try:
+                from btc_scraper.execution.kill_switch import KillSwitch
+                ks = KillSwitch()
+                if intent_str == OrderIntent.EMERGENCY_EXIT:
+                    pass
+                elif not ks.allows_exit():
+                    self._reservation_store.release(reservation_id)
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, "KILL_SWITCH_BLOCKS_EXIT")
+            except Exception as exc:
+                if intent_str != OrderIntent.EMERGENCY_EXIT:
+                    self._reservation_store.release(reservation_id)
+                    record.execution_recheck_result = "REJECTED"
+                    return self._tracker.reject(record, f"KILL_SWITCH_ERROR: {exc}")
+
+            record.execution_recheck_result = "PASSED"
 
         # ── 1. Liquidity analysis ─────────────────────────────────────────
         snap = self._liquidity.analyze_from_candle(
@@ -608,7 +1291,6 @@ class ExecutionEngine:
 
         # ── Central LiveExecutionGuard validation with atomic snapshot and concurrency lock ──
         from .live_execution_guard import OrderContext, LiveStateSnapshot
-        from .hard_risk_limits import OrderIntent
         from pathlib import Path
         import json
 
@@ -689,9 +1371,42 @@ class ExecutionEngine:
 
                 if not created_new:
                     logger.warning(f"[ExecutionEngine] Duplicate request detected via idempotency: {idempotency_key}")
-                    if rec_res.status in (ReservationStatus.COMMITTED, ReservationStatus.PARTIALLY_COMMITTED):
+                    if rec_res.status == ReservationStatus.COMMITTED:
                         record.status = OrderStatus.FILLED
                         record.reason = "Duplicate request already completed"
+                        filled_qty = float(rec_res.filled_qty or 0.0)
+                        filled_notional = float(rec_res.filled_notional or 0.0)
+                        if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                            filled_qty = filled_notional / decision_price
+                        elif filled_qty <= 0.0 and float(rec_res.reserved_qty or 0.0) > 0.0:
+                            filled_qty = float(rec_res.reserved_qty)
+                        record.filled_qty = filled_qty
+                        record.unfilled_qty = 0.0
+                        record.executed_notional = (
+                            filled_notional if filled_notional > 0.0
+                            else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
+                        )
+                        record.avg_fill_price = (
+                            filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                        )
+                        return record
+                    elif rec_res.status == ReservationStatus.PARTIALLY_COMMITTED:
+                        record.status = OrderStatus.PARTIAL_FILL
+                        record.reason = "Duplicate request partially completed"
+                        filled_qty = float(rec_res.filled_qty or 0.0)
+                        filled_notional = float(rec_res.filled_notional or 0.0)
+                        if filled_qty <= 0.0 and filled_notional > 0.0 and decision_price > 0.0:
+                            filled_qty = filled_notional / decision_price
+                        record.filled_qty = filled_qty
+                        intended = record.intended_qty if record.intended_qty > 0.0 else (float(rec_res.reserved_qty or 0.0) or filled_qty)
+                        record.unfilled_qty = max(0.0, intended - filled_qty)
+                        record.executed_notional = (
+                            filled_notional if filled_notional > 0.0
+                            else (filled_qty * decision_price if decision_price > 0.0 else 0.0)
+                        )
+                        record.avg_fill_price = (
+                            filled_notional / filled_qty if filled_qty > 0.0 and filled_notional > 0.0 else decision_price
+                        )
                         return record
                     elif rec_res.status == ReservationStatus.PENDING:
                         record.guard_action = "REJECT"
@@ -837,20 +1552,38 @@ class ExecutionEngine:
                     filled_notional = fill_qty * fill_price
                     ex_id = order.get("id")
                     record.exchange_order_id = str(ex_id or "")
-                    if filled_notional < 0.9 * notional_usdt:
-                        self._reservation_store.partial_commit(
-                            reservation_id,
-                            filled_notional=filled_notional,
-                            exchange_order_id=ex_id,
-                            client_order_id=idempotency_key,
-                        )
+                    if is_exit:
+                        if filled_notional < 0.9 * notional_usdt:
+                            self._reservation_store.partial_commit_position_exit(
+                                reservation_id,
+                                filled_qty=fill_qty,
+                                filled_notional=filled_notional,
+                                exchange_order_id=ex_id,
+                                client_order_id=idempotency_key,
+                            )
+                        else:
+                            self._reservation_store.commit_position_exit(
+                                reservation_id,
+                                filled_qty=fill_qty,
+                                filled_notional=filled_notional,
+                                exchange_order_id=ex_id,
+                                client_order_id=idempotency_key,
+                            )
                     else:
-                        self._reservation_store.commit(
-                            reservation_id,
-                            filled_notional=filled_notional,
-                            exchange_order_id=ex_id,
-                            client_order_id=idempotency_key,
-                        )
+                        if filled_notional < 0.9 * notional_usdt:
+                            self._reservation_store.partial_commit(
+                                reservation_id,
+                                filled_notional=filled_notional,
+                                exchange_order_id=ex_id,
+                                client_order_id=idempotency_key,
+                            )
+                        else:
+                            self._reservation_store.commit(
+                                reservation_id,
+                                filled_notional=filled_notional,
+                                exchange_order_id=ex_id,
+                                client_order_id=idempotency_key,
+                            )
 
                 # ── 6. Post-trade analysis ───────────────────────────────────
                 self._post_trade.analyze(record.to_dict())
@@ -897,8 +1630,67 @@ class ExecutionEngine:
 
         if self._adapter is None:
             logger.warning(f"[ExecutionEngine] Emergency exit paper mode: {coin} {side}")
+            open_pos = None
+            try:
+                from btc_scraper.trading.position_tracker import get_open_positions
+                positions = get_open_positions()
+                for p in positions:
+                    if str(p.get("coin", "")).upper() == coin.upper():
+                        open_pos = p
+                        break
+            except Exception:
+                pass
+
+            if open_pos is not None:
+                pos_key = str(open_pos.get("id") or open_pos.get("position_id") or f"{coin}:{direction}")
+                pos_qty = float(open_pos.get("amount") or open_pos.get("qty") or (invested_usdt / current_price if current_price > 0 else 0.0))
+                allocated = self._reservation_store.get_position_exit_allocations(pos_key, "paper")[2]
+                remaining_qty = max(0.0, pos_qty - allocated)
+                if remaining_qty <= 1e-9:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = "NO_REMAINING_POSITION_EXPOSURE"
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+
+                intended_qty = record.intended_qty
+                if intended_qty > remaining_qty:
+                    intended_qty = remaining_qty
+                    record.intended_qty = intended_qty
+                    record.intended_notional = intended_qty * current_price
+
+                res_id = f"res-emerg-{uuid.uuid4()}"
+                idemp_key = f"emerg:{coin}:{side}:{int(time.time()*1000)}"
+                try:
+                    rec_res, final_qty, _ = self._reservation_store.reserve_position_exit(
+                        reservation_id=res_id,
+                        idempotency_key=idemp_key,
+                        position_id=pos_key,
+                        execution_mode="paper",
+                        available_position_qty=pos_qty,
+                        intended_qty=intended_qty,
+                        notional_usdt=record.intended_notional,
+                        symbol=symbol,
+                        side=side.lower(),
+                        clip_to_open_qty=True,
+                    )
+                    record.reservation_id = rec_res.reservation_id
+                    record.intended_qty = final_qty
+                except Exception as e:
+                    record.status = OrderStatus.REJECTED
+                    record.reason = str(e)
+                    self._tracker._history.append(record)
+                    self._tracker._write_jsonl(record)
+                    return record
+
             self._tracker.register(record)
             self._tracker.simulate_fill(record, fill_price=current_price)
+            if record.reservation_id:
+                self._reservation_store.commit_position_exit(
+                    record.reservation_id,
+                    filled_qty=record.filled_qty,
+                    filled_notional=record.filled_qty * record.avg_fill_price,
+                )
             return record
 
         try:
@@ -944,7 +1736,11 @@ class ExecutionEngine:
         if not history:
             return {"n_fills": 0, "reject_rate": 0.0}
 
-        filled = [r for r in history if r.status == OrderStatus.FILLED]
+        filled = [
+            r for r in history
+            if r.status == OrderStatus.FILLED
+            and getattr(r, "reason", "") != "duplicate_idempotency_key_already_committed"
+        ]
         rejected = [r for r in history if r.status == OrderStatus.REJECTED]
 
         avg_slip = (
@@ -982,12 +1778,18 @@ class ExecutionEngine:
         }
 
     def get_recent_fills(self, limit: int = 50) -> List[Dict[str, Any]]:
-        return [r.to_dict() for r in self._tracker.get_history(limit=limit)
-                if r.status == OrderStatus.FILLED]
+        return [
+            r.to_dict() for r in self._tracker.get_history(limit=limit)
+            if r.status == OrderStatus.FILLED
+            and getattr(r, "reason", "") != "duplicate_idempotency_key_already_committed"
+        ]
 
     def analyze_quality(self, limit: int = 200) -> Dict[str, Any]:
-        filled = [r.to_dict() for r in self._tracker.get_history(limit=limit)
-                  if r.status == OrderStatus.FILLED]
+        filled = [
+            r.to_dict() for r in self._tracker.get_history(limit=limit)
+            if r.status == OrderStatus.FILLED
+            and getattr(r, "reason", "") != "duplicate_idempotency_key_already_committed"
+        ]
         if not filled:
             return {}
         return self._post_trade.generate_report(filled)

@@ -57,6 +57,11 @@ class EntryRejectionReason(str, Enum):
     MAX_CONCURRENT_POSITIONS = "max_concurrent_positions"
     CAPITAL_CAPACITY_EXCEEDED = "capital_capacity_exceeded"
     NO_VIABLE_ECONOMIC_CANDIDATE = "no_viable_economic_candidate"
+    RISK_BLOCKED = "risk_blocked"
+    PORTFOLIO_CAP_EXCEEDED = "portfolio_cap_exceeded"
+    ZERO_ALLOCATION = "zero_allocation"
+    EXECUTION_RECHECK_BLOCKED = "execution_recheck_blocked"
+    FAIL_CLOSED_CORRUPT_CONTEXT = "fail_closed_corrupt_context"
 
 
 class AuthorizationReason(str, Enum):
@@ -83,6 +88,8 @@ class ReservationStatus(str, Enum):
     PARTIALLY_COMMITTED = "partially_committed"
     RELEASED = "released"
     EXPIRED = "expired"
+    CANCELLED_WITH_PARTIAL_FILL = "cancelled_with_partial_fill"
+    RECONCILIATION_REQUIRED = "reconciliation_required"
 
 
 class FinalDecisionStatus(str, Enum):
@@ -339,6 +346,9 @@ class EntryDecision:
             EntryRejectionReason.CIRCUIT_BREAKER,
             EntryRejectionReason.CORRELATION_FILTER,
             EntryRejectionReason.DAILY_LIMIT,
+            EntryRejectionReason.RISK_BLOCKED,
+            EntryRejectionReason.PORTFOLIO_CAP_EXCEEDED,
+            EntryRejectionReason.EXECUTION_RECHECK_BLOCKED,
         }
         return bool(
             (self.sizing and self.sizing.rejected)

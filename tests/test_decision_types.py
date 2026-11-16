@@ -68,6 +68,15 @@ class TestEntryRejectionReason:
         "NON_EXECUTABLE_FINAL_DECISION": "non_executable_final_decision",
         "FINAL_DECISION_LINEAGE_MISMATCH": "final_decision_lineage_mismatch",
         "FINAL_DECISION_SUPERSEDED": "final_decision_superseded",
+        "COOLDOWN_ACTIVE": "cooldown_active",
+        "MAX_CONCURRENT_POSITIONS": "max_concurrent_positions",
+        "CAPITAL_CAPACITY_EXCEEDED": "capital_capacity_exceeded",
+        "NO_VIABLE_ECONOMIC_CANDIDATE": "no_viable_economic_candidate",
+        "RISK_BLOCKED": "risk_blocked",
+        "PORTFOLIO_CAP_EXCEEDED": "portfolio_cap_exceeded",
+        "ZERO_ALLOCATION": "zero_allocation",
+        "EXECUTION_RECHECK_BLOCKED": "execution_recheck_blocked",
+        "FAIL_CLOSED_CORRUPT_CONTEXT": "fail_closed_corrupt_context",
     }
 
     def test_all_values_stable(self):
@@ -108,6 +117,8 @@ class TestReservationStatus:
         assert ReservationStatus.PENDING.value == "pending"
         assert ReservationStatus.COMMITTED.value == "committed"
         assert ReservationStatus.PARTIALLY_COMMITTED.value == "partially_committed"
+        assert ReservationStatus.CANCELLED_WITH_PARTIAL_FILL.value == "cancelled_with_partial_fill"
+        assert ReservationStatus.RECONCILIATION_REQUIRED.value == "reconciliation_required"
         assert ReservationStatus.RELEASED.value == "released"
         assert ReservationStatus.EXPIRED.value == "expired"
 

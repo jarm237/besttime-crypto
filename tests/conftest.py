@@ -47,11 +47,14 @@ def pytest_configure(config: pytest.Config) -> None:
     os.environ["BTC_REMEDIATION_DOCS_DIR"] = str(run_root / "docs" / "remediation")
 
     run_root.mkdir(parents=True, exist_ok=True)
-    _INITIAL_RUNTIME_SNAPSHOT = snapshot_runtime_roots(WATCH_ROOTS)
+    if os.getenv("BTC_DISABLE_TEST_RUNTIME_GUARD", "").strip().lower() not in {"1", "true", "yes"}:
+        _INITIAL_RUNTIME_SNAPSHOT = snapshot_runtime_roots(WATCH_ROOTS)
+    else:
+        _INITIAL_RUNTIME_SNAPSHOT = {}
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
-    if os.getenv("BTC_DISABLE_TEST_RUNTIME_GUARD", "").lower() in {"1", "true", "yes"}:
+    if os.getenv("BTC_DISABLE_TEST_RUNTIME_GUARD", "").strip().lower() in {"1", "true", "yes"}:
         return
 
     after = snapshot_runtime_roots(WATCH_ROOTS)

@@ -324,6 +324,7 @@ def test_execution_reloads_and_rejects_wrong_decision_digest(monkeypatch, tmp_pa
 def test_controlled_sell_smoke_reaches_fill_and_replay_is_idempotent(
     monkeypatch, tmp_path,
 ):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     _production_evidence(monkeypatch)
     final_decision = _final_decision(
         "SELL", meta_probability=0.2, execution_probability=0.8

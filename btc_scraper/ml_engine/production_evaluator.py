@@ -185,6 +185,7 @@ def evaluate_resolved_market(
                 exposure_cap=exposure_cap,
                 max_trade_cap=trader.max_trade_usdt,
                 min_trade_cap=trader.min_trade_usdt,
+                approved_notional=analysis.get("approved_notional"),
             )
             entry = dataclasses.replace(
                 entry,

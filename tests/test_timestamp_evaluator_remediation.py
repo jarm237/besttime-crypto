@@ -153,6 +153,7 @@ def test_evaluate_live_market_production_path_without_lookahead_error():
 
 
 def test_eligible_signal_flows_to_submit_paper(monkeypatch):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     async def _run():
         trader = AutoTrader()
         base_time = datetime.datetime(2026, 9, 9, 0, 0, 0, tzinfo=timezone.utc)
@@ -287,6 +288,7 @@ def test_eligible_signal_flows_to_submit_paper(monkeypatch):
 
 
 def test_true_end_to_end_binance_rest_to_submit_paper(monkeypatch):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     async def _run():
         import btc_scraper.trading.auto_trader as auto_trader_mod
         import btc_scraper.trading.exposure_manager as exp_mgr_mod
@@ -484,6 +486,7 @@ def test_bybit_okx_fallbacks_populate_candle_contract(monkeypatch):
 
 
 def test_full_e2e_producer_candlestore_analyze_market_evaluator_real_execution(monkeypatch):
+    monkeypatch.setenv("PAPER_ECONOMIC_POLICY", "ACTIVE_PAPER")
     async def _run():
         import btc_scraper.trading.auto_trader as auto_trader_mod
         import btc_scraper.trading.exposure_manager as exp_mgr_mod
