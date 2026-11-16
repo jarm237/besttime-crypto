@@ -154,6 +154,54 @@ class CarmMarketDataProvider:
 
         return prices, observations
 
+    def fetch_recent_hourly_klines(
+        self,
+        universe: Optional[Sequence[str]] = None,
+        limit: int = 200,
+    ) -> List[Tuple[datetime, Dict[str, float]]]:
+        """Fetch authentic 1h klines for universe symbols to build the causal momentum buffer.
+
+        Returns:
+            Chronologically sorted list of (bar_timestamp_utc, {sym: close_price}).
+        """
+        target_symbols = list(universe or CANONICAL_UNIVERSE)
+        symbol_bars: Dict[str, Dict[datetime, float]] = {}
+
+        for sym in target_symbols:
+            endpoint = f"{self.base_url}/api/v3/klines?symbol={sym}&interval=1h&limit={limit}"
+            req = urllib.request.Request(
+                endpoint,
+                headers={
+                    "User-Agent": "CARM-Shadow-Observer/1.0 (read-only research)",
+                    "Accept": "application/json",
+                },
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout_seconds) as resp:
+                    if resp.status != 200:
+                        raise RuntimeError(f"Kline fetch HTTP {resp.status} for {sym}")
+                    raw_candles = json.loads(resp.read().decode("utf-8"))
+            except Exception as e:
+                logger.error("Failed to fetch klines for %s: %s", sym, e)
+                raise RuntimeError(f"Failed to fetch klines for {sym}: {e}") from e
+
+            bars_for_sym: Dict[datetime, float] = {}
+            for candle in raw_candles:
+                dt = datetime.fromtimestamp(candle[0] / 1000.0, tz=timezone.utc)
+                bars_for_sym[dt] = float(candle[4])
+            symbol_bars[sym] = bars_for_sym
+
+        # Intersect timestamps present across all symbols
+        all_sym_sets = [set(bars.keys()) for bars in symbol_bars.values()]
+        common_timestamps = sorted(set.intersection(*all_sym_sets)) if all_sym_sets else []
+
+        result: List[Tuple[datetime, Dict[str, float]]] = []
+        for ts in common_timestamps:
+            prices_at_ts = {sym: symbol_bars[sym][ts] for sym in target_symbols}
+            result.append((ts, prices_at_ts))
+
+        return result
+
     @staticmethod
     def create_warmup_observations(
         prices: Dict[str, float],

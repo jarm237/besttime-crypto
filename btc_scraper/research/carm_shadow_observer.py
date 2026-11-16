@@ -1,18 +1,18 @@
 """CARM Read-Only Prospective Shadow Observer.
 
-Provides causal, read-only shadow observation of the CARM_WEEKLY_ONLY candidate strategy
-evaluated in lockstep against two canonical benchmarks:
-  1. CARM_VIRTUAL_PORTFOLIO_STATE (Weekly rebalanced top-3 cross-sectional momentum with cash allocation)
+Provides causal, read-only shadow observation of the canonical CARM strategy
+evaluated in lockstep against two benchmarks:
+  1. CARM_WEEKLY_ONLY (Original research parity: equal-weight inception, top-3 weekly momentum)
   2. BTC_BUY_AND_HOLD_BENCHMARK (100% BTC spot hold from identical initial capital)
   3. CASH_BENCHMARK (100% USD/USDT hold with zero return and zero drawdown)
 
 Guarantees:
+  - STRICT RESEARCH PARITY: Exactly mirrors `simulate_carm_top_momentum_strategy()` from `0d9f6660`.
+  - HOURLY SIGNAL INTEGRITY: Causal 168h momentum evaluated strictly on authenticated hourly bar closes with shift(2) delay.
+  - TICKER VALUATION DECOUPLING: Sub-hourly observation ticks update mark-to-market valuation without distorting the 168h momentum window.
+  - DURABLE HISTORY: Hourly price buffer is persisted across process restarts to prevent signal starvation.
+  - UTC REBALANCE CLOCK: Rebalances anchored to deterministic weekly UTC boundaries (missing ticks do not shift schedule).
   - STRICT READ-ONLY: ZERO exchange orders, ZERO execution API calls, ZERO real trades.
-  - CAUSAL EXECUTION: Signal computation strictly precedes execution price application.
-  - UTC DECISION CLOCK: Weekly rebalancing anchored to fixed UTC timestamps (missing ticks do not shift schedule).
-  - CASH ALLOCATION: When top-ranked assets have negative momentum, slots allocate to cash.
-  - DATA INTEGRITY: Missing, zero, or NaN prices on held assets preserve previous valuation and trigger data quality alert.
-  - DURABLE STATE: State recovery preserves portfolio holdings, decision period, and counters idempotently across restarts.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from btc_scraper.research.carm_market_data import CANONICAL_UNIVERSE, MarketDataObservation
+from btc_scraper.research.carm_market_data import CANONICAL_UNIVERSE
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +42,10 @@ DEFAULT_INITIAL_CAPITAL_USD: float = 10_000.0
 DEFAULT_FEE_BPS: float = 12.0  # 12 bps = 0.0012 per leg
 DEFAULT_REBALANCE_HOURS: int = 168  # 7 days * 24 hours
 DEFAULT_TOP_K: int = 3
+DEFAULT_CAUSAL_DELAY_BARS: int = 2  # shift(2) matching 0d9f6660
 BENCHMARK_BTC_SYMBOL: str = "BTCUSDT"
-STRATEGY_VERSION: str = "CARM_WEEKLY_ONLY_V1"
+STRATEGY_VERSION_CANONICAL: str = "CARM_ORIGINAL_RESEARCH_V1"
+STRATEGY_VERSION_CASH_GATED: str = "CARM_CASH_GATED_V2"
 
 # Canonical UTC Weekly Anchor: Sunday 00:00:00 UTC (1970-01-04T00:00:00Z)
 CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS: int = 259200  # Jan 4, 1970 00:00:00 UTC
@@ -51,6 +53,7 @@ SECONDS_PER_WEEK: int = 168 * 3600  # 604,800 seconds
 
 
 def compute_configuration_fingerprint(
+    strategy_version: str,
     universe: Sequence[str],
     top_k: int,
     fee_bps: float,
@@ -61,7 +64,7 @@ def compute_configuration_fingerprint(
     """Deterministic SHA-256 fingerprint of the frozen strategy configuration."""
     canonical_repr = json.dumps(
         {
-            "strategy_version": STRATEGY_VERSION,
+            "strategy_version": strategy_version,
             "universe": sorted(list(universe)),
             "top_k": int(top_k),
             "fee_bps": float(fee_bps),
@@ -185,8 +188,9 @@ class CarmShadowObserver:
         fee_bps: float = DEFAULT_FEE_BPS,
         rebalance_interval_hours: int = DEFAULT_REBALANCE_HOURS,
         top_k: int = DEFAULT_TOP_K,
-        causal_delay_bars: int = 1,
-        require_positive_momentum: bool = True,
+        causal_delay_bars: int = DEFAULT_CAUSAL_DELAY_BARS,
+        require_positive_momentum: bool = False,  # False = canonical 0d9f6660 parity
+        initial_allocation_mode: str = "EQUAL_WEIGHT",  # "EQUAL_WEIGHT" = 0d9f6660 parity
         anchor_epoch_seconds: int = CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS,
     ) -> None:
         self.universe: List[str] = sorted(list(universe or CANONICAL_UNIVERSE))
@@ -197,9 +201,14 @@ class CarmShadowObserver:
         self.top_k: int = int(top_k)
         self.causal_delay_bars: int = int(causal_delay_bars)
         self.require_positive_momentum: bool = bool(require_positive_momentum)
+        self.initial_allocation_mode: str = str(initial_allocation_mode)
         self.anchor_epoch_seconds: int = int(anchor_epoch_seconds)
 
+        self.strategy_version: str = (
+            STRATEGY_VERSION_CASH_GATED if self.require_positive_momentum else STRATEGY_VERSION_CANONICAL
+        )
         self.configuration_fingerprint: str = compute_configuration_fingerprint(
+            self.strategy_version,
             self.universe,
             self.top_k,
             self.fee_bps,
@@ -231,8 +240,10 @@ class CarmShadowObserver:
             peak_equity_usd=self.initial_capital_usd,
         )
 
-        # Price history buffer for causal momentum calculation: list of (timestamp_utc, clean_prices)
-        self._price_history: List[Tuple[datetime, Dict[str, float]]] = []
+        # Dedicated hourly bar history for causal momentum signal: List of (datetime_utc, prices_dict)
+        self.hourly_price_history: List[Tuple[datetime, Dict[str, float]]] = []
+        self._last_recorded_bar_hour: Optional[datetime] = None
+
         self._btc_incepted: bool = False
         self._carm_incepted: bool = False
 
@@ -260,9 +271,8 @@ class CarmShadowObserver:
                 return ts.replace(tzinfo=timezone.utc)
             return ts.astimezone(timezone.utc)
         if isinstance(ts, (int, float)):
-            # Distinguish milliseconds vs seconds
             val = float(ts)
-            if val > 1e11:  # epoch ms
+            if val > 1e11:  # ms
                 val /= 1000.0
             return datetime.fromtimestamp(val, tz=timezone.utc)
         if isinstance(ts, str):
@@ -281,8 +291,28 @@ class CarmShadowObserver:
     def get_period_index(self, ts_utc: datetime) -> int:
         """Calculate canonical 168-hour UTC weekly period index."""
         epoch_sec = ts_utc.timestamp()
-        period_idx = int((epoch_sec - self.anchor_epoch_seconds) // SECONDS_PER_WEEK)
-        return period_idx
+        return int((epoch_sec - self.anchor_epoch_seconds) // SECONDS_PER_WEEK)
+
+    def ingest_hourly_bars(self, bars: Sequence[Tuple[Any, Dict[str, float]]]) -> int:
+        """Ingest authentic historical or newly completed hourly bars.
+
+        Returns:
+            Number of newly added hourly bars.
+        """
+        existing_ts = {b[0] for b in self.hourly_price_history}
+        added = 0
+        for raw_ts, p_dict in bars:
+            ts_utc = self._parse_timestamp(raw_ts).replace(minute=0, second=0, microsecond=0)
+            if ts_utc not in existing_ts:
+                clean_p = {sym: float(p_dict[sym]) for sym in self.universe if sym in p_dict and float(p_dict[sym]) > 0.0}
+                self.hourly_price_history.append((ts_utc, clean_p))
+                existing_ts.add(ts_utc)
+                added += 1
+
+        self.hourly_price_history.sort(key=lambda x: x[0])
+        if self.hourly_price_history:
+            self._last_recorded_bar_hour = self.hourly_price_history[-1][0]
+        return added
 
     def step(
         self,
@@ -291,6 +321,7 @@ class CarmShadowObserver:
         warmup_history: Optional[pd.DataFrame] = None,
         is_forward: bool = True,
         observation_id: Optional[str] = None,
+        force_rebalance: bool = False,
     ) -> ObserverTickResult:
         """Execute one clock step with given timestamp and market prices.
 
@@ -300,9 +331,7 @@ class CarmShadowObserver:
             warmup_history: Optional historical price DataFrame used for momentum calculation.
             is_forward: True if authentic forward data, False if historical warmup.
             observation_id: Optional observation tracking ID.
-
-        Returns:
-            ObserverTickResult containing updated states and rebalance details.
+            force_rebalance: If True, forces rebalancing check immediately.
         """
         ts_utc = self._parse_timestamp(timestamp)
         ts_str = ts_utc.isoformat().replace("+00:00", "Z")
@@ -374,10 +403,13 @@ class CarmShadowObserver:
         else:
             self.historical_warmup_observations_count += 1
 
-        # Buffer price history for causal momentum
-        self._price_history.append((ts_utc, clean_prices))
+        # Checkpoint hourly bar if crossing into a new hour
+        bar_hour = ts_utc.replace(minute=0, second=0, microsecond=0)
+        if self._last_recorded_bar_hour is None or bar_hour > self._last_recorded_bar_hour:
+            self.hourly_price_history.append((bar_hour, clean_prices))
+            self._last_recorded_bar_hour = bar_hour
 
-        # 3. BTC Buy & Hold Inception (Executes once at t=0 when BTC price is available)
+        # 3. Inception Handling: BTC Buy & Hold (Executes once at inception)
         if not self._btc_incepted and BENCHMARK_BTC_SYMBOL in clean_prices:
             btc_price = clean_prices[BENCHMARK_BTC_SYMBOL]
             fee = self.initial_capital_usd * self.fee_rate
@@ -403,15 +435,39 @@ class CarmShadowObserver:
                 "is_modeled_virtual_fill": True,
             })
 
-        # 4. Check Weekly UTC Rebalance Decision Clock
+        # 4. Inception Handling: CARM Initial Allocation (Matching 0d9f6660 current_target_w = 1.0 / N)
         rebalance_triggered = False
         rebalance_details: Optional[Dict[str, Any]] = None
         period_idx = self.get_period_index(ts_utc)
 
-        # Rebalance is due if entering a new weekly period
-        rebalance_due = (self.last_completed_period_index is None) or (period_idx > self.last_completed_period_index)
+        # Check if CARM initial inception allocation is due
+        if not self._carm_incepted:
+            if self.initial_allocation_mode == "EQUAL_WEIGHT":
+                # Incept into 1/N equal weight across all universe symbols present
+                available_syms = [s for s in self.universe if s in clean_prices and clean_prices[s] > 0.0]
+                if available_syms:
+                    rebalance_details = self._execute_target_allocation(
+                        current_prices=clean_prices,
+                        target_w={s: 1.0 / len(available_syms) for s in available_syms},
+                        timestamp_utc=ts_str,
+                        reason="INCEPTION_EQUAL_WEIGHT",
+                    )
+                    rebalance_triggered = True
+                    self._carm_incepted = True
+                    self.scheduled_rebalances_count += 1
+                    self.last_completed_period_index = period_idx
+                    self.last_rebalance_timestamp_utc = ts_str
+            else:
+                self._carm_incepted = True
 
-        if rebalance_due:
+        # 5. Check Weekly UTC Rebalance Decision Clock
+        rebalance_due = (
+            force_rebalance
+            or (self.last_completed_period_index is None)
+            or (period_idx > self.last_completed_period_index)
+        )
+
+        if rebalance_due and self._carm_incepted:
             momentum_scores = self._compute_causal_momentum(warmup_history)
             if momentum_scores is not None:
                 rebalance_details = self._rebalance_carm(clean_prices, momentum_scores, ts_str)
@@ -419,9 +475,8 @@ class CarmShadowObserver:
                 self.scheduled_rebalances_count += 1
                 self.last_completed_period_index = period_idx
                 self.last_rebalance_timestamp_utc = ts_str
-                self._carm_incepted = True
 
-        # 5. Mark-to-Market Valuations for all 3 portfolios
+        # 6. Mark-to-Market Valuations for all 3 portfolios
         self.carm_portfolio.update_valuation(clean_prices)
         self.btc_portfolio.update_valuation(clean_prices)
         self.cash_portfolio.update_valuation(clean_prices)
@@ -442,13 +497,13 @@ class CarmShadowObserver:
         self,
         warmup_history: Optional[pd.DataFrame] = None,
     ) -> Optional[Dict[str, float]]:
-        """Compute causal 168h percentage return for each universe symbol.
+        """Compute causal 168h percentage return with shift(2) delay.
 
-        Applies causal delay to ensure zero lookahead bias.
+        Evaluates return between bar (T - causal_delay_bars - 168) and bar (T - causal_delay_bars).
         """
         required_len = self.rebalance_interval_hours + self.causal_delay_bars + 1
 
-        # If warmup history DataFrame is provided, use it
+        # Source 1: Warmup history DataFrame if provided
         if warmup_history is not None and len(warmup_history) >= required_len:
             t_eval = len(warmup_history) - 1 - self.causal_delay_bars
             t_base = t_eval - self.rebalance_interval_hours
@@ -463,13 +518,13 @@ class CarmShadowObserver:
                         mom[sym] = float("-inf")
                 return mom
 
-        # Otherwise check internal price history buffer
-        if len(self._price_history) >= required_len:
-            t_eval_idx = len(self._price_history) - 1 - self.causal_delay_bars
+        # Source 2: Dedicated hourly history buffer
+        if len(self.hourly_price_history) >= required_len:
+            t_eval_idx = len(self.hourly_price_history) - 1 - self.causal_delay_bars
             t_base_idx = t_eval_idx - self.rebalance_interval_hours
             if t_base_idx >= 0:
-                p_eval_dict = self._price_history[t_eval_idx][1]
-                p_base_dict = self._price_history[t_base_idx][1]
+                p_eval_dict = self.hourly_price_history[t_eval_idx][1]
+                p_base_dict = self.hourly_price_history[t_base_idx][1]
                 mom = {}
                 for sym in self.universe:
                     if sym in p_eval_dict and sym in p_base_dict and p_base_dict[sym] > 0.0:
@@ -478,7 +533,6 @@ class CarmShadowObserver:
                         mom[sym] = float("-inf")
                 return mom
 
-        # Not enough causal history yet for momentum calculation
         return None
 
     def _rebalance_carm(
@@ -487,44 +541,52 @@ class CarmShadowObserver:
         momentum_scores: Dict[str, float],
         timestamp_utc: str,
     ) -> Dict[str, Any]:
-        """Execute causal virtual rebalancing for CARM_WEEKLY_ONLY portfolio."""
-        # Rank universe assets by momentum descending
+        """Rank universe assets and execute scheduled weekly virtual rebalancing."""
         valid_candidates = [
             sym for sym in self.universe
             if sym in momentum_scores and momentum_scores[sym] > float("-inf")
         ]
+        # Rank by momentum descending
         ranked_assets = sorted(valid_candidates, key=lambda s: momentum_scores[s], reverse=True)
-
-        # Select Top-K candidates
         top_k_candidates = ranked_assets[: self.top_k]
 
-        # Negative-momentum cash allocation logic:
-        # If require_positive_momentum is True, only candidates with momentum > 0 receive allocation.
-        # Candidates with momentum <= 0 are replaced with Cash allocation.
-        selected_assets: List[str] = []
         target_w = {sym: 0.0 for sym in self.universe}
-        target_cash_w = 0.0
+        selected_assets: List[str] = []
 
         if self.require_positive_momentum:
-            slot_weight = 1.0 / self.top_k
+            # Variant V2 (Cash Gated): only positive momentum allocated, rest cash
+            slot_w = 1.0 / self.top_k
             for sym in top_k_candidates:
                 if momentum_scores[sym] > 0.0:
                     selected_assets.append(sym)
-                    target_w[sym] = slot_weight
-                else:
-                    target_cash_w += slot_weight
-            remaining_slots = self.top_k - len(top_k_candidates)
-            target_cash_w += remaining_slots * slot_weight
+                    target_w[sym] = slot_w
         else:
+            # Canonical 0d9f6660 Parity: nlargest(top_k) equal-weighted
             selected_assets = top_k_candidates
             if selected_assets:
-                slot_weight = 1.0 / len(selected_assets)
+                slot_w = 1.0 / len(selected_assets)
                 for sym in selected_assets:
-                    target_w[sym] = slot_weight
-            else:
-                target_cash_w = 1.0
+                    target_w[sym] = slot_w
 
-        # Calculate pre-trade total equity
+        return self._execute_target_allocation(
+            current_prices=current_prices,
+            target_w=target_w,
+            timestamp_utc=timestamp_utc,
+            reason="SCHEDULED_WEEKLY_MOMENTUM_REBALANCE",
+            momentum_scores={s: momentum_scores[s] for s in top_k_candidates},
+            selected_assets=selected_assets,
+        )
+
+    def _execute_target_allocation(
+        self,
+        current_prices: Dict[str, float],
+        target_w: Dict[str, float],
+        timestamp_utc: str,
+        reason: str,
+        momentum_scores: Optional[Dict[str, float]] = None,
+        selected_assets: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Execute virtual portfolio rebalancing to target weights."""
         current_asset_vals = {
             sym: self.carm_portfolio.holdings.get(sym, 0.0) * current_prices.get(sym, 0.0)
             for sym in self.universe
@@ -533,37 +595,34 @@ class CarmShadowObserver:
         if equity_before <= 1e-6:
             equity_before = self.initial_capital_usd
 
-        # Current weights
         current_w = {
             sym: current_asset_vals.get(sym, 0.0) / equity_before
             for sym in self.universe
         }
 
-        # Turnover across asset weights: sum(|w_target - w_current|)
-        dw = sum(abs(target_w[sym] - current_w[sym]) for sym in self.universe)
+        # Turnover dw across asset weights: sum(|target_w - current_w|)
+        dw = sum(abs(target_w.get(sym, 0.0) - current_w.get(sym, 0.0)) for sym in self.universe)
 
-        # Transaction cost deduction: equity_before * turnover * fee_rate
-        # Note: Cash incurs zero trading fees; fees are charged strictly on executed asset notional.
+        # Proportional fee deduction on traded asset notional
         fee = equity_before * dw * self.fee_rate
         post_fee_equity = max(equity_before - fee, 0.0)
 
-        # Allocate new holdings and virtual fills
         new_holdings = {sym: 0.0 for sym in self.universe}
         allocated_val = 0.0
         fill_records: List[Dict[str, Any]] = []
 
         for sym in self.universe:
             curr_units = self.carm_portfolio.holdings.get(sym, 0.0)
-            target_units = 0.0
+            w_tgt = target_w.get(sym, 0.0)
             sym_price = current_prices.get(sym, 0.0)
+            target_units = 0.0
 
-            if target_w[sym] > 0.0 and sym_price > 0.0:
-                asset_alloc = post_fee_equity * target_w[sym]
+            if w_tgt > 0.0 and sym_price > 0.0:
+                asset_alloc = post_fee_equity * w_tgt
                 target_units = asset_alloc / sym_price
                 new_holdings[sym] = target_units
                 allocated_val += asset_alloc
 
-            # Record virtual fill if position changed
             delta_units = target_units - curr_units
             if abs(delta_units) > 1e-8 and sym_price > 0.0:
                 self.modeled_virtual_fills_count += 1
@@ -582,7 +641,7 @@ class CarmShadowObserver:
 
         new_cash = max(post_fee_equity - allocated_val, 0.0)
 
-        # Update CARM portfolio state
+        # Update portfolio state
         self.carm_portfolio.holdings = new_holdings
         self.carm_portfolio.cash_usd = new_cash
         self.carm_portfolio.equity_usd = post_fee_equity
@@ -592,25 +651,28 @@ class CarmShadowObserver:
 
         self.virtual_fills.extend(fill_records)
 
+        target_cash_w = 1.0 - sum(target_w.values())
+
         return {
-            "selected_assets": selected_assets,
-            "target_cash_weight": round(target_cash_w, 6),
-            "momentum_scores": {s: round(momentum_scores[s], 6) for s in top_k_candidates},
+            "reason": reason,
+            "selected_assets": selected_assets or [s for s, w in target_w.items() if w > 0],
+            "target_cash_weight": round(max(target_cash_w, 0.0), 6),
+            "momentum_scores": momentum_scores or {},
             "turnover": round(dw, 6),
             "fee_usd": round(fee, 4),
             "equity_before": round(equity_before, 2),
             "post_fee_equity": round(post_fee_equity, 2),
-            "target_weights": {s: round(target_w[s], 6) for s in self.universe if target_w[s] > 0.0},
+            "target_weights": {s: round(target_w[s], 6) for s in self.universe if target_w.get(s, 0) > 0},
             "virtual_fills_generated": len(fill_records),
         }
 
     def save_state(self, filepath: Union[str, Path]) -> Dict[str, Any]:
-        """Persist complete observer state to JSON file outside tracked source."""
+        """Persist complete observer state including hourly price buffer."""
         path = Path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
 
         state_data = {
-            "strategy_version": STRATEGY_VERSION,
+            "strategy_version": self.strategy_version,
             "configuration_fingerprint": self.configuration_fingerprint,
             "universe": self.universe,
             "initial_capital_usd": self.initial_capital_usd,
@@ -618,6 +680,7 @@ class CarmShadowObserver:
             "rebalance_interval_hours": self.rebalance_interval_hours,
             "top_k": self.top_k,
             "require_positive_momentum": self.require_positive_momentum,
+            "initial_allocation_mode": self.initial_allocation_mode,
             "causal_delay_bars": self.causal_delay_bars,
             "anchor_epoch_seconds": self.anchor_epoch_seconds,
             "carm_portfolio": self.carm_portfolio.to_dict(),
@@ -639,7 +702,12 @@ class CarmShadowObserver:
                 "modeled_virtual_fills_count": self.modeled_virtual_fills_count,
                 "portfolio_valuations_count": self.portfolio_valuations_count,
             },
-            "virtual_fills": self.virtual_fills[-50:],  # preserve recent fills in state
+            # Persist latest 250 hourly bars to guarantee continuous causal momentum availability across restarts
+            "hourly_price_history": [
+                {"timestamp_utc": dt.isoformat(), "prices": p}
+                for dt, p in self.hourly_price_history[-250:]
+            ],
+            "virtual_fills": self.virtual_fills[-50:],
         }
 
         with open(path, "w", encoding="utf-8") as f:
@@ -663,8 +731,9 @@ class CarmShadowObserver:
             fee_bps=data.get("fee_bps", DEFAULT_FEE_BPS),
             rebalance_interval_hours=data.get("rebalance_interval_hours", DEFAULT_REBALANCE_HOURS),
             top_k=data.get("top_k", DEFAULT_TOP_K),
-            causal_delay_bars=data.get("causal_delay_bars", 1),
-            require_positive_momentum=data.get("require_positive_momentum", True),
+            causal_delay_bars=data.get("causal_delay_bars", DEFAULT_CAUSAL_DELAY_BARS),
+            require_positive_momentum=data.get("require_positive_momentum", False),
+            initial_allocation_mode=data.get("initial_allocation_mode", "EQUAL_WEIGHT"),
             anchor_epoch_seconds=data.get("anchor_epoch_seconds", CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS),
         )
 
@@ -689,6 +758,13 @@ class CarmShadowObserver:
         observer.modeled_virtual_fills_count = int(counters.get("modeled_virtual_fills_count", 0))
         observer.portfolio_valuations_count = int(counters.get("portfolio_valuations_count", 0))
 
+        # Restore hourly price history
+        for item in data.get("hourly_price_history", []):
+            dt = observer._parse_timestamp(item["timestamp_utc"])
+            observer.hourly_price_history.append((dt, {k: float(v) for k, v in item["prices"].items()}))
+        if observer.hourly_price_history:
+            observer._last_recorded_bar_hour = observer.hourly_price_history[-1][0]
+
         observer.virtual_fills = data.get("virtual_fills", [])
 
         return observer
@@ -697,14 +773,7 @@ class CarmShadowObserver:
         self,
         piv_close: pd.DataFrame,
     ) -> List[ObserverTickResult]:
-        """Run batch simulation over a panel of hourly close prices.
-
-        Args:
-            piv_close: DataFrame indexed by timestamp with columns as symbols.
-
-        Returns:
-            List of ObserverTickResult for each timestamp.
-        """
+        """Run batch simulation over a panel of hourly close prices."""
         results: List[ObserverTickResult] = []
         n_bars = len(piv_close)
 

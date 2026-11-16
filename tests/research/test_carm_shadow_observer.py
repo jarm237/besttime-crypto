@@ -14,6 +14,7 @@ Verifies the 8 core requirements:
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict
 
@@ -333,7 +334,7 @@ def test_valuation_ledger_and_persistence(tmp_path: Path):
 
     readback_ledger = CarmValuationLedger(log_path=log_file)
     assert len(readback_ledger.records) == 2
-    assert readback_ledger.records[0]["carm_equity"] == pytest.approx(10_000.0, rel=1e-5)
+    assert readback_ledger.records[0]["carm_equity"] == pytest.approx(9_988.0, rel=1e-5)
     assert readback_ledger.records[1]["btc_bh_equity"] > 10_000.0
 
     df = ledger.to_dataframe()
@@ -387,3 +388,79 @@ def test_comparative_scorecard_generation():
     assert "| **CARM_WEEKLY_ONLY** |" in md
     assert "| **BTC_BUY_AND_HOLD** |" in md
     assert "| **CASH** |" in md
+
+
+def test_canonical_0d9f6660_parity_inception_equal_weight():
+    """Verify CARM_ORIGINAL_RESEARCH_V1 incepts with equal-weight 1/N across universe."""
+    universe = ["ADAUSDT", "BTCUSDT", "ETHUSDT", "SOLUSDT"]
+    observer = CarmShadowObserver(
+        universe=universe,
+        initial_capital_usd=10_000.0,
+        fee_bps=12.0,
+        require_positive_momentum=False,
+        initial_allocation_mode="EQUAL_WEIGHT",
+    )
+
+    prices = {"ADAUSDT": 1.0, "BTCUSDT": 50000.0, "ETHUSDT": 3000.0, "SOLUSDT": 100.0}
+    res = observer.step(timestamp="2026-01-04T00:00:00Z", prices=prices)
+
+    # Initial entry fee is 12 bps ($12.00)
+    assert observer.carm_portfolio.cumulative_fees_usd == pytest.approx(12.0, rel=1e-5)
+    assert observer.carm_portfolio.equity_usd == pytest.approx(9_988.0, rel=1e-5)
+    # Each asset receives 1/4 = 25% of post-fee equity ($2,497 each)
+    expected_alloc = 9_988.0 / 4.0
+    for sym in universe:
+        assert observer.carm_portfolio.holdings[sym] == pytest.approx(expected_alloc / prices[sym], rel=1e-5)
+
+
+def test_hourly_bars_ingestion_and_history_persistence(tmp_path: Path):
+    """Verify ingestion of authentic hourly bars and full restoration across restart."""
+    state_file = tmp_path / "carm_state_bars.json"
+    universe = ["BTCUSDT", "ETHUSDT"]
+    observer = CarmShadowObserver(universe=universe)
+
+    # Ingest 20 hourly bars
+    bars = [
+        (datetime(2026, 1, 1, h, 0, tzinfo=timezone.utc), {"BTCUSDT": 100.0 + h, "ETHUSDT": 50.0 + h})
+        for h in range(20)
+    ]
+    added = observer.ingest_hourly_bars(bars)
+    assert added == 20
+    assert len(observer.hourly_price_history) == 20
+
+    # Save and load
+    observer.save_state(state_file)
+    recovered = CarmShadowObserver.load_state(state_file)
+
+    assert len(recovered.hourly_price_history) == 20
+    assert recovered.hourly_price_history[0][1]["BTCUSDT"] == 100.0
+    assert recovered.hourly_price_history[-1][1]["BTCUSDT"] == 119.0
+
+
+def test_scorecard_insufficient_sample_shows_na():
+    """Verify that ledger with < 24h sample outputs N/A (<24h) for annual metrics."""
+    # 3 ticks 1 second apart
+    records = [
+        {
+            "timestamp": f"2026-01-04T00:00:0{i}Z",
+            "carm_equity": 10000.0 + i,
+            "btc_bh_equity": 9988.0 + i,
+            "cash_equity": 10000.0,
+            "carm_fees_usd": 0.0,
+            "carm_turnover": 0.0,
+            "carm_rebalances": 0,
+            "carm_drawdown_pct": 0.0,
+            "btc_drawdown_pct": 0.0,
+        }
+        for i in range(3)
+    ]
+    df = pd.DataFrame(records)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df.set_index("timestamp", inplace=True)
+
+    metrics = CarmComparativeScorecard.calculate_metrics(df)
+    assert np.isnan(metrics["BTC_BUY_AND_HOLD"].annualized_sharpe)
+    assert np.isnan(metrics["BTC_BUY_AND_HOLD"].annualized_sortino)
+
+    md = CarmComparativeScorecard.generate_markdown_scorecard(metrics)
+    assert "N/A (<24h)" in md

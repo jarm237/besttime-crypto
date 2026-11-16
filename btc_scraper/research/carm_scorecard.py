@@ -114,7 +114,8 @@ class CarmComparativeScorecard:
     def calculate_metrics(
         ledger_df: pd.DataFrame,
         initial_capital_usd: float = 10_000.0,
-        periods_per_year: float = 8760.0,  # Hourly bars by default
+        periods_per_year: float = 8760.0,  # Hourly bars
+        min_hours_for_annualization: float = 24.0,
     ) -> Dict[str, PortfolioMetrics]:
         """Compute performance metrics for CARM, BTC Buy & Hold, and Cash."""
         if ledger_df.empty:
@@ -124,6 +125,11 @@ class CarmComparativeScorecard:
         eq_carm = ledger_df["carm_equity"].astype(float)
         eq_btc = ledger_df["btc_bh_equity"].astype(float)
         eq_cash = ledger_df["cash_equity"].astype(float)
+
+        # Elapsed time check
+        time_span_seconds = (ledger_df.index[-1] - ledger_df.index[0]).total_seconds()
+        hours_elapsed = time_span_seconds / 3600.0
+        has_sufficient_history = hours_elapsed >= min_hours_for_annualization and len(ledger_df) >= 24
 
         def _compute_for_series(
             name: str,
@@ -141,20 +147,27 @@ class CarmComparativeScorecard:
             max_dd = float(dd_series.min())
 
             # Returns for Sharpe / Sortino
-            rets = series.pct_change().dropna()
-            if len(rets) > 1 and rets.std() > 1e-8:
-                mean_r = float(rets.mean())
-                std_r = float(rets.std())
-                ann_sharpe = float((mean_r / std_r) * np.sqrt(periods_per_year))
-
-                downside = rets[rets < 0.0]
-                if len(downside) > 0 and downside.std() > 1e-8:
-                    ann_sortino = float((mean_r / downside.std()) * np.sqrt(periods_per_year))
-                else:
-                    ann_sortino = ann_sharpe
+            # If observation sample is too short (< 24h), annualization is statistically invalid
+            if not has_sufficient_history:
+                ann_sharpe = float("nan")
+                ann_sortino = float("nan")
             else:
-                ann_sharpe = 0.0
-                ann_sortino = 0.0
+                # Resample to 1-hour cadence before annualizing
+                resampled = series.resample("1h").last().ffill()
+                rets = resampled.pct_change().dropna()
+                if len(rets) > 1 and rets.std() > 1e-8:
+                    mean_r = float(rets.mean())
+                    std_r = float(rets.std())
+                    ann_sharpe = float((mean_r / std_r) * np.sqrt(periods_per_year))
+
+                    downside = rets[rets < 0.0]
+                    if len(downside) > 0 and downside.std() > 1e-8:
+                        ann_sortino = float((mean_r / downside.std()) * np.sqrt(periods_per_year))
+                    else:
+                        ann_sortino = ann_sharpe
+                else:
+                    ann_sharpe = 0.0
+                    ann_sortino = 0.0
 
             return fin_eq, net_ret, max_dd, ann_sharpe, ann_sortino
 
@@ -237,9 +250,14 @@ class CarmComparativeScorecard:
                 continue
             ret_str = f"**{m.net_return_pct:+.2f}%**" if m.net_return_pct > 0 else f"{m.net_return_pct:+.2f}%"
             exc_str = f"{m.excess_return_vs_btc_pct:+.2f}%" if key != "BTC_BUY_AND_HOLD" else "—"
+            sh_str = "N/A (<24h)" if np.isnan(m.annualized_sharpe) else f"{m.annualized_sharpe:.3f}"
+            so_str = "N/A (<24h)" if np.isnan(m.annualized_sortino) else f"{m.annualized_sortino:.3f}"
+
             lines.append(
                 f"| **{m.portfolio_name}** | ${m.initial_capital_usd:,.2f} | ${m.final_equity_usd:,.2f} | "
-                f"{ret_str} | {m.max_drawdown_pct:.2f}% | {m.annualized_sharpe:.3f} | {m.annualized_sortino:.3f} | "
+                f"{ret_str} | {m.max_drawdown_pct:.2f}% | {sh_str} | {so_str} | "
                 f"{m.total_turnover:.1f} | {m.rebalance_count} | ${m.total_fees_usd:,.2f} | {exc_str} |"
             )
+        lines.append("")
+        lines.append("*Note: All fills and rebalances are modeled virtual fills with 12 bps execution friction. Zero live exchange orders.*")
         return "\n".join(lines)
