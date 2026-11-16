@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Manual Foreground Observer Monitor for CARM Shadow Observer.
 
@@ -67,7 +67,7 @@ $SnapshotPath = Join-Path $EpochDir "first_forward_evidence_snapshot.json"
 $StatePath = Join-Path $EpochDir "carm_state.json"
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "    CARM SHADOW OBSERVER — MANUAL FOREGROUND MONITOR       " -ForegroundColor Yellow
+Write-Host "    CARM SHADOW OBSERVER -- MANUAL FOREGROUND MONITOR       " -ForegroundColor Yellow
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "  Mode:             MANUAL FOREGROUND ONLY (No background/cron)" -ForegroundColor White
 Write-Host "  Epoch Target:     $(if ($Probe) { 'PROBE_SANDBOX (Isolated)' } else { 'CANONICAL_EPOCH (EPOCH_20261116_02)' })" -ForegroundColor White
