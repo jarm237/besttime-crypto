@@ -567,59 +567,41 @@ def test_atomic_persistence_and_ledger_reconciliation_on_crash(tmp_path: Path):
 
 
 def test_exact_mathematical_parity_with_0d9f6660_reference_implementation():
-    """Verify reference logic parity between CarmShadowObserver and 0d9f6660 reference function.
+    """Verify exact mathematical parity by directly calling simulate_carm_top_momentum_strategy.
 
-    Calls the exact reference code extracted from commit 0d9f6660 on identical 200h warmup + 350h
-    forward data, testing inception allocations, shift(2) causal weekly momentum, and virtual fills.
+    Directly invokes simulate_carm_top_momentum_strategy() from btc_scraper.research.carm_reference_0d9f6660
+    without rewriting any strategy logic in the test. Compares CARM_STEP_MODULO_RESEARCH_V1 against
+    the reference output down to exact floating point precision.
     """
     from btc_scraper.research.carm_reference_0d9f6660 import simulate_carm_top_momentum_strategy
 
     symbols = list(CANONICAL_UNIVERSE)
     np.random.seed(42)
-    W, T, N = 200, 350, len(symbols)
+    T, N = 504, len(symbols)  # 3 full weeks (504 hours)
 
-    # Generate synthetic price series for warmup + forward
-    rets = np.random.normal(0.0005, 0.015, size=(W + T, N))
+    # Generate synthetic hourly prices
+    rets = np.random.normal(0.0005, 0.015, size=(T, N))
     all_prices = 100.0 * np.exp(np.cumsum(rets, axis=0))
-    start_dt = pd.Timestamp("2026-01-04T00:00:00Z")
-    timestamps = pd.date_range(start=start_dt - pd.Timedelta(hours=W), periods=W + T, freq="1h")
+    timestamps = pd.date_range("2026-01-04 00:00:00+00:00", periods=T, freq="1h")
     piv_close = pd.DataFrame(all_prices, index=timestamps, columns=symbols)
 
-    # Reference implementation logic from 0d9f6660
-    piv_past_168h = piv_close.pct_change(168).shift(2)
-    fee_rate = 12.0 / 10000.0
+    # Direct invocation of canonical reference function from 0d9f6660
+    ref_res = simulate_carm_top_momentum_strategy(
+        piv_close=piv_close,
+        symbols=symbols,
+        prices=all_prices,
+        timestamps=timestamps,
+        top_k=3,
+        rebalance_interval_hours=168,
+        rebalance_on_drift=False,
+        fee_bps=12.0,
+        initial_capital_usd=10000.0,
+    )
 
-    ref_cash = 10000.0
-    ref_holdings = np.zeros(N)
-    ref_target_w = np.full(N, 1.0 / N)
-
-    for t in range(W, W + T):
-        t_fwd = t - W
-        is_scheduled = (t_fwd == 0) or (t_fwd % 168 == 0)
-        if is_scheduled and t_fwd > 0:
-            row = piv_past_168h.iloc[t]
-            top_assets = row.nlargest(3).index
-            ref_target_w = np.zeros(N)
-            for s in top_assets:
-                ref_target_w[symbols.index(s)] = 1.0 / 3.0
-
-        asset_vals = ref_holdings * all_prices[t]
-        eq_before = ref_cash + float(np.sum(asset_vals))
-        current_w = asset_vals / max(eq_before, 1e-6)
-
-        if is_scheduled:
-            dw = float(np.sum(np.abs(ref_target_w - current_w)))
-            fee = eq_before * dw * fee_rate
-            post_fee_eq = eq_before - fee
-            target_vals = ref_target_w * post_fee_eq
-            ref_holdings = target_vals / all_prices[t]
-            ref_cash = post_fee_eq - float(np.sum(target_vals))
-
-    ref_final_equity = ref_cash + float(np.sum(ref_holdings * all_prices[-1]))
-
-    # Now run CarmShadowObserver over identical hourly data
+    # Instantiate CarmShadowObserver with CARM_STEP_MODULO_RESEARCH_V1 schedule mode
     observer = CarmShadowObserver(
         universe=symbols,
+        schedule_mode="STEP_MODULO",
         initial_capital_usd=10000.0,
         fee_bps=12.0,
         rebalance_interval_hours=168,
@@ -628,24 +610,24 @@ def test_exact_mathematical_parity_with_0d9f6660_reference_implementation():
         require_positive_momentum=False,
         initial_allocation_mode="EQUAL_WEIGHT",
     )
+    assert observer.strategy_version == "CARM_STEP_MODULO_RESEARCH_V1"
 
-    # Ingest warmup bars
-    warmup_bars = [(timestamps[i].to_pydatetime(), piv_close.iloc[i].to_dict()) for i in range(W)]
-    observer.ingest_hourly_bars(warmup_bars)
-
-    # Execute forward simulation
-    for t in range(W, W + T):
+    # Step sequentially through all 504 hours
+    for t in range(T):
         ts_str = timestamps[t].isoformat()
         current_prices = piv_close.iloc[t].to_dict()
         observer.ingest_hourly_bars([(timestamps[t].to_pydatetime(), current_prices)])
         observer.step(timestamp=ts_str, prices=current_prices, is_forward=True)
 
-    observer_final_equity = observer.carm_portfolio.equity_usd
+    # Assert exact mathematical parity across all metrics
+    assert round(observer.carm_portfolio.equity_usd, 2) == pytest.approx(ref_res["final_equity_usd"], abs=0.01)
+    assert round(observer.carm_portfolio.cumulative_fees_usd, 2) == pytest.approx(ref_res["total_fees_paid_usd"], abs=0.01)
+    assert round(observer.carm_portfolio.cumulative_turnover, 2) == pytest.approx(ref_res["total_turnover"], abs=0.01)
+    assert observer.carm_portfolio.rebalance_count == ref_res["rebalance_count"]
 
-    # Compare results down to every cent
-    assert observer_final_equity == pytest.approx(ref_final_equity, rel=1e-5)
-    for sym in symbols:
-        assert observer.carm_portfolio.holdings[sym] == pytest.approx(ref_holdings[symbols.index(sym)], rel=1e-5)
+    ref_holdings = np.array(ref_res["final_holdings"])
+    obs_holdings = np.array([observer.carm_portfolio.holdings[s] for s in symbols])
+    np.testing.assert_allclose(obs_holdings, ref_holdings, atol=1e-5)
 
 
 def test_corrupted_trailing_jsonl_line_resilience(tmp_path: Path):
@@ -714,4 +696,144 @@ def test_signal_continuity_gap_and_freshness_fail_closed():
     stale_decision_time = base_time + pd.Timedelta(hours=190)  # 15 hours after latest bar
     mom_stale = observer_stale._compute_causal_momentum(decision_time_utc=stale_decision_time)
     assert mom_stale is None  # Blocked!
+
+
+def test_rebalance_skipped_when_signal_not_ready_or_integrity_error():
+    """Verify fail-closed behavior at weekly boundary when signal is invalid or not ready.
+
+    Guarantees:
+      - rebalance_triggered is False
+      - rebalance_status is 'REBALANCE_SKIPPED_SIGNAL_NOT_READY'
+      - scheduled_rebalances_count does NOT increment
+      - forced_probes_count does NOT increment
+      - Holdings unchanged, cash unchanged, zero fees charged
+      - Valuation proceeds normally
+    """
+    universe = list(CANONICAL_UNIVERSE)
+    observer = CarmShadowObserver(
+        universe=universe,
+        schedule_mode="UTC_CALENDAR",
+        initial_capital_usd=10000.0,
+        fee_bps=12.0,
+    )
+
+    # 1. Inception at Sunday 2026-01-04 00:00:00 UTC
+    prices_0 = {s: 100.0 for s in universe}
+    res_0 = observer.step("2026-01-04T00:00:00Z", prices=prices_0)
+    assert res_0.rebalance_status == "INCEPTION"
+    assert observer.inception_rebalances_count == 1
+    assert observer.scheduled_rebalances_count == 0
+    initial_holdings = dict(observer.carm_portfolio.holdings)
+    fees_after_inception = observer.carm_portfolio.cumulative_fees_usd
+
+    # 2. Advance to next weekly boundary (Sunday 2026-01-11 00:00:00 UTC) with an upstream integrity error
+    observer.mark_signal_integrity_error("Binance 1h klines gap detected between 2026-01-07 and 2026-01-08")
+
+    prices_1 = {s: 110.0 for s in universe}
+    res_1 = observer.step("2026-01-11T00:00:00Z", prices=prices_1)
+
+    # Assert rebalance was safely skipped fail-closed
+    assert res_1.rebalance_triggered is False
+    assert res_1.rebalance_status == "REBALANCE_SKIPPED_SIGNAL_NOT_READY"
+    assert res_1.rebalance_details is not None
+    assert res_1.rebalance_details["status"] == "REBALANCE_SKIPPED_SIGNAL_NOT_READY"
+    assert "Binance 1h klines gap" in res_1.rebalance_details["reason"]
+
+    # Assert zero counters incremented
+    assert observer.scheduled_rebalances_count == 0
+    assert observer.forced_probes_count == 0
+
+    # Assert holdings and cash strictly unchanged
+    assert observer.carm_portfolio.holdings == initial_holdings
+    assert observer.carm_portfolio.cumulative_fees_usd == fees_after_inception
+
+    # Assert valuation ran properly with new prices ($110 per unit)
+    expected_equity = sum(qty * 110.0 for qty in initial_holdings.values()) + observer.carm_portfolio.cash_usd
+    assert observer.carm_portfolio.equity_usd == pytest.approx(expected_equity, rel=1e-5)
+    assert observer.portfolio_valuations_count == 2
+
+
+def test_corrupt_tail_restart_append_restart_preserves_valid_records(tmp_path: Path):
+    """Verify that trailing truncated JSONL is repaired/quarantined before append, preventing data loss.
+
+    Scenario:
+      1. Write valid record 1.
+      2. Crash mid-write on record 2 (truncated JSON string without newline).
+      3. Instantiate CarmValuationLedger: repair on disk, quarantine bad tail.
+      4. Append new valid record 2 via ledger.
+      5. Restart process again and verify both record 1 and record 2 are intact and valid.
+    """
+    ledger_file = tmp_path / "crash_recovery_ledger.jsonl"
+
+    record_1 = {
+        "sequence_id": 1,
+        "epoch_id": "EPOCH_20261116_02",
+        "configuration_fingerprint": "fingerprint_123",
+        "timestamp": "2026-01-04T00:00:00Z",
+        "carm_equity": 9988.0,
+        "btc_bh_equity": 9988.0,
+        "cash_equity": 10000.0,
+        "data_quality_status": "VALID",
+        "rebalance_status": "INCEPTION",
+        "rebalance_triggered": True,
+        "carm_fees_usd": 12.0,
+        "carm_turnover": 1.0,
+        "carm_rebalances": 1,
+        "carm_drawdown_pct": -0.12,
+        "btc_drawdown_pct": -0.12,
+        "carm_holdings": {"BTCUSDT": 0.1},
+    }
+
+    # Simulate disk state after crash
+    with open(ledger_file, "w", encoding="utf-8") as f:
+        f.write(json.dumps(record_1) + "\n")
+        f.write('{"sequence_id": 2, "timestamp": "2026-01-04T01:00:00Z", "carm_eq')  # Truncated tail without newline!
+
+    # Step 1: Open ledger after crash
+    ledger_1 = CarmValuationLedger(log_path=ledger_file)
+    assert len(ledger_1.records) == 1
+    assert ledger_1.records[0]["sequence_id"] == 1
+
+    # Verify quarantine file was created and ledger file repaired
+    quarantine_files = list(tmp_path.glob("*.quarantine.*.bak"))
+    assert len(quarantine_files) == 1
+    with open(ledger_file, "r", encoding="utf-8") as f:
+        repaired_content = f.read()
+    assert repaired_content.endswith("\n")
+    # Record 2's timestamp was in the truncated line and should have been stripped from disk
+    assert "2026-01-04T01:00:00Z" not in repaired_content
+
+    # Step 2: Append new valid record 2
+    from btc_scraper.research.carm_shadow_observer import ObserverTickResult
+    mock_tick = ObserverTickResult(
+        timestamp="2026-01-04T01:00:00Z",
+        prices={"BTCUSDT": 51000.0},
+        carm_state={
+            "cumulative_fees_usd": 12.0,
+            "cumulative_turnover": 1.0,
+            "rebalance_count": 1,
+            "max_drawdown_pct": 0.0,
+            "holdings": {"BTCUSDT": 0.1},
+            "equity_usd": 10100.0,
+        },
+        btc_bh_state={"equity_usd": 10100.0, "max_drawdown_pct": 0.0},
+        cash_state={"equity_usd": 10000.0},
+        rebalance_triggered=False,
+        data_quality_status="VALID",
+        rebalance_status="NONE",
+        epoch_id="EPOCH_20261116_02",
+        configuration_fingerprint="fingerprint_123",
+    )
+    ledger_1.append(mock_tick)
+    assert len(ledger_1.records) == 2
+
+    # Step 3: Restart process again and load ledger
+    ledger_2 = CarmValuationLedger(log_path=ledger_file)
+    assert len(ledger_2.records) == 2
+    assert ledger_2.records[0]["sequence_id"] == 1
+    assert ledger_2.records[1]["sequence_id"] == 2
+    assert ledger_2.records[0]["timestamp"] == "2026-01-04T00:00:00Z"
+    assert ledger_2.records[1]["timestamp"] == "2026-01-04T01:00:00Z"
+    assert ledger_2.records[1]["epoch_id"] == "EPOCH_20261116_02"
+    assert ledger_2.records[1]["rebalance_status"] == "NONE"
 

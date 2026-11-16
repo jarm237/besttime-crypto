@@ -55,26 +55,96 @@ class CarmValuationLedger:
             self._load_existing_records()
 
     def _load_existing_records(self) -> None:
-        """Load pre-existing JSONL records with resilience against trailing corrupted/partial lines."""
-        if not self.log_path:
+        """Load and repair/quarantine pre-existing JSONL records.
+
+        Guarantees:
+          - Any corrupted or truncated trailing/intermediate line is quarantined to a backup.
+          - The file on disk is repaired and rewritten cleanly with only valid JSON records ending in newline
+            BEFORE any subsequent append occurs.
+          - Deduplication by stable event identity (timestamp) preserving monotonic sequence_id.
+        """
+        if not self.log_path or not self.log_path.exists():
             return
+
         import logging
+        import os
+        import uuid
         logger = logging.getLogger(__name__)
-        with open(self.log_path, "r", encoding="utf-8") as f:
-            for line_no, line in enumerate(f, start=1):
-                clean_line = line.strip()
-                if not clean_line:
+
+        raw_lines: List[str] = []
+        try:
+            with open(self.log_path, "r", encoding="utf-8") as f:
+                raw_lines = f.readlines()
+        except Exception as e:
+            logger.error("Failed to read ledger file %s: %s", self.log_path, e)
+            return
+
+        valid_records: List[Dict[str, Any]] = []
+        corrupted_lines: List[Tuple[int, str]] = []
+        seen_timestamps = set()
+
+        for line_no, raw_line in enumerate(raw_lines, start=1):
+            clean_line = raw_line.strip()
+            if not clean_line:
+                continue
+            try:
+                record = json.loads(clean_line)
+                if not isinstance(record, dict) or "timestamp" not in record:
+                    raise ValueError("Record is not a valid JSON dict or missing timestamp")
+                ts = record["timestamp"]
+                # Deduplicate by stable event identity (timestamp)
+                if ts in seen_timestamps:
+                    logger.warning("Deduplicating duplicate timestamp %s at line %d in %s", ts, line_no, self.log_path)
                     continue
+                seen_timestamps.add(ts)
+                valid_records.append(record)
+            except Exception as exc:
+                corrupted_lines.append((line_no, raw_line))
+                logger.warning(
+                    "Corrupted or truncated line %d in %s: %s (content: %r)",
+                    line_no,
+                    self.log_path,
+                    exc,
+                    raw_line[:80],
+                )
+
+        # Re-number sequence_id to ensure strictly monotonic sequence
+        for idx, rec in enumerate(valid_records, start=1):
+            rec["sequence_id"] = idx
+
+        self.records = valid_records
+
+        # If any line was corrupted, or if the file did not cleanly end with newline:
+        file_needs_repair = len(corrupted_lines) > 0 or (
+            len(raw_lines) > 0 and not raw_lines[-1].endswith("\n")
+        )
+
+        if file_needs_repair:
+            # 1. Quarantine corrupted lines if any
+            if corrupted_lines:
+                quarantine_path = self.log_path.with_name(
+                    f"{self.log_path.name}.quarantine.{uuid.uuid4().hex[:8]}.bak"
+                )
                 try:
-                    record = json.loads(clean_line)
-                    self.records.append(record)
-                except Exception as e:
-                    logger.warning(
-                        "Dropping corrupted or partial JSONL record at line %d in %s: %s",
-                        line_no,
-                        self.log_path,
-                        e,
-                    )
+                    with open(quarantine_path, "w", encoding="utf-8") as qf:
+                        for l_num, bad_text in corrupted_lines:
+                            qf.write(f"# Line {l_num}:\n{bad_text}\n")
+                    logger.info("Quarantined %d corrupted line(s) to %s", len(corrupted_lines), quarantine_path)
+                except Exception as q_err:
+                    logger.error("Could not write quarantine file: %s", q_err)
+
+            # 2. Rewrite log_path cleanly with valid records only, ensuring trailing newline
+            tmp_repair = self.log_path.with_name(f"{self.log_path.name}.repair.{uuid.uuid4().hex[:8]}.tmp")
+            try:
+                with open(tmp_repair, "w", encoding="utf-8") as rf:
+                    for rec in valid_records:
+                        rf.write(json.dumps(rec) + "\n")
+                    rf.flush()
+                    os.fsync(rf.fileno())
+                os.replace(tmp_repair, self.log_path)
+                logger.info("Repaired ledger file %s: preserved %d valid records.", self.log_path, len(valid_records))
+            except Exception as rep_err:
+                logger.error("Failed to replace repaired ledger file: %s", rep_err)
 
     def reconcile_with_state(self, last_state_timestamp: Optional[str]) -> int:
         """Reconcile ledger records with the last checkpointed state timestamp.
@@ -115,11 +185,14 @@ class CarmValuationLedger:
 
         entry = {
             "sequence_id": len(self.records) + 1,
+            "epoch_id": getattr(tick_result, "epoch_id", "EPOCH_20261116_02"),
+            "configuration_fingerprint": getattr(tick_result, "configuration_fingerprint", ""),
             "timestamp": ts_str,
             "carm_equity": round(carm_eq, 2),
             "btc_bh_equity": round(btc_eq, 2),
             "cash_equity": round(cash_eq, 2),
             "data_quality_status": getattr(tick_result, "data_quality_status", "VALID"),
+            "rebalance_status": getattr(tick_result, "rebalance_status", "NONE"),
             "rebalance_triggered": tick_result.rebalance_triggered,
             "carm_fees_usd": tick_result.carm_state["cumulative_fees_usd"],
             "carm_turnover": tick_result.carm_state["cumulative_turnover"],

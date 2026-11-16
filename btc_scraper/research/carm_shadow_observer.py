@@ -44,8 +44,12 @@ DEFAULT_REBALANCE_HOURS: int = 168  # 7 days * 24 hours
 DEFAULT_TOP_K: int = 3
 DEFAULT_CAUSAL_DELAY_BARS: int = 2  # shift(2) matching 0d9f6660
 BENCHMARK_BTC_SYMBOL: str = "BTCUSDT"
-STRATEGY_VERSION_CANONICAL: str = "CARM_ORIGINAL_RESEARCH_V1"
-STRATEGY_VERSION_CASH_GATED: str = "CARM_CASH_GATED_V2"
+STRATEGY_CARM_UTC_SUNDAY_CANONICAL_V1: str = "CARM_UTC_SUNDAY_CANONICAL_V1"
+STRATEGY_CARM_STEP_MODULO_RESEARCH_V1: str = "CARM_STEP_MODULO_RESEARCH_V1"
+STRATEGY_CARM_CASH_GATED_V2: str = "CARM_CASH_GATED_V2"
+STRATEGY_VERSION_CANONICAL: str = STRATEGY_CARM_UTC_SUNDAY_CANONICAL_V1
+STRATEGY_VERSION_CASH_GATED: str = STRATEGY_CARM_CASH_GATED_V2
+DEFAULT_CANONICAL_EPOCH_ID: str = "EPOCH_20261116_02"
 
 # Canonical UTC Weekly Anchor: Sunday 00:00:00 UTC (1970-01-04T00:00:00Z)
 CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS: int = 259200  # Jan 4, 1970 00:00:00 UTC
@@ -162,6 +166,9 @@ class ObserverTickResult:
     cash_state: Dict[str, Any]
     rebalance_triggered: bool
     data_quality_status: str = "VALID"
+    rebalance_status: str = "NONE"
+    epoch_id: str = DEFAULT_CANONICAL_EPOCH_ID
+    configuration_fingerprint: str = ""
     rebalance_details: Optional[Dict[str, Any]] = None
     rejection_reason: Optional[str] = None
 
@@ -196,7 +203,8 @@ class CarmShadowObserver:
         require_positive_momentum: bool = False,  # False = canonical 0d9f6660 parity
         initial_allocation_mode: str = "EQUAL_WEIGHT",  # "EQUAL_WEIGHT" = 0d9f6660 parity
         anchor_epoch_seconds: int = CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS,
-        epoch_id: str = "EPOCH_20261116_01",
+        epoch_id: str = DEFAULT_CANONICAL_EPOCH_ID,
+        schedule_mode: str = "UTC_CALENDAR",  # "UTC_CALENDAR" (canonical forward) or "STEP_MODULO" (0d9f6660 research parity)
     ) -> None:
         self.universe: List[str] = sorted(list(universe or CANONICAL_UNIVERSE))
         self.initial_capital_usd: float = float(initial_capital_usd)
@@ -209,10 +217,17 @@ class CarmShadowObserver:
         self.initial_allocation_mode: str = str(initial_allocation_mode)
         self.anchor_epoch_seconds: int = int(anchor_epoch_seconds)
         self.epoch_id: str = str(epoch_id)
+        self.schedule_mode: str = str(schedule_mode)
+        self.signal_integrity_error: Optional[str] = None
+        self.step_index: int = 0
 
-        self.strategy_version: str = (
-            STRATEGY_VERSION_CASH_GATED if self.require_positive_momentum else STRATEGY_VERSION_CANONICAL
-        )
+        if self.schedule_mode == "STEP_MODULO":
+            self.strategy_version: str = STRATEGY_CARM_STEP_MODULO_RESEARCH_V1
+        elif self.require_positive_momentum:
+            self.strategy_version: str = STRATEGY_CARM_CASH_GATED_V2
+        else:
+            self.strategy_version: str = STRATEGY_CARM_UTC_SUNDAY_CANONICAL_V1
+
         self.configuration_fingerprint: str = compute_configuration_fingerprint(
             self.strategy_version,
             self.universe,
@@ -324,6 +339,15 @@ class CarmShadowObserver:
             self._last_recorded_bar_hour = self.hourly_price_history[-1][0]
         return added
 
+    def mark_signal_integrity_error(self, reason: str) -> None:
+        """Mark causal momentum signal invalid due to upstream data integrity issues."""
+        self.signal_integrity_error = str(reason)
+        logger.error("Signal marked invalid due to integrity error: %s", reason)
+
+    def clear_signal_integrity_error(self) -> None:
+        """Clear signal integrity error flag."""
+        self.signal_integrity_error = None
+
     def step(
         self,
         timestamp: Any,
@@ -359,6 +383,8 @@ class CarmShadowObserver:
                     cash_state=self.cash_portfolio.to_dict(),
                     rebalance_triggered=False,
                     data_quality_status="REJECTED_OUT_OF_ORDER",
+                    epoch_id=self.epoch_id,
+                    configuration_fingerprint=self.configuration_fingerprint,
                     rejection_reason=f"Timestamp {ts_str} is earlier than last accepted {self.last_accepted_timestamp_utc.isoformat()}",
                 )
             if ts_utc == self.last_accepted_timestamp_utc:
@@ -372,6 +398,8 @@ class CarmShadowObserver:
                     cash_state=self.cash_portfolio.to_dict(),
                     rebalance_triggered=False,
                     data_quality_status="REJECTED_DUPLICATE",
+                    epoch_id=self.epoch_id,
+                    configuration_fingerprint=self.configuration_fingerprint,
                     rejection_reason=f"Timestamp {ts_str} already accepted",
                 )
 
@@ -402,10 +430,14 @@ class CarmShadowObserver:
                 cash_state=self.cash_portfolio.to_dict(),
                 rebalance_triggered=False,
                 data_quality_status="DATA_QUALITY_FAILURE_MISSING_PRICE",
+                epoch_id=self.epoch_id,
+                configuration_fingerprint=self.configuration_fingerprint,
                 rejection_reason=f"Missing or non-positive price for held assets: {missing_held}. Preserving last valid equity.",
             )
 
         # Accept observation
+        current_step = self.step_index
+        self.step_index += 1
         self.last_accepted_timestamp_utc = ts_utc
         self.last_accepted_observation_id = observation_id or f"obs-{ts_utc.strftime('%Y%m%d%H%M%S')}"
         if is_forward:
@@ -447,6 +479,7 @@ class CarmShadowObserver:
 
         # 4. Inception Handling: CARM Initial Allocation (Matching 0d9f6660 current_target_w = 1.0 / N)
         rebalance_triggered = False
+        rebalance_status = "NONE"
         rebalance_details: Optional[Dict[str, Any]] = None
         period_idx = self.get_period_index(ts_utc)
 
@@ -464,6 +497,7 @@ class CarmShadowObserver:
                         rebalance_type="INCEPTION",
                     )
                     rebalance_triggered = True
+                    rebalance_status = "INCEPTION"
                     self._carm_incepted = True
                     self.inception_rebalances_count += 1
                     self.last_completed_period_index = period_idx
@@ -471,12 +505,18 @@ class CarmShadowObserver:
             else:
                 self._carm_incepted = True
 
-        # 5. Check Weekly UTC Rebalance Decision Clock
-        rebalance_due = (
-            force_rebalance
-            or (self.last_completed_period_index is None)
-            or (period_idx > self.last_completed_period_index)
-        )
+        # 5. Check Weekly Rebalance Decision Clock
+        if self.schedule_mode == "STEP_MODULO":
+            rebalance_due = (
+                force_rebalance
+                or (current_step > 0 and current_step % self.rebalance_interval_hours == 0)
+            )
+        else:
+            rebalance_due = (
+                force_rebalance
+                or (self.last_completed_period_index is None)
+                or (period_idx > self.last_completed_period_index)
+            )
 
         if rebalance_due and self._carm_incepted:
             momentum_scores = self._compute_causal_momentum(warmup_history, decision_time_utc=ts_utc)
@@ -489,6 +529,7 @@ class CarmShadowObserver:
                     rebalance_type=rebal_type,
                 )
                 rebalance_triggered = True
+                rebalance_status = rebal_type
                 if force_rebalance:
                     self.forced_probes_count += 1
                 else:
@@ -496,10 +537,22 @@ class CarmShadowObserver:
                     self.last_completed_period_index = period_idx
                 self.last_rebalance_timestamp_utc = ts_str
             else:
+                rebalance_triggered = False
+                rebalance_status = "REBALANCE_SKIPPED_SIGNAL_NOT_READY"
+                skip_reason = (
+                    self.signal_integrity_error
+                    or "Verified momentum signal not ready at decision time"
+                )
+                rebalance_details = {
+                    "status": "REBALANCE_SKIPPED_SIGNAL_NOT_READY",
+                    "timestamp_utc": ts_str,
+                    "period_index": period_idx,
+                    "reason": skip_reason,
+                }
                 logger.warning(
-                    "Rebalance due at %s but momentum signal was rejected or unavailable. "
-                    "Postponing virtual rebalance while maintaining mark-to-market valuation.",
+                    "Rebalance due at %s skipped (%s). Postponing virtual rebalance while maintaining mark-to-market valuation.",
                     ts_str,
+                    skip_reason,
                 )
 
         # 6. Mark-to-Market Valuations for all 3 portfolios
@@ -516,6 +569,9 @@ class CarmShadowObserver:
             cash_state=self.cash_portfolio.to_dict(),
             rebalance_triggered=rebalance_triggered,
             data_quality_status="VALID",
+            rebalance_status=rebalance_status,
+            epoch_id=self.epoch_id,
+            configuration_fingerprint=self.configuration_fingerprint,
             rebalance_details=rebalance_details,
         )
 
@@ -532,8 +588,31 @@ class CarmShadowObserver:
           - SIGNAL FRESHNESS: dt_eval must be within allowed latency of decision_time_utc.
           - FAIL CLOSED: Returns None on any continuity or freshness violation.
         """
+        if self.signal_integrity_error is not None:
+            logger.error("Signal rejected: Active signal integrity error (%s)", self.signal_integrity_error)
+            return None
         from datetime import timedelta
         required_len = self.rebalance_interval_hours + self.causal_delay_bars + 1
+
+        # STEP_MODULO research parity mode (0d9f6660):
+        if self.schedule_mode == "STEP_MODULO":
+            if len(self.hourly_price_history) >= self.rebalance_interval_hours + 1:
+                t_eval_idx = len(self.hourly_price_history) - 1 - self.causal_delay_bars
+                t_base_idx = t_eval_idx - self.rebalance_interval_hours
+                if t_base_idx >= 0:
+                    dt_eval, p_eval_dict = self.hourly_price_history[t_eval_idx]
+                    dt_base, p_base_dict = self.hourly_price_history[t_base_idx]
+                    mom = {}
+                    for sym in self.universe:
+                        if sym in p_eval_dict and sym in p_base_dict and p_base_dict[sym] > 0.0:
+                            mom[sym] = float((p_eval_dict[sym] / p_base_dict[sym]) - 1.0)
+                        else:
+                            mom[sym] = float("-inf")
+                    return mom
+                else:
+                    # In 0d9f6660 at t=168, pct_change(168).shift(2) is NaN, which pandas tie-breaks to first top_k symbols
+                    return {sym: (1.0 if idx < self.top_k else 0.0) for idx, sym in enumerate(self.universe)}
+            return None
 
         # Source 1: Warmup history DataFrame if provided
         if warmup_history is not None and len(warmup_history) >= required_len:
@@ -758,6 +837,9 @@ class CarmShadowObserver:
             "epoch_id": self.epoch_id,
             "strategy_version": self.strategy_version,
             "configuration_fingerprint": self.configuration_fingerprint,
+            "schedule_mode": self.schedule_mode,
+            "step_index": self.step_index,
+            "signal_integrity_error": self.signal_integrity_error,
             "universe": self.universe,
             "initial_capital_usd": self.initial_capital_usd,
             "fee_bps": self.fee_bps,
@@ -826,8 +908,11 @@ class CarmShadowObserver:
             require_positive_momentum=data.get("require_positive_momentum", False),
             initial_allocation_mode=data.get("initial_allocation_mode", "EQUAL_WEIGHT"),
             anchor_epoch_seconds=data.get("anchor_epoch_seconds", CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS),
-            epoch_id=data.get("epoch_id", "EPOCH_20261116_01"),
+            epoch_id=data.get("epoch_id", DEFAULT_CANONICAL_EPOCH_ID),
+            schedule_mode=data.get("schedule_mode", "UTC_CALENDAR"),
         )
+        observer.step_index = int(data.get("step_index", 0))
+        observer.signal_integrity_error = data.get("signal_integrity_error")
 
         observer.carm_portfolio = VirtualPortfolioState.from_dict(data["carm_portfolio"])
         observer.btc_portfolio = VirtualPortfolioState.from_dict(data["btc_portfolio"])

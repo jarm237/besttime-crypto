@@ -82,10 +82,12 @@ def sync_closed_hourly_klines(
         klines = data_provider.fetch_recent_hourly_klines(CANONICAL_UNIVERSE, limit=200, now_utc=now_utc)
         added = observer.ingest_hourly_bars(klines)
         logger.info("Ingested %d authentic closed hourly bars. Total buffer: %d bars.", added, len(observer.hourly_price_history))
+        observer.clear_signal_integrity_error()
         observer.save_state(state_file)
         return added
     except Exception as e:
-        logger.warning("Could not sync closed klines from Binance: %s. Continuing with existing buffer.", e)
+        logger.warning("Could not sync closed klines from Binance: %s. Marking signal invalid.", e)
+        observer.mark_signal_integrity_error(f"Kline sync failure: {e}")
         return 0
 
 
@@ -102,11 +104,13 @@ def run_forward_session(
     assert PRODUCTION_CANDIDATE is False, "PRODUCTION_CANDIDATE must be False"
 
     if probe_rebalance:
+        epoch_id = "PROBE_EPOCH_SANDBOX"
         state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "probe_sandbox")
-        logger.warning("FORCED PROBE MODE: Using isolated sandbox at %s (canonical forward state is protected)", state_dir)
+        logger.warning("FORCED PROBE MODE: Using isolated sandbox at %s with epoch %s", state_dir, epoch_id)
     else:
+        epoch_id = "EPOCH_20261116_02"
         state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "canonical_epoch")
-        logger.info("CANONICAL FORWARD MODE: Using clean canonical epoch directory at %s", state_dir)
+        logger.info("CANONICAL FORWARD MODE: Using clean canonical epoch directory at %s with epoch %s", state_dir, epoch_id)
 
     state_dir.mkdir(parents=True, exist_ok=True)
     state_file = state_dir / "carm_state.json"
@@ -120,8 +124,9 @@ def run_forward_session(
     if state_file.exists():
         logger.info("Recovering existing observer state from %s", state_file)
         observer = CarmShadowObserver.load_state(state_file)
+        observer.epoch_id = epoch_id
     else:
-        logger.info("Initializing fresh CarmShadowObserver instance (%s parity)", STRATEGY_VERSION_CANONICAL)
+        logger.info("Initializing fresh CarmShadowObserver instance (%s parity, epoch %s)", STRATEGY_VERSION_CANONICAL, epoch_id)
         observer = CarmShadowObserver(
             universe=CANONICAL_UNIVERSE,
             initial_capital_usd=10_000.0,
@@ -131,6 +136,8 @@ def run_forward_session(
             causal_delay_bars=2,  # shift(2) matching 0d9f6660
             require_positive_momentum=False,  # canonical research parity
             initial_allocation_mode="EQUAL_WEIGHT",  # 0d9f6660 parity
+            epoch_id=epoch_id,
+            schedule_mode="UTC_CALENDAR",
         )
 
     # 2. Reconcile ledger with state on startup
