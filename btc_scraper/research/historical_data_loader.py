@@ -18,7 +18,7 @@ import logging
 import time
 import urllib.parse
 import urllib.request
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -49,9 +49,28 @@ class DatasetQualityReport:
     duplicate_count: int
     zero_or_negative_prices: int
     is_continuous: bool
+    missing_timestamps: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class AlignedUniverse:
+    """Container holding point-in-time aligned OHLCV market data and alignment audit."""
+    piv_close: pd.DataFrame
+    reports: Dict[str, DatasetQualityReport]
+    piv_open: pd.DataFrame
+    piv_high: pd.DataFrame
+    piv_low: pd.DataFrame
+    piv_volume: pd.DataFrame
+    timestamps: pd.DatetimeIndex
+    symbols: List[str]
+    alignment_audit: Dict[str, Any]
+
+    def __iter__(self):
+        """Allows unpacking as `piv_close, reports = loader.load_aligned_universe(...)` for backward compatibility."""
+        return iter((self.piv_close, self.reports))
 
 
 class HistoricalDataLoader:
@@ -92,14 +111,16 @@ class HistoricalDataLoader:
 
         start_ms = int(start_dt.timestamp() * 1000)
         end_ms = int(end_dt.timestamp() * 1000)
+        extraction_time_ms = int(time.time() * 1000)
+        max_valid_close_ms = min(end_ms, extraction_time_ms)
         current_start = start_ms
 
         records: List[Dict[str, Any]] = []
 
-        while current_start < end_ms:
+        while current_start < max_valid_close_ms:
             endpoint = (
                 f"{self.base_url}/api/v3/klines?"
-                f"symbol={symbol}&interval={interval}&startTime={current_start}&endTime={end_ms}&limit=1000"
+                f"symbol={symbol}&interval={interval}&startTime={current_start}&endTime={max_valid_close_ms}&limit=1000"
             )
             req = urllib.request.Request(
                 endpoint,
@@ -127,6 +148,15 @@ class HistoricalDataLoader:
                 # 0: Open time, 1: Open, 2: High, 3: Low, 4: Close, 5: Volume, 6: Close time, ...
                 open_ts = int(row[0])
                 close_ts = int(row[6])
+
+                # Reject unclosed candle or candle past extraction/end time
+                if close_ts > max_valid_close_ms:
+                    logger.debug(
+                        "Dropping unclosed candle for %s (open_ts=%d, close_ts=%d > max=%d)",
+                        symbol, open_ts, close_ts, max_valid_close_ms
+                    )
+                    continue
+
                 records.append({
                     "open_time_ms": open_ts,
                     "close_time_ms": close_ts,
@@ -172,6 +202,7 @@ class HistoricalDataLoader:
                 duplicate_count=0,
                 zero_or_negative_prices=0,
                 is_continuous=False,
+                missing_timestamps=[],
             )
 
         ts = df["timestamp"].sort_values().reset_index(drop=True)
@@ -182,11 +213,15 @@ class HistoricalDataLoader:
         actual_bars = len(df)
         missing_bars = max(0, total_hours - actual_bars)
 
-        # Check gaps
+        # Check gaps and identify missing timestamps relative to regular hourly sequence
         diffs = ts.diff().dropna()
         gaps = diffs[diffs > timedelta(hours=1)]
         gap_count = len(gaps)
         max_gap = gaps.max().total_seconds() / 3600.0 if not gaps.empty else 1.0
+
+        full_calendar = pd.date_range(start_ts, end_ts, freq="1h")
+        missing_dt = full_calendar.difference(pd.DatetimeIndex(ts))
+        missing_timestamps = [dt.isoformat() for dt in missing_dt]
 
         dup_count = df.duplicated(subset=["timestamp"]).sum()
         non_positive = ((df["open"] <= 0) | (df["high"] <= 0) | (df["low"] <= 0) | (df["close"] <= 0)).sum()
@@ -205,6 +240,7 @@ class HistoricalDataLoader:
             duplicate_count=int(dup_count),
             zero_or_negative_prices=int(non_positive),
             is_continuous=is_continuous,
+            missing_timestamps=missing_timestamps,
         )
 
     def load_aligned_universe(
@@ -213,12 +249,13 @@ class HistoricalDataLoader:
         end_dt: datetime,
         interval: str = "1h",
         force_download: bool = False,
-    ) -> Tuple[pd.DataFrame, Dict[str, DatasetQualityReport]]:
+    ) -> AlignedUniverse:
         """Load and align OHLCV closes across the full universe on common timestamps.
 
-        Returns:
-            pivoted_close: DataFrame indexed by timestamp (UTC) with columns = symbols
-            reports: Dict of DatasetQualityReport per symbol
+        Guarantees:
+          - Non-silent gap reporting: logs any symbol-specific drops and market-wide gaps.
+          - Multi-component OHLCV: provides piv_close, piv_open, piv_high, piv_low, piv_volume.
+          - Backward-compatible unpacking: supports `piv_close, reports = loader.load_aligned_universe(...)`.
         """
         symbol_dfs: Dict[str, pd.DataFrame] = {}
         reports: Dict[str, DatasetQualityReport] = {}
@@ -229,35 +266,90 @@ class HistoricalDataLoader:
             reports[sym] = report
             symbol_dfs[sym] = df.set_index("timestamp")[["open", "high", "low", "close", "volume"]]
 
-        # Intersect timestamps present across all symbols
-        common_indices = None
-        for sym, df in symbol_dfs.items():
-            if common_indices is None:
-                common_indices = set(df.index)
-            else:
-                common_indices &= set(df.index)
+        # Check union vs intersection across all symbols to detect non-uniform drops
+        all_sym_indices = {sym: set(df.index) for sym, df in symbol_dfs.items()}
+        union_indices = set.union(*all_sym_indices.values())
+        common_indices = set.intersection(*all_sym_indices.values())
+
+        dropped_by_symbol: Dict[str, List[str]] = {}
+        for sym, idx_set in all_sym_indices.items():
+            missing_in_sym = union_indices - idx_set
+            if missing_in_sym:
+                dropped_by_symbol[sym] = sorted([ts.isoformat() for ts in missing_in_sym])
+                logger.warning(
+                    "Symbol %s is missing %d timestamps present in other symbols: %s",
+                    sym, len(missing_in_sym), dropped_by_symbol[sym][:5]
+                )
 
         sorted_timestamps = sorted(list(common_indices or []))
-        logger.info("Aligned universe across %d common %s timestamps (from %s to %s)",
-                    len(sorted_timestamps), interval, sorted_timestamps[0], sorted_timestamps[-1])
+        ts_index = pd.DatetimeIndex(sorted_timestamps)
 
-        # Build pivot table of close prices
-        piv_close = pd.DataFrame(index=sorted_timestamps)
+        # Compare against theoretical continuous date range between start and end of available data
+        calendar_gaps: List[str] = []
+        if len(sorted_timestamps) > 0:
+            cal_dr = pd.date_range(sorted_timestamps[0], sorted_timestamps[-1], freq=interval)
+            diff_gaps = cal_dr.difference(ts_index)
+            calendar_gaps = [dt.isoformat() for dt in diff_gaps]
+            if calendar_gaps:
+                logger.info(
+                    "Market-wide calendar gaps detected across universe (%d hours): %s",
+                    len(calendar_gaps), calendar_gaps
+                )
+
+        logger.info(
+            "Aligned universe across %d common %s timestamps (from %s to %s). Calendar gaps: %d, Symbol drops: %d",
+            len(sorted_timestamps), interval, sorted_timestamps[0], sorted_timestamps[-1],
+            len(calendar_gaps), len(dropped_by_symbol)
+        )
+
+        # Build pivot tables for all OHLCV components
+        piv_close = pd.DataFrame(index=ts_index)
+        piv_open = pd.DataFrame(index=ts_index)
+        piv_high = pd.DataFrame(index=ts_index)
+        piv_low = pd.DataFrame(index=ts_index)
+        piv_volume = pd.DataFrame(index=ts_index)
+
         for sym in self.universe:
-            piv_close[sym] = symbol_dfs[sym].loc[sorted_timestamps, "close"]
+            sym_df = symbol_dfs[sym].loc[sorted_timestamps]
+            piv_close[sym] = sym_df["close"]
+            piv_open[sym] = sym_df["open"]
+            piv_high[sym] = sym_df["high"]
+            piv_low[sym] = sym_df["low"]
+            piv_volume[sym] = sym_df["volume"]
+
+        alignment_audit = {
+            "total_union_bars": len(union_indices),
+            "total_common_bars": len(common_indices),
+            "dropped_by_symbol": dropped_by_symbol,
+            "has_asymmetric_drops": bool(len(dropped_by_symbol) > 0),
+            "market_wide_calendar_gaps": calendar_gaps,
+            "calendar_gap_count": len(calendar_gaps),
+            "theoretical_expected_bars": len(sorted_timestamps) + len(calendar_gaps),
+        }
 
         # Save manifest
         manifest = {
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
-            "start_time_utc": sorted_timestamps[0].isoformat(),
-            "end_time_utc": sorted_timestamps[-1].isoformat(),
+            "start_time_utc": sorted_timestamps[0].isoformat() if sorted_timestamps else "",
+            "end_time_utc": sorted_timestamps[-1].isoformat() if sorted_timestamps else "",
             "interval": interval,
             "total_aligned_bars": len(sorted_timestamps),
             "universe": self.universe,
+            "alignment_audit": alignment_audit,
             "quality_reports": {k: v.to_dict() for k, v in reports.items()},
         }
         manifest_path = self.storage_dir / "dataset_manifest.json"
         with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)
 
-        return piv_close, reports
+        return AlignedUniverse(
+            piv_close=piv_close,
+            reports=reports,
+            piv_open=piv_open,
+            piv_high=piv_high,
+            piv_low=piv_low,
+            piv_volume=piv_volume,
+            timestamps=ts_index,
+            symbols=self.universe,
+            alignment_audit=alignment_audit,
+        )

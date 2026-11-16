@@ -1,0 +1,279 @@
+{
+  "created_at_utc": "2026-11-16T19:51:03.207644+00:00",
+  "total_bars": 42739,
+  "evaluation_window": "2022-01-01 to 2026-11-16",
+  "fee_bps": 12.0,
+  "full_horizon_metrics": {
+    "BASELINE_CARM": {
+      "portfolio_name": "Baseline 0: CARM Canonical (100% Equity, 0 Cash)",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 7602.67,
+      "net_return_pct": -23.97,
+      "max_drawdown_pct": -76.53,
+      "annualized_sharpe": 0.264,
+      "annualized_sortino": 0.368,
+      "total_turnover": 156.55,
+      "rebalance_count": 255,
+      "total_fees_usd": 4441.92,
+      "mean_cash_weight": 0.0
+    },
+    "POLICY_A": {
+      "portfolio_name": "Policy A: Market-Only Cash Gating (w_cash in [0, 1])",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 13702.94,
+      "net_return_pct": 37.03,
+      "max_drawdown_pct": -55.76,
+      "annualized_sharpe": 0.392,
+      "annualized_sortino": 0.545,
+      "total_turnover": 175.41,
+      "rebalance_count": 255,
+      "total_fees_usd": 4014.46,
+      "mean_cash_weight": 0.327
+    },
+    "POLICY_B": {
+      "portfolio_name": "Policy B: Market + Regime-Conditioned Cash",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 11813.98,
+      "net_return_pct": 18.14,
+      "max_drawdown_pct": -57.19,
+      "annualized_sharpe": 0.315,
+      "annualized_sortino": 0.436,
+      "total_turnover": 165.61,
+      "rebalance_count": 255,
+      "total_fees_usd": 3222.02,
+      "mean_cash_weight": 0.433
+    },
+    "POLICY_C": {
+      "portfolio_name": "Policy C: Market + Breadth + Regime",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10522.63,
+      "net_return_pct": 5.23,
+      "max_drawdown_pct": -54.64,
+      "annualized_sharpe": 0.236,
+      "annualized_sortino": 0.326,
+      "total_turnover": 141.43,
+      "rebalance_count": 255,
+      "total_fees_usd": 2281.73,
+      "mean_cash_weight": 0.576
+    },
+    "POLICY_D": {
+      "portfolio_name": "Policy D: Supplementary Funding-Rate Overlay",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10173.45,
+      "net_return_pct": 1.73,
+      "max_drawdown_pct": -54.64,
+      "annualized_sharpe": 0.217,
+      "annualized_sortino": 0.301,
+      "total_turnover": 140.27,
+      "rebalance_count": 255,
+      "total_fees_usd": 2207.94,
+      "mean_cash_weight": 0.58
+    }
+  },
+  "split_metrics": {
+    "FULL_HORIZON (2022-2026)": {
+      "BTC_BUY_AND_HOLD": {
+        "net_return_pct": 39.21,
+        "max_drawdown_pct": -67.38
+      },
+      "BASELINE_CARM": {
+        "initial_usd": 10136.57,
+        "final_usd": 7602.67,
+        "net_return_pct": -25.0,
+        "max_drawdown_pct": -76.53,
+        "turnover": 156.6,
+        "fees_usd": 4441.92,
+        "excess_vs_btc_pct": -64.21
+      },
+      "POLICY_A": {
+        "initial_usd": 10136.57,
+        "final_usd": 13702.94,
+        "net_return_pct": 35.18,
+        "max_drawdown_pct": -55.76,
+        "turnover": 175.4,
+        "fees_usd": 4014.46,
+        "excess_vs_btc_pct": -4.02
+      },
+      "POLICY_B": {
+        "initial_usd": 10136.57,
+        "final_usd": 11813.98,
+        "net_return_pct": 16.55,
+        "max_drawdown_pct": -57.19,
+        "turnover": 165.6,
+        "fees_usd": 3222.02,
+        "excess_vs_btc_pct": -22.66
+      },
+      "POLICY_C": {
+        "initial_usd": 10136.57,
+        "final_usd": 10522.63,
+        "net_return_pct": 3.81,
+        "max_drawdown_pct": -54.64,
+        "turnover": 141.4,
+        "fees_usd": 2281.73,
+        "excess_vs_btc_pct": -35.4
+      },
+      "POLICY_D": {
+        "initial_usd": 10136.57,
+        "final_usd": 10173.45,
+        "net_return_pct": 0.36,
+        "max_drawdown_pct": -54.64,
+        "turnover": 140.3,
+        "fees_usd": 2207.94,
+        "excess_vs_btc_pct": -38.84
+      }
+    },
+    "TRAIN / IN-SAMPLE (2022-2023)": {
+      "BTC_BUY_AND_HOLD": {
+        "net_return_pct": -9.37,
+        "max_drawdown_pct": -67.38
+      },
+      "BASELINE_CARM": {
+        "initial_usd": 10136.57,
+        "final_usd": 12392.96,
+        "net_return_pct": 22.26,
+        "max_drawdown_pct": -71.9,
+        "turnover": 62.1,
+        "fees_usd": 847.53,
+        "excess_vs_btc_pct": 31.63
+      },
+      "POLICY_A": {
+        "initial_usd": 10136.57,
+        "final_usd": 12694.08,
+        "net_return_pct": 25.23,
+        "max_drawdown_pct": -53.65,
+        "turnover": 72.2,
+        "fees_usd": 866.97,
+        "excess_vs_btc_pct": 34.6
+      },
+      "POLICY_B": {
+        "initial_usd": 10136.57,
+        "final_usd": 11989.48,
+        "net_return_pct": 18.28,
+        "max_drawdown_pct": -53.62,
+        "turnover": 67.2,
+        "fees_usd": 776.39,
+        "excess_vs_btc_pct": 27.65
+      },
+      "POLICY_C": {
+        "initial_usd": 10136.57,
+        "final_usd": 10353.45,
+        "net_return_pct": 2.14,
+        "max_drawdown_pct": -53.94,
+        "turnover": 57.6,
+        "fees_usd": 627.12,
+        "excess_vs_btc_pct": 11.51
+      },
+      "POLICY_D": {
+        "initial_usd": 10136.57,
+        "final_usd": 10363.59,
+        "net_return_pct": 2.24,
+        "max_drawdown_pct": -53.94,
+        "turnover": 57.6,
+        "fees_usd": 626.73,
+        "excess_vs_btc_pct": 11.61
+      }
+    },
+    "VALIDATION (2024)": {
+      "BTC_BUY_AND_HOLD": {
+        "net_return_pct": 120.31,
+        "max_drawdown_pct": -32.31
+      },
+      "BASELINE_CARM": {
+        "initial_usd": 12444.33,
+        "final_usd": 25234.07,
+        "net_return_pct": 102.78,
+        "max_drawdown_pct": -51.38,
+        "turnover": 33.0,
+        "fees_usd": 1211.99,
+        "excess_vs_btc_pct": -17.53
+      },
+      "POLICY_A": {
+        "initial_usd": 12746.69,
+        "final_usd": 26201.37,
+        "net_return_pct": 105.55,
+        "max_drawdown_pct": -49.77,
+        "turnover": 36.3,
+        "fees_usd": 994.22,
+        "excess_vs_btc_pct": -14.75
+      },
+      "POLICY_B": {
+        "initial_usd": 12014.2,
+        "final_usd": 23362.91,
+        "net_return_pct": 94.46,
+        "max_drawdown_pct": -45.75,
+        "turnover": 33.8,
+        "fees_usd": 814.76,
+        "excess_vs_btc_pct": -25.85
+      },
+      "POLICY_C": {
+        "initial_usd": 10361.43,
+        "final_usd": 19752.98,
+        "net_return_pct": 90.64,
+        "max_drawdown_pct": -33.48,
+        "turnover": 28.6,
+        "fees_usd": 544.01,
+        "excess_vs_btc_pct": -29.67
+      },
+      "POLICY_D": {
+        "initial_usd": 10367.58,
+        "final_usd": 19097.49,
+        "net_return_pct": 84.2,
+        "max_drawdown_pct": -33.48,
+        "turnover": 27.4,
+        "fees_usd": 507.47,
+        "excess_vs_btc_pct": -36.1
+      }
+    },
+    "OUT-OF-SAMPLE TEST (2025-2026)": {
+      "BTC_BUY_AND_HOLD": {
+        "net_return_pct": -31.2,
+        "max_drawdown_pct": -53.74
+      },
+      "BASELINE_CARM": {
+        "initial_usd": 25524.12,
+        "final_usd": 7602.67,
+        "net_return_pct": -70.21,
+        "max_drawdown_pct": -75.3,
+        "turnover": 61.4,
+        "fees_usd": 2382.41,
+        "excess_vs_btc_pct": -39.01
+      },
+      "POLICY_A": {
+        "initial_usd": 26502.54,
+        "final_usd": 13702.94,
+        "net_return_pct": -48.3,
+        "max_drawdown_pct": -54.36,
+        "turnover": 66.9,
+        "fees_usd": 2153.27,
+        "excess_vs_btc_pct": -17.1
+      },
+      "POLICY_B": {
+        "initial_usd": 23495.4,
+        "final_usd": 11813.98,
+        "net_return_pct": -49.72,
+        "max_drawdown_pct": -53.8,
+        "turnover": 64.6,
+        "fees_usd": 1630.87,
+        "excess_vs_btc_pct": -18.52
+      },
+      "POLICY_C": {
+        "initial_usd": 19822.65,
+        "final_usd": 10522.63,
+        "net_return_pct": -46.92,
+        "max_drawdown_pct": -53.26,
+        "turnover": 55.3,
+        "fees_usd": 1110.6,
+        "excess_vs_btc_pct": -15.72
+      },
+      "POLICY_D": {
+        "initial_usd": 19164.84,
+        "final_usd": 10173.45,
+        "net_return_pct": -46.92,
+        "max_drawdown_pct": -53.26,
+        "turnover": 55.3,
+        "fees_usd": 1073.75,
+        "excess_vs_btc_pct": -15.72
+      }
+    }
+  }
+}

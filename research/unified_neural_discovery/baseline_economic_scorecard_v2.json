@@ -1,0 +1,103 @@
+{
+  "version": "v2",
+  "created_at_utc": "2026-11-16T19:49:02.440291+00:00",
+  "start_time_utc": "2022-01-01T00:00:00+00:00",
+  "end_time_utc": "2026-11-16T19:00:00+00:00",
+  "total_bars": 42739,
+  "universe": [
+    "ADAUSDT",
+    "BNBUSDT",
+    "BTCUSDT",
+    "ETHUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "SOLUSDT",
+    "XRPUSDT"
+  ],
+  "initial_capital_usd": 10000.0,
+  "fee_bps": 12.0,
+  "alignment_audit": {
+    "total_union_bars": 42739,
+    "total_common_bars": 42739,
+    "dropped_by_symbol": {},
+    "has_asymmetric_drops": false,
+    "market_wide_calendar_gaps": [
+      "2023-03-24T13:00:00+00:00"
+    ],
+    "calendar_gap_count": 1,
+    "theoretical_expected_bars": 42740
+  },
+  "metrics": {
+    "CARM_UTC_SUNDAY_CANONICAL": {
+      "portfolio_name": "CARM_UTC_SUNDAY_CANONICAL",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 7602.67,
+      "net_return_pct": -23.97,
+      "max_drawdown_pct": -76.53,
+      "annualized_sharpe": 0.264,
+      "annualized_sortino": 0.368,
+      "total_turnover": 312.11,
+      "rebalance_count": 255,
+      "total_fees_usd": 4441.92,
+      "excess_vs_btc_pct": -64.33,
+      "excess_vs_cash_pct": -23.97
+    },
+    "CARM_REFERENCE_STEP_MODULO": {
+      "portfolio_name": "CARM_REFERENCE_STEP_MODULO",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 11732.88,
+      "net_return_pct": 17.33,
+      "max_drawdown_pct": -69.89,
+      "annualized_sharpe": 0.395,
+      "annualized_sortino": 0.549,
+      "total_turnover": 316.12,
+      "rebalance_count": 255,
+      "total_fees_usd": 5017.23,
+      "excess_vs_btc_pct": -23.03,
+      "excess_vs_cash_pct": 17.33
+    },
+    "BTC_BUY_AND_HOLD": {
+      "portfolio_name": "BTC_BUY_AND_HOLD",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14036.21,
+      "net_return_pct": 40.36,
+      "max_drawdown_pct": -67.38,
+      "annualized_sharpe": 0.386,
+      "annualized_sortino": 0.544,
+      "total_turnover": 1.0,
+      "rebalance_count": 1,
+      "total_fees_usd": 12.0,
+      "excess_vs_btc_pct": 0.0,
+      "excess_vs_cash_pct": 40.36
+    },
+    "EQUAL_WEIGHT_BUY_AND_HOLD": {
+      "portfolio_name": "EQUAL_WEIGHT_BUY_AND_HOLD",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 6891.96,
+      "net_return_pct": -31.08,
+      "max_drawdown_pct": -71.3,
+      "annualized_sharpe": 0.187,
+      "annualized_sortino": 0.256,
+      "total_turnover": 1.0,
+      "rebalance_count": 1,
+      "total_fees_usd": 12.0,
+      "excess_vs_btc_pct": -71.44,
+      "excess_vs_cash_pct": -31.08
+    },
+    "CASH": {
+      "portfolio_name": "CASH",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "total_turnover": 0.0,
+      "rebalance_count": 0,
+      "total_fees_usd": 0.0,
+      "excess_vs_btc_pct": -40.36,
+      "excess_vs_cash_pct": 0.0
+    }
+  },
+  "scorecard_markdown": "| Strategy / Baseline | Initial Capital ($) | Final Equity ($) | Net Return (%) | Max Drawdown (%) | Ann. Sharpe | Ann. Sortino | Turnover | Rebalances | Total Fees ($) | Excess vs BTC (%) | Excess vs Cash (%) |\n| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n| **CARM_UTC_SUNDAY_CANONICAL** | $10,000.00 | $7,602.67 | **-23.97%** | -76.53% | 0.264 | 0.368 | 312.1 | 255 | $4,441.92 | -64.33% | -23.97% |\n| **CARM_REFERENCE_STEP_MODULO** | $10,000.00 | $11,732.88 | **+17.33%** | -69.89% | 0.395 | 0.549 | 316.1 | 255 | $5,017.23 | -23.03% | +17.33% |\n| **BTC_BUY_AND_HOLD** | $10,000.00 | $14,036.21 | **+40.36%** | -67.38% | 0.386 | 0.544 | 1.0 | 1 | $12.00 | +0.00% | +40.36% |\n| **EQUAL_WEIGHT_BUY_AND_HOLD** | $10,000.00 | $6,891.96 | **-31.08%** | -71.30% | 0.187 | 0.256 | 1.0 | 1 | $12.00 | -71.44% | -31.08% |\n| **CASH** | $10,000.00 | $10,000.00 | **+0.00%** | 0.00% | 0.000 | 0.000 | 0.0 | 0 | $0.00 | -40.36% | +0.00% |"
+}
