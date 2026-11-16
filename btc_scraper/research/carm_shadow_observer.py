@@ -60,6 +60,8 @@ def compute_configuration_fingerprint(
     rebalance_hours: int,
     require_positive_momentum: bool,
     causal_delay_bars: int,
+    initial_allocation_mode: str = "EQUAL_WEIGHT",
+    anchor_epoch_seconds: int = CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS,
 ) -> str:
     """Deterministic SHA-256 fingerprint of the frozen strategy configuration."""
     canonical_repr = json.dumps(
@@ -71,6 +73,8 @@ def compute_configuration_fingerprint(
             "rebalance_hours": int(rebalance_hours),
             "require_positive_momentum": bool(require_positive_momentum),
             "causal_delay_bars": int(causal_delay_bars),
+            "initial_allocation_mode": str(initial_allocation_mode),
+            "anchor_epoch_seconds": int(anchor_epoch_seconds),
         },
         sort_keys=True,
     )
@@ -215,6 +219,8 @@ class CarmShadowObserver:
             self.rebalance_interval_hours,
             self.require_positive_momentum,
             self.causal_delay_bars,
+            initial_allocation_mode=self.initial_allocation_mode,
+            anchor_epoch_seconds=self.anchor_epoch_seconds,
         )
 
         # Internal virtual portfolios
@@ -260,7 +266,9 @@ class CarmShadowObserver:
         self.authentic_forward_observations_count: int = 0
         self.historical_warmup_observations_count: int = 0
         self.rejected_observations_count: int = 0
+        self.inception_rebalances_count: int = 0
         self.scheduled_rebalances_count: int = 0
+        self.forced_probes_count: int = 0
         self.modeled_virtual_fills_count: int = 0
         self.portfolio_valuations_count: int = 0
 
@@ -403,12 +411,6 @@ class CarmShadowObserver:
         else:
             self.historical_warmup_observations_count += 1
 
-        # Checkpoint hourly bar if crossing into a new hour
-        bar_hour = ts_utc.replace(minute=0, second=0, microsecond=0)
-        if self._last_recorded_bar_hour is None or bar_hour > self._last_recorded_bar_hour:
-            self.hourly_price_history.append((bar_hour, clean_prices))
-            self._last_recorded_bar_hour = bar_hour
-
         # 3. Inception Handling: BTC Buy & Hold (Executes once at inception)
         if not self._btc_incepted and BENCHMARK_BTC_SYMBOL in clean_prices:
             btc_price = clean_prices[BENCHMARK_BTC_SYMBOL]
@@ -417,9 +419,14 @@ class CarmShadowObserver:
             units = investable / btc_price
             self.btc_portfolio.holdings[BENCHMARK_BTC_SYMBOL] = units
             self.btc_portfolio.cash_usd = 0.0
+            self.btc_portfolio.equity_usd = investable
             self.btc_portfolio.cumulative_fees_usd += fee
             self.btc_portfolio.cumulative_turnover += 1.0
             self.btc_portfolio.rebalance_count += 1
+            if self.btc_portfolio.peak_equity_usd > 0.0:
+                btc_dd = (investable - self.btc_portfolio.peak_equity_usd) / self.btc_portfolio.peak_equity_usd * 100.0
+                if btc_dd < self.btc_portfolio.max_drawdown_pct:
+                    self.btc_portfolio.max_drawdown_pct = float(btc_dd)
             self._btc_incepted = True
             self.modeled_virtual_fills_count += 1
             self.virtual_fills.append({
@@ -432,6 +439,7 @@ class CarmShadowObserver:
                 "price": round(btc_price, 4),
                 "notional_usd": round(investable, 2),
                 "fee_usd": round(fee, 4),
+                "trigger_type": "INCEPTION",
                 "is_modeled_virtual_fill": True,
             })
 
@@ -451,10 +459,11 @@ class CarmShadowObserver:
                         target_w={s: 1.0 / len(available_syms) for s in available_syms},
                         timestamp_utc=ts_str,
                         reason="INCEPTION_EQUAL_WEIGHT",
+                        rebalance_type="INCEPTION",
                     )
                     rebalance_triggered = True
                     self._carm_incepted = True
-                    self.scheduled_rebalances_count += 1
+                    self.inception_rebalances_count += 1
                     self.last_completed_period_index = period_idx
                     self.last_rebalance_timestamp_utc = ts_str
             else:
@@ -470,10 +479,19 @@ class CarmShadowObserver:
         if rebalance_due and self._carm_incepted:
             momentum_scores = self._compute_causal_momentum(warmup_history)
             if momentum_scores is not None:
-                rebalance_details = self._rebalance_carm(clean_prices, momentum_scores, ts_str)
+                rebal_type = "FORCED_PROBE" if force_rebalance else "SCHEDULED_WEEKLY"
+                rebalance_details = self._rebalance_carm(
+                    clean_prices,
+                    momentum_scores,
+                    ts_str,
+                    rebalance_type=rebal_type,
+                )
                 rebalance_triggered = True
-                self.scheduled_rebalances_count += 1
-                self.last_completed_period_index = period_idx
+                if force_rebalance:
+                    self.forced_probes_count += 1
+                else:
+                    self.scheduled_rebalances_count += 1
+                    self.last_completed_period_index = period_idx
                 self.last_rebalance_timestamp_utc = ts_str
 
         # 6. Mark-to-Market Valuations for all 3 portfolios
@@ -540,8 +558,9 @@ class CarmShadowObserver:
         current_prices: Dict[str, float],
         momentum_scores: Dict[str, float],
         timestamp_utc: str,
+        rebalance_type: str = "SCHEDULED_WEEKLY",
     ) -> Dict[str, Any]:
-        """Rank universe assets and execute scheduled weekly virtual rebalancing."""
+        """Rank universe assets and execute scheduled weekly or forced probe virtual rebalancing."""
         valid_candidates = [
             sym for sym in self.universe
             if sym in momentum_scores and momentum_scores[sym] > float("-inf")
@@ -568,11 +587,13 @@ class CarmShadowObserver:
                 for sym in selected_assets:
                     target_w[sym] = slot_w
 
+        reason = "FORCED_PROBE_MOMENTUM_REBALANCE" if rebalance_type == "FORCED_PROBE" else "SCHEDULED_WEEKLY_MOMENTUM_REBALANCE"
         return self._execute_target_allocation(
             current_prices=current_prices,
             target_w=target_w,
             timestamp_utc=timestamp_utc,
-            reason="SCHEDULED_WEEKLY_MOMENTUM_REBALANCE",
+            reason=reason,
+            rebalance_type=rebalance_type,
             momentum_scores={s: momentum_scores[s] for s in top_k_candidates},
             selected_assets=selected_assets,
         )
@@ -583,6 +604,7 @@ class CarmShadowObserver:
         target_w: Dict[str, float],
         timestamp_utc: str,
         reason: str,
+        rebalance_type: str = "SCHEDULED_WEEKLY",
         momentum_scores: Optional[Dict[str, float]] = None,
         selected_assets: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
@@ -636,6 +658,7 @@ class CarmShadowObserver:
                     "price": round(sym_price, 4),
                     "notional_usd": round(abs(delta_units) * sym_price, 2),
                     "fee_usd": round(abs(delta_units) * sym_price * self.fee_rate, 4),
+                    "trigger_type": rebalance_type,
                     "is_modeled_virtual_fill": True,
                 })
 
@@ -648,6 +671,12 @@ class CarmShadowObserver:
         self.carm_portfolio.cumulative_fees_usd += fee
         self.carm_portfolio.cumulative_turnover += dw
         self.carm_portfolio.rebalance_count += 1
+        if post_fee_equity > self.carm_portfolio.peak_equity_usd:
+            self.carm_portfolio.peak_equity_usd = post_fee_equity
+        if self.carm_portfolio.peak_equity_usd > 0.0:
+            carm_dd = (post_fee_equity - self.carm_portfolio.peak_equity_usd) / self.carm_portfolio.peak_equity_usd * 100.0
+            if carm_dd < self.carm_portfolio.max_drawdown_pct:
+                self.carm_portfolio.max_drawdown_pct = float(carm_dd)
 
         self.virtual_fills.extend(fill_records)
 
@@ -655,6 +684,7 @@ class CarmShadowObserver:
 
         return {
             "reason": reason,
+            "rebalance_type": rebalance_type,
             "selected_assets": selected_assets or [s for s, w in target_w.items() if w > 0],
             "target_cash_weight": round(max(target_cash_w, 0.0), 6),
             "momentum_scores": momentum_scores or {},
@@ -667,7 +697,9 @@ class CarmShadowObserver:
         }
 
     def save_state(self, filepath: Union[str, Path]) -> Dict[str, Any]:
-        """Persist complete observer state including hourly price buffer."""
+        """Persist complete observer state atomically including hourly price buffer."""
+        import os
+        import uuid
         path = Path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -698,7 +730,9 @@ class CarmShadowObserver:
                 "authentic_forward_observations_count": self.authentic_forward_observations_count,
                 "historical_warmup_observations_count": self.historical_warmup_observations_count,
                 "rejected_observations_count": self.rejected_observations_count,
+                "inception_rebalances_count": self.inception_rebalances_count,
                 "scheduled_rebalances_count": self.scheduled_rebalances_count,
+                "forced_probes_count": self.forced_probes_count,
                 "modeled_virtual_fills_count": self.modeled_virtual_fills_count,
                 "portfolio_valuations_count": self.portfolio_valuations_count,
             },
@@ -710,8 +744,13 @@ class CarmShadowObserver:
             "virtual_fills": self.virtual_fills[-50:],
         }
 
-        with open(path, "w", encoding="utf-8") as f:
+        # Atomic replacement to avoid file corruption on crash
+        tmp_path = path.with_suffix(f".tmp.{uuid.uuid4().hex[:8]}")
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(state_data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
 
         return state_data
 
@@ -754,7 +793,9 @@ class CarmShadowObserver:
         observer.authentic_forward_observations_count = int(counters.get("authentic_forward_observations_count", 0))
         observer.historical_warmup_observations_count = int(counters.get("historical_warmup_observations_count", 0))
         observer.rejected_observations_count = int(counters.get("rejected_observations_count", 0))
+        observer.inception_rebalances_count = int(counters.get("inception_rebalances_count", 0))
         observer.scheduled_rebalances_count = int(counters.get("scheduled_rebalances_count", 0))
+        observer.forced_probes_count = int(counters.get("forced_probes_count", 0))
         observer.modeled_virtual_fills_count = int(counters.get("modeled_virtual_fills_count", 0))
         observer.portfolio_valuations_count = int(counters.get("portfolio_valuations_count", 0))
 

@@ -36,6 +36,9 @@ class PortfolioMetrics:
     total_fees_usd: float
     excess_return_vs_btc_pct: float = 0.0
     excess_return_vs_cash_pct: float = 0.0
+    inception_rebalances: int = 0
+    scheduled_rebalances: int = 0
+    forced_probes: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -61,14 +64,45 @@ class CarmValuationLedger:
                 if line:
                     self.records.append(json.loads(line))
 
+    def reconcile_with_state(self, last_state_timestamp: Optional[str]) -> int:
+        """Reconcile ledger records with the last checkpointed state timestamp.
+
+        If the ledger has trailing records beyond last_state_timestamp (e.g. system crashed
+        after ledger append but before state save), truncate the ledger so state and ledger
+        remain perfectly synchronized.
+        """
+        if not last_state_timestamp or not self.records:
+            return 0
+
+        target_ts = pd.to_datetime(last_state_timestamp)
+        valid_records = [
+            r for r in self.records
+            if pd.to_datetime(r.get("timestamp", "")) <= target_ts
+        ]
+        dropped = len(self.records) - len(valid_records)
+        if dropped > 0:
+            self.records = valid_records
+            if self.log_path and self.log_path.exists():
+                import os
+                tmp_file = self.log_path.with_suffix(".reconcile.tmp")
+                with open(tmp_file, "w", encoding="utf-8") as f:
+                    for r in valid_records:
+                        f.write(json.dumps(r) + "\n")
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_file, self.log_path)
+        return dropped
+
     def append(self, tick_result: ObserverTickResult) -> Dict[str, Any]:
-        """Append an observation tick record."""
+        """Append an observation tick record with crash consistency."""
+        import os
         ts_str = str(tick_result.timestamp)
         carm_eq = float(tick_result.carm_equity)
         btc_eq = float(tick_result.btc_bh_equity)
         cash_eq = float(tick_result.cash_equity)
 
         entry = {
+            "sequence_id": len(self.records) + 1,
             "timestamp": ts_str,
             "carm_equity": round(carm_eq, 2),
             "btc_bh_equity": round(btc_eq, 2),
@@ -94,6 +128,8 @@ class CarmValuationLedger:
             self.log_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
 
         return entry
 
@@ -141,8 +177,8 @@ class CarmComparativeScorecard:
             fin_eq = float(series.iloc[-1])
             net_ret = ((fin_eq / initial_capital_usd) - 1.0) * 100.0
 
-            # Drawdown
-            peaks = series.cummax()
+            # Drawdown measured from high-water mark starting from initial capital
+            peaks = np.maximum(initial_capital_usd, series.cummax())
             dd_series = (series - peaks) / np.maximum(peaks, 1e-6) * 100.0
             max_dd = float(dd_series.min())
 
@@ -260,4 +296,6 @@ class CarmComparativeScorecard:
             )
         lines.append("")
         lines.append("*Note: All fills and rebalances are modeled virtual fills with 12 bps execution friction. Zero live exchange orders.*")
+        lines.append("*Statistical Sample Guard: Sharpe/Sortino on samples < 24h report N/A (<24h) to avoid annualization distortion.*")
+        lines.append("*Economic Significance Note: For a 168h weekly momentum strategy, statistically sound economic evaluation requires multiple independent weekly rebalance cycles.*")
         return "\n".join(lines)

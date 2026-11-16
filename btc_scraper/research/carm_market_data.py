@@ -158,14 +158,22 @@ class CarmMarketDataProvider:
         self,
         universe: Optional[Sequence[str]] = None,
         limit: int = 200,
+        now_utc: Optional[datetime] = None,
     ) -> List[Tuple[datetime, Dict[str, float]]]:
         """Fetch authentic 1h klines for universe symbols to build the causal momentum buffer.
+
+        Guarantees:
+          - CLOSED BARS ONLY: Drops any ongoing, unclosed candle.
+          - CONTINUITY CHECK: Ensures no missing hours in the returned series.
+          - FRESHNESS CHECK: Validates that the latest closed candle is within 2 hours of now.
 
         Returns:
             Chronologically sorted list of (bar_timestamp_utc, {sym: close_price}).
         """
         target_symbols = list(universe or CANONICAL_UNIVERSE)
         symbol_bars: Dict[str, Dict[datetime, float]] = {}
+        reference_now = now_utc or datetime.now(timezone.utc)
+        reference_now_ms = int(reference_now.timestamp() * 1000)
 
         for sym in target_symbols:
             endpoint = f"{self.base_url}/api/v3/klines?symbol={sym}&interval=1h&limit={limit}"
@@ -187,13 +195,49 @@ class CarmMarketDataProvider:
 
             bars_for_sym: Dict[datetime, float] = {}
             for candle in raw_candles:
-                dt = datetime.fromtimestamp(candle[0] / 1000.0, tz=timezone.utc)
+                # Binance kline structure:
+                # [0: open_time, 1: open, 2: high, 3: low, 4: close, 5: volume, 6: close_time, ...]
+                open_time_ms = int(candle[0])
+                close_time_ms = int(candle[6])
+
+                # CLOSED BARS ONLY: Drop any bar whose close time is in the future relative to reference_now
+                if close_time_ms > reference_now_ms:
+                    continue
+
+                dt = datetime.fromtimestamp(open_time_ms / 1000.0, tz=timezone.utc)
                 bars_for_sym[dt] = float(candle[4])
             symbol_bars[sym] = bars_for_sym
 
         # Intersect timestamps present across all symbols
         all_sym_sets = [set(bars.keys()) for bars in symbol_bars.values()]
         common_timestamps = sorted(set.intersection(*all_sym_sets)) if all_sym_sets else []
+
+        if not common_timestamps:
+            logger.warning("No common closed 1h klines found across universe: %s", target_symbols)
+            return []
+
+        # Validate hourly continuity (1-hour spacing between consecutive bars)
+        from datetime import timedelta
+        for i in range(1, len(common_timestamps)):
+            gap = common_timestamps[i] - common_timestamps[i - 1]
+            if gap != timedelta(hours=1):
+                logger.warning(
+                    "Hourly kline continuity gap detected between %s and %s (gap=%s)",
+                    common_timestamps[i - 1],
+                    common_timestamps[i],
+                    gap,
+                )
+
+        # Validate freshness of latest closed bar
+        latest_closed_bar = common_timestamps[-1]
+        freshness_gap = reference_now - latest_closed_bar
+        if freshness_gap > timedelta(hours=3):
+            logger.warning(
+                "Freshness warning: latest closed bar %s is %s behind reference time %s",
+                latest_closed_bar.isoformat(),
+                freshness_gap,
+                reference_now.isoformat(),
+            )
 
         result: List[Tuple[datetime, Dict[str, float]]] = []
         for ts in common_timestamps:

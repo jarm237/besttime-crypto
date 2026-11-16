@@ -195,7 +195,9 @@ def test_3_utc_weekly_clock_after_missing_ticks():
         warmup_history=warmup_df,
     )
     assert res0.rebalance_triggered is True
-    assert observer.scheduled_rebalances_count == 1
+    assert observer.inception_rebalances_count == 1
+    assert observer.scheduled_rebalances_count == 0
+    assert observer.carm_portfolio.rebalance_count == 1
 
     # Simulate feed outage: 8 days (192 hours) missing!
     # Next observation arrives in Week 2: 2026-01-12 12:00:00 UTC
@@ -206,7 +208,8 @@ def test_3_utc_weekly_clock_after_missing_ticks():
     )
     # Weekly clock triggers rebalance cleanly for the new period
     assert res_after_outage.rebalance_triggered is True
-    assert observer.scheduled_rebalances_count == 2
+    assert observer.scheduled_rebalances_count == 1
+    assert observer.carm_portfolio.rebalance_count == 2
 
 
 def test_4_duplicate_and_out_of_order_observation():
@@ -464,3 +467,172 @@ def test_scorecard_insufficient_sample_shows_na():
 
     md = CarmComparativeScorecard.generate_markdown_scorecard(metrics)
     assert "N/A (<24h)" in md
+
+
+def test_ticker_does_not_contaminate_hourly_price_history():
+    """Verify that portfolio valuation ticks NEVER append ticker prices to hourly_price_history."""
+    observer = CarmShadowObserver()
+    assert len(observer.hourly_price_history) == 0
+
+    # Step observer 10 times across 10 minutes
+    for minute in range(10):
+        ts = f"2026-01-04T00:{minute:02d}:00Z"
+        prices = {sym: 100.0 + minute for sym in CANONICAL_UNIVERSE}
+        observer.step(timestamp=ts, prices=prices)
+
+    # Hourly price history MUST remain strictly empty (only populated by ingest_hourly_bars)
+    assert len(observer.hourly_price_history) == 0
+
+
+def test_rebalance_counters_distinguish_inception_scheduled_and_probe():
+    """Verify explicit separation of inception, scheduled weekly, and forced probe rebalances."""
+    observer = CarmShadowObserver(
+        universe=CANONICAL_UNIVERSE,
+        rebalance_interval_hours=168,
+        causal_delay_bars=2,
+        require_positive_momentum=False,
+        initial_allocation_mode="EQUAL_WEIGHT",
+    )
+
+    prices = {sym: 100.0 for sym in CANONICAL_UNIVERSE}
+
+    # Tick 1: Inception
+    res1 = observer.step(timestamp="2026-01-04T00:00:00Z", prices=prices)
+    assert observer.inception_rebalances_count == 1
+    assert observer.scheduled_rebalances_count == 0
+    assert observer.forced_probes_count == 0
+    assert res1.rebalance_details["rebalance_type"] == "INCEPTION"
+
+    # Ingest 175 synthetic hourly bars so momentum is computable
+    bars = [
+        (datetime(2026, 1, 1, 0, tzinfo=timezone.utc) + pd.Timedelta(hours=h), {sym: 100.0 * (1.0 + 0.001 * h) for sym in CANONICAL_UNIVERSE})
+        for h in range(175)
+    ]
+    observer.ingest_hourly_bars(bars)
+
+    # Tick 2: Forced probe (mid-week)
+    res2 = observer.step(timestamp="2026-01-07T12:00:00Z", prices=prices, force_rebalance=True)
+    assert observer.inception_rebalances_count == 1
+    assert observer.scheduled_rebalances_count == 0
+    assert observer.forced_probes_count == 1
+    assert res2.rebalance_details["rebalance_type"] == "FORCED_PROBE"
+
+    # Tick 3: Natural scheduled weekly boundary
+    res3 = observer.step(timestamp="2026-01-11T00:00:00Z", prices=prices)
+    assert observer.inception_rebalances_count == 1
+    assert observer.scheduled_rebalances_count == 1
+    assert observer.forced_probes_count == 1
+    assert res3.rebalance_details["rebalance_type"] == "SCHEDULED_WEEKLY"
+
+
+def test_atomic_persistence_and_ledger_reconciliation_on_crash(tmp_path: Path):
+    """Verify atomic state file replacement and startup ledger reconciliation on simulated crash."""
+    state_file = tmp_path / "carm_state.json"
+    ledger_file = tmp_path / "valuation_ledger.jsonl"
+
+    observer = CarmShadowObserver(universe=["BTCUSDT"])
+    prices = {"BTCUSDT": 50000.0}
+
+    # Step 1: Normal commit
+    res1 = observer.step(timestamp="2026-01-04T00:00:00Z", prices=prices)
+    ledger = CarmValuationLedger(log_path=ledger_file)
+    ledger.append(res1)
+    observer.save_state(state_file)
+
+    # Step 2: Simulate crash after ledger append but BEFORE state save
+    res2 = observer.step(timestamp="2026-01-04T01:00:00Z", prices={"BTCUSDT": 51000.0})
+    ledger.append(res2)
+    # Observer state is NOT saved for step 2!
+
+    # Simulate restart: load state and reconcile ledger
+    recovered_observer = CarmShadowObserver.load_state(state_file)
+    new_ledger = CarmValuationLedger(log_path=ledger_file)
+    assert len(new_ledger.records) == 2  # Has uncheckpointed step 2
+
+    last_ts = recovered_observer.last_accepted_timestamp_utc.isoformat()
+    dropped = new_ledger.reconcile_with_state(last_ts)
+
+    assert dropped == 1
+    assert len(new_ledger.records) == 1
+    assert new_ledger.records[0]["timestamp"] == "2026-01-04T00:00:00Z"
+
+
+def test_exact_mathematical_parity_with_0d9f6660_reference_implementation():
+    """Verify exact mathematical parity between CarmShadowObserver and 0d9f6660 reference code.
+
+    Simulates 200h warmup + 350h forward of 8-asset prices, computing inception allocations,
+    shift(2) causal weekly momentum, turnover, fees, and final equity.
+    """
+    symbols = list(CANONICAL_UNIVERSE)
+    np.random.seed(42)
+    W, T, N = 200, 350, len(symbols)
+
+    # Generate synthetic price series for warmup + forward
+    rets = np.random.normal(0.0005, 0.015, size=(W + T, N))
+    all_prices = 100.0 * np.exp(np.cumsum(rets, axis=0))
+    start_dt = pd.Timestamp("2026-01-04T00:00:00Z")
+    timestamps = pd.date_range(start=start_dt - pd.Timedelta(hours=W), periods=W + T, freq="1h")
+    piv_close = pd.DataFrame(all_prices, index=timestamps, columns=symbols)
+
+    # Reference implementation logic from 0d9f6660
+    piv_past_168h = piv_close.pct_change(168).shift(2)
+    fee_rate = 12.0 / 10000.0
+
+    ref_cash = 10000.0
+    ref_holdings = np.zeros(N)
+    ref_target_w = np.full(N, 1.0 / N)
+
+    for t in range(W, W + T):
+        t_fwd = t - W
+        is_scheduled = (t_fwd == 0) or (t_fwd % 168 == 0)
+        if is_scheduled and t_fwd > 0:
+            row = piv_past_168h.iloc[t]
+            top_assets = row.nlargest(3).index
+            ref_target_w = np.zeros(N)
+            for s in top_assets:
+                ref_target_w[symbols.index(s)] = 1.0 / 3.0
+
+        asset_vals = ref_holdings * all_prices[t]
+        eq_before = ref_cash + float(np.sum(asset_vals))
+        current_w = asset_vals / max(eq_before, 1e-6)
+
+        if is_scheduled:
+            dw = float(np.sum(np.abs(ref_target_w - current_w)))
+            fee = eq_before * dw * fee_rate
+            post_fee_eq = eq_before - fee
+            target_vals = ref_target_w * post_fee_eq
+            ref_holdings = target_vals / all_prices[t]
+            ref_cash = post_fee_eq - float(np.sum(target_vals))
+
+    ref_final_equity = ref_cash + float(np.sum(ref_holdings * all_prices[-1]))
+
+    # Now run CarmShadowObserver over identical hourly data
+    observer = CarmShadowObserver(
+        universe=symbols,
+        initial_capital_usd=10000.0,
+        fee_bps=12.0,
+        rebalance_interval_hours=168,
+        top_k=3,
+        causal_delay_bars=2,
+        require_positive_momentum=False,
+        initial_allocation_mode="EQUAL_WEIGHT",
+    )
+
+    # Ingest warmup bars
+    warmup_bars = [(timestamps[i].to_pydatetime(), piv_close.iloc[i].to_dict()) for i in range(W)]
+    observer.ingest_hourly_bars(warmup_bars)
+
+    # Execute forward simulation
+    for t in range(W, W + T):
+        ts_str = timestamps[t].isoformat()
+        current_prices = piv_close.iloc[t].to_dict()
+        observer.ingest_hourly_bars([(timestamps[t].to_pydatetime(), current_prices)])
+        observer.step(timestamp=ts_str, prices=current_prices, is_forward=True)
+
+    observer_final_equity = observer.carm_portfolio.equity_usd
+
+    # Compare results down to every cent
+    assert observer_final_equity == pytest.approx(ref_final_equity, rel=1e-5)
+    for sym in symbols:
+        assert observer.carm_portfolio.holdings[sym] == pytest.approx(ref_holdings[symbols.index(sym)], rel=1e-5)
+

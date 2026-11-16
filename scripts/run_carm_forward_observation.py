@@ -1,14 +1,16 @@
-"""Bounded Authentic Forward Observation Runner for Workstream B CARM Shadow Observer.
+"""Bounded & Continuous Authentic Forward Observation Runner for Workstream B CARM Shadow Observer.
 
 Connects strictly to read-only public market data, executes authentic forward ticks,
 records entries in the forward valuation ledger, and persists durable observer state.
 
 Guarantees:
-  - ZERO real trading or order submission.
-  - Authentic live market data from Binance public REST (ticker and 1h klines).
-  - Continuous 168h hourly history maintenance and auto-backfill across restarts.
-  - Synchronous per-tick state persistence for crash recovery consistency.
-  - Exact research contract parity with 0d9f6660 (CARM_ORIGINAL_RESEARCH_V1).
+  - ZERO real trading or order submission (read-only prospective observer).
+  - Authentic live market data from Binance public REST (ticker and closed 1h klines).
+  - CLOSED 1H BARS ONLY: Hourly momentum signals use authentic closed klines, never ticker snapshots.
+  - REBALANCE TYPING: Explicit separation of INCEPTION, FORCED_PROBE, and SCHEDULED_WEEKLY rebalances.
+  - ATOMIC PERSISTENCE & CRASH CONSISTENCY: State saved atomically with tempfile + replace.
+  - STARTUP RECONCILIATION: Valuation ledger reconciled against state timestamp on restart.
+  - CONTINUOUS & BOUNDED MODES: Supports both discrete cron ticks and continuous background loops.
 """
 
 from __future__ import annotations
@@ -16,9 +18,10 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import signal
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -47,13 +50,53 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(na
 logger = logging.getLogger("carm_forward_runner")
 
 
-def run_bounded_forward_session(
-    n_ticks: int = 3,
+def sync_closed_hourly_klines(
+    observer: CarmShadowObserver,
+    data_provider: CarmMarketDataProvider,
+    state_file: Path,
+) -> int:
+    """Sync authentic closed 1h klines into the observer's hourly buffer.
+
+    Guarantees that observer always has the latest closed bars without
+    ever writing ticker prices into the signal history.
+    """
+    now_utc = datetime.now(timezone.utc)
+    required_history_len = observer.rebalance_interval_hours + observer.causal_delay_bars + 1
+    last_closed_hour = (now_utc - timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+
+    needs_fetch = False
+    if len(observer.hourly_price_history) < required_history_len:
+        needs_fetch = True
+    elif observer.hourly_price_history and observer.hourly_price_history[-1][0] < last_closed_hour:
+        needs_fetch = True
+
+    if not needs_fetch:
+        return 0
+
+    logger.info(
+        "Syncing authentic closed 1h klines (current buffer: %d bars, latest: %s)...",
+        len(observer.hourly_price_history),
+        observer.hourly_price_history[-1][0].isoformat() if observer.hourly_price_history else "NONE",
+    )
+    try:
+        klines = data_provider.fetch_recent_hourly_klines(CANONICAL_UNIVERSE, limit=200, now_utc=now_utc)
+        added = observer.ingest_hourly_bars(klines)
+        logger.info("Ingested %d authentic closed hourly bars. Total buffer: %d bars.", added, len(observer.hourly_price_history))
+        observer.save_state(state_file)
+        return added
+    except Exception as e:
+        logger.warning("Could not sync closed klines from Binance: %s. Continuing with existing buffer.", e)
+        return 0
+
+
+def run_forward_session(
+    n_ticks: Optional[int] = 3,
     tick_delay_seconds: float = 2.0,
-    force_rebalance: bool = False,
+    probe_rebalance: bool = False,
+    continuous: bool = False,
     state_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """Execute a bounded authentic forward observation session with crash consistency."""
+    """Execute authentic forward observation session with crash consistency."""
     assert REAL_TRADING is False, "REAL_TRADING must be disabled"
     assert LIVE_EXCHANGE_PERMISSION is False, "LIVE_EXCHANGE_PERMISSION must be disabled"
     assert PRODUCTION_CANDIDATE is False, "PRODUCTION_CANDIDATE must be False"
@@ -84,50 +127,69 @@ def run_bounded_forward_session(
             initial_allocation_mode="EQUAL_WEIGHT",  # 0d9f6660 parity
         )
 
-    # 2. Hourly Signal History Auto-Backfill
-    # Ensure observer has at least 175 authentic hourly bars so 168h momentum is always ready
-    required_history_len = observer.rebalance_interval_hours + observer.causal_delay_bars + 1
-    if len(observer.hourly_price_history) < required_history_len:
-        logger.info(
-            "Hourly buffer has %d bars (< %d required). Fetching authentic 1h klines from Binance public API...",
-            len(observer.hourly_price_history),
-            required_history_len,
-        )
-        try:
-            klines = data_provider.fetch_recent_hourly_klines(CANONICAL_UNIVERSE, limit=200)
-            added = observer.ingest_hourly_bars(klines)
-            logger.info("Ingested %d authentic hourly bars. Total buffer: %d bars.", added, len(observer.hourly_price_history))
-            observer.save_state(state_file)
-        except Exception as e:
-            logger.warning("Could not auto-backfill klines: %s. Continuing with existing history.", e)
-
+    # 2. Reconcile ledger with state on startup
     ledger = CarmValuationLedger(log_path=ledger_file)
+    last_accepted_ts = (
+        observer.last_accepted_timestamp_utc.isoformat()
+        if observer.last_accepted_timestamp_utc
+        else None
+    )
+    dropped = ledger.reconcile_with_state(last_accepted_ts)
+    if dropped > 0:
+        logger.info("Reconciled valuation ledger: truncated %d uncheckpointed trailing records", dropped)
 
-    logger.info("Beginning bounded forward observation session: %d ticks (force_rebalance=%s)", n_ticks, force_rebalance)
+    # 3. Synchronize Closed 1h Klines from Binance Public API
+    sync_closed_hourly_klines(observer, data_provider, state_file)
+
     session_start_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    tick_results = []
+    logger.info(
+        "Starting forward observation session (continuous=%s, max_ticks=%s, probe_rebalance=%s)",
+        continuous,
+        n_ticks if not continuous else "UNLIMITED",
+        probe_rebalance,
+    )
+
+    tick_count = 0
+    running = True
+
+    def _sig_handler(signum, frame):
+        nonlocal running
+        logger.info("Signal received, safely terminating observation session...")
+        running = False
+
+    signal.signal(signal.SIGINT, _sig_handler)
+    signal.signal(signal.SIGTERM, _sig_handler)
+
     prices: Dict[str, float] = {}
 
-    for i in range(n_ticks):
+    while running:
+        tick_count += 1
         tick_ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+        # Periodically check if a new 1h candle has closed
+        sync_closed_hourly_klines(observer, data_provider, state_file)
+
         try:
             prices, observations = data_provider.fetch_live_ticker_snapshot(CANONICAL_UNIVERSE)
         except Exception as e:
-            logger.error("Market data fetch failed on tick %d: %s", i + 1, e)
-            return {
-                "status": "ENVIRONMENT_BLOCKED",
-                "error": str(e),
-                "timestamp_utc": tick_ts,
-            }
+            logger.error("Market data fetch failed on tick %d: %s", tick_count, e)
+            if not continuous:
+                return {
+                    "status": "ENVIRONMENT_BLOCKED",
+                    "error": str(e),
+                    "timestamp_utc": tick_ts,
+                }
+            time.sleep(tick_delay_seconds)
+            continue
 
-        # Step observer (triggering rebalance on tick 1 if force_rebalance is requested)
-        should_rebal = force_rebalance if (i == 0) else False
+        # Trigger rebalance on tick 1 only if probe_rebalance was explicitly requested
+        should_probe = probe_rebalance if (tick_count == 1) else False
         res = observer.step(
             timestamp=tick_ts,
             prices=prices,
             is_forward=True,
-            observation_id=f"forward-obs-{i + 1}",
-            force_rebalance=should_rebal,
+            observation_id=f"forward-obs-{tick_count}",
+            force_rebalance=should_probe,
         )
 
         # Synchronous crash consistency: save state and ledger together for valid observations
@@ -142,12 +204,9 @@ def run_bounded_forward_session(
                     "reason": res.rejection_reason,
                 }) + "\n")
 
-        tick_results.append(res)
-
         logger.info(
-            "Tick %d/%d at %s: CARM Eq=$%.2f, BTC Eq=$%.2f, Cash Eq=$%.2f [Status=%s, Rebal=%s]",
-            i + 1,
-            n_ticks,
+            "Tick %d at %s: CARM Eq=$%.2f, BTC Eq=$%.2f, Cash Eq=$%.2f [Status=%s, Rebal=%s]",
+            tick_count,
             tick_ts,
             res.carm_equity,
             res.btc_bh_equity,
@@ -156,10 +215,13 @@ def run_bounded_forward_session(
             res.rebalance_triggered,
         )
 
-        if i < n_ticks - 1 and tick_delay_seconds > 0:
+        if not continuous and n_ticks is not None and tick_count >= n_ticks:
+            break
+
+        if running and tick_delay_seconds > 0:
             time.sleep(tick_delay_seconds)
 
-    # 3. Calculate Comparative Scorecard
+    # 4. Generate Final Comparative Scorecard & Evidence Snapshot
     ledger_df = ledger.to_dataframe()
     scorecard_metrics = CarmComparativeScorecard.calculate_metrics(ledger_df)
     scorecard_md = CarmComparativeScorecard.generate_markdown_scorecard(scorecard_metrics)
@@ -177,7 +239,9 @@ def run_bounded_forward_session(
             "authentic_forward_observations": observer.authentic_forward_observations_count,
             "historical_warmup_observations": observer.historical_warmup_observations_count,
             "rejected_observations": observer.rejected_observations_count,
-            "scheduled_rebalance_decisions": observer.scheduled_rebalances_count,
+            "inception_rebalances": observer.inception_rebalances_count,
+            "scheduled_weekly_rebalances": observer.scheduled_rebalances_count,
+            "forced_probes": observer.forced_probes_count,
             "modeled_virtual_fills": observer.modeled_virtual_fills_count,
             "portfolio_valuations": observer.portfolio_valuations_count,
         },
@@ -206,15 +270,22 @@ def run_bounded_forward_session(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CARM Read-Only Forward Runner")
-    parser.add_argument("--ticks", type=int, default=3, help="Number of forward ticks")
+    parser.add_argument("--ticks", type=int, default=3, help="Number of forward ticks for bounded run")
     parser.add_argument("--delay", type=float, default=1.5, help="Delay between ticks in seconds")
-    parser.add_argument("--rebalance", action="store_true", help="Force execute weekly rebalance using authentic 168h momentum")
+    parser.add_argument("--continuous", action="store_true", help="Run indefinitely in continuous observation mode")
+    parser.add_argument("--interval", type=float, default=60.0, help="Interval between ticks in continuous mode")
+    parser.add_argument("--probe-rebalance", action="store_true", help="Execute an explicit forced probe rebalance on tick 1")
+    parser.add_argument("--rebalance", action="store_true", help="Alias for --probe-rebalance")
     args = parser.parse_args()
 
-    snapshot = run_bounded_forward_session(
-        n_ticks=args.ticks,
-        tick_delay_seconds=args.delay,
-        force_rebalance=args.rebalance,
+    probe = args.probe_rebalance or args.rebalance
+    delay = args.interval if args.continuous else args.delay
+
+    snapshot = run_forward_session(
+        n_ticks=None if args.continuous else args.ticks,
+        tick_delay_seconds=delay,
+        probe_rebalance=probe,
+        continuous=args.continuous,
     )
     print("\n" + "=" * 60)
     print("AUTHENTIC FORWARD OBSERVATION EVIDENCE SNAPSHOT")
@@ -224,7 +295,9 @@ if __name__ == "__main__":
     print(f"Configuration Fingerprint:   {snapshot.get('configuration_fingerprint')}")
     print(f"Hourly Bars In Buffer:       {snapshot.get('hourly_bars_in_buffer')}")
     print(f"Forward Observations:        {snapshot.get('counters', {}).get('authentic_forward_observations')}")
-    print(f"Scheduled Rebalances:        {snapshot.get('counters', {}).get('scheduled_rebalance_decisions')}")
+    print(f"Inception Rebalances:        {snapshot.get('counters', {}).get('inception_rebalances')}")
+    print(f"Scheduled Rebalances:        {snapshot.get('counters', {}).get('scheduled_weekly_rebalances')}")
+    print(f"Forced Probes:               {snapshot.get('counters', {}).get('forced_probes')}")
     print(f"Modeled Virtual Fills:       {snapshot.get('counters', {}).get('modeled_virtual_fills')}")
     print(f"Portfolio Valuations:        {snapshot.get('counters', {}).get('portfolio_valuations')}")
     print(f"CARM Equity:                 ${snapshot.get('latest_portfolio_equity', {}).get('carm_equity_usd'):,.2f}")
