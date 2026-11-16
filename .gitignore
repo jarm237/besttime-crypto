@@ -39,3 +39,4 @@ venv/
 
 # Reproducible large research parquet datasets
 research/historical_market_replay_v5/*.parquet
+/data/historical_unified_replay/
