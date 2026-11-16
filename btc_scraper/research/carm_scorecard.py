@@ -73,6 +73,7 @@ class CarmValuationLedger:
             "carm_equity": round(carm_eq, 2),
             "btc_bh_equity": round(btc_eq, 2),
             "cash_equity": round(cash_eq, 2),
+            "data_quality_status": getattr(tick_result, "data_quality_status", "VALID"),
             "rebalance_triggered": tick_result.rebalance_triggered,
             "carm_fees_usd": tick_result.carm_state["cumulative_fees_usd"],
             "carm_turnover": tick_result.carm_state["cumulative_turnover"],
@@ -83,6 +84,8 @@ class CarmValuationLedger:
         }
         if tick_result.rebalance_details:
             entry["rebalance_details"] = tick_result.rebalance_details
+        if getattr(tick_result, "rejection_reason", None):
+            entry["rejection_reason"] = tick_result.rejection_reason
 
         self.records.append(entry)
 
