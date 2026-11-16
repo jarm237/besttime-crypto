@@ -196,6 +196,7 @@ class CarmShadowObserver:
         require_positive_momentum: bool = False,  # False = canonical 0d9f6660 parity
         initial_allocation_mode: str = "EQUAL_WEIGHT",  # "EQUAL_WEIGHT" = 0d9f6660 parity
         anchor_epoch_seconds: int = CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS,
+        epoch_id: str = "EPOCH_20261116_01",
     ) -> None:
         self.universe: List[str] = sorted(list(universe or CANONICAL_UNIVERSE))
         self.initial_capital_usd: float = float(initial_capital_usd)
@@ -207,6 +208,7 @@ class CarmShadowObserver:
         self.require_positive_momentum: bool = bool(require_positive_momentum)
         self.initial_allocation_mode: str = str(initial_allocation_mode)
         self.anchor_epoch_seconds: int = int(anchor_epoch_seconds)
+        self.epoch_id: str = str(epoch_id)
 
         self.strategy_version: str = (
             STRATEGY_VERSION_CASH_GATED if self.require_positive_momentum else STRATEGY_VERSION_CANONICAL
@@ -477,7 +479,7 @@ class CarmShadowObserver:
         )
 
         if rebalance_due and self._carm_incepted:
-            momentum_scores = self._compute_causal_momentum(warmup_history)
+            momentum_scores = self._compute_causal_momentum(warmup_history, decision_time_utc=ts_utc)
             if momentum_scores is not None:
                 rebal_type = "FORCED_PROBE" if force_rebalance else "SCHEDULED_WEEKLY"
                 rebalance_details = self._rebalance_carm(
@@ -493,6 +495,12 @@ class CarmShadowObserver:
                     self.scheduled_rebalances_count += 1
                     self.last_completed_period_index = period_idx
                 self.last_rebalance_timestamp_utc = ts_str
+            else:
+                logger.warning(
+                    "Rebalance due at %s but momentum signal was rejected or unavailable. "
+                    "Postponing virtual rebalance while maintaining mark-to-market valuation.",
+                    ts_str,
+                )
 
         # 6. Mark-to-Market Valuations for all 3 portfolios
         self.carm_portfolio.update_valuation(clean_prices)
@@ -514,11 +522,17 @@ class CarmShadowObserver:
     def _compute_causal_momentum(
         self,
         warmup_history: Optional[pd.DataFrame] = None,
+        decision_time_utc: Optional[datetime] = None,
     ) -> Optional[Dict[str, float]]:
         """Compute causal 168h percentage return with shift(2) delay.
 
-        Evaluates return between bar (T - causal_delay_bars - 168) and bar (T - causal_delay_bars).
+        Guarantees:
+          - EXACT LOOKBACK: dt_eval - dt_base must equal exactly rebalance_interval_hours.
+          - SEQUENTIAL CONTINUITY: Every single hour in the window must be present without missing bars.
+          - SIGNAL FRESHNESS: dt_eval must be within allowed latency of decision_time_utc.
+          - FAIL CLOSED: Returns None on any continuity or freshness violation.
         """
+        from datetime import timedelta
         required_len = self.rebalance_interval_hours + self.causal_delay_bars + 1
 
         # Source 1: Warmup history DataFrame if provided
@@ -541,8 +555,45 @@ class CarmShadowObserver:
             t_eval_idx = len(self.hourly_price_history) - 1 - self.causal_delay_bars
             t_base_idx = t_eval_idx - self.rebalance_interval_hours
             if t_base_idx >= 0:
-                p_eval_dict = self.hourly_price_history[t_eval_idx][1]
-                p_base_dict = self.hourly_price_history[t_base_idx][1]
+                dt_eval, p_eval_dict = self.hourly_price_history[t_eval_idx]
+                dt_base, p_base_dict = self.hourly_price_history[t_base_idx]
+
+                # 1. Exact 168-hour lookback verification
+                expected_lookback = timedelta(hours=self.rebalance_interval_hours)
+                actual_lookback = dt_eval - dt_base
+                if actual_lookback != expected_lookback:
+                    logger.error(
+                        "Signal rejected: Lookback window between base (%s) and eval (%s) is %s != %s",
+                        dt_base.isoformat(),
+                        dt_eval.isoformat(),
+                        actual_lookback,
+                        expected_lookback,
+                    )
+                    return None
+
+                # 2. Sequential continuity verification (no missing hours between base and eval)
+                for k in range(t_base_idx + 1, t_eval_idx + 1):
+                    if self.hourly_price_history[k][0] - self.hourly_price_history[k - 1][0] != timedelta(hours=1):
+                        logger.error(
+                            "Signal rejected: Missing hourly bar between %s and %s",
+                            self.hourly_price_history[k - 1][0].isoformat(),
+                            self.hourly_price_history[k][0].isoformat(),
+                        )
+                        return None
+
+                # 3. Freshness verification relative to decision time
+                if decision_time_utc is not None:
+                    freshness_diff = abs(decision_time_utc - dt_eval)
+                    max_allowed_stale = timedelta(hours=self.causal_delay_bars + 3)
+                    if freshness_diff > max_allowed_stale:
+                        logger.error(
+                            "Signal rejected: Stale signal. Eval bar (%s) is %s behind decision time (%s)",
+                            dt_eval.isoformat(),
+                            freshness_diff,
+                            decision_time_utc.isoformat(),
+                        )
+                        return None
+
                 mom = {}
                 for sym in self.universe:
                     if sym in p_eval_dict and sym in p_base_dict and p_base_dict[sym] > 0.0:
@@ -704,6 +755,7 @@ class CarmShadowObserver:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         state_data = {
+            "epoch_id": self.epoch_id,
             "strategy_version": self.strategy_version,
             "configuration_fingerprint": self.configuration_fingerprint,
             "universe": self.universe,
@@ -774,6 +826,7 @@ class CarmShadowObserver:
             require_positive_momentum=data.get("require_positive_momentum", False),
             initial_allocation_mode=data.get("initial_allocation_mode", "EQUAL_WEIGHT"),
             anchor_epoch_seconds=data.get("anchor_epoch_seconds", CANONICAL_WEEKLY_ANCHOR_EPOCH_SECONDS),
+            epoch_id=data.get("epoch_id", "EPOCH_20261116_01"),
         )
 
         observer.carm_portfolio = VirtualPortfolioState.from_dict(data["carm_portfolio"])

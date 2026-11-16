@@ -221,23 +221,17 @@ class CarmMarketDataProvider:
         for i in range(1, len(common_timestamps)):
             gap = common_timestamps[i] - common_timestamps[i - 1]
             if gap != timedelta(hours=1):
-                logger.warning(
-                    "Hourly kline continuity gap detected between %s and %s (gap=%s)",
-                    common_timestamps[i - 1],
-                    common_timestamps[i],
-                    gap,
-                )
+                err_msg = f"Hourly kline continuity gap detected between {common_timestamps[i - 1]} and {common_timestamps[i]} (gap={gap})"
+                logger.error(err_msg)
+                raise ValueError(err_msg)
 
         # Validate freshness of latest closed bar
         latest_closed_bar = common_timestamps[-1]
         freshness_gap = reference_now - latest_closed_bar
-        if freshness_gap > timedelta(hours=3):
-            logger.warning(
-                "Freshness warning: latest closed bar %s is %s behind reference time %s",
-                latest_closed_bar.isoformat(),
-                freshness_gap,
-                reference_now.isoformat(),
-            )
+        if freshness_gap > timedelta(hours=2, minutes=30):
+            err_msg = f"Stale market data: latest closed bar {latest_closed_bar.isoformat()} is {freshness_gap} behind reference time {reference_now.isoformat()}"
+            logger.error(err_msg)
+            raise RuntimeError(err_msg)
 
         result: List[Tuple[datetime, Dict[str, float]]] = []
         for ts in common_timestamps:

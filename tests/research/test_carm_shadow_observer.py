@@ -504,18 +504,27 @@ def test_rebalance_counters_distinguish_inception_scheduled_and_probe():
     assert res1.rebalance_details["rebalance_type"] == "INCEPTION"
 
     # Ingest 175 synthetic hourly bars so momentum is computable
+    base_dt = datetime(2026, 1, 1, 0, tzinfo=timezone.utc)
     bars = [
-        (datetime(2026, 1, 1, 0, tzinfo=timezone.utc) + pd.Timedelta(hours=h), {sym: 100.0 * (1.0 + 0.001 * h) for sym in CANONICAL_UNIVERSE})
+        (base_dt + pd.Timedelta(hours=h), {sym: 100.0 * (1.0 + 0.001 * h) for sym in CANONICAL_UNIVERSE})
         for h in range(175)
     ]
     observer.ingest_hourly_bars(bars)
 
-    # Tick 2: Forced probe (mid-week)
-    res2 = observer.step(timestamp="2026-01-07T12:00:00Z", prices=prices, force_rebalance=True)
+    # Tick 2: Forced probe (fresh relative to bar 174 at 2026-01-08T06:00:00Z)
+    probe_ts = (base_dt + pd.Timedelta(hours=174)).isoformat()
+    res2 = observer.step(timestamp=probe_ts, prices=prices, force_rebalance=True)
     assert observer.inception_rebalances_count == 1
     assert observer.scheduled_rebalances_count == 0
     assert observer.forced_probes_count == 1
     assert res2.rebalance_details["rebalance_type"] == "FORCED_PROBE"
+
+    # Ingest additional bars up to week boundary (2026-01-11T00:00:00Z = 240 hours from base_dt)
+    additional_bars = [
+        (base_dt + pd.Timedelta(hours=h), {sym: 100.0 * (1.0 + 0.001 * h) for sym in CANONICAL_UNIVERSE})
+        for h in range(175, 241)
+    ]
+    observer.ingest_hourly_bars(additional_bars)
 
     # Tick 3: Natural scheduled weekly boundary
     res3 = observer.step(timestamp="2026-01-11T00:00:00Z", prices=prices)
@@ -558,11 +567,13 @@ def test_atomic_persistence_and_ledger_reconciliation_on_crash(tmp_path: Path):
 
 
 def test_exact_mathematical_parity_with_0d9f6660_reference_implementation():
-    """Verify exact mathematical parity between CarmShadowObserver and 0d9f6660 reference code.
+    """Verify reference logic parity between CarmShadowObserver and 0d9f6660 reference function.
 
-    Simulates 200h warmup + 350h forward of 8-asset prices, computing inception allocations,
-    shift(2) causal weekly momentum, turnover, fees, and final equity.
+    Calls the exact reference code extracted from commit 0d9f6660 on identical 200h warmup + 350h
+    forward data, testing inception allocations, shift(2) causal weekly momentum, and virtual fills.
     """
+    from btc_scraper.research.carm_reference_0d9f6660 import simulate_carm_top_momentum_strategy
+
     symbols = list(CANONICAL_UNIVERSE)
     np.random.seed(42)
     W, T, N = 200, 350, len(symbols)
@@ -635,4 +646,72 @@ def test_exact_mathematical_parity_with_0d9f6660_reference_implementation():
     assert observer_final_equity == pytest.approx(ref_final_equity, rel=1e-5)
     for sym in symbols:
         assert observer.carm_portfolio.holdings[sym] == pytest.approx(ref_holdings[symbols.index(sym)], rel=1e-5)
+
+
+def test_corrupted_trailing_jsonl_line_resilience(tmp_path: Path):
+    """Verify that CarmValuationLedger gracefully recovers when the last JSONL line was truncated on crash."""
+    ledger_file = tmp_path / "truncated_ledger.jsonl"
+
+    # Write one valid line and one partial/truncated line
+    valid_record = {
+        "sequence_id": 1,
+        "timestamp": "2026-01-04T00:00:00Z",
+        "carm_equity": 9988.0,
+        "btc_bh_equity": 9988.0,
+        "cash_equity": 10000.0,
+        "data_quality_status": "VALID",
+        "rebalance_triggered": True,
+        "carm_fees_usd": 12.0,
+        "carm_turnover": 1.0,
+        "carm_rebalances": 1,
+        "carm_drawdown_pct": -0.12,
+        "btc_drawdown_pct": -0.12,
+        "carm_holdings": {},
+    }
+    with open(ledger_file, "w", encoding="utf-8") as f:
+        f.write(json.dumps(valid_record) + "\n")
+        f.write('{"sequence_id": 2, "timestamp": "2026-01-04T01:00:00Z", "carm_eq')  # Truncated!
+
+    # Must load valid records without crashing
+    ledger = CarmValuationLedger(log_path=ledger_file)
+    assert len(ledger.records) == 1
+    assert ledger.records[0]["sequence_id"] == 1
+
+
+def test_signal_continuity_gap_and_freshness_fail_closed():
+    """Verify that hourly buffer continuity gaps or stale signals fail closed and block rebalance."""
+    universe = list(CANONICAL_UNIVERSE)
+    observer = CarmShadowObserver(
+        universe=universe,
+        rebalance_interval_hours=168,
+        causal_delay_bars=2,
+    )
+
+    # Case 1: Continuity gap (skip hour 50)
+    bars_with_gap = []
+    base_time = datetime(2026, 1, 1, 0, tzinfo=timezone.utc)
+    for h in range(175):
+        if h == 50:
+            continue  # Gap!
+        dt = base_time + pd.Timedelta(hours=h)
+        bars_with_gap.append((dt, {s: 100.0 for s in universe}))
+
+    observer.ingest_hourly_bars(bars_with_gap)
+
+    # Causal momentum check must detect missing bar and fail closed
+    decision_time = base_time + pd.Timedelta(hours=175)
+    mom_gap = observer._compute_causal_momentum(decision_time_utc=decision_time)
+    assert mom_gap is None  # Blocked!
+
+    # Case 2: Stale signal (eval bar is 10 hours older than decision time)
+    observer_stale = CarmShadowObserver(universe=universe)
+    continuous_bars = [
+        (base_time + pd.Timedelta(hours=h), {s: 100.0 for s in universe})
+        for h in range(175)
+    ]
+    observer_stale.ingest_hourly_bars(continuous_bars)
+
+    stale_decision_time = base_time + pd.Timedelta(hours=190)  # 15 hours after latest bar
+    mom_stale = observer_stale._compute_causal_momentum(decision_time_utc=stale_decision_time)
+    assert mom_stale is None  # Blocked!
 

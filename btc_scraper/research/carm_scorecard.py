@@ -55,14 +55,26 @@ class CarmValuationLedger:
             self._load_existing_records()
 
     def _load_existing_records(self) -> None:
-        """Load pre-existing JSONL records."""
+        """Load pre-existing JSONL records with resilience against trailing corrupted/partial lines."""
         if not self.log_path:
             return
+        import logging
+        logger = logging.getLogger(__name__)
         with open(self.log_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    self.records.append(json.loads(line))
+            for line_no, line in enumerate(f, start=1):
+                clean_line = line.strip()
+                if not clean_line:
+                    continue
+                try:
+                    record = json.loads(clean_line)
+                    self.records.append(record)
+                except Exception as e:
+                    logger.warning(
+                        "Dropping corrupted or partial JSONL record at line %d in %s: %s",
+                        line_no,
+                        self.log_path,
+                        e,
+                    )
 
     def reconcile_with_state(self, last_state_timestamp: Optional[str]) -> int:
         """Reconcile ledger records with the last checkpointed state timestamp.

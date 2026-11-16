@@ -101,7 +101,13 @@ def run_forward_session(
     assert LIVE_EXCHANGE_PERMISSION is False, "LIVE_EXCHANGE_PERMISSION must be disabled"
     assert PRODUCTION_CANDIDATE is False, "PRODUCTION_CANDIDATE must be False"
 
-    state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer")
+    if probe_rebalance:
+        state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "probe_sandbox")
+        logger.warning("FORCED PROBE MODE: Using isolated sandbox at %s (canonical forward state is protected)", state_dir)
+    else:
+        state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "canonical_epoch")
+        logger.info("CANONICAL FORWARD MODE: Using clean canonical epoch directory at %s", state_dir)
+
     state_dir.mkdir(parents=True, exist_ok=True)
     state_file = state_dir / "carm_state.json"
     ledger_file = state_dir / "valuation_ledger.jsonl"
@@ -228,6 +234,7 @@ def run_forward_session(
 
     evidence_snapshot = {
         "status": "FORWARD_OBSERVATION_ACTIVE",
+        "epoch_id": observer.epoch_id,
         "session_start_utc": session_start_utc,
         "session_end_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "strategy_version": observer.strategy_version,
@@ -291,6 +298,7 @@ if __name__ == "__main__":
     print("AUTHENTIC FORWARD OBSERVATION EVIDENCE SNAPSHOT")
     print("=" * 60)
     print(f"Status:                      {snapshot.get('status')}")
+    print(f"Epoch ID:                    {snapshot.get('epoch_id')}")
     print(f"Strategy Version:            {snapshot.get('strategy_version')}")
     print(f"Configuration Fingerprint:   {snapshot.get('configuration_fingerprint')}")
     print(f"Hourly Bars In Buffer:       {snapshot.get('hourly_bars_in_buffer')}")
