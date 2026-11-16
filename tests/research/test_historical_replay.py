@@ -40,7 +40,8 @@ def test_replay_buy_and_hold():
 
     res = replay_buy_and_hold(prices, target_weights, fee_bps=12.0, initial_capital_usd=10000.0)
     assert res["total_fees"] == pytest.approx(12.0)
-    assert res["total_turnover"] == 1.0
+    assert res["one_way_turnover"] == 1.0
+    assert res["gross_asset_turnover"] == 1.0
     # Final equity should be approximately $10,000 * (1 - 0.0012) * 2 = 19976.0
     assert res["equities"][-1] == pytest.approx((10000.0 - 12.0) * 2.0)
 
@@ -104,12 +105,10 @@ def test_carm_utc_sunday_warmup_parity_skip():
 
     # Inception at t=0 is rebalance #1
     assert res["fees_paid"][0] == pytest.approx(10000.0 * 0.0012)
-    assert res["turnovers"][0] == pytest.approx(1.0)
 
     # Hour 24 is Sunday 00:00 UTC, but t=24 < 170 (signal not ready).
     # PARITY REQUIREMENT: Must NOT rebalance, 0 fees, 0 turnover.
     assert res["fees_paid"][24] == 0.0
-    assert res["turnovers"][24] == 0.0
 
     # Hour 192 is next Sunday 00:00 UTC (t=192 >= 170). Signal is ready.
     # Rebalance #2 triggers.

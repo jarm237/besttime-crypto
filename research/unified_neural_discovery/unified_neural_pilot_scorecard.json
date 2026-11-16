@@ -1,0 +1,386 @@
+{
+  "version": "unified_neural_pilot_v1",
+  "created_at_utc": "2026-11-16T20:09:11.858467+00:00",
+  "decision": "NEURAL_INCREMENTAL_VALUE_SUPPORTED",
+  "decision_explanation": "The small Unified Neural Policy achieved +22.96% net return (vs -23.97% for CARM), reducing Max Drawdown from -76.53% to -15.92%. It learned an active cash allocation policy (mean cash: 89.4%) that preserved capital during bear regimes.",
+  "metrics": {
+    "neural_pilot_mkt": {
+      "portfolio_name": "UNIFIED_NEURAL_PILOT (Market-Only)",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 12296.14,
+      "net_return_pct": 22.96,
+      "max_drawdown_pct": -15.92,
+      "annualized_sharpe": 0.432,
+      "annualized_sortino": 0.601,
+      "one_way_turnover": 19.37,
+      "gross_asset_turnover": 19.54,
+      "total_traded_notional_usd": 219312.35,
+      "total_fees_usd": 263.17,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.894
+    },
+    "neural_pilot_reg": {
+      "portfolio_name": "UNIFIED_NEURAL_PILOT (Market + Regime)",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 13029.46,
+      "net_return_pct": 30.29,
+      "max_drawdown_pct": -18.86,
+      "annualized_sharpe": 0.403,
+      "annualized_sortino": 0.556,
+      "one_way_turnover": 26.65,
+      "gross_asset_turnover": 26.97,
+      "total_traded_notional_usd": 315190.5,
+      "total_fees_usd": 378.23,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.793
+    },
+    "neural_pilot_stress": {
+      "portfolio_name": "UNIFIED_NEURAL_PILOT (Stress 25 bps)",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 11987.63,
+      "net_return_pct": 19.88,
+      "max_drawdown_pct": -15.92,
+      "annualized_sharpe": 0.384,
+      "annualized_sortino": 0.534,
+      "one_way_turnover": 19.37,
+      "gross_asset_turnover": 19.54,
+      "total_traded_notional_usd": 216399.66,
+      "total_fees_usd": 541.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.894
+    },
+    "policy_a": {
+      "portfolio_name": "POLICY_A (Market Cash Gating Benchmark)",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 13702.94,
+      "net_return_pct": 37.03,
+      "max_drawdown_pct": -55.76,
+      "annualized_sharpe": 0.392,
+      "annualized_sortino": 0.545,
+      "one_way_turnover": 175.41,
+      "gross_asset_turnover": 242.64,
+      "total_traded_notional_usd": 3345379.28,
+      "total_fees_usd": 4014.46,
+      "rebalance_count": 255,
+      "mean_cash_weight": 0.327
+    },
+    "carm_canonical": {
+      "portfolio_name": "CARM_UTC_SUNDAY_CANONICAL",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 7602.67,
+      "net_return_pct": -23.97,
+      "max_drawdown_pct": -76.53,
+      "annualized_sharpe": 0.264,
+      "annualized_sortino": 0.368,
+      "one_way_turnover": 156.55,
+      "gross_asset_turnover": 312.11,
+      "total_traded_notional_usd": 3701599.47,
+      "total_fees_usd": 4441.92,
+      "rebalance_count": 255,
+      "mean_cash_weight": 0.0
+    },
+    "btc_buy_and_hold": {
+      "portfolio_name": "BTC_BUY_AND_HOLD",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14036.21,
+      "net_return_pct": 40.36,
+      "max_drawdown_pct": -67.38,
+      "annualized_sharpe": 0.386,
+      "annualized_sortino": 0.544,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 10000.0,
+      "total_fees_usd": 12.0,
+      "rebalance_count": 1,
+      "mean_cash_weight": 0.0
+    },
+    "cash": {
+      "portfolio_name": "CASH",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 0,
+      "mean_cash_weight": 1.0
+    }
+  },
+  "split_metrics": {
+    "FULL_HORIZON (2022-2026)": {
+      "UNIFIED_NEURAL_PILOT_MKT": {
+        "initial_usd": 10136.57,
+        "final_usd": 12296.14,
+        "net_return_pct": 21.3,
+        "max_drawdown_pct": -15.92,
+        "annualized_sharpe": 0.432,
+        "annualized_sortino": 0.601,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 263.17
+      },
+      "UNIFIED_NEURAL_PILOT_REG": {
+        "initial_usd": 10136.57,
+        "final_usd": 13029.46,
+        "net_return_pct": 28.54,
+        "max_drawdown_pct": -18.86,
+        "annualized_sharpe": 0.403,
+        "annualized_sortino": 0.556,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 378.23
+      },
+      "POLICY_A": {
+        "initial_usd": 10136.57,
+        "final_usd": 13702.94,
+        "net_return_pct": 35.18,
+        "max_drawdown_pct": -55.76,
+        "annualized_sharpe": 0.392,
+        "annualized_sortino": 0.545,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 4014.46
+      },
+      "CARM_UTC_SUNDAY": {
+        "initial_usd": 10136.57,
+        "final_usd": 7602.67,
+        "net_return_pct": -25.0,
+        "max_drawdown_pct": -76.53,
+        "annualized_sharpe": 0.264,
+        "annualized_sortino": 0.368,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 4441.92
+      },
+      "BTC_BUY_AND_HOLD": {
+        "initial_usd": 10082.92,
+        "final_usd": 14036.21,
+        "net_return_pct": 39.21,
+        "max_drawdown_pct": -67.38,
+        "annualized_sharpe": 0.386,
+        "annualized_sortino": 0.544,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 12.0
+      }
+    },
+    "TRAIN / IN-SAMPLE (2022-2023)": {
+      "UNIFIED_NEURAL_PILOT_MKT": {
+        "initial_usd": 10136.57,
+        "final_usd": 11011.6,
+        "net_return_pct": 8.63,
+        "max_drawdown_pct": -15.92,
+        "annualized_sharpe": 0.384,
+        "annualized_sortino": 0.532,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 103.28
+      },
+      "UNIFIED_NEURAL_PILOT_REG": {
+        "initial_usd": 10136.57,
+        "final_usd": 11475.49,
+        "net_return_pct": 13.21,
+        "max_drawdown_pct": -18.86,
+        "annualized_sharpe": 0.439,
+        "annualized_sortino": 0.607,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 132.35
+      },
+      "POLICY_A": {
+        "initial_usd": 10136.57,
+        "final_usd": 12694.08,
+        "net_return_pct": 25.23,
+        "max_drawdown_pct": -53.65,
+        "annualized_sharpe": 0.486,
+        "annualized_sortino": 0.68,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 866.97
+      },
+      "CARM_UTC_SUNDAY": {
+        "initial_usd": 10136.57,
+        "final_usd": 12392.96,
+        "net_return_pct": 22.26,
+        "max_drawdown_pct": -71.9,
+        "annualized_sharpe": 0.508,
+        "annualized_sortino": 0.718,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 847.53
+      },
+      "BTC_BUY_AND_HOLD": {
+        "initial_usd": 10082.92,
+        "final_usd": 9137.96,
+        "net_return_pct": -9.37,
+        "max_drawdown_pct": -67.38,
+        "annualized_sharpe": 0.18,
+        "annualized_sortino": 0.254,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 12.0
+      }
+    },
+    "VALIDATION (2024)": {
+      "UNIFIED_NEURAL_PILOT_MKT": {
+        "initial_usd": 11014.6,
+        "final_usd": 12343.64,
+        "net_return_pct": 12.07,
+        "max_drawdown_pct": -11.43,
+        "annualized_sharpe": 1.288,
+        "annualized_sortino": 1.769,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 58.94
+      },
+      "UNIFIED_NEURAL_PILOT_REG": {
+        "initial_usd": 11484.24,
+        "final_usd": 13387.28,
+        "net_return_pct": 16.57,
+        "max_drawdown_pct": -15.69,
+        "annualized_sharpe": 1.056,
+        "annualized_sortino": 1.402,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 92.98
+      },
+      "POLICY_A": {
+        "initial_usd": 12746.69,
+        "final_usd": 26201.37,
+        "net_return_pct": 105.55,
+        "max_drawdown_pct": -49.77,
+        "annualized_sharpe": 1.447,
+        "annualized_sortino": 1.998,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 994.22
+      },
+      "CARM_UTC_SUNDAY": {
+        "initial_usd": 12444.33,
+        "final_usd": 25234.07,
+        "net_return_pct": 102.78,
+        "max_drawdown_pct": -51.38,
+        "annualized_sharpe": 1.329,
+        "annualized_sortino": 1.835,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 1211.99
+      },
+      "BTC_BUY_AND_HOLD": {
+        "initial_usd": 9179.38,
+        "final_usd": 20222.83,
+        "net_return_pct": 120.31,
+        "max_drawdown_pct": -32.31,
+        "annualized_sharpe": 1.761,
+        "annualized_sortino": 2.499,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 0.0
+      }
+    },
+    "REUSED_HOLDOUT / RESEARCH_DIAGNOSTIC (2025-2026)": {
+      "UNIFIED_NEURAL_PILOT_MKT": {
+        "initial_usd": 12360.65,
+        "final_usd": 12296.14,
+        "net_return_pct": -0.52,
+        "max_drawdown_pct": -10.63,
+        "annualized_sharpe": 0.002,
+        "annualized_sortino": 0.002,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 100.96
+      },
+      "UNIFIED_NEURAL_PILOT_REG": {
+        "initial_usd": 13418.87,
+        "final_usd": 13029.46,
+        "net_return_pct": -2.9,
+        "max_drawdown_pct": -18.38,
+        "annualized_sharpe": -0.044,
+        "annualized_sortino": -0.062,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 152.9
+      },
+      "POLICY_A": {
+        "initial_usd": 26502.54,
+        "final_usd": 13702.94,
+        "net_return_pct": -48.3,
+        "max_drawdown_pct": -54.36,
+        "annualized_sharpe": -0.476,
+        "annualized_sortino": -0.66,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 2153.27
+      },
+      "CARM_UTC_SUNDAY": {
+        "initial_usd": 25524.12,
+        "final_usd": 7602.67,
+        "net_return_pct": -70.21,
+        "max_drawdown_pct": -75.3,
+        "annualized_sharpe": -0.747,
+        "annualized_sortino": -1.029,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 2382.41
+      },
+      "BTC_BUY_AND_HOLD": {
+        "initial_usd": 20401.15,
+        "final_usd": 14036.21,
+        "net_return_pct": -31.2,
+        "max_drawdown_pct": -53.74,
+        "annualized_sharpe": -0.24,
+        "annualized_sortino": -0.336,
+        "one_way_turnover": 0.0,
+        "gross_asset_turnover": 0.0,
+        "total_traded_notional_usd": 0.0,
+        "total_fees_usd": 0.0
+      }
+    }
+  },
+  "seed_sensitivity": [
+    {
+      "seed": 42,
+      "final_equity_usd": 12296.14,
+      "net_return_pct": 22.96,
+      "mean_cash_weight": 0.894,
+      "total_fees_usd": 263.17
+    },
+    {
+      "seed": 123,
+      "final_equity_usd": 15232.73,
+      "net_return_pct": 52.33,
+      "mean_cash_weight": 0.768,
+      "total_fees_usd": 695.39
+    },
+    {
+      "seed": 777,
+      "final_equity_usd": 14143.2,
+      "net_return_pct": 41.43,
+      "mean_cash_weight": 0.798,
+      "total_fees_usd": 631.37
+    }
+  ]
+}

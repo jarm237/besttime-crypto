@@ -36,7 +36,8 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from btc_scraper.research.carm_market_data import CANONICAL_UNIVERSE
 from btc_scraper.research.carm_reference_0d9f6660 import simulate_carm_top_momentum_strategy
-from btc_scraper.research.historical_data_loader import HistoricalDataLoader
+from btc_scraper.research.historical_data_loader import HistoricalDataLoader, compute_calendar_lookback_returns
+from btc_scraper.research.portfolio_accounting import compute_standardized_metrics, execute_rebalance_step
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("historical_replay")
@@ -98,6 +99,85 @@ def compute_metrics(
     }
 
 
+def replay_carm_step_modulo_next_open(
+    piv_close: pd.DataFrame,
+    symbols: List[str],
+    timestamps: pd.Index,
+    piv_open: Optional[pd.DataFrame] = None,
+    top_k: int = 3,
+    rebalance_interval_hours: int = 168,
+    causal_delay_bars: int = 2,
+    fee_bps: float = 12.0,
+    initial_capital_usd: float = 10000.0,
+) -> Dict[str, Any]:
+    """Replay CARM with t % 168 == 0 schedule, normalized to next-open execution.
+
+    Isolates the effect of execution price (open vs close) while preserving
+    exact 0d9f6660 step-modulo interval timing.
+    """
+    close_prices = piv_close.to_numpy()
+    open_prices = piv_open.to_numpy() if piv_open is not None else close_prices
+    T, N = close_prices.shape
+
+    # Causal 168h return evaluated at bar t-causal_delay_bars close
+    piv_past_168h = piv_close.pct_change(rebalance_interval_hours).shift(causal_delay_bars)
+
+    cash = initial_capital_usd
+    holdings = np.zeros(N)
+    equities: List[float] = []
+    fees_paid: List[float] = []
+    one_way_turnovers: List[float] = []
+    gross_asset_turnovers: List[float] = []
+    traded_notionals: List[float] = []
+    rebalance_count = 0
+
+    current_target_w = np.full(N, 1.0 / N)
+
+    for t in range(T):
+        is_scheduled = (t == 0) or (t % rebalance_interval_hours == 0)
+
+        if is_scheduled:
+            if t >= rebalance_interval_hours:
+                row = piv_past_168h.iloc[t]
+                if not row.isna().all():
+                    top_assets = row.nlargest(top_k).index
+                    current_target_w = np.zeros(N)
+                    for sym in top_assets:
+                        current_target_w[symbols.index(sym)] = 1.0 / top_k
+
+            holdings, cash, traded_vol, fee, to_1way, to_gross = execute_rebalance_step(
+                current_holdings=holdings,
+                current_cash=cash,
+                open_prices=open_prices[t],
+                target_weights=current_target_w,
+                target_cash_w=0.0,
+                fee_bps=fee_bps,
+            )
+            rebalance_count += 1
+            fees_paid.append(fee)
+            one_way_turnovers.append(to_1way)
+            gross_asset_turnovers.append(to_gross)
+            traded_notionals.append(traded_vol)
+        else:
+            fees_paid.append(0.0)
+            one_way_turnovers.append(0.0)
+            gross_asset_turnovers.append(0.0)
+            traded_notionals.append(0.0)
+
+        current_equity = cash + float(np.sum(holdings * close_prices[t]))
+        equities.append(current_equity)
+
+    return {
+        "equities": np.array(equities),
+        "fees_paid": np.array(fees_paid),
+        "one_way_turnover": float(np.sum(one_way_turnovers)),
+        "gross_asset_turnover": float(np.sum(gross_asset_turnovers)),
+        "total_traded_notional_usd": float(np.sum(traded_notionals)),
+        "total_fees": float(np.sum(fees_paid)),
+        "rebalance_count": rebalance_count,
+    }
+
+
 def replay_carm_utc_sunday(
     piv_close: pd.DataFrame,
     symbols: List[str],
@@ -109,29 +189,23 @@ def replay_carm_utc_sunday(
     fee_bps: float = 12.0,
     initial_capital_usd: float = 10000.0,
 ) -> Dict[str, Any]:
-    """Replay CARM with calendar Sunday 00:00:00 UTC anchor.
-    
-    Guarantees parity with forward observer:
-      - Inception at t=0: Allocates equal-weight 1/N at open_prices[0] (rebalance_count=1).
-      - Warmup check: If Sunday 00:00 UTC arrives before t >= 168 + causal_delay_bars,
-        the signal is not ready (REBALANCE_SKIPPED_SIGNAL_NOT_READY); holds inception equal-weight,
-        incurs 0 fees, 0 turnover, does not increment rebalance count.
-      - Execution at open: Signal evaluates closed bars up to t-causal_delay_bars, executes at open_prices[t].
-      - Mark-to-market valuation: Hourly marks evaluated at close_prices[t].
-    """
+    """Replay CARM with calendar Sunday 00:00:00 UTC anchor and calendar lookback verification."""
     close_prices = piv_close.to_numpy()
     open_prices = piv_open.to_numpy() if piv_open is not None else close_prices
     T, N = close_prices.shape
-    fee_rate = fee_bps / 10000.0
 
-    # Causal 168h return evaluated at bar t-causal_delay_bars close
-    piv_past_168h = piv_close.pct_change(rebalance_interval_hours).shift(causal_delay_bars)
+    # True calendar-verified lookback momentum
+    piv_past_168h = compute_calendar_lookback_returns(
+        piv_close, lookback_hours=rebalance_interval_hours, causal_delay_hours=causal_delay_bars
+    )
 
     cash = initial_capital_usd
     holdings = np.zeros(N)
     equities: List[float] = []
     fees_paid: List[float] = []
-    turnovers: List[float] = []
+    one_way_turnovers: List[float] = []
+    gross_asset_turnovers: List[float] = []
+    traded_notionals: List[float] = []
     rebalance_count = 0
 
     current_target_w = np.full(N, 1.0 / N)
@@ -141,62 +215,65 @@ def replay_carm_utc_sunday(
         is_sunday_00 = (ts.weekday() == 6 and ts.hour == 0)
         is_inception = (t == 0)
 
+        min_warmup = rebalance_interval_hours + causal_delay_bars
+        signal_ready = (t >= min_warmup)
+
         if is_inception:
-            # Inception into equal-weight at open price of bar 0
-            entry_fee = initial_capital_usd * fee_rate
-            investable = initial_capital_usd - entry_fee
-            holdings = (investable * current_target_w) / open_prices[0]
-            cash = 0.0
+            holdings, cash, traded_vol, fee, to_1way, to_gross = execute_rebalance_step(
+                current_holdings=holdings,
+                current_cash=cash,
+                open_prices=open_prices[0],
+                target_weights=current_target_w,
+                target_cash_w=0.0,
+                fee_bps=fee_bps,
+            )
             rebalance_count += 1
-            fees_paid.append(entry_fee)
-            turnovers.append(1.0)
-        else:
-            # Weekly rebalance evaluation
-            min_warmup = rebalance_interval_hours + causal_delay_bars
-            signal_ready = (t >= min_warmup)
+            fees_paid.append(fee)
+            one_way_turnovers.append(to_1way)
+            gross_asset_turnovers.append(to_gross)
+            traded_notionals.append(traded_vol)
+        elif is_sunday_00 and signal_ready:
+            row = piv_past_168h.iloc[t]
+            if not row.isna().all():
+                top_assets = row.nlargest(top_k).index
+                current_target_w = np.zeros(N)
+                for sym in top_assets:
+                    current_target_w[symbols.index(sym)] = 1.0 / top_k
 
-            if is_sunday_00 and signal_ready:
-                row = piv_past_168h.iloc[t]
-                # Check valid momentum scores
-                if not row.isna().all():
-                    top_assets = row.nlargest(top_k).index
-                    current_target_w = np.zeros(N)
-                    for sym in top_assets:
-                        current_target_w[symbols.index(sym)] = 1.0 / top_k
-
-                    asset_vals = holdings * open_prices[t]
-                    equity_before = cash + float(np.sum(asset_vals))
-                    current_w = asset_vals / max(equity_before, 1e-6)
-
-                    dw = float(np.sum(np.abs(current_target_w - current_w)))
-                    trade_vol = dw * equity_before
-                    fee = trade_vol * fee_rate
-
-                    post_fee_equity = equity_before - fee
-                    holdings = (post_fee_equity * current_target_w) / open_prices[t]
-                    cash = 0.0
-
-                    rebalance_count += 1
-                    fees_paid.append(fee)
-                    turnovers.append(dw)
-                else:
-                    # Signal not ready or invalid: skip rebalance
-                    fees_paid.append(0.0)
-                    turnovers.append(0.0)
+                holdings, cash, traded_vol, fee, to_1way, to_gross = execute_rebalance_step(
+                    current_holdings=holdings,
+                    current_cash=cash,
+                    open_prices=open_prices[t],
+                    target_weights=current_target_w,
+                    target_cash_w=0.0,
+                    fee_bps=fee_bps,
+                )
+                rebalance_count += 1
+                fees_paid.append(fee)
+                one_way_turnovers.append(to_1way)
+                gross_asset_turnovers.append(to_gross)
+                traded_notionals.append(traded_vol)
             else:
                 fees_paid.append(0.0)
-                turnovers.append(0.0)
+                one_way_turnovers.append(0.0)
+                gross_asset_turnovers.append(0.0)
+                traded_notionals.append(0.0)
+        else:
+            fees_paid.append(0.0)
+            one_way_turnovers.append(0.0)
+            gross_asset_turnovers.append(0.0)
+            traded_notionals.append(0.0)
 
-        # Mark-to-market valuation at end of hour t using close price
         current_equity = cash + float(np.sum(holdings * close_prices[t]))
         equities.append(current_equity)
 
     return {
         "equities": np.array(equities),
         "fees_paid": np.array(fees_paid),
-        "turnovers": np.array(turnovers),
+        "one_way_turnover": float(np.sum(one_way_turnovers)),
+        "gross_asset_turnover": float(np.sum(gross_asset_turnovers)),
+        "total_traded_notional_usd": float(np.sum(traded_notionals)),
         "total_fees": float(np.sum(fees_paid)),
-        "total_turnover": float(np.sum(turnovers)),
         "rebalance_count": rebalance_count,
     }
 
@@ -212,18 +289,25 @@ def replay_buy_and_hold(
     close_prices = piv_close.to_numpy() if hasattr(piv_close, "to_numpy") else np.asarray(piv_close)
     open_prices = (piv_open.to_numpy() if hasattr(piv_open, "to_numpy") else np.asarray(piv_open)) if piv_open is not None else close_prices
     T, N = close_prices.shape
-    fee_rate = fee_bps / 10000.0
 
-    entry_fee = initial_capital_usd * fee_rate
-    invested_equity = initial_capital_usd - entry_fee
-    holdings = (invested_equity * target_weights) / open_prices[0]
+    target_cash_w = max(0.0, 1.0 - float(np.sum(target_weights)))
+    holdings, cash, traded_vol, fee, to_1way, to_gross = execute_rebalance_step(
+        current_holdings=np.zeros(N),
+        current_cash=initial_capital_usd,
+        open_prices=open_prices[0],
+        target_weights=target_weights,
+        target_cash_w=target_cash_w,
+        fee_bps=fee_bps,
+    )
 
-    equities = np.sum(holdings * close_prices, axis=1)
+    equities = cash + np.sum(holdings * close_prices, axis=1)
 
     return {
         "equities": equities,
-        "total_fees": entry_fee,
-        "total_turnover": 1.0,
+        "total_fees": fee,
+        "one_way_turnover": to_1way,
+        "gross_asset_turnover": to_gross,
+        "total_traded_notional_usd": traded_vol,
         "rebalance_count": 1,
     }
 
@@ -278,24 +362,42 @@ def run_historical_replay(
     # 2. Run Baselines
     # Baseline 1: Cash
     cash_equities = np.full(T, initial_capital_usd)
-    m_cash = compute_metrics("CASH", pd.Series(cash_equities, index=timestamps), initial_capital_usd, 0.0, 0.0, 0)
+    m_cash = compute_standardized_metrics("CASH", pd.Series(cash_equities, index=timestamps), initial_capital_usd, 0.0, 0.0, 0.0, 0.0, 0, 1.0)
 
     # Baseline 2: BTC Buy & Hold (Executes at open[0], values at close[t])
     w_btc = np.zeros(N)
     w_btc[symbols.index("BTCUSDT")] = 1.0
     res_btc = replay_buy_and_hold(piv_close=piv_close, target_weights=w_btc, piv_open=piv_open, fee_bps=fee_bps, initial_capital_usd=initial_capital_usd)
-    m_btc = compute_metrics("BTC_BUY_AND_HOLD", pd.Series(res_btc["equities"], index=timestamps),
-                            initial_capital_usd, res_btc["total_fees"], res_btc["total_turnover"], res_btc["rebalance_count"])
+    m_btc = compute_standardized_metrics(
+        "BTC_BUY_AND_HOLD",
+        pd.Series(res_btc["equities"], index=timestamps),
+        initial_capital_usd,
+        res_btc["total_fees"],
+        res_btc["one_way_turnover"],
+        res_btc["gross_asset_turnover"],
+        res_btc["total_traded_notional_usd"],
+        res_btc["rebalance_count"],
+        0.0,
+    )
 
     # Baseline 3: Equal-Weight Buy & Hold (Executes at open[0], values at close[t])
     w_eq = np.full(N, 1.0 / N)
     res_eq = replay_buy_and_hold(piv_close=piv_close, target_weights=w_eq, piv_open=piv_open, fee_bps=fee_bps, initial_capital_usd=initial_capital_usd)
-    m_ew = compute_metrics("EQUAL_WEIGHT_BUY_AND_HOLD", pd.Series(res_eq["equities"], index=timestamps),
-                           initial_capital_usd, res_eq["total_fees"], res_eq["total_turnover"], res_eq["rebalance_count"])
+    m_ew = compute_standardized_metrics(
+        "EQUAL_WEIGHT_BUY_AND_HOLD",
+        pd.Series(res_eq["equities"], index=timestamps),
+        initial_capital_usd,
+        res_eq["total_fees"],
+        res_eq["one_way_turnover"],
+        res_eq["gross_asset_turnover"],
+        res_eq["total_traded_notional_usd"],
+        res_eq["rebalance_count"],
+        0.0,
+    )
 
-    # Baseline 4: CARM Reference (Step Modulo: t % 168 == 0, 0d9f6660 parity)
-    logger.info("Replaying Baseline 4: CARM Reference Step Modulo (0d9f6660 parity)...")
-    res_carm_ref = simulate_carm_top_momentum_strategy(
+    # Baseline 4: CARM Reference Step Modulo (0d9f6660 unmodified historical reference)
+    logger.info("Replaying Baseline 4: CARM Reference Step Modulo (0d9f6660 unmodified)...")
+    res_carm_ref_hist = simulate_carm_top_momentum_strategy(
         piv_close=piv_close,
         symbols=symbols,
         prices=prices,
@@ -306,17 +408,48 @@ def run_historical_replay(
         fee_bps=fee_bps,
         initial_capital_usd=initial_capital_usd,
     )
-    m_carm_ref = compute_metrics(
-        "CARM_REFERENCE_STEP_MODULO",
-        res_carm_ref["equity_series"],
+    # Reference reports 2-sided turnover
+    ref_gross_to = float(res_carm_ref_hist["total_turnover"])
+    ref_1way_to = ref_gross_to / 2.0
+    m_carm_ref_hist = compute_standardized_metrics(
+        "CARM_REF_STEP_MODULO_HISTORICAL",
+        res_carm_ref_hist["equity_series"],
         initial_capital_usd,
-        res_carm_ref["total_fees_paid_usd"],
-        res_carm_ref["total_turnover"],
-        res_carm_ref["rebalance_count"],
+        res_carm_ref_hist["total_fees_paid_usd"],
+        ref_1way_to,
+        ref_gross_to,
+        ref_gross_to * initial_capital_usd,
+        res_carm_ref_hist["rebalance_count"],
+        0.0,
     )
 
-    # Baseline 5: CARM UTC Sunday Anchor (Forward observer parity)
-    logger.info("Replaying Baseline 5: CARM UTC Sunday Anchor Variant...")
+    # Baseline 5: CARM Reference Step Modulo (Normalized Next-Open Execution)
+    logger.info("Replaying Baseline 5: CARM Reference Step Modulo (Normalized Next-Open)...")
+    res_carm_ref_open = replay_carm_step_modulo_next_open(
+        piv_close=piv_close,
+        symbols=symbols,
+        timestamps=timestamps,
+        piv_open=piv_open,
+        top_k=3,
+        rebalance_interval_hours=168,
+        causal_delay_bars=2,
+        fee_bps=fee_bps,
+        initial_capital_usd=initial_capital_usd,
+    )
+    m_carm_ref_open = compute_standardized_metrics(
+        "CARM_REF_STEP_MODULO_NEXT_OPEN",
+        pd.Series(res_carm_ref_open["equities"], index=timestamps),
+        initial_capital_usd,
+        res_carm_ref_open["total_fees"],
+        res_carm_ref_open["one_way_turnover"],
+        res_carm_ref_open["gross_asset_turnover"],
+        res_carm_ref_open["total_traded_notional_usd"],
+        res_carm_ref_open["rebalance_count"],
+        0.0,
+    )
+
+    # Baseline 6: CARM UTC Sunday Anchor (Forward observer parity)
+    logger.info("Replaying Baseline 6: CARM UTC Sunday Anchor Variant...")
     res_carm_sun = replay_carm_utc_sunday(
         piv_close=piv_close,
         symbols=symbols,
@@ -328,11 +461,20 @@ def run_historical_replay(
         fee_bps=fee_bps,
         initial_capital_usd=initial_capital_usd,
     )
-    m_carm_sun = compute_metrics("CARM_UTC_SUNDAY_CANONICAL", pd.Series(res_carm_sun["equities"], index=timestamps),
-                                 initial_capital_usd, res_carm_sun["total_fees"], res_carm_sun["total_turnover"], res_carm_sun["rebalance_count"])
+    m_carm_sun = compute_standardized_metrics(
+        "CARM_UTC_SUNDAY_CANONICAL",
+        pd.Series(res_carm_sun["equities"], index=timestamps),
+        initial_capital_usd,
+        res_carm_sun["total_fees"],
+        res_carm_sun["one_way_turnover"],
+        res_carm_sun["gross_asset_turnover"],
+        res_carm_sun["total_traded_notional_usd"],
+        res_carm_sun["rebalance_count"],
+        0.0,
+    )
 
     # Compute Excess Returns
-    metrics_list = [m_carm_sun, m_carm_ref, m_btc, m_ew, m_cash]
+    metrics_list = [m_carm_sun, m_carm_ref_open, m_carm_ref_hist, m_btc, m_ew, m_cash]
     btc_return = m_btc["net_return_pct"]
     cash_return = m_cash["net_return_pct"]
 
@@ -340,17 +482,17 @@ def run_historical_replay(
         m["excess_vs_btc_pct"] = round(m["net_return_pct"] - btc_return, 2)
         m["excess_vs_cash_pct"] = round(m["net_return_pct"] - cash_return, 2)
 
-    # 3. Build Markdown Scorecard Table
+    # 3. Build Standardized Markdown Scorecard Table
     scorecard_lines = [
-        "| Strategy / Baseline | Initial Capital ($) | Final Equity ($) | Net Return (%) | Max Drawdown (%) | Ann. Sharpe | Ann. Sortino | Turnover | Rebalances | Total Fees ($) | Excess vs BTC (%) | Excess vs Cash (%) |",
-        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+        "| Strategy / Baseline | Initial ($) | Final Equity ($) | Net Return (%) | Max Drawdown (%) | Ann. Sharpe | Ann. Sortino | One-Way TO | Gross Asset TO | Traded Vol ($) | Total Fees ($) | Excess vs BTC (%) | Excess vs Cash (%) |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
     ]
     for m in metrics_list:
         scorecard_lines.append(
             f"| **{m['portfolio_name']}** | ${m['initial_capital_usd']:,.2f} | ${m['final_equity_usd']:,.2f} | "
             f"**{'+' if m['net_return_pct'] >= 0 else ''}{m['net_return_pct']:.2f}%** | {m['max_drawdown_pct']:.2f}% | "
-            f"{m['annualized_sharpe']:.3f} | {m['annualized_sortino']:.3f} | {m['total_turnover']:.1f} | "
-            f"{m['rebalance_count']} | ${m['total_fees_usd']:,.2f} | "
+            f"{m['annualized_sharpe']:.3f} | {m['annualized_sortino']:.3f} | {m['one_way_turnover']:.1f} | "
+            f"{m['gross_asset_turnover']:.1f} | ${m['total_traded_notional_usd']:,.2f} | ${m['total_fees_usd']:,.2f} | "
             f"{'+' if m['excess_vs_btc_pct'] >= 0 else ''}{m['excess_vs_btc_pct']:.2f}% | "
             f"{'+' if m['excess_vs_cash_pct'] >= 0 else ''}{m['excess_vs_cash_pct']:.2f}% |"
         )
@@ -361,7 +503,8 @@ def run_historical_replay(
     btc_ret = m_btc["net_return_pct"]
     carm_vs_btc = m_carm_sun["excess_vs_btc_pct"]
     carm_fees = m_carm_sun["total_fees_usd"]
-    carm_to = m_carm_sun["total_turnover"]
+    carm_to_gross = m_carm_sun["gross_asset_turnover"]
+    carm_to_1way = m_carm_sun["one_way_turnover"]
     carm_rebal = m_carm_sun["rebalance_count"]
     carm_dd = m_carm_sun["max_drawdown_pct"]
     btc_dd = m_btc["max_drawdown_pct"]
@@ -409,7 +552,7 @@ def run_historical_replay(
    - While CARM generated positive momentum rotations in bull phases, the absence of an explicit cash filter forced 100% altcoin exposure into prolonged drawdowns.
 
 2. **Turnover & Fee Friction**:
-   - CARM UTC Sunday generated cumulative turnover of **{carm_to:.1f}** across **{carm_rebal} rebalances**, incurring **${carm_fees:,.2f}** in cumulative execution fees.
+   - CARM UTC Sunday generated cumulative turnover of **{carm_to_gross:.1f} gross asset turnover ({carm_to_1way:.1f} one-way)** across **{carm_rebal} rebalances**, incurring **${carm_fees:,.2f}** in cumulative execution fees.
    - Frequent rotation among volatile altcoins without persistence filtering degraded net capital efficiency.
 
 3. **Rebalance Alignment & Warmup Parity**:

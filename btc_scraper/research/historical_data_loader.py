@@ -353,3 +353,32 @@ class HistoricalDataLoader:
             symbols=self.universe,
             alignment_audit=alignment_audit,
         )
+
+
+def compute_calendar_lookback_returns(
+    piv_close: pd.DataFrame,
+    lookback_hours: int = 168,
+    causal_delay_hours: int = 2,
+) -> pd.DataFrame:
+    """Compute point-in-time percentage return using true calendar timestamp lookback.
+
+    Guarantees:
+      - Uses true UTC timestamp delta (ts - lookback) rather than row-offset indexing.
+      - Returns NaN for any bar where the required base timestamp is missing (e.g. 2023-03-24 Binance halt).
+      - Zero lookahead: evaluation bar is ts - causal_delay_hours.
+    """
+    ts_set = set(piv_close.index)
+    results: Dict[str, List[float]] = {sym: [] for sym in piv_close.columns}
+
+    # Vectorized fast calendar lookup using index alignment
+    t_eval_index = piv_close.index - pd.Timedelta(hours=causal_delay_hours)
+    t_base_index = t_eval_index - pd.Timedelta(hours=lookback_hours)
+
+    eval_df = piv_close.reindex(t_eval_index)
+    eval_df.index = piv_close.index
+
+    base_df = piv_close.reindex(t_base_index)
+    base_df.index = piv_close.index
+
+    mom_df = (eval_df / base_df) - 1.0
+    return mom_df

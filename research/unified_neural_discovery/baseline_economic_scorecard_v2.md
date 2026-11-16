@@ -10,13 +10,14 @@
 
 ## 1. Comparative Economic Scorecard
 
-| Strategy / Baseline | Initial Capital ($) | Final Equity ($) | Net Return (%) | Max Drawdown (%) | Ann. Sharpe | Ann. Sortino | Turnover | Rebalances | Total Fees ($) | Excess vs BTC (%) | Excess vs Cash (%) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **CARM_UTC_SUNDAY_CANONICAL** | $10,000.00 | $7,602.67 | **-23.97%** | -76.53% | 0.264 | 0.368 | 312.1 | 255 | $4,441.92 | -64.33% | -23.97% |
-| **CARM_REFERENCE_STEP_MODULO** | $10,000.00 | $11,732.88 | **+17.33%** | -69.89% | 0.395 | 0.549 | 316.1 | 255 | $5,017.23 | -23.03% | +17.33% |
-| **BTC_BUY_AND_HOLD** | $10,000.00 | $14,036.21 | **+40.36%** | -67.38% | 0.386 | 0.544 | 1.0 | 1 | $12.00 | +0.00% | +40.36% |
-| **EQUAL_WEIGHT_BUY_AND_HOLD** | $10,000.00 | $6,891.96 | **-31.08%** | -71.30% | 0.187 | 0.256 | 1.0 | 1 | $12.00 | -71.44% | -31.08% |
-| **CASH** | $10,000.00 | $10,000.00 | **+0.00%** | 0.00% | 0.000 | 0.000 | 0.0 | 0 | $0.00 | -40.36% | +0.00% |
+| Strategy / Baseline | Initial ($) | Final Equity ($) | Net Return (%) | Max Drawdown (%) | Ann. Sharpe | Ann. Sortino | One-Way TO | Gross Asset TO | Traded Vol ($) | Total Fees ($) | Excess vs BTC (%) | Excess vs Cash (%) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **CARM_UTC_SUNDAY_CANONICAL** | $10,000.00 | $7,602.67 | **-23.97%** | -76.53% | 0.264 | 0.368 | 156.6 | 312.1 | $3,701,599.47 | $4,441.92 | -64.33% | -23.97% |
+| **CARM_REF_STEP_MODULO_NEXT_OPEN** | $10,000.00 | $12,218.01 | **+22.18%** | -69.05% | 0.403 | 0.560 | 157.9 | 314.8 | $4,138,648.31 | $4,966.38 | -18.18% | +22.18% |
+| **CARM_REF_STEP_MODULO_HISTORICAL** | $10,000.00 | $11,732.88 | **+17.33%** | -69.89% | 0.395 | 0.549 | 158.1 | 316.1 | $3,161,200.00 | $5,017.23 | -23.03% | +17.33% |
+| **BTC_BUY_AND_HOLD** | $10,000.00 | $14,036.21 | **+40.36%** | -67.38% | 0.386 | 0.544 | 1.0 | 1.0 | $10,000.00 | $12.00 | +0.00% | +40.36% |
+| **EQUAL_WEIGHT_BUY_AND_HOLD** | $10,000.00 | $6,891.96 | **-31.08%** | -71.30% | 0.187 | 0.256 | 1.0 | 1.0 | $10,000.00 | $12.00 | -71.44% | -31.08% |
+| **CASH** | $10,000.00 | $10,000.00 | **+0.00%** | 0.00% | 0.000 | 0.000 | 0.0 | 0.0 | $0.00 | $0.00 | -40.36% | +0.00% |
 
 ---
 
@@ -27,7 +28,7 @@
    - While CARM generated positive momentum rotations in bull phases, the absence of an explicit cash filter forced 100% altcoin exposure into prolonged drawdowns.
 
 2. **Turnover & Fee Friction**:
-   - CARM UTC Sunday generated cumulative turnover of **312.1** across **255 rebalances**, incurring **$4,441.92** in cumulative execution fees.
+   - CARM UTC Sunday generated cumulative turnover of **312.1 gross asset turnover (156.6 one-way)** across **255 rebalances**, incurring **$4,441.92** in cumulative execution fees.
    - Frequent rotation among volatile altcoins without persistence filtering degraded net capital efficiency.
 
 3. **Rebalance Alignment & Warmup Parity**:

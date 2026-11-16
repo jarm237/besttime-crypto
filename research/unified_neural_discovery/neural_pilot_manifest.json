@@ -1,0 +1,79 @@
+{
+  "created_at_utc": "2026-11-16T20:09:02.651669+00:00",
+  "symbols": [
+    "ADAUSDT",
+    "BNBUSDT",
+    "BTCUSDT",
+    "ETHUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "SOLUSDT",
+    "XRPUSDT"
+  ],
+  "total_hourly_bars": 42739,
+  "total_weekly_decisions": 252,
+  "splits": {
+    "train": {
+      "start": "2022-01-01",
+      "end": "2023-12-31",
+      "decisions": 103
+    },
+    "validation": {
+      "start": "2024-01-01",
+      "end": "2024-12-31",
+      "decisions": 52
+    },
+    "reused_holdout": {
+      "start": "2025-01-01",
+      "end": "2026-11-16",
+      "decisions": 97
+    }
+  },
+  "feature_sets": {
+    "market_only_8f": [
+      "ret_24h",
+      "ret_72h",
+      "ret_168h",
+      "vol_24h",
+      "vol_168h",
+      "rel_mom_zscore",
+      "btc_rel_mom",
+      "market_breadth"
+    ],
+    "market_plus_regime_10f": [
+      "ret_24h",
+      "ret_72h",
+      "ret_168h",
+      "vol_24h",
+      "vol_168h",
+      "rel_mom_zscore",
+      "btc_rel_mom",
+      "market_breadth",
+      "btc_dist_sma168",
+      "btc_vol_168h"
+    ]
+  },
+  "preprocessing": {
+    "method": "Train-Only Standardization (Zero-Leakage)",
+    "train_mean": [
+      0.001285,
+      0.002443,
+      0.002659,
+      0.540921,
+      0.717736,
+      0.0,
+      -0.000688,
+      0.490291
+    ],
+    "train_std": [
+      0.029183,
+      0.076847,
+      0.112455,
+      0.410939,
+      0.37219,
+      1.0,
+      0.078522,
+      0.391308
+    ]
+  }
+}
