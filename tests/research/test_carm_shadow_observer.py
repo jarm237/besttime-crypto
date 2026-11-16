@@ -837,3 +837,22 @@ def test_corrupt_tail_restart_append_restart_preserves_valid_records(tmp_path: P
     assert ledger_2.records[1]["epoch_id"] == "EPOCH_20261116_02"
     assert ledger_2.records[1]["rebalance_status"] == "NONE"
 
+
+def test_concurrent_observer_directory_locking(tmp_path: Path):
+    """Verify that DirectoryLock blocks two concurrent observer instances in the same directory."""
+    from scripts.run_carm_forward_observation import DirectoryLock
+
+    lock_dir = tmp_path / "sandbox_epoch"
+    lock1 = DirectoryLock(lock_dir)
+    lock1.acquire()
+
+    # Second instance attempting to acquire lock in same directory must fail closed
+    lock2 = DirectoryLock(lock_dir)
+    with pytest.raises(RuntimeError, match="Concurrent execution blocked"):
+        lock2.acquire()
+
+    # Once lock1 releases, lock2 can acquire safely
+    lock1.release()
+    lock2.acquire()
+    lock2.release()
+

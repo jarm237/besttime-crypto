@@ -389,3 +389,32 @@ besttime-crypto/
 | [Phase7_Alternative_Data_Implementation_Plan_UPDATED.md](docs/phase7/Phase7_Alternative_Data_Implementation_Plan_UPDATED.md) | Phase 7 Alternative Data — Sprint 9 COMPLETE |
 | [Phase7_Parsebot_Farside_ETF_Flow_Frequency_Improvement_Plan.md](docs/phase7/Phase7_Parsebot_Farside_ETF_Flow_Frequency_Improvement_Plan.md) | ETF Flow cron schedule & MongoDB storage |
 | [scripts/SCHEDULE.md](scripts/SCHEDULE.md) | Hướng dẫn cron scheduling + Parse.bot ETF jobs |
+
+---
+
+## Hướng dẫn Vận hành CARM Shadow Observer (Manual Foreground Mode)
+
+Workstream B (`research/carm-shadow-observer`) vận hành hoàn toàn ở chế độ **Manual Foreground Mode** trực tiếp từ terminal PowerShell. Tuyệt đối không dùng daemon, background service, hoặc Windows Scheduled Task.
+
+### 1. Giám sát thủ công trực tiếp (Foreground Watch Loop)
+```powershell
+# Chạy vòng lặp quan sát trực tiếp, tick mỗi 60 giây (dừng an toàn bằng Ctrl+C)
+powershell -ExecutionPolicy Bypass -File scripts/watch_carm_observer.ps1
+
+# Chạy với chu kỳ tùy chỉnh (ví dụ mỗi 30 giây)
+powershell -ExecutionPolicy Bypass -File scripts/watch_carm_observer.ps1 -IntervalSeconds 30
+```
+
+### 2. Chạy đúng 1 tick kiểm tra (Single Step / On-Demand)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/watch_carm_observer.ps1 -Once
+# Hoặc gọi trực tiếp Python runner:
+py -3 scripts/run_carm_forward_observation.py --ticks 1
+```
+
+### 3. Nguyên tắc an toàn & Persistence
+- **Zero Real Trading**: `REAL_TRADING = False`, chỉ lấy dữ liệu Binance public ticker và closed 1h klines để cập nhật danh mục ảo.
+- **Exclusive Lock**: Tự động chặn chạy đồng thời (`.observer.lock`) để bảo vệ tính nhất quán của canonical state.
+- **Safe Stop**: Nhấn `Ctrl+C` dừng vòng lặp an toàn bất kỳ lúc nào; lần chạy tiếp theo tự động khôi phục chính xác từ state đã checkpoint mà không reset danh mục hay mất dữ liệu.
+- **Dữ liệu Canonical**: Lưu trữ tại `logs/carm_observer/canonical_epoch/` (`EPOCH_20261116_02`).
+

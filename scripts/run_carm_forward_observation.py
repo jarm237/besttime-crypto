@@ -25,6 +25,66 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
+class DirectoryLock:
+    """Exclusive filesystem lock preventing concurrent observer instances in the same directory."""
+
+    def __init__(self, directory: Path) -> None:
+        self.lock_path = directory / ".observer.lock"
+        self._file = None
+
+    def acquire(self) -> None:
+        self.lock_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self._file = open(self.lock_path, "a+", encoding="utf-8")
+            if sys.platform == "win32":
+                import msvcrt
+                msvcrt.locking(self._file.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(self._file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self._file.seek(0)
+            self._file.truncate()
+            self._file.write(f"pid={sys.platform}\nstarted_utc={datetime.now(timezone.utc).isoformat()}\n")
+            self._file.flush()
+        except (IOError, OSError) as e:
+            if self._file:
+                try:
+                    self._file.close()
+                except Exception:
+                    pass
+                self._file = None
+            raise RuntimeError(
+                f"Another observer process is currently active in {self.lock_path.parent}. "
+                f"Concurrent execution blocked to protect state integrity."
+            ) from e
+
+    def release(self) -> None:
+        if self._file is not None:
+            try:
+                if sys.platform == "win32":
+                    import msvcrt
+                    self._file.seek(0)
+                    msvcrt.locking(self._file.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(self._file.fileno(), fcntl.LOCK_UN)
+                self._file.close()
+            except Exception:
+                pass
+            self._file = None
+            try:
+                self.lock_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+
+    def __enter__(self) -> DirectoryLock:
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.release()
+
 # Ensure repository root is on sys.path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -91,28 +151,14 @@ def sync_closed_hourly_klines(
         return 0
 
 
-def run_forward_session(
+def _run_forward_session_impl(
+    state_dir: Path,
+    epoch_id: str,
     n_ticks: Optional[int] = 3,
     tick_delay_seconds: float = 2.0,
     probe_rebalance: bool = False,
     continuous: bool = False,
-    state_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """Execute authentic forward observation session with crash consistency."""
-    assert REAL_TRADING is False, "REAL_TRADING must be disabled"
-    assert LIVE_EXCHANGE_PERMISSION is False, "LIVE_EXCHANGE_PERMISSION must be disabled"
-    assert PRODUCTION_CANDIDATE is False, "PRODUCTION_CANDIDATE must be False"
-
-    if probe_rebalance:
-        epoch_id = "PROBE_EPOCH_SANDBOX"
-        state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "probe_sandbox")
-        logger.warning("FORCED PROBE MODE: Using isolated sandbox at %s with epoch %s", state_dir, epoch_id)
-    else:
-        epoch_id = "EPOCH_20261116_02"
-        state_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "canonical_epoch")
-        logger.info("CANONICAL FORWARD MODE: Using clean canonical epoch directory at %s with epoch %s", state_dir, epoch_id)
-
-    state_dir.mkdir(parents=True, exist_ok=True)
     state_file = state_dir / "carm_state.json"
     ledger_file = state_dir / "valuation_ledger.jsonl"
     rejected_file = state_dir / "rejected_observations.jsonl"
@@ -280,6 +326,39 @@ def run_forward_session(
     logger.info("Evidence snapshot written to %s", snapshot_file)
 
     return evidence_snapshot
+
+
+def run_forward_session(
+    n_ticks: Optional[int] = 3,
+    tick_delay_seconds: float = 2.0,
+    probe_rebalance: bool = False,
+    continuous: bool = False,
+    state_dir: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Execute authentic forward observation session with exclusive directory locking."""
+    assert REAL_TRADING is False, "REAL_TRADING must be disabled"
+    assert LIVE_EXCHANGE_PERMISSION is False, "LIVE_EXCHANGE_PERMISSION must be disabled"
+    assert PRODUCTION_CANDIDATE is False, "PRODUCTION_CANDIDATE must be False"
+
+    if probe_rebalance:
+        epoch_id = "PROBE_EPOCH_SANDBOX"
+        target_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "probe_sandbox")
+        logger.warning("FORCED PROBE MODE: Using isolated sandbox at %s with epoch %s", target_dir, epoch_id)
+    else:
+        epoch_id = "EPOCH_20261116_02"
+        target_dir = state_dir or (REPO_ROOT / "logs" / "carm_observer" / "canonical_epoch")
+        logger.info("CANONICAL FORWARD MODE: Using clean canonical epoch directory at %s with epoch %s", target_dir, epoch_id)
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    with DirectoryLock(target_dir):
+        return _run_forward_session_impl(
+            state_dir=target_dir,
+            epoch_id=epoch_id,
+            n_ticks=n_ticks,
+            tick_delay_seconds=tick_delay_seconds,
+            probe_rebalance=probe_rebalance,
+            continuous=continuous,
+        )
 
 
 if __name__ == "__main__":
