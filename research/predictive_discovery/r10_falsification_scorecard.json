@@ -1,0 +1,43 @@
+{
+  "original_policy": {
+    "net_return_pct": 37.46,
+    "sharpe": 0.884,
+    "max_drawdown_pct": -8.52
+  },
+  "pure_btc_sleeve": {
+    "net_return_pct": 23.57,
+    "sharpe": 0.723,
+    "max_drawdown_pct": -7.7
+  },
+  "equal_weight_sleeve": {
+    "net_return_pct": 31.82,
+    "sharpe": 0.835,
+    "max_drawdown_pct": -7.7
+  },
+  "temporal_permutation_null_distribution": {
+    "n_permutations": 500,
+    "mean_net_return_pct": 3.54,
+    "std_net_return_pct": 8.52,
+    "ci_95_net_return": [
+      -13.45,
+      21.73
+    ],
+    "mean_sharpe": 0.168,
+    "std_sharpe": 0.315,
+    "ci_95_sharpe": [
+      -0.464,
+      0.794
+    ],
+    "empirical_p_value_return": 0.0,
+    "empirical_p_value_sharpe": 0.012,
+    "percentile_rank_return": 100.0,
+    "percentile_rank_sharpe": 98.8
+  },
+  "circular_shift_null_distribution": {
+    "n_shifts": 252,
+    "mean_net_return_pct": 3.98,
+    "empirical_p_value_return": 0.0,
+    "empirical_p_value_sharpe": 0.0119
+  },
+  "scientific_verdict": "PREDICTIVE_CASH_TIMING_SUPPORTED"
+}
