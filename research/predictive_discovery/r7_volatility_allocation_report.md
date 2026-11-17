@@ -7,14 +7,17 @@
 
 ## 1. Executive Scientific Verdict
 
-### Final Verdict: **`VOL_TARGET_INCREMENTAL_VALUE_SUPPORTED`**
+### Final Verdict:
+- **`FULL_HORIZON_ADVANTAGE = OBSERVED`** (+58.22% vs +43.02% 50/50, Sharpe 0.482 vs 0.423)
+- **`OUT_OF_SAMPLE_INCREMENTAL_ALPHA = NOT_ESTABLISHED`** (Validation 2024: +58.52% vs +62.35% for static exposure-matched; Holdout 2025–2026: -18.73% vs -16.41%)
 
 > [!IMPORTANT]
 > **Definitive Economic Evaluation Finding**:
 > - **Vol Target (25% Target Vol, 5% Buffer)** delivered **+58.22% net return** with **Sharpe 0.482** and **MaxDD -42.54%**, paying **$542.43** in fees across **186 actual trades** (73.5% execution rate out of 253 checks).
 > - **Static 50/50 BTC/Cash Weekly** delivered **+43.02% net return** with **Sharpe 0.423** and **MaxDD -40.27%**, paying **$49.88** in fees.
 > - **Train-Calibrated Exposure-Matched Static Control (42.0% Cash)** delivered **+47.24% net return** with **Sharpe 0.422** and **MaxDD -45.42%**.
-> - **Economic Value Supported**: Volatility targeting successfully preserved capital during high-volatility drawdown regimes while participating in trend regimes.
+> - **Economic Mechanism & Regime Nuance**: Continuous volatility targeting outperformed static benchmarks over the full horizon primarily due to its performance in the 2022 bear market (+21.98% vs +7.76% for exposure-matched static), where realized volatility rose above 80% and the policy systematically scaled down BTC exposure. However, in out-of-sample Validation (2024: +58.52% vs +62.35%) and Reused Holdout (2025–2026: -18.73% vs -16.41%), volatility targeting slightly lagged the exposure-matched static control due to $33.2\times$ turnover and fee friction.
+> - **5% Buffer Efficiency Nuance**: The 5% buffer succeeded in suppressing 60 micro-trades and saving $32.70 in fees, but it did NOT improve net economic efficiency over unbuffered rebalancing (+58.22%, Sharpe 0.482 vs unbuffered +62.29%, Sharpe 0.500) because buffer delays slightly impeded timely beta re-entry.
 
 ---
 
@@ -78,12 +81,19 @@ Verifies strict causal timeline: features available strictly before open executi
 
 ---
 
-## 4. Analysis: 5% Transaction Buffer Efficacy
+## 4. Analysis: 5% Transaction Buffer & Execution Delay Sensitivity
 
 - **Trade Count Reduction**: The 5% buffer eliminated 60 unnecessary micro-trades (186 actual trades vs 246 unbuffered rebalances, a 24.4% reduction).
 - **Turnover Reduction**: One-way turnover decreased from 34.3x to 33.2x.
 - **Transaction Fees Saved**: Saved **$32.70** in fees (542.43 vs 575.13).
-- **Net Return Impact**: Net return changed from +62.29% to +58.22% (delta: -4.07%p).
+- **Net Economic Efficiency Verdict**: The buffer did NOT improve economic efficiency over unbuffered rebalancing. While fees were reduced, net return decreased from **+62.29% (Sharpe 0.500)** to **+58.22% (Sharpe 0.482)** because delaying rebalancing by 5% weight drift sacrificed timely beta exposure during sharp reversals.
+- **Execution-Delay Sensitivity (Zero-Latency Idealization Check)**:
+  - Evaluating same-boundary close-to-open execution is a zero-latency idealization.
+  - Adding a realistic **1-bar (1-hour) execution pipeline delay** (decision Sunday 00:00 UTC executed at Sunday 01:00 UTC open):
+    - Vol Target 25% (no buffer): Net return +58.43% (Sharpe 0.482, fees $577.10) vs 0-delay +62.29% (Sharpe 0.500).
+    - Even with a 1-hour delay, volatility targeting maintains robust economic viability and Sharpe > 0.48.
+- **Calendar Lookback Gap Handling**:
+  - The dataset contains 1 market-wide gap (`2023-03-24T13:00:00+00:00`). Realized volatility lookback verified across actual calendar intervals; the 1-hour gap does not materially alter weekly Sunday annualized volatility estimates.
 
 ---
 
