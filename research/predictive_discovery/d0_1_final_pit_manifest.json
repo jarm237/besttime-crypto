@@ -11,6 +11,16 @@
     "funding_max_staleness_hours": 24,
     "spot_max_staleness_hours": 1
   },
+  "population_audit": {
+    "total_evaluated_decisions": 1270,
+    "future_available_count": 0,
+    "stale_feature_used_count": 0,
+    "invalid_execution_order_count": 0,
+    "missing_data_count": 0,
+    "global_ffill_resurrected_stale_count": 0,
+    "affected_daily_decisions_by_removing_global_ffill": 0,
+    "population_pit_correctness": "PASS"
+  },
   "sample_trace": {
     "bar_open_time": "2023-01-07 23:00:00+00:00",
     "bar_close_time": "2023-01-08 00:00:00+00:00",

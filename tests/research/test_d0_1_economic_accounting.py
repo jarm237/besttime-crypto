@@ -237,3 +237,44 @@ def test_simulation_accounting_invariants_and_diagnostics():
     assert res["max_observed_risky_exposure"] <= 1.000001
     assert res["max_accounting_residual"] < 1e-4
     assert res["unbacked_leverage_detected"] is False
+
+
+def test_synthetic_gap_execution_and_mtm_ordering():
+    """Verify that execution orders execute strictly at current step's open price,
+    even during an overnight price gap (open[t] != close[t-1]), and mark-to-market
+    at close[t] values the post-trade portfolio without using pre-trade or stale prices.
+    """
+    dates = pd.date_range("2023-01-01", periods=2, freq="1D", tz="UTC")
+    # Day 0: Open 100, Close 100. Target weight 1.0 decided at end of day 0.
+    # Day 1: Overnight gap! Open 120, Close 130.
+    open_prices = np.array([100.0, 120.0])
+    close_prices = np.array([100.0, 130.0])
+    target_weights = np.array([1.0, 1.0])
+
+    res = simulate_causal_btc_portfolio(
+        timestamps=dates,
+        open_prices=open_prices,
+        close_prices=close_prices,
+        target_weights=target_weights,
+        policy_name="gap_test",
+        initial_capital_usd=10000.0,
+        fee_bps=12.0,
+    )
+
+    phi = 0.0012
+    # At Day 0: cash=10000, btc=0, equity=10000. Pending weight=1.0 set.
+    # At Day 1 Open: executes buy at $120.0 (NOT Day 0 Close $100.0).
+    expected_notional = 10000.0 / (1.0 + phi)
+    expected_units = expected_notional / 120.0
+    expected_fee = expected_notional * phi
+    expected_cash = 10000.0 - (expected_notional + expected_fee)
+    assert abs(expected_cash) < 1e-10
+
+    # At Day 1 Close: MTM at $130.0 (NOT $120.0 or $100.0)
+    expected_day1_equity = expected_cash + expected_units * 130.0
+    actual_day1_equity = res["equity_series"].iloc[1]
+    assert pytest.approx(actual_day1_equity, abs=1e-4) == expected_day1_equity
+    assert res["actual_trades_executed"] == 1
+    assert pytest.approx(res["total_fees_paid_usd"], abs=0.01) == expected_fee
+    assert res["min_observed_cash"] >= 0.0
+    assert res["max_accounting_residual"] < 1e-6

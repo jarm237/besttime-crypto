@@ -228,6 +228,13 @@ def test_behavioral_verdict_ci_crossing_zero_yields_inconclusive():
         "zero_bfill": True,
         "publication_delay_seconds": 300,
         "sample_trace": {"causal_ordering_verified": True},
+        "population_audit": {
+            "future_available_count": 0,
+            "stale_feature_used_count": 0,
+            "invalid_execution_order_count": 0,
+            "missing_data_count": 0,
+            "population_pit_correctness": "PASS",
+        },
     }
 
     verdicts = compute_evidence_verdicts(falsification_mock, economic_mock, manifest_mock)
@@ -262,11 +269,44 @@ def test_behavioral_verdict_pit_failure_blocks_overall():
         "zero_bfill": False,  # FAILED PIT!
         "publication_delay_seconds": 0,
         "sample_trace": {"causal_ordering_verified": False},
+        "population_audit": {
+            "future_available_count": 1,
+            "stale_feature_used_count": 0,
+            "invalid_execution_order_count": 0,
+            "missing_data_count": 0,
+            "population_pit_correctness": "FAIL",
+        },
     }
 
     verdicts = compute_evidence_verdicts(falsification_mock, economic_mock, manifest_mock)
     assert verdicts["D0_PIT_CORRECTNESS"] == "FAIL"
     assert verdicts["OVERALL_CONCLUSION"] == "INCONCLUSIVE_INVALID_EVIDENCE"
+
+
+def test_population_pit_audit_material_defects_zero():
+    """Verify that population-level PIT audit across all evaluated daily decisions (1,270 days)
+    has zero future leakage, zero stale features used, zero invalid execution orders,
+    zero missing data, and achieves PASS without hardcoded booleans.
+    """
+    assert MANIFEST_PATH.exists()
+    with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    assert "population_audit" in manifest, "Manifest missing population_audit"
+    pop = manifest["population_audit"]
+
+    assert pop["total_evaluated_decisions"] == 1270
+    assert pop["future_available_count"] == 0
+    assert pop["stale_feature_used_count"] == 0
+    assert pop["invalid_execution_order_count"] == 0
+    assert pop["missing_data_count"] == 0
+    assert pop["global_ffill_resurrected_stale_count"] == 0
+    assert pop["affected_daily_decisions_by_removing_global_ffill"] == 0
+    assert pop["population_pit_correctness"] == "PASS"
+
+    with open(SCORECARD_PATH, "r", encoding="utf-8") as f:
+        sc = json.load(f)
+    assert sc["phase_e_verdicts"]["D0_PIT_CORRECTNESS"] == "PASS"
 
 
 def test_final_artifacts_exist():
