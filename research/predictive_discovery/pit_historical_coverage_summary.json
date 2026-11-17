@@ -1,0 +1,75 @@
+{
+  "spot_ohlcv": {
+    "source": "Binance Spot Public API (1h closed bars)",
+    "symbols": [
+      "ADAUSDT",
+      "BNBUSDT",
+      "BTCUSDT",
+      "ETHUSDT",
+      "LINKUSDT",
+      "LTCUSDT",
+      "SOLUSDT",
+      "XRPUSDT"
+    ],
+    "bar_count": 42739,
+    "start_utc": "2022-01-01 00:00:00+00:00",
+    "end_utc": "2026-11-16 19:00:00+00:00",
+    "pit_validity": "STRICT_CAUSAL (close_time_ms <= extraction_time, open_time timestamped)",
+    "missing_hours_resolved": [
+      "2023-03-24T13:00:00+00:00"
+    ],
+    "coverage_train_2022_2023": "100%",
+    "coverage_val_2024": "100%",
+    "coverage_holdout_2025_2026": "100%",
+    "status": "VALIDATED_CANONICAL"
+  },
+  "funding_rates": {
+    "source": "data\\historical_funding_rates.parquet",
+    "symbols": [
+      "BTC",
+      "ETH",
+      "BNB"
+    ],
+    "row_count": 6579,
+    "start_utc": "2023-01-01 00:00:00+00:00",
+    "end_utc": "2024-12-31 16:00:00+00:00",
+    "pit_validity": "8h settlement timestamp",
+    "coverage_train_2022_2023": "PARTIAL (Starts 2023-01-01, missing 2022 entirely)",
+    "coverage_val_2024": "100%",
+    "coverage_holdout_2025_2026": "0% (Ends 2024-12-31)",
+    "status": "INCOMPLETE_RESTRICTED (Cannot be used across full horizon without severe truncation)"
+  },
+  "sentiment_fear_and_greed": {
+    "source": "data\\historical\\normalized\\sentiment\\fear_and_greed_2018_2026.parquet",
+    "row_count": 3201,
+    "start_utc": "2018-02-01 06:00:00+00:00",
+    "end_utc": "2026-11-10 06:00:00+00:00",
+    "pit_validity": "conservative_available_at_utc used for PIT lag",
+    "coverage_train_2022_2023": "100%",
+    "coverage_val_2024": "100%",
+    "coverage_holdout_2025_2026": "100% (Up to 2026-11-10)",
+    "status": "VALIDATED_PIT"
+  },
+  "macro_treasury_yields": {
+    "source": "data\\historical\\normalized\\macro\\treasury_yields_1990_2026.parquet",
+    "row_count": 9221,
+    "start_utc": "1990-01-02 22:00:00+00:00",
+    "end_utc": "2026-11-09 22:00:00+00:00",
+    "pit_validity": "conservative_available_at_utc used for market close quotation lag",
+    "coverage_train_2022_2023": "100%",
+    "coverage_val_2024": "100%",
+    "coverage_holdout_2025_2026": "100% (Up to 2026-11-09)",
+    "status": "VALIDATED_PIT"
+  },
+  "onchain_stablecoins": {
+    "source": "data\\historical\\normalized\\onchain\\stablecoins_2017_2026.parquet",
+    "row_count": 3269,
+    "start_utc": "2017-11-29",
+    "end_utc": "2026-11-10",
+    "pit_validity": "available_at used",
+    "coverage_train_2022_2023": "100%",
+    "coverage_val_2024": "100%",
+    "coverage_holdout_2025_2026": "100%",
+    "status": "VALIDATED_PIT"
+  }
+}
