@@ -1,0 +1,488 @@
+{
+  "metadata": {
+    "timestamp_utc": "2026-11-17T13:30:22.333710+00:00",
+    "analyzed_checkpoint": "Seed 101 (r11_factorized_model.pt)",
+    "aligned_horizon": "2022-01-16 00:00 UTC to 2026-11-16 19:00 UTC (42,379 hours, 253 decisions)",
+    "base_fee_bps": 12.0,
+    "train_calibrated_exposure": 0.5799
+  },
+  "phase_a_execution_fidelity": {
+    "baseline_delay_0h_replication": {
+      "reproduced_net_return_pct": 498.67,
+      "published_r11_net_return_pct": 498.68,
+      "numerical_delta_pct": -0.01,
+      "reproduced_sharpe": 1.002,
+      "published_r11_sharpe": 1.003,
+      "replication_status": "EXACT_PARITY_VERIFIED"
+    },
+    "causal_delayed_1h_evaluation": {
+      "causal_delayed_net_return_pct": 549.85,
+      "old_bugged_delayed_net_return_pct": 549.86,
+      "numerical_delta_vs_old_bugged_pct": -0.01,
+      "numerical_delta_vs_baseline_delay_0h_pct": 51.18,
+      "causal_delayed_sharpe": 1.037,
+      "causal_delayed_max_drawdown_pct": -53.25,
+      "causal_delayed_total_fees_usd": 14325.4
+    }
+  },
+  "phase_b_cost_parity_audit": {
+    "total_actual_fees_usd": 13447.09,
+    "total_surrogate_fees_usd": 8168.3,
+    "total_fee_understatement_usd": 5278.79,
+    "mean_fee_understatement_pct": 39.26,
+    "total_gross_asset_turnover": 195.84,
+    "total_one_way_turnover": 118.85,
+    "gross_to_one_way_ratio": 1.65,
+    "top_understated_decisions": [
+      {
+        "decision_index": 153,
+        "decision_time": "2024-12-22 00:00:00+00:00",
+        "pretrade_equity": 101656.12,
+        "actual_fee_usd": 158.2471,
+        "surrogate_fee_usd": 81.7268,
+        "fee_understatement_usd": 76.5203,
+        "fee_understatement_pct": 48.4,
+        "gross_asset_turnover": 1.2972,
+        "one_way_turnover": 0.67
+      },
+      {
+        "decision_index": 163,
+        "decision_time": "2025-03-02 00:00:00+00:00",
+        "pretrade_equity": 102596.28,
+        "actual_fee_usd": 151.135,
+        "surrogate_fee_usd": 76.0914,
+        "fee_understatement_usd": 75.0436,
+        "fee_understatement_pct": 49.7,
+        "gross_asset_turnover": 1.2276,
+        "one_way_turnover": 0.618
+      },
+      {
+        "decision_index": 190,
+        "decision_time": "2025-09-07 00:00:00+00:00",
+        "pretrade_equity": 97773.92,
+        "actual_fee_usd": 143.2291,
+        "surrogate_fee_usd": 73.7195,
+        "fee_understatement_usd": 69.5096,
+        "fee_understatement_pct": 48.5,
+        "gross_asset_turnover": 1.2208,
+        "one_way_turnover": 0.6283
+      },
+      {
+        "decision_index": 193,
+        "decision_time": "2025-09-28 00:00:00+00:00",
+        "pretrade_equity": 96142.38,
+        "actual_fee_usd": 143.3467,
+        "surrogate_fee_usd": 73.9204,
+        "fee_understatement_usd": 69.4263,
+        "fee_understatement_pct": 48.4,
+        "gross_asset_turnover": 1.2425,
+        "one_way_turnover": 0.6407
+      },
+      {
+        "decision_index": 164,
+        "decision_time": "2025-03-09 00:00:00+00:00",
+        "pretrade_equity": 91160.99,
+        "actual_fee_usd": 133.3374,
+        "surrogate_fee_usd": 67.3117,
+        "fee_understatement_usd": 66.0257,
+        "fee_understatement_pct": 49.5,
+        "gross_asset_turnover": 1.2189,
+        "one_way_turnover": 0.6153
+      }
+    ]
+  },
+  "phase_c_pnl_attribution": {
+    "full_coin_gross_pnl_usd": {
+      "XRPUSDT": 48331.99,
+      "SOLUSDT": 43854.95,
+      "ADAUSDT": 28880.62,
+      "BTCUSDT": -288.28,
+      "ETHUSDT": -1764.69,
+      "LINKUSDT": -11726.64,
+      "BNBUSDT": -17847.49,
+      "LTCUSDT": -25982.53
+    },
+    "train_coin_gross_pnl_usd": {
+      "SOLUSDT": 32549.94,
+      "ADAUSDT": 8561.76,
+      "LINKUSDT": 6168.56,
+      "XRPUSDT": 3075.55,
+      "ETHUSDT": 1113.31,
+      "BTCUSDT": 982.81,
+      "LTCUSDT": -184.81,
+      "BNBUSDT": -1216.26
+    },
+    "year_2023_coin_gross_pnl_usd": {
+      "SOLUSDT": 32251.13,
+      "ADAUSDT": 8440.49,
+      "LINKUSDT": 6484.79,
+      "XRPUSDT": 2009.59,
+      "BTCUSDT": 1100.02,
+      "ETHUSDT": 841.62,
+      "BNBUSDT": -876.88,
+      "LTCUSDT": -2070.76
+    },
+    "val_2024_coin_gross_pnl_usd": {
+      "ADAUSDT": 25174.4,
+      "XRPUSDT": 24046.61,
+      "SOLUSDT": 15682.3,
+      "BNBUSDT": 5626.61,
+      "ETHUSDT": 404.6,
+      "BTCUSDT": -2433.96,
+      "LTCUSDT": -11206.92,
+      "LINKUSDT": -11584.9
+    },
+    "holdout_coin_gross_pnl_usd": {
+      "XRPUSDT": 21209.83,
+      "BTCUSDT": 1162.87,
+      "ETHUSDT": -3282.6,
+      "SOLUSDT": -4377.29,
+      "ADAUSDT": -4855.55,
+      "LINKUSDT": -6310.3,
+      "LTCUSDT": -14590.8,
+      "BNBUSDT": -22257.83
+    },
+    "train_pnl_concentration": {
+      "total_train_gross_pnl_usd": 51050.86,
+      "top_5_weeks_gross_pnl_usd": 37636.99,
+      "top_5_weeks_share_pct": 73.7,
+      "top_10_weeks_gross_pnl_usd": 51159.0,
+      "top_10_weeks_share_pct": 100.2,
+      "top_weeks_detail": [
+        {
+          "decision_time": "2023-12-17 00:00:00+00:00",
+          "gross_pnl_usd": 16077.97,
+          "fee_usd": 56.01,
+          "net_pnl_usd": 16021.95,
+          "sol_pnl_usd": 16065.65,
+          "ada_pnl_usd": 0.53,
+          "link_pnl_usd": 3.21,
+          "cash_weight": 0.2427
+        },
+        {
+          "decision_time": "2023-01-08 00:00:00+00:00",
+          "gross_pnl_usd": 7171.24,
+          "fee_usd": 19.35,
+          "net_pnl_usd": 7151.89,
+          "sol_pnl_usd": 7131.29,
+          "ada_pnl_usd": 29.78,
+          "link_pnl_usd": 2.5,
+          "cash_weight": 0.354
+        },
+        {
+          "decision_time": "2023-07-09 00:00:00+00:00",
+          "gross_pnl_usd": 5241.54,
+          "fee_usd": 26.4,
+          "net_pnl_usd": 5215.13,
+          "sol_pnl_usd": 5220.18,
+          "ada_pnl_usd": 10.14,
+          "link_pnl_usd": 3.18,
+          "cash_weight": 0.2202
+        },
+        {
+          "decision_time": "2023-12-03 00:00:00+00:00",
+          "gross_pnl_usd": 4683.76,
+          "fee_usd": 42.11,
+          "net_pnl_usd": 4641.65,
+          "sol_pnl_usd": 2299.56,
+          "ada_pnl_usd": 1951.02,
+          "link_pnl_usd": 75.51,
+          "cash_weight": 0.2318
+        },
+        {
+          "decision_time": "2023-11-05 00:00:00+00:00",
+          "gross_pnl_usd": 4462.48,
+          "fee_usd": 46.65,
+          "net_pnl_usd": 4415.84,
+          "sol_pnl_usd": 632.88,
+          "ada_pnl_usd": 3741.01,
+          "link_pnl_usd": 22.57,
+          "cash_weight": 0.2992
+        },
+        {
+          "decision_time": "2023-10-15 00:00:00+00:00",
+          "gross_pnl_usd": 3450.01,
+          "fee_usd": 37.76,
+          "net_pnl_usd": 3412.25,
+          "sol_pnl_usd": 1624.63,
+          "ada_pnl_usd": 153.16,
+          "link_pnl_usd": 1158.66,
+          "cash_weight": 0.2213
+        },
+        {
+          "decision_time": "2023-03-12 00:00:00+00:00",
+          "gross_pnl_usd": 2801.39,
+          "fee_usd": 22.92,
+          "net_pnl_usd": 2778.47,
+          "sol_pnl_usd": 74.7,
+          "ada_pnl_usd": 37.2,
+          "link_pnl_usd": 40.24,
+          "cash_weight": 0.301
+        },
+        {
+          "decision_time": "2023-09-24 00:00:00+00:00",
+          "gross_pnl_usd": 2738.34,
+          "fee_usd": 32.0,
+          "net_pnl_usd": 2706.34,
+          "sol_pnl_usd": 8.62,
+          "ada_pnl_usd": 3.05,
+          "link_pnl_usd": 2715.1,
+          "cash_weight": 0.228
+        },
+        {
+          "decision_time": "2023-06-25 00:00:00+00:00",
+          "gross_pnl_usd": 2277.23,
+          "fee_usd": 32.36,
+          "net_pnl_usd": 2244.87,
+          "sol_pnl_usd": 6.84,
+          "ada_pnl_usd": 19.7,
+          "link_pnl_usd": 215.55,
+          "cash_weight": 0.3159
+        },
+        {
+          "decision_time": "2023-04-09 00:00:00+00:00",
+          "gross_pnl_usd": 2255.05,
+          "fee_usd": 10.4,
+          "net_pnl_usd": 2244.65,
+          "sol_pnl_usd": 420.79,
+          "ada_pnl_usd": 1063.54,
+          "link_pnl_usd": 141.41,
+          "cash_weight": 0.2636
+        }
+      ]
+    },
+    "fee_drag_analysis": {
+      "net_return_with_12bps_pct": 498.67,
+      "net_return_with_0bps_pct": 657.37,
+      "fee_drag_return_pct": 158.7,
+      "total_fees_paid_usd": 13446.96
+    },
+    "counterfactual_comparison": {
+      "A_original_r11": {
+        "portfolio_name": "COUNTERFACTUAL_A_ORIGINAL_R11",
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 59867.3,
+        "net_return_pct": 498.67,
+        "max_drawdown_pct": -54.55,
+        "annualized_sharpe": 1.002,
+        "annualized_sortino": 1.45,
+        "one_way_turnover": 118.85,
+        "gross_asset_turnover": 195.84,
+        "total_traded_notional_usd": 11205800.8,
+        "total_fees_usd": 13446.96,
+        "rebalance_count": 253,
+        "mean_cash_weight": 0.385,
+        "actual_trades_executed": 253,
+        "scheduled_rebalance_checks": 253,
+        "trade_execution_rate_pct": 100.0,
+        "mean_risky_exposure": 0.6151
+      },
+      "B_r11_cash_btc_sleeve": {
+        "portfolio_name": "COUNTERFACTUAL_B_R11_CASH_BTC_SLEEVE",
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 24014.9,
+        "net_return_pct": 140.15,
+        "max_drawdown_pct": -37.01,
+        "annualized_sharpe": 0.743,
+        "annualized_sortino": 1.059,
+        "one_way_turnover": 41.0,
+        "gross_asset_turnover": 41.0,
+        "total_traded_notional_usd": 857961.31,
+        "total_fees_usd": 1029.55,
+        "rebalance_count": 253,
+        "mean_cash_weight": 0.384,
+        "actual_trades_executed": 253,
+        "scheduled_rebalance_checks": 253,
+        "trade_execution_rate_pct": 100.0,
+        "mean_risky_exposure": 0.6158
+      },
+      "C_r11_cash_ew_sleeve": {
+        "portfolio_name": "COUNTERFACTUAL_C_R11_CASH_EW_SLEEVE",
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 18370.24,
+        "net_return_pct": 83.7,
+        "max_drawdown_pct": -48.73,
+        "annualized_sharpe": 0.515,
+        "annualized_sortino": 0.711,
+        "one_way_turnover": 41.79,
+        "gross_asset_turnover": 42.14,
+        "total_traded_notional_usd": 767922.68,
+        "total_fees_usd": 921.51,
+        "rebalance_count": 253,
+        "mean_cash_weight": 0.385,
+        "actual_trades_executed": 253,
+        "scheduled_rebalance_checks": 253,
+        "trade_execution_rate_pct": 100.0,
+        "mean_risky_exposure": 0.6149
+      },
+      "D_r11_selection_fixed_train_exp": {
+        "portfolio_name": "COUNTERFACTUAL_D_R11_SELECTION_FIXED_EXP",
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 27698.51,
+        "net_return_pct": 176.99,
+        "max_drawdown_pct": -50.86,
+        "annualized_sharpe": 0.694,
+        "annualized_sortino": 0.99,
+        "one_way_turnover": 92.05,
+        "gross_asset_turnover": 178.94,
+        "total_traded_notional_usd": 4637565.04,
+        "total_fees_usd": 5565.08,
+        "rebalance_count": 253,
+        "mean_cash_weight": 0.42,
+        "actual_trades_executed": 253,
+        "scheduled_rebalance_checks": 253,
+        "trade_execution_rate_pct": 100.0,
+        "mean_risky_exposure": 0.5798
+      },
+      "E_static_btc_fixed_train_exp": {
+        "portfolio_name": "COUNTERFACTUAL_E_STATIC_BTC_FIXED_EXP",
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 14723.77,
+        "net_return_pct": 47.24,
+        "max_drawdown_pct": -45.42,
+        "annualized_sharpe": 0.422,
+        "annualized_sortino": 0.596,
+        "one_way_turnover": 3.55,
+        "gross_asset_turnover": 3.55,
+        "total_traded_notional_usd": 42141.76,
+        "total_fees_usd": 50.57,
+        "rebalance_count": 253,
+        "mean_cash_weight": 0.42,
+        "actual_trades_executed": 253,
+        "scheduled_rebalance_checks": 253,
+        "trade_execution_rate_pct": 100.0,
+        "mean_risky_exposure": 0.5805
+      },
+      "annual_returns": {
+        "A_original_r11": {
+          "2022": 24.12,
+          "2023": 388.51,
+          "2024": 64.48,
+          "2025": -9.66,
+          "2026": -33.8
+        },
+        "B_r11_cash_btc_sleeve": {
+          "2022": -17.49,
+          "2023": 118.44,
+          "2024": 65.11,
+          "2025": -1.61,
+          "2026": -18.69
+        },
+        "C_r11_cash_ew_sleeve": {
+          "2022": -23.19,
+          "2023": 127.28,
+          "2024": 58.02,
+          "2025": -11.42,
+          "2026": -25.6
+        },
+        "D_r11_selection_fixed_train_exp": {
+          "2022": -21.65,
+          "2023": 233.6,
+          "2024": 69.74,
+          "2025": -11.24,
+          "2026": -29.91
+        },
+        "E_static_btc_fixed_train_exp": {
+          "2022": -39.47,
+          "2023": 78.11,
+          "2024": 62.35,
+          "2025": -2.72,
+          "2026": -14.16
+        }
+      },
+      "subperiod_returns": {
+        "A_original_r11": {
+          "train": 501.26,
+          "val": 64.48,
+          "holdout": -40.08
+        },
+        "B_r11_cash_btc_sleeve": {
+          "train": 80.13,
+          "val": 65.11,
+          "holdout": -19.88
+        },
+        "C_r11_cash_ew_sleeve": {
+          "train": 74.12,
+          "val": 58.02,
+          "holdout": -33.97
+        },
+        "D_r11_selection_fixed_train_exp": {
+          "train": 159.53,
+          "val": 69.74,
+          "holdout": -37.71
+        },
+        "E_static_btc_fixed_train_exp": {
+          "train": 7.76,
+          "val": 62.35,
+          "holdout": -16.41
+        }
+      }
+    }
+  },
+  "phase_d_seed_diagnostics": {
+    "seed_42": {
+      "net_return_pct": 401.97,
+      "annualized_sharpe": 0.981,
+      "max_drawdown_pct": -50.04,
+      "train_return_pct": 389.58,
+      "val_return_pct": 59.02,
+      "holdout_return_pct": -36.4,
+      "mean_cash_weight_pct": 50.1,
+      "mean_risky_exposure_pct": 49.9,
+      "gross_asset_turnover": 138.93,
+      "total_fees_usd": 7530.08,
+      "annual_returns": {
+        "2022": 14.55,
+        "2023": 329.31,
+        "2024": 59.02,
+        "2025": -13.88,
+        "2026": -26.27
+      }
+    },
+    "seed_101": {
+      "net_return_pct": 498.68,
+      "annualized_sharpe": 1.003,
+      "max_drawdown_pct": -54.55,
+      "train_return_pct": 501.26,
+      "val_return_pct": 64.48,
+      "holdout_return_pct": -40.08,
+      "mean_cash_weight_pct": 38.5,
+      "mean_risky_exposure_pct": 61.5,
+      "gross_asset_turnover": 195.84,
+      "total_fees_usd": 13447.09,
+      "annual_returns": {
+        "2022": 24.12,
+        "2023": 388.51,
+        "2024": 64.48,
+        "2025": -9.66,
+        "2026": -33.8
+      }
+    },
+    "seed_202": {
+      "net_return_pct": 11.13,
+      "annualized_sharpe": 0.229,
+      "max_drawdown_pct": -43.21,
+      "train_return_pct": -0.94,
+      "val_return_pct": 45.64,
+      "holdout_return_pct": -23.69,
+      "mean_cash_weight_pct": 50.0,
+      "mean_risky_exposure_pct": 50.0,
+      "gross_asset_turnover": 15.39,
+      "total_fees_usd": 198.18,
+      "annual_returns": {
+        "2022": -38.66,
+        "2023": 61.78,
+        "2024": 45.64,
+        "2025": -5.0,
+        "2026": -19.78
+      }
+    }
+  },
+  "phase_e_verdicts": {
+    "TRAIN_ALPHA_CONCENTRATION_OBSERVED": true,
+    "ASSET_SELECTION_INCREMENTAL_VALUE": "NOT_SUPPORTED",
+    "CASH_TIMING_INCREMENTAL_VALUE": "NOT_SUPPORTED",
+    "GENERALIZATION_NOT_ESTABLISHED": true,
+    "PRIMARY_VERDICT": "R11_TRAIN_RETURN_DRIVEN_BY_SOL_CONCENTRATION_NOT_GENERALIZED_ALPHA"
+  }
+}
