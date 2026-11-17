@@ -1,0 +1,19 @@
+{
+  "bnb_metrics_continuous_coverage": false,
+  "bnb_metrics_record_count": 27360,
+  "bnb_metrics_sampling_pattern": "576 rows/month (~2 days sampled per month)",
+  "bnb_funding_continuous_coverage": true,
+  "bnb_funding_settlement_count": 3831,
+  "sample_trace": {
+    "decision_timestamp": "2023-01-08 00:00:00+00:00",
+    "execution_timestamp": "2023-01-08 01:00:00+00:00",
+    "spot_observation_close_time": "2023-01-08 00:00:00+00:00",
+    "spot_btc_close": 16926.66,
+    "latest_funding_settlement_dt": "2023-01-08 00:00:00+00:00",
+    "latest_funding_rate": 5.657e-05,
+    "latest_metrics_snapshot_dt": "2023-01-08 00:00:00+00:00",
+    "latest_metrics_available_at": "2023-01-08 00:00:00+00:00",
+    "publication_delay_seconds": 300,
+    "causal_ordering_verified": true
+  }
+}
