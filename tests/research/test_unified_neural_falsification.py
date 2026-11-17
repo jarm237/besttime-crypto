@@ -161,3 +161,51 @@ def test_cost_aware_loss_with_drift_autograd():
             if p.grad.abs().sum() > 0:
                 has_grad = True
     assert has_grad is True
+
+
+def test_unified_neural_policy_fully_invested_risky_sleeve():
+    """Verify that allow_cash=False produces exactly [B, N] weights summing to 1.0."""
+    B, N, F = 4, 8, 8
+    model = UnifiedNeuralPolicy(num_assets=N, in_features=F, hidden_dim=16, allow_cash=False)
+    x = torch.randn(B, N, F)
+    weights = model(x)
+
+    assert weights.shape == (B, N)
+    assert (weights >= 0.0).all().item() is True
+    for b in range(B):
+        assert weights[b].sum().item() == pytest.approx(1.0, abs=1e-5)
+
+
+def test_cross_sectional_loss_autograd():
+    """Verify that compute_cross_sectional_loss with use_drift=True computes clean gradients."""
+    from btc_scraper.research.unified_neural_pilot import compute_cross_sectional_loss
+
+    W, N, F = 10, 8, 8
+    model = UnifiedNeuralPolicy(num_assets=N, in_features=F, hidden_dim=16, allow_cash=False)
+
+    x = torch.randn(W, N, F)
+    forward_rets = torch.randn(W, N) * 0.05
+    btc_rets = forward_rets[:, 2]
+
+    weights = model(x)
+    loss, excess, downside, turnover = compute_cross_sectional_loss(
+        weights=weights,
+        forward_returns=forward_rets,
+        benchmark_returns=btc_rets,
+        fee_bps=12.0,
+        lambda_turnover=0.002,
+        lambda_risk=0.5,
+        use_drift=True,
+    )
+
+    loss.backward()
+
+    has_grad = False
+    for p in model.parameters():
+        if p.grad is not None:
+            assert not torch.isnan(p.grad).any()
+            assert not torch.isinf(p.grad).any()
+            if p.grad.abs().sum() > 0:
+                has_grad = True
+    assert has_grad is True
+

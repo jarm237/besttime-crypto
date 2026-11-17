@@ -1,0 +1,57 @@
+{
+  "created_at_utc": "2026-11-17T08:11:15.823982+00:00",
+  "experiment": "neural_cross_sectional_alpha_discovery",
+  "first_valid_decision_time": "2022-01-16T00:00:00+00:00",
+  "first_valid_hour_index": 360,
+  "total_hourly_bars": 42739,
+  "clean_eval_hourly_bars": 42379,
+  "warmup_attribution": {
+    "period": "2022-01-01 to 2022-01-16",
+    "ew_8coin_net_return_pct": -2.86,
+    "ew_8coin_max_drawdown_pct": -16.13,
+    "btc_net_return_pct": -7.69,
+    "explanation": "In prior runs, 100% EW inception on 2022-01-01 contaminated the full-horizon Max DD (-15.92%) during pre-decision warmup."
+  },
+  "splits": {
+    "clean_horizon": {
+      "start": "2022-01-16",
+      "end": "2026-11-16"
+    },
+    "train": {
+      "start": "2022-01-16",
+      "end": "2023-12-31"
+    },
+    "validation": {
+      "start": "2024-01-01",
+      "end": "2024-12-31"
+    },
+    "reused_holdout": {
+      "start": "2025-01-01",
+      "end": "2026-11-16"
+    }
+  },
+  "feature_sets": {
+    "market_only_8f": [
+      "ret_24h",
+      "ret_72h",
+      "ret_168h",
+      "vol_24h",
+      "vol_168h",
+      "rel_mom_zscore",
+      "btc_rel_mom",
+      "market_breadth"
+    ],
+    "market_plus_regime_10f": [
+      "ret_24h",
+      "ret_72h",
+      "ret_168h",
+      "vol_24h",
+      "vol_168h",
+      "rel_mom_zscore",
+      "btc_rel_mom",
+      "market_breadth",
+      "btc_dist_sma168",
+      "btc_vol_168h"
+    ]
+  }
+}

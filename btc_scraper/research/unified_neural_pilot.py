@@ -33,11 +33,13 @@ class UnifiedNeuralPolicy(nn.Module):
         num_assets: int = 8,
         in_features: int = 8,
         hidden_dim: int = 32,
+        allow_cash: bool = True,
     ) -> None:
         super().__init__()
         self.num_assets = num_assets
         self.in_features = in_features
         self.hidden_dim = hidden_dim
+        self.allow_cash = allow_cash
 
         # 1. Shared Per-Asset Temporal/Feature Encoder
         self.asset_encoder = nn.Sequential(
@@ -54,12 +56,15 @@ class UnifiedNeuralPolicy(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
-        # 3. Dedicated Cash Allocation Head
-        self.cash_head = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.Tanh(),
-            nn.Linear(hidden_dim // 2, 1),
-        )
+        # 3. Dedicated Cash Allocation Head (optional)
+        if allow_cash:
+            self.cash_head = nn.Sequential(
+                nn.Linear(hidden_dim, hidden_dim // 2),
+                nn.Tanh(),
+                nn.Linear(hidden_dim // 2, 1),
+            )
+        else:
+            self.cash_head = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass.
@@ -68,8 +73,9 @@ class UnifiedNeuralPolicy(nn.Module):
             x: Input tensor of shape [batch_size, num_assets, in_features]
 
         Returns:
-            weights: Normalized weights [batch_size, num_assets + 1],
+            weights: If allow_cash=True: [batch_size, num_assets + 1],
                      where weights[:, :N] are asset weights and weights[:, -1] is cash weight.
+                     If allow_cash=False: [batch_size, num_assets] fully-invested risky sleeve weights.
         """
         B, N, F = x.shape
         # Encode each asset
@@ -83,12 +89,12 @@ class UnifiedNeuralPolicy(nn.Module):
         combined = torch.cat([h, m_expanded], dim=-1)  # [B, N, 2*hidden_dim]
         asset_logits = self.asset_head(combined).squeeze(-1)  # [B, N]
 
-        # Dedicated cash logit driven by market context
-        cash_logit = self.cash_head(m.squeeze(1))  # [B, 1]
-
-        # Joint allocation over [w_1, ..., w_N, w_cash]
-        joint_logits = torch.cat([asset_logits, cash_logit], dim=-1)  # [B, N+1]
-        weights = torch.softmax(joint_logits, dim=-1)  # [B, N+1]
+        if self.allow_cash and self.cash_head is not None:
+            cash_logit = self.cash_head(m.squeeze(1))  # [B, 1]
+            joint_logits = torch.cat([asset_logits, cash_logit], dim=-1)  # [B, N+1]
+            weights = torch.softmax(joint_logits, dim=-1)  # [B, N+1]
+        else:
+            weights = torch.softmax(asset_logits, dim=-1)  # [B, N]
 
         return weights
 
@@ -632,3 +638,172 @@ def train_shuffled_control(
         lambda_turnover=lambda_turnover,
         use_drift=use_drift,
     )
+
+
+def compute_cross_sectional_loss(
+    weights: torch.Tensor,
+    forward_returns: torch.Tensor,
+    benchmark_returns: Optional[torch.Tensor] = None,
+    fee_bps: float = 12.0,
+    lambda_turnover: float = 0.002,
+    lambda_risk: float = 0.5,
+    use_drift: bool = True,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Calculate cross-sectional relative performance objective for fully-invested risky sleeve.
+
+    Objective:
+      Maximize net excess return over benchmark after transaction costs,
+      penalize downside relative underperformance (semi-deviation below benchmark),
+      and penalize turnover.
+
+    Loss = - mean(net_excess_returns) + lambda_risk * sqrt(mean(min(0, net_excess_returns)^2)) + lambda_turnover * mean(turnover)
+
+    Args:
+        weights: [W, N] portfolio asset weights (summing to 1.0)
+        forward_returns: [W, N] forward asset returns over holding period
+        benchmark_returns: [W] benchmark returns (e.g. BTC returns). If None, uses universe Equal-Weight return.
+        fee_bps: Transaction fee in basis points
+        lambda_turnover: Penalty weight for turnover
+        lambda_risk: Penalty weight for relative downside semi-deviation
+        use_drift: Whether to compute pre-trade drift-adjusted turnover
+    """
+    fee_rate = fee_bps / 10000.0
+    W, N = forward_returns.shape
+
+    # Gross portfolio return across the N assets
+    gross_period_returns = torch.sum(weights * forward_returns, dim=-1)  # [W]
+
+    if benchmark_returns is None:
+        benchmark_returns = torch.mean(forward_returns, dim=-1)  # [W] (Equal-Weight)
+
+    if use_drift and W > 1:
+        # Pre-trade drifted asset weights: w_drift = w_i * (1 + r_i) / (1 + R_port)
+        denom = torch.clamp(1.0 + gross_period_returns[:-1, None], min=1e-4)  # [W-1, 1]
+        drifted_w = (weights[:-1] * (1.0 + forward_returns[:-1])) / denom     # [W-1, N]
+
+        # Turnover at rebalances 1..W-1: 0.5 * sum |w_t - w_drift,t-1|
+        turnover_steps = 0.5 * torch.sum(torch.abs(weights[1:] - drifted_w), dim=-1)  # [W-1]
+        # Inception turnover from equal-weight:
+        ew_init = torch.full((N,), 1.0 / N, device=weights.device)
+        turnover_0 = 0.5 * torch.sum(torch.abs(weights[0] - ew_init))
+        turnover = torch.cat([turnover_0.unsqueeze(0), turnover_steps], dim=0)  # [W]
+    else:
+        w_prev = torch.cat([torch.full((1, N), 1.0 / N, device=weights.device), weights[:-1]], dim=0)
+        turnover = 0.5 * torch.sum(torch.abs(weights - w_prev), dim=-1)
+
+    # Net portfolio return after fee drag
+    net_period_returns = gross_period_returns - (turnover * fee_rate)
+
+    # Net excess return over benchmark
+    net_excess_returns = net_period_returns - benchmark_returns
+
+    # Downside semi-deviation below benchmark (underperformance penalty)
+    neg_excess = torch.minimum(net_excess_returns, torch.zeros_like(net_excess_returns))
+    downside_dev = torch.sqrt(torch.mean(neg_excess**2) + 1e-8)
+
+    mean_excess_return = torch.mean(net_excess_returns)
+    mean_turnover = torch.mean(turnover)
+
+    loss = -mean_excess_return + (lambda_risk * downside_dev) + (lambda_turnover * mean_turnover)
+
+    return loss, mean_excess_return, downside_dev, mean_turnover
+
+
+def train_neural_risky_sleeve(
+    splits: DatasetSplits,
+    btc_idx: int,
+    hidden_dim: int = 32,
+    lr: float = 1e-3,
+    epochs: int = 50,
+    seed: int = 42,
+    fee_bps: float = 12.0,
+    lambda_risk: float = 0.5,
+    lambda_turnover: float = 0.002,
+    use_drift: bool = True,
+    temporal_shuffle: bool = False,
+    benchmark_type: str = "btc",  # "btc" or "equal_weight"
+) -> Tuple[UnifiedNeuralPolicy, Dict[str, List[float]]]:
+    """Train a fully-invested risky sleeve policy optimizing cross-sectional excess return.
+
+    Constraints:
+      - allow_cash=False: outputs [W, N] long-only weights summing to 1.0.
+      - If temporal_shuffle=True: permutes Train forward returns across weeks, breaking
+        the temporal association while preserving exact feature distributions and correlations.
+    """
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    num_assets = len(splits.symbols)
+    in_features = splits.train_x.shape[-1]
+
+    model = UnifiedNeuralPolicy(num_assets=num_assets, in_features=in_features, hidden_dim=hidden_dim, allow_cash=False)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    train_returns = splits.train_returns.clone()
+    if temporal_shuffle:
+        perm = torch.randperm(train_returns.shape[0])
+        train_returns = train_returns[perm]
+
+    if benchmark_type == "btc":
+        train_bench = train_returns[:, btc_idx]
+        val_bench = splits.val_returns[:, btc_idx]
+    else:
+        train_bench = torch.mean(train_returns, dim=-1)
+        val_bench = torch.mean(splits.val_returns, dim=-1)
+
+    history = {
+        "train_loss": [],
+        "val_loss": [],
+        "train_excess": [],
+        "val_excess": [],
+    }
+
+    best_val_loss = float("inf")
+    best_weights = None
+
+    for epoch in range(epochs):
+        model.train()
+        optimizer.zero_grad()
+
+        # Forward pass on train set
+        train_w = model(splits.train_x)  # [W_train, N]
+        loss, train_excess, train_dd, train_to = compute_cross_sectional_loss(
+            weights=train_w,
+            forward_returns=train_returns,
+            benchmark_returns=train_bench,
+            fee_bps=fee_bps,
+            lambda_turnover=lambda_turnover,
+            lambda_risk=lambda_risk,
+            use_drift=use_drift,
+        )
+
+        loss.backward()
+        optimizer.step()
+
+        # Validation evaluation (unshuffled)
+        model.eval()
+        with torch.no_grad():
+            val_w = model(splits.val_x)  # [W_val, N]
+            val_loss, val_excess, val_dd, val_to = compute_cross_sectional_loss(
+                weights=val_w,
+                forward_returns=splits.val_returns,
+                benchmark_returns=val_bench,
+                fee_bps=fee_bps,
+                lambda_turnover=lambda_turnover,
+                lambda_risk=lambda_risk,
+                use_drift=use_drift,
+            )
+
+        history["train_loss"].append(float(loss.item()))
+        history["val_loss"].append(float(val_loss.item()))
+        history["train_excess"].append(float(train_excess.item()))
+        history["val_excess"].append(float(val_excess.item()))
+
+        if float(val_loss.item()) < best_val_loss:
+            best_val_loss = float(val_loss.item())
+            best_weights = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+
+    if best_weights is not None:
+        model.load_state_dict(best_weights)
+
+    return model, history
