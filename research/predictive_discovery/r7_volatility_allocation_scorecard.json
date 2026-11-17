@@ -1,0 +1,614 @@
+{
+  "BENCHMARK_100PCT_CASH_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_100PCT_CASH_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 1.0,
+      "actual_trades_executed": 0,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 0.0
+    },
+    "sharpe_95_ci": [
+      0.0,
+      0.0
+    ],
+    "train_return_pct": 0.0,
+    "val_return_pct": 0.0,
+    "holdout_return_pct": 0.0,
+    "annual_returns": {
+      "2022": 0.0,
+      "2023": 0.0,
+      "2024": 0.0,
+      "2025": 0.0,
+      "2026": 0.0
+    }
+  },
+  "BENCHMARK_BTC_BUY_AND_HOLD_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_BTC_BUY_AND_HOLD_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15056.78,
+      "net_return_pct": 50.57,
+      "max_drawdown_pct": -67.38,
+      "annualized_sharpe": 0.42,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 10000.0,
+      "total_fees_usd": 12.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.0,
+      "actual_trades_executed": 1,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 0.4
+    },
+    "sharpe_95_ci": [
+      -0.446,
+      1.243
+    ],
+    "train_return_pct": -1.83,
+    "val_return_pct": 120.31,
+    "holdout_return_pct": -31.2,
+    "annual_returns": {
+      "2022": -61.59,
+      "2023": 155.8,
+      "2024": 120.31,
+      "2025": -7.15,
+      "2026": -26.03
+    }
+  },
+  "STATIC_BTC_CASH_50_50_WEEKLY_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "STATIC_BTC_CASH_50_50_WEEKLY_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14301.52,
+      "net_return_pct": 43.02,
+      "max_drawdown_pct": -40.27,
+      "annualized_sharpe": 0.423,
+      "annualized_sortino": 0.597,
+      "one_way_turnover": 3.55,
+      "gross_asset_turnover": 3.55,
+      "total_traded_notional_usd": 41567.99,
+      "total_fees_usd": 49.88,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.499,
+      "actual_trades_executed": 253,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 100.0
+    },
+    "sharpe_95_ci": [
+      -0.447,
+      1.239
+    ],
+    "train_return_pct": 8.12,
+    "val_return_pct": 52.54,
+    "holdout_return_pct": -13.79,
+    "annual_returns": {
+      "2022": -34.61,
+      "2023": 65.41,
+      "2024": 52.54,
+      "2025": -2.1,
+      "2026": -12.02
+    }
+  },
+  "STATIC_BTC_CASH_EXPOSURE_MATCHED_TRAIN_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "STATIC_BTC_CASH_EXPOSURE_MATCHED_TRAIN_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14723.77,
+      "net_return_pct": 47.24,
+      "max_drawdown_pct": -45.42,
+      "annualized_sharpe": 0.422,
+      "annualized_sortino": 0.596,
+      "one_way_turnover": 3.55,
+      "gross_asset_turnover": 3.55,
+      "total_traded_notional_usd": 42141.76,
+      "total_fees_usd": 50.57,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.42,
+      "actual_trades_executed": 253,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 100.0
+    },
+    "sharpe_95_ci": [
+      -0.447,
+      1.24
+    ],
+    "train_return_pct": 7.76,
+    "val_return_pct": 62.35,
+    "holdout_return_pct": -16.41,
+    "annual_returns": {
+      "2022": -39.47,
+      "2023": 78.11,
+      "2024": 62.35,
+      "2025": -2.72,
+      "2026": -14.16
+    }
+  },
+  "VOL_TARGET_25_NO_BUFFER_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_25_NO_BUFFER_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 16228.82,
+      "net_return_pct": 62.29,
+      "max_drawdown_pct": -42.48,
+      "annualized_sharpe": 0.5,
+      "annualized_sortino": 0.711,
+      "one_way_turnover": 34.32,
+      "gross_asset_turnover": 34.32,
+      "total_traded_notional_usd": 479276.31,
+      "total_fees_usd": 575.13,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.399,
+      "actual_trades_executed": 246,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 97.2
+    },
+    "sharpe_95_ci": [
+      -0.376,
+      1.321
+    ],
+    "train_return_pct": 23.74,
+    "val_return_pct": 59.82,
+    "holdout_return_pct": -18.5,
+    "annual_returns": {
+      "2022": -37.07,
+      "2023": 96.79,
+      "2024": 59.82,
+      "2025": -0.68,
+      "2026": -18.05
+    }
+  },
+  "VOL_TARGET_25_BUFFER_5PCT_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_25_BUFFER_5PCT_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15822.47,
+      "net_return_pct": 58.22,
+      "max_drawdown_pct": -42.54,
+      "annualized_sharpe": 0.482,
+      "annualized_sortino": 0.684,
+      "one_way_turnover": 33.24,
+      "gross_asset_turnover": 33.24,
+      "total_traded_notional_usd": 452028.77,
+      "total_fees_usd": 542.43,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.4,
+      "actual_trades_executed": 186,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 73.5
+    },
+    "sharpe_95_ci": [
+      -0.387,
+      1.311
+    ],
+    "train_return_pct": 21.98,
+    "val_return_pct": 58.52,
+    "holdout_return_pct": -18.73,
+    "annual_returns": {
+      "2022": -37.59,
+      "2023": 95.61,
+      "2024": 58.52,
+      "2025": -1.25,
+      "2026": -17.82
+    }
+  },
+  "VOL_TARGET_35_NO_BUFFER_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_35_NO_BUFFER_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15891.17,
+      "net_return_pct": 58.91,
+      "max_drawdown_pct": -52.84,
+      "annualized_sharpe": 0.445,
+      "annualized_sortino": 0.628,
+      "one_way_turnover": 33.71,
+      "gross_asset_turnover": 33.71,
+      "total_traded_notional_usd": 472315.83,
+      "total_fees_usd": 566.78,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.21,
+      "actual_trades_executed": 209,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 82.6
+    },
+    "sharpe_95_ci": [
+      -0.419,
+      1.285
+    ],
+    "train_return_pct": 15.94,
+    "val_return_pct": 90.08,
+    "holdout_return_pct": -28.58,
+    "annual_returns": {
+      "2022": -48.93,
+      "2023": 127.19,
+      "2024": 90.08,
+      "2025": -3.29,
+      "2026": -26.28
+    }
+  },
+  "VOL_TARGET_35_BUFFER_5PCT_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_35_BUFFER_5PCT_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15610.25,
+      "net_return_pct": 56.1,
+      "max_drawdown_pct": -53.25,
+      "annualized_sharpe": 0.435,
+      "annualized_sortino": 0.614,
+      "one_way_turnover": 32.44,
+      "gross_asset_turnover": 32.44,
+      "total_traded_notional_usd": 449112.2,
+      "total_fees_usd": 538.93,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.212,
+      "actual_trades_executed": 167,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 66.0
+    },
+    "sharpe_95_ci": [
+      -0.425,
+      1.271
+    ],
+    "train_return_pct": 15.36,
+    "val_return_pct": 88.63,
+    "holdout_return_pct": -28.95,
+    "annual_returns": {
+      "2022": -49.42,
+      "2023": 128.25,
+      "2024": 88.63,
+      "2025": -3.31,
+      "2026": -26.65
+    }
+  },
+  "VOL_TARGET_50_BUFFER_5PCT_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_50_BUFFER_5PCT_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 13396.26,
+      "net_return_pct": 33.96,
+      "max_drawdown_pct": -64.63,
+      "annualized_sharpe": 0.36,
+      "annualized_sortino": 0.506,
+      "one_way_turnover": 19.86,
+      "gross_asset_turnover": 19.86,
+      "total_traded_notional_usd": 230935.36,
+      "total_fees_usd": 277.12,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.069,
+      "actual_trades_executed": 89,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 35.2
+    },
+    "sharpe_95_ci": [
+      -0.482,
+      1.223
+    ],
+    "train_return_pct": -5.65,
+    "val_return_pct": 111.22,
+    "holdout_return_pct": -33.57,
+    "annual_returns": {
+      "2022": -61.54,
+      "2023": 145.51,
+      "2024": 111.22,
+      "2025": -6.7,
+      "2026": -28.93
+    }
+  },
+  "BENCHMARK_100PCT_CASH_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_100PCT_CASH_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 1.0,
+      "actual_trades_executed": 0,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 0.0
+    },
+    "sharpe_95_ci": [
+      0.0,
+      0.0
+    ],
+    "train_return_pct": 0.0,
+    "val_return_pct": 0.0,
+    "holdout_return_pct": 0.0,
+    "annual_returns": {
+      "2022": 0.0,
+      "2023": 0.0,
+      "2024": 0.0,
+      "2025": 0.0,
+      "2026": 0.0
+    }
+  },
+  "BENCHMARK_BTC_BUY_AND_HOLD_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_BTC_BUY_AND_HOLD_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15037.18,
+      "net_return_pct": 50.37,
+      "max_drawdown_pct": -67.38,
+      "annualized_sharpe": 0.42,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 10000.0,
+      "total_fees_usd": 25.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.0,
+      "actual_trades_executed": 1,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 0.4
+    },
+    "sharpe_95_ci": [
+      -0.446,
+      1.243
+    ],
+    "train_return_pct": -1.83,
+    "val_return_pct": 120.31,
+    "holdout_return_pct": -31.2,
+    "annual_returns": {
+      "2022": -61.59,
+      "2023": 155.8,
+      "2024": 120.31,
+      "2025": -7.15,
+      "2026": -26.03
+    }
+  },
+  "STATIC_BTC_CASH_50_50_WEEKLY_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "STATIC_BTC_CASH_50_50_WEEKLY_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14235.63,
+      "net_return_pct": 42.36,
+      "max_drawdown_pct": -40.32,
+      "annualized_sharpe": 0.419,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 3.55,
+      "gross_asset_turnover": 3.55,
+      "total_traded_notional_usd": 41461.13,
+      "total_fees_usd": 103.65,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.499,
+      "actual_trades_executed": 253,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 100.0
+    },
+    "sharpe_95_ci": [
+      -0.45,
+      1.236
+    ],
+    "train_return_pct": 7.92,
+    "val_return_pct": 52.41,
+    "holdout_return_pct": -13.9,
+    "annual_returns": {
+      "2022": -34.67,
+      "2023": 65.27,
+      "2024": 52.41,
+      "2025": -2.17,
+      "2026": -12.08
+    }
+  },
+  "STATIC_BTC_CASH_EXPOSURE_MATCHED_TRAIN_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "STATIC_BTC_CASH_EXPOSURE_MATCHED_TRAIN_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14655.87,
+      "net_return_pct": 46.56,
+      "max_drawdown_pct": -45.46,
+      "annualized_sharpe": 0.42,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 3.55,
+      "gross_asset_turnover": 3.55,
+      "total_traded_notional_usd": 42032.54,
+      "total_fees_usd": 105.08,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.42,
+      "actual_trades_executed": 253,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 100.0
+    },
+    "sharpe_95_ci": [
+      -0.45,
+      1.237
+    ],
+    "train_return_pct": 7.57,
+    "val_return_pct": 62.21,
+    "holdout_return_pct": -16.51,
+    "annual_returns": {
+      "2022": -39.53,
+      "2023": 77.96,
+      "2024": 62.21,
+      "2025": -2.78,
+      "2026": -14.21
+    }
+  },
+  "VOL_TARGET_25_NO_BUFFER_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_25_NO_BUFFER_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15520.32,
+      "net_return_pct": 55.2,
+      "max_drawdown_pct": -42.79,
+      "annualized_sharpe": 0.468,
+      "annualized_sortino": 0.664,
+      "one_way_turnover": 34.32,
+      "gross_asset_turnover": 34.32,
+      "total_traded_notional_usd": 466830.87,
+      "total_fees_usd": 1167.08,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.399,
+      "actual_trades_executed": 246,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 97.2
+    },
+    "sharpe_95_ci": [
+      -0.401,
+      1.295
+    ],
+    "train_return_pct": 21.36,
+    "val_return_pct": 58.52,
+    "holdout_return_pct": -19.83,
+    "annual_returns": {
+      "2022": -37.54,
+      "2023": 94.44,
+      "2024": 58.52,
+      "2025": -1.59,
+      "2026": -18.64
+    }
+  },
+  "VOL_TARGET_25_BUFFER_5PCT_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_25_BUFFER_5PCT_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15153.02,
+      "net_return_pct": 51.53,
+      "max_drawdown_pct": -42.83,
+      "annualized_sharpe": 0.45,
+      "annualized_sortino": 0.639,
+      "one_way_turnover": 33.24,
+      "gross_asset_turnover": 33.24,
+      "total_traded_notional_usd": 440675.24,
+      "total_fees_usd": 1101.69,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.4,
+      "actual_trades_executed": 186,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 73.5
+    },
+    "sharpe_95_ci": [
+      -0.416,
+      1.286
+    ],
+    "train_return_pct": 19.66,
+    "val_return_pct": 57.31,
+    "holdout_return_pct": -20.0,
+    "annual_returns": {
+      "2022": -38.04,
+      "2023": 93.28,
+      "2024": 57.31,
+      "2025": -2.12,
+      "2026": -18.38
+    }
+  },
+  "VOL_TARGET_35_NO_BUFFER_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_35_NO_BUFFER_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15209.56,
+      "net_return_pct": 52.1,
+      "max_drawdown_pct": -53.07,
+      "annualized_sharpe": 0.421,
+      "annualized_sortino": 0.594,
+      "one_way_turnover": 33.71,
+      "gross_asset_turnover": 33.71,
+      "total_traded_notional_usd": 460024.31,
+      "total_fees_usd": 1150.06,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.21,
+      "actual_trades_executed": 209,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 82.6
+    },
+    "sharpe_95_ci": [
+      -0.44,
+      1.265
+    ],
+    "train_return_pct": 13.86,
+    "val_return_pct": 88.08,
+    "holdout_return_pct": -29.6,
+    "annual_returns": {
+      "2022": -49.36,
+      "2023": 125.02,
+      "2024": 88.08,
+      "2025": -4.1,
+      "2026": -26.72
+    }
+  },
+  "VOL_TARGET_35_BUFFER_5PCT_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_35_BUFFER_5PCT_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14965.25,
+      "net_return_pct": 49.65,
+      "max_drawdown_pct": -53.47,
+      "annualized_sharpe": 0.412,
+      "annualized_sortino": 0.581,
+      "one_way_turnover": 32.44,
+      "gross_asset_turnover": 32.44,
+      "total_traded_notional_usd": 437866.35,
+      "total_fees_usd": 1094.67,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.212,
+      "actual_trades_executed": 167,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 66.0
+    },
+    "sharpe_95_ci": [
+      -0.444,
+      1.251
+    ],
+    "train_return_pct": 13.36,
+    "val_return_pct": 86.74,
+    "holdout_return_pct": -29.92,
+    "annual_returns": {
+      "2022": -49.83,
+      "2023": 126.13,
+      "2024": 86.74,
+      "2025": -4.1,
+      "2026": -27.06
+    }
+  },
+  "VOL_TARGET_50_BUFFER_5PCT_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "VOL_TARGET_50_BUFFER_5PCT_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 13054.68,
+      "net_return_pct": 30.55,
+      "max_drawdown_pct": -64.8,
+      "annualized_sharpe": 0.349,
+      "annualized_sortino": 0.49,
+      "one_way_turnover": 19.86,
+      "gross_asset_turnover": 19.86,
+      "total_traded_notional_usd": 227413.07,
+      "total_fees_usd": 568.53,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.069,
+      "actual_trades_executed": 89,
+      "scheduled_rebalance_checks": 253,
+      "trade_execution_rate_pct": 35.2
+    },
+    "sharpe_95_ci": [
+      -0.492,
+      1.212
+    ],
+    "train_return_pct": -6.69,
+    "val_return_pct": 109.91,
+    "holdout_return_pct": -34.06,
+    "annual_returns": {
+      "2022": -61.85,
+      "2023": 144.78,
+      "2024": 109.91,
+      "2025": -7.1,
+      "2026": -29.15
+    }
+  }
+}

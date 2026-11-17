@@ -292,21 +292,24 @@ def run_h3_economic_falsification(
     # Alternative data series
     fg_df = alt_data.get("fear_and_greed", None)
     fg_series = fg_df["value"].reindex(timestamps, method="ffill").fillna(50.0) if fg_df is not None else pd.Series(50.0, index=timestamps)
+    max_fg_time = fg_df.index.max() if fg_df is not None else timestamps[0]
 
     # Technical indicators
     sma168 = piv_close[btc_col].rolling(168, min_periods=84).mean()
     breadth = (piv_close > piv_close.rolling(168, min_periods=84).mean()).mean(axis=1)
 
-    # 1. H3 Decision Function
+    # 1. H3 Decision Function with Staleness Guard
     def policy_h3(t_feat: int) -> np.ndarray:
-        fg = fg_series.iloc[t_feat]
-        br = breadth.iloc[t_feat]
-        bp = piv_close.iloc[t_feat][btc_col]
-        bma = sma168.iloc[t_feat]
+        t_time = timestamps[t_feat]
+        fg_stale = (t_time > max_fg_time + pd.Timedelta(hours=24))
+        fg = 50.0 if fg_stale else float(fg_series.iloc[t_feat])
+        br = float(breadth.iloc[t_feat])
+        bp = float(piv_close.iloc[t_feat][btc_col])
+        bma = float(sma168.iloc[t_feat])
         w = np.zeros(N, dtype=np.float64)
-        if fg < 30.0 and br >= 0.25:
+        if not fg_stale and fg < 30.0 and br >= 0.25:
             w[btc_idx] = 0.50
-        elif fg >= 30.0 and bp > bma:
+        elif (fg >= 30.0 or fg_stale) and bp > bma:
             w[btc_idx] = 1.0
         return w
 
@@ -362,21 +365,76 @@ def run_h3_economic_falsification(
     def policy_ew(t_feat: int) -> np.ndarray:
         return np.ones(N, dtype=np.float64) / N
 
-    # 9. Temporal Negative Control (Weekly Permuted H3 Decisions)
-    rng = np.random.RandomState(42)
+    # 9. Temporal Negative Control (Multi-Seed Permutation Distribution)
     h3_all_decisions = [policy_h3(t - 1) for t in decision_indices]
-    permuted_h3_decisions = list(h3_all_decisions)
-    rng.shuffle(permuted_h3_decisions)
 
-    def policy_temporal_null(step_idx: int) -> np.ndarray:
-        return permuted_h3_decisions[step_idx % len(permuted_h3_decisions)]
+    def run_permutation_distribution(fee_bps: float, n_seeds: int = 50) -> Dict[str, Any]:
+        null_returns = []
+        null_sharpes = []
+        null_drawdowns = []
+        for seed in range(101, 101 + n_seeds):
+            rng = np.random.RandomState(seed)
+            shuffled = list(h3_all_decisions)
+            rng.shuffle(shuffled)
+            
+            cash = 10000.0
+            holdings = np.zeros(N, dtype=np.float64)
+            hourly_equities = []
+            total_fees = 0.0
+            gross_to = 0.0
+            one_way_to = 0.0
+            dec_cnt = 0
+            
+            for t in range(start_idx, len(timestamps)):
+                if t in dec_set:
+                    w = shuffled[dec_cnt % len(shuffled)]
+                    target_cash_w = max(0.0, 1.0 - float(np.sum(w)))
+                    holdings, cash, traded_vol, fee, to_1way, to_gross = execute_rebalance_step(
+                        current_holdings=holdings,
+                        current_cash=cash,
+                        open_prices=open_arr[t],
+                        target_weights=w,
+                        target_cash_w=target_cash_w,
+                        fee_bps=fee_bps,
+                    )
+                    total_fees += fee
+                    gross_to += to_gross
+                    one_way_to += to_1way
+                    dec_cnt += 1
+                eq = cash + float(np.sum(holdings * close_arr[t]))
+                hourly_equities.append(eq)
+                
+            eq_s = pd.Series(hourly_equities)
+            fin_eq = float(eq_s.iloc[-1])
+            net_ret = (fin_eq / 10000.0 - 1.0) * 100.0
+            peaks = np.maximum(10000.0, eq_s.cummax())
+            max_dd = float(((eq_s - peaks) / peaks * 100.0).min())
+            rets = eq_s.pct_change().dropna()
+            sh = float((rets.mean() / (rets.std() + 1e-8)) * np.sqrt(8760.0))
+            null_returns.append(net_ret)
+            null_sharpes.append(sh)
+            null_drawdowns.append(max_dd)
+            
+        return {
+            "n_seeds": n_seeds,
+            "seeds": list(range(101, 101 + n_seeds)),
+            "returns_mean": round(float(np.mean(null_returns)), 2),
+            "returns_median": round(float(np.median(null_returns)), 2),
+            "returns_std": round(float(np.std(null_returns)), 2),
+            "returns_p5": round(float(np.percentile(null_returns, 5)), 2),
+            "returns_p95": round(float(np.percentile(null_returns, 95)), 2),
+            "sharpe_mean": round(float(np.mean(null_sharpes)), 3),
+            "sharpe_median": round(float(np.median(null_sharpes)), 3),
+            "maxdd_mean": round(float(np.mean(null_drawdowns)), 2),
+            "maxdd_median": round(float(np.median(null_drawdowns)), 2),
+            "all_returns": [round(r, 2) for r in null_returns],
+        }
 
     # Causal Simulation Engine
     def simulate_causal_engine(
         policy_fn: Any,
         fee_bps: float,
         sim_name: str,
-        is_permutation_null: bool = False,
     ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
         cash = 10000.0
         holdings = np.zeros(N, dtype=np.float64)
@@ -395,10 +453,7 @@ def run_h3_economic_falsification(
             # Strictly Causal Rebalance at Bar Open
             if t in dec_set:
                 # Signal uses strictly closed data up to t - 1
-                if is_permutation_null:
-                    w = policy_temporal_null(dec_counter)
-                else:
-                    w = policy_fn(t - 1)
+                w = policy_fn(t - 1)
 
                 target_cash_w = max(0.0, 1.0 - float(np.sum(w)))
 
@@ -417,11 +472,14 @@ def run_h3_economic_falsification(
                 one_way_to += to_1way
                 rebalance_count += 1
 
-                if len(trace_steps) < 3 and "H3" in sim_name and fee_bps == 12.0 and not is_permutation_null:
+                if len(trace_steps) < 3 and "H3" in sim_name and fee_bps == 12.0:
                     trace_steps.append({
                         "decision_index": dec_counter,
-                        "decision_timestamp": str(timestamps[t]),
-                        "features_cutoff_timestamp": str(timestamps[t - 1] + pd.Timedelta(hours=1)),
+                        "decision_time": str(timestamps[t]),
+                        "execution_time": str(timestamps[t]),
+                        "source_bar_open_time": str(timestamps[t - 1]),
+                        "source_bar_close_time": str(timestamps[t - 1] + pd.Timedelta(hours=1)),
+                        "feature_available_at": str(timestamps[t - 1] + pd.Timedelta(hours=1)),
                         "target_btc_weight": round(float(w[btc_idx]), 4),
                         "target_cash_weight": round(target_cash_w, 4),
                         "open_execution_price_btc": round(float(open_arr[t, btc_idx]), 2),
@@ -510,11 +568,17 @@ def run_h3_economic_falsification(
             if traces and not master_traces:
                 master_traces = traces
 
-        # Temporal negative control for H3
-        null_key = f"H3_TEMPORAL_NEGATIVE_CONTROL_{fee_label}"
-        logger.info("Simulating %s...", null_key)
-        sc_null, _ = simulate_causal_engine(policy_h3, fee_bps, null_key, is_permutation_null=True)
-        falsification_scorecard[null_key] = sc_null
+        # Multi-seed Temporal Permutation Distribution for H3 (50 deterministic seeds)
+        logger.info("Running 50-seed temporal permutation distribution for %s...", fee_label)
+        null_dist = run_permutation_distribution(fee_bps, n_seeds=50)
+        h3_key = f"H3_BREADTH_PLUS_SENTIMENT_{fee_label}"
+        h3_ret = falsification_scorecard[h3_key]["standard_metrics"]["net_return_pct"]
+        h3_percentile = float(np.mean([r <= h3_ret for r in null_dist["all_returns"]]) * 100.0)
+        null_dist["h3_actual_net_return_pct"] = h3_ret
+        null_dist["h3_percentile_in_null_distribution"] = round(h3_percentile, 1)
+        
+        null_key = f"H3_TEMPORAL_PERMUTATION_NULL_DISTRIBUTION_{fee_label}"
+        falsification_scorecard[null_key] = null_dist
 
     with open(OUTPUT_DIR / "r6_corrected_scorecard.json", "w", encoding="utf-8") as f:
         json.dump(falsification_scorecard, f, indent=2)
@@ -548,8 +612,8 @@ def render_corrected_falsification_report(
     lines.append("")
     lines.append("> [!IMPORTANT]")
     lines.append("> **Definitive Economic Falsification Finding**:")
-    lines.append("> Under strictly causal execution, **H3 (Breadth + Sentiment) delivered -2.38% net return with Sharpe 0.134**, compared to **+41.84% net return with Sharpe 0.423** for the Exposure-Matched Static Control (48.06% BTC / 51.94% Cash calibrated on Train+Val).")
-    lines.append("> - **H3's apparent drawdown reduction (-39.51% vs -67.38% for BTC) is 100% an artifact of high cash allocation (averaging 54% cash), NOT predictive timing alpha.** The exposure-matched static benchmark holding the exact same average cash achieved an identical Max Drawdown (**-38.97%**) with zero timing turnover.")
+    lines.append("> Under strictly causal execution, **H3 (Breadth + Sentiment) delivered -2.38% net return with Sharpe 0.134**, compared to **+41.84% net return with Sharpe 0.423** for the Exposure-Matched Static Control (48.06% BTC / 51.94% Cash calibrated on Train+Val; In-Sample Reference).")
+    lines.append("> - **H3 failed to demonstrate incremental value over static exposure in the experiment**: its realized MaxDD (-39.51%) was virtually indistinguishable from the static exposure-matched benchmark (-38.97%), demonstrating that the risk reduction was driven by the average cash exposure (~54%) rather than timing skill.")
     lines.append("> - In every single period—Train (2022-2023), Validation (2024), and Reused Holdout (2025-2026)—H3 underperformed the static exposure-matched benchmark by large margins (-13.5% in Train, -17.9% in Val, -8.8% in Holdout).")
     lines.append("> - Incorporating Fear & Greed destroyed economic value: `Breadth-Only` produced **+12.36%**, whereas adding Sentiment in H3 dragged performance down to **-2.38%** due to buying into falling knives and severe transaction fee drag ($\\$1,457.80$).")
     lines.append("")
@@ -559,21 +623,22 @@ def render_corrected_falsification_report(
     lines.append("## 2. Phase 1 — Causal Execution Fidelity & Execution Trace")
     lines.append("")
     lines.append("### Strict Event Sequence Definition:")
-    lines.append("1. **Decision Time**: Weekly boundary at Sunday 00:00:00 UTC (bar index $t_{\\text{dec}}$).")
-    lines.append("2. **Information Cutoff**: Features evaluate strictly on closed bars up to $t_{\\text{dec}} - 1$ (Saturday 23:00 UTC).")
-    lines.append("3. **Execution**: Target order executes at `open[t_dec]` (Sunday 00:00:00 UTC) with fee deducted from cash.")
-    lines.append("4. **Mark-to-Market**: Hourly equity at `close[t]` evaluates using the exact holdings active during that hour.")
+    lines.append("1. **Decision Time**: Weekly boundary at Sunday 00:00:00 UTC (`decision_time`).")
+    lines.append("2. **Execution Time**: Target order executes at Sunday 00:00:00 UTC open price (`execution_time`).")
+    lines.append("3. **Source Bar Interval**: Closed bar $[t_{\\text{dec}}-1, t_{\\text{dec}})$, spanning from `source_bar_open_time` (Saturday 23:00 UTC) to `source_bar_close_time` (Sunday 00:00 UTC).")
+    lines.append("4. **Feature Availability**: Features become strictly available at `feature_available_at` (Sunday 00:00:00 UTC), coinciding with closed bar close.")
+    lines.append("5. **Mark-to-Market**: Hourly equity at `close[t]` evaluates using the exact holdings active during that hour.")
     lines.append("")
     lines.append("### Point-in-Time Execution Trace (First 3 Decisions):")
     lines.append("")
-    lines.append("| Decision # | Decision Time (UTC) | Feature Cutoff (UTC) | Target BTC W | Target Cash W | Open Exec Price ($) | Traded Notional ($) | Fee Paid ($) | Post Cash ($) | Post BTC Units | Close Valuation Price ($) | Post Close Equity ($) |")
-    lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
+    lines.append("| Decision # | Decision Time (UTC) | Exec Time (UTC) | Source Bar Open | Source Bar Close | Feature Ready | Target BTC W | Target Cash W | Exec Price ($) | Traded ($) | Fee ($) | Post Cash ($) | Post BTC Units | Post Equity ($) |")
+    lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
     for tr in traces:
         lines.append(
-            f"| {tr['decision_index']} | {tr['decision_timestamp']} | {tr['features_cutoff_timestamp']} | "
-            f"{tr['target_btc_weight']:.2f} | {tr['target_cash_weight']:.2f} | ${tr['open_execution_price_btc']:,.2f} | "
-            f"${tr['traded_notional_usd']:,.2f} | ${tr['fee_paid_usd']:,.2f} | ${tr['post_cash_usd']:,.2f} | "
-            f"{tr['post_btc_units']:.4f} | ${tr['close_valuation_price_btc']:,.2f} | ${tr['post_equity_close_usd']:,.2f} |"
+            f"| {tr['decision_index']} | {tr['decision_time']} | {tr['execution_time']} | {tr['source_bar_open_time']} | "
+            f"{tr['source_bar_close_time']} | {tr['feature_available_at']} | {tr['target_btc_weight']:.2f} | {tr['target_cash_weight']:.2f} | "
+            f"${tr['open_execution_price_btc']:,.2f} | ${tr['traded_notional_usd']:,.2f} | ${tr['fee_paid_usd']:,.2f} | "
+            f"${tr['post_cash_usd']:,.2f} | {tr['post_btc_units']:.4f} | ${tr['post_equity_close_usd']:,.2f} |"
         )
 
     lines.append("")
@@ -610,7 +675,6 @@ def render_corrected_falsification_report(
         ("BREADTH_ONLY_stress_25bps", "25 bps"),
         ("SENTIMENT_ONLY_base_12bps", "12 bps"),
         ("SENTIMENT_ONLY_stress_25bps", "25 bps"),
-        ("H3_TEMPORAL_NEGATIVE_CONTROL_base_12bps", "12 bps"),
         ("BENCHMARK_BTC_BUY_AND_HOLD_base_12bps", "12 bps"),
         ("BENCHMARK_100PCT_CASH_base_12bps", "12 bps"),
         ("BENCHMARK_EW_WEEKLY_REBAL_base_12bps", "12 bps"),
@@ -627,10 +691,30 @@ def render_corrected_falsification_report(
             ex_btc = m["net_return_pct"] - btc_net
             ex_cash = m["net_return_pct"]
 
+            name_disp = m['portfolio_name']
+            if "EXPOSURE_MATCHED" in key:
+                name_disp += " (Train+Val Calibrated Ref)"
+
             lines.append(
-                f"| **{m['portfolio_name']}** | {fee_label} | ${m['final_equity_usd']:,.2f} | **{m['net_return_pct']:+.2f}%** | "
+                f"| **{name_disp}** | {fee_label} | ${m['final_equity_usd']:,.2f} | **{m['net_return_pct']:+.2f}%** | "
                 f"{ex_btc:+.2f}% | {ex_cash:+.2f}% | {m['max_drawdown_pct']:.2f}% | {m['annualized_sharpe']:.3f} {ci_str} | "
                 f"{m['annualized_sortino']:.3f} | {m.get('mean_cash_weight', 0.0):.2f} | {m['one_way_turnover']:.1f} | ${m['total_fees_usd']:,.2f} |"
+            )
+
+    lines.append("")
+    lines.append("### Multi-Seed Temporal Permutation Null Distribution (50 Seeds)")
+    lines.append("")
+    lines.append("To avoid drawing conclusions from a single arbitrary random shuffle, we evaluated H3 against an empirical null distribution of 50 deterministic temporal permutations (seeds 101 to 150):")
+    lines.append("")
+    lines.append("| Metric | H3 Actual | Null Mean (50 seeds) | Null Median | Null 5th–95th Percentile | H3 Percentile Rank in Null |")
+    lines.append("| :--- | :--- | :--- | :--- | :--- | :--- |")
+    for fl in ["base_12bps", "stress_25bps"]:
+        nd_key = f"H3_TEMPORAL_PERMUTATION_NULL_DISTRIBUTION_{fl}"
+        if nd_key in scorecard:
+            nd = scorecard[nd_key]
+            lines.append(
+                f"| **Net Return ({fl})** | {nd['h3_actual_net_return_pct']:+.2f}% | {nd['returns_mean']:+.2f}% | "
+                f"{nd['returns_median']:+.2f}% | [{nd['returns_p5']:+.2f}%, {nd['returns_p95']:+.2f}%] | **{nd['h3_percentile_in_null_distribution']:.1f}%** |"
             )
 
     lines.append("")
@@ -654,13 +738,13 @@ def render_corrected_falsification_report(
     lines.append("## 5. Direct Answers to the 5 Mandatory Research Questions")
     lines.append("")
     lines.append("1. **Does H3 beat static / exposure-matched controls after fees?**")
-    lines.append("   - **NO. H3 severely underperforms.** The Exposure-Matched Control (holding 48.06% BTC / 51.94% Cash calibrated on Train+Val) returned **+41.84%** with Sharpe **0.423** and fees of only $49.35. H3 returned **-2.38%** with Sharpe **0.134** and paid $1,457.80 in fees. H3 underperformed the static control by **-44.22%** net.")
+    lines.append("   - **NO. H3 severely underperforms.** The Exposure-Matched Control (holding 48.06% BTC / 51.94% Cash calibrated on Train+Val; In-Sample Reference) returned **+41.84%** with Sharpe **0.423** and fees of only $49.35. H3 returned **-2.38%** with Sharpe **0.134** and paid $1,457.80 in fees. H3 underperformed the static control by **-44.22%** net.")
     lines.append("2. **Does Fear & Greed add incremental economic value over Breadth-only?**")
     lines.append("   - **NO. Sentiment actively destroys value.** `Breadth-Only` delivered **+12.36%** net return. Adding Sentiment (H3) dropped net return by **-14.74%p** down to **-2.38%**, while `Sentiment-Only` produced **-13.08%**. Fear & Greed dip-buying triggered premature entries during ongoing bear drawdowns.")
     lines.append("3. **Does Breadth add incremental value over simple BTC trend/volatility?**")
     lines.append("   - Breadth alone reduces drawdown (-48.35% vs -67.38% for BTC), but binary switching between 100% BTC and Cash generates massive turnover ($128\\times$) and fee erosion. Static exposure diversification achieves equal drawdown protection without switching drag.")
     lines.append("4. **Did H3 reduce Max Drawdown via informed timing or simply via high cash holding?**")
-    lines.append("   - **ENTIRELY VIA HIGH CASH HOLDING.** The static exposure-matched benchmark holding the exact same average cash (51.94% cash) achieved an identical Max Drawdown (**-38.97%** vs H3's **-39.51%**), proving that H3's timing contributed zero protective alpha beyond its cash weight.")
+    lines.append("   - **H3 failed to demonstrate incremental value over static exposure in the experiment**: its realized MaxDD (-39.51%) was virtually indistinguishable from the static exposure-matched benchmark (-38.97%), demonstrating that the risk reduction was driven by the average cash exposure (~54%) rather than timing skill.")
     lines.append("5. **Is H3 stable across Train/Val and does it hold up in Reused Holdout?**")
     lines.append("   - H3 underperformed the exposure-matched static control in **every single sub-period**: Train (-5.37% vs +8.13%), Validation (+32.36% vs +50.22%), and Holdout (-22.00% vs -13.17%).")
     lines.append("")
