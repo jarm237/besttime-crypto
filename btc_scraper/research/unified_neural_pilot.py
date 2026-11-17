@@ -94,6 +94,31 @@ class UnifiedNeuralPolicy(nn.Module):
 
 
 @dataclass
+class SampleMetadata:
+    """Detailed temporal and split metadata for each weekly portfolio decision."""
+    decision_index: int
+    decision_time: pd.Timestamp
+    feature_cutoff_time: pd.Timestamp
+    execution_time: pd.Timestamp
+    label_end_time: pd.Timestamp
+    split: str = "unassigned"  # "train", "val", "holdout", "purged"
+    is_purged: bool = False
+    purge_reason: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "decision_index": self.decision_index,
+            "decision_time": self.decision_time.isoformat(),
+            "feature_cutoff_time": self.feature_cutoff_time.isoformat(),
+            "execution_time": self.execution_time.isoformat(),
+            "label_end_time": self.label_end_time.isoformat(),
+            "split": self.split,
+            "is_purged": self.is_purged,
+            "purge_reason": self.purge_reason,
+        }
+
+
+@dataclass
 class DatasetSplits:
     train_x: torch.Tensor
     train_returns: torch.Tensor
@@ -108,6 +133,12 @@ class DatasetSplits:
     holdout_dates: List[pd.Timestamp]
     norm_mean: np.ndarray
     norm_std: np.ndarray
+    all_metadata: List[SampleMetadata]
+    purged_metadata: List[SampleMetadata]
+    all_x_unnormalized: np.ndarray
+    all_y: np.ndarray
+    all_dates: List[pd.Timestamp]
+    all_x_normalized: torch.Tensor
 
 
 def extract_point_in_time_features(
@@ -117,8 +148,16 @@ def extract_point_in_time_features(
     causal_delay_bars: int = 2,
     rebalance_interval_hours: int = 168,
     btc_symbol: str = "BTCUSDT",
-) -> Tuple[np.ndarray, np.ndarray, List[pd.Timestamp], List[str]]:
-    """Extract causal multi-asset features and forward 168h holding returns at Sunday 00:00 UTC decisions.
+) -> Tuple[np.ndarray, np.ndarray, List[pd.Timestamp], List[str], List[SampleMetadata]]:
+    """Extract causal multi-asset features and forward holding returns at Sunday 00:00 UTC decisions.
+
+    Temporal and Economic Fidelity Guarantees:
+      - decision_time: Sunday 00:00:00 UTC.
+      - feature_cutoff_time: decision_time - causal_delay_bars (Saturday 22:00:00 UTC).
+      - execution_time: decision_time (Sunday 00:00:00 UTC, executed at next-bar open).
+      - label_end_time: decision_time + rebalance_interval_hours (next Sunday 00:00:00 UTC).
+      - Forward return matches holding period: open[t + 168] / open[t] - 1.0 (exact execution parity).
+      - Feature lookbacks use calendar Timedelta, preserving exact calendar distance across market-wide gaps.
 
     Features per asset (market-only, 8 features):
       1. ret_24h: 24h causal return
@@ -136,9 +175,10 @@ def extract_point_in_time_features(
 
     Returns:
         X: Feature tensor [W, N, F]
-        Y: Forward returns [W, N] from open[t] to close[t+rebalance_interval_hours]
+        Y: Forward returns [W, N] from open[t] to open[t+rebalance_interval_hours]
         decision_timestamps: List of Sunday 00:00 UTC timestamps
         feature_names: List of feature names
+        sample_metadata: Detailed metadata list per decision sample
     """
     symbols = list(piv_close.columns)
     N = len(symbols)
@@ -154,10 +194,13 @@ def extract_point_in_time_features(
     min_warmup = rebalance_interval_hours + causal_delay_bars + 24
     decision_indices: List[int] = []
 
-    for t in range(min_warmup, T - rebalance_interval_hours):
+    for t in range(min_warmup, T):
         ts = timestamps[t]
         if ts.weekday() == 6 and ts.hour == 0:
-            decision_indices.append(t)
+            ts_next = ts + pd.Timedelta(hours=rebalance_interval_hours)
+            # Require at least one bar available for next execution
+            if ts_next in piv_open.index or (t + rebalance_interval_hours < T):
+                decision_indices.append(t)
 
     W = len(decision_indices)
     feature_names = [
@@ -177,31 +220,44 @@ def extract_point_in_time_features(
     X = np.zeros((W, N, F), dtype=np.float32)
     Y = np.zeros((W, N), dtype=np.float32)
     decision_timestamps: List[pd.Timestamp] = []
+    sample_metadata: List[SampleMetadata] = []
 
     for w, t in enumerate(decision_indices):
         ts = timestamps[t]
         decision_timestamps.append(ts)
-        t_eval = t - causal_delay_bars
 
-        # Realized forward return from open[t] to close[t + 168]
-        p_open_t = piv_open.iloc[t].to_numpy()
-        p_close_fwd = piv_close.iloc[t + rebalance_interval_hours].to_numpy()
-        Y[w] = (p_close_fwd / p_open_t) - 1.0
+        t_decision = ts
+        t_cutoff = ts - pd.Timedelta(hours=causal_delay_bars)
+        t_execution = ts
+        t_label_end = ts + pd.Timedelta(hours=rebalance_interval_hours)
 
-        # Causal historical price windows up to t_eval
-        close_eval = piv_close.iloc[t_eval].to_numpy()
-        close_24 = piv_close.iloc[t_eval - 24].to_numpy()
-        close_72 = piv_close.iloc[t_eval - 72].to_numpy()
-        close_168 = piv_close.iloc[t_eval - 168].to_numpy()
+        # Realized forward holding return: execution open[t] to next execution open[t + 168h]
+        p_open_t = piv_open.loc[ts].to_numpy()
+        if t_label_end in piv_open.index:
+            p_open_fwd = piv_open.loc[t_label_end].to_numpy()
+        else:
+            p_open_fwd = piv_open.asof(t_label_end).to_numpy()
 
-        r24 = (close_eval / close_24) - 1.0
-        r72 = (close_eval / close_72) - 1.0
-        r168 = (close_eval / close_168) - 1.0
+        Y[w] = (p_open_fwd / p_open_t) - 1.0
 
-        sub_rets_24 = hourly_rets.iloc[t_eval - 24 : t_eval]
+        # Calendar-verified lookbacks up to t_cutoff
+        ts_24 = t_cutoff - pd.Timedelta(hours=24)
+        ts_72 = t_cutoff - pd.Timedelta(hours=72)
+        ts_168 = t_cutoff - pd.Timedelta(hours=168)
+
+        close_cutoff = piv_close.asof(t_cutoff).to_numpy()
+        close_24 = piv_close.asof(ts_24).to_numpy()
+        close_72 = piv_close.asof(ts_72).to_numpy()
+        close_168 = piv_close.asof(ts_168).to_numpy()
+
+        r24 = (close_cutoff / close_24) - 1.0
+        r72 = (close_cutoff / close_72) - 1.0
+        r168 = (close_cutoff / close_168) - 1.0
+
+        sub_rets_24 = hourly_rets.loc[(hourly_rets.index > ts_24) & (hourly_rets.index <= t_cutoff)]
         vol24 = (sub_rets_24.std().to_numpy() * np.sqrt(8760.0))
 
-        sub_rets_168 = hourly_rets.iloc[t_eval - 168 : t_eval]
+        sub_rets_168 = hourly_rets.loc[(hourly_rets.index > ts_168) & (hourly_rets.index <= t_cutoff)]
         vol168 = (sub_rets_168.std().to_numpy() * np.sqrt(8760.0))
 
         mean_168 = float(np.mean(r168))
@@ -225,14 +281,24 @@ def extract_point_in_time_features(
                 breadth,
             ]
             if include_regime:
-                btc_sma168 = float(piv_close[btc_symbol].iloc[t_eval - 168 : t_eval].mean())
-                btc_dist_sma = (close_eval[btc_idx] / btc_sma168) - 1.0
+                btc_sma168 = float(piv_close[btc_symbol].loc[(piv_close.index > ts_168) & (piv_close.index <= t_cutoff)].mean())
+                btc_dist_sma = (close_cutoff[btc_idx] / btc_sma168) - 1.0
                 btc_v168 = vol168[btc_idx]
                 feat_vec.extend([btc_dist_sma, btc_v168])
 
             X[w, i] = np.array(feat_vec, dtype=np.float32)
 
-    return X, Y, decision_timestamps, feature_names
+        sample_metadata.append(
+            SampleMetadata(
+                decision_index=w,
+                decision_time=t_decision,
+                feature_cutoff_time=t_cutoff,
+                execution_time=t_execution,
+                label_end_time=t_label_end,
+            )
+        )
+
+    return X, Y, decision_timestamps, feature_names, sample_metadata
 
 
 def prepare_dataset_splits(
@@ -241,35 +307,86 @@ def prepare_dataset_splits(
     dates: List[pd.Timestamp],
     symbols: List[str],
     feature_names: List[str],
-    train_end: pd.Timestamp = pd.Timestamp("2023-12-31 23:00:00+00:00"),
-    val_end: pd.Timestamp = pd.Timestamp("2024-12-31 23:00:00+00:00"),
+    sample_metadata: Optional[List[SampleMetadata]] = None,
+    train_end: pd.Timestamp = pd.Timestamp("2023-12-31 23:59:59+00:00"),
+    val_end: pd.Timestamp = pd.Timestamp("2024-12-31 23:59:59+00:00"),
 ) -> DatasetSplits:
-    """Chronologically split features and compute preprocessing strictly on Train split."""
-    dates_arr = np.array(dates)
+    """Chronologically split features with strict zero-leakage purge and embargo.
 
-    train_mask = dates_arr <= train_end
-    val_mask = (dates_arr > train_end) & (dates_arr <= val_end)
-    holdout_mask = dates_arr > val_end
+    Purge/Embargo Guarantees:
+      - Any sample where label_end_time > train_end is purged from Train to prevent leakage into Validation.
+      - Any sample where label_end_time > val_end is purged from Validation to prevent leakage into Holdout.
+      - Normalization parameters (mean, std) are computed exclusively on the unpurged Train split.
+    """
+    W, N, F = X.shape
 
+    if sample_metadata is None:
+        sample_metadata = [
+            SampleMetadata(
+                decision_index=w,
+                decision_time=dates[w],
+                feature_cutoff_time=dates[w] - pd.Timedelta(hours=2),
+                execution_time=dates[w],
+                label_end_time=dates[w] + pd.Timedelta(hours=168),
+            )
+            for w in range(W)
+        ]
+
+    train_mask = np.zeros(W, dtype=bool)
+    val_mask = np.zeros(W, dtype=bool)
+    holdout_mask = np.zeros(W, dtype=bool)
+    purged_metadata: List[SampleMetadata] = []
+
+    for w in range(W):
+        meta = sample_metadata[w]
+        d_time = meta.decision_time
+        l_end = meta.label_end_time
+
+        if d_time <= train_end:
+            if l_end <= train_end:
+                train_mask[w] = True
+                meta.split = "train"
+                meta.is_purged = False
+            else:
+                meta.split = "purged"
+                meta.is_purged = True
+                meta.purge_reason = (
+                    f"Train label overflow: label_end ({l_end}) > train_end ({train_end})"
+                )
+                purged_metadata.append(meta)
+                logger.info("Purged Train boundary sample %d at %s: %s", w, d_time, meta.purge_reason)
+        elif d_time <= val_end:
+            if l_end <= val_end:
+                val_mask[w] = True
+                meta.split = "val"
+                meta.is_purged = False
+            else:
+                meta.split = "purged"
+                meta.is_purged = True
+                meta.purge_reason = (
+                    f"Validation label overflow: label_end ({l_end}) > val_end ({val_end})"
+                )
+                purged_metadata.append(meta)
+                logger.info("Purged Validation boundary sample %d at %s: %s", w, d_time, meta.purge_reason)
+        else:
+            holdout_mask[w] = True
+            meta.split = "holdout"
+            meta.is_purged = False
+
+    # Compute mean and std strictly on unpurged train split across [W_train * N, F]
     train_x_raw = X[train_mask]
-    val_x_raw = X[val_mask]
-    holdout_x_raw = X[holdout_mask]
-
-    # Compute mean and std strictly on train split across [W_train * N, F]
-    train_flat = train_x_raw.reshape(-1, train_x_raw.shape[-1])
+    train_flat = train_x_raw.reshape(-1, F)
     mean_f = np.nanmean(train_flat, axis=0)
     std_f = np.nanstd(train_flat, axis=0)
     std_f[std_f < 1e-6] = 1.0
 
-    # Standardize all splits using train parameters
-    train_x = (train_x_raw - mean_f) / std_f
-    val_x = (val_x_raw - mean_f) / std_f
-    holdout_x = (holdout_x_raw - mean_f) / std_f
+    # Standardize splits using train parameters
+    train_x = np.nan_to_num((X[train_mask] - mean_f) / std_f, nan=0.0)
+    val_x = np.nan_to_num((X[val_mask] - mean_f) / std_f, nan=0.0)
+    holdout_x = np.nan_to_num((X[holdout_mask] - mean_f) / std_f, nan=0.0)
+    all_x_norm = np.nan_to_num((X - mean_f) / std_f, nan=0.0)
 
-    # Replace any NaNs
-    train_x = np.nan_to_num(train_x, nan=0.0)
-    val_x = np.nan_to_num(val_x, nan=0.0)
-    holdout_x = np.nan_to_num(holdout_x, nan=0.0)
+    dates_arr = np.array(dates)
 
     return DatasetSplits(
         train_x=torch.tensor(train_x, dtype=torch.float32),
@@ -285,6 +402,12 @@ def prepare_dataset_splits(
         holdout_dates=list(dates_arr[holdout_mask]),
         norm_mean=mean_f,
         norm_std=std_f,
+        all_metadata=sample_metadata,
+        purged_metadata=purged_metadata,
+        all_x_unnormalized=X,
+        all_y=Y,
+        all_dates=dates,
+        all_x_normalized=torch.tensor(all_x_norm, dtype=torch.float32),
     )
 
 
@@ -294,31 +417,73 @@ def compute_cost_aware_loss(
     fee_bps: float = 12.0,
     lambda_downside: float = 1.0,
     lambda_turnover: float = 0.002,
+    use_drift: bool = True,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Calculate cost-aware portfolio objective.
+    """Calculate cost-aware portfolio objective with exact pre-trade drift accounting.
 
-    Loss = - mean(net_returns) + lambda_downside * sqrt(mean(min(0, net_returns)^2)) + lambda_turnover * turnover
+    Loss = - mean(net_returns) + lambda_downside * sqrt(mean(min(0, net_returns)^2)) + lambda_turnover * mean(turnover)
+
+    Accounting Fidelity:
+      - When use_drift=True: computes exact pre-trade drifted weight turnover between consecutive rebalances:
+          w_drift,i = w_i * (1 + r_i) / (1 + R_port)
+          turnover_t = 0.5 * (sum |w_i,t - w_drift,i,t-1| + |w_cash,t - w_drift,cash,t-1|)
+      - When use_drift=False: computes surrogate turnover 0.5 * sum |w_t - w_{t-1}|.
 
     Args:
         weights: [W, N+1] portfolio weights (first N are assets, last is cash)
-        forward_returns: [W, N] forward asset returns over 168h holding period
+        forward_returns: [W, N] forward asset returns over holding period
+        fee_bps: Transaction fee in basis points
+        lambda_downside: Weight for downside semi-deviation penalty
+        lambda_turnover: Weight for turnover penalty
+        use_drift: Whether to account for pre-trade holding drift
     """
     fee_rate = fee_bps / 10000.0
     W, N = forward_returns.shape
 
     asset_w = weights[:, :N]  # [W, N]
-    # Weekly asset return contribution (cash return is 0)
+    cash_w = weights[:, -1:]  # [W, 1]
+
+    # Gross period return: sum(w_i * r_i) (cash return is 0)
     gross_period_returns = torch.sum(asset_w * forward_returns, dim=-1)  # [W]
 
-    # Turnover penalty between consecutive weeks
-    w_prev = torch.cat([torch.zeros(1, N, device=weights.device), asset_w[:-1]], dim=0)
-    turnover = torch.sum(torch.abs(asset_w - w_prev), dim=-1)  # [W]
-    turnover[0] = torch.sum(asset_w[0])  # Inception turnover
+    if use_drift and W > 1:
+        # Pre-trade drifted weights at end of period t (before rebalance t+1):
+        # portfolio gross growth factor = 1 + gross_period_returns
+        denom = torch.clamp(1.0 + gross_period_returns[:-1, None], min=1e-4)  # [W-1, 1]
+        drifted_asset_w = (asset_w[:-1] * (1.0 + forward_returns[:-1])) / denom  # [W-1, N]
+        drifted_cash_w = cash_w[:-1] / denom  # [W-1, 1]
 
-    # Net returns after fee drag
+        # Turnover at rebalances 1..W-1:
+        delta_assets = torch.sum(torch.abs(asset_w[1:] - drifted_asset_w), dim=-1)  # [W-1]
+        delta_cash = torch.abs(cash_w[1:, 0] - drifted_cash_w[:, 0])  # [W-1]
+        turnover_steps = 0.5 * (delta_assets + delta_cash)  # [W-1]
+
+        # Inception turnover at step 0 (from 100% cash to target weights):
+        delta_assets_0 = torch.sum(asset_w[0])
+        delta_cash_0 = torch.abs(cash_w[0, 0] - 1.0)
+        turnover_0 = 0.5 * (delta_assets_0 + delta_cash_0)
+
+        turnover = torch.cat([turnover_0.unsqueeze(0), turnover_steps], dim=0)  # [W]
+    else:
+        # Surrogate turnover without drift
+        w_all = weights  # [W, N+1]
+        w_prev = torch.cat(
+            [
+                torch.cat(
+                    [
+                        torch.zeros(1, N, device=weights.device),
+                        torch.ones(1, 1, device=weights.device),
+                    ],
+                    dim=-1,
+                ),
+                w_all[:-1],
+            ],
+            dim=0,
+        )
+        turnover = 0.5 * torch.sum(torch.abs(w_all - w_prev), dim=-1)
+
     net_period_returns = gross_period_returns - (turnover * fee_rate)
 
-    # Downside semi-deviation below 0
     neg_returns = torch.minimum(net_period_returns, torch.zeros_like(net_period_returns))
     downside_dev = torch.sqrt(torch.mean(neg_returns**2) + 1e-8)
 
@@ -334,11 +499,12 @@ def train_unified_neural_pilot(
     splits: DatasetSplits,
     hidden_dim: int = 32,
     lr: float = 1e-3,
-    epochs: int = 40,
+    epochs: int = 50,
     seed: int = 42,
     fee_bps: float = 12.0,
     lambda_downside: float = 1.0,
     lambda_turnover: float = 0.002,
+    use_drift: bool = True,
 ) -> Tuple[UnifiedNeuralPolicy, Dict[str, List[float]]]:
     """Train a unified neural policy with cost-aware loss and validation selection."""
     torch.manual_seed(seed)
@@ -372,6 +538,7 @@ def train_unified_neural_pilot(
             fee_bps=fee_bps,
             lambda_downside=lambda_downside,
             lambda_turnover=lambda_turnover,
+            use_drift=use_drift,
         )
 
         loss.backward()
@@ -387,6 +554,7 @@ def train_unified_neural_pilot(
                 fee_bps=fee_bps,
                 lambda_downside=lambda_downside,
                 lambda_turnover=lambda_turnover,
+                use_drift=use_drift,
             )
 
         history["train_loss"].append(float(loss.item()))
@@ -403,3 +571,64 @@ def train_unified_neural_pilot(
         model.load_state_dict(best_weights)
 
     return model, history
+
+
+def train_shuffled_control(
+    splits: DatasetSplits,
+    hidden_dim: int = 32,
+    lr: float = 1e-3,
+    epochs: int = 50,
+    seed: int = 42,
+    fee_bps: float = 12.0,
+    lambda_downside: float = 1.0,
+    lambda_turnover: float = 0.002,
+    use_drift: bool = True,
+) -> Tuple[UnifiedNeuralPolicy, Dict[str, List[float]]]:
+    """Train neural policy on permuted features within Train split (falsification control).
+
+    Permutes asset features cross-sectionally at each weekly step on Train only,
+    destroying the predictive connection between features and future returns while preserving
+    exact feature marginal distributions. Validation and Holdout remain untouched.
+    """
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    train_x_shuffled = splits.train_x.clone()
+    W, N, F = train_x_shuffled.shape
+    for w in range(W):
+        perm = torch.randperm(N)
+        train_x_shuffled[w] = train_x_shuffled[w, perm]
+
+    shuffled_splits = DatasetSplits(
+        train_x=train_x_shuffled,
+        train_returns=splits.train_returns,
+        val_x=splits.val_x,
+        val_returns=splits.val_returns,
+        holdout_x=splits.holdout_x,
+        holdout_returns=splits.holdout_returns,
+        feature_names=splits.feature_names,
+        symbols=splits.symbols,
+        train_dates=splits.train_dates,
+        val_dates=splits.val_dates,
+        holdout_dates=splits.holdout_dates,
+        norm_mean=splits.norm_mean,
+        norm_std=splits.norm_std,
+        all_metadata=splits.all_metadata,
+        purged_metadata=splits.purged_metadata,
+        all_x_unnormalized=splits.all_x_unnormalized,
+        all_y=splits.all_y,
+        all_dates=splits.all_dates,
+        all_x_normalized=splits.all_x_normalized,
+    )
+
+    return train_unified_neural_pilot(
+        shuffled_splits,
+        hidden_dim=hidden_dim,
+        lr=lr,
+        epochs=epochs,
+        seed=seed,
+        fee_bps=fee_bps,
+        lambda_downside=lambda_downside,
+        lambda_turnover=lambda_turnover,
+        use_drift=use_drift,
+    )

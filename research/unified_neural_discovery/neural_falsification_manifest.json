@@ -1,0 +1,97 @@
+{
+  "created_at_utc": "2026-11-17T07:45:26.665944+00:00",
+  "total_hourly_bars": 42739,
+  "total_weekly_decisions": 252,
+  "purged_samples": [
+    {
+      "decision_index": 102,
+      "decision_time": "2023-12-31T00:00:00+00:00",
+      "feature_cutoff_time": "2023-12-30T22:00:00+00:00",
+      "execution_time": "2023-12-31T00:00:00+00:00",
+      "label_end_time": "2024-01-07T00:00:00+00:00",
+      "split": "purged",
+      "is_purged": true,
+      "purge_reason": "Train label overflow: label_end (2024-01-07 00:00:00+00:00) > train_end (2023-12-31 23:59:59+00:00)"
+    },
+    {
+      "decision_index": 154,
+      "decision_time": "2024-12-29T00:00:00+00:00",
+      "feature_cutoff_time": "2024-12-28T22:00:00+00:00",
+      "execution_time": "2024-12-29T00:00:00+00:00",
+      "label_end_time": "2025-01-05T00:00:00+00:00",
+      "split": "purged",
+      "is_purged": true,
+      "purge_reason": "Validation label overflow: label_end (2025-01-05 00:00:00+00:00) > val_end (2024-12-31 23:59:59+00:00)"
+    }
+  ],
+  "splits": {
+    "train": {
+      "start": "2022-01-01",
+      "end": "2023-12-31",
+      "valid_decisions": 102
+    },
+    "validation": {
+      "start": "2024-01-01",
+      "end": "2024-12-31",
+      "valid_decisions": 51
+    },
+    "reused_holdout": {
+      "start": "2025-01-01",
+      "end": "2026-11-16",
+      "valid_decisions": 97
+    }
+  },
+  "feature_sets": {
+    "market_only_8f": [
+      "ret_24h",
+      "ret_72h",
+      "ret_168h",
+      "vol_24h",
+      "vol_168h",
+      "rel_mom_zscore",
+      "btc_rel_mom",
+      "market_breadth"
+    ],
+    "market_plus_regime_10f": [
+      "ret_24h",
+      "ret_72h",
+      "ret_168h",
+      "vol_24h",
+      "vol_168h",
+      "rel_mom_zscore",
+      "btc_rel_mom",
+      "market_breadth",
+      "btc_dist_sma168",
+      "btc_vol_168h"
+    ]
+  },
+  "preprocessing": {
+    "method": "Train-Only Standardization with Purge/Embargo",
+    "train_mean": [
+      0.0013294361997395754,
+      0.002786868019029498,
+      0.0027465415187180042,
+      0.5394396185874939,
+      0.7170516848564148,
+      2.2643922292786556e-09,
+      -0.0010977362981066108,
+      0.49142158031463623
+    ],
+    "train_std": [
+      0.029291054233908653,
+      0.07707628607749939,
+      0.11284234374761581,
+      0.41754159331321716,
+      0.3728385269641876,
+      1.0000004768371582,
+      0.07854878157377243,
+      0.3930538594722748
+    ]
+  },
+  "fidelity_checks": {
+    "execution_price": "Next-bar open (piv_open[t])",
+    "forward_target": "Open-to-open holding return (piv_open[t+168] / piv_open[t] - 1.0)",
+    "drift_accounting": "Exact pre-trade weight drift accounted in training loss",
+    "calendar_lookbacks": "Exact pd.Timedelta lookup handling market gaps"
+  }
+}

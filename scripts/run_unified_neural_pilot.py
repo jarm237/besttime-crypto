@@ -68,9 +68,8 @@ def replay_neural_policy(
     model.eval()
 
     # Pre-compute neural weights for all decision points across all splits
-    # Combine train, val, and holdout in chronological order
-    all_x = torch.cat([splits.train_x, splits.val_x, splits.holdout_x], dim=0)
-    all_dates = splits.train_dates + splits.val_dates + splits.holdout_dates
+    all_x = splits.all_x_normalized
+    all_dates = splits.all_dates
 
     with torch.no_grad():
         all_weights = model(all_x).cpu().numpy()  # [W, N+1]
@@ -345,12 +344,12 @@ def run_unified_neural_pilot_pipeline() -> Dict[str, Any]:
 
     # 2. Extract Causal Features
     logger.info("Extracting causal point-in-time features (Market-Only: 8 features)...")
-    X_mkt, Y_mkt, dates_mkt, feat_names_mkt = extract_point_in_time_features(piv_close, piv_open, include_regime=False)
-    splits_mkt = prepare_dataset_splits(X_mkt, Y_mkt, dates_mkt, symbols, feat_names_mkt)
+    X_mkt, Y_mkt, dates_mkt, feat_names_mkt, meta_mkt = extract_point_in_time_features(piv_close, piv_open, include_regime=False)
+    splits_mkt = prepare_dataset_splits(X_mkt, Y_mkt, dates_mkt, symbols, feat_names_mkt, sample_metadata=meta_mkt)
 
     logger.info("Extracting causal point-in-time features (Market + Regime: 10 features)...")
-    X_reg, Y_reg, dates_reg, feat_names_reg = extract_point_in_time_features(piv_close, piv_open, include_regime=True)
-    splits_reg = prepare_dataset_splits(X_reg, Y_reg, dates_reg, symbols, feat_names_reg)
+    X_reg, Y_reg, dates_reg, feat_names_reg, meta_reg = extract_point_in_time_features(piv_close, piv_open, include_regime=True)
+    splits_reg = prepare_dataset_splits(X_reg, Y_reg, dates_reg, symbols, feat_names_reg, sample_metadata=meta_reg)
 
     # Save Data Split & Input Manifest
     manifest_payload = {
