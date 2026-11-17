@@ -1,0 +1,898 @@
+{
+  "metadata": {
+    "program": "D0_DERIVATIVES_POSITIONING_ECONOMIC_DISCOVERY",
+    "aligned_horizon": "2023-01-01 00:00:00+00:00 to 2026-06-30 23:00:00+00:00",
+    "daily_decision_count": 1270,
+    "eligible_assets": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT"
+    ],
+    "execution_policy": "Daily next-open causal execution",
+    "cost_accounting": "12 bps base, 25 bps stress + 5 bps slippage"
+  },
+  "phase_a_coverage": {
+    "verdict": "PARTIAL",
+    "window": "2023-01-01 to 2026-06-30 (1,276 days)",
+    "limitation": "Pre-2023 open interest is unavailable due to 30-day Binance API lookback limit."
+  },
+  "phase_c_predictive_falsification": {
+    "downside_24h": {
+      "baseline_model": {
+        "train": {
+          "roc_auc": 0.5516,
+          "pr_auc": 0.1695,
+          "base_rate": 0.145,
+          "pr_auc_over_base": 0.0245,
+          "brier_score": 0.1234,
+          "brier_skill_score": 0.0044,
+          "ece": 0.003
+        },
+        "validation": {
+          "roc_auc": 0.5805,
+          "pr_auc": 0.2466,
+          "base_rate": 0.1507,
+          "pr_auc_over_base": 0.0959,
+          "brier_score": 0.1266,
+          "brier_skill_score": 0.0108,
+          "ece": 0.0102
+        },
+        "holdout": {
+          "roc_auc": 0.5741,
+          "pr_auc": 0.2075,
+          "base_rate": 0.1609,
+          "pr_auc_over_base": 0.0466,
+          "brier_score": 0.1344,
+          "brier_skill_score": 0.0046,
+          "ece": 0.0337
+        },
+        "coefficients": [
+          0.0551,
+          -0.0336,
+          -0.1116,
+          -0.0275,
+          0.1338,
+          0.0617
+        ],
+        "intercept": -1.7831
+      },
+      "derivatives_only_model": {
+        "train": {
+          "roc_auc": 0.5821,
+          "pr_auc": 0.2089,
+          "base_rate": 0.145,
+          "pr_auc_over_base": 0.0639,
+          "brier_score": 0.1223,
+          "brier_skill_score": 0.0139,
+          "ece": 0.0109
+        },
+        "validation": {
+          "roc_auc": 0.5282,
+          "pr_auc": 0.2256,
+          "base_rate": 0.1507,
+          "pr_auc_over_base": 0.0749,
+          "brier_score": 0.1266,
+          "brier_skill_score": 0.0108,
+          "ece": 0.0144
+        },
+        "holdout": {
+          "roc_auc": 0.6255,
+          "pr_auc": 0.2487,
+          "base_rate": 0.1609,
+          "pr_auc_over_base": 0.0878,
+          "brier_score": 0.1318,
+          "brier_skill_score": 0.0239,
+          "ece": 0.0169
+        },
+        "coefficients": [
+          0.2457,
+          0.0114,
+          -0.0623,
+          0.0291,
+          0.0242,
+          -0.075,
+          -0.0639,
+          0.0491,
+          0.0938,
+          0.1544
+        ],
+        "intercept": -1.8007
+      },
+      "combined_model": {
+        "train": {
+          "roc_auc": 0.601,
+          "pr_auc": 0.2062,
+          "base_rate": 0.145,
+          "pr_auc_over_base": 0.0611,
+          "brier_score": 0.1217,
+          "brier_skill_score": 0.0186,
+          "ece": 0.0027
+        },
+        "validation": {
+          "roc_auc": 0.5655,
+          "pr_auc": 0.23,
+          "base_rate": 0.1507,
+          "pr_auc_over_base": 0.0793,
+          "brier_score": 0.1258,
+          "brier_skill_score": 0.017,
+          "ece": 0.0107
+        },
+        "holdout": {
+          "roc_auc": 0.6096,
+          "pr_auc": 0.2529,
+          "base_rate": 0.1609,
+          "pr_auc_over_base": 0.092,
+          "brier_score": 0.1309,
+          "brier_skill_score": 0.0303,
+          "ece": 0.0313
+        },
+        "coefficients": [
+          0.1247,
+          0.0009,
+          -0.0703,
+          0.0287,
+          0.1167,
+          0.0866,
+          0.2078,
+          0.0105,
+          -0.0762,
+          0.0206,
+          0.0198,
+          -0.0776,
+          -0.0611,
+          0.102,
+          0.1409,
+          0.205
+        ],
+        "intercept": -1.8106
+      },
+      "block_permutation_control": {
+        "train": {
+          "roc_auc": 0.5736,
+          "pr_auc": 0.2126,
+          "base_rate": 0.145,
+          "pr_auc_over_base": 0.0676,
+          "brier_score": 0.1226,
+          "brier_skill_score": 0.011,
+          "ece": 0.0028
+        },
+        "validation": {
+          "roc_auc": 0.4807,
+          "pr_auc": 0.1611,
+          "base_rate": 0.1507,
+          "pr_auc_over_base": 0.0104,
+          "brier_score": 0.1294,
+          "brier_skill_score": -0.0107,
+          "ece": 0.0191
+        },
+        "holdout": {
+          "roc_auc": 0.556,
+          "pr_auc": 0.2019,
+          "base_rate": 0.1609,
+          "pr_auc_over_base": 0.041,
+          "brier_score": 0.1414,
+          "brier_skill_score": -0.0474,
+          "ece": 0.0266
+        },
+        "coefficients": [
+          0.0558,
+          -0.0257,
+          -0.1123,
+          -0.0301,
+          0.151,
+          0.0734,
+          0.0798,
+          -0.0472,
+          -0.2144,
+          -0.1023,
+          -0.0282,
+          -0.0272,
+          0.0224,
+          0.0206,
+          0.0059,
+          0.0867
+        ],
+        "intercept": -1.7981
+      },
+      "incremental_validation": {
+        "delta_roc_auc": -0.015,
+        "delta_pr_auc": -0.0166,
+        "delta_brier_skill_score": 0.0062,
+        "conditional_return_top_risk_quintile_pct": 0.01,
+        "conditional_return_bottom_risk_quintile_pct": 0.13,
+        "risk_spread_pct": 0.12
+      },
+      "incremental_holdout_diagnostic": {
+        "delta_roc_auc": 0.0355,
+        "delta_pr_auc": 0.0454,
+        "delta_brier_skill_score": 0.0257
+      },
+      "combined_feature_names": [
+        "f_btc_ret_24h",
+        "f_btc_ret_72h",
+        "f_btc_ret_168h",
+        "f_btc_vol_24h",
+        "f_btc_vol_168h",
+        "f_btc_sma_50d_dist",
+        "f_btc_funding_level",
+        "f_btc_funding_change_24h",
+        "f_btc_funding_cum_24h",
+        "f_funding_skew_eth_btc",
+        "f_funding_skew_bnb_btc",
+        "f_btc_oi_change_24h_pct",
+        "f_btc_oi_change_72h_pct",
+        "f_btc_oi_to_volume_ratio",
+        "f_oi_price_divergence_24h",
+        "f_btc_toptrader_ls"
+      ]
+    },
+    "downside_72h": {
+      "baseline_model": {
+        "train": {
+          "roc_auc": 0.5347,
+          "pr_auc": 0.126,
+          "base_rate": 0.0985,
+          "pr_auc_over_base": 0.0275,
+          "brier_score": 0.0886,
+          "brier_skill_score": 0.0021,
+          "ece": 0.0091
+        },
+        "validation": {
+          "roc_auc": 0.6366,
+          "pr_auc": 0.1685,
+          "base_rate": 0.1178,
+          "pr_auc_over_base": 0.0506,
+          "brier_score": 0.1034,
+          "brier_skill_score": 0.0048,
+          "ece": 0.0176
+        },
+        "holdout": {
+          "roc_auc": 0.6581,
+          "pr_auc": 0.2835,
+          "base_rate": 0.1724,
+          "pr_auc_over_base": 0.1111,
+          "brier_score": 0.1457,
+          "brier_skill_score": -0.0213,
+          "ece": 0.0693
+        },
+        "coefficients": [
+          0.0295,
+          0.0766,
+          -0.0577,
+          0.0375,
+          0.0482,
+          -0.0616
+        ],
+        "intercept": -2.2186
+      },
+      "derivatives_only_model": {
+        "train": {
+          "roc_auc": 0.5935,
+          "pr_auc": 0.1432,
+          "base_rate": 0.0985,
+          "pr_auc_over_base": 0.0447,
+          "brier_score": 0.0875,
+          "brier_skill_score": 0.0142,
+          "ece": 0.0008
+        },
+        "validation": {
+          "roc_auc": 0.5745,
+          "pr_auc": 0.176,
+          "base_rate": 0.1178,
+          "pr_auc_over_base": 0.0582,
+          "brier_score": 0.103,
+          "brier_skill_score": 0.0091,
+          "ece": 0.0153
+        },
+        "holdout": {
+          "roc_auc": 0.5875,
+          "pr_auc": 0.2866,
+          "base_rate": 0.1724,
+          "pr_auc_over_base": 0.1142,
+          "brier_score": 0.1439,
+          "brier_skill_score": -0.0083,
+          "ece": 0.0652
+        },
+        "coefficients": [
+          -0.004,
+          0.2555,
+          0.036,
+          0.0414,
+          0.1753,
+          -0.0656,
+          -0.0625,
+          -0.0341,
+          0.1418,
+          0.173
+        ],
+        "intercept": -2.2625
+      },
+      "combined_model": {
+        "train": {
+          "roc_auc": 0.6375,
+          "pr_auc": 0.1515,
+          "base_rate": 0.0985,
+          "pr_auc_over_base": 0.053,
+          "brier_score": 0.0871,
+          "brier_skill_score": 0.0188,
+          "ece": 0.0222
+        },
+        "validation": {
+          "roc_auc": 0.5888,
+          "pr_auc": 0.174,
+          "base_rate": 0.1178,
+          "pr_auc_over_base": 0.0562,
+          "brier_score": 0.1024,
+          "brier_skill_score": 0.0147,
+          "ece": 0.0105
+        },
+        "holdout": {
+          "roc_auc": 0.6146,
+          "pr_auc": 0.3062,
+          "base_rate": 0.1724,
+          "pr_auc_over_base": 0.1338,
+          "brier_score": 0.1409,
+          "brier_skill_score": 0.0124,
+          "ece": 0.0544
+        },
+        "coefficients": [
+          0.1188,
+          0.1265,
+          -0.0021,
+          0.0753,
+          0.0378,
+          0.0437,
+          -0.0434,
+          0.2501,
+          0.0226,
+          0.0272,
+          0.1649,
+          -0.0751,
+          -0.0678,
+          0.0216,
+          0.201,
+          0.2862
+        ],
+        "intercept": -2.2743
+      },
+      "block_permutation_control": {
+        "train": {
+          "roc_auc": 0.5666,
+          "pr_auc": 0.1275,
+          "base_rate": 0.0985,
+          "pr_auc_over_base": 0.029,
+          "brier_score": 0.0881,
+          "brier_skill_score": 0.0073,
+          "ece": 0.0041
+        },
+        "validation": {
+          "roc_auc": 0.5319,
+          "pr_auc": 0.1316,
+          "base_rate": 0.1178,
+          "pr_auc_over_base": 0.0137,
+          "brier_score": 0.1045,
+          "brier_skill_score": -0.0056,
+          "ece": 0.023
+        },
+        "holdout": {
+          "roc_auc": 0.5912,
+          "pr_auc": 0.2173,
+          "base_rate": 0.1724,
+          "pr_auc_over_base": 0.0448,
+          "brier_score": 0.1517,
+          "brier_skill_score": -0.0634,
+          "ece": 0.0724
+        },
+        "coefficients": [
+          0.0213,
+          0.0844,
+          -0.0685,
+          0.0351,
+          0.0402,
+          -0.0499,
+          -0.0607,
+          0.1196,
+          -0.1439,
+          0.0158,
+          -0.0946,
+          0.0053,
+          -0.001,
+          -0.0346,
+          -0.0801,
+          -0.0333
+        ],
+        "intercept": -2.2405
+      },
+      "incremental_validation": {
+        "delta_roc_auc": -0.0478,
+        "delta_pr_auc": 0.0055,
+        "delta_brier_skill_score": 0.0099,
+        "conditional_return_top_risk_quintile_pct": -0.5,
+        "conditional_return_bottom_risk_quintile_pct": 0.49,
+        "risk_spread_pct": 0.98
+      },
+      "incremental_holdout_diagnostic": {
+        "delta_roc_auc": -0.0435,
+        "delta_pr_auc": 0.0227,
+        "delta_brier_skill_score": 0.0337
+      },
+      "combined_feature_names": [
+        "f_btc_ret_24h",
+        "f_btc_ret_72h",
+        "f_btc_ret_168h",
+        "f_btc_vol_24h",
+        "f_btc_vol_168h",
+        "f_btc_sma_50d_dist",
+        "f_btc_funding_level",
+        "f_btc_funding_change_24h",
+        "f_btc_funding_cum_24h",
+        "f_funding_skew_eth_btc",
+        "f_funding_skew_bnb_btc",
+        "f_btc_oi_change_24h_pct",
+        "f_btc_oi_change_72h_pct",
+        "f_btc_oi_to_volume_ratio",
+        "f_oi_price_divergence_24h",
+        "f_btc_toptrader_ls"
+      ]
+    },
+    "downside_168h": {
+      "baseline_model": {
+        "train": {
+          "roc_auc": 0.6048,
+          "pr_auc": 0.1189,
+          "base_rate": 0.0971,
+          "pr_auc_over_base": 0.0218,
+          "brier_score": 0.0873,
+          "brier_skill_score": 0.0045,
+          "ece": 0.009
+        },
+        "validation": {
+          "roc_auc": 0.5301,
+          "pr_auc": 0.1508,
+          "base_rate": 0.1151,
+          "pr_auc_over_base": 0.0357,
+          "brier_score": 0.1023,
+          "brier_skill_score": -0.0043,
+          "ece": 0.0218
+        },
+        "holdout": {
+          "roc_auc": 0.4622,
+          "pr_auc": 0.186,
+          "base_rate": 0.1954,
+          "pr_auc_over_base": -0.0094,
+          "brier_score": 0.1685,
+          "brier_skill_score": -0.072,
+          "ece": 0.1042
+        },
+        "coefficients": [
+          -0.0402,
+          0.2302,
+          -0.0959,
+          0.0746,
+          -0.0846,
+          0.0644
+        ],
+        "intercept": -2.2454
+      },
+      "derivatives_only_model": {
+        "train": {
+          "roc_auc": 0.5598,
+          "pr_auc": 0.1561,
+          "base_rate": 0.0971,
+          "pr_auc_over_base": 0.0589,
+          "brier_score": 0.0866,
+          "brier_skill_score": 0.012,
+          "ece": 0.0045
+        },
+        "validation": {
+          "roc_auc": 0.6059,
+          "pr_auc": 0.1858,
+          "base_rate": 0.1151,
+          "pr_auc_over_base": 0.0708,
+          "brier_score": 0.1008,
+          "brier_skill_score": 0.0106,
+          "ece": 0.0209
+        },
+        "holdout": {
+          "roc_auc": 0.6687,
+          "pr_auc": 0.3669,
+          "base_rate": 0.1954,
+          "pr_auc_over_base": 0.1715,
+          "brier_score": 0.1638,
+          "brier_skill_score": -0.0418,
+          "ece": 0.1002
+        },
+        "coefficients": [
+          -0.013,
+          0.0747,
+          0.1656,
+          0.0996,
+          0.2106,
+          -0.062,
+          -0.0621,
+          -0.0245,
+          0.04,
+          0.1345
+        ],
+        "intercept": -2.2646
+      },
+      "combined_model": {
+        "train": {
+          "roc_auc": 0.6348,
+          "pr_auc": 0.176,
+          "base_rate": 0.0971,
+          "pr_auc_over_base": 0.0789,
+          "brier_score": 0.0857,
+          "brier_skill_score": 0.023,
+          "ece": 0.0048
+        },
+        "validation": {
+          "roc_auc": 0.6788,
+          "pr_auc": 0.228,
+          "base_rate": 0.1151,
+          "pr_auc_over_base": 0.113,
+          "brier_score": 0.0987,
+          "brier_skill_score": 0.031,
+          "ece": 0.0263
+        },
+        "holdout": {
+          "roc_auc": 0.6733,
+          "pr_auc": 0.3698,
+          "base_rate": 0.1954,
+          "pr_auc_over_base": 0.1744,
+          "brier_score": 0.1595,
+          "brier_skill_score": -0.0147,
+          "ece": 0.0944
+        },
+        "coefficients": [
+          0.0759,
+          0.2764,
+          -0.0249,
+          0.0678,
+          -0.1063,
+          0.145,
+          -0.0729,
+          0.0749,
+          0.1219,
+          0.068,
+          0.1804,
+          -0.069,
+          -0.0707,
+          0.0073,
+          0.0947,
+          0.3446
+        ],
+        "intercept": -2.2878
+      },
+      "block_permutation_control": {
+        "train": {
+          "roc_auc": 0.6531,
+          "pr_auc": 0.1661,
+          "base_rate": 0.0971,
+          "pr_auc_over_base": 0.0689,
+          "brier_score": 0.0855,
+          "brier_skill_score": 0.0247,
+          "ece": 0.0071
+        },
+        "validation": {
+          "roc_auc": 0.4438,
+          "pr_auc": 0.1006,
+          "base_rate": 0.1151,
+          "pr_auc_over_base": -0.0145,
+          "brier_score": 0.1056,
+          "brier_skill_score": -0.0371,
+          "ece": 0.0516
+        },
+        "holdout": {
+          "roc_auc": 0.5126,
+          "pr_auc": 0.1952,
+          "base_rate": 0.1954,
+          "pr_auc_over_base": -0.0002,
+          "brier_score": 0.1737,
+          "brier_skill_score": -0.1047,
+          "ece": 0.1165
+        },
+        "coefficients": [
+          -0.0478,
+          0.2515,
+          -0.086,
+          0.0632,
+          -0.0844,
+          0.0824,
+          -0.2085,
+          0.0149,
+          0.1815,
+          0.0658,
+          0.0597,
+          -0.0466,
+          -0.2271,
+          0.0247,
+          -0.0398,
+          0.1719
+        ],
+        "intercept": -2.3027
+      },
+      "incremental_validation": {
+        "delta_roc_auc": 0.1487,
+        "delta_pr_auc": 0.0772,
+        "delta_brier_skill_score": 0.0353,
+        "conditional_return_top_risk_quintile_pct": -1.8,
+        "conditional_return_bottom_risk_quintile_pct": 1.31,
+        "risk_spread_pct": 3.11
+      },
+      "incremental_holdout_diagnostic": {
+        "delta_roc_auc": 0.2111,
+        "delta_pr_auc": 0.1838,
+        "delta_brier_skill_score": 0.0573
+      },
+      "combined_feature_names": [
+        "f_btc_ret_24h",
+        "f_btc_ret_72h",
+        "f_btc_ret_168h",
+        "f_btc_vol_24h",
+        "f_btc_vol_168h",
+        "f_btc_sma_50d_dist",
+        "f_btc_funding_level",
+        "f_btc_funding_change_24h",
+        "f_btc_funding_cum_24h",
+        "f_funding_skew_eth_btc",
+        "f_funding_skew_bnb_btc",
+        "f_btc_oi_change_24h_pct",
+        "f_btc_oi_change_72h_pct",
+        "f_btc_oi_to_volume_ratio",
+        "f_oi_price_divergence_24h",
+        "f_btc_toptrader_ls"
+      ]
+    }
+  },
+  "phase_d_economic_translation": {
+    "base_fee_12bps": {
+      "100_cash": {
+        "policy_name": "100_cash",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 10000.0,
+        "full_horizon_net_return_pct": 0.0,
+        "train_net_return_pct": 0.0,
+        "val_net_return_pct": 0.0,
+        "holdout_net_return_pct": 0.0,
+        "annualized_sharpe": 0.0,
+        "annualized_sortino": 0.0,
+        "max_drawdown_pct": 0.0,
+        "one_way_turnover": 0.0,
+        "total_fees_paid_usd": 0.0,
+        "mean_btc_exposure": 0.0
+      },
+      "btc_buy_and_hold": {
+        "policy_name": "btc_buy_and_hold",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 38561.42,
+        "full_horizon_net_return_pct": 285.61,
+        "train_net_return_pct": 455.69,
+        "val_net_return_pct": -6.51,
+        "holdout_net_return_pct": -26.94,
+        "annualized_sharpe": 1.064,
+        "annualized_sortino": 1.651,
+        "max_drawdown_pct": -51.34,
+        "one_way_turnover": 1.0,
+        "total_fees_paid_usd": 12.01,
+        "mean_btc_exposure": 1.0
+      },
+      "static_50_50": {
+        "policy_name": "static_50_50",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 21459.29,
+        "full_horizon_net_return_pct": 114.59,
+        "train_net_return_pct": 149.05,
+        "val_net_return_pct": -1.36,
+        "holdout_net_return_pct": -13.33,
+        "annualized_sharpe": 1.058,
+        "annualized_sortino": 1.64,
+        "max_drawdown_pct": -28.97,
+        "one_way_turnover": 5.93,
+        "total_fees_paid_usd": 139.42,
+        "mean_btc_exposure": 0.5
+      },
+      "r7_vol_target_25": {
+        "policy_name": "r7_vol_target_25",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 21823.97,
+        "full_horizon_net_return_pct": 118.24,
+        "train_net_return_pct": 158.42,
+        "val_net_return_pct": -1.91,
+        "holdout_net_return_pct": -14.62,
+        "annualized_sharpe": 1.043,
+        "annualized_sortino": 1.612,
+        "max_drawdown_pct": -29.63,
+        "one_way_turnover": 6.15,
+        "total_fees_paid_usd": 147.95,
+        "mean_btc_exposure": 0.517
+      },
+      "simple_trend_following": {
+        "policy_name": "simple_trend_following",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 28252.01,
+        "full_horizon_net_return_pct": 182.52,
+        "train_net_return_pct": 181.94,
+        "val_net_return_pct": 7.46,
+        "holdout_net_return_pct": -6.75,
+        "annualized_sharpe": 1.062,
+        "annualized_sortino": 1.327,
+        "max_drawdown_pct": -32.11,
+        "one_way_turnover": 72.04,
+        "total_fees_paid_usd": 2053.59,
+        "mean_btc_exposure": 0.569
+      },
+      "derivatives_informed_trend": {
+        "policy_name": "derivatives_informed_trend",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 30752.22,
+        "full_horizon_net_return_pct": 207.52,
+        "train_net_return_pct": 179.49,
+        "val_net_return_pct": 19.37,
+        "holdout_net_return_pct": -7.82,
+        "annualized_sharpe": 1.227,
+        "annualized_sortino": 1.555,
+        "max_drawdown_pct": -30.75,
+        "one_way_turnover": 129.33,
+        "total_fees_paid_usd": 3867.23,
+        "mean_btc_exposure": 0.508
+      },
+      "derivatives_vol_overlay": {
+        "policy_name": "derivatives_vol_overlay",
+        "fee_bps": 12.0,
+        "slippage_bps": 0.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 20300.51,
+        "full_horizon_net_return_pct": 103.01,
+        "train_net_return_pct": 130.64,
+        "val_net_return_pct": 0.23,
+        "holdout_net_return_pct": -12.82,
+        "annualized_sharpe": 1.098,
+        "annualized_sortino": 1.748,
+        "max_drawdown_pct": -25.69,
+        "one_way_turnover": 20.4,
+        "total_fees_paid_usd": 475.87,
+        "mean_btc_exposure": 0.44
+      }
+    },
+    "stress_fee_25bps_slippage_5bps": {
+      "100_cash": {
+        "policy_name": "100_cash_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 10000.0,
+        "full_horizon_net_return_pct": 0.0,
+        "train_net_return_pct": 0.0,
+        "val_net_return_pct": 0.0,
+        "holdout_net_return_pct": 0.0,
+        "annualized_sharpe": 0.0,
+        "annualized_sortino": 0.0,
+        "max_drawdown_pct": 0.0,
+        "one_way_turnover": 0.0,
+        "total_fees_paid_usd": 0.0,
+        "mean_btc_exposure": 0.0
+      },
+      "btc_buy_and_hold": {
+        "policy_name": "btc_buy_and_hold_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 38491.87,
+        "full_horizon_net_return_pct": 284.92,
+        "train_net_return_pct": 454.68,
+        "val_net_return_pct": -6.51,
+        "holdout_net_return_pct": -26.94,
+        "annualized_sharpe": 1.063,
+        "annualized_sortino": 1.65,
+        "max_drawdown_pct": -51.34,
+        "one_way_turnover": 1.0,
+        "total_fees_paid_usd": 30.09,
+        "mean_btc_exposure": 1.0
+      },
+      "static_50_50": {
+        "policy_name": "static_50_50_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 21231.42,
+        "full_horizon_net_return_pct": 112.31,
+        "train_net_return_pct": 147.39,
+        "val_net_return_pct": -1.62,
+        "holdout_net_return_pct": -13.45,
+        "annualized_sharpe": 1.045,
+        "annualized_sortino": 1.619,
+        "max_drawdown_pct": -29.11,
+        "one_way_turnover": 5.93,
+        "total_fees_paid_usd": 346.44,
+        "mean_btc_exposure": 0.5
+      },
+      "r7_vol_target_25": {
+        "policy_name": "r7_vol_target_25_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 21583.95,
+        "full_horizon_net_return_pct": 115.84,
+        "train_net_return_pct": 156.64,
+        "val_net_return_pct": -2.19,
+        "holdout_net_return_pct": -14.73,
+        "annualized_sharpe": 1.03,
+        "annualized_sortino": 1.591,
+        "max_drawdown_pct": -29.77,
+        "one_way_turnover": 6.15,
+        "total_fees_paid_usd": 367.54,
+        "mean_btc_exposure": 0.517
+      },
+      "simple_trend_following": {
+        "policy_name": "simple_trend_following_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 24805.9,
+        "full_horizon_net_return_pct": 148.06,
+        "train_net_return_pct": 165.12,
+        "val_net_return_pct": 2.53,
+        "holdout_net_return_pct": -8.75,
+        "annualized_sharpe": 0.949,
+        "annualized_sortino": 1.194,
+        "max_drawdown_pct": -34.52,
+        "one_way_turnover": 72.11,
+        "total_fees_paid_usd": 4772.22,
+        "mean_btc_exposure": 0.569
+      },
+      "derivatives_informed_trend": {
+        "policy_name": "derivatives_informed_trend_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 24362.4,
+        "full_horizon_net_return_pct": 143.62,
+        "train_net_return_pct": 143.0,
+        "val_net_return_pct": 12.05,
+        "holdout_net_return_pct": -10.53,
+        "annualized_sharpe": 1.003,
+        "annualized_sortino": 1.28,
+        "max_drawdown_pct": -33.56,
+        "one_way_turnover": 129.44,
+        "total_fees_paid_usd": 8471.48,
+        "mean_btc_exposure": 0.508
+      },
+      "derivatives_vol_overlay": {
+        "policy_name": "derivatives_vol_overlay_stress",
+        "fee_bps": 25.0,
+        "slippage_bps": 5.0,
+        "initial_capital_usd": 10000.0,
+        "final_equity_usd": 19568.71,
+        "full_horizon_net_return_pct": 95.69,
+        "train_net_return_pct": 125.99,
+        "val_net_return_pct": -0.81,
+        "holdout_net_return_pct": -13.33,
+        "annualized_sharpe": 1.047,
+        "annualized_sortino": 1.665,
+        "max_drawdown_pct": -26.35,
+        "one_way_turnover": 20.4,
+        "total_fees_paid_usd": 1165.62,
+        "mean_btc_exposure": 0.44
+      }
+    }
+  },
+  "phase_e_verdicts": {
+    "DERIVATIVES_PIT_COVERAGE": "PARTIAL",
+    "DERIVATIVES_INCREMENTAL_INFORMATION": "SUPPORTED",
+    "DERIVATIVES_ECONOMIC_OPPORTUNITY": "SUPPORTED",
+    "PRIMARY_VERDICT": "DERIVATIVES_POSITIONING_IMPROVES_DOWNSIDE_RISK_AND_ECONOMIC_SHARPE"
+  }
+}
