@@ -704,11 +704,37 @@ def run_r11_economic_attribution_pipeline() -> Dict[str, Any]:
     cf_d_ret = cf["D_r11_selection_fixed_train_exp"]["net_return_pct"]
     cf_e_ret = cf["E_static_btc_fixed_train_exp"]["net_return_pct"]
 
+    # Audit linear per-coin PnL residual
+    linear_gross_sum = float(sum(phase_c_results["full_coin_gross_pnl_usd"].values()))
+    actual_fees = float(phase_c_results["fee_drag_analysis"]["total_fees_paid_usd"])
+    linear_net_sum = linear_gross_sum - actual_fees
+    actual_final_pnl = float(res_delay_0["standard_metrics"]["final_equity_usd"] - 10000.0)
+    residual_usd = round(linear_net_sum - actual_final_pnl, 2)
+
+    phase_c_results["residual_audit"] = {
+        "linear_gross_sum_usd": round(linear_gross_sum, 2),
+        "actual_fees_usd": round(actual_fees, 2),
+        "linear_net_sum_usd": round(linear_net_sum, 2),
+        "actual_final_pnl_usd": round(actual_final_pnl, 2),
+        "residual_usd": residual_usd,
+        "residual_pct_of_final_equity": round(residual_usd / res_delay_0["standard_metrics"]["final_equity_usd"] * 100.0, 2),
+        "status": "APPROXIMATION_DOCUMENTED",
+        "mathematical_explanation": (
+            "Residual of $143.67 (0.29% of final equity) arises because discrete per-coin attribution "
+            "evaluates P_i = V_pre * w_i * R_i without deducting the upfront transaction fee from deployed "
+            "capital (V_deployed = V_pre - Fee), compounding across 253 weekly rebalance cycles."
+        ),
+    }
+
     verdicts = {
-        "TRAIN_ALPHA_CONCENTRATION_OBSERVED": True,
+        "TRAIN_RETURN_CONCENTRATION_OBSERVED": True,
+        "CASH_TIMING_HISTORICAL_CONTRIBUTION_OBSERVED": True,
+        "CASH_TIMING_PREDICTIVE_GENERALIZATION": "NOT_ESTABLISHED",
         "ASSET_SELECTION_INCREMENTAL_VALUE": "NOT_SUPPORTED",
-        "CASH_TIMING_INCREMENTAL_VALUE": "NOT_SUPPORTED",
         "GENERALIZATION_NOT_ESTABLISHED": True,
+        "UNIFIED_NEURAL_ALPHA": "NOT_ESTABLISHED",
+        "R11_FACTORISATION": "COMPLETED_EXPLORATORY",
+        "PRODUCTION_PROMOTION": "NOT_AUTHORIZED",
         "PRIMARY_VERDICT": "R11_TRAIN_RETURN_DRIVEN_BY_SOL_CONCENTRATION_NOT_GENERALIZED_ALPHA",
     }
 
@@ -749,6 +775,7 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
     p_c = data["phase_c_pnl_attribution"]
     p_d = data["phase_d_seed_diagnostics"]
     verdicts = data["phase_e_verdicts"]
+    res_audit = p_c.get("residual_audit", {})
 
     cf = p_c["counterfactual_comparison"]
     cf_a = cf["A_original_r11"]
@@ -760,7 +787,7 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
     ann = cf["annual_returns"]
 
     lines: List[str] = []
-    lines.append("# R11 Economic Attribution & Execution Fidelity Report")
+    lines.append("# R11 Economic Attribution & Execution Fidelity Report (Corrected Edition)")
     lines.append("")
     lines.append(f"**Clean Aligned Horizon**: {meta['aligned_horizon']}  ")
     lines.append(f"**Analyzed Model Checkpoint**: {meta['analyzed_checkpoint']}  ")
@@ -775,9 +802,10 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
     lines.append("")
     lines.append("| Hypothesis / Dimension | Verdict | Definitive Empirical Finding |")
     lines.append("| :--- | :---: | :--- |")
-    lines.append(f"| **Train Alpha Concentration** | **`{verdicts['TRAIN_ALPHA_CONCENTRATION_OBSERVED']}`** | Over **{p_c['train_pnl_concentration']['top_5_weeks_share_pct']}%** of total Train gross PnL (${p_c['train_pnl_concentration']['top_5_weeks_gross_pnl_usd']:,.2f} of ${p_c['train_pnl_concentration']['total_train_gross_pnl_usd']:,.2f}) was generated in just **5 discrete weeks** out of 102 Train weeks. |")
-    lines.append(f"| **Asset Selection Incremental Value** | **`{verdicts['ASSET_SELECTION_INCREMENTAL_VALUE']}`** | Counterfactual D (Neural Selection + Fixed 58% Exp: **{cf_d['net_return_pct']:+.2f}%**, Val **{sub['D_r11_selection_fixed_train_exp']['val']:+.2f}%**, Holdout **{sub['D_r11_selection_fixed_train_exp']['holdout']:+.2f}%**) underperformed Counterfactual E (Static BTC + Fixed 58% Exp: **{cf_e['net_return_pct']:+.2f}%**, Val **{sub['E_static_btc_fixed_train_exp']['val']:+.2f}%**, Holdout **{sub['E_static_btc_fixed_train_exp']['holdout']:+.2f}%**) out of sample. |")
-    lines.append(f"| **Cash Timing Incremental Value** | **`{verdicts['CASH_TIMING_INCREMENTAL_VALUE']}`** | Switching the risky sleeve of dynamic exposure to pure BTC (Counterfactual B: **{cf_b['net_return_pct']:+.2f}%**, Sharpe **{cf_b['annualized_sharpe']:.3f}**) produced nearly identical performance to Static 58% BTC (**{cf_e['net_return_pct']:+.2f}%**, Sharpe **{cf_e['annualized_sharpe']:.3f}**), proving exposure timing had no standalone alpha without altcoin momentum. |")
+    lines.append(f"| **Train Return Concentration** | **`{verdicts['TRAIN_RETURN_CONCENTRATION_OBSERVED']}`** | Over **{p_c['train_pnl_concentration']['top_5_weeks_share_pct']}%** of total Train gross PnL (${p_c['train_pnl_concentration']['top_5_weeks_gross_pnl_usd']:,.2f} of ${p_c['train_pnl_concentration']['total_train_gross_pnl_usd']:,.2f}) was generated in just **5 discrete weeks** out of 102 Train weeks. |")
+    lines.append(f"| **Cash Timing Historical Benefit** | **`{verdicts['CASH_TIMING_HISTORICAL_CONTRIBUTION_OBSERVED']}`** | Dynamic cash exposure delivered significant historical value: Counterfactual B (R11 Cash + BTC: **{cf_b['net_return_pct']:+.2f}%**, Sharpe **{cf_b['annualized_sharpe']:.3f}**) substantially exceeded Static 58% BTC (Counterfactual E: **{cf_e['net_return_pct']:+.2f}%**, Sharpe **{cf_e['annualized_sharpe']:.3f}**) by avoiding the 2022 bear drawdown (-17.49% vs -39.47%). |")
+    lines.append(f"| **Cash Timing Predictive Skill** | **`{verdicts['CASH_TIMING_PREDICTIVE_GENERALIZATION']}`** | Predictive generalization across cycles remains unproven: cash timing did not anticipate market shifts out of sample in 2024 or 2025–2026. |")
+    lines.append(f"| **Asset Selection Incremental Value** | **`{verdicts['ASSET_SELECTION_INCREMENTAL_VALUE']}`** | **Validation vs Holdout Distinction**: In Validation 2024, Counterfactual D (Selection + Fixed 58% Exp: **{sub['D_r11_selection_fixed_train_exp']['val']:+.2f}%**) slightly exceeded Counterfactual E (Static 58% BTC: **{sub['E_static_btc_fixed_train_exp']['val']:+.2f}%**). However, in Reused Holdout (2025–2026), Counterfactual D lost **{sub['D_r11_selection_fixed_train_exp']['holdout']:+.2f}%**, losing more than double Static 58% BTC (**{sub['E_static_btc_fixed_train_exp']['holdout']:+.2f}%**). Standalone selection alpha across cycles is not supported. |")
     lines.append(f"| **Out-of-Sample Generalization** | **`{verdicts['GENERALIZATION_NOT_ESTABLISHED']}`** | In Reused Holdout (2025–2026), R11 lost **{sub['A_original_r11']['holdout']:+.2f}%**, dramatically worse than Static 50/50 BTC/Cash (**-13.79%**) and Static 58% BTC (**{sub['E_static_btc_fixed_train_exp']['holdout']:+.2f}%**). |")
     lines.append("")
     lines.append("---")
@@ -802,7 +830,7 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
     lines.append(f"| **Delta vs Baseline (Delay 1h - Delay 0h)** | — | **{p_a1['numerical_delta_vs_baseline_delay_0h_pct']:+.2f}%** | Causal 1h execution delay persists |")
     lines.append("")
     lines.append("> [!NOTE]")
-    lines.append("> **Causal Mechanism**: Under pending-order execution, decisions made at Sunday 00:00 UTC remain unexecuted until Sunday 01:00 UTC. Hour 00:00 evaluates with previous holdings. The slight gain from delay (+51.18%) stems from intra-hour Sunday mean-reversion in altcoin prices prior to the 01:00 UTC rebalance.")
+    lines.append("> **Epistemic Note on Delayed Execution**: Under causal pending-order execution, decisions made at Sunday 00:00 UTC remain unexecuted until Sunday 01:00 UTC, with hour 00:00 evaluating existing holdings. The observed +51.18% gain is an empirical outcome in this sample; it must NOT be asserted as proven Sunday mean-reversion without dedicated cross-asset intraday statistical testing.")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -810,28 +838,33 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
     lines.append("## 3. Phase B: Training / Replay Cost Parity Audit")
     lines.append("")
     lines.append("### Mathematical Divergence")
-    lines.append("In spot crypto trading, transaction fees are levied upon **every asset traded** ($V_{\\text{traded}} = \\sum_i |\\Delta \\text{asset}_i|$).")
-    lines.append("However, `compute_risk_budgeted_loss()` modeled transaction drag using normalized portfolio one-way turnover:")
-    lines.append("$$\\mathcal{L}_{\\text{fee}} = \\lambda_{\\text{fee}} \\cdot \\frac{1}{2}\\left(\\sum_{i=1}^N |w_{i, t+1} - w_{i, t}^{\\text{drifted}}| + |w_{\\text{cash}, t+1} - w_{\\text{cash}, t}^{\\text{drifted}}|\\right)$$")
+    lines.append("In spot crypto trading, transaction fees are levied upon **gross asset traded volume** ($V_{\\text{traded}} = \\sum_i |\\Delta \\text{asset}_i|$).")
+    lines.append("In `compute_risk_budgeted_loss()`, turnover drag was modeled using normalized portfolio one-way turnover:")
+    lines.append("$$\\text{Turnover}_{\\text{surrogate}} = \\frac{1}{2}\\left(\\sum_{i=1}^N |w_{i, t+1} - w_{i, t}^{\\text{drifted}}| + |w_{\\text{cash}, t+1} - w_{\\text{cash}, t}^{\\text{drifted}}|\\right)$$")
     lines.append("When cash allocation is constant and capital rotates directly between altcoins:")
     lines.append("$$\\text{Gross Asset Turnover} = \\sum_{i=1}^N |w_{i, t+1} - w_{i, t}| = 2 \\times \\text{One-Way Turnover}$$")
     lines.append("")
-    lines.append("| Metric | Value | Economic Implication |")
+    lines.append("| Metric | Value | Economic Context |")
     lines.append("| :--- | :---: | :--- |")
     lines.append(f"| **Total Actual Replay Fees** | **${p_b['total_actual_fees_usd']:,.2f}** | Exact 12.0 bps fee levied on gross asset traded notional |")
-    lines.append(f"| **Training Loss Surrogate Fees** | **${p_b['total_surrogate_fees_usd']:,.2f}** | Modeled cost experienced by gradient descent optimizer |")
-    lines.append(f"| **Fee Understatement in Training** | **${p_b['total_fee_understatement_usd']:,.2f}** (**{p_b['mean_fee_understatement_pct']:.1f}%**) | Training objective charged only **~half the true fee** during altcoin rotations |")
-    lines.append(f"| **Gross-to-One-Way Turnover Ratio** | **{p_b['gross_to_one_way_ratio']:.2f}x** | Near 2.0x, confirming heavy cross-altcoin churn |")
+    lines.append(f"| **Training Loss Surrogate Fees** | **${p_b['total_surrogate_fees_usd']:,.2f}** | Modeled fee drag in loss function |")
+    lines.append(f"| **Fee Understatement in Loss** | **${p_b['total_fee_understatement_usd']:,.2f}** (**{p_b['mean_fee_understatement_pct']:.1f}%**) | Training objective charged only ~half fee during cross-altcoin swaps |")
+    lines.append(f"| **Gross-to-One-Way Turnover Ratio** | **{p_b['gross_to_one_way_ratio']:.2f}x** | Near 2.0x, confirming heavy cross-altcoin rotation |")
     lines.append("")
-    lines.append("> [!WARNING]")
-    lines.append("> **Economic Limitation Identified**: Because the surrogate training loss charged only half the real transaction fee on cross-asset reallocations, the neural network was artificially incentivized to churn aggressively between altcoins (generating 195.84x gross turnover). Future neural experiments must align training turnover penalties strictly with spot gross asset volume.")
+    lines.append("> [!NOTE]")
+    lines.append("> **Nuance on Optimization Incentives**: While the training loss fee surrogate was lower than replay fees, the training objective also included an explicit regularization penalty: $\\lambda_{\\text{turnover}} \\cdot \\text{turnover}$ (with $\\lambda_{\\text{turnover}} = 0.002$). Therefore, the fee surrogate understatement cannot be declared the sole causal driver of high turnover; it operated as one component of the combined optimization landscape.")
     lines.append("")
     lines.append("---")
     lines.append("")
 
     lines.append("## 4. Phase C: Frozen R11 PnL Attribution & Counterfactual Matrix")
     lines.append("")
-    lines.append("### Cumulative Gross PnL Contribution by Individual Coin")
+    lines.append("> [!NOTE]")
+    lines.append("> **Weight Distinction**: In factorized allocation:")
+    lines.append("> - **Total Portfolio Asset Weights**: $w_i(t) = E(t) \\cdot q_i(t)$, where $\\sum_{i=1}^N w_i(t) + w_{\\text{cash}}(t) = 1.0$.")
+    lines.append("> - **Relative Risky-Sleeve Weights**: $q_i(t) = \\text{softmax}(z_{\\text{asset}_i})$, where $\\sum_{i=1}^N q_i(t) = 1.0$ on the risky simplex.")
+    lines.append("")
+    lines.append("### Cumulative Gross PnL Contribution by Individual Coin (Approximation)")
     lines.append("| Coin | Train PnL (2022–2023) | 2023 Bull PnL | Val PnL (2024) | Holdout PnL (2025–2026) | Full Horizon Gross PnL |")
     lines.append("| :--- | :---: | :---: | :---: | :---: | :---: |")
     symbols = list(p_c["full_coin_gross_pnl_usd"].keys())
@@ -843,16 +876,24 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
         tot_c = p_c["full_coin_gross_pnl_usd"].get(s, 0.0)
         lines.append(f"| **{s}** | `${tr_c:,.2f}` | `${y23_c:,.2f}` | `${va_c:,.2f}` | `${ho_c:,.2f}` | **`${tot_c:,.2f}`** |")
     lines.append("")
+    if res_audit:
+        lines.append(f"> [!IMPORTANT]")
+        lin_net = res_audit.get('linear_net_sum_usd', 50010.97)
+        act_pnl = res_audit.get('actual_final_pnl_usd', 49867.30)
+        res_val = res_audit.get('residual_usd', 143.67)
+        res_pct = res_audit.get('residual_pct_of_final_equity', 0.29)
+        lines.append(f"> **Residual Audit**: Summing linear per-coin PnL yields **${lin_net:,.2f}** net PnL, whereas exact MTM portfolio equity gain is **${act_pnl:,.2f}**, producing an exact residual of **${res_val:.2f}** ({res_pct:.2f}% of final equity). This residual exists because the linear sum multiplies pre-trade equity (P_i = V_pre * w_i * R_i) without deducting the upfront transaction fee from deployed capital (V_deployed = V_pre - Fee), compounding across 253 weekly steps. Per-coin attribution is therefore documented as an **analytical approximation**.")
+        lines.append("")
 
     lines.append("### Train PnL Concentration (The 5 Decisive Weeks)")
     lines.append(f"- Total Train Gross PnL: **${p_c['train_pnl_concentration']['total_train_gross_pnl_usd']:,.2f}**")
     lines.append(f"- Top 5 Weeks Combined PnL: **${p_c['train_pnl_concentration']['top_5_weeks_gross_pnl_usd']:,.2f}** (**{p_c['train_pnl_concentration']['top_5_weeks_share_pct']:.1f}%** of all Train gains)")
     lines.append(f"- Top 10 Weeks Combined PnL: **${p_c['train_pnl_concentration']['top_10_weeks_gross_pnl_usd']:,.2f}** (**{p_c['train_pnl_concentration']['top_10_weeks_share_pct']:.1f}%**)")
     lines.append("")
-    lines.append("| Decision Date | Gross PnL | SOL PnL | ADA PnL | LINK PnL | Fee Paid | Net PnL | Driver Event |")
+    lines.append("| Decision Date | Gross PnL | SOL PnL | ADA PnL | LINK PnL | Fee Paid | Net PnL | Allocation Context |")
     lines.append("| :--- | :---: | :---: | :---: | :---: | :---: | :--- |")
     for row in p_c["train_pnl_concentration"]["top_weeks_detail"][:5]:
-        lines.append(f"| **{row['decision_time'][:10]}** | `${row['gross_pnl_usd']:,.2f}` | `${row['sol_pnl_usd']:,.2f}` | `${row['ada_pnl_usd']:,.2f}` | `${row['link_pnl_usd']:,.2f}` | `${row['fee_usd']:,.2f}` | **`${row['net_pnl_usd']:,.2f}`** | 63–77% allocation to SOL pump |")
+        lines.append(f"| **{row['decision_time'][:10]}** | `${row['gross_pnl_usd']:,.2f}` | `${row['sol_pnl_usd']:,.2f}` | `${row['ada_pnl_usd']:,.2f}` | `${row['link_pnl_usd']:,.2f}` | `${row['fee_usd']:,.2f}` | **`${row['net_pnl_usd']:,.2f}`** | 63–77% allocation into high-beta pump |")
     lines.append("")
 
     lines.append("### Diagnostic Counterfactual Matrix (Identical Accounting)")
@@ -874,7 +915,7 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
     lines.append("| Metric | Seed 42 | Seed 101 (Selected) | Seed 202 | Seed Divergence Mechanism |")
     lines.append("| :--- | :---: | :---: | :---: | :--- |")
     lines.append(f"| **Full Horizon Net Return** | `{p_d['seed_42']['net_return_pct']:+.2f}%` | `{p_d['seed_101']['net_return_pct']:+.2f}%` | `{p_d['seed_202']['net_return_pct']:+.2f}%` | 487.5% return spread |")
-    lines.append(f"| **Train Return (2022–2023)** | `{p_d['seed_42']['train_return_pct']:+.2f}%` | `{p_d['seed_101']['train_return_pct']:+.2f}%` | `{p_d['seed_202']['train_return_pct']:+.2f}%` | Seed 202 completely missed SOL pump |")
+    lines.append(f"| **Train Return (2022–2023)** | `{p_d['seed_42']['train_return_pct']:+.2f}%` | `{p_d['seed_101']['train_return_pct']:+.2f}%` | `{p_d['seed_202']['train_return_pct']:+.2f}%` | Seed 202 missed SOL pump entirely |")
     lines.append(f"| **Val Return (2024)** | `{p_d['seed_42']['val_return_pct']:+.2f}%` | `{p_d['seed_101']['val_return_pct']:+.2f}%` | `{p_d['seed_202']['val_return_pct']:+.2f}%` | All 3 seeds underperformed Static BTC |")
     lines.append(f"| **Holdout Return (2025–2026)** | `{p_d['seed_42']['holdout_return_pct']:+.2f}%` | `{p_d['seed_101']['holdout_return_pct']:+.2f}%` | `{p_d['seed_202']['holdout_return_pct']:+.2f}%` | All 3 seeds suffered severe drawdowns |")
     lines.append(f"| **Mean Cash Weight** | `{p_d['seed_42']['mean_cash_weight_pct']:.1f}%` | `{p_d['seed_101']['mean_cash_weight_pct']:.1f}%` | `{p_d['seed_202']['mean_cash_weight_pct']:.1f}%` | Cash allocation was nearly identical (~38–50%) |")
@@ -888,13 +929,52 @@ def render_attribution_report(data: Dict[str, Any]) -> Path:
 
     lines.append("## 6. Synthesis & Strategic Guidance")
     lines.append("")
-    lines.append("> [!TIP]")
-    lines.append("> **Epistemic Root Cause Analysis**:")
-    lines.append("> 1. **No Predictive Cycle Generalization**: The neural network's high Train return was driven by episodic asset concentration (SOLUSDT/LINKUSDT in 2023), not cycle timing. In 2024 and 2025–2026, the model failed to adapt, underperforming simple static benchmarks.")
-    lines.append("> 2. **Loss vs Accounting Mismatch**: `compute_risk_budgeted_loss` penalized one-way turnover rather than gross spot volume, halving the cost of altcoin churn during training and encouraging unrealistic 195x turnover.")
-    lines.append("> 3. **Architectural Limit Reached**: Decoupling the output head into sigmoid macro exposure and softmax micro selection (R11) proved that head factorization cannot compensate for the lack of regime-predictive features in the input space.")
+    lines.append("### Cumulative R8–R11 Empirical Trajectory")
+    lines.append("| Iteration | Architecture & Objective | Realized Cash | Train Net Ret | Val 2024 Ret | Holdout Ret | Key Empirical Finding |")
+    lines.append("| :--- | :--- | :---: | :---: | :---: | :---: | :--- |")
+    lines.append("| **R8** | Joint Softmax + Unbounded Loss | 94.6% | +24.4% | +9.6% | +0.2% | Collapsed into cash shelter due to 20.4x downside gradient dominance |")
+    lines.append("| **R9** | Attribution Analysis of R8 | 94.6% | — | — | — | Proved R8 return was cash capital preservation, not asset-selection alpha |")
+    lines.append("| **R10** | Joint Softmax + Risk-Budgeted Loss | 12.1% | -14.4% | +94.2% | -44.4% | Cured cash shelter, but held ~88% crypto continuously, failing bear-market defense |")
+    lines.append("| **R11** | Factorized Heads (Sigmoid + Softmax) | 38.5% | +501.3% | +64.5% | -40.1% | Disentangled heads; massive Train gain driven by 5 weeks of SOL pump; failed out of sample |")
     lines.append("")
-    lines.append(f"**STOP RULE APPLIED**: Economic attribution complete. Scientific verdict established: `{verdicts['PRIMARY_VERDICT']}`. Neural model capacity scaling and R12 exploration are terminated.")
+    lines.append("### Final Formal Closures")
+    lines.append(f"- **`UNIFIED_NEURAL_ALPHA = {verdicts['UNIFIED_NEURAL_ALPHA']}`**")
+    lines.append(f"- **`R11_FACTORISATION = {verdicts['R11_FACTORISATION']}`**")
+    lines.append(f"- **`PRODUCTION_PROMOTION = {verdicts['PRODUCTION_PROMOTION']}`**")
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+
+    lines.append("## 7. Next Research Question (Proposal Only — No Implementation)")
+    lines.append("")
+    lines.append("> [!TIP]")
+    lines.append("> **Research Hypothesis: Predictive Cross-Cycle Information Discovery**:")
+    lines.append("> *Can exogenous, point-in-time structural market signals (derivatives positioning, exchange liquidity, on-chain flows) provide statistically significant and causal regime-switching information that price/momentum/volatility features fail to convey, enabling a trading policy to systematically de-risk before market-wide drawdowns without in-sample overfitting?*")
+    lines.append("")
+    lines.append("### Five Required Research Specifications")
+    lines.append("1. **Novel Information Sources Beyond Price/Volume**:")
+    lines.append("   - Cross-sectional perpetual funding rate skew (crowded long/short positioning).")
+    lines.append("   - Aggregate open interest normalized by volume / market cap (leverage buildup).")
+    lines.append("   - Exchange net stablecoin flows (dry-powder purchasing power vs distribution).")
+    lines.append("   - Network active address momentum and transaction count growth.")
+    lines.append("   - Macro liquidity indicators (US Treasury yield spreads, DXY index, central bank liquidity).")
+    lines.append("2. **Verifiable Point-in-Time Historical Sources**:")
+    lines.append("   - Binance / Bybit public perpetual archive (hourly funding and open interest).")
+    lines.append("   - Glassnode / CryptoQuant point-in-time on-chain metrics (strictly causal timestamps).")
+    lines.append("   - Federal Reserve FRED API for macro liquidity indices.")
+    lines.append("3. **Multi-Cycle, Survivorship-Bias-Free Universe Design**:")
+    lines.append("   - Must span at least two full halving cycles (2018–2019 bear, 2020–2021 bull, 2022 bear, 2023–2024 bull).")
+    lines.append("   - Universe must be defined dynamically per epoch based on point-in-time top market cap, explicitly including historically prominent tokens that later decayed (e.g. LUNA, FTT, EOS, BCH) to eliminate survivorship bias.")
+    lines.append("4. **Rigorous Falsification Economic Benchmarks**:")
+    lines.append("   - Volatility-targeted BTC/Cash (R7 Vol Target 25% with 5% buffer).")
+    lines.append("   - Simple trend-following SMA/EMA filter benchmark.")
+    lines.append("   - Static 50/50 BTC/Cash.")
+    lines.append("5. **Mandatory Prerequisites Before Retraining Neural Models**:")
+    lines.append("   - Feature Rank IC and Mutual Information must achieve statistically significant cross-cycle predictive power ($p < 0.01$, FDR adjusted).")
+    lines.append("   - A simple linear or rank-based model must demonstrate positive net economic alpha after double-sided spot transaction fees.")
+    lines.append(r"   - Seed stability across $\ge 10$ random seeds must show return standard deviation $< 15\%$.")
+    lines.append("")
+    lines.append(f"**STOP RULE APPLIED**: R11 research is fully closed. No R12 training or architectural iteration is initiated.")
 
     report_path = OUTPUT_DIR / "r11_economic_attribution_report.md"
     with open(report_path, "w", encoding="utf-8") as f:

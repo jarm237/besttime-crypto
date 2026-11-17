@@ -30,9 +30,13 @@ def test_scorecard_and_ledger_schema_completeness():
     assert "phase_e_verdicts" in data
 
     verdicts = data["phase_e_verdicts"]
-    assert verdicts["TRAIN_ALPHA_CONCENTRATION_OBSERVED"] is True
+    assert verdicts["TRAIN_RETURN_CONCENTRATION_OBSERVED"] is True
     assert verdicts["ASSET_SELECTION_INCREMENTAL_VALUE"] == "NOT_SUPPORTED"
-    assert verdicts["CASH_TIMING_INCREMENTAL_VALUE"] == "NOT_SUPPORTED"
+    assert verdicts["CASH_TIMING_HISTORICAL_CONTRIBUTION_OBSERVED"] is True
+    assert verdicts["CASH_TIMING_PREDICTIVE_GENERALIZATION"] == "NOT_ESTABLISHED"
+    assert verdicts["UNIFIED_NEURAL_ALPHA"] == "NOT_ESTABLISHED"
+    assert verdicts["R11_FACTORISATION"] == "COMPLETED_EXPLORATORY"
+    assert verdicts["PRODUCTION_PROMOTION"] == "NOT_AUTHORIZED"
     assert verdicts["GENERALIZATION_NOT_ESTABLISHED"] is True
 
 

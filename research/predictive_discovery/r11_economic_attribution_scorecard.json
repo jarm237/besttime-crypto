@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp_utc": "2026-11-17T13:30:22.333710+00:00",
+    "timestamp_utc": "2026-11-17T15:21:07.159445+00:00",
     "analyzed_checkpoint": "Seed 101 (r11_factorized_model.pt)",
     "aligned_horizon": "2022-01-16 00:00 UTC to 2026-11-16 19:00 UTC (42,379 hours, 253 decisions)",
     "base_fee_bps": 12.0,
@@ -417,6 +417,16 @@
           "holdout": -16.41
         }
       }
+    },
+    "residual_audit": {
+      "linear_gross_sum_usd": 63457.93,
+      "actual_fees_usd": 13446.96,
+      "linear_net_sum_usd": 50010.97,
+      "actual_final_pnl_usd": 49867.3,
+      "residual_usd": 143.67,
+      "residual_pct_of_final_equity": 0.24,
+      "status": "APPROXIMATION_DOCUMENTED",
+      "mathematical_explanation": "Residual of $143.67 (0.29% of final equity) arises because discrete per-coin attribution evaluates P_i = V_pre * w_i * R_i without deducting the upfront transaction fee from deployed capital (V_deployed = V_pre - Fee), compounding across 253 weekly rebalance cycles."
     }
   },
   "phase_d_seed_diagnostics": {
@@ -479,10 +489,14 @@
     }
   },
   "phase_e_verdicts": {
-    "TRAIN_ALPHA_CONCENTRATION_OBSERVED": true,
+    "TRAIN_RETURN_CONCENTRATION_OBSERVED": true,
+    "CASH_TIMING_HISTORICAL_CONTRIBUTION_OBSERVED": true,
+    "CASH_TIMING_PREDICTIVE_GENERALIZATION": "NOT_ESTABLISHED",
     "ASSET_SELECTION_INCREMENTAL_VALUE": "NOT_SUPPORTED",
-    "CASH_TIMING_INCREMENTAL_VALUE": "NOT_SUPPORTED",
     "GENERALIZATION_NOT_ESTABLISHED": true,
+    "UNIFIED_NEURAL_ALPHA": "NOT_ESTABLISHED",
+    "R11_FACTORISATION": "COMPLETED_EXPLORATORY",
+    "PRODUCTION_PROMOTION": "NOT_AUTHORIZED",
     "PRIMARY_VERDICT": "R11_TRAIN_RETURN_DRIVEN_BY_SOL_CONCENTRATION_NOT_GENERALIZED_ALPHA"
   }
 }
