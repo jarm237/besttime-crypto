@@ -1,0 +1,31 @@
+{
+  "zero_bfill": true,
+  "publication_delay_seconds": 300,
+  "bnb_metrics_continuous_coverage": false,
+  "bnb_metrics_record_count": 27360,
+  "bnb_metrics_sampling_pattern": "576 rows/month (~2 days sampled per month)",
+  "bnb_funding_continuous_coverage": true,
+  "bnb_funding_settlement_count": 3831,
+  "staleness_policy": {
+    "metrics_max_staleness_minutes": 120,
+    "funding_max_staleness_hours": 24,
+    "spot_max_staleness_hours": 1
+  },
+  "sample_trace": {
+    "bar_open_time": "2023-01-07 23:00:00+00:00",
+    "bar_close_time": "2023-01-08 00:00:00+00:00",
+    "spot_observation_close_time": "2023-01-08 00:00:00+00:00",
+    "source_observation_time": "2023-01-07 23:55:00+00:00",
+    "source_available_at": "2023-01-08 00:00:00+00:00",
+    "feature_cutoff_time": "2023-01-08 00:00:00+00:00",
+    "decision_timestamp": "2023-01-08 00:00:00+00:00",
+    "order_submit_time": "2023-01-08 00:00:00+00:00",
+    "execution_timestamp": "2023-01-09 00:00:00+00:00",
+    "publication_delay_seconds": 300,
+    "causal_ordering_verified": true,
+    "latest_metrics_available_at": "2023-01-08 00:00:00+00:00",
+    "spot_btc_close": 16943.57,
+    "latest_funding_rate": 5.657e-05,
+    "latest_open_interest_usd": 1786726601.200577
+  }
+}

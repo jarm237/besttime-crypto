@@ -1,0 +1,48 @@
+{
+  "initial_purchase": {
+    "policy": "btc_buy_and_hold",
+    "decision_date": "2023-01-08 00:00:00+00:00",
+    "execution_date": "2023-01-09 00:00:00+00:00",
+    "initial_cash": 10000.0,
+    "exec_price": 17127.83,
+    "target_weight": 1.0,
+    "fee_paid": 11.99,
+    "cash_post": 0.0,
+    "reconciliation_residual": 0.0
+  },
+  "weekly_r7_sunday_scheduled": {
+    "policy": "r7_vol_target_weekly",
+    "decision_date": "2023-01-15 00:00:00+00:00",
+    "day_of_week": "Sunday",
+    "scheduled": true,
+    "execution_date": "2023-01-16 00:00:00+00:00",
+    "trades_executed_full_horizon": 178,
+    "one_way_turnover": 25.9,
+    "total_fees_usd": 703.51
+  },
+  "weekly_r7_midweek_drift_observed": {
+    "policy": "r7_vol_target_weekly",
+    "decision_date": "2023-01-16 00:00:00+00:00",
+    "day_of_week": "Monday",
+    "scheduled": false,
+    "execution_date": "2023-01-17 00:00:00+00:00",
+    "trades_executed": 0,
+    "holdings_drift_verified": true
+  },
+  "oi_observation_publication_boundaries": [
+    {
+      "observation_timestamp": "2023-01-07 23:55:00+00:00",
+      "available_at_utc": "2023-01-08 00:00:00+00:00",
+      "publication_delay_seconds": 300,
+      "decision_cutoff": "2023-01-08 00:00:00+00:00",
+      "visible_at_decision": true
+    },
+    {
+      "observation_timestamp": "2023-01-08 00:00:00+00:00",
+      "available_at_utc": "2023-01-08 00:05:00+00:00",
+      "publication_delay_seconds": 300,
+      "decision_cutoff": "2023-01-08 00:00:00+00:00",
+      "visible_at_decision": false
+    }
+  ]
+}
