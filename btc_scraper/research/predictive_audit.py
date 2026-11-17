@@ -189,15 +189,37 @@ def extract_multi_timeframe_features(
     if alt_data is not None:
         if "fear_and_greed" in alt_data:
             fg_df = alt_data["fear_and_greed"]
-            # Reindex / forward-fill to hourly timestamps
+            fg_max_ts = fg_df.index.max()
             fg_aligned = fg_df["value"].reindex(timestamps, method="ffill")
-            features["fear_and_greed_val"] = pd.DataFrame(np.tile(fg_aligned.values[:, None], (1, len(symbols))), index=timestamps, columns=symbols)
+            features["fear_and_greed_val"] = pd.DataFrame(
+                np.tile(fg_aligned.values[:, None], (1, len(symbols))), index=timestamps, columns=symbols
+            )
+            # Explicit staleness indicator for timestamps past available history
+            fg_is_stale = (timestamps > fg_max_ts).astype(float)
+            if hasattr(fg_is_stale, "values"):
+                fg_is_stale_arr = fg_is_stale.values
+            else:
+                fg_is_stale_arr = np.asarray(fg_is_stale)
+            features["fear_and_greed_is_stale"] = pd.DataFrame(
+                np.tile(fg_is_stale_arr[:, None], (1, len(symbols))), index=timestamps, columns=symbols
+            )
         
         if "macro_yields" in alt_data:
             macro_df = alt_data["macro_yields"]
+            macro_max_ts = macro_df.index.max()
             if "slope_10_2" in macro_df.columns:
                 slope_aligned = macro_df["slope_10_2"].reindex(timestamps, method="ffill")
-                features["treasury_slope_10_2"] = pd.DataFrame(np.tile(slope_aligned.values[:, None], (1, len(symbols))), index=timestamps, columns=symbols)
+                features["treasury_slope_10_2"] = pd.DataFrame(
+                    np.tile(slope_aligned.values[:, None], (1, len(symbols))), index=timestamps, columns=symbols
+                )
+                macro_is_stale = (timestamps > macro_max_ts).astype(float)
+                if hasattr(macro_is_stale, "values"):
+                    macro_is_stale_arr = macro_is_stale.values
+                else:
+                    macro_is_stale_arr = np.asarray(macro_is_stale)
+                features["macro_is_stale"] = pd.DataFrame(
+                    np.tile(macro_is_stale_arr[:, None], (1, len(symbols))), index=timestamps, columns=symbols
+                )
 
     return features
 
@@ -405,83 +427,136 @@ def run_single_feature_target_audit(
     holdout_slice: slice,
     btc_fwd_returns: pd.DataFrame,
 ) -> PredictiveInformationResult:
-    """Run rigorous audit for one (feature, target, horizon) tuple."""
-    # Align valid rows where neither is fully NaN
+    """Run rigorous statistical audit accounting for serial correlation and boundary purging."""
     X = feature_df.values
     Y = target_df.values
+    T, N = X.shape
 
-    # 1. Pooled Spearman Rank IC & Pearson IC
-    x_flat = X.flatten()
-    y_flat = Y.flatten()
-    pooled_rank_ic, rank_ic_pvalue = compute_spearman_rank_ic(x_flat, y_flat)
+    # 1. Purge samples at split boundaries where forward label crosses into the next split
+    tr_stop = max(train_slice.start, train_slice.stop - horizon_hours)
+    va_stop = max(val_slice.start, val_slice.stop - horizon_hours)
+    ho_stop = max(holdout_slice.start, holdout_slice.stop - horizon_hours)
 
-    # Pearson
-    valid_mask = ~(np.isnan(x_flat) | np.isnan(y_flat) | np.isinf(x_flat) | np.isinf(y_flat))
+    train_purged = slice(train_slice.start, tr_stop)
+    val_purged = slice(val_slice.start, va_stop)
+    holdout_purged = slice(holdout_slice.start, ho_stop)
+
+    # 2. Non-overlapping time-series sampling step
+    step = max(1, horizon_hours)
+
+    # Cross-sectional targets: evaluate cross-sectional rank correlation at non-overlapping timestamps
+    if target_type in ["rel_btc", "rel_ew"]:
+        # Train non-overlapping cross-sectional ICs
+        cs_tr = []
+        for t in range(train_purged.start, train_purged.stop, step):
+            rx, ry = X[t, :], Y[t, :]
+            if not (np.all(np.isnan(rx)) or np.all(np.isnan(ry))):
+                ic, _ = compute_spearman_rank_ic(rx, ry)
+                if not np.isnan(ic):
+                    cs_tr.append(ic)
+        train_rank_ic = float(np.mean(cs_tr)) if cs_tr else 0.0
+        se_tr = float(np.std(cs_tr) / np.sqrt(len(cs_tr))) if len(cs_tr) > 1 else 1.0
+        t_stat = (train_rank_ic / se_tr) if se_tr > 1e-6 else 0.0
+        # Valid non-overlapping degrees of freedom
+        df_dof = max(1, len(cs_tr) - 1)
+        rank_ic_pvalue = float(2.0 * (1.0 - stats.t.cdf(abs(t_stat), df=df_dof)))
+
+        # Val non-overlapping cross-sectional ICs
+        cs_va = []
+        for t in range(val_purged.start, val_purged.stop, step):
+            rx, ry = X[t, :], Y[t, :]
+            if not (np.all(np.isnan(rx)) or np.all(np.isnan(ry))):
+                ic, _ = compute_spearman_rank_ic(rx, ry)
+                if not np.isnan(ic):
+                    cs_va.append(ic)
+        val_rank_ic = float(np.mean(cs_va)) if cs_va else 0.0
+
+        # Holdout non-overlapping cross-sectional ICs (strictly diagnostic)
+        cs_ho = []
+        for t in range(holdout_purged.start, holdout_purged.stop, step):
+            rx, ry = X[t, :], Y[t, :]
+            if not (np.all(np.isnan(rx)) or np.all(np.isnan(ry))):
+                ic, _ = compute_spearman_rank_ic(rx, ry)
+                if not np.isnan(ic):
+                    cs_ho.append(ic)
+        holdout_rank_ic = float(np.mean(cs_ho)) if cs_ho else 0.0
+
+        pooled_rank_ic = train_rank_ic
+        mean_cs_ic = train_rank_ic
+
+    else:
+        # Market exposure target: 1D time series of BTC market return vs scalar signal
+        t_steps_tr = list(range(train_purged.start, train_purged.stop, step))
+        if t_steps_tr:
+            x_tr_no = X[t_steps_tr, 0]
+            y_tr_no = Y[t_steps_tr, 0]
+            train_rank_ic, rank_ic_pvalue = compute_spearman_rank_ic(x_tr_no, y_tr_no)
+        else:
+            train_rank_ic, rank_ic_pvalue = 0.0, 1.0
+
+        t_steps_va = list(range(val_purged.start, val_purged.stop, step))
+        if t_steps_va:
+            x_va_no = X[t_steps_va, 0]
+            y_va_no = Y[t_steps_va, 0]
+            val_rank_ic, _ = compute_spearman_rank_ic(x_va_no, y_va_no)
+        else:
+            val_rank_ic = 0.0
+
+        t_steps_ho = list(range(holdout_purged.start, holdout_purged.stop, step))
+        if t_steps_ho:
+            x_ho_no = X[t_steps_ho, 0]
+            y_ho_no = Y[t_steps_ho, 0]
+            holdout_rank_ic, _ = compute_spearman_rank_ic(x_ho_no, y_ho_no)
+        else:
+            holdout_rank_ic = 0.0
+
+        pooled_rank_ic = train_rank_ic
+        mean_cs_ic = train_rank_ic
+
+    # Pearson & Hit rate on Train
+    x_tr_flat = X[train_purged].flatten()
+    y_tr_flat = Y[train_purged].flatten()
+    valid_mask = ~(np.isnan(x_tr_flat) | np.isnan(y_tr_flat) | np.isinf(x_tr_flat) | np.isinf(y_tr_flat))
     if np.sum(valid_mask) > 30:
-        pearson_ic = float(stats.pearsonr(x_flat[valid_mask], y_flat[valid_mask])[0])
-        hit_rate = float(np.mean(np.sign(x_flat[valid_mask]) == np.sign(y_flat[valid_mask])))
+        pearson_ic = float(stats.pearsonr(x_tr_flat[valid_mask], y_tr_flat[valid_mask])[0])
+        hit_rate = float(np.mean(np.sign(x_tr_flat[valid_mask]) == np.sign(y_tr_flat[valid_mask])))
     else:
         pearson_ic = 0.0
         hit_rate = 0.5
 
-    # 2. Cross-sectional Rank IC (average of cross-sectional rank IC across timestamps)
-    # Only meaningful if target is cross-sectional and multiple assets vary
-    T, N = X.shape
-    daily_step = max(1, horizon_hours // 4)
-    cs_ics = []
-    for t_i in range(0, T, daily_step):
-        row_x = X[t_i, :]
-        row_y = Y[t_i, :]
-        if not (np.all(np.isnan(row_x)) or np.all(np.isnan(row_y))):
-            ic, _ = compute_spearman_rank_ic(row_x, row_y)
-            if not np.isnan(ic):
-                cs_ics.append(ic)
-    mean_cs_ic = float(np.mean(cs_ics)) if cs_ics else pooled_rank_ic
+    # Mutual Information on Train
+    mi_nats = compute_mutual_information(x_tr_flat, y_tr_flat, n_neighbors=5, subsample_max=6000)
 
-    # 3. Mutual Information (non-linear metric)
-    mi_nats = compute_mutual_information(x_flat, y_flat, n_neighbors=5, subsample_max=8000)
-
-    # 4. Chronological Splits Rank IC
-    X_tr, Y_tr = X[train_slice], Y[train_slice]
-    X_va, Y_va = X[val_slice], Y[val_slice]
-    X_ho, Y_ho = X[holdout_slice], Y[holdout_slice]
-
-    train_rank_ic, _ = compute_spearman_rank_ic(X_tr.flatten(), Y_tr.flatten())
-    val_rank_ic, _ = compute_spearman_rank_ic(X_va.flatten(), Y_va.flatten())
-    holdout_rank_ic, _ = compute_spearman_rank_ic(X_ho.flatten(), Y_ho.flatten())
-
-    # Temporal stability score: product of train and val normalized
+    # Temporal stability score between Train and Val
     if abs(train_rank_ic) > 1e-4 and abs(val_rank_ic) > 1e-4:
         sign_match = 1.0 if (train_rank_ic * val_rank_ic > 0) else -1.0
         stability = sign_match * min(abs(train_rank_ic), abs(val_rank_ic)) / max(abs(train_rank_ic), abs(val_rank_ic))
     else:
         stability = 0.0
 
-    # 5. Regime-conditional Rank IC
-    bull_idx = regime_mask_bull.values
-    highvol_idx = regime_mask_highvol.values
+    # Regime-conditional Rank IC on Train
+    bull_idx = regime_mask_bull.iloc[train_purged].values
+    highvol_idx = regime_mask_highvol.iloc[train_purged].values
 
-    bull_ic, _ = compute_spearman_rank_ic(X[bull_idx].flatten(), Y[bull_idx].flatten())
-    bear_ic, _ = compute_spearman_rank_ic(X[~bull_idx].flatten(), Y[~bull_idx].flatten())
-    highvol_ic, _ = compute_spearman_rank_ic(X[highvol_idx].flatten(), Y[highvol_idx].flatten())
-    lowvol_ic, _ = compute_spearman_rank_ic(X[~highvol_idx].flatten(), Y[~highvol_idx].flatten())
+    bull_ic, _ = compute_spearman_rank_ic(X[train_purged][bull_idx].flatten(), Y[train_purged][bull_idx].flatten())
+    bear_ic, _ = compute_spearman_rank_ic(X[train_purged][~bull_idx].flatten(), Y[train_purged][~bull_idx].flatten())
+    highvol_ic, _ = compute_spearman_rank_ic(X[train_purged][highvol_idx].flatten(), Y[train_purged][highvol_idx].flatten())
+    lowvol_ic, _ = compute_spearman_rank_ic(X[train_purged][~highvol_idx].flatten(), Y[train_purged][~highvol_idx].flatten())
 
-    # 6. Incremental Information controlling for BTC Market Beta
-    # Residualize Y against BTC return
-    btc_y_flat = btc_fwd_returns.values.flatten()
-    valid_beta_mask = valid_mask & ~(np.isnan(btc_y_flat) | np.isinf(btc_y_flat))
-    if np.sum(valid_beta_mask) > 100:
-        y_valid = y_flat[valid_beta_mask]
-        btc_valid = btc_y_flat[valid_beta_mask]
-        x_valid = x_flat[valid_beta_mask]
+    # Incremental Information controlling for BTC Market Beta on Train
+    btc_y_tr = btc_fwd_returns.iloc[train_purged].values.flatten()
+    valid_beta = valid_mask & ~(np.isnan(btc_y_tr) | np.isinf(btc_y_tr))
+    if np.sum(valid_beta) > 50:
+        y_valid = y_tr_flat[valid_beta]
+        btc_valid = btc_y_tr[valid_beta]
+        x_valid = x_tr_flat[valid_beta]
 
-        # OLS regression of Y on BTC
         slope, intercept, _, _, _ = stats.linregress(btc_valid, y_valid)
         y_resid = y_valid - (slope * btc_valid + intercept)
         inc_ic, _ = stats.spearmanr(x_valid, y_resid)
         incremental_ic = float(inc_ic) if not np.isnan(inc_ic) else 0.0
     else:
-        incremental_ic = pooled_rank_ic
+        incremental_ic = train_rank_ic
 
     # Family categorization
     if "ret_" in feature_name or "mom" in feature_name:

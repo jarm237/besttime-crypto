@@ -21,6 +21,7 @@
     "coverage_train_2022_2023": "100%",
     "coverage_val_2024": "100%",
     "coverage_holdout_2025_2026": "100%",
+    "survivorship_status": "SURVIVORSHIP_CONDITIONED (Fixed 8 canonical coins selected by current market presence)",
     "status": "VALIDATED_CANONICAL"
   },
   "funding_rates": {
@@ -37,7 +38,7 @@
     "coverage_train_2022_2023": "PARTIAL (Starts 2023-01-01, missing 2022 entirely)",
     "coverage_val_2024": "100%",
     "coverage_holdout_2025_2026": "0% (Ends 2024-12-31)",
-    "status": "INCOMPLETE_RESTRICTED (Cannot be used across full horizon without severe truncation)"
+    "status": "INCOMPLETE_RESTRICTED (Excluded from 2022-2026 full-horizon research)"
   },
   "sentiment_fear_and_greed": {
     "source": "data\\historical\\normalized\\sentiment\\fear_and_greed_2018_2026.parquet",
@@ -47,8 +48,8 @@
     "pit_validity": "conservative_available_at_utc used for PIT lag",
     "coverage_train_2022_2023": "100%",
     "coverage_val_2024": "100%",
-    "coverage_holdout_2025_2026": "100% (Up to 2026-11-10)",
-    "status": "VALIDATED_PIT"
+    "coverage_holdout_2025_2026": "PARTIAL (Ends 2026-11-10; final 6 days flagged stale)",
+    "status": "VALIDATED_PIT_WITH_STALENESS_GUARD"
   },
   "macro_treasury_yields": {
     "source": "data\\historical\\normalized\\macro\\treasury_yields_1990_2026.parquet",
@@ -58,18 +59,7 @@
     "pit_validity": "conservative_available_at_utc used for market close quotation lag",
     "coverage_train_2022_2023": "100%",
     "coverage_val_2024": "100%",
-    "coverage_holdout_2025_2026": "100% (Up to 2026-11-09)",
-    "status": "VALIDATED_PIT"
-  },
-  "onchain_stablecoins": {
-    "source": "data\\historical\\normalized\\onchain\\stablecoins_2017_2026.parquet",
-    "row_count": 3269,
-    "start_utc": "2017-11-29",
-    "end_utc": "2026-11-10",
-    "pit_validity": "available_at used",
-    "coverage_train_2022_2023": "100%",
-    "coverage_val_2024": "100%",
-    "coverage_holdout_2025_2026": "100%",
-    "status": "VALIDATED_PIT"
+    "coverage_holdout_2025_2026": "PARTIAL (Ends 2026-11-09; final 7 days flagged stale)",
+    "status": "VALIDATED_PIT_WITH_STALENESS_GUARD"
   }
 }

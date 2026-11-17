@@ -1,0 +1,434 @@
+{
+  "H3_BREADTH_PLUS_SENTIMENT_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "H3_BREADTH_PLUS_SENTIMENT_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 9762.38,
+      "net_return_pct": -2.38,
+      "max_drawdown_pct": -39.51,
+      "annualized_sharpe": 0.134,
+      "annualized_sortino": 0.188,
+      "one_way_turnover": 117.87,
+      "gross_asset_turnover": 117.87,
+      "total_traded_notional_usd": 1214831.21,
+      "total_fees_usd": 1457.8,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.542
+    },
+    "sharpe_95_ci": [
+      -0.7,
+      1.105
+    ],
+    "train_return_pct": -5.37,
+    "val_return_pct": 32.36,
+    "holdout_return_pct": -22.0
+  },
+  "EXPOSURE_MATCHED_BTC_CASH_CONTROL_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "EXPOSURE_MATCHED_BTC_CASH_CONTROL_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14184.42,
+      "net_return_pct": 41.84,
+      "max_drawdown_pct": -38.97,
+      "annualized_sharpe": 0.423,
+      "annualized_sortino": 0.597,
+      "one_way_turnover": 3.53,
+      "gross_asset_turnover": 3.53,
+      "total_traded_notional_usd": 41129.19,
+      "total_fees_usd": 49.36,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.519
+    },
+    "sharpe_95_ci": [
+      -0.447,
+      1.239
+    ],
+    "train_return_pct": 8.13,
+    "val_return_pct": 50.22,
+    "holdout_return_pct": -13.17
+  },
+  "STATIC_BTC_CASH_50_50_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "STATIC_BTC_CASH_50_50_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14301.52,
+      "net_return_pct": 43.02,
+      "max_drawdown_pct": -40.27,
+      "annualized_sharpe": 0.423,
+      "annualized_sortino": 0.597,
+      "one_way_turnover": 3.55,
+      "gross_asset_turnover": 3.55,
+      "total_traded_notional_usd": 41567.99,
+      "total_fees_usd": 49.88,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.499
+    },
+    "sharpe_95_ci": [
+      -0.447,
+      1.239
+    ],
+    "train_return_pct": 8.12,
+    "val_return_pct": 52.54,
+    "holdout_return_pct": -13.79
+  },
+  "BREADTH_ONLY_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "BREADTH_ONLY_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 11236.42,
+      "net_return_pct": 12.36,
+      "max_drawdown_pct": -48.35,
+      "annualized_sharpe": 0.238,
+      "annualized_sortino": 0.334,
+      "one_way_turnover": 128.0,
+      "gross_asset_turnover": 128.0,
+      "total_traded_notional_usd": 1217618.24,
+      "total_fees_usd": 1461.14,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.516
+    },
+    "sharpe_95_ci": [
+      -0.595,
+      1.132
+    ],
+    "train_return_pct": -19.9,
+    "val_return_pct": 50.33,
+    "holdout_return_pct": -6.54
+  },
+  "SENTIMENT_ONLY_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "SENTIMENT_ONLY_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 8691.88,
+      "net_return_pct": -13.08,
+      "max_drawdown_pct": -46.22,
+      "annualized_sharpe": 0.035,
+      "annualized_sortino": 0.049,
+      "one_way_turnover": 102.0,
+      "gross_asset_turnover": 102.0,
+      "total_traded_notional_usd": 884275.22,
+      "total_fees_usd": 1061.13,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.635
+    },
+    "sharpe_95_ci": [
+      -0.83,
+      0.914
+    ],
+    "train_return_pct": -18.12,
+    "val_return_pct": 19.22,
+    "holdout_return_pct": -10.95
+  },
+  "BENCHMARK_BTC_BUY_AND_HOLD_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_BTC_BUY_AND_HOLD_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15056.78,
+      "net_return_pct": 50.57,
+      "max_drawdown_pct": -67.38,
+      "annualized_sharpe": 0.42,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 10000.0,
+      "total_fees_usd": 12.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.0
+    },
+    "sharpe_95_ci": [
+      -0.446,
+      1.243
+    ],
+    "train_return_pct": -1.83,
+    "val_return_pct": 120.31,
+    "holdout_return_pct": -31.2
+  },
+  "BENCHMARK_100PCT_CASH_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_100PCT_CASH_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 1.0
+    },
+    "sharpe_95_ci": [
+      0.0,
+      0.0
+    ],
+    "train_return_pct": 0.0,
+    "val_return_pct": 0.0,
+    "holdout_return_pct": 0.0
+  },
+  "BENCHMARK_EW_WEEKLY_REBAL_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_EW_WEEKLY_REBAL_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 8079.93,
+      "net_return_pct": -19.2,
+      "max_drawdown_pct": -70.41,
+      "annualized_sharpe": 0.259,
+      "annualized_sortino": 0.356,
+      "one_way_turnover": 5.88,
+      "gross_asset_turnover": 10.77,
+      "total_traded_notional_usd": 101893.23,
+      "total_fees_usd": 122.27,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.0
+    },
+    "sharpe_95_ci": [
+      -0.71,
+      1.106
+    ],
+    "train_return_pct": -21.32,
+    "val_return_pct": 103.38,
+    "holdout_return_pct": -50.4
+  },
+  "H3_TEMPORAL_NEGATIVE_CONTROL_base_12bps": {
+    "standard_metrics": {
+      "portfolio_name": "H3_TEMPORAL_NEGATIVE_CONTROL_base_12bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 18731.89,
+      "net_return_pct": 87.32,
+      "max_drawdown_pct": -37.35,
+      "annualized_sharpe": 0.567,
+      "annualized_sortino": 0.804,
+      "one_way_turnover": 112.16,
+      "gross_asset_turnover": 112.16,
+      "total_traded_notional_usd": 1625562.22,
+      "total_fees_usd": 1950.67,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.542
+    },
+    "sharpe_95_ci": [
+      -0.25,
+      1.307
+    ],
+    "train_return_pct": 27.51,
+    "val_return_pct": 18.18,
+    "holdout_return_pct": 23.21
+  },
+  "H3_BREADTH_PLUS_SENTIMENT_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "H3_BREADTH_PLUS_SENTIMENT_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 8373.31,
+      "net_return_pct": -16.27,
+      "max_drawdown_pct": -41.68,
+      "annualized_sharpe": 0.03,
+      "annualized_sortino": 0.041,
+      "one_way_turnover": 117.87,
+      "gross_asset_turnover": 117.87,
+      "total_traded_notional_usd": 1121450.3,
+      "total_fees_usd": 2803.63,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.542
+    },
+    "sharpe_95_ci": [
+      -0.817,
+      1.007
+    ],
+    "train_return_pct": -10.92,
+    "val_return_pct": 28.13,
+    "holdout_return_pct": -26.54
+  },
+  "EXPOSURE_MATCHED_BTC_CASH_CONTROL_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "EXPOSURE_MATCHED_BTC_CASH_CONTROL_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14119.51,
+      "net_return_pct": 41.2,
+      "max_drawdown_pct": -39.02,
+      "annualized_sharpe": 0.419,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 3.53,
+      "gross_asset_turnover": 3.53,
+      "total_traded_notional_usd": 41024.44,
+      "total_fees_usd": 102.56,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.519
+    },
+    "sharpe_95_ci": [
+      -0.45,
+      1.236
+    ],
+    "train_return_pct": 7.94,
+    "val_return_pct": 50.09,
+    "holdout_return_pct": -13.28
+  },
+  "STATIC_BTC_CASH_50_50_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "STATIC_BTC_CASH_50_50_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 14235.63,
+      "net_return_pct": 42.36,
+      "max_drawdown_pct": -40.32,
+      "annualized_sharpe": 0.419,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 3.55,
+      "gross_asset_turnover": 3.55,
+      "total_traded_notional_usd": 41461.13,
+      "total_fees_usd": 103.65,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.499
+    },
+    "sharpe_95_ci": [
+      -0.45,
+      1.236
+    ],
+    "train_return_pct": 7.92,
+    "val_return_pct": 52.41,
+    "holdout_return_pct": -13.9
+  },
+  "BREADTH_ONLY_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "BREADTH_ONLY_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 9511.03,
+      "net_return_pct": -4.89,
+      "max_drawdown_pct": -49.55,
+      "annualized_sharpe": 0.134,
+      "annualized_sortino": 0.187,
+      "one_way_turnover": 128.0,
+      "gross_asset_turnover": 128.0,
+      "total_traded_notional_usd": 1112711.64,
+      "total_fees_usd": 2781.78,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.516
+    },
+    "sharpe_95_ci": [
+      -0.692,
+      1.03
+    ],
+    "train_return_pct": -25.25,
+    "val_return_pct": 46.09,
+    "holdout_return_pct": -12.66
+  },
+  "SENTIMENT_ONLY_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "SENTIMENT_ONLY_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 7610.61,
+      "net_return_pct": -23.89,
+      "max_drawdown_pct": -47.79,
+      "annualized_sharpe": -0.063,
+      "annualized_sortino": -0.088,
+      "one_way_turnover": 102.0,
+      "gross_asset_turnover": 102.0,
+      "total_traded_notional_usd": 826288.05,
+      "total_fees_usd": 2065.72,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.635
+    },
+    "sharpe_95_ci": [
+      -0.94,
+      0.812
+    ],
+    "train_return_pct": -22.08,
+    "val_return_pct": 15.25,
+    "holdout_return_pct": -15.25
+  },
+  "BENCHMARK_BTC_BUY_AND_HOLD_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_BTC_BUY_AND_HOLD_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 15037.18,
+      "net_return_pct": 50.37,
+      "max_drawdown_pct": -67.38,
+      "annualized_sharpe": 0.42,
+      "annualized_sortino": 0.592,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 10000.0,
+      "total_fees_usd": 25.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.0
+    },
+    "sharpe_95_ci": [
+      -0.446,
+      1.243
+    ],
+    "train_return_pct": -1.83,
+    "val_return_pct": 120.31,
+    "holdout_return_pct": -31.2
+  },
+  "BENCHMARK_100PCT_CASH_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_100PCT_CASH_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 253,
+      "mean_cash_weight": 1.0
+    },
+    "sharpe_95_ci": [
+      0.0,
+      0.0
+    ],
+    "train_return_pct": 0.0,
+    "val_return_pct": 0.0,
+    "holdout_return_pct": 0.0
+  },
+  "BENCHMARK_EW_WEEKLY_REBAL_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "BENCHMARK_EW_WEEKLY_REBAL_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 7967.59,
+      "net_return_pct": -20.32,
+      "max_drawdown_pct": -70.49,
+      "annualized_sharpe": 0.255,
+      "annualized_sortino": 0.35,
+      "one_way_turnover": 5.88,
+      "gross_asset_turnover": 10.77,
+      "total_traded_notional_usd": 101072.54,
+      "total_fees_usd": 252.68,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.0
+    },
+    "sharpe_95_ci": [
+      -0.715,
+      1.102
+    ],
+    "train_return_pct": -21.76,
+    "val_return_pct": 102.74,
+    "holdout_return_pct": -50.59
+  },
+  "H3_TEMPORAL_NEGATIVE_CONTROL_stress_25bps": {
+    "standard_metrics": {
+      "portfolio_name": "H3_TEMPORAL_NEGATIVE_CONTROL_stress_25bps",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 16186.93,
+      "net_return_pct": 61.87,
+      "max_drawdown_pct": -37.84,
+      "annualized_sharpe": 0.472,
+      "annualized_sortino": 0.669,
+      "one_way_turnover": 112.16,
+      "gross_asset_turnover": 112.16,
+      "total_traded_notional_usd": 1496175.49,
+      "total_fees_usd": 3740.44,
+      "rebalance_count": 253,
+      "mean_cash_weight": 0.542
+    },
+    "sharpe_95_ci": [
+      -0.35,
+      1.227
+    ],
+    "train_return_pct": 21.03,
+    "val_return_pct": 14.16,
+    "holdout_return_pct": 16.12
+  }
+}
