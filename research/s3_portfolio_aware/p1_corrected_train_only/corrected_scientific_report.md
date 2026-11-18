@@ -6,6 +6,8 @@
 **Evaluation Window:** Train 2022-01-01 to 2023-12-31 (729 decision days)  
 **Data Status:** Strict Quarantine Enforced (2024-2026 untouched)  
 
+> **Scientific closure update:** The authoritative final interpretation of S3-P1.1 is documented in s3_p1_1_bounded_closure_addendum.md. This addendum qualifies earlier statements concerning selective inaction, active-downside causality, covariance fidelity, portfolio-state verification and economic attribution. Historical metrics and experimental artifacts remain unchanged.
+
 ---
 
 ## 1. Executive Summary & Core Research Questions
