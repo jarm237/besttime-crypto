@@ -1,0 +1,43 @@
+{
+  "research_workstream": "S1_News_Event_Shock_Discovery",
+  "commit": "280cc45a2e7b36389fb5cc2266e9832c71f5a0fc",
+  "sources": [
+    {
+      "id": "defillama_hacks_v1",
+      "name": "DeFiLlama Crypto Exploits & Hacks Database",
+      "url": "https://api.llama.fi/hacks",
+      "coverage_start": "2011-01-01",
+      "coverage_end": "2026-11-16",
+      "total_records": 1362,
+      "total_usd_lost": 27620184894.12813,
+      "temporal_granularity": "Daily (00:00:00 UTC)",
+      "enforced_publication_lag_hours": 24.0,
+      "pit_safety_status": "VERIFIED_CAUSAL",
+      "notes": "Covers protocol hacks, private key compromises, flash loans, and exchange exploits."
+    },
+    {
+      "id": "gdelt_2_0_15m_archives",
+      "name": "GDELT Project 2.0 Global Event Archives",
+      "url": "http://data.gdeltproject.org/gdeltv2/",
+      "coverage_mode": "Bounded Representative Windows",
+      "windows_covered": [
+        "W1_SVB_USDC (2023-03-09 to 2023-03-14)",
+        "W2_SEC_ACTIONS (2023-06-05 to 2023-06-10)",
+        "W3_FLASH_CRASH (2023-08-16 to 2023-08-20)",
+        "W4_ETF_MOMENTUM (2023-10-15 to 2023-10-20)",
+        "W5_SPLIT_BOUNDARY (2024-12-28 to 2025-01-04)",
+        "W6_VAL_BYBIT (2025-02-20 to 2025-02-25)"
+      ],
+      "total_parsed_events": 868,
+      "temporal_granularity": "15-minute batches (YYYYMMDDHHMMSS)",
+      "enforced_ingestion_lag_hours": 1.0,
+      "pit_safety_status": "VERIFIED_CAUSAL",
+      "notes": "Global media monitoring with CAMEO event codes, Goldstein conflict scale, and average tone."
+    }
+  ],
+  "feasibility_assessment": {
+    "source_feasibility": "PARTIAL_BOUNDED",
+    "continuous_coverage_verified": true,
+    "point_in_time_guarantee": "STRICT_CAUSAL_NO_LOOKAHEAD"
+  }
+}

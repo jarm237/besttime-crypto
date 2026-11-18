@@ -1,0 +1,507 @@
+{
+  "scorecard_metadata": {
+    "research_id": "S1_NEWS_EVENT_SHOCK_DISCOVERY",
+    "git_commit": "280cc45a2e7b36389fb5cc2266e9832c71f5a0fc",
+    "evaluation_date": "2026-11-18T03:46:28.794512+00:00"
+  },
+  "verdicts": {
+    "NEWS_SOURCE_FEASIBILITY": "PARTIAL_BOUNDED",
+    "NEWS_PIT_CORRECTNESS": "PASS",
+    "NEWS_INCREMENTAL_PREDICTIVE_VALUE": "NOT_SUPPORTED",
+    "NEWS_INCREMENTAL_ECONOMIC_VALUE": "NOT_SUPPORTED",
+    "S1_OVERALL_CONCLUSION": "NEWS_SHOCK_VALUE_NOT_SUPPORTED",
+    "RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS": "EXCLUDE",
+    "evidence_summary": {
+      "delta_pr_auc_val_24h": -0.025458463930577935,
+      "permutation_p_val_24h": 0.9603960396039604,
+      "ci_95_24h": [
+        -0.06711118622268523,
+        0.0027561815502400956
+      ],
+      "val_net_return_diff_12bps": -8.396679484019765,
+      "val_sharpe_diff_12bps": -0.268465636937089,
+      "val_maxdd_diff_12bps": -6.323857177234629,
+      "val_net_return_diff_30bps": -7.586620264775123
+    }
+  },
+  "statistical_evaluation": {
+    "primary_target_24h_downside": {
+      "target": "target_downside_24h",
+      "n_train_samples": 728,
+      "n_val_samples": 304,
+      "train_downside_prevalence": 0.13598901098901098,
+      "val_downside_prevalence": 0.14144736842105263,
+      "models": {
+        "Price_Vol_Baseline": {
+          "train_pr_auc": 0.16636910826967327,
+          "train_roc_auc": 0.5560533795827913,
+          "train_brier_score": 0.11676475596292649,
+          "val_pr_auc": 0.25199946825910713,
+          "val_roc_auc": 0.5976120466898334,
+          "val_brier_score": 0.11908057338085898,
+          "val_brier_skill_score": 0.01942882744671981
+        },
+        "News_Only": {
+          "train_pr_auc": 0.22945445229479824,
+          "train_roc_auc": 0.524915289621172,
+          "train_brier_score": 0.11736598765794658,
+          "val_pr_auc": 0.22957981171091732,
+          "val_roc_auc": 0.4594137040007128,
+          "val_brier_score": 0.12177006927597755,
+          "val_brier_skill_score": -0.002717875987591656
+        },
+        "Combined_Price_News": {
+          "train_pr_auc": 0.16355086599770552,
+          "train_roc_auc": 0.5691252750076279,
+          "train_brier_score": 0.11672817323278721,
+          "val_pr_auc": 0.2265410043285292,
+          "val_roc_auc": 0.5870979239062639,
+          "val_brier_score": 0.11948349645444405,
+          "val_brier_skill_score": 0.016110949983613843
+        },
+        "Negative_Control_Shifted": {
+          "train_pr_auc": 0.16803123377315593,
+          "train_roc_auc": 0.5584300878418526,
+          "train_brier_score": 0.11675355327430142,
+          "val_pr_auc": 0.2508326847648451,
+          "val_roc_auc": 0.5957408892452999,
+          "val_brier_score": 0.11910174193970822,
+          "val_brier_skill_score": 0.01925451455938021
+        },
+        "Negative_Control_Placebo": {
+          "train_pr_auc": 0.1735383058998301,
+          "train_roc_auc": 0.5648857413563296,
+          "train_brier_score": 0.11659967387909877,
+          "val_pr_auc": 0.23339421256786003,
+          "val_roc_auc": 0.5807716296890314,
+          "val_brier_score": 0.11963038503555684,
+          "val_brier_skill_score": 0.01490139325973261
+        }
+      },
+      "delta_pr_auc_val": -0.025458463930577935,
+      "delta_roc_auc_val": -0.010514122783569446,
+      "delta_bss_val": -0.003317877463105967,
+      "permutation_test_100_runs": {
+        "p_value": 0.9603960396039604,
+        "mean_perm_delta": -0.007860803943143063,
+        "max_perm_delta": 0.018684134588030754
+      },
+      "paired_block_bootstrap_1000_runs": {
+        "ci_95_lower": -0.06711118622268523,
+        "ci_95_upper": 0.0027561815502400956,
+        "median_delta": -0.023959356887455208,
+        "covers_zero": true
+      }
+    },
+    "secondary_target_72h_downside": {
+      "target": "target_downside_72h",
+      "n_train_samples": 728,
+      "n_val_samples": 304,
+      "train_downside_prevalence": 0.10576923076923077,
+      "val_downside_prevalence": 0.09210526315789473,
+      "models": {
+        "Price_Vol_Baseline": {
+          "train_pr_auc": 0.1343572918627603,
+          "train_roc_auc": 0.48502802880683066,
+          "train_brier_score": 0.09452370955745275,
+          "val_pr_auc": 0.08981129593526246,
+          "val_roc_auc": 0.49249482401656314,
+          "val_brier_score": 0.08387734809261875,
+          "val_brier_skill_score": -0.0030549949957885403
+        },
+        "News_Only": {
+          "train_pr_auc": 0.12099446472100146,
+          "train_roc_auc": 0.5421529315538532,
+          "train_brier_score": 0.09421461779101444,
+          "val_pr_auc": 0.07496080299884275,
+          "val_roc_auc": 0.4736671842650104,
+          "val_brier_score": 0.0840737137517006,
+          "val_brier_skill_score": -0.005403251821578969
+        },
+        "Combined_Price_News": {
+          "train_pr_auc": 0.1279159541462631,
+          "train_roc_auc": 0.5478684142278613,
+          "train_brier_score": 0.09418096943786994,
+          "val_pr_auc": 0.10015050716895785,
+          "val_roc_auc": 0.513586956521739,
+          "val_brier_score": 0.08413553131387108,
+          "val_brier_skill_score": -0.00614250283420148
+        },
+        "Negative_Control_Shifted": {
+          "train_pr_auc": 0.13107084002582228,
+          "train_roc_auc": 0.49991022802082713,
+          "train_brier_score": 0.09450728007380893,
+          "val_pr_auc": 0.09987191707339635,
+          "val_roc_auc": 0.5467132505175983,
+          "val_brier_score": 0.08376038699206582,
+          "val_brier_skill_score": -0.0016563048989071127
+        },
+        "Negative_Control_Placebo": {
+          "train_pr_auc": 0.12913271038346183,
+          "train_roc_auc": 0.5290561972589622,
+          "train_brier_score": 0.09442677419143754,
+          "val_pr_auc": 0.09215359073121573,
+          "val_roc_auc": 0.5148809523809523,
+          "val_brier_score": 0.08389401339673849,
+          "val_brier_skill_score": -0.0032542885705206803
+        }
+      },
+      "delta_pr_auc_val": 0.010339211233695383,
+      "delta_roc_auc_val": 0.021092132505175887,
+      "delta_bss_val": -0.0030875078384129395,
+      "permutation_test_100_runs": {
+        "p_value": 0.297029702970297,
+        "mean_perm_delta": 0.006261817141632953,
+        "max_perm_delta": 0.06677846003312324
+      },
+      "paired_block_bootstrap_1000_runs": {
+        "ci_95_lower": -0.0085630481521424,
+        "ci_95_upper": 0.02960595908464067,
+        "median_delta": 0.010041460859480295,
+        "covers_zero": true
+      }
+    }
+  },
+  "economic_evaluation": {
+    "12_bps": {
+      "100_Pct_Cash": {
+        "full_horizon": {
+          "net_return_pct": 0.0,
+          "sharpe_ratio": 0.0,
+          "sortino_ratio": 0.0,
+          "max_drawdown_pct": 0.0
+        },
+        "train": {
+          "net_return_pct": 0.0,
+          "sharpe_ratio": 0.0,
+          "sortino_ratio": 0.0,
+          "max_drawdown_pct": 0.0
+        },
+        "validation": {
+          "net_return_pct": 0.0,
+          "sharpe_ratio": 0.0,
+          "sortino_ratio": 0.0,
+          "max_drawdown_pct": 0.0
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 0.0,
+          "actual_trades_executed": 0,
+          "min_observed_cash_usd": 10000.0,
+          "max_observed_risky_exposure": 0.0,
+          "max_accounting_residual_usd": 0.0,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "100_Pct_BTC_Buy_Hold": {
+        "full_horizon": {
+          "net_return_pct": 558.8163810947277,
+          "sharpe_ratio": 1.6544260890668063,
+          "sortino_ratio": 2.63490532194408,
+          "max_drawdown_pct": -28.095276766937545
+        },
+        "train": {
+          "net_return_pct": 462.4534345374963,
+          "sharpe_ratio": 2.0143790449931527,
+          "sortino_ratio": 3.3023545048671283,
+          "max_drawdown_pct": -26.1513750538678
+        },
+        "validation": {
+          "net_return_pct": 15.874760378252706,
+          "sharpe_ratio": 0.6334245991871864,
+          "sortino_ratio": 0.9262670965271589,
+          "max_drawdown_pct": -28.095276766937545
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 11.99,
+          "actual_trades_executed": 1,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 0.0,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "R7_Weekly_Vol_Target": {
+        "full_horizon": {
+          "net_return_pct": 433.25947405652556,
+          "sharpe_ratio": 1.672904856401474,
+          "sortino_ratio": 2.690200623771889,
+          "max_drawdown_pct": -23.47174266375869
+        },
+        "train": {
+          "net_return_pct": 364.9277288129961,
+          "sharpe_ratio": 2.063234013237678,
+          "sortino_ratio": 3.4287448237555402,
+          "max_drawdown_pct": -20.81930321408563
+        },
+        "validation": {
+          "net_return_pct": 13.583551965952513,
+          "sharpe_ratio": 0.6004544992803205,
+          "sortino_ratio": 0.8836345371136235,
+          "max_drawdown_pct": -23.098119979123837
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 352.8,
+          "actual_trades_executed": 646,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 1.4551915228366852e-11,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "Simple_Trend_SMA20": {
+        "full_horizon": {
+          "net_return_pct": 118.93892802771768,
+          "sharpe_ratio": 0.9654686769413139,
+          "sortino_ratio": 1.213483658686906,
+          "max_drawdown_pct": -33.34157419335404
+        },
+        "train": {
+          "net_return_pct": 141.155998585057,
+          "sharpe_ratio": 1.3578041128594496,
+          "sortino_ratio": 1.831602393389806,
+          "max_drawdown_pct": -33.34157419335404
+        },
+        "validation": {
+          "net_return_pct": -9.212738098033768,
+          "sharpe_ratio": -0.2857601862383293,
+          "sortino_ratio": -0.28500588483022554,
+          "max_drawdown_pct": -24.45624791640267
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 2575.79,
+          "actual_trades_executed": 124,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 3.637978807091713e-12,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "Price_Only_Risk_Policy": {
+        "full_horizon": {
+          "net_return_pct": 298.9275116003428,
+          "sharpe_ratio": 1.446866829326156,
+          "sortino_ratio": 2.1549957759759906,
+          "max_drawdown_pct": -33.234236663294745
+        },
+        "train": {
+          "net_return_pct": 235.3935898690191,
+          "sharpe_ratio": 1.6748640021383148,
+          "sortino_ratio": 2.5350362167411777,
+          "max_drawdown_pct": -33.234236663294745
+        },
+        "validation": {
+          "net_return_pct": 18.799496753510493,
+          "sharpe_ratio": 0.7912240223505435,
+          "sortino_ratio": 1.1195443788917616,
+          "max_drawdown_pct": -16.566717918259734
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 4159.85,
+          "actual_trades_executed": 325,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 1.4551915228366852e-11,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "Combined_Price_News_Risk_Policy": {
+        "full_horizon": {
+          "net_return_pct": 326.25550223060804,
+          "sharpe_ratio": 1.4967897826161574,
+          "sortino_ratio": 2.249241791783439,
+          "max_drawdown_pct": -29.549840446964552
+        },
+        "train": {
+          "net_return_pct": 285.6250281500016,
+          "sharpe_ratio": 1.8336739488755744,
+          "sortino_ratio": 2.8171912162131982,
+          "max_drawdown_pct": -29.549840446964552
+        },
+        "validation": {
+          "net_return_pct": 10.402817269490727,
+          "sharpe_ratio": 0.5227583854134544,
+          "sortino_ratio": 0.7313920140112117,
+          "max_drawdown_pct": -22.890575095494363
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 4771.48,
+          "actual_trades_executed": 333,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 7.275957614183426e-12,
+          "unbacked_leverage_detected": false
+        }
+      }
+    },
+    "30_bps": {
+      "100_Pct_Cash": {
+        "full_horizon": {
+          "net_return_pct": 0.0,
+          "sharpe_ratio": 0.0,
+          "sortino_ratio": 0.0,
+          "max_drawdown_pct": 0.0
+        },
+        "train": {
+          "net_return_pct": 0.0,
+          "sharpe_ratio": 0.0,
+          "sortino_ratio": 0.0,
+          "max_drawdown_pct": 0.0
+        },
+        "validation": {
+          "net_return_pct": 0.0,
+          "sharpe_ratio": 0.0,
+          "sortino_ratio": 0.0,
+          "max_drawdown_pct": 0.0
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 0.0,
+          "actual_trades_executed": 0,
+          "min_observed_cash_usd": 10000.0,
+          "max_observed_risky_exposure": 0.0,
+          "max_accounting_residual_usd": 0.0,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "100_Pct_BTC_Buy_Hold": {
+        "full_horizon": {
+          "net_return_pct": 557.6340585763126,
+          "sharpe_ratio": 1.6530661670425213,
+          "sortino_ratio": 2.6327460985684366,
+          "max_drawdown_pct": -28.095276766937545
+        },
+        "train": {
+          "net_return_pct": 461.4440465193833,
+          "sharpe_ratio": 2.0125235992927255,
+          "sortino_ratio": 3.2993306691396898,
+          "max_drawdown_pct": -26.15137505386781
+        },
+        "validation": {
+          "net_return_pct": 15.874760378252706,
+          "sharpe_ratio": 0.6334245991871897,
+          "sortino_ratio": 0.926267096527163,
+          "max_drawdown_pct": -28.095276766937545
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 29.91,
+          "actual_trades_executed": 1,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 1.8189894035458565e-12,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "R7_Weekly_Vol_Target": {
+        "full_horizon": {
+          "net_return_pct": 423.62831752376155,
+          "sharpe_ratio": 1.6569544934000335,
+          "sortino_ratio": 2.6633236193122696,
+          "max_drawdown_pct": -23.6387362018842
+        },
+        "train": {
+          "net_return_pct": 357.9525693790097,
+          "sharpe_ratio": 2.045207682802144,
+          "sortino_ratio": 3.397467534435839,
+          "max_drawdown_pct": -20.92869907721365
+        },
+        "validation": {
+          "net_return_pct": 13.231044571040407,
+          "sharpe_ratio": 0.590249290978078,
+          "sortino_ratio": 0.8681296452722091,
+          "max_drawdown_pct": -23.232509441009743
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 872.02,
+          "actual_trades_executed": 646,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 1.4551915228366852e-11,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "Simple_Trend_SMA20": {
+        "full_horizon": {
+          "net_return_pct": 75.14107270011992,
+          "sharpe_ratio": 0.7385368951402695,
+          "sortino_ratio": 0.9428827119816577,
+          "max_drawdown_pct": -35.233964491861194
+        },
+        "train": {
+          "net_return_pct": 105.82849630014013,
+          "sharpe_ratio": 1.144723719881036,
+          "sortino_ratio": 1.5700134956271157,
+          "max_drawdown_pct": -35.233964491861194
+        },
+        "validation": {
+          "net_return_pct": -14.909220128233203,
+          "sharpe_ratio": -0.5656871218708192,
+          "sortino_ratio": -0.5716886888722659,
+          "max_drawdown_pct": -25.964242759755006
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 5684.7,
+          "actual_trades_executed": 124,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 3.637978807091713e-12,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "Price_Only_Risk_Policy": {
+        "full_horizon": {
+          "net_return_pct": 214.07805448616836,
+          "sharpe_ratio": 1.2303073548000167,
+          "sortino_ratio": 1.848533989357875,
+          "max_drawdown_pct": -35.57968033556029
+        },
+        "train": {
+          "net_return_pct": 181.41931774939576,
+          "sharpe_ratio": 1.461419998734191,
+          "sortino_ratio": 2.2328420481360784,
+          "max_drawdown_pct": -35.57968033556029
+        },
+        "validation": {
+          "net_return_pct": 11.631309900653463,
+          "sharpe_ratio": 0.5655306414660911,
+          "sortino_ratio": 0.8059695301288701,
+          "max_drawdown_pct": -18.129433923315307
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 9038.9,
+          "actual_trades_executed": 325,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 7.275957614183426e-12,
+          "unbacked_leverage_detected": false
+        }
+      },
+      "Combined_Price_News_Risk_Policy": {
+        "full_horizon": {
+          "net_return_pct": 227.97678068901695,
+          "sharpe_ratio": 1.2606381345375572,
+          "sortino_ratio": 1.9098690562202232,
+          "max_drawdown_pct": -33.42720970489677
+        },
+        "train": {
+          "net_return_pct": 215.30112057451555,
+          "sharpe_ratio": 1.5890065567230012,
+          "sortino_ratio": 2.4612441914220504,
+          "max_drawdown_pct": -33.42720970489677
+        },
+        "validation": {
+          "net_return_pct": 4.04468963587834,
+          "sharpe_ratio": 0.31024269507875635,
+          "sortino_ratio": 0.4373037244801947,
+          "max_drawdown_pct": -24.247526810196376
+        },
+        "diagnostics": {
+          "total_fees_paid_usd": 10208.6,
+          "actual_trades_executed": 333,
+          "min_observed_cash_usd": 0.0,
+          "max_observed_risky_exposure": 1.0,
+          "max_accounting_residual_usd": 7.275957614183426e-12,
+          "unbacked_leverage_detected": false
+        }
+      }
+    }
+  }
+}

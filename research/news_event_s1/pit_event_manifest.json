@@ -1,0 +1,52 @@
+{
+  "audit_metadata": {
+    "timestamp": "2026-11-18T03:46:28.757698+00:00",
+    "total_pit_checks": 796,
+    "passed_pit_checks": 796,
+    "pit_pass_ratio": 1.0,
+    "zero_bfill_enforced": true,
+    "publication_delay_hours": 24.0
+  },
+  "sample_audit_traces": [
+    {
+      "decision_time": "2022-01-02T00:00:00+00:00",
+      "event_name": "Tinyman",
+      "event_time": "2022-01-01T00:00:00+00:00",
+      "available_at": "2022-01-02T00:00:00+00:00",
+      "usd_loss": 3000000.0,
+      "ordering_valid": true
+    },
+    {
+      "decision_time": "2022-01-03T00:00:00+00:00",
+      "event_name": "DefiChain",
+      "event_time": "2022-01-02T00:00:00+00:00",
+      "available_at": "2022-01-03T00:00:00+00:00",
+      "usd_loss": 0.0,
+      "ordering_valid": true
+    },
+    {
+      "decision_time": "2022-01-05T00:00:00+00:00",
+      "event_name": "Arbix Finance",
+      "event_time": "2022-01-04T00:00:00+00:00",
+      "available_at": "2022-01-05T00:00:00+00:00",
+      "usd_loss": 10000000.0,
+      "ordering_valid": true
+    },
+    {
+      "decision_time": "2022-01-09T00:00:00+00:00",
+      "event_name": "LCX",
+      "event_time": "2022-01-08T00:00:00+00:00",
+      "available_at": "2022-01-09T00:00:00+00:00",
+      "usd_loss": 7940000.0,
+      "ordering_valid": true
+    },
+    {
+      "decision_time": "2022-01-11T00:00:00+00:00",
+      "event_name": "Lympo",
+      "event_time": "2022-01-10T00:00:00+00:00",
+      "available_at": "2022-01-11T00:00:00+00:00",
+      "usd_loss": 18700000.0,
+      "ordering_valid": true
+    }
+  ]
+}
