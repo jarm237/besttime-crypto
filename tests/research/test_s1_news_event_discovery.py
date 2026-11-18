@@ -230,3 +230,32 @@ def test_economic_replay_has_no_backward_fill():
     source = inspect.getsource(run_economic_replays)
     assert ".bfill(" not in source
     assert "requires complete warmed-up features" in source
+
+
+def test_metadata_truthfulness_and_scorecard_immutability():
+    """Verify source coverage manifest truthfulness and canonical scorecard byte-level immutability."""
+    import hashlib
+    with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    sources = {s["id"]: s for s in manifest.get("sources", [])}
+    assert "defillama_hacks_v1" in sources
+    assert sources["defillama_hacks_v1"]["pit_safety_status"] == "ASSUMED_AVAILABILITY_PARTIAL"
+
+    assert "gdelt_2_0_15m_archives" in sources
+    assert sources["gdelt_2_0_15m_archives"]["predictive_or_economic_model_usage"] == "NOT_USED"
+
+    feasibility = manifest.get("feasibility_assessment", {})
+    assert feasibility.get("point_in_time_guarantee") == "ASSUMED_AVAILABILITY_HEURISTIC_PARTIAL"
+
+    # Verify generator script source definition matches manifest metadata
+    from scripts.run_s1_news_event_discovery import emit_all_artifacts
+    import inspect
+    gen_source = inspect.getsource(emit_all_artifacts)
+    assert '"id": "defillama_hacks_v1"' in gen_source
+    assert '"pit_safety_status": "ASSUMED_AVAILABILITY_PARTIAL"' in gen_source
+
+    # Verify canonical scorecard byte-level immutability against baseline
+    scorecard_bytes = SCORECARD_PATH.read_bytes()
+    expected_sha256 = "0da3ccefa0e66ebb93a2716835ee7fbcfb9ea63992f90dd384036cb21c77d34c"
+    assert hashlib.sha256(scorecard_bytes).hexdigest().lower() == expected_sha256

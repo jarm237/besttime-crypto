@@ -834,7 +834,7 @@ def emit_all_artifacts(
                 "total_usd_lost": float(defillama_df["amount_usd"].sum()),
                 "temporal_granularity": "Daily (00:00:00 UTC)",
                 "enforced_publication_lag_hours": 24.0,
-                "pit_safety_status": "VERIFIED_CAUSAL",
+                "pit_safety_status": "ASSUMED_AVAILABILITY_PARTIAL",
                 "notes": "Covers protocol hacks, private key compromises, flash loans, and exchange exploits.",
             },
             {

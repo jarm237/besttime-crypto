@@ -12,7 +12,7 @@
       "total_usd_lost": 27620184894.12813,
       "temporal_granularity": "Daily (00:00:00 UTC)",
       "enforced_publication_lag_hours": 24.0,
-      "pit_safety_status": "VERIFIED_CAUSAL",
+      "pit_safety_status": "ASSUMED_AVAILABILITY_PARTIAL",
       "notes": "Covers protocol hacks, private key compromises, flash loans, and exchange exploits."
     },
     {
