@@ -1,0 +1,42 @@
+{
+  "research_workstream": "S2A_Cross_Asset_Opportunity_Screen",
+  "git_commit": "6613c4eb889b1244e544db49a21b23a08b6daca3",
+  "created_at_utc": "2026-11-18T11:32:03.104279+00:00",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "data_source": "Binance Spot 1h Cached Parquet Files",
+  "data_storage_path": "data/historical_unified_replay",
+  "historical_period": "2022-01-01 to 2026-11-16",
+  "decision_cadence": "Daily at 00:00:00 UTC (rebalance at open)",
+  "features_pre_registered": [
+    "ret_24h",
+    "ret_72h",
+    "ret_168h",
+    "ret_720h",
+    "vol_168h",
+    "vol_720h",
+    "rs_btc_168h",
+    "rs_btc_720h",
+    "dispersion_168h",
+    "breadth_sma168",
+    "breadth_mom168",
+    "cross_asset_corr_168h"
+  ],
+  "non_neural_screen": true,
+  "derivatives_or_news_features_used": false,
+  "calibration_split": "Train (2022-01-31 to 2023-12-31)",
+  "diagnostic_splits": [
+    "Validation_2024",
+    "Reused_2025_2026"
+  ],
+  "causal_execution_contract": {
+    "feature_closed_bar_cutoff": "Day t 23:00 UTC",
+    "decision_timestamp": "Day t 23:59:59 UTC",
+    "execution_bar": "Day t+1 00:00:00 UTC Open",
+    "shared_close_open_timestamp_prohibited": true
+  }
+}
