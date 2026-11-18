@@ -12,6 +12,8 @@ Verifies:
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 from pathlib import Path
 import pytest
@@ -220,8 +222,9 @@ def test_behavioral_verdict_ci_crossing_zero_yields_inconclusive():
             "simple_trend_following": {"val_net_return_pct": 8.07, "annualized_sharpe": 1.0, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
         },
         "stress_fee_30bps_allin": {
-            "derivatives_informed_trend": {"val_net_return_pct": 3.01},
-            "price_only_trend_control": {"val_net_return_pct": -1.40},
+            "derivatives_informed_trend": {"val_net_return_pct": 3.01, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
+            "price_only_trend_control": {"val_net_return_pct": -1.40, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
+            "simple_trend_following": {"val_net_return_pct": 1.0, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
         }
     }
     manifest_mock = {
@@ -229,10 +232,14 @@ def test_behavioral_verdict_ci_crossing_zero_yields_inconclusive():
         "publication_delay_seconds": 300,
         "sample_trace": {"causal_ordering_verified": True},
         "population_audit": {
+            "total_evaluated_decisions": 1270,
             "future_available_count": 0,
             "stale_feature_used_count": 0,
             "invalid_execution_order_count": 0,
+            "invalid_valuation_order_count": 0,
             "missing_data_count": 0,
+            "global_ffill_resurrected_stale_count": 1,
+            "affected_daily_decisions_by_removing_global_ffill": 0,
             "population_pit_correctness": "PASS",
         },
     }
@@ -261,8 +268,9 @@ def test_behavioral_verdict_pit_failure_blocks_overall():
             "simple_trend_following": {"val_net_return_pct": 5.0, "annualized_sharpe": 0.8, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
         },
         "stress_fee_30bps_allin": {
-            "derivatives_informed_trend": {"val_net_return_pct": 8.0},
-            "price_only_trend_control": {"val_net_return_pct": -2.0},
+            "derivatives_informed_trend": {"val_net_return_pct": 8.0, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
+            "price_only_trend_control": {"val_net_return_pct": -2.0, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
+            "simple_trend_following": {"val_net_return_pct": 3.0, "min_observed_cash": 0.0, "min_observed_btc_units": 0.0, "max_observed_risky_exposure": 1.0, "max_accounting_residual": 0.0, "unbacked_leverage_detected": False},
         }
     }
     manifest_mock = {
@@ -270,10 +278,14 @@ def test_behavioral_verdict_pit_failure_blocks_overall():
         "publication_delay_seconds": 0,
         "sample_trace": {"causal_ordering_verified": False},
         "population_audit": {
+            "total_evaluated_decisions": 1270,
             "future_available_count": 1,
             "stale_feature_used_count": 0,
             "invalid_execution_order_count": 0,
+            "invalid_valuation_order_count": 0,
             "missing_data_count": 0,
+            "global_ffill_resurrected_stale_count": 1,
+            "affected_daily_decisions_by_removing_global_ffill": 0,
             "population_pit_correctness": "FAIL",
         },
     }
@@ -300,8 +312,10 @@ def test_population_pit_audit_material_defects_zero():
     assert pop["stale_feature_used_count"] == 0
     assert pop["invalid_execution_order_count"] == 0
     assert pop["missing_data_count"] == 0
-    assert pop["global_ffill_resurrected_stale_count"] == 0
+    assert isinstance(pop["global_ffill_resurrected_stale_count"], int)
+    assert pop["global_ffill_resurrected_stale_count"] >= 0
     assert pop["affected_daily_decisions_by_removing_global_ffill"] == 0
+    assert pop["invalid_valuation_order_count"] == 0
     assert pop["population_pit_correctness"] == "PASS"
 
     with open(SCORECARD_PATH, "r", encoding="utf-8") as f:
@@ -316,3 +330,84 @@ def test_final_artifacts_exist():
     assert (OUTPUT_DIR / "d0_1_final_economic_scorecard.json").exists()
     assert (OUTPUT_DIR / "d0_1_final_execution_traces.json").exists()
     assert (OUTPUT_DIR / "d0_1_final_verdict_report.md").exists()
+    assert (OUTPUT_DIR / "d0_1_final_source_fidelity_addendum.md").exists()
+
+
+def _complete_verdict_inputs():
+    invariant_metrics = {
+        "min_observed_cash": 0.0,
+        "min_observed_btc_units": 0.0,
+        "max_observed_risky_exposure": 1.0,
+        "max_accounting_residual": 0.0,
+        "unbacked_leverage_detected": False,
+    }
+    base = {
+        "derivatives_informed_trend": {**invariant_metrics, "val_net_return_pct": 8.0},
+        "price_only_trend_control": {**invariant_metrics, "val_net_return_pct": 5.0},
+        "simple_trend_following": {**invariant_metrics, "val_net_return_pct": 7.0},
+    }
+    stress = {
+        "derivatives_informed_trend": {**invariant_metrics, "val_net_return_pct": 6.0},
+        "price_only_trend_control": {**invariant_metrics, "val_net_return_pct": 3.0},
+        "simple_trend_following": {**invariant_metrics, "val_net_return_pct": 4.0},
+    }
+    falsification = {
+        "downside_168h": {
+            "delta_pr_auc": 0.1,
+            "permutation_p_value_pr": 0.02,
+            "conditional_risk_spread_pct": 2.0,
+            "block_bootstrap_pr_ci_95": [-0.01, 0.2],
+        }
+    }
+    manifest = {
+        "zero_bfill": True,
+        "publication_delay_seconds": 300,
+        "sample_trace": {"causal_ordering_verified": True},
+        "population_audit": {
+            "total_evaluated_decisions": 10,
+            "future_available_count": 0,
+            "stale_feature_used_count": 0,
+            "invalid_execution_order_count": 0,
+            "invalid_valuation_order_count": 0,
+            "missing_data_count": 0,
+            "global_ffill_resurrected_stale_count": 3,
+            "affected_daily_decisions_by_removing_global_ffill": 0,
+            "population_pit_correctness": "PASS",
+        },
+    }
+    return falsification, {
+        "base_fee_12bps": base,
+        "stress_fee_30bps_allin": stress,
+    }, manifest
+
+
+def test_missing_population_audit_fails_closed():
+    """Missing population evidence must invalidate PIT rather than silently pass."""
+    from scripts.run_d0_1_economic_accounting_correction import compute_evidence_verdicts
+
+    falsification, economic, manifest = _complete_verdict_inputs()
+    manifest.pop("population_audit")
+    verdicts = compute_evidence_verdicts(falsification, economic, manifest)
+    assert verdicts["D0_PIT_CORRECTNESS"] == "FAIL"
+    assert verdicts["OVERALL_CONCLUSION"] == "INCONCLUSIVE_INVALID_EVIDENCE"
+
+
+def test_missing_accounting_metric_fails_closed():
+    """A missing invariant metric must invalidate accounting rather than use a safe default."""
+    from scripts.run_d0_1_economic_accounting_correction import compute_evidence_verdicts
+
+    falsification, economic, manifest = _complete_verdict_inputs()
+    broken_economic = copy.deepcopy(economic)
+    del broken_economic["base_fee_12bps"]["derivatives_informed_trend"]["max_accounting_residual"]
+    verdicts = compute_evidence_verdicts(falsification, broken_economic, manifest)
+    assert verdicts["D0_ACCOUNTING_CORRECTNESS"] == "FAIL"
+    assert verdicts["OVERALL_CONCLUSION"] == "INCONCLUSIVE_INVALID_EVIDENCE"
+
+
+def test_final_report_is_bound_to_canonical_economic_scorecard():
+    """The rendered report must identify the exact economic scorecard it consumed."""
+    economic_path = OUTPUT_DIR / "d0_1_final_economic_scorecard.json"
+    report_path = OUTPUT_DIR / "d0_1_final_verdict_report.md"
+    digest = hashlib.sha256(economic_path.read_bytes()).hexdigest()
+    report = report_path.read_text(encoding="utf-8")
+    assert f"sha256:{digest}" in report

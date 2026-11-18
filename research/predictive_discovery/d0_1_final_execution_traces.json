@@ -5,6 +5,7 @@
     "execution_date": "2023-01-09 00:00:00+00:00",
     "initial_cash": 10000.0,
     "exec_price": 17127.83,
+    "valuation_price": 17184.51,
     "target_weight": 1.0,
     "fee_paid": 11.99,
     "cash_post": 0.0,

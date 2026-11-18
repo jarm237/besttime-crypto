@@ -8,6 +8,7 @@ from btc_scraper.research.causal_btc_accounting import (
     execute_causal_btc_rebalance,
     simulate_causal_btc_portfolio,
 )
+from scripts.run_d0_1_economic_accounting_correction import build_spot_price_contract
 
 
 def test_golden_10k_btc_doubles_100pct_target():
@@ -278,3 +279,46 @@ def test_synthetic_gap_execution_and_mtm_ordering():
     assert pytest.approx(res["total_fees_paid_usd"], abs=0.01) == expected_fee
     assert res["min_observed_cash"] >= 0.0
     assert res["max_accounting_residual"] < 1e-6
+
+
+def test_feature_builder_price_contract_feeds_post_execution_valuation():
+    """Exercise raw bar alignment and simulator MTM together across the contract boundary."""
+    raw_bars = pd.DataFrame({
+        "open_dt": pd.to_datetime([
+            "2022-12-31 23:00:00+00:00",
+            "2023-01-01 00:00:00+00:00",
+            "2023-01-01 23:00:00+00:00",
+            "2023-01-02 00:00:00+00:00",
+        ]),
+        "open": [99.0, 105.0, 114.0, 120.0],
+        "close": [100.0, 110.0, 115.0, 130.0],
+    })
+    raw_bars["close_dt"] = raw_bars["open_dt"] + pd.Timedelta(hours=1)
+    decision_times = pd.DatetimeIndex(pd.to_datetime([
+        "2023-01-01 00:00:00+00:00",
+        "2023-01-02 00:00:00+00:00",
+    ]))
+
+    price_contract = build_spot_price_contract(raw_bars, decision_times)
+    assert price_contract.loc[decision_times[1], "feature_close"] == 115.0
+    assert price_contract.loc[decision_times[1], "execution_open"] == 120.0
+    assert price_contract.loc[decision_times[1], "valuation_close"] == 130.0
+    assert (
+        price_contract.loc[decision_times[1], "valuation_close_time"]
+        > price_contract.loc[decision_times[1], "execution_open_time"]
+    )
+
+    result = simulate_causal_btc_portfolio(
+        timestamps=decision_times,
+        open_prices=price_contract["execution_open"].to_numpy(),
+        close_prices=price_contract["valuation_close"].to_numpy(),
+        target_weights=np.ones(2),
+        policy_name="builder_contract_integration",
+        initial_capital_usd=10000.0,
+        fee_bps=12.0,
+    )
+
+    expected_notional = 10000.0 / 1.0012
+    expected_equity = (expected_notional / 120.0) * 130.0
+    assert pytest.approx(result["equity_series"].iloc[1], abs=1e-6) == expected_equity
+    assert result["actual_trades_executed"] == 1

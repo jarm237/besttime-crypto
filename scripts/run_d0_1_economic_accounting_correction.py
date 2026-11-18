@@ -9,10 +9,12 @@ head-to-head price-only control benchmarking for the 168h downside risk hypothes
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 from typing import Any, Dict, List, Tuple
 
@@ -42,6 +44,70 @@ OUTPUT_DIR = REPO_ROOT / "research" / "predictive_discovery"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def build_spot_price_contract(
+    btc_df: pd.DataFrame,
+    evaluation_index: pd.DatetimeIndex,
+) -> pd.DataFrame:
+    """Align feature, execution, and valuation prices to their causal event times.
+
+    At evaluation time ``t``:
+    - ``feature_close`` is the close of the bar ending at ``t``;
+    - ``execution_open`` is the open of the bar beginning at ``t``;
+    - ``valuation_close`` is the close of that same post-execution bar, at ``t + 1h``.
+
+    Missing bars remain missing. In particular, execution and valuation prices are
+    never forward-filled from a different bar.
+    """
+    required_columns = {"open_dt", "close_dt", "open", "close"}
+    missing_columns = required_columns.difference(btc_df.columns)
+    if missing_columns:
+        raise ValueError(f"BTC frame missing price-contract columns: {sorted(missing_columns)}")
+
+    by_open = btc_df.sort_values("open_dt").drop_duplicates("open_dt").set_index("open_dt")
+    by_close = btc_df.sort_values("close_dt").drop_duplicates("close_dt").set_index("close_dt")
+
+    contract = pd.DataFrame(index=evaluation_index)
+    contract["feature_close"] = by_close["close"].reindex(evaluation_index).to_numpy()
+    contract["execution_open"] = by_open["open"].reindex(evaluation_index).to_numpy()
+    contract["valuation_close"] = by_open["close"].reindex(evaluation_index).to_numpy()
+    contract["feature_close_time"] = evaluation_index
+    contract["execution_open_time"] = evaluation_index
+    contract["valuation_close_time"] = evaluation_index + pd.Timedelta(hours=1)
+    return contract
+
+
+def sha256_file(path: Path) -> str:
+    """Return a stable SHA-256 digest for an emitted artifact."""
+    digest = hashlib.sha256()
+    with open(path, "rb") as artifact:
+        for chunk in iter(lambda: artifact.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def generation_source_state() -> Dict[str, Any]:
+    """Capture the exact repository/source state used to generate artifacts."""
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    dirty = bool(subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip())
+    return {
+        "source_commit_at_generation": commit,
+        "working_tree_dirty_at_generation": dirty,
+        "runner_sha256": sha256_file(Path(__file__).resolve()),
+    }
+
+
 # ==============================================================================
 # Phase A & B: Strict PIT Alignment & Clean Feature Engineering
 # ==============================================================================
@@ -66,8 +132,6 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
     # A bar starting at open_dt closes at close_dt = open_dt + 1h.
     # Its close price and volume are only observed and available at close_dt!
     btc_closed = btc_df.copy().sort_values("close_dt").drop_duplicates("close_dt").set_index("close_dt")
-    btc_opened = btc_df.copy().sort_values("open_dt").drop_duplicates("open_dt").set_index("open_dt")
-
     btc_closed["log_ret_1h"] = np.log(btc_closed["close"] / btc_closed["close"].shift(1))
     btc_closed["ret_24h"] = np.log(btc_closed["close"] / btc_closed["close"].shift(24))
     btc_closed["ret_72h"] = np.log(btc_closed["close"] / btc_closed["close"].shift(72))
@@ -115,11 +179,16 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
     hourly_idx = pd.date_range(start_ts, end_ts, freq="1h", tz="UTC")
 
     grid = pd.DataFrame({"feature_cutoff_time": hourly_idx})
+    spot_price_contract = build_spot_price_contract(btc_df, hourly_idx).reset_index(drop=True)
 
-    # Spot features at feature_cutoff_time T are from the candle that closed at T
-    grid["btc_close"] = btc_closed["close"].reindex(hourly_idx).ffill().values
+    # Keep decision information, execution, and post-execution valuation prices distinct.
+    for column in spot_price_contract.columns:
+        grid[column] = spot_price_contract[column].to_numpy()
+
+    # Compatibility aliases for predictive features; economic replay uses the explicit contract names.
+    grid["btc_close"] = grid["feature_close"]
+    grid["btc_open"] = grid["execution_open"]
     grid["btc_volume"] = btc_closed["volume"].reindex(hourly_idx).fillna(0.0).values
-    grid["btc_open"] = btc_opened["open"].reindex(hourly_idx).ffill().values
 
     # Baseline Price & Volatility Controls
     grid["f_btc_ret_24h"] = btc_closed["ret_24h"].reindex(hourly_idx).values
@@ -216,9 +285,14 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
     warmup_start = pd.Timestamp("2023-01-08 00:00:00", tz="UTC")
     valid_grid = grid.loc[warmup_start:].copy()
 
-    # Do NOT apply global forward-fill across masked stale features!
+    # Do NOT apply global forward-fill across masked stale features. Retain the
+    # legacy counterfactual only long enough to measure what that operation would
+    # have resurrected, then discard it.
     all_features = BASELINE_FEATURES + DERIVATIVES_FEATURES
-    valid_grid[all_features] = valid_grid[all_features].replace([np.inf, -np.inf], np.nan)
+    clean_features = valid_grid[all_features].replace([np.inf, -np.inf], np.nan)
+    legacy_global_ffill = clean_features.ffill()
+    resurrected_by_global_ffill = clean_features.isna() & legacy_global_ffill.notna()
+    valid_grid[all_features] = clean_features
 
     # Audit full actual population across all daily decision rows (00:00 UTC)
     daily_eval = valid_grid[valid_grid.index.hour == 0].copy()
@@ -241,14 +315,28 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
     exec_times = dec_times + pd.Timedelta(days=1)
     invalid_execution_order_count = int((exec_times <= dec_times).sum())
 
+    # Each replay row must value the post-execution holdings only after that row's open.
+    execution_open_times = pd.to_datetime(daily_eval["execution_open_time"], utc=True)
+    valuation_close_times = pd.to_datetime(daily_eval["valuation_close_time"], utc=True)
+    invalid_valuation_order_count = int((valuation_close_times <= execution_open_times).sum())
+    invalid_valuation_order_count += int(
+        daily_eval[["execution_open", "valuation_close"]].isna().any(axis=1).sum()
+    )
+
     # Missing required model features in evaluated daily decisions
     missing_data_count = int(daily_eval[all_features].isna().any(axis=1).sum())
+    global_ffill_resurrected_stale_count = int(resurrected_by_global_ffill.sum().sum())
+    affected_daily_decisions_by_removing_global_ffill = int(
+        resurrected_by_global_ffill.loc[daily_eval.index].any(axis=1).sum()
+    )
 
     pop_pit_pass = (
         future_available_count == 0
         and stale_feature_used_count == 0
         and invalid_execution_order_count == 0
+        and invalid_valuation_order_count == 0
         and missing_data_count == 0
+        and affected_daily_decisions_by_removing_global_ffill == 0
     )
 
     population_audit = {
@@ -256,9 +344,11 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
         "future_available_count": future_available_count,
         "stale_feature_used_count": stale_feature_used_count,
         "invalid_execution_order_count": invalid_execution_order_count,
+        "invalid_valuation_order_count": invalid_valuation_order_count,
         "missing_data_count": missing_data_count,
-        "global_ffill_resurrected_stale_count": 0,
-        "affected_daily_decisions_by_removing_global_ffill": 0,
+        "global_ffill_resurrected_stale_count": global_ffill_resurrected_stale_count,
+        "global_ffill_resurrected_stale_count_unit": "feature_values_across_hourly_population",
+        "affected_daily_decisions_by_removing_global_ffill": affected_daily_decisions_by_removing_global_ffill,
         "population_pit_correctness": "PASS" if pop_pit_pass else "FAIL",
     }
 
@@ -274,6 +364,8 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
         "decision_timestamp": str(sample_ts),
         "order_submit_time": str(sample_ts),
         "execution_timestamp": str(sample_ts + pd.Timedelta(days=1)),
+        "execution_open_time": str(valid_grid.loc[sample_ts, "execution_open_time"]),
+        "valuation_close_time": str(valid_grid.loc[sample_ts, "valuation_close_time"]),
         "publication_delay_seconds": 300,
         "causal_ordering_verified": True,
         "latest_metrics_available_at": str(sample_ts),
@@ -294,6 +386,11 @@ def load_and_build_pit_features() -> Tuple[pd.DataFrame, Dict[str, Any]]:
             "metrics_max_staleness_minutes": 120,
             "funding_max_staleness_hours": 24,
             "spot_max_staleness_hours": 1,
+        },
+        "spot_price_contract": {
+            "feature_close": "close of the bar ending at feature cutoff t",
+            "execution_open": "open of the bar beginning at execution time t",
+            "valuation_close": "close of the same bar at t + 1h, after execution",
         },
         "population_audit": population_audit,
         "sample_trace": sample_trace,
@@ -538,8 +635,8 @@ def run_d0_1_economic_experiments(
     logger.info("Executing Phase D Economic Translation with Causal Accounting...")
     n_days = len(daily_df)
     timestamps = daily_df.index
-    open_prices = daily_df["btc_open"].values
-    close_prices = daily_df["btc_close"].values
+    open_prices = daily_df["execution_open"].values
+    close_prices = daily_df["valuation_close"].values
 
     # 1. 100% Cash
     w_cash = np.zeros(n_days)
@@ -682,17 +779,33 @@ def compute_evidence_verdicts(
     pop_audit = manifest_info.get("population_audit", {})
     trace = manifest_info.get("sample_trace", {})
 
-    has_pop_audit = len(pop_audit) > 0
-    if has_pop_audit:
-        pop_pit_pass = (
-            pop_audit.get("population_pit_correctness") == "PASS"
-            and pop_audit.get("future_available_count", -1) == 0
-            and pop_audit.get("stale_feature_used_count", -1) == 0
-            and pop_audit.get("invalid_execution_order_count", -1) == 0
-            and pop_audit.get("missing_data_count", -1) == 0
-        )
-    else:
-        pop_pit_pass = True
+    required_population_fields = {
+        "total_evaluated_decisions",
+        "future_available_count",
+        "stale_feature_used_count",
+        "invalid_execution_order_count",
+        "invalid_valuation_order_count",
+        "missing_data_count",
+        "global_ffill_resurrected_stale_count",
+        "affected_daily_decisions_by_removing_global_ffill",
+        "population_pit_correctness",
+    }
+    has_complete_pop_audit = (
+        isinstance(pop_audit, dict)
+        and required_population_fields.issubset(pop_audit)
+    )
+    pop_pit_pass = (
+        has_complete_pop_audit
+        and pop_audit["total_evaluated_decisions"] > 0
+        and pop_audit["population_pit_correctness"] == "PASS"
+        and pop_audit["future_available_count"] == 0
+        and pop_audit["stale_feature_used_count"] == 0
+        and pop_audit["invalid_execution_order_count"] == 0
+        and pop_audit["invalid_valuation_order_count"] == 0
+        and pop_audit["missing_data_count"] == 0
+        and pop_audit["global_ffill_resurrected_stale_count"] >= 0
+        and pop_audit["affected_daily_decisions_by_removing_global_ffill"] == 0
+    )
 
     pit_pass = (
         pop_pit_pass
@@ -703,21 +816,49 @@ def compute_evidence_verdicts(
     d0_pit = "PASS" if pit_pass else "FAIL"
 
     # 2. Accounting Correctness
-    base_eco = economic_results["base_fee_12bps"]
-    stress_eco = economic_results["stress_fee_30bps_allin"]
+    base_eco = economic_results.get("base_fee_12bps")
+    stress_eco = economic_results.get("stress_fee_30bps_allin")
 
-    acc_invariants_pass = True
-    for pol_name, pol in base_eco.items():
-        if pol.get("min_observed_cash", 0.0) < -1e-6:
-            acc_invariants_pass = False
-        if pol.get("min_observed_btc_units", 0.0) < -1e-6:
-            acc_invariants_pass = False
-        if pol.get("max_observed_risky_exposure", 1.0) > 1.000001:
-            acc_invariants_pass = False
-        if pol.get("max_accounting_residual", 0.0) > 1e-4:
-            acc_invariants_pass = False
-        if pol.get("unbacked_leverage_detected", False):
-            acc_invariants_pass = False
+    required_accounting_fields = {
+        "min_observed_cash",
+        "min_observed_btc_units",
+        "max_observed_risky_exposure",
+        "max_accounting_residual",
+        "unbacked_leverage_detected",
+    }
+    acc_invariants_pass = (
+        isinstance(base_eco, dict)
+        and isinstance(stress_eco, dict)
+        and bool(base_eco)
+        and set(base_eco) == set(stress_eco)
+    )
+    if acc_invariants_pass:
+        for scenario in (base_eco, stress_eco):
+            for pol in scenario.values():
+                if not isinstance(pol, dict) or not required_accounting_fields.issubset(pol):
+                    acc_invariants_pass = False
+                    break
+                numeric_values = [
+                    pol["min_observed_cash"],
+                    pol["min_observed_btc_units"],
+                    pol["max_observed_risky_exposure"],
+                    pol["max_accounting_residual"],
+                ]
+                if not all(isinstance(value, (int, float)) and np.isfinite(value) for value in numeric_values):
+                    acc_invariants_pass = False
+                    break
+                if pol["min_observed_cash"] < -1e-6:
+                    acc_invariants_pass = False
+                if pol["min_observed_btc_units"] < -1e-6:
+                    acc_invariants_pass = False
+                if pol["max_observed_risky_exposure"] > 1.000001:
+                    acc_invariants_pass = False
+                if pol["max_accounting_residual"] > 1e-4:
+                    acc_invariants_pass = False
+                if pol["unbacked_leverage_detected"] is not False:
+                    acc_invariants_pass = False
+            if not acc_invariants_pass:
+                break
 
     d0_acc = "PASS" if acc_invariants_pass else "FAIL"
 
@@ -739,22 +880,39 @@ def compute_evidence_verdicts(
         d0_pred = "INCONCLUSIVE"
 
     # 4. Economic Incremental Value vs Price-Only Control
-    d_trend_val = base_eco["derivatives_informed_trend"]["val_net_return_pct"]
-    p_trend_val = base_eco["price_only_trend_control"]["val_net_return_pct"]
-    s_trend_val = base_eco["simple_trend_following"]["val_net_return_pct"]
-
-    d_trend_sharpe = base_eco["derivatives_informed_trend"]["annualized_sharpe"]
-    p_trend_sharpe = base_eco["price_only_trend_control"]["annualized_sharpe"]
-
-    d_stress_val = stress_eco["derivatives_informed_trend"]["val_net_return_pct"]
-    p_stress_val = stress_eco["price_only_trend_control"]["val_net_return_pct"]
-
-    if (d_trend_val > p_trend_val) and (d_trend_val > s_trend_val) and (d_stress_val > p_stress_val):
-        d0_eco = "SUPPORTED"
-    elif (d_trend_val <= p_trend_val):
-        d0_eco = "NOT_SUPPORTED"
-    else:
+    comparison_policies = {
+        "derivatives_informed_trend",
+        "price_only_trend_control",
+        "simple_trend_following",
+    }
+    comparison_metrics_available = (
+        acc_invariants_pass
+        and comparison_policies.issubset(base_eco)
+        and {"derivatives_informed_trend", "price_only_trend_control"}.issubset(stress_eco)
+        and all(
+            "val_net_return_pct" in base_eco[policy]
+            for policy in comparison_policies
+        )
+        and all(
+            "val_net_return_pct" in stress_eco[policy]
+            for policy in ("derivatives_informed_trend", "price_only_trend_control")
+        )
+    )
+    if not comparison_metrics_available:
         d0_eco = "INCONCLUSIVE"
+    else:
+        d_trend_val = base_eco["derivatives_informed_trend"]["val_net_return_pct"]
+        p_trend_val = base_eco["price_only_trend_control"]["val_net_return_pct"]
+        s_trend_val = base_eco["simple_trend_following"]["val_net_return_pct"]
+        d_stress_val = stress_eco["derivatives_informed_trend"]["val_net_return_pct"]
+        p_stress_val = stress_eco["price_only_trend_control"]["val_net_return_pct"]
+
+        if (d_trend_val > p_trend_val) and (d_trend_val > s_trend_val) and (d_stress_val > p_stress_val):
+            d0_eco = "SUPPORTED"
+        elif d_trend_val <= p_trend_val:
+            d0_eco = "NOT_SUPPORTED"
+        else:
+            d0_eco = "INCONCLUSIVE"
 
     # 5. Generalization & Production
     d0_gen = "NOT_ESTABLISHED"
@@ -788,8 +946,9 @@ def render_d0_1_report(
     economic_results: Dict[str, Any],
     manifest_info: Dict[str, Any],
     verdicts: Dict[str, str],
+    artifact_provenance: Dict[str, Any],
 ) -> Path:
-    """Generate corrected research report documenting D0.1 findings."""
+    """Generate the report from the reloaded canonical scorecard artifacts."""
     report_path = OUTPUT_DIR / "d0_1_final_verdict_report.md"
 
     p168 = falsification_results["downside_168h"]
@@ -798,7 +957,20 @@ def render_d0_1_report(
 
     base_sim = economic_results["base_fee_12bps"]
     stress_sim = economic_results["stress_fee_30bps_allin"]
-    pop_audit = manifest_info.get("population_audit", {})
+    pop_audit = manifest_info["population_audit"]
+    trend_delta_vs_price = (
+        base_sim["derivatives_informed_trend"]["val_net_return_pct"]
+        - base_sim["price_only_trend_control"]["val_net_return_pct"]
+    )
+    trend_delta_vs_simple = (
+        base_sim["derivatives_informed_trend"]["val_net_return_pct"]
+        - base_sim["simple_trend_following"]["val_net_return_pct"]
+    )
+    max_accounting_residual = max(
+        policy["max_accounting_residual"]
+        for scenario in (base_sim, stress_sim)
+        for policy in scenario.values()
+    )
 
     lines = []
     lines.append("# D0.1 Final PIT & Economic Fidelity Closure Report")
@@ -807,6 +979,8 @@ def render_d0_1_report(
     lines.append("**Contiguous PIT Horizon**: 2023-01-08 00:00 UTC to 2026-06-30 23:00 UTC (1,270 days / 41.5 months)  ")
     lines.append("**Eligible Assets Analyzed**: BTCUSDT (primary), ETHUSDT, BNBUSDT  ")
     lines.append("**Execution & Accounting Standards**: Closed-form non-negative cash | Next-open execution | 12.0 bps base fee, 30.0 bps stress (25 bps fee + 5 bps slippage)  ")
+    lines.append(f"**Canonical Economic Scorecard**: `d0_1_final_economic_scorecard.json` (`sha256:{artifact_provenance['economic_scorecard_sha256']}`)  ")
+    lines.append(f"**Source Commit at Generation**: `{artifact_provenance['source_commit_at_generation']}` | Runner `sha256:{artifact_provenance['runner_sha256']}` | Dirty worktree: `{str(artifact_provenance['working_tree_dirty_at_generation']).lower()}`  ")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -814,10 +988,10 @@ def render_d0_1_report(
     lines.append("")
     lines.append("| Dimension / Gate | Formal Verdict | Definitive Quantitative Evidence |")
     lines.append("| :--- | :---: | :--- |")
-    lines.append(f"| **PIT Integrity & Alignment** | **`{verdicts['D0_PIT_CORRECTNESS']}`** | Zero backward fill used. Population audit over all 1,270 daily decisions: future available count = 0, stale features used = 0, invalid execution order count = 0, missing data count = 0. Zero daily decisions affected by removing global ffill. Strict `available_at` enforcement with +300s publication delay on 5m metrics. Explicit as-of joins with 2h (metrics) and 24h (funding) freshness limits. Spot features derived strictly from candles closed at cutoff time. |")
-    lines.append(f"| **Accounting Invariants** | **`{verdicts['D0_ACCOUNTING_CORRECTNESS']}`** | Closed-form purchasing power sizing verified across all 10 policies. Minimum cash $\\ge 0.0$, maximum leverage $\\le 1.000$, and zero unbacked leverage verified. Maximum accounting residual across 1,270 steps is 0.00. |")
+    lines.append(f"| **PIT Integrity & Alignment** | **`{verdicts['D0_PIT_CORRECTNESS']}`** | Zero backward fill used. Population audit over all {pop_audit['total_evaluated_decisions']:,} daily decisions: future available count = {pop_audit['future_available_count']}, stale features used = {pop_audit['stale_feature_used_count']}, invalid execution order count = {pop_audit['invalid_execution_order_count']}, invalid valuation order count = {pop_audit['invalid_valuation_order_count']}, missing data count = {pop_audit['missing_data_count']}. Daily decisions affected by removing global ffill = {pop_audit['affected_daily_decisions_by_removing_global_ffill']}. Strict `available_at` enforcement with +300s publication delay on 5m metrics. |")
+    lines.append(f"| **Accounting Invariants** | **`{verdicts['D0_ACCOUNTING_CORRECTNESS']}`** | Closed-form purchasing power sizing verified across all {len(base_sim)} policies in both base and stress scenarios. Minimum cash $\\ge 0.0$, maximum leverage $\\le 1.000$, and zero unbacked leverage verified. Maximum accounting residual is `{max_accounting_residual:.3e}`. |")
     lines.append(f"| **Predictive Incremental Value (168h)** | **`{verdicts['D0_PREDICTIVE_INCREMENTAL_VALUE']}`** | For 168h downside risk target, boundary-purged Validation PR-AUC increases from **`{p168['baseline_val_pr']:.4f}`** (Price/Vol baseline) to **`{p168['combined_val_pr']:.4f}`** (delta **`{p168['delta_pr_auc']:+.4f}`**). Finite-sample corrected 100-run block-permutation p-value is **`p = {p168['permutation_p_value_pr']:.4f}`**. 95% paired block-bootstrap CI is `[{p168['block_bootstrap_pr_ci_95'][0]:+.4f}, {p168['block_bootstrap_pr_ci_95'][1]:+.4f}]` (CI spans zero, hence formally **`{verdicts['D0_PREDICTIVE_INCREMENTAL_VALUE']}`** under pre-declared uncertainty criteria). |")
-    lines.append(f"| **Economic Incremental Value vs Controls** | **`{verdicts['D0_ECONOMIC_INCREMENTAL_VALUE']}`** | In Validation 2025, Derivatives-Informed Trend Filter delivers **`{base_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%`**, outperforming Price-Only Trend Control (**`{base_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%`** by +2.93%), while trailing Simple Trend Following (**`{base_sim['simple_trend_following']['val_net_return_pct']:+.2f}%`** by -0.12%). Under 30.0 bps stress friction, Derivatives-Informed Trend Filter preserves **`{stress_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%`**, outperforming both Price-Only Control (**`{stress_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%`**) and Simple Trend Following (**`{stress_sim['simple_trend_following']['val_net_return_pct']:+.2f}%`**). |")
+    lines.append(f"| **Economic Incremental Value vs Controls** | **`{verdicts['D0_ECONOMIC_INCREMENTAL_VALUE']}`** | In Validation 2025, Derivatives-Informed Trend Filter delivers **`{base_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%`** versus Price-Only Trend Control **`{base_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%`** (delta `{trend_delta_vs_price:+.2f}%`) and Simple Trend Following **`{base_sim['simple_trend_following']['val_net_return_pct']:+.2f}%`** (delta `{trend_delta_vs_simple:+.2f}%`). Under 30.0 bps stress friction, it delivers **`{stress_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%`** versus Price-Only Control **`{stress_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%`** and Simple Trend Following **`{stress_sim['simple_trend_following']['val_net_return_pct']:+.2f}%`**. |")
     lines.append(f"| **Generalization Across Cycles** | **`{verdicts['D0_GENERALIZATION']}`** | Single-year validation window (2025) and reused diagnostic (2026) cannot establish multi-cycle generalization. |")
     lines.append(f"| **Production Authorization** | **`{verdicts['D0_PRODUCTION_AUTHORIZATION']}`** | Bounded discovery stage only. Live CARM integration and multi-asset policy required before consideration. |")
     lines.append(f"| **Overall Scientific Conclusion** | **`{verdicts['OVERALL_CONCLUSION']}`** | Due to paired bootstrap CI crossing zero despite positive point estimates, derivatives incremental predictive value is classified as **`{verdicts['OVERALL_CONCLUSION']}`**. |")
@@ -833,13 +1007,14 @@ def render_d0_1_report(
     lines.append("")
     lines.append("### 2.2. Explicit PIT As-Of Alignment & Population Integrity Audit")
     lines.append("- **Zero Backward-Fill**: Eliminated all backward fill operations. Features are computed strictly using historical observations available at or before cutoff time.")
-    lines.append("- **Elimination of Global Forward-Fill Resurrecting Stale Features**: Removed `valid_grid[all_features].ffill()` across stale-masked features. Number of daily decisions affected: **0** (all 1,270 daily decisions at 00:00 UTC have fresh metrics and funding data).")
-    lines.append(f"- **Population-Level PIT Audit**: Evaluated across all {pop_audit.get('total_evaluated_decisions', 1270)} decision rows (2023-01-08 to 2026-06-30):")
-    lines.append(f"  - `future_available_count`: **{pop_audit.get('future_available_count', 0)}**")
-    lines.append(f"  - `stale_feature_used_count`: **{pop_audit.get('stale_feature_used_count', 0)}**")
-    lines.append(f"  - `invalid_execution_order_count`: **{pop_audit.get('invalid_execution_order_count', 0)}**")
-    lines.append(f"  - `missing_data_count`: **{pop_audit.get('missing_data_count', 0)}**")
-    lines.append(f"  - `population_pit_correctness`: **{pop_audit.get('population_pit_correctness', 'PASS')}**")
+    lines.append(f"- **Elimination of Global Forward-Fill Resurrecting Stale Features**: Removed `valid_grid[all_features].ffill()` across stale-masked features. Row-level counterfactual comparison found **{pop_audit['global_ffill_resurrected_stale_count']}** resurrected hourly feature values and **{pop_audit['affected_daily_decisions_by_removing_global_ffill']}** affected daily decisions.")
+    lines.append(f"- **Population-Level PIT Audit**: Evaluated across all {pop_audit['total_evaluated_decisions']} decision rows (2023-01-08 to 2026-06-30):")
+    lines.append(f"  - `future_available_count`: **{pop_audit['future_available_count']}**")
+    lines.append(f"  - `stale_feature_used_count`: **{pop_audit['stale_feature_used_count']}**")
+    lines.append(f"  - `invalid_execution_order_count`: **{pop_audit['invalid_execution_order_count']}**")
+    lines.append(f"  - `invalid_valuation_order_count`: **{pop_audit['invalid_valuation_order_count']}**")
+    lines.append(f"  - `missing_data_count`: **{pop_audit['missing_data_count']}**")
+    lines.append(f"  - `population_pit_correctness`: **{pop_audit['population_pit_correctness']}**")
     lines.append("- **Freshness Policy**: Enforced max staleness limits (120 minutes for 5m metrics, 24 hours for 8h funding settlements). Observations older than limits are masked as missing.")
     lines.append(f"- **BNB Coverage Clarification**: Documented that BNBUSDT metrics contains only **{manifest_info['bnb_metrics_record_count']:,}** records ({manifest_info['bnb_metrics_sampling_pattern']}), while BNB funding rates are continuous ({manifest_info['bnb_funding_settlement_count']:,} settlements).")
     lines.append("")
@@ -847,6 +1022,9 @@ def render_d0_1_report(
     lines.append("In D0, simulator defaulted `rebalance_mask=True` daily, causing Weekly R7 to execute 1,199 trades. Corrected by introducing explicit Sunday rebalance mask and naming parity:")
     lines.append(f"- **R7 Vol Target (Sunday-Signal / Monday-Open Weekly Adaptation)**: Scheduled strictly on Sundays (`dayofweek == 6`), executed at Monday 00:00 UTC Open, with holdings drifting naturally Tuesday–Sunday. Executed **{base_sim['r7_vol_target_weekly']['actual_trades_executed']}** actual trades with total fees of **${base_sim['r7_vol_target_weekly']['total_fees_paid_usd']:,.2f}**.")
     lines.append(f"- **R7 Vol Target (Daily Adaptation)**: Rebalanced daily when rolling 480h hourly volatility exceeds 5% buffer. Executed **{base_sim['r7_vol_target_daily']['actual_trades_executed']}** trades.")
+    lines.append("")
+    lines.append("### 2.4. Execution / Valuation Temporal Contract")
+    lines.append("Economic replay now carries three explicit prices per event: `feature_close` is from the bar ending at the decision cutoff, `execution_open` is the next executable bar open, and `valuation_close` is the close of that same post-execution bar one hour later. The simulator receives only `execution_open` and `valuation_close`; it can no longer mark newly executed holdings against the pre-execution feature close.")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -909,7 +1087,7 @@ def render_d0_1_report(
     lines.append("## 5. Strategic Research Synthesis & Honest Evidence Interpretation")
     lines.append("")
     lines.append("### Key Scientific Takeaways")
-    lines.append(f"1. **Economic Edge over Price-Only Control**: In Validation 2025, Derivatives-Informed Trend Filter achieved **{base_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%** vs Price-Only Control **{base_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%** ({base_sim['derivatives_informed_trend']['val_net_return_pct'] - base_sim['price_only_trend_control']['val_net_return_pct']:+.2f}% delta), while trailing Simple Trend Following (**{base_sim['simple_trend_following']['val_net_return_pct']:+.2f}%** by -0.12%). Under 30 bps stress costs, it preserved **{stress_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%** vs **{stress_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%** and **{stress_sim['simple_trend_following']['val_net_return_pct']:+.2f}%**.")
+    lines.append(f"1. **Economic Edge over Price-Only Control**: In Validation 2025, Derivatives-Informed Trend Filter achieved **{base_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%** vs Price-Only Control **{base_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%** ({trend_delta_vs_price:+.2f}% delta) and Simple Trend Following **{base_sim['simple_trend_following']['val_net_return_pct']:+.2f}%** ({trend_delta_vs_simple:+.2f}% delta). Under 30 bps stress costs, it preserved **{stress_sim['derivatives_informed_trend']['val_net_return_pct']:+.2f}%** vs **{stress_sim['price_only_trend_control']['val_net_return_pct']:+.2f}%** and **{stress_sim['simple_trend_following']['val_net_return_pct']:+.2f}%**.")
     lines.append(f"2. **Trade Frequency and Friction**: Derivatives-Informed Trend Filter executed **{base_sim['derivatives_informed_trend']['actual_trades_executed']}** actual trades across 3.5 years, generating total transaction fees of **${base_sim['derivatives_informed_trend']['total_fees_paid_usd']:,.2f}** at 12 bps.")
     lines.append(f"3. **Statistical Uncertainty Discipline**: While the permutation p-value is **p = {p168['permutation_p_value_pr']:.4f}**, the 95% paired block-bootstrap CI `[{p168['block_bootstrap_pr_ci_95'][0]:+.4f}, {p168['block_bootstrap_pr_ci_95'][1]:+.4f}]` crosses zero. Under strict falsification discipline, historical correlation cannot be declared proven generalizable alpha.")
     lines.append("")
@@ -935,8 +1113,83 @@ def render_d0_1_report(
     return report_path
 
 
+def render_reconciliation_addendum(
+    previous_economic_results: Dict[str, Any],
+    current_economic_results: Dict[str, Any],
+    previous_scorecard_sha256: str,
+    artifact_provenance: Dict[str, Any],
+) -> Path:
+    """Document the one-time economic replay caused by the temporal-contract fix."""
+    addendum_path = OUTPUT_DIR / "d0_1_final_source_fidelity_addendum.md"
+    previous_base = previous_economic_results.get("base_fee_12bps", {})
+    current_base = current_economic_results["base_fee_12bps"]
+    policies = [
+        ("btc_buy_and_hold", "BTC Buy & Hold"),
+        ("static_50_50", "Static 50/50"),
+        ("r7_vol_target_weekly", "R7 Weekly Adaptation"),
+        ("derivatives_informed_trend", "Derivatives-Informed Trend"),
+        ("price_only_trend_control", "Price-Only Trend Control"),
+    ]
+
+    lines = [
+        "# D0.1 Final Source Fidelity Reconciliation Addendum",
+        "",
+        "This is the single bounded D0.1 economic replay authorized to close artifact consistency and execution/valuation timing. It does not open D0.2, R8-R11, D1, or neural production work.",
+        "",
+        f"- Previous economic scorecard: `sha256:{previous_scorecard_sha256}`",
+        f"- Canonical corrected economic scorecard: `sha256:{artifact_provenance['economic_scorecard_sha256']}`",
+        f"- Source commit at generation: `{artifact_provenance['source_commit_at_generation']}`",
+        f"- Runner source: `sha256:{artifact_provenance['runner_sha256']}`",
+        "",
+        "## Reconciliation Result",
+        "",
+        "The previously committed scorecard and report were mutually consistent. The inconsistent +531.06% agent figure was not sourced from that committed scorecard. The corrected replay now makes the source explicit: every report carries the SHA-256 of the exact economic scorecard loaded to render it.",
+        "",
+        "The economic input contract changed from pre-execution `btc_close[t]` valuation to the close of the bar beginning at execution time: `feature_close[t]` remains decision information, `execution_open[t]` executes the pending order, and `valuation_close[t]` marks the post-trade holdings one hour later.",
+        "",
+        "| Policy | Full Return (previous → corrected) | Validation Return (previous → corrected) | Trades (previous → corrected) | Turnover (previous → corrected) |",
+        "| :--- | ---: | ---: | ---: | ---: |",
+    ]
+    for key, label in policies:
+        old = previous_base.get(key)
+        new = current_base[key]
+        if old is None:
+            old_full = old_val = old_trades = old_turnover = "n/a"
+        else:
+            old_full = f"{old['full_horizon_net_return_pct']:+.2f}%"
+            old_val = f"{old['val_net_return_pct']:+.2f}%"
+            old_trades = str(old["actual_trades_executed"])
+            old_turnover = f"{old['one_way_turnover']:.2f}x"
+        lines.append(
+            f"| **{label}** | `{old_full}` → **`{new['full_horizon_net_return_pct']:+.2f}%`** "
+            f"| `{old_val}` → **`{new['val_net_return_pct']:+.2f}%`** "
+            f"| `{old_trades}` → **`{new['actual_trades_executed']}`** "
+            f"| `{old_turnover}` → **`{new['one_way_turnover']:.2f}x`** |"
+        )
+
+    lines.extend([
+        "",
+        "## Closure",
+        "",
+        "Population counters are now computed from row-level counterfactuals, required PIT/accounting evidence fails closed when absent, and a feature-builder-to-simulator integration test covers the temporal price contract. The predictive conclusion remains evidence-derived; no new strategy search was performed.",
+        "",
+    ])
+    with open(addendum_path, "w", encoding="utf-8", newline="\n") as artifact:
+        artifact.write("\n".join(lines))
+    logger.info("Saved D0.1 source fidelity addendum to %s", addendum_path)
+    return addendum_path
+
+
 def main():
     logger.info("Starting D0.1 Final PIT & Economic Fidelity Closure Pipeline...")
+
+    final_eco_sc_path = OUTPUT_DIR / "d0_1_final_economic_scorecard.json"
+    previous_economic_results: Dict[str, Any] = {}
+    previous_scorecard_sha256 = "not-available"
+    if final_eco_sc_path.exists():
+        previous_scorecard_sha256 = sha256_file(final_eco_sc_path)
+        with open(final_eco_sc_path, "r", encoding="utf-8") as artifact:
+            previous_economic_results = json.load(artifact)
 
     # 1. Load data & construct PIT features
     hourly_df, manifest_info = load_and_build_pit_features()
@@ -951,10 +1204,7 @@ def main():
     # 3. Run economic translation with causal accounting and price-only control
     economic_results = run_d0_1_economic_experiments(daily_df, falsification_results)
 
-    # 4. Compute evidence-derived verdicts
-    verdicts = compute_evidence_verdicts(falsification_results, economic_results, manifest_info)
-
-    # 5. Build Execution Traces for Audit
+    # 4. Build Execution Traces for Audit
     base_runs = economic_results["base_fee_12bps"]
     traces = {
         "initial_purchase": {
@@ -962,7 +1212,8 @@ def main():
             "decision_date": "2023-01-08 00:00:00+00:00",
             "execution_date": "2023-01-09 00:00:00+00:00",
             "initial_cash": 10000.0,
-            "exec_price": float(daily_df.loc["2023-01-09 00:00:00+00:00", "btc_open"]),
+            "exec_price": float(daily_df.loc["2023-01-09 00:00:00+00:00", "execution_open"]),
+            "valuation_price": float(daily_df.loc["2023-01-09 00:00:00+00:00", "valuation_close"]),
             "target_weight": 1.0,
             "fee_paid": 11.99,
             "cash_post": 0.0,
@@ -1010,7 +1261,7 @@ def main():
         json.dump(traces, f, indent=2)
     logger.info("Saved execution traces to %s", traces_path)
 
-    # 6. Save Manifests and Scorecards
+    # 5. Save the canonical manifests and scorecards, then reload them before verdict/report generation.
     final_manifest_path = OUTPUT_DIR / "d0_1_final_pit_manifest.json"
     with open(final_manifest_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(manifest_info, f, indent=2)
@@ -1025,10 +1276,28 @@ def main():
         json.dump(falsification_results, f, indent=2)
     logger.info("Saved final predictive scorecard to %s", final_pred_sc_path)
 
-    final_eco_sc_path = OUTPUT_DIR / "d0_1_final_economic_scorecard.json"
     with open(final_eco_sc_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(economic_results, f, indent=2)
     logger.info("Saved final economic scorecard to %s", final_eco_sc_path)
+
+    with open(final_manifest_path, "r", encoding="utf-8") as artifact:
+        canonical_manifest = json.load(artifact)
+    with open(final_pred_sc_path, "r", encoding="utf-8") as artifact:
+        canonical_falsification = json.load(artifact)
+    with open(final_eco_sc_path, "r", encoding="utf-8") as artifact:
+        canonical_economic = json.load(artifact)
+
+    verdicts = compute_evidence_verdicts(
+        canonical_falsification,
+        canonical_economic,
+        canonical_manifest,
+    )
+    artifact_provenance = generation_source_state()
+    artifact_provenance.update({
+        "pit_manifest_sha256": sha256_file(final_manifest_path),
+        "predictive_scorecard_sha256": sha256_file(final_pred_sc_path),
+        "economic_scorecard_sha256": sha256_file(final_eco_sc_path),
+    })
 
     scorecard = {
         "metadata": {
@@ -1038,10 +1307,11 @@ def main():
             "accounting_module": "btc_scraper.research.causal_btc_accounting",
             "closed_form_accounting_verified": True,
             "cost_assumptions": "12 bps base, 30 bps stress (25 bps fee + 5 bps slippage)",
+            "artifact_provenance": artifact_provenance,
         },
-        "phase_b_pit_integrity": manifest_info,
-        "phase_c_purged_falsification": falsification_results,
-        "phase_d_economic_translation": economic_results,
+        "phase_b_pit_integrity": canonical_manifest,
+        "phase_c_purged_falsification": canonical_falsification,
+        "phase_d_economic_translation": canonical_economic,
         "phase_e_verdicts": verdicts,
     }
 
@@ -1050,8 +1320,20 @@ def main():
         json.dump(scorecard, f, indent=2)
     logger.info("Saved legacy scorecard to %s", legacy_sc_path)
 
-    # 7. Render Report
-    report_file = render_d0_1_report(falsification_results, economic_results, manifest_info, verdicts)
+    # 6. Render the report and one-time reconciliation addendum from canonical artifacts.
+    report_file = render_d0_1_report(
+        canonical_falsification,
+        canonical_economic,
+        canonical_manifest,
+        verdicts,
+        artifact_provenance,
+    )
+    render_reconciliation_addendum(
+        previous_economic_results,
+        canonical_economic,
+        previous_scorecard_sha256,
+        artifact_provenance,
+    )
     logger.info("D0.1 Pipeline Complete. Final Report: %s", report_file)
 
 

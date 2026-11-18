@@ -11,13 +11,20 @@
     "funding_max_staleness_hours": 24,
     "spot_max_staleness_hours": 1
   },
+  "spot_price_contract": {
+    "feature_close": "close of the bar ending at feature cutoff t",
+    "execution_open": "open of the bar beginning at execution time t",
+    "valuation_close": "close of the same bar at t + 1h, after execution"
+  },
   "population_audit": {
     "total_evaluated_decisions": 1270,
     "future_available_count": 0,
     "stale_feature_used_count": 0,
     "invalid_execution_order_count": 0,
+    "invalid_valuation_order_count": 0,
     "missing_data_count": 0,
-    "global_ffill_resurrected_stale_count": 0,
+    "global_ffill_resurrected_stale_count": 73,
+    "global_ffill_resurrected_stale_count_unit": "feature_values_across_hourly_population",
     "affected_daily_decisions_by_removing_global_ffill": 0,
     "population_pit_correctness": "PASS"
   },
@@ -31,6 +38,8 @@
     "decision_timestamp": "2023-01-08 00:00:00+00:00",
     "order_submit_time": "2023-01-08 00:00:00+00:00",
     "execution_timestamp": "2023-01-09 00:00:00+00:00",
+    "execution_open_time": "2023-01-08 00:00:00+00:00",
+    "valuation_close_time": "2023-01-08 01:00:00+00:00",
     "publication_delay_seconds": 300,
     "causal_ordering_verified": true,
     "latest_metrics_available_at": "2023-01-08 00:00:00+00:00",
