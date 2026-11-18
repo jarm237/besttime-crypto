@@ -237,8 +237,9 @@ def execute_self_consistent_rebalance_step(
         traded_mask = traded_diffs > 1e-6
         executed_orders_count = int(np.sum(traded_mask))
         actual_traded_notional = float(np.sum(traded_diffs))
-        fee_paid = fee
-        new_cash = max(0.0, V_post * target_cash_w)
+        fee_paid = actual_traded_notional * fee_rate
+        new_cash = equity_before - fee_paid - float(np.sum(new_holdings * open_prices))
+        new_cash = max(0.0, new_cash)
 
     # Turnover metrics
     current_w = asset_vals / denom

@@ -1,0 +1,50 @@
+{
+  "experiment_name": "S3-P1.1 Train-Only Unified Neural Pilot (Corrected Fidelity)",
+  "protocol_status": "TARGETED_RESEARCH_PROTOCOL_AMENDMENT",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "train_period": {
+    "start": "2022-01-01T00:00:00Z",
+    "end": "2023-12-31T23:59:59Z"
+  },
+  "quarantined_splits": [
+    "2024-01-01 to 2024-12-31 (UNTOUCHED)",
+    "2025-01-01 to 2026-11-16 (UNTOUCHED)"
+  ],
+  "model_architecture": {
+    "family": "Shared GRU + Cross-Asset Multihead Attention + Direct Per-Asset Head + Exact Inaction Gate",
+    "lookback_seq_hours": 168,
+    "gru_hidden_dim": 32,
+    "attention_heads": 2,
+    "parameter_count": 12643,
+    "parameter_budget": 25000,
+    "permutation_equivariant": true
+  },
+  "training_hyperparameters": {
+    "epochs": 15,
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "seed": 42,
+    "lambda_abs": 5.0,
+    "lambda_act": 2.0,
+    "gate_estimator": "Deterministic Straight-Through Estimator (STE) with Train-Inference Parity",
+    "temperature_annealing": "1.0 -> 0.2",
+    "base_fee_bps": 12.0,
+    "stress_fee_bps": 30.0,
+    "execution_model": "FRACTIONAL_RESEARCH",
+    "active_downside_benchmark": "True EW4 Buy & Hold (Fixed Physical Quantities, Frozen Post-Entry)",
+    "calendar_alignment": "True 1-hour UTC Calendar Index (Missing Bars Masked, Zero Forward Fill)"
+  },
+  "mvo_baseline": {
+    "objective": "Causal Cost-Aware MVO-L1 (gamma=2.0, 1% execution deadband)",
+    "mean_lookback_hours": 168,
+    "covariance_lookback_hours": 720,
+    "covariance_method": "Ledoit-Wolf shrinkage",
+    "gamma": 2.0,
+    "execution_deadband": 0.01
+  }
+}

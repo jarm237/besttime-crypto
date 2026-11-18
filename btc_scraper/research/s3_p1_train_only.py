@@ -49,6 +49,10 @@ class S3UnifiedNeuralPolicy(nn.Module):
     Tensor Contract:
       - market_seq: [B, T=168, N=4, F=6] (sequence of closed hourly bars)
       - port_state: [B, F_portfolio=7] (decision-observable portfolio state at 00:05 UTC)
+          port_state[:, 0:N]: observable asset weights w_obs_assets [B, N]
+          port_state[:, N]: observable cash weight w_obs_cash [B, 1]
+          port_state[:, N+1]: max drift relative to last executed allocation [B, 1]
+          port_state[:, N+2]: friction ratio [B, 1]
       - proposed_weights: [B, N+1=5] (simplex over 4 assets + cash)
       - trade_gate_logit: [B, 1] (binary authorization gate logit)
     """
@@ -83,19 +87,32 @@ class S3UnifiedNeuralPolicy(nn.Module):
         )
         self.layer_norm = nn.LayerNorm(gru_hidden)
 
-        # 3. State Fusion with Scale-Invariant Portfolio Coordinates
-        self.fusion = nn.Sequential(
-            nn.Linear(gru_hidden + port_features, gru_hidden),
+        # 3. Direct Per-Asset Allocation Head (Shared across all N assets for permutation equivariance)
+        # Input: contextual_asset_emb_i (gru_hidden) + global_market_context (gru_hidden) + w_obs_i (1) = 2*gru_hidden + 1
+        asset_in_dim = 2 * gru_hidden + 1
+        self.shared_asset_head = nn.Sequential(
+            nn.Linear(asset_in_dim, gru_hidden),
             nn.GELU(),
-            nn.Linear(gru_hidden, gru_hidden),
-            nn.GELU(),
+            nn.Linear(gru_hidden, 1),
         )
 
-        # 4. Allocation Proposal Head (N risky assets + 1 cash)
-        self.alloc_head = nn.Linear(gru_hidden, num_assets + 1)
+        # 4. Cash Allocation Head
+        # Input: global_market_context (gru_hidden) + global_port_state (3: cash_w, drift, friction_ratio)
+        global_port_dim = port_features - num_assets  # 7 - 4 = 3
+        cash_in_dim = gru_hidden + global_port_dim
+        self.cash_head = nn.Sequential(
+            nn.Linear(cash_in_dim, gru_hidden),
+            nn.GELU(),
+            nn.Linear(gru_hidden, 1),
+        )
 
         # 5. Exact Inaction Gate Head (Binary Trade Authorization)
-        self.gate_head = nn.Linear(gru_hidden, 1)
+        # Input: global_market_context (gru_hidden) + global_port_state (3)
+        self.gate_head = nn.Sequential(
+            nn.Linear(cash_in_dim, gru_hidden),
+            nn.GELU(),
+            nn.Linear(gru_hidden, 1),
+        )
 
     def forward(
         self,
@@ -104,28 +121,44 @@ class S3UnifiedNeuralPolicy(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Forward pass emitting proposed allocation weights and gate logit."""
         B, T, N, F = market_seq.shape
+        assert N == self.num_assets, f"Expected {self.num_assets} assets, got {N}"
 
-        # Reshape to [B * N, T, F] to pass through shared GRU
+        # 1. Temporal encoding: [B * N, T, F] -> [B, N, gru_hidden]
         x_reshaped = market_seq.permute(0, 2, 1, 3).reshape(B * N, T, F)
         _, h_last = self.temporal_encoder(x_reshaped)
         h_assets = h_last.squeeze(0).view(B, N, self.gru_hidden)  # [B, N, gru_hidden]
 
-        # Cross-asset attention across N=4 crypto assets
+        # 2. Cross-asset attention across N crypto assets
         attn_out, _ = self.cross_asset_attn(h_assets, h_assets, h_assets)
-        h_assets = self.layer_norm(h_assets + attn_out)
+        contextual_assets = self.layer_norm(h_assets + attn_out)  # [B, N, gru_hidden]
 
-        # Mean pooling across assets to produce market embedding
-        market_embed = h_assets.mean(dim=1)  # [B, gru_hidden]
+        # 3. Global market context (mean pool of contextual embeddings)
+        h_global = contextual_assets.mean(dim=1)  # [B, gru_hidden]
 
-        # Fuse with decision-observable scale-invariant portfolio state
-        joint_repr = self.fusion(torch.cat([market_embed, port_state], dim=-1))  # [B, gru_hidden]
+        # Global portfolio features: [w_obs_cash, drift, friction_ratio]
+        global_port_state = port_state[:, self.num_assets:]  # [B, 3]
+        global_context = torch.cat([h_global, global_port_state], dim=-1)  # [B, gru_hidden + 3]
 
-        # Allocation proposal (simplex via softmax)
-        alloc_logits = self.alloc_head(joint_repr)
-        proposed_weights = torch.softmax(alloc_logits, dim=-1)
+        # 4. Direct Per-Asset Allocation Logits
+        asset_logits_list: List[torch.Tensor] = []
+        for i in range(N):
+            asset_i_feat = torch.cat([
+                contextual_assets[:, i, :],      # [B, gru_hidden]
+                h_global,                        # [B, gru_hidden]
+                port_state[:, i:i+1],            # [B, 1] (w_obs_i)
+            ], dim=-1)                           # [B, 2*gru_hidden + 1]
+            logit_i = self.shared_asset_head(asset_i_feat)  # [B, 1]
+            asset_logits_list.append(logit_i)
 
-        # Inaction gate logit
-        gate_logit = self.gate_head(joint_repr)
+        asset_logits = torch.cat(asset_logits_list, dim=-1)  # [B, N]
+
+        # 5. Cash logit and joint softmax
+        cash_logit = self.cash_head(global_context)  # [B, 1]
+        all_logits = torch.cat([asset_logits, cash_logit], dim=-1)  # [B, N+1]
+        proposed_weights = torch.softmax(all_logits, dim=-1)  # [B, N+1]
+
+        # 6. Inaction Gate Logit
+        gate_logit = self.gate_head(global_context)  # [B, 1]
 
         return proposed_weights, gate_logit
 
@@ -145,11 +178,12 @@ class DailyDecisionSample:
     feature_cutoff_utc: pd.Timestamp      # 00:00:00 UTC (latest closed candle)
     execution_time_utc: pd.Timestamp      # 01:00:00 UTC (orders execute at Open)
     next_execution_time_utc: pd.Timestamp # Next day 01:00:00 UTC (holding period end)
-    market_seq: np.ndarray                # [T=168, N=4, F=6]
+    market_seq: np.ndarray                # [T=168, N=4, F=6] (true calendar hourly bars)
     obs_prices: np.ndarray                # [N=4] Close price of 23:00-00:00 bar
     exec_prices: np.ndarray               # [N=4] Open price of 01:00-02:00 bar
     next_exec_prices: np.ndarray          # [N=4] Open price of next day 01:00-02:00 bar
-    bench_return: float                   # EW4 B&H holding return from exec to next_exec
+    bench_return: float                   # EW4 B&H simple holding return from exec to next_exec
+    bench_log_return: float               # EW4 B&H log holding return from exec to next_exec
     rolling_168h_returns: np.ndarray      # [N=4] for MVO-L1 expected return estimation
     rolling_720h_cov: np.ndarray          # [N=4, N=4] Ledoit-Wolf shrunk daily covariance for MVO-L1
     is_month_start: bool                  # True if this day is the 1st of calendar month
@@ -178,38 +212,47 @@ class S3CausalDataset:
         """Load and align data from warmup to train_end, constructing causal daily decision samples."""
         aligned = loader.load_aligned_universe(warmup_start, train_end)
 
-        piv_close = aligned.piv_close
-        piv_open = aligned.piv_open
-        piv_volume = aligned.piv_volume
-        timestamps = piv_close.index
+        piv_close_raw = aligned.piv_close
+        piv_open_raw = aligned.piv_open
+        piv_volume_raw = aligned.piv_volume
+        raw_timestamps = piv_close_raw.index
         N = len(self.universe)
 
-        # Compute hourly log returns
+        # Build contiguous 1-hour UTC calendar index across entire range
+        full_cal_index = pd.date_range(start=raw_timestamps[0], end=raw_timestamps[-1], freq="1h")
+
+        # Reindex across true calendar hours: missing hours become NaN (no synthetic candles, no bfill/ffill)
+        piv_close = piv_close_raw.reindex(full_cal_index)
+        piv_open = piv_open_raw.reindex(full_cal_index)
+        piv_volume = piv_volume_raw.reindex(full_cal_index)
+        timestamps = full_cal_index
+
+        # Hourly log returns on true calendar hours
         hourly_log_rets = np.log(piv_close / piv_close.shift(1))
 
-        # Hourly features
+        # True calendar lookback features
         ret_24h = (piv_close / piv_close.shift(24) - 1.0)[self.universe].fillna(0.0).to_numpy(dtype=np.float32)
         ret_72h = (piv_close / piv_close.shift(72) - 1.0)[self.universe].fillna(0.0).to_numpy(dtype=np.float32)
         ret_168h = (piv_close / piv_close.shift(168) - 1.0)[self.universe].fillna(0.0).to_numpy(dtype=np.float32)
 
-        # Realized volatility over 168h (annualized: sqrt(8760))
-        vol_168h = (hourly_log_rets.rolling(168).std() * np.sqrt(8760.0))[self.universe].fillna(0.0).to_numpy(dtype=np.float32)
+        # Realized volatility over 168 calendar hours
+        vol_168h = (hourly_log_rets.rolling(168, min_periods=72).std() * np.sqrt(8760.0))[self.universe].fillna(0.0).to_numpy(dtype=np.float32)
 
-        # Volume ratio (volume / rolling 168h mean volume)
-        vol_ratio = (piv_volume / np.maximum(piv_volume.rolling(168).mean(), 1e-6))[self.universe].fillna(1.0).to_numpy(dtype=np.float32)
+        # Volume ratio over 168 calendar hours
+        vol_ratio = (piv_volume / np.maximum(piv_volume.rolling(168, min_periods=72).mean(), 1e-6))[self.universe].fillna(1.0).to_numpy(dtype=np.float32)
 
-        # Availability mask
+        # Availability mask (1.0 for valid observed bar, 0.0 for exchange halt/gap)
         mask = (~piv_close.isna())[self.universe].astype(np.float32).to_numpy()
 
-        piv_close_arr = piv_close[self.universe].to_numpy(dtype=np.float64)
-        piv_open_arr = piv_open[self.universe].to_numpy(dtype=np.float64)
+        piv_close_arr = piv_close[self.universe].fillna(0.0).to_numpy(dtype=np.float64)
+        piv_open_arr = piv_open[self.universe].fillna(0.0).to_numpy(dtype=np.float64)
         log_rets_arr = hourly_log_rets[self.universe].fillna(0.0).to_numpy(dtype=np.float64)
 
         # Stack features: [Total_bars, N, 6]
         mkt_all = np.stack([ret_24h, ret_72h, ret_168h, vol_168h, vol_ratio, mask], axis=-1)
 
         ts_to_idx = {ts: i for i, ts in enumerate(timestamps)}
-        samples: List[DailyDecisionSample] = []
+        raw_samples: List[Dict[str, Any]] = []
         lw = LedoitWolf()
 
         current_date = train_start.date()
@@ -230,42 +273,77 @@ class S3CausalDataset:
                     cov_start_idx = end_idx - self.mvo_cov_lookback_hours
 
                     if start_idx >= 0 and cov_start_idx >= 0:
-                        mkt_slice = mkt_all[start_idx:end_idx]
                         obs_prices = piv_close_arr[end_idx - 1]
                         exec_prices = piv_open_arr[ts_to_idx[exec_ts]]
                         next_exec_prices = piv_open_arr[ts_to_idx[next_exec_ts]]
 
-                        bench_asset_rets = (next_exec_prices / exec_prices) - 1.0
-                        bench_ret = float(np.mean(bench_asset_rets))
+                        # Ensure valid prices at execution points (fail closed if missing)
+                        if np.all(exec_prices > 0.0) and np.all(next_exec_prices > 0.0) and np.all(obs_prices > 0.0):
+                            mkt_slice = mkt_all[start_idx:end_idx]
 
-                        # Rolling 168h return scaled to 24h
-                        r168 = ret_168h[end_idx - 1]
-                        mvo_mu_24h = (1.0 + r168) ** (24.0 / 168.0) - 1.0
+                            r168 = ret_168h[end_idx - 1]
+                            mvo_mu_24h = (1.0 + r168) ** (24.0 / 168.0) - 1.0
 
-                        # Rolling 720h Ledoit-Wolf daily covariance
-                        cov_slice = log_rets_arr[cov_start_idx:end_idx]
-                        cov_daily = lw.fit(cov_slice).covariance_ * 24.0
+                            cov_slice = log_rets_arr[cov_start_idx:end_idx]
+                            cov_daily = lw.fit(cov_slice).covariance_ * 24.0
+                            is_month_start = (current_date.day == 1)
 
-                        is_month_start = (current_date.day == 1)
-
-                        sample = DailyDecisionSample(
-                            decision_idx=len(samples),
-                            decision_time_utc=decision_ts,
-                            feature_cutoff_utc=cutoff_ts,
-                            execution_time_utc=exec_ts,
-                            next_execution_time_utc=next_exec_ts,
-                            market_seq=mkt_slice,
-                            obs_prices=obs_prices,
-                            exec_prices=exec_prices,
-                            next_exec_prices=next_exec_prices,
-                            bench_return=bench_ret,
-                            rolling_168h_returns=mvo_mu_24h,
-                            rolling_720h_cov=cov_daily,
-                            is_month_start=is_month_start,
-                        )
-                        samples.append(sample)
+                            raw_samples.append({
+                                "decision_time_utc": decision_ts,
+                                "feature_cutoff_utc": cutoff_ts,
+                                "execution_time_utc": exec_ts,
+                                "next_execution_time_utc": next_exec_ts,
+                                "market_seq": mkt_slice,
+                                "obs_prices": obs_prices,
+                                "exec_prices": exec_prices,
+                                "next_exec_prices": next_exec_prices,
+                                "rolling_168h_returns": mvo_mu_24h,
+                                "rolling_720h_cov": cov_daily,
+                                "is_month_start": is_month_start,
+                            })
 
             current_date += timedelta(days=1)
+
+        # Precompute canonical EW4 Buy & Hold holding trajectory
+        # Initial $10,000 allocated equally 25% into 4 crypto assets at sample 0 execution Open
+        base_fee_rate = 12.0 / 10000.0
+        initial_cap = 10000.0
+        fee_init = initial_cap * base_fee_rate
+        cap_after_fee = initial_cap - fee_init
+        p0_exec = raw_samples[0]["exec_prices"]
+        q_ew4_bench = (0.25 * cap_after_fee) / p0_exec  # frozen physical coin quantities
+
+        samples: List[DailyDecisionSample] = []
+        for idx, r in enumerate(raw_samples):
+            p_t = r["exec_prices"]
+            p_next = r["next_exec_prices"]
+            if idx == 0:
+                v_pre = initial_cap
+                v_next = float(np.sum(q_ew4_bench * p_next))
+            else:
+                v_pre = float(np.sum(q_ew4_bench * p_t))
+                v_next = float(np.sum(q_ew4_bench * p_next))
+
+            bench_log_ret = float(np.log(max(v_next / max(v_pre, 1e-4), 1e-4)))
+            bench_ret = float(np.exp(bench_log_ret) - 1.0)
+
+            sample = DailyDecisionSample(
+                decision_idx=idx,
+                decision_time_utc=r["decision_time_utc"],
+                feature_cutoff_utc=r["feature_cutoff_utc"],
+                execution_time_utc=r["execution_time_utc"],
+                next_execution_time_utc=r["next_execution_time_utc"],
+                market_seq=r["market_seq"],
+                obs_prices=r["obs_prices"],
+                exec_prices=r["exec_prices"],
+                next_exec_prices=r["next_exec_prices"],
+                bench_return=bench_ret,
+                bench_log_return=bench_log_ret,
+                rolling_168h_returns=r["rolling_168h_returns"],
+                rolling_720h_cov=r["rolling_720h_cov"],
+                is_month_start=r["is_month_start"],
+            )
+            samples.append(sample)
 
         manifest = {
             "train_start_utc": train_start.isoformat(),
@@ -376,7 +454,7 @@ class DifferentiableS3Trainer:
         N = len(CANONICAL_UNIVERSE)
         current_holdings = torch.zeros(N, device=device)
         current_cash = torch.tensor(10000.0, device=device)
-        prev_target = torch.zeros(N, device=device)
+        last_executed_weights = torch.zeros(N, device=device)
 
         log_returns: List[torch.Tensor] = []
         bench_returns: List[float] = []
@@ -394,7 +472,8 @@ class DifferentiableS3Trainer:
 
             w_obs_assets = (asset_vals_obs / denom).view(-1)
             w_obs_cash = (current_cash / denom).view(-1)
-            drift = torch.max(torch.abs(w_obs_assets - prev_target)).view(-1)
+            # Drift relative to LAST EXECUTED weights (causal and consistent with unexecuted HOLDs)
+            drift = torch.max(torch.abs(w_obs_assets - last_executed_weights)).view(-1)
             friction_ratio = torch.tensor([self.fee_rate / max(float(s.market_seq[:, 0, 3].mean()), 1e-4)], device=device).view(-1)
 
             port_state = torch.cat([w_obs_assets, w_obs_cash, drift, friction_ratio]).unsqueeze(0)  # [1, 7]
@@ -405,12 +484,11 @@ class DifferentiableS3Trainer:
             target_asset_w = proposed_w[0, :N]
             target_cash_w = proposed_w[0, -1]
 
-            # 3. Gumbel-Sigmoid Straight-Through Estimator for discrete action gate
-            u = torch.rand_like(gate_logit).clamp(1e-6, 1.0 - 1e-6)
-            gumbel_noise = torch.log(u) - torch.log(1.0 - u)
-            gate_soft = torch.sigmoid((gate_logit + gumbel_noise) / tau)
-            gate_hard = (gate_soft > 0.5).float()
-            gate = gate_hard + gate_soft - gate_soft.detach()  # STE: forward binary, backward continuous
+            # 3. Deterministic Straight-Through Estimator (STE) Gate
+            # Forward action is discrete and exactly identical to inference: gate = 1 if gate_logit > 0.0 else 0
+            gate_soft = torch.sigmoid(gate_logit / tau)
+            gate_hard = (gate_logit > 0.0).to(gate_soft.dtype)
+            gate = gate_hard - gate_soft.detach() + gate_soft
 
             gate_decisions.append(gate_hard.item())
 
@@ -441,12 +519,15 @@ class DifferentiableS3Trainer:
             ret_step = torch.log(torch.clamp(V_next_pre / torch.clamp(V_pre, min=1.0), min=1e-4))
 
             log_returns.append(ret_step)
-            bench_returns.append(float(np.log(max(1.0 + s.bench_return, 1e-4))))
+            bench_returns.append(s.bench_log_return)
 
             # State advance (detach for truncated BPTT segment to ensure numerical stability)
             current_holdings = q_after.detach().view(-1)
             current_cash = C_after.detach().squeeze()
-            prev_target = target_asset_w.detach().view(-1)
+
+            # Update last_executed_weights ONLY when gate_hard == 1
+            w_post_trade = (q_trade.detach().view(-1) * exec_prices_t) / torch.clamp(V_post.detach(), min=1e-4)
+            last_executed_weights = (1.0 - gate_hard.detach().squeeze()) * last_executed_weights + gate_hard.detach().squeeze() * w_post_trade
 
         # 5. Dual Downside Regularized Objective
         rets_tensor = torch.stack(log_returns)
@@ -529,6 +610,7 @@ class CanonicalReplayEngine:
         """Replay a specific policy through the canonical causal timeline."""
         holdings = np.zeros(self.N, dtype=np.float64)
         cash = float(self.initial_capital)
+        last_executed_weights = np.zeros(self.N, dtype=np.float64)
 
         equity_curve: List[float] = [cash]
         equity_dates: List[pd.Timestamp] = [self.samples[0].execution_time_utc]
@@ -547,6 +629,8 @@ class CanonicalReplayEngine:
             equity_obs = cash + float(np.sum(asset_vals_obs))
             w_obs_assets = asset_vals_obs / max(equity_obs, 1e-4)
             w_obs_cash = cash / max(equity_obs, 1e-4)
+            # Drift relative to LAST EXECUTED weights
+            drift = float(np.max(np.abs(w_obs_assets - last_executed_weights)))
 
             # 2. Determine target allocation and gate based on policy type
             if policy_type == "CASH":
@@ -583,7 +667,7 @@ class CanonicalReplayEngine:
                 )
                 target_asset_w = w_opt[:self.N]
                 target_cash_w = float(w_opt[-1])
-                # MVO rebalances if difference exceeds friction threshold
+                # MVO-L1 with fixed 1% execution deadband
                 gate = 1 if float(np.sum(np.abs(target_asset_w - w_obs_assets))) > 0.01 else 0
 
             elif policy_type == "NEURAL":
@@ -592,7 +676,6 @@ class CanonicalReplayEngine:
                 with torch.no_grad():
                     # Format inputs
                     model_device = next(neural_model.parameters()).device
-                    drift = float(np.max(np.abs(w_obs_assets - target_asset_w))) if s.decision_idx > 0 else 0.0
                     f_ratio = (self.fee_bps / 10000.0) / max(float(s.market_seq[:, 0, 3].mean()), 1e-4)
                     p_state = np.append(w_obs_assets, [w_obs_cash, drift, f_ratio]).astype(np.float32)
 
@@ -602,7 +685,8 @@ class CanonicalReplayEngine:
                     w_prop, g_logit = neural_model(m_tensor, p_tensor)
                     target_asset_w = w_prop[0, :self.N].cpu().numpy().astype(np.float64)
                     target_cash_w = float(w_prop[0, -1].cpu().item())
-                    gate = 1 if torch.sigmoid(g_logit).item() > 0.5 else 0
+                    # Deterministic inference parity: gate = 1 if g_logit > 0.0 else 0
+                    gate = 1 if g_logit.item() > 0.0 else 0
 
             else:
                 raise ValueError(f"Unknown policy type: {policy_type}")
@@ -636,8 +720,11 @@ class CanonicalReplayEngine:
             total_fees += fee_paid
             gross_turnover += to_gross
             one_way_turnover += to_1way
+            post_equity = cash + float(np.sum(holdings * s.exec_prices))
+
             if orders_count > 0:
                 rebalance_count += 1
+                last_executed_weights = (holdings * s.exec_prices) / max(post_equity, 1e-4)
 
             post_equity = cash + float(np.sum(holdings * s.exec_prices))
             cash_w = cash / max(post_equity, 1e-4)
