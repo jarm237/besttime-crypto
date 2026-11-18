@@ -1,0 +1,18 @@
+{
+  "train_start_utc": "2022-01-01T00:00:00+00:00",
+  "train_end_utc": "2023-12-31T23:59:00+00:00",
+  "warmup_start_utc": "2021-11-01T00:00:00+00:00",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "total_aligned_hours": 18982,
+  "total_decision_samples": 729,
+  "first_decision_utc": "2022-01-01T00:05:00+00:00",
+  "last_decision_utc": "2023-12-30T00:05:00+00:00",
+  "last_execution_utc": "2023-12-30T01:00:00+00:00",
+  "last_holding_end_utc": "2023-12-31T01:00:00+00:00",
+  "calendar_gap_count": 1
+}

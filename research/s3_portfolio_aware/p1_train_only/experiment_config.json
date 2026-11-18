@@ -1,0 +1,44 @@
+{
+  "experiment_name": "S3-P1 Train-Only Unified Neural Pilot",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "train_period": {
+    "start": "2022-01-01T00:00:00Z",
+    "end": "2023-12-31T23:59:59Z"
+  },
+  "quarantined_splits": [
+    "2024-01-01 to 2024-12-31 (UNTOUCHED)",
+    "2025-01-01 to 2026-11-16 (UNTOUCHED)"
+  ],
+  "model_architecture": {
+    "family": "Shared GRU + Cross-Asset Self-Attention + Portfolio State Fusion",
+    "lookback_seq_hours": 168,
+    "gru_hidden_dim": 32,
+    "attention_heads": 2,
+    "parameter_count": 10662,
+    "parameter_budget": 25000
+  },
+  "training_hyperparameters": {
+    "epochs": 15,
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "seed": 42,
+    "lambda_abs": 5.0,
+    "lambda_act": 2.0,
+    "gate_estimator": "Gumbel-Sigmoid Straight-Through Estimator (STE)",
+    "temperature_annealing": "1.0 -> 0.2",
+    "base_fee_bps": 12.0,
+    "stress_fee_bps": 30.0
+  },
+  "mvo_baseline": {
+    "objective": "Causal Cost-Aware MVO-L1 with Decision-Observable Weights",
+    "mean_lookback_hours": 168,
+    "covariance_lookback_hours": 720,
+    "covariance_method": "Ledoit-Wolf shrinkage",
+    "gamma": 2.0
+  }
+}

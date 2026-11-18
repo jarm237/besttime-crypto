@@ -1,0 +1,600 @@
+{
+  "base_12bps": {
+    "Cash": {
+      "portfolio_name": "Cash",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 0,
+      "mean_cash_weight": 1.0
+    },
+    "BTC Buy & Hold": {
+      "portfolio_name": "BTC Buy & Hold",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 9069.99,
+      "net_return_pct": -9.3,
+      "max_drawdown_pct": -66.68,
+      "annualized_sharpe": 0.187,
+      "annualized_sortino": 0.268,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 9988.01,
+      "total_fees_usd": 11.99,
+      "rebalance_count": 1,
+      "mean_cash_weight": 0.0
+    },
+    "EW4 Buy & Hold": {
+      "portfolio_name": "EW4 Buy & Hold",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 6830.94,
+      "net_return_pct": -31.69,
+      "max_drawdown_pct": -70.76,
+      "annualized_sharpe": -0.016,
+      "annualized_sortino": -0.022,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 9988.01,
+      "total_fees_usd": 11.99,
+      "rebalance_count": 1,
+      "mean_cash_weight": 0.0
+    },
+    "Static 50/50 EW": {
+      "portfolio_name": "Static 50/50 EW",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10443.23,
+      "net_return_pct": 4.43,
+      "max_drawdown_pct": -45.2,
+      "annualized_sharpe": 0.229,
+      "annualized_sortino": 0.328,
+      "one_way_turnover": 1.58,
+      "gross_asset_turnover": 1.72,
+      "total_traded_notional_usd": 13969.42,
+      "total_fees_usd": 16.76,
+      "rebalance_count": 24,
+      "mean_cash_weight": 0.505
+    },
+    "Monthly EW4": {
+      "portfolio_name": "Monthly EW4",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 8303.08,
+      "net_return_pct": -16.97,
+      "max_drawdown_pct": -74.46,
+      "annualized_sharpe": 0.19,
+      "annualized_sortino": 0.269,
+      "one_way_turnover": 2.08,
+      "gross_asset_turnover": 3.16,
+      "total_traded_notional_usd": 20058.75,
+      "total_fees_usd": 24.07,
+      "rebalance_count": 24,
+      "mean_cash_weight": 0.0
+    },
+    "Cost-Aware MVO-L1": {
+      "portfolio_name": "Cost-Aware MVO-L1",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 34560.96,
+      "net_return_pct": 245.61,
+      "max_drawdown_pct": -41.28,
+      "annualized_sharpe": 1.273,
+      "annualized_sortino": 2.459,
+      "one_way_turnover": 127.36,
+      "gross_asset_turnover": 162.37,
+      "total_traded_notional_usd": 2395274.32,
+      "total_fees_usd": 2874.33,
+      "rebalance_count": 204,
+      "mean_cash_weight": 0.452
+    },
+    "S3 Unified Neural": {
+      "portfolio_name": "S3 Unified Neural",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 0,
+      "mean_cash_weight": 1.0
+    }
+  },
+  "stress_30bps": {
+    "Cash": {
+      "portfolio_name": "Cash",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 0,
+      "mean_cash_weight": 1.0
+    },
+    "BTC Buy & Hold": {
+      "portfolio_name": "BTC Buy & Hold",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 9053.72,
+      "net_return_pct": -9.46,
+      "max_drawdown_pct": -66.68,
+      "annualized_sharpe": 0.185,
+      "annualized_sortino": 0.266,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 9970.09,
+      "total_fees_usd": 29.91,
+      "rebalance_count": 1,
+      "mean_cash_weight": 0.0
+    },
+    "EW4 Buy & Hold": {
+      "portfolio_name": "EW4 Buy & Hold",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 6818.68,
+      "net_return_pct": -31.81,
+      "max_drawdown_pct": -70.76,
+      "annualized_sharpe": -0.017,
+      "annualized_sortino": -0.024,
+      "one_way_turnover": 1.0,
+      "gross_asset_turnover": 1.0,
+      "total_traded_notional_usd": 9970.09,
+      "total_fees_usd": 29.91,
+      "rebalance_count": 1,
+      "mean_cash_weight": 0.0
+    },
+    "Static 50/50 EW": {
+      "portfolio_name": "Static 50/50 EW",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10410.96,
+      "net_return_pct": 4.11,
+      "max_drawdown_pct": -45.27,
+      "annualized_sharpe": 0.224,
+      "annualized_sortino": 0.321,
+      "one_way_turnover": 1.58,
+      "gross_asset_turnover": 1.72,
+      "total_traded_notional_usd": 13945.76,
+      "total_fees_usd": 41.84,
+      "rebalance_count": 24,
+      "mean_cash_weight": 0.505
+    },
+    "Monthly EW4": {
+      "portfolio_name": "Monthly EW4",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 8255.98,
+      "net_return_pct": -17.44,
+      "max_drawdown_pct": -74.51,
+      "annualized_sharpe": 0.185,
+      "annualized_sortino": 0.262,
+      "one_way_turnover": 2.08,
+      "gross_asset_turnover": 3.16,
+      "total_traded_notional_usd": 20002.81,
+      "total_fees_usd": 60.01,
+      "rebalance_count": 24,
+      "mean_cash_weight": 0.0
+    },
+    "Cost-Aware MVO-L1": {
+      "portfolio_name": "Cost-Aware MVO-L1",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 18802.53,
+      "net_return_pct": 88.03,
+      "max_drawdown_pct": -47.2,
+      "annualized_sharpe": 0.798,
+      "annualized_sortino": 1.481,
+      "one_way_turnover": 102.25,
+      "gross_asset_turnover": 128.39,
+      "total_traded_notional_usd": 1402522.66,
+      "total_fees_usd": 4207.57,
+      "rebalance_count": 158,
+      "mean_cash_weight": 0.461
+    },
+    "S3 Unified Neural": {
+      "portfolio_name": "S3 Unified Neural",
+      "initial_capital_usd": 10000.0,
+      "final_equity_usd": 10000.0,
+      "net_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "annualized_sharpe": 0.0,
+      "annualized_sortino": 0.0,
+      "one_way_turnover": 0.0,
+      "gross_asset_turnover": 0.0,
+      "total_traded_notional_usd": 0.0,
+      "total_fees_usd": 0.0,
+      "rebalance_count": 0,
+      "mean_cash_weight": 1.0
+    }
+  },
+  "ablation_no_active_downside_12bps": {
+    "portfolio_name": "S3 Neural (Ablation: No Active Downside)",
+    "initial_capital_usd": 10000.0,
+    "final_equity_usd": 10000.0,
+    "net_return_pct": 0.0,
+    "max_drawdown_pct": 0.0,
+    "annualized_sharpe": 0.0,
+    "annualized_sortino": 0.0,
+    "one_way_turnover": 0.0,
+    "gross_asset_turnover": 0.0,
+    "total_traded_notional_usd": 0.0,
+    "total_fees_usd": 0.0,
+    "rebalance_count": 0,
+    "mean_cash_weight": 1.0
+  },
+  "training_history": [
+    {
+      "loss": 0.002377789467573166,
+      "mean_log_ret": -0.0001594637578818947,
+      "abs_downside": 0.0004378577577881515,
+      "act_downside": 1.4518401258101221e-05,
+      "grad_norm": 0.0002539813576731831,
+      "rebalance_rate": 0.4842249657064472,
+      "hold_rate": 0.5157750342935528,
+      "epoch": 1,
+      "tau": 1.0,
+      "epoch_time_s": 4.7
+    },
+    {
+      "loss": 0.0023907532449811697,
+      "mean_log_ret": -0.00016852015687618405,
+      "abs_downside": 0.0004384618659969419,
+      "act_downside": 1.496183995186584e-05,
+      "grad_norm": 0.0008597486885264516,
+      "rebalance_rate": 0.5061728395061729,
+      "hold_rate": 0.49382716049382713,
+      "epoch": 2,
+      "tau": 0.943,
+      "epoch_time_s": 3.92
+    },
+    {
+      "loss": 0.0023975432850420475,
+      "mean_log_ret": -0.0001795472198864445,
+      "abs_downside": 0.00043730612378567457,
+      "act_downside": 1.573274494148791e-05,
+      "grad_norm": 0.0012425817549228668,
+      "rebalance_rate": 0.49794238683127573,
+      "hold_rate": 0.5020576131687242,
+      "epoch": 3,
+      "tau": 0.886,
+      "epoch_time_s": 4.08
+    },
+    {
+      "loss": 0.002370462054386735,
+      "mean_log_ret": -0.00017880424275062978,
+      "abs_downside": 0.0004314352700021118,
+      "act_downside": 1.7240799934370443e-05,
+      "grad_norm": 0.0015133876586332917,
+      "rebalance_rate": 0.46502057613168724,
+      "hold_rate": 0.5349794238683128,
+      "epoch": 4,
+      "tau": 0.829,
+      "epoch_time_s": 3.97
+    },
+    {
+      "loss": 0.002238740911707282,
+      "mean_log_ret": -0.00011549990449566394,
+      "abs_downside": 0.00041772128315642476,
+      "act_downside": 1.7317339370492846e-05,
+      "grad_norm": 0.00032096198992803693,
+      "rebalance_rate": 0.4444444444444444,
+      "hold_rate": 0.5555555555555556,
+      "epoch": 5,
+      "tau": 0.771,
+      "epoch_time_s": 4.13
+    },
+    {
+      "loss": 0.0022727963514626026,
+      "mean_log_ret": -0.0001532262103864923,
+      "abs_downside": 0.0004164214769843966,
+      "act_downside": 1.8731345335254446e-05,
+      "grad_norm": 0.0011264809872955084,
+      "rebalance_rate": 0.52400548696845,
+      "hold_rate": 0.47599451303155005,
+      "epoch": 6,
+      "tau": 0.714,
+      "epoch_time_s": 4.72
+    },
+    {
+      "loss": 0.002286379924044013,
+      "mean_log_ret": -0.00018120180175174028,
+      "abs_downside": 0.0004129931330680847,
+      "act_downside": 2.0106252122786827e-05,
+      "grad_norm": 0.0011867656139656901,
+      "rebalance_rate": 0.4554183813443073,
+      "hold_rate": 0.5445816186556927,
+      "epoch": 7,
+      "tau": 0.657,
+      "epoch_time_s": 4.64
+    },
+    {
+      "loss": 0.0022237934172153473,
+      "mean_log_ret": -0.00017780011694412678,
+      "abs_downside": 0.00040046017966233194,
+      "act_downside": 2.1846093659405597e-05,
+      "grad_norm": 0.0009568978566676378,
+      "rebalance_rate": 0.4663923182441701,
+      "hold_rate": 0.53360768175583,
+      "epoch": 8,
+      "tau": 0.6,
+      "epoch_time_s": 4.53
+    },
+    {
+      "loss": 0.0021964935585856438,
+      "mean_log_ret": -0.00016944231174420565,
+      "abs_downside": 0.0003961213806178421,
+      "act_downside": 2.3222199160954915e-05,
+      "grad_norm": 0.0008682326297275722,
+      "rebalance_rate": 0.4842249657064472,
+      "hold_rate": 0.5157750342935528,
+      "epoch": 9,
+      "tau": 0.543,
+      "epoch_time_s": 4.57
+    },
+    {
+      "loss": 0.002021762076765299,
+      "mean_log_ret": -6.822356954216957e-05,
+      "abs_downside": 0.0003806848544627428,
+      "act_downside": 2.505709016986657e-05,
+      "grad_norm": 0.00029152771458029747,
+      "rebalance_rate": 0.5157750342935528,
+      "hold_rate": 0.48422496570644724,
+      "epoch": 10,
+      "tau": 0.486,
+      "epoch_time_s": 4.52
+    },
+    {
+      "loss": 0.002093105111271143,
+      "mean_log_ret": -0.0001363107585348189,
+      "abs_downside": 0.00038097245851531625,
+      "act_downside": 2.5966117391362786e-05,
+      "grad_norm": 0.0009638268384151161,
+      "rebalance_rate": 0.4732510288065844,
+      "hold_rate": 0.5267489711934157,
+      "epoch": 11,
+      "tau": 0.429,
+      "epoch_time_s": 4.74
+    },
+    {
+      "loss": 0.0019487552344799042,
+      "mean_log_ret": -5.277958553051576e-05,
+      "abs_downside": 0.00036758891656063497,
+      "act_downside": 2.901555853895843e-05,
+      "grad_norm": 0.0017042910913005471,
+      "rebalance_rate": 0.4842249657064472,
+      "hold_rate": 0.5157750342935528,
+      "epoch": 12,
+      "tau": 0.371,
+      "epoch_time_s": 4.62
+    },
+    {
+      "loss": 0.0018840378616005182,
+      "mean_log_ret": -2.7378850063541904e-05,
+      "abs_downside": 0.000358807563316077,
+      "act_downside": 3.13105592795182e-05,
+      "grad_norm": 0.0014260602183640003,
+      "rebalance_rate": 0.48010973936899864,
+      "hold_rate": 0.5198902606310014,
+      "epoch": 13,
+      "tau": 0.314,
+      "epoch_time_s": 4.67
+    },
+    {
+      "loss": 0.002029932802543044,
+      "mean_log_ret": -0.00016878089809324592,
+      "abs_downside": 0.0003593056171666831,
+      "act_downside": 3.2311902032233775e-05,
+      "grad_norm": 0.0007490037241950631,
+      "rebalance_rate": 0.4869684499314129,
+      "hold_rate": 0.5130315500685871,
+      "epoch": 14,
+      "tau": 0.257,
+      "epoch_time_s": 5.0
+    },
+    {
+      "loss": 0.0019662748090922832,
+      "mean_log_ret": -0.00015562813496217132,
+      "abs_downside": 0.0003479864390101284,
+      "act_downside": 3.535714859026484e-05,
+      "grad_norm": 0.0017072127666324377,
+      "rebalance_rate": 0.5212620027434842,
+      "hold_rate": 0.4787379972565158,
+      "epoch": 15,
+      "tau": 0.2,
+      "epoch_time_s": 4.7
+    }
+  ],
+  "behavioral_counterfactual": [
+    {
+      "regime_label": "2022-01-21 (Early 2022 Crash)",
+      "decision_time": "2022-01-21T00:05:00+00:00",
+      "case_A_100_cash": {
+        "proposed_weights": [
+          0.2163,
+          0.1673,
+          0.1908,
+          0.1624,
+          0.2632
+        ],
+        "gate_prob": 0.4899,
+        "gate_action": 0
+      },
+      "case_B_50_btc_50_cash": {
+        "proposed_weights": [
+          0.2173,
+          0.1689,
+          0.1896,
+          0.1628,
+          0.2613
+        ],
+        "gate_prob": 0.488,
+        "gate_action": 0
+      },
+      "case_C_25_each_crypto": {
+        "proposed_weights": [
+          0.2179,
+          0.1692,
+          0.1883,
+          0.1659,
+          0.2587
+        ],
+        "gate_prob": 0.4851,
+        "gate_action": 0
+      }
+    },
+    {
+      "regime_label": "2022-05-12 (Terra/Luna Implosion)",
+      "decision_time": "2022-05-12T00:05:00+00:00",
+      "case_A_100_cash": {
+        "proposed_weights": [
+          0.2135,
+          0.1598,
+          0.1945,
+          0.1594,
+          0.2728
+        ],
+        "gate_prob": 0.4957,
+        "gate_action": 0
+      },
+      "case_B_50_btc_50_cash": {
+        "proposed_weights": [
+          0.2142,
+          0.1613,
+          0.1935,
+          0.16,
+          0.271
+        ],
+        "gate_prob": 0.494,
+        "gate_action": 0
+      },
+      "case_C_25_each_crypto": {
+        "proposed_weights": [
+          0.2149,
+          0.1616,
+          0.1916,
+          0.1634,
+          0.2685
+        ],
+        "gate_prob": 0.4914,
+        "gate_action": 0
+      }
+    },
+    {
+      "regime_label": "2022-11-09 (FTX Solvency Crisis)",
+      "decision_time": "2022-11-09T00:05:00+00:00",
+      "case_A_100_cash": {
+        "proposed_weights": [
+          0.2157,
+          0.1613,
+          0.1908,
+          0.1591,
+          0.2732
+        ],
+        "gate_prob": 0.4953,
+        "gate_action": 0
+      },
+      "case_B_50_btc_50_cash": {
+        "proposed_weights": [
+          0.2166,
+          0.163,
+          0.1897,
+          0.1595,
+          0.2712
+        ],
+        "gate_prob": 0.4935,
+        "gate_action": 0
+      },
+      "case_C_25_each_crypto": {
+        "proposed_weights": [
+          0.2174,
+          0.1632,
+          0.188,
+          0.1628,
+          0.2685
+        ],
+        "gate_prob": 0.4908,
+        "gate_action": 0
+      }
+    },
+    {
+      "regime_label": "2023-01-15 (2023 Mean-Reversion Rally)",
+      "decision_time": "2023-01-15T00:05:00+00:00",
+      "case_A_100_cash": {
+        "proposed_weights": [
+          0.2144,
+          0.1607,
+          0.1895,
+          0.1618,
+          0.2736
+        ],
+        "gate_prob": 0.4956,
+        "gate_action": 0
+      },
+      "case_B_50_btc_50_cash": {
+        "proposed_weights": [
+          0.215,
+          0.1624,
+          0.1883,
+          0.1626,
+          0.2716
+        ],
+        "gate_prob": 0.4936,
+        "gate_action": 0
+      },
+      "case_C_25_each_crypto": {
+        "proposed_weights": [
+          0.2156,
+          0.1628,
+          0.1861,
+          0.1666,
+          0.2688
+        ],
+        "gate_prob": 0.4905,
+        "gate_action": 0
+      }
+    },
+    {
+      "regime_label": "2023-10-24 (Solana/BTC Breakout)",
+      "decision_time": "2023-10-24T00:05:00+00:00",
+      "case_A_100_cash": {
+        "proposed_weights": [
+          0.2165,
+          0.1733,
+          0.1952,
+          0.1668,
+          0.2483
+        ],
+        "gate_prob": 0.4854,
+        "gate_action": 0
+      },
+      "case_B_50_btc_50_cash": {
+        "proposed_weights": [
+          0.2174,
+          0.1748,
+          0.194,
+          0.1672,
+          0.2466
+        ],
+        "gate_prob": 0.4833,
+        "gate_action": 0
+      },
+      "case_C_25_each_crypto": {
+        "proposed_weights": [
+          0.2175,
+          0.1753,
+          0.1929,
+          0.1699,
+          0.2443
+        ],
+        "gate_prob": 0.4803,
+        "gate_action": 0
+      }
+    }
+  ]
+}
