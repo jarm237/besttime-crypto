@@ -32,7 +32,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import brier_score_loss, precision_recall_curve, roc_auc_score, auc
 from sklearn.preprocessing import StandardScaler
 
-from btc_scraper.research.causal_btc_accounting import simulate_causal_btc_portfolio
+from btc_scraper.research.causal_btc_accounting import (
+    execute_causal_btc_rebalance,
+    simulate_causal_btc_portfolio,
+)
 
 # Configure Logging
 logging.basicConfig(
@@ -70,7 +73,7 @@ def get_git_commit() -> str:
 
 def load_defillama_events() -> pd.DataFrame:
     """Load DeFiLlama security exploits and compute conservative causal availability.
-    
+
     DeFiLlama incident dates are recorded as midnight UTC (00:00:00 UTC).
     To eliminate lookahead bias, we enforce a +24h publication lag:
     event_available_at = event_timestamp + 24 hours.
@@ -78,10 +81,10 @@ def load_defillama_events() -> pd.DataFrame:
     path = DATA_DIR / "defillama_hacks.json"
     if not path.exists():
         raise FileNotFoundError(f"Missing {path}. Run scripts/fetch_news_event_data.py first.")
-    
+
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-        
+
     records = []
     for item in data:
         raw_ts = item.get("date")
@@ -94,7 +97,7 @@ def load_defillama_events() -> pd.DataFrame:
         classification = item.get("classification") or "Unknown"
         target_type = item.get("targetType") or "DeFi"
         name = item.get("name") or "Unnamed"
-        
+
         records.append({
             "source": "defillama_hacks",
             "event_name": name,
@@ -105,7 +108,7 @@ def load_defillama_events() -> pd.DataFrame:
             "target_type": target_type,
             "publication_delay_hours": 24.0,
         })
-        
+
     df = pd.DataFrame(records)
     df = df.sort_values("available_at").reset_index(drop=True)
     return df
@@ -117,10 +120,10 @@ def load_gdelt_events() -> pd.DataFrame:
     if not path.exists():
         logger.warning("GDELT bounded windows file not found; proceeding with DeFiLlama events.")
         return pd.DataFrame()
-        
+
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-        
+
     records = []
     for win_name, win_obj in data.items():
         events = win_obj.get("events", [])
@@ -143,7 +146,7 @@ def load_gdelt_events() -> pd.DataFrame:
                 "url": ev.get("url", ""),
                 "publication_delay_hours": 1.0,
             })
-            
+
     df = pd.DataFrame(records)
     if not df.empty:
         df = df.sort_values("available_at").reset_index(drop=True)
@@ -159,11 +162,11 @@ def load_btc_market_data() -> pd.DataFrame:
     btc_path = REPO_ROOT / "data" / "historical_unified_replay" / "BTCUSDT_1h_20220101_20261116.parquet"
     if not btc_path.exists():
         raise FileNotFoundError(f"Missing BTC replay file: {btc_path}")
-        
+
     hourly_df = pd.read_parquet(btc_path)
     hourly_df["timestamp"] = pd.to_datetime(hourly_df["timestamp"], utc=True)
     hourly_df = hourly_df.sort_values("timestamp").drop_duplicates("timestamp").reset_index(drop=True)
-    
+
     # Create daily contract:
     # Feature bar: ends at 23:59:59 UTC of day t (close of 23:00 bar)
     # Execution bar: begins at 00:00:00 UTC of day t+1 (open of 00:00 bar)
@@ -171,7 +174,7 @@ def load_btc_market_data() -> pd.DataFrame:
     daily_rows = []
     hourly_df["date"] = hourly_df["timestamp"].dt.date
     grouped = hourly_df.groupby("date")
-    
+
     for dt, group in grouped:
         if len(group) < 20: # Require at least 20 hours for valid daily bar
             continue
@@ -182,7 +185,7 @@ def load_btc_market_data() -> pd.DataFrame:
         close_px = float(group_sorted.iloc[-1]["close"])
         vol = float(group_sorted["volume"].sum())
         ts = pd.to_datetime(dt, utc=True)
-        
+
         daily_rows.append({
             "timestamp": ts,
             "open": open_px,
@@ -191,7 +194,7 @@ def load_btc_market_data() -> pd.DataFrame:
             "close": close_px,
             "volume": vol,
         })
-        
+
     daily_df = pd.DataFrame(daily_rows)
     daily_df = daily_df.sort_values("timestamp").reset_index(drop=True)
     daily_df.set_index("timestamp", inplace=True)
@@ -204,12 +207,12 @@ def build_causal_features_and_targets(
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """Construct causal features and forward downside targets with zero lookahead."""
     df = daily_df.copy()
-    
+
     # 1. Price/Volatility baseline features causally observed at close of day t
     df["ret_24h"] = df["close"].pct_change(1)
     df["ret_7d"] = df["close"].pct_change(7)
     df["realized_vol_7d"] = df["ret_24h"].rolling(7).std() * np.sqrt(365)
-    
+
     # 2. Causal event shock features
     # For day t, decision occurs at 00:00:00 UTC of day t (using information available at or before t)
     news_count_24h = []
@@ -217,37 +220,37 @@ def build_causal_features_and_targets(
     news_usd_24h = []
     news_usd_72h = []
     news_shock_score = []
-    
+
     # Filter events to relevant window
     events_sorted = events_df.sort_values("available_at").copy()
-    
+
     pit_audit_traces = []
     total_pit_checks = 0
     passed_pit_checks = 0
-    
+
     for t in df.index:
         # Window 24h: (t - 24h, t]
         t_start_24h = t - pd.Timedelta(hours=24)
         t_start_72h = t - pd.Timedelta(hours=72)
-        
+
         # Strictly available at or before decision time t: available_at <= t
         sub_24 = events_sorted[(events_sorted["available_at"] > t_start_24h) & (events_sorted["available_at"] <= t)]
         sub_72 = events_sorted[(events_sorted["available_at"] > t_start_72h) & (events_sorted["available_at"] <= t)]
-        
+
         c24 = len(sub_24)
         c72 = len(sub_72)
         u24 = float(sub_24["amount_usd"].sum()) if not sub_24.empty else 0.0
         u72 = float(sub_72["amount_usd"].sum()) if not sub_72.empty else 0.0
-        
+
         # Composite shock score: log scale of USD loss + count weighting
         score = np.log10(1.0 + u24) + 2.0 * float(c24)
-        
+
         news_count_24h.append(c24)
         news_count_72h.append(c72)
         news_usd_24h.append(u24)
         news_usd_72h.append(u72)
         news_shock_score.append(score)
-        
+
         # PIT verification on non-empty subsets
         if not sub_24.empty:
             total_pit_checks += 1
@@ -264,31 +267,31 @@ def build_causal_features_and_targets(
                     "usd_loss": sample_ev["amount_usd"],
                     "ordering_valid": is_valid,
                 })
-                
+
     df["news_count_24h"] = news_count_24h
     df["news_count_72h"] = news_count_72h
     df["news_usd_24h"] = news_usd_24h
     df["news_usd_72h"] = news_usd_72h
     df["news_shock_score"] = news_shock_score
-    
+
     # 3. Forward Downside Targets (executed at open of t+1)
     # Primary: 24h forward return < -2.0%
     # Secondary: 72h forward return < -4.0%
     fwd_ret_24h = (df["open"].shift(-2) - df["open"].shift(-1)) / df["open"].shift(-1)
     fwd_ret_72h = (df["open"].shift(-4) - df["open"].shift(-1)) / df["open"].shift(-1)
-    
+
     df["target_downside_24h"] = (fwd_ret_24h < -0.02).astype(int)
     df["target_downside_72h"] = (fwd_ret_72h < -0.04).astype(int)
     df["fwd_ret_24h"] = fwd_ret_24h
     df["fwd_ret_72h"] = fwd_ret_72h
-    
+
     # Temporal negative control features
     # Negative Control 1: Time-shifted features (+48h lookahead shift)
     df["news_shock_score_shifted_fwd"] = df["news_shock_score"].shift(-2).fillna(0.0)
     # Negative Control 2: Shuffled placebo features
     rng = np.random.RandomState(42)
     df["news_shock_score_placebo"] = rng.permutation(df["news_shock_score"].values)
-    
+
     pit_audit = {
         "total_pit_checks": total_pit_checks,
         "passed_pit_checks": passed_pit_checks,
@@ -297,7 +300,7 @@ def build_causal_features_and_targets(
         "publication_delay_hours": 24.0,
         "sample_traces": pit_audit_traces,
     }
-    
+
     return df, pit_audit
 
 
@@ -310,14 +313,14 @@ def run_predictive_falsification(
     target_col: str = "target_downside_24h",
 ) -> Dict[str, Any]:
     """Train logistic classifiers on Price/Vol, News-Only, and Combined features.
-    
+
     Includes:
     - 100-run block permutation testing
     - 1,000-iteration paired block bootstrap 95% CIs
     - Negative controls evaluation
     """
     logger.info(f"Running predictive falsification for target: {target_col}...")
-    
+
     # Clean complete records
     feature_cols_all = [
         "ret_24h", "ret_7d", "realized_vol_7d",
@@ -325,17 +328,17 @@ def run_predictive_falsification(
         "news_shock_score_shifted_fwd", "news_shock_score_placebo"
     ]
     clean_df = df.dropna(subset=feature_cols_all + [target_col]).copy()
-    
+
     # Split definitions
     train_mask = (clean_df.index >= "2023-01-01") & (clean_df.index <= "2024-12-28") # Purge last 3 days of 2024
     val_mask = (clean_df.index >= "2025-01-01") & (clean_df.index <= "2025-10-31")
-    
+
     train_df = clean_df[train_mask]
     val_df = clean_df[val_mask]
-    
+
     y_train = train_df[target_col].values
     y_val = val_df[target_col].values
-    
+
     feature_sets = {
         "Price_Vol_Baseline": ["ret_24h", "ret_7d", "realized_vol_7d"],
         "News_Only": ["news_count_24h", "news_count_72h", "news_shock_score"],
@@ -343,41 +346,41 @@ def run_predictive_falsification(
         "Negative_Control_Shifted": ["ret_24h", "ret_7d", "realized_vol_7d", "news_shock_score_shifted_fwd"],
         "Negative_Control_Placebo": ["ret_24h", "ret_7d", "realized_vol_7d", "news_shock_score_placebo"],
     }
-    
+
     results = {}
     fitted_models = {}
     val_probs = {}
-    
+
     for name, cols in feature_sets.items():
         scaler = StandardScaler()
         X_train = scaler.fit_transform(train_df[cols].values)
         X_val = scaler.transform(val_df[cols].values)
-        
+
         clf = LogisticRegression(C=1.0, solver="lbfgs", max_iter=1000, random_state=42)
         clf.fit(X_train, y_train)
         fitted_models[name] = (clf, scaler, cols)
-        
+
         p_train = clf.predict_proba(X_train)[:, 1]
         p_val = clf.predict_proba(X_val)[:, 1]
         val_probs[name] = p_val
-        
+
         # Metrics Train
         pr_tr, rc_tr, _ = precision_recall_curve(y_train, p_train)
         pr_auc_tr = float(auc(rc_tr, pr_tr))
         roc_auc_tr = float(roc_auc_score(y_train, p_train))
         bs_tr = float(brier_score_loss(y_train, p_train))
-        
+
         # Metrics Val
         pr_val, rc_val, _ = precision_recall_curve(y_val, p_val)
         pr_auc_val = float(auc(rc_val, pr_val))
         roc_auc_val = float(roc_auc_score(y_val, p_val))
         bs_val = float(brier_score_loss(y_val, p_val))
-        
+
         # Brier Skill Score vs naive base rate
         base_rate_val = np.mean(y_val)
         bs_ref_val = float(base_rate_val * (1.0 - base_rate_val))
         bss_val = 1.0 - (bs_val / max(1e-6, bs_ref_val))
-        
+
         results[name] = {
             "train_pr_auc": pr_auc_tr,
             "train_roc_auc": roc_auc_tr,
@@ -387,11 +390,11 @@ def run_predictive_falsification(
             "val_brier_score": bs_val,
             "val_brier_skill_score": bss_val,
         }
-        
+
     delta_pr_auc_val = results["Combined_Price_News"]["val_pr_auc"] - results["Price_Vol_Baseline"]["val_pr_auc"]
     delta_roc_auc_val = results["Combined_Price_News"]["val_roc_auc"] - results["Price_Vol_Baseline"]["val_roc_auc"]
     delta_bss_val = results["Combined_Price_News"]["val_brier_skill_score"] - results["Price_Vol_Baseline"]["val_brier_skill_score"]
-    
+
     # 100-run Block Permutation Test on Validation Delta PR-AUC
     # Permute news features across 7-day blocks to preserve temporal correlation
     logger.info("Executing 100-run block permutation test...")
@@ -400,10 +403,10 @@ def run_predictive_falsification(
     block_size = 7
     n_val = len(val_df)
     n_blocks = int(np.ceil(n_val / block_size))
-    
+
     news_cols = ["news_count_24h", "news_count_72h", "news_shock_score"]
     val_news_vals = val_df[news_cols].values
-    
+
     rng = np.random.RandomState(42)
     for _ in range(n_permutations):
         # Permute block order
@@ -415,21 +418,21 @@ def run_predictive_falsification(
             if start_idx < n_val:
                 permuted_blocks.append(val_news_vals[start_idx:end_idx])
         perm_news = np.vstack(permuted_blocks)
-        
+
         # Combine with unpermuted baseline features
         val_comb_perm = np.hstack([val_df[["ret_24h", "ret_7d", "realized_vol_7d"]].values, perm_news])
         clf_comb, scaler_comb, _ = fitted_models["Combined_Price_News"]
         val_comb_perm_scaled = scaler_comb.transform(val_comb_perm)
         p_comb_perm = clf_comb.predict_proba(val_comb_perm_scaled)[:, 1]
-        
+
         pr_perm, rc_perm, _ = precision_recall_curve(y_val, p_comb_perm)
         perm_pr_auc = float(auc(rc_perm, pr_perm))
         perm_delta = perm_pr_auc - results["Price_Vol_Baseline"]["val_pr_auc"]
         perm_deltas.append(perm_delta)
-        
+
     perm_deltas = np.array(perm_deltas)
     p_value_permutation = float((1.0 + np.sum(perm_deltas >= delta_pr_auc_val)) / (1.0 + n_permutations))
-    
+
     # 1,000-iteration Paired Block Bootstrap for 95% Confidence Intervals
     logger.info("Executing 1000-iteration paired block bootstrap for 95% CI...")
     n_boot = 1000
@@ -444,25 +447,25 @@ def run_predictive_falsification(
             if start_idx < n_val:
                 boot_indices.extend(range(start_idx, end_idx))
         boot_indices = np.array(boot_indices)
-        
+
         y_b = y_val[boot_indices]
         if len(np.unique(y_b)) < 2:
             continue
-            
+
         p_base_b = val_probs["Price_Vol_Baseline"][boot_indices]
         p_comb_b = val_probs["Combined_Price_News"][boot_indices]
-        
+
         pr_base, rc_base, _ = precision_recall_curve(y_b, p_base_b)
         pr_comb, rc_comb, _ = precision_recall_curve(y_b, p_comb_b)
-        
+
         auc_base = auc(rc_base, pr_base)
         auc_comb = auc(rc_comb, pr_comb)
         boot_deltas.append(float(auc_comb - auc_base))
-        
+
     boot_deltas = np.array(boot_deltas)
     ci_lower = float(np.percentile(boot_deltas, 2.5))
     ci_upper = float(np.percentile(boot_deltas, 97.5))
-    
+
     statistical_summary = {
         "target": target_col,
         "n_train_samples": int(len(train_df)),
@@ -485,7 +488,7 @@ def run_predictive_falsification(
             "covers_zero": bool(ci_lower <= 0.0 <= ci_upper),
         },
     }
-    
+
     return statistical_summary, fitted_models
 
 
@@ -499,44 +502,44 @@ def run_economic_replays(
 ) -> Dict[str, Any]:
     """Execute causal portfolio replay for all policies under 12 bps and 30 bps costs."""
     logger.info("Executing economic simulations under causal accounting...")
-    
+
     # Restrict to evaluation window: 2023-01-01 to 2025-10-31
     eval_df = df[(df.index >= "2023-01-01") & (df.index <= "2025-10-31")].copy()
     timestamps = eval_df.index
     open_px = eval_df["open"].values
     close_px = eval_df["close"].values
     n_days = len(eval_df)
-    
+
     # 1. Generate model probabilities across eval horizon
     clf_base, sc_base, cols_base = fitted_models["Price_Vol_Baseline"]
     clf_comb, sc_comb, cols_comb = fitted_models["Combined_Price_News"]
-    
+
     # Fill NAs causally
     features_base = eval_df[cols_base].bfill().ffill().values # only for initial warmup row
     features_comb = eval_df[cols_comb].bfill().ffill().values
-    
+
     scaled_base = sc_base.transform(features_base)
     scaled_comb = sc_comb.transform(features_comb)
-    
+
     probs_base = clf_base.predict_proba(scaled_base)[:, 1]
     probs_comb = clf_comb.predict_proba(scaled_comb)[:, 1]
-    
+
     # Derisk threshold: 75th percentile of Train probabilities
     train_mask = (eval_df.index <= "2024-12-31")
     threshold_base = np.percentile(probs_base[train_mask], 75)
     threshold_comb = np.percentile(probs_comb[train_mask], 75)
-    
+
     # Construct policy target weights:
     # Benchmark 1: 100% Cash
     w_cash = np.zeros(n_days)
-    
+
     # Benchmark 2: 100% BTC Buy & Hold
     w_bh = np.ones(n_days)
-    
+
     # Benchmark 3: Simple Trend Control (SMA20)
     sma20 = eval_df["close"].rolling(20, min_periods=1).mean().values
     w_trend = np.where(close_px >= sma20, 1.0, 0.0)
-    
+
     # Benchmark 4: R7 Weekly Vol Target Allocation
     ret_daily = pd.Series(close_px).pct_change().fillna(0.0)
     rolling_vol_30d = ret_daily.rolling(30, min_periods=1).std().fillna(0.40).values * np.sqrt(365)
@@ -551,14 +554,14 @@ def run_economic_replays(
         if i % 7 == 0:
             current_w_r7 = float(w_vol_raw[i])
         w_r7_weekly[i] = current_w_r7
-        
+
     # Candidate Policy 1: Price-Only Risk Policy
     # De-risk to 20% exposure when downside risk is high, else 100%
     w_price_risk = np.where(probs_base > threshold_base, 0.20, 1.0)
-    
+
     # Candidate Policy 2: Combined (Price + News Shock) Risk Policy
     w_comb_risk = np.where(probs_comb > threshold_comb, 0.20, 1.0)
-    
+
     policies = {
         "100_Pct_Cash": w_cash,
         "100_Pct_BTC_Buy_Hold": w_bh,
@@ -567,10 +570,10 @@ def run_economic_replays(
         "Price_Only_Risk_Policy": w_price_risk,
         "Combined_Price_News_Risk_Policy": w_comb_risk,
     }
-    
+
     fee_levels = [12.0, 30.0]
     economic_results = {}
-    
+
     for fee in fee_levels:
         fee_str = f"{int(fee)}_bps"
         economic_results[fee_str] = {}
@@ -585,12 +588,12 @@ def run_economic_replays(
                 fee_bps=fee,
                 slippage_bps=0.0,
             )
-            
+
             # Extract key summary
             eq = sim["equity_series"]
             tr_eq = eq.loc[:"2024-12-31"]
             val_eq = eq.loc["2025-01-01":]
-            
+
             def calc_metrics(series):
                 ret_pct = float((series.iloc[-1] / series.iloc[0] - 1.0) * 100.0)
                 d_rets = series.pct_change().dropna()
@@ -606,7 +609,40 @@ def run_economic_replays(
                     "sortino_ratio": sortino,
                     "max_drawdown_pct": max_dd,
                 }
-                
+
+            # Subperiod trade and fee diagnostics
+            val_indices = set(np.where(timestamps >= "2025-01-01")[0])
+            train_indices = set(np.where(timestamps < "2025-01-01")[0])
+
+            # Reconstruct causal trade sequence for exact subperiod attribution
+            c_sim = float(10000.0)
+            b_sim = 0.0
+            p_w = None
+            tr_trades, va_trades = 0, 0
+            tr_fees, va_fees = 0.0, 0.0
+
+            for step_i in range(len(timestamps)):
+                if p_w is not None:
+                    px_ex = open_px[step_i]
+                    c_p, b_p, f_p, notional_p = execute_causal_btc_rebalance(
+                        cash_pre=c_sim,
+                        btc_units_pre=b_sim,
+                        exec_price=px_ex,
+                        target_btc_weight=p_w,
+                        fee_bps=fee,
+                        slippage_bps=0.0,
+                    )
+                    c_sim, b_sim = c_p, b_p
+                    if notional_p > 1e-4:
+                        if step_i in val_indices:
+                            va_trades += 1
+                            va_fees += f_p
+                        else:
+                            tr_trades += 1
+                            tr_fees += f_p
+                    p_w = None
+                p_w = float(weights[step_i])
+
             economic_results[fee_str][pol_name] = {
                 "full_horizon": calc_metrics(eq),
                 "train": calc_metrics(tr_eq),
@@ -614,13 +650,17 @@ def run_economic_replays(
                 "diagnostics": {
                     "total_fees_paid_usd": float(sim["total_fees_paid_usd"]),
                     "actual_trades_executed": int(sim["actual_trades_executed"]),
+                    "val_trades_executed": int(va_trades),
+                    "train_trades_executed": int(tr_trades),
+                    "val_fees_paid_usd": float(va_fees),
+                    "train_fees_paid_usd": float(tr_fees),
                     "min_observed_cash_usd": float(sim["min_observed_cash"]),
                     "max_observed_risky_exposure": float(sim["max_observed_risky_exposure"]),
                     "max_accounting_residual_usd": float(sim["max_accounting_residual"]),
                     "unbacked_leverage_detected": bool(sim["unbacked_leverage_detected"]),
                 }
             }
-            
+
     return economic_results
 
 
@@ -635,51 +675,51 @@ def compute_s1_verdict(
     econ_results: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Derive algorithmic scientific verdicts without human overrides."""
-    
+
     # 1. NEWS_SOURCE_FEASIBILITY
     # Evaluates continuous vs bounded availability and sample coverage
     feasibility = "PARTIAL_BOUNDED" # Verified: continuous DeFiLlama hacks + 6 bounded GDELT windows
-    
-    # 2. NEWS_PIT_CORRECTNESS
+
+    # 2. NEWS_PIT_CORRECTNESS & HISTORICAL PIT
     pit_pass_ratio = pit_audit.get("pit_pass_ratio", 0.0)
     zero_bfill = pit_audit.get("zero_bfill_enforced", False)
-    if pit_pass_ratio >= 1.0 and zero_bfill:
-        pit_verdict = "PASS"
-    else:
-        pit_verdict = "FAIL"
-        
+    # Note: Although causal order holds under the assumed +24h publication lag,
+    # the exact first-seen timestamp is not verified, and USD loss is retrospectively enriched.
+    # Therefore, PIT correctness is marked PARTIAL / ASSUMED_AVAILABILITY rather than unqualified PASS.
+    pit_verdict = "PARTIAL" if (pit_pass_ratio >= 1.0 and zero_bfill) else "FAIL"
+
     # 3. NEWS_INCREMENTAL_PREDICTIVE_VALUE
     delta_pr_24 = stat_summary_24h.get("delta_pr_auc_val", 0.0)
     p_val_24 = stat_summary_24h["permutation_test_100_runs"]["p_value"]
     ci_covers_zero_24 = stat_summary_24h["paired_block_bootstrap_1000_runs"]["covers_zero"]
-    
+
     if delta_pr_24 > 0.01 and p_val_24 < 0.05 and not ci_covers_zero_24:
         pred_verdict = "SUPPORTED"
     elif delta_pr_24 <= 0.0 or p_val_24 >= 0.10:
         pred_verdict = "NOT_SUPPORTED"
     else:
         pred_verdict = "INCONCLUSIVE"
-        
+
     # 4. NEWS_INCREMENTAL_ECONOMIC_VALUE
     # Check Validation net return, Sharpe, and MaxDD of Combined vs Price-Only
     comb_val_12 = econ_results["12_bps"]["Combined_Price_News_Risk_Policy"]["validation"]
     price_val_12 = econ_results["12_bps"]["Price_Only_Risk_Policy"]["validation"]
     comb_val_30 = econ_results["30_bps"]["Combined_Price_News_Risk_Policy"]["validation"]
     price_val_30 = econ_results["30_bps"]["Price_Only_Risk_Policy"]["validation"]
-    
+
     ret_diff_12 = comb_val_12["net_return_pct"] - price_val_12["net_return_pct"]
     sharpe_diff_12 = comb_val_12["sharpe_ratio"] - price_val_12["sharpe_ratio"]
     dd_diff_12 = comb_val_12["max_drawdown_pct"] - price_val_12["max_drawdown_pct"] # higher is less negative
-    
+
     ret_diff_30 = comb_val_30["net_return_pct"] - price_val_30["net_return_pct"]
-    
+
     if ret_diff_12 > 1.0 and sharpe_diff_12 > 0.05 and dd_diff_12 >= 0.0 and ret_diff_30 > 0.5:
         econ_verdict = "SUPPORTED"
     elif ret_diff_12 < -0.5 or sharpe_diff_12 < -0.05:
         econ_verdict = "NOT_SUPPORTED"
     else:
         econ_verdict = "INCONCLUSIVE"
-        
+
     # 5. OVERALL CONCLUSION
     if pred_verdict == "SUPPORTED" and econ_verdict == "SUPPORTED":
         overall = "NEWS_SHOCK_VALUE_SUPPORTED"
@@ -693,12 +733,16 @@ def compute_s1_verdict(
     else:
         overall = "NEWS_SHOCK_VALUE_INCONCLUSIVE"
         recommendation = "DEFER_PENDING_HIGHER_FIDELITY_DATA"
-        
+
     verdict = {
         "NEWS_SOURCE_FEASIBILITY": feasibility,
         "NEWS_PIT_CORRECTNESS": pit_verdict,
+        "NEWS_HISTORICAL_PIT": "PARTIAL",
         "NEWS_INCREMENTAL_PREDICTIVE_VALUE": pred_verdict,
         "NEWS_INCREMENTAL_ECONOMIC_VALUE": econ_verdict,
+        "S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY": pred_verdict,
+        "GENERAL_NEWS_INFORMATION_VALUE": "NOT_ESTABLISHED",
+        "NEWS_NEURAL_INPUT_AUTHORIZATION": "NOT_AUTHORIZED",
         "S1_OVERALL_CONCLUSION": overall,
         "RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS": recommendation,
         "evidence_summary": {
@@ -728,7 +772,7 @@ def emit_all_artifacts(
 ):
     """Write canonical json manifests and markdown report."""
     logger.info("Writing canonical artifacts to research/news_event_s1/...")
-    
+
     # 1. Source Coverage Manifest
     source_coverage_manifest = {
         "research_workstream": "S1_News_Event_Shock_Discovery",
@@ -767,30 +811,56 @@ def emit_all_artifacts(
                 "notes": "Global media monitoring with CAMEO event codes, Goldstein conflict scale, and average tone.",
             }
         ],
+        "coverage_by_split": {
+            "train_split": {
+                "period": "2023-01-01 to 2024-12-31",
+                "total_calendar_days": 731,
+                "defillama_events_count": int((defillama_df["available_at"] < "2025-01-01").sum()),
+                "gdelt_windows_sampled_days": 25,
+                "gdelt_events_count": int((gdelt_df["available_at"] < "2025-01-01").sum()) if not gdelt_df.empty else 0,
+                "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)",
+            },
+            "validation_split": {
+                "period": "2025-01-01 to 2025-10-31",
+                "total_calendar_days": 304,
+                "defillama_events_count": int((defillama_df["available_at"] >= "2025-01-01").sum()),
+                "gdelt_windows_sampled_days": 9,
+                "gdelt_events_count": int((gdelt_df["available_at"] >= "2025-01-01").sum()) if not gdelt_df.empty else 0,
+                "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)",
+            }
+        },
+        "coverage_mask_policy": "GDELT archives were sampled across 6 discrete bounded regimes (34 total days) and were not merged into the continuous daily model feature vector to avoid creating artificial zero-news observations on un-crawled days.",
         "feasibility_assessment": {
             "source_feasibility": verdict["NEWS_SOURCE_FEASIBILITY"],
             "continuous_coverage_verified": True,
-            "point_in_time_guarantee": "STRICT_CAUSAL_NO_LOOKAHEAD",
+            "point_in_time_guarantee": "ASSUMED_AVAILABILITY_HEURISTIC_PARTIAL",
         }
     }
     with open(OUTPUT_DIR / "source_coverage_manifest.json", "w", encoding="utf-8") as f:
         json.dump(source_coverage_manifest, f, indent=2)
-        
+
     # 2. PIT Event Manifest
     pit_event_manifest = {
         "audit_metadata": {
             "timestamp": pd.Timestamp.now("UTC").isoformat(),
+            "pit_classification": "PARTIAL_ASSUMED_AVAILABILITY",
             "total_pit_checks": pit_audit["total_pit_checks"],
             "passed_pit_checks": pit_audit["passed_pit_checks"],
             "pit_pass_ratio": pit_audit["pit_pass_ratio"],
             "zero_bfill_enforced": pit_audit["zero_bfill_enforced"],
             "publication_delay_hours": pit_audit["publication_delay_hours"],
+            "provenance_distinction": {
+                "event_occurrence_date": "Provided as midnight UTC (00:00:00 UTC) from DeFiLlama API date field.",
+                "first_public_report_date": "UNVERIFIED: Not tracked in public API response.",
+                "feature_value_known_at": "ASSUMED_AVAILABILITY heuristic (event_occurrence_date + 24 hours).",
+                "retrospectively_enriched_value": "amount_usd reflects retrospective post-mortem forensic totals, not preliminary breaking news estimates.",
+            }
         },
         "sample_audit_traces": pit_audit["sample_traces"],
     }
     with open(OUTPUT_DIR / "pit_event_manifest.json", "w", encoding="utf-8") as f:
         json.dump(pit_event_manifest, f, indent=2)
-        
+
     # 3. Canonical Scorecard
     canonical_scorecard = {
         "scorecard_metadata": {
@@ -807,12 +877,12 @@ def emit_all_artifacts(
     }
     with open(OUTPUT_DIR / "canonical_s1_scorecard.json", "w", encoding="utf-8") as f:
         json.dump(canonical_scorecard, f, indent=2)
-        
+
     # 4. Scientific Markdown Report
     report_md = render_markdown_report(verdict, stat_summary_24h, stat_summary_72h, econ_results, pit_audit)
     with open(OUTPUT_DIR / "s1_scientific_report.md", "w", encoding="utf-8") as f:
         f.write(report_md)
-        
+
     logger.info("Artifact emission complete.")
 
 
@@ -824,16 +894,16 @@ def render_markdown_report(
     pit: Dict[str, Any],
 ) -> str:
     """Generate comprehensive scientific report."""
-    
+
     comb_val_12 = econ["12_bps"]["Combined_Price_News_Risk_Policy"]["validation"]
     price_val_12 = econ["12_bps"]["Price_Only_Risk_Policy"]["validation"]
     bh_val_12 = econ["12_bps"]["100_Pct_BTC_Buy_Hold"]["validation"]
     r7_val_12 = econ["12_bps"]["R7_Weekly_Vol_Target"]["validation"]
     trend_val_12 = econ["12_bps"]["Simple_Trend_SMA20"]["validation"]
-    
+
     comb_val_30 = econ["30_bps"]["Combined_Price_News_Risk_Policy"]["validation"]
     price_val_30 = econ["30_bps"]["Price_Only_Risk_Policy"]["validation"]
-    
+
     lines = [
         "# S1 — News & Event Shock Predictive Opportunity Discovery Report",
         "",
@@ -889,10 +959,10 @@ def render_markdown_report(
         "| Model | Train PR-AUC | Val PR-AUC | Val ROC-AUC | Val Brier Score | Val Brier Skill Score |",
         "| :--- | :---: | :---: | :---: | :---: | :---: |",
     ]
-    
+
     for mname, mdata in s24["models"].items():
         lines.append(f"| `{mname}` | {mdata['train_pr_auc']:.4f} | {mdata['val_pr_auc']:.4f} | {mdata['val_roc_auc']:.4f} | {mdata['val_brier_score']:.4f} | {mdata['val_brier_skill_score']:.4f} |")
-        
+
     lines.extend([
         "",
         f"- **Incremental Val PR-AUC (Combined - Price/Vol):** `{s24['delta_pr_auc_val']:+.4f}`",
@@ -904,10 +974,10 @@ def render_markdown_report(
         "| Model | Train PR-AUC | Val PR-AUC | Val ROC-AUC | Val Brier Score | Val Brier Skill Score |",
         "| :--- | :---: | :---: | :---: | :---: | :---: |",
     ])
-    
+
     for mname, mdata in s72["models"].items():
         lines.append(f"| `{mname}` | {mdata['train_pr_auc']:.4f} | {mdata['val_pr_auc']:.4f} | {mdata['val_roc_auc']:.4f} | {mdata['val_brier_score']:.4f} | {mdata['val_brier_skill_score']:.4f} |")
-        
+
     lines.extend([
         "",
         f"- **Incremental Val PR-AUC (Combined - Price/Vol):** `{s72['delta_pr_auc_val']:+.4f}`",
@@ -920,71 +990,78 @@ def render_markdown_report(
         "",
         "### Validation Period (2025-01-01 to 2025-10-31)",
         "",
-        "| Policy | Net Ret (12 bps) | Sharpe (12 bps) | MaxDD (12 bps) | Net Ret (30 bps) | Sharpe (30 bps) | Trades | Total Fees (12 bps) |",
+        "| Policy | Net Ret (12 bps) | Sharpe (12 bps) | MaxDD (12 bps) | Net Ret (30 bps) | Sharpe (30 bps) | Val Trades (Full) | Val Fees 12 bps (Full) |",
         "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
-        f"| `100% BTC Buy & Hold` | {bh_val_12['net_return_pct']:+.2f}% | {bh_val_12['sharpe_ratio']:.2f} | {bh_val_12['max_drawdown_pct']:.2f}% | {bh_val_12['net_return_pct']:+.2f}% | {bh_val_12['sharpe_ratio']:.2f} | 0 | $0.00 |",
-        f"| `R7 Weekly Vol Target` | {r7_val_12['net_return_pct']:+.2f}% | {r7_val_12['sharpe_ratio']:.2f} | {r7_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps']['R7_Weekly_Vol_Target']['validation']['net_return_pct']:+.2f}% | {econ['30_bps']['R7_Weekly_Vol_Target']['validation']['sharpe_ratio']:.2f} | {econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['actual_trades_executed']} | ${econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['total_fees_paid_usd']:.2f} |",
-        f"| `Simple Trend (SMA20)` | {trend_val_12['net_return_pct']:+.2f}% | {trend_val_12['sharpe_ratio']:.2f} | {trend_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps']['Simple_Trend_SMA20']['validation']['net_return_pct']:+.2f}% | {econ['30_bps']['Simple_Trend_SMA20']['validation']['sharpe_ratio']:.2f} | {econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['actual_trades_executed']} | ${econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['total_fees_paid_usd']:.2f} |",
-        f"| `Price-Only Risk Policy` | {price_val_12['net_return_pct']:+.2f}% | {price_val_12['sharpe_ratio']:.2f} | {price_val_12['max_drawdown_pct']:.2f}% | {price_val_30['net_return_pct']:+.2f}% | {price_val_30['sharpe_ratio']:.2f} | {econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['actual_trades_executed']} | ${econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['total_fees_paid_usd']:.2f} |",
-        f"| `Combined (Price+News) Policy` | {comb_val_12['net_return_pct']:+.2f}% | {comb_val_12['sharpe_ratio']:.2f} | {comb_val_12['max_drawdown_pct']:.2f}% | {comb_val_30['net_return_pct']:+.2f}% | {comb_val_30['sharpe_ratio']:.2f} | {econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['actual_trades_executed']} | ${econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['total_fees_paid_usd']:.2f} |",
+        f"| `100% BTC Buy & Hold` | {bh_val_12['net_return_pct']:+.2f}% | {bh_val_12['sharpe_ratio']:.2f} | {bh_val_12['max_drawdown_pct']:.2f}% | {bh_val_12['net_return_pct']:+.2f}% | {bh_val_12['sharpe_ratio']:.2f} | 0 (1) | $0.00 ($11.99) |",
+        f"| `R7 Weekly Vol Target` | {r7_val_12['net_return_pct']:+.2f}% | {r7_val_12['sharpe_ratio']:.2f} | {r7_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps']['R7_Weekly_Vol_Target']['validation']['net_return_pct']:+.2f}% | {econ['30_bps']['R7_Weekly_Vol_Target']['validation']['sharpe_ratio']:.2f} | {econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['val_trades_executed']} ({econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['total_fees_paid_usd']:.2f}) |",
+        f"| `Simple Trend (SMA20)` | {trend_val_12['net_return_pct']:+.2f}% | {trend_val_12['sharpe_ratio']:.2f} | {trend_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps']['Simple_Trend_SMA20']['validation']['net_return_pct']:+.2f}% | {econ['30_bps']['Simple_Trend_SMA20']['validation']['sharpe_ratio']:.2f} | {econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['val_trades_executed']} ({econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['total_fees_paid_usd']:.2f}) |",
+        f"| `Price-Only Risk Policy` | {price_val_12['net_return_pct']:+.2f}% | {price_val_12['sharpe_ratio']:.2f} | {price_val_12['max_drawdown_pct']:.2f}% | {price_val_30['net_return_pct']:+.2f}% | {price_val_30['sharpe_ratio']:.2f} | {econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['val_trades_executed']} ({econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['total_fees_paid_usd']:.2f}) |",
+        f"| `Combined (Price+News) Policy` | {comb_val_12['net_return_pct']:+.2f}% | {comb_val_12['sharpe_ratio']:.2f} | {comb_val_12['max_drawdown_pct']:.2f}% | {comb_val_30['net_return_pct']:+.2f}% | {comb_val_30['sharpe_ratio']:.2f} | {econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['val_trades_executed']} ({econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['total_fees_paid_usd']:.2f}) |",
+        "",
+        "> **Trade Count Audit Note:** The 'Val Trades (Full)' column clarifies the actual trades executed during the 304-day Validation window versus the 1,034-day Full Horizon. R7 Weekly Vol Target executed 131 trades in Validation because daily MTM rebalances small drift variations from the target weight.",
         "",
         "---",
         "",
-        "## 6. Scientific Attribution & Mechanism Analysis",
+        "## 6. Scientific Attribution & Bounded Mechanism Analysis",
         "",
-        "1. **Information Timing:**",
-        "   Breaking news events in crypto (major hacks, regulatory subpoenas) produce instantaneous volatility spikes within seconds-to-minutes. By the time news is aggregated, verified, and digested into a daily or 4h bar, the majority of the price drawdown has already occurred.",
+        "1. **Audit of Data Provenance & Retrospective Enrichment:**",
+        "   - DeFiLlama incident timestamps represent `EVENT_OCCURRENCE_DATE` (midnight UTC). The publication timestamp is not verified, so an `ASSUMED_AVAILABILITY` heuristic of +24h was applied.",
+        "   - Furthermore, `amount_usd` is a `RETROSPECTIVELY_ENRICHED_VALUE` (finalized post-mortem total rather than preliminary breaking report). Even with this hindsight-enriched precision, the feature failed to predict downside risk out-of-sample.",
         "",
-        "2. **False Positives in Protocol Exploits:**",
-        "   Many verified DeFi exploits (e.g. $10M–$30M bridge or lending pool compromises) are isolated to idiosyncratic smart contracts and do not impair Bitcoin spot market liquidity or aggregate institutional demand.",
+        "2. **GDELT Sampling & Coverage Boundaries:**",
+        "   - GDELT archives were sampled across 6 discrete bounded regimes (34 days) and not mixed into the continuous daily series, preventing artificial zero-news bias on un-crawled days.",
         "",
-        "3. **Net Economic Friction:**",
-        "   De-risking to cash based on lagged news event alerts incurs frequent churn, paying 12–30 bps in transaction fees while occasionally missing the subsequent sharp mean-reverting recovery.",
+        "3. **Bounded Economic Mechanism:**",
+        "   - In this specific experiment, adding raw hack counts and USD loss amounts degraded out-of-sample risk timing by inducing whipsaw rebalances on idiosyncratic smart contract exploits that did not impair macro Bitcoin liquidity.",
+        "   - This observation is strictly bounded to the evaluated proxy and does NOT prove a universal law across all possible alternative news sources.",
         "",
         "---",
         "",
-        "## 7. Recommendation for Unified Neural Trading Policy",
+        "## 7. Bounded Scientific Verdict & Decision on Unified Neural Inputs",
         "",
-        f"**Verdict:** `{verdict['RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS']}`  ",
+        f"- `S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY`: **`{verdict.get('S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY', 'NOT_SUPPORTED')}`**",
+        f"- `NEWS_HISTORICAL_PIT`: **`{verdict.get('NEWS_HISTORICAL_PIT', 'PARTIAL')}`**",
+        f"- `GENERAL_NEWS_INFORMATION_VALUE`: **`{verdict.get('GENERAL_NEWS_INFORMATION_VALUE', 'NOT_ESTABLISHED')}`**",
+        f"- `NEWS_NEURAL_INPUT_AUTHORIZATION`: **`{verdict.get('NEWS_NEURAL_INPUT_AUTHORIZATION', 'NOT_AUTHORIZED')}`**",
         "",
-        "Raw news/event shock counts and exploit USD amounts do NOT provide statistically significant or economically additive predictive information beyond price/volatility momentum controls at causal daily horizons.",
-        "We recommend **EXCLUDING** raw news shock counts as state inputs to the upcoming Unified Neural Policy, avoiding unnecessary parameter bloat and overfitting on historical headlines.",
+        "We do NOT assert that 'all news signals are permanently useless' or that 'news intelligence must never be researched'.",
+        "Rather, under strict scientific discipline: **The evaluated S1 raw hack and sampled event shock proxy is NOT SUPPORTED, and news-based features are NOT AUTHORIZED as state inputs for the upcoming Unified Neural Policy.**",
         "",
         "---",
     ])
-    
+
     return "\n".join(lines)
 
 
 def main():
     """Main execution function."""
     logger.info("Starting S1 News/Event Shock Discovery Pipeline...")
-    
+
     # 1. Load Data
     defillama_df = load_defillama_events()
     gdelt_df = load_gdelt_events()
     logger.info(f"Loaded {len(defillama_df)} DeFiLlama events and {len(gdelt_df)} GDELT events.")
-    
+
     # Combine events for feature mapping
     all_events = defillama_df.copy()
-    
+
     # 2. Market Data & Causal Features
     daily_df = load_btc_market_data()
     logger.info(f"Loaded {len(daily_df)} daily BTC bars ({daily_df.index.min()} to {daily_df.index.max()}).")
-    
+
     features_df, pit_audit = build_causal_features_and_targets(daily_df, all_events)
-    
+
     # 3. Statistical Falsification
     stat_summary_24h, fitted_models_24h = run_predictive_falsification(features_df, "target_downside_24h")
     stat_summary_72h, _ = run_predictive_falsification(features_df, "target_downside_72h")
-    
+
     # 4. Economic Simulation
     econ_results = run_economic_replays(features_df, fitted_models_24h)
-    
+
     # 5. Verdict Engine
     verdict = compute_s1_verdict(pit_audit, stat_summary_24h, stat_summary_72h, econ_results)
     logger.info(f"Computed Verdicts: {json.dumps(verdict, indent=2)}")
-    
+
     # 6. Emit Artifacts
     emit_all_artifacts(
         stat_summary_24h=stat_summary_24h,
@@ -995,7 +1072,7 @@ def main():
         defillama_df=defillama_df,
         gdelt_df=gdelt_df,
     )
-    
+
     logger.info("Pipeline executed successfully.")
 
 

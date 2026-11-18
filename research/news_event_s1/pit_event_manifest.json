@@ -1,11 +1,18 @@
 {
   "audit_metadata": {
-    "timestamp": "2026-11-18T03:46:28.757698+00:00",
+    "timestamp": "2026-11-18T04:28:02.868959+00:00",
+    "pit_classification": "PARTIAL_ASSUMED_AVAILABILITY",
     "total_pit_checks": 796,
     "passed_pit_checks": 796,
     "pit_pass_ratio": 1.0,
     "zero_bfill_enforced": true,
-    "publication_delay_hours": 24.0
+    "publication_delay_hours": 24.0,
+    "provenance_distinction": {
+      "event_occurrence_date": "Provided as midnight UTC (00:00:00 UTC) from DeFiLlama API date field.",
+      "first_public_report_date": "UNVERIFIED: Not tracked in public API response.",
+      "feature_value_known_at": "ASSUMED_AVAILABILITY heuristic (event_occurrence_date + 24 hours).",
+      "retrospectively_enriched_value": "amount_usd reflects retrospective post-mortem forensic totals, not preliminary breaking news estimates."
+    }
   },
   "sample_audit_traces": [
     {

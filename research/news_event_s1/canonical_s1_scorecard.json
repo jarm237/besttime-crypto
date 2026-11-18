@@ -1,14 +1,18 @@
 {
   "scorecard_metadata": {
     "research_id": "S1_NEWS_EVENT_SHOCK_DISCOVERY",
-    "git_commit": "280cc45a2e7b36389fb5cc2266e9832c71f5a0fc",
-    "evaluation_date": "2026-11-18T03:46:28.794512+00:00"
+    "git_commit": "8501bad7f49ad4e7bf354115008314ca0795559a",
+    "evaluation_date": "2026-11-18T04:28:02.903408+00:00"
   },
   "verdicts": {
     "NEWS_SOURCE_FEASIBILITY": "PARTIAL_BOUNDED",
-    "NEWS_PIT_CORRECTNESS": "PASS",
+    "NEWS_PIT_CORRECTNESS": "PARTIAL",
+    "NEWS_HISTORICAL_PIT": "PARTIAL",
     "NEWS_INCREMENTAL_PREDICTIVE_VALUE": "NOT_SUPPORTED",
     "NEWS_INCREMENTAL_ECONOMIC_VALUE": "NOT_SUPPORTED",
+    "S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY": "NOT_SUPPORTED",
+    "GENERAL_NEWS_INFORMATION_VALUE": "NOT_ESTABLISHED",
+    "NEWS_NEURAL_INPUT_AUTHORIZATION": "NOT_AUTHORIZED",
     "S1_OVERALL_CONCLUSION": "NEWS_SHOCK_VALUE_NOT_SUPPORTED",
     "RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS": "EXCLUDE",
     "evidence_summary": {
@@ -186,6 +190,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 0.0,
           "actual_trades_executed": 0,
+          "val_trades_executed": 0,
+          "train_trades_executed": 0,
+          "val_fees_paid_usd": 0.0,
+          "train_fees_paid_usd": 0.0,
           "min_observed_cash_usd": 10000.0,
           "max_observed_risky_exposure": 0.0,
           "max_accounting_residual_usd": 0.0,
@@ -214,6 +222,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 11.99,
           "actual_trades_executed": 1,
+          "val_trades_executed": 0,
+          "train_trades_executed": 1,
+          "val_fees_paid_usd": 0.0,
+          "train_fees_paid_usd": 11.985617259288851,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 0.0,
@@ -242,6 +254,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 352.8,
           "actual_trades_executed": 646,
+          "val_trades_executed": 131,
+          "train_trades_executed": 515,
+          "val_fees_paid_usd": 95.67162683994209,
+          "train_fees_paid_usd": 257.13165382578285,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 1.4551915228366852e-11,
@@ -270,6 +286,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 2575.79,
           "actual_trades_executed": 124,
+          "val_trades_executed": 36,
+          "train_trades_executed": 88,
+          "val_fees_paid_usd": 1000.4368326324485,
+          "train_fees_paid_usd": 1575.3501309255842,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 3.637978807091713e-12,
@@ -298,6 +318,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 4159.85,
           "actual_trades_executed": 325,
+          "val_trades_executed": 82,
+          "train_trades_executed": 243,
+          "val_fees_paid_usd": 1549.1544720066108,
+          "train_fees_paid_usd": 2610.699432052478,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 1.4551915228366852e-11,
@@ -326,6 +350,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 4771.48,
           "actual_trades_executed": 333,
+          "val_trades_executed": 81,
+          "train_trades_executed": 252,
+          "val_fees_paid_usd": 1639.7514985686996,
+          "train_fees_paid_usd": 3131.7300208267034,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 7.275957614183426e-12,
@@ -356,6 +384,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 0.0,
           "actual_trades_executed": 0,
+          "val_trades_executed": 0,
+          "train_trades_executed": 0,
+          "val_fees_paid_usd": 0.0,
+          "train_fees_paid_usd": 0.0,
           "min_observed_cash_usd": 10000.0,
           "max_observed_risky_exposure": 0.0,
           "max_accounting_residual_usd": 0.0,
@@ -384,6 +416,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 29.91,
           "actual_trades_executed": 1,
+          "val_trades_executed": 0,
+          "train_trades_executed": 1,
+          "val_fees_paid_usd": 0.0,
+          "train_fees_paid_usd": 29.910269192422735,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 1.8189894035458565e-12,
@@ -412,6 +448,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 872.02,
           "actual_trades_executed": 646,
+          "val_trades_executed": 131,
+          "train_trades_executed": 515,
+          "val_fees_paid_usd": 235.2220717069855,
+          "train_fees_paid_usd": 636.7979883204814,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 1.4551915228366852e-11,
@@ -440,6 +480,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 5684.7,
           "actual_trades_executed": 124,
+          "val_trades_executed": 36,
+          "train_trades_executed": 88,
+          "val_fees_paid_usd": 2066.2457504252047,
+          "train_fees_paid_usd": 3618.458180024867,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 3.637978807091713e-12,
@@ -468,6 +512,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 9038.9,
           "actual_trades_executed": 325,
+          "val_trades_executed": 82,
+          "train_trades_executed": 243,
+          "val_fees_paid_usd": 3142.664372681028,
+          "train_fees_paid_usd": 5896.232285572976,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 7.275957614183426e-12,
@@ -496,6 +544,10 @@
         "diagnostics": {
           "total_fees_paid_usd": 10208.6,
           "actual_trades_executed": 333,
+          "val_trades_executed": 81,
+          "train_trades_executed": 252,
+          "val_fees_paid_usd": 3247.5873823712795,
+          "train_fees_paid_usd": 6961.013325217419,
           "min_observed_cash_usd": 0.0,
           "max_observed_risky_exposure": 1.0,
           "max_accounting_residual_usd": 7.275957614183426e-12,

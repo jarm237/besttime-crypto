@@ -2,14 +2,14 @@
 
 ## 1. Executive Summary & Canonical Verdict
 
-**Repository Commit:** `280cc45a2e7b36389fb5cc2266e9832c71f5a0fc`  
-**Evaluation Date:** `2026-11-18 03:46:28 UTC`  
-**Research Status:** COMPLETE  
+**Repository Commit:** `8501bad7f49ad4e7bf354115008314ca0795559a`
+**Evaluation Date:** `2026-11-18 04:28:02 UTC`
+**Research Status:** COMPLETE
 
 ### Final Evidence-Derived Verdicts
 
 - `NEWS_SOURCE_FEASIBILITY`: **`PARTIAL_BOUNDED`**
-- `NEWS_PIT_CORRECTNESS`: **`PASS`**
+- `NEWS_PIT_CORRECTNESS`: **`PARTIAL`**
 - `NEWS_INCREMENTAL_PREDICTIVE_VALUE`: **`NOT_SUPPORTED`**
 - `NEWS_INCREMENTAL_ECONOMIC_VALUE`: **`NOT_SUPPORTED`**
 - `S1_OVERALL_CONCLUSION`: **`NEWS_SHOCK_VALUE_NOT_SUPPORTED`**
@@ -81,34 +81,41 @@ This research was conducted independently under Workstream C, strictly isolating
 
 ### Validation Period (2025-01-01 to 2025-10-31)
 
-| Policy | Net Ret (12 bps) | Sharpe (12 bps) | MaxDD (12 bps) | Net Ret (30 bps) | Sharpe (30 bps) | Trades | Total Fees (12 bps) |
+| Policy | Net Ret (12 bps) | Sharpe (12 bps) | MaxDD (12 bps) | Net Ret (30 bps) | Sharpe (30 bps) | Val Trades (Full) | Val Fees 12 bps (Full) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `100% BTC Buy & Hold` | +15.87% | 0.63 | -28.10% | +15.87% | 0.63 | 0 | $0.00 |
-| `R7 Weekly Vol Target` | +13.58% | 0.60 | -23.10% | +13.23% | 0.59 | 646 | $352.80 |
-| `Simple Trend (SMA20)` | -9.21% | -0.29 | -24.46% | -14.91% | -0.57 | 124 | $2575.79 |
-| `Price-Only Risk Policy` | +18.80% | 0.79 | -16.57% | +11.63% | 0.57 | 325 | $4159.85 |
-| `Combined (Price+News) Policy` | +10.40% | 0.52 | -22.89% | +4.04% | 0.31 | 333 | $4771.48 |
+| `100% BTC Buy & Hold` | +15.87% | 0.63 | -28.10% | +15.87% | 0.63 | 0 (1) | $0.00 ($11.99) |
+| `R7 Weekly Vol Target` | +13.58% | 0.60 | -23.10% | +13.23% | 0.59 | 131 (646) | $95.67 ($352.80) |
+| `Simple Trend (SMA20)` | -9.21% | -0.29 | -24.46% | -14.91% | -0.57 | 36 (124) | $1000.44 ($2575.79) |
+| `Price-Only Risk Policy` | +18.80% | 0.79 | -16.57% | +11.63% | 0.57 | 82 (325) | $1549.15 ($4159.85) |
+| `Combined (Price+News) Policy` | +10.40% | 0.52 | -22.89% | +4.04% | 0.31 | 81 (333) | $1639.75 ($4771.48) |
+
+> **Trade Count Audit Note:** The 'Val Trades (Full)' column clarifies the actual trades executed during the 304-day Validation window versus the 1,034-day Full Horizon. R7 Weekly Vol Target executed 131 trades in Validation because daily MTM rebalances small drift variations from the target weight.
 
 ---
 
-## 6. Scientific Attribution & Mechanism Analysis
+## 6. Scientific Attribution & Bounded Mechanism Analysis
 
-1. **Information Timing:**
-   Breaking news events in crypto (major hacks, regulatory subpoenas) produce instantaneous volatility spikes within seconds-to-minutes. By the time news is aggregated, verified, and digested into a daily or 4h bar, the majority of the price drawdown has already occurred.
+1. **Audit of Data Provenance & Retrospective Enrichment:**
+   - DeFiLlama incident timestamps represent `EVENT_OCCURRENCE_DATE` (midnight UTC). The publication timestamp is not verified, so an `ASSUMED_AVAILABILITY` heuristic of +24h was applied.
+   - Furthermore, `amount_usd` is a `RETROSPECTIVELY_ENRICHED_VALUE` (finalized post-mortem total rather than preliminary breaking report). Even with this hindsight-enriched precision, the feature failed to predict downside risk out-of-sample.
 
-2. **False Positives in Protocol Exploits:**
-   Many verified DeFi exploits (e.g. $10M–$30M bridge or lending pool compromises) are isolated to idiosyncratic smart contracts and do not impair Bitcoin spot market liquidity or aggregate institutional demand.
+2. **GDELT Sampling & Coverage Boundaries:**
+   - GDELT archives were sampled across 6 discrete bounded regimes (34 days) and not mixed into the continuous daily series, preventing artificial zero-news bias on un-crawled days.
 
-3. **Net Economic Friction:**
-   De-risking to cash based on lagged news event alerts incurs frequent churn, paying 12–30 bps in transaction fees while occasionally missing the subsequent sharp mean-reverting recovery.
+3. **Bounded Economic Mechanism:**
+   - In this specific experiment, adding raw hack counts and USD loss amounts degraded out-of-sample risk timing by inducing whipsaw rebalances on idiosyncratic smart contract exploits that did not impair macro Bitcoin liquidity.
+   - This observation is strictly bounded to the evaluated proxy and does NOT prove a universal law across all possible alternative news sources.
 
 ---
 
-## 7. Recommendation for Unified Neural Trading Policy
+## 7. Bounded Scientific Verdict & Decision on Unified Neural Inputs
 
-**Verdict:** `EXCLUDE`  
+- `S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY`: **`NOT_SUPPORTED`**
+- `NEWS_HISTORICAL_PIT`: **`PARTIAL`**
+- `GENERAL_NEWS_INFORMATION_VALUE`: **`NOT_ESTABLISHED`**
+- `NEWS_NEURAL_INPUT_AUTHORIZATION`: **`NOT_AUTHORIZED`**
 
-Raw news/event shock counts and exploit USD amounts do NOT provide statistically significant or economically additive predictive information beyond price/volatility momentum controls at causal daily horizons.
-We recommend **EXCLUDING** raw news shock counts as state inputs to the upcoming Unified Neural Policy, avoiding unnecessary parameter bloat and overfitting on historical headlines.
+We do NOT assert that 'all news signals are permanently useless' or that 'news intelligence must never be researched'.
+Rather, under strict scientific discipline: **The evaluated S1 raw hack and sampled event shock proxy is NOT SUPPORTED, and news-based features are NOT AUTHORIZED as state inputs for the upcoming Unified Neural Policy.**
 
 ---

@@ -1,6 +1,6 @@
 {
   "research_workstream": "S1_News_Event_Shock_Discovery",
-  "commit": "280cc45a2e7b36389fb5cc2266e9832c71f5a0fc",
+  "commit": "8501bad7f49ad4e7bf354115008314ca0795559a",
   "sources": [
     {
       "id": "defillama_hacks_v1",
@@ -35,9 +35,28 @@
       "notes": "Global media monitoring with CAMEO event codes, Goldstein conflict scale, and average tone."
     }
   ],
+  "coverage_by_split": {
+    "train_split": {
+      "period": "2023-01-01 to 2024-12-31",
+      "total_calendar_days": 731,
+      "defillama_events_count": 860,
+      "gdelt_windows_sampled_days": 25,
+      "gdelt_events_count": 644,
+      "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)"
+    },
+    "validation_split": {
+      "period": "2025-01-01 to 2025-10-31",
+      "total_calendar_days": 304,
+      "defillama_events_count": 502,
+      "gdelt_windows_sampled_days": 9,
+      "gdelt_events_count": 224,
+      "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)"
+    }
+  },
+  "coverage_mask_policy": "GDELT archives were sampled across 6 discrete bounded regimes (34 total days) and were not merged into the continuous daily model feature vector to avoid creating artificial zero-news observations on un-crawled days.",
   "feasibility_assessment": {
     "source_feasibility": "PARTIAL_BOUNDED",
     "continuous_coverage_verified": true,
-    "point_in_time_guarantee": "STRICT_CAUSAL_NO_LOOKAHEAD"
+    "point_in_time_guarantee": "ASSUMED_AVAILABILITY_HEURISTIC_PARTIAL"
   }
 }
