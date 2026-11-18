@@ -46,6 +46,9 @@ logger = logging.getLogger("s1_news_discovery")
 
 OUTPUT_DIR = REPO_ROOT / "research" / "news_event_s1"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+S1_VOL_TARGET_POLICY_KEY = "S1_30D_VOL40_WEEKLY_SIGNAL_DAILY_REBALANCE"
+S1_VOL_TARGET_POLICY_LABEL = "S1 30D Vol Target (40% Target, Weekly Signal, Daily Rebalance)"
 DATA_DIR = REPO_ROOT / "data" / "news_events"
 
 
@@ -227,6 +230,9 @@ def build_causal_features_and_targets(
     pit_audit_traces = []
     total_pit_checks = 0
     passed_pit_checks = 0
+    total_24h_event_memberships = 0
+    total_72h_event_memberships = 0
+    multi_event_24h_decision_days = 0
 
     for t in df.index:
         # Window 24h: (t - 24h, t]
@@ -239,6 +245,9 @@ def build_causal_features_and_targets(
 
         c24 = len(sub_24)
         c72 = len(sub_72)
+        total_24h_event_memberships += c24
+        total_72h_event_memberships += c72
+        multi_event_24h_decision_days += int(c24 > 1)
         u24 = float(sub_24["amount_usd"].sum()) if not sub_24.empty else 0.0
         u72 = float(sub_72["amount_usd"].sum()) if not sub_72.empty else 0.0
 
@@ -296,6 +305,11 @@ def build_causal_features_and_targets(
         "total_pit_checks": total_pit_checks,
         "passed_pit_checks": passed_pit_checks,
         "pit_pass_ratio": (passed_pit_checks / max(1, total_pit_checks)),
+        "pit_check_unit": "decision_days_with_nonempty_24h_event_window",
+        "pit_check_scope": "latest event only on each checked decision day; not an exhaustive event-membership audit",
+        "total_24h_event_memberships": total_24h_event_memberships,
+        "total_72h_event_memberships": total_72h_event_memberships,
+        "multi_event_24h_decision_days": multi_event_24h_decision_days,
         "zero_bfill_enforced": True,
         "publication_delay_hours": 24.0,
         "sample_traces": pit_audit_traces,
@@ -514,9 +528,17 @@ def run_economic_replays(
     clf_base, sc_base, cols_base = fitted_models["Price_Vol_Baseline"]
     clf_comb, sc_comb, cols_comb = fitted_models["Combined_Price_News"]
 
-    # Fill NAs causally
-    features_base = eval_df[cols_base].bfill().ffill().values # only for initial warmup row
-    features_comb = eval_df[cols_comb].bfill().ffill().values
+    # The evaluation window is fully warmed up. Missing features fail closed;
+    # backward-fill is forbidden because it can import future information.
+    missing_base = int(eval_df[cols_base].isna().sum().sum())
+    missing_comb = int(eval_df[cols_comb].isna().sum().sum())
+    if missing_base or missing_comb:
+        raise ValueError(
+            "Economic replay requires complete warmed-up features: "
+            f"base_missing={missing_base}, combined_missing={missing_comb}"
+        )
+    features_base = eval_df[cols_base].to_numpy()
+    features_comb = eval_df[cols_comb].to_numpy()
 
     scaled_base = sc_base.transform(features_base)
     scaled_comb = sc_comb.transform(features_comb)
@@ -540,7 +562,8 @@ def run_economic_replays(
     sma20 = eval_df["close"].rolling(20, min_periods=1).mean().values
     w_trend = np.where(close_px >= sma20, 1.0, 0.0)
 
-    # Benchmark 4: R7 Weekly Vol Target Allocation
+    # Benchmark 4: S1-specific 30-day vol / 40% target variant. The target is
+    # updated every seven rows, but the simulator rebalances daily to that held target.
     ret_daily = pd.Series(close_px).pct_change().fillna(0.0)
     rolling_vol_30d = ret_daily.rolling(30, min_periods=1).std().fillna(0.40).values * np.sqrt(365)
     target_vol = 0.40 # 40% annualized vol target
@@ -565,7 +588,7 @@ def run_economic_replays(
     policies = {
         "100_Pct_Cash": w_cash,
         "100_Pct_BTC_Buy_Hold": w_bh,
-        "R7_Weekly_Vol_Target": w_r7_weekly,
+        S1_VOL_TARGET_POLICY_KEY: w_r7_weekly,
         "Simple_Trend_SMA20": w_trend,
         "Price_Only_Risk_Policy": w_price_risk,
         "Combined_Price_News_Risk_Policy": w_comb_risk,
@@ -735,14 +758,28 @@ def compute_s1_verdict(
         recommendation = "DEFER_PENDING_HIGHER_FIDELITY_DATA"
 
     verdict = {
+        "S1_RESEARCH": "CLOSED_EXPLORATORY",
+        "S1_IMPLEMENTATION": "COMPLETED_EXPLORATORY",
+        "S1_ARTIFACT_NUMERICAL_CONSISTENCY": "VERIFIED",
+        "S1_HISTORICAL_PIT": "PARTIAL",
+        "S1_COVERAGE_SPLIT_COUNTS": "CORRECTED_VERIFIED",
         "NEWS_SOURCE_FEASIBILITY": feasibility,
         "NEWS_PIT_CORRECTNESS": pit_verdict,
         "NEWS_HISTORICAL_PIT": "PARTIAL",
         "NEWS_INCREMENTAL_PREDICTIVE_VALUE": pred_verdict,
         "NEWS_INCREMENTAL_ECONOMIC_VALUE": econ_verdict,
         "S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY": pred_verdict,
+        "S1_DEFILLAMA_HACK_PROXY_24H": pred_verdict,
+        "S1_DEFILLAMA_HACK_PROXY_72H": "INCONCLUSIVE",
+        "S1_INCREMENTAL_ECONOMIC_VALUE": econ_verdict,
+        "S1_GDELT_ECONOMIC_EVALUATION": "NOT_PERFORMED",
+        "S1_R7_CANONICAL_PARITY": "FAILED",
+        "S1_BACKFILL_ACTUAL_IMPACT": "ZERO_EVALUATED_ROWS",
+        "S1_NO_BACKFILL_CLAIM": "VERIFIED_AFTER_REMOVAL",
         "GENERAL_NEWS_INFORMATION_VALUE": "NOT_ESTABLISHED",
         "NEWS_NEURAL_INPUT_AUTHORIZATION": "NOT_AUTHORIZED",
+        "UNIFIED_NEURAL_ALPHA": "NOT_ESTABLISHED",
+        "PRODUCTION_PROMOTION": "NOT_AUTHORIZED",
         "S1_OVERALL_CONCLUSION": overall,
         "RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS": recommendation,
         "evidence_summary": {
@@ -772,6 +809,15 @@ def emit_all_artifacts(
 ):
     """Write canonical json manifests and markdown report."""
     logger.info("Writing canonical artifacts to research/news_event_s1/...")
+
+    train_start = pd.Timestamp("2023-01-01", tz="UTC")
+    validation_start = pd.Timestamp("2025-01-01", tz="UTC")
+    validation_end_exclusive = pd.Timestamp("2025-11-01", tz="UTC")
+
+    def split_count(frame: pd.DataFrame, start: pd.Timestamp, end: pd.Timestamp) -> int:
+        if frame.empty:
+            return 0
+        return int(((frame["available_at"] >= start) & (frame["available_at"] < end)).sum())
 
     # 1. Source Coverage Manifest
     source_coverage_manifest = {
@@ -805,29 +851,35 @@ def emit_all_artifacts(
                     "W6_VAL_BYBIT (2025-02-20 to 2025-02-25)"
                 ],
                 "total_parsed_events": len(gdelt_df),
-                "temporal_granularity": "15-minute batches (YYYYMMDDHHMMSS)",
+                "source_archive_granularity": "15-minute batches (YYYYMMDDHHMMSS)",
+                "collection_sampling_interval_hours": 2,
                 "enforced_ingestion_lag_hours": 1.0,
                 "pit_safety_status": "VERIFIED_CAUSAL",
-                "notes": "Global media monitoring with CAMEO event codes, Goldstein conflict scale, and average tone.",
+                "predictive_or_economic_model_usage": "NOT_USED",
+                "notes": "One archive was sampled every 2 hours within bounded windows; this is not complete 15-minute coverage.",
             }
         ],
         "coverage_by_split": {
             "train_split": {
                 "period": "2023-01-01 to 2024-12-31",
                 "total_calendar_days": 731,
-                "defillama_events_count": int((defillama_df["available_at"] < "2025-01-01").sum()),
+                "defillama_events_count": split_count(defillama_df, train_start, validation_start),
                 "gdelt_windows_sampled_days": 25,
-                "gdelt_events_count": int((gdelt_df["available_at"] < "2025-01-01").sum()) if not gdelt_df.empty else 0,
+                "gdelt_events_count": split_count(gdelt_df, train_start, validation_start),
                 "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)",
             },
             "validation_split": {
                 "period": "2025-01-01 to 2025-10-31",
                 "total_calendar_days": 304,
-                "defillama_events_count": int((defillama_df["available_at"] >= "2025-01-01").sum()),
+                "defillama_events_count": split_count(defillama_df, validation_start, validation_end_exclusive),
                 "gdelt_windows_sampled_days": 9,
-                "gdelt_events_count": int((gdelt_df["available_at"] >= "2025-01-01").sum()) if not gdelt_df.empty else 0,
+                "gdelt_events_count": split_count(gdelt_df, validation_start, validation_end_exclusive),
                 "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)",
             }
+        },
+        "excluded_outside_research_window": {
+            "defillama_before_2023_count": int((defillama_df["available_at"] < train_start).sum()),
+            "defillama_after_2025_10_31_count": int((defillama_df["available_at"] >= validation_end_exclusive).sum()),
         },
         "coverage_mask_policy": "GDELT archives were sampled across 6 discrete bounded regimes (34 total days) and were not merged into the continuous daily model feature vector to avoid creating artificial zero-news observations on un-crawled days.",
         "feasibility_assessment": {
@@ -847,7 +899,14 @@ def emit_all_artifacts(
             "total_pit_checks": pit_audit["total_pit_checks"],
             "passed_pit_checks": pit_audit["passed_pit_checks"],
             "pit_pass_ratio": pit_audit["pit_pass_ratio"],
+            "pit_check_unit": pit_audit["pit_check_unit"],
+            "pit_check_scope": pit_audit["pit_check_scope"],
+            "total_24h_event_memberships": pit_audit["total_24h_event_memberships"],
+            "total_72h_event_memberships": pit_audit["total_72h_event_memberships"],
+            "multi_event_24h_decision_days": pit_audit["multi_event_24h_decision_days"],
             "zero_bfill_enforced": pit_audit["zero_bfill_enforced"],
+            "economic_replay_bfill_removed": True,
+            "economic_replay_bfill_observed_affected_rows_before_removal": 0,
             "publication_delay_hours": pit_audit["publication_delay_hours"],
             "provenance_distinction": {
                 "event_occurrence_date": "Provided as midnight UTC (00:00:00 UTC) from DeFiLlama API date field.",
@@ -865,6 +924,7 @@ def emit_all_artifacts(
     canonical_scorecard = {
         "scorecard_metadata": {
             "research_id": "S1_NEWS_EVENT_SHOCK_DISCOVERY",
+            "research_status": "CLOSED_EXPLORATORY",
             "git_commit": get_git_commit(),
             "evaluation_date": pd.Timestamp.now("UTC").isoformat(),
         },
@@ -879,7 +939,14 @@ def emit_all_artifacts(
         json.dump(canonical_scorecard, f, indent=2)
 
     # 4. Scientific Markdown Report
-    report_md = render_markdown_report(verdict, stat_summary_24h, stat_summary_72h, econ_results, pit_audit)
+    report_md = render_markdown_report(
+        verdict,
+        stat_summary_24h,
+        stat_summary_72h,
+        econ_results,
+        pit_audit,
+        source_coverage_manifest,
+    )
     with open(OUTPUT_DIR / "s1_scientific_report.md", "w", encoding="utf-8") as f:
         f.write(report_md)
 
@@ -892,13 +959,14 @@ def render_markdown_report(
     s72: Dict[str, Any],
     econ: Dict[str, Any],
     pit: Dict[str, Any],
+    coverage: Dict[str, Any],
 ) -> str:
     """Generate comprehensive scientific report."""
 
     comb_val_12 = econ["12_bps"]["Combined_Price_News_Risk_Policy"]["validation"]
     price_val_12 = econ["12_bps"]["Price_Only_Risk_Policy"]["validation"]
     bh_val_12 = econ["12_bps"]["100_Pct_BTC_Buy_Hold"]["validation"]
-    r7_val_12 = econ["12_bps"]["R7_Weekly_Vol_Target"]["validation"]
+    s1_vol_val_12 = econ["12_bps"][S1_VOL_TARGET_POLICY_KEY]["validation"]
     trend_val_12 = econ["12_bps"]["Simple_Trend_SMA20"]["validation"]
 
     comb_val_30 = econ["30_bps"]["Combined_Price_News_Risk_Policy"]["validation"]
@@ -909,18 +977,23 @@ def render_markdown_report(
         "",
         "## 1. Executive Summary & Canonical Verdict",
         "",
-        f"**Repository Commit:** `{get_git_commit()}`  ",
-        f"**Evaluation Date:** `{pd.Timestamp.now('UTC').strftime('%Y-%m-%d %H:%M:%S UTC')}`  ",
-        f"**Research Status:** COMPLETE  ",
+        f"- **Repository Commit:** `{get_git_commit()}`",
+        f"- **Evaluation Date:** `{pd.Timestamp.now('UTC').strftime('%Y-%m-%d %H:%M:%S UTC')}`",
+        "- **Research Status:** `CLOSED_EXPLORATORY`",
         "",
         "### Final Evidence-Derived Verdicts",
         "",
-        f"- `NEWS_SOURCE_FEASIBILITY`: **`{verdict['NEWS_SOURCE_FEASIBILITY']}`**",
-        f"- `NEWS_PIT_CORRECTNESS`: **`{verdict['NEWS_PIT_CORRECTNESS']}`**",
-        f"- `NEWS_INCREMENTAL_PREDICTIVE_VALUE`: **`{verdict['NEWS_INCREMENTAL_PREDICTIVE_VALUE']}`**",
-        f"- `NEWS_INCREMENTAL_ECONOMIC_VALUE`: **`{verdict['NEWS_INCREMENTAL_ECONOMIC_VALUE']}`**",
-        f"- `S1_OVERALL_CONCLUSION`: **`{verdict['S1_OVERALL_CONCLUSION']}`**",
-        f"- `RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS`: **`{verdict['RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS']}`**",
+        f"- `S1_RESEARCH`: **`{verdict['S1_RESEARCH']}`**",
+        f"- `S1_HISTORICAL_PIT`: **`{verdict['S1_HISTORICAL_PIT']}`**",
+        f"- `S1_COVERAGE_SPLIT_COUNTS`: **`{verdict['S1_COVERAGE_SPLIT_COUNTS']}`**",
+        f"- `S1_DEFILLAMA_HACK_PROXY_24H`: **`{verdict['S1_DEFILLAMA_HACK_PROXY_24H']}`**",
+        f"- `S1_DEFILLAMA_HACK_PROXY_72H`: **`{verdict['S1_DEFILLAMA_HACK_PROXY_72H']}`**",
+        f"- `S1_INCREMENTAL_ECONOMIC_VALUE`: **`{verdict['S1_INCREMENTAL_ECONOMIC_VALUE']}`**",
+        f"- `S1_GDELT_ECONOMIC_EVALUATION`: **`{verdict['S1_GDELT_ECONOMIC_EVALUATION']}`**",
+        f"- `S1_R7_CANONICAL_PARITY`: **`{verdict['S1_R7_CANONICAL_PARITY']}`**",
+        f"- `GENERAL_NEWS_INFORMATION_VALUE`: **`{verdict['GENERAL_NEWS_INFORMATION_VALUE']}`**",
+        f"- `UNIFIED_NEURAL_ALPHA`: **`{verdict['UNIFIED_NEURAL_ALPHA']}`**",
+        f"- `PRODUCTION_PROMOTION`: **`{verdict['PRODUCTION_PROMOTION']}`**",
         "",
         "---",
         "",
@@ -941,14 +1014,28 @@ def render_markdown_report(
         "   - **PIT Protocol:** Incident dates are assigned midnight UTC. To eliminate lookahead bias, an explicit **+24 hour publication delay** is applied: `available_at = event_timestamp + 24h`.",
         "",
         "2. **GDELT Project 2.0 15-Minute Global Event Archives (Bounded Windows):**",
-        "   - Continuous 15-minute global event stream with 14-digit UTC timestamps (`YYYYMMDDHHMMSS`).",
-        "   - Sampled across 6 critical market shock regimes (SVB/USDC depeg, SEC regulatory enforcement, flash crash liquidations, spot ETF momentum, split boundary, and Bybit exploit).",
+        "   - The source publishes 15-minute archives with 14-digit UTC timestamps (`YYYYMMDDHHMMSS`).",
+        "   - S1 sampled one archive every 2 hours across 6 bounded regimes; it did not collect complete 15-minute coverage.",
+        "   - GDELT events were not used by the predictive models or economic replay.",
         "   - **PIT Protocol:** Enforced **+1 hour ingestion delay** before decision evaluation.",
         "",
         "### PIT Audit Summary",
-        f"- Total causal checks: **{pit['total_pit_checks']}**",
+        f"- Decision-days checked (latest 24h event only): **{pit['total_pit_checks']}**",
         f"- Passed causal checks: **{pit['passed_pit_checks']}** (Ratio: **{pit['pit_pass_ratio']*100:.1f}%**)",
-        f"- Zero forward-fill / bfill violation: **{pit['zero_bfill_enforced']}**",
+        f"- 24h event memberships used by feature aggregation: **{pit['total_24h_event_memberships']}**",
+        f"- 72h event memberships used by feature aggregation: **{pit['total_72h_event_memberships']}**",
+        "- Audit scope is partial: the latest event on each non-empty 24h decision-day was checked, not every event membership.",
+        "- Historical first-seen remains unverified; `event_date + 24h` is an assumed availability heuristic.",
+        "- Economic replay backward-fill: **removed**; the 1,035-row evaluation matrix had zero missing cells and zero previously affected rows.",
+        "",
+        "### Corrected DeFiLlama Coverage by Research Split",
+        "",
+        "| Split | Boundary | Events |",
+        "| :--- | :--- | ---: |",
+        f"| Train | 2023-01-01 to 2024-12-31 | **{coverage['coverage_by_split']['train_split']['defillama_events_count']}** |",
+        f"| Validation | 2025-01-01 to 2025-10-31 | **{coverage['coverage_by_split']['validation_split']['defillama_events_count']}** |",
+        f"| Excluded before research window | Before 2023-01-01 | **{coverage['excluded_outside_research_window']['defillama_before_2023_count']}** |",
+        f"| Excluded after validation | On/after 2025-11-01 | **{coverage['excluded_outside_research_window']['defillama_after_2025_10_31_count']}** |",
         "",
         "---",
         "",
@@ -993,12 +1080,12 @@ def render_markdown_report(
         "| Policy | Net Ret (12 bps) | Sharpe (12 bps) | MaxDD (12 bps) | Net Ret (30 bps) | Sharpe (30 bps) | Val Trades (Full) | Val Fees 12 bps (Full) |",
         "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
         f"| `100% BTC Buy & Hold` | {bh_val_12['net_return_pct']:+.2f}% | {bh_val_12['sharpe_ratio']:.2f} | {bh_val_12['max_drawdown_pct']:.2f}% | {bh_val_12['net_return_pct']:+.2f}% | {bh_val_12['sharpe_ratio']:.2f} | 0 (1) | $0.00 ($11.99) |",
-        f"| `R7 Weekly Vol Target` | {r7_val_12['net_return_pct']:+.2f}% | {r7_val_12['sharpe_ratio']:.2f} | {r7_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps']['R7_Weekly_Vol_Target']['validation']['net_return_pct']:+.2f}% | {econ['30_bps']['R7_Weekly_Vol_Target']['validation']['sharpe_ratio']:.2f} | {econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['val_trades_executed']} ({econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['R7_Weekly_Vol_Target']['diagnostics']['total_fees_paid_usd']:.2f}) |",
+        f"| `{S1_VOL_TARGET_POLICY_LABEL}` | {s1_vol_val_12['net_return_pct']:+.2f}% | {s1_vol_val_12['sharpe_ratio']:.2f} | {s1_vol_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps'][S1_VOL_TARGET_POLICY_KEY]['validation']['net_return_pct']:+.2f}% | {econ['30_bps'][S1_VOL_TARGET_POLICY_KEY]['validation']['sharpe_ratio']:.2f} | {econ['12_bps'][S1_VOL_TARGET_POLICY_KEY]['diagnostics']['val_trades_executed']} ({econ['12_bps'][S1_VOL_TARGET_POLICY_KEY]['diagnostics']['actual_trades_executed']}) | ${econ['12_bps'][S1_VOL_TARGET_POLICY_KEY]['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps'][S1_VOL_TARGET_POLICY_KEY]['diagnostics']['total_fees_paid_usd']:.2f}) |",
         f"| `Simple Trend (SMA20)` | {trend_val_12['net_return_pct']:+.2f}% | {trend_val_12['sharpe_ratio']:.2f} | {trend_val_12['max_drawdown_pct']:.2f}% | {econ['30_bps']['Simple_Trend_SMA20']['validation']['net_return_pct']:+.2f}% | {econ['30_bps']['Simple_Trend_SMA20']['validation']['sharpe_ratio']:.2f} | {econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['val_trades_executed']} ({econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['Simple_Trend_SMA20']['diagnostics']['total_fees_paid_usd']:.2f}) |",
         f"| `Price-Only Risk Policy` | {price_val_12['net_return_pct']:+.2f}% | {price_val_12['sharpe_ratio']:.2f} | {price_val_12['max_drawdown_pct']:.2f}% | {price_val_30['net_return_pct']:+.2f}% | {price_val_30['sharpe_ratio']:.2f} | {econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['val_trades_executed']} ({econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['Price_Only_Risk_Policy']['diagnostics']['total_fees_paid_usd']:.2f}) |",
         f"| `Combined (Price+News) Policy` | {comb_val_12['net_return_pct']:+.2f}% | {comb_val_12['sharpe_ratio']:.2f} | {comb_val_12['max_drawdown_pct']:.2f}% | {comb_val_30['net_return_pct']:+.2f}% | {comb_val_30['sharpe_ratio']:.2f} | {econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['val_trades_executed']} ({econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['actual_trades_executed']}) | ${econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['val_fees_paid_usd']:.2f} (${econ['12_bps']['Combined_Price_News_Risk_Policy']['diagnostics']['total_fees_paid_usd']:.2f}) |",
         "",
-        "> **Trade Count Audit Note:** The 'Val Trades (Full)' column clarifies the actual trades executed during the 304-day Validation window versus the 1,034-day Full Horizon. R7 Weekly Vol Target executed 131 trades in Validation because daily MTM rebalances small drift variations from the target weight.",
+        f"> **Trade Count Audit Note:** `{S1_VOL_TARGET_POLICY_LABEL}` is not canonical R7. Its target updates every seven rows, while daily simulator rebalancing produced 131 Validation trades (646 full-horizon).",
         "",
         "---",
         "",
@@ -1017,15 +1104,15 @@ def render_markdown_report(
         "",
         "---",
         "",
-        "## 7. Bounded Scientific Verdict & Decision on Unified Neural Inputs",
+        "## 7. Bounded Scientific Verdict & Closure",
         "",
-        f"- `S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY`: **`{verdict.get('S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY', 'NOT_SUPPORTED')}`**",
-        f"- `NEWS_HISTORICAL_PIT`: **`{verdict.get('NEWS_HISTORICAL_PIT', 'PARTIAL')}`**",
-        f"- `GENERAL_NEWS_INFORMATION_VALUE`: **`{verdict.get('GENERAL_NEWS_INFORMATION_VALUE', 'NOT_ESTABLISHED')}`**",
-        f"- `NEWS_NEURAL_INPUT_AUTHORIZATION`: **`{verdict.get('NEWS_NEURAL_INPUT_AUTHORIZATION', 'NOT_AUTHORIZED')}`**",
+        f"- The DeFiLlama hack proxy is `{verdict['S1_DEFILLAMA_HACK_PROXY_24H']}` for the primary 24h target and `{verdict['S1_DEFILLAMA_HACK_PROXY_72H']}` for the secondary 72h target.",
+        f"- GDELT economic evaluation was `{verdict['S1_GDELT_ECONOMIC_EVALUATION']}`.",
+        f"- General news information value and unified-neural alpha remain `{verdict['GENERAL_NEWS_INFORMATION_VALUE']}`.",
+        f"- News-derived neural inputs and production promotion remain `{verdict['PRODUCTION_PROMOTION']}`.",
+        "- S1 is closed as `CLOSED_EXPLORATORY`; this closure does not authorize S1.1, S2, retraining, replay, crawling, or deployment work.",
         "",
-        "We do NOT assert that 'all news signals are permanently useless' or that 'news intelligence must never be researched'.",
-        "Rather, under strict scientific discipline: **The evaluated S1 raw hack and sampled event shock proxy is NOT SUPPORTED, and news-based features are NOT AUTHORIZED as state inputs for the upcoming Unified Neural Policy.**",
+        "The conclusion is deliberately bounded: the evaluated S1 raw-hack proxy did not establish incremental predictive or economic value. It does not claim that all news signals are permanently useless.",
         "",
         "---",
     ])

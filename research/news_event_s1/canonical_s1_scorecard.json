@@ -1,18 +1,40 @@
 {
   "scorecard_metadata": {
     "research_id": "S1_NEWS_EVENT_SHOCK_DISCOVERY",
+    "research_status": "CLOSED_EXPLORATORY",
     "git_commit": "8501bad7f49ad4e7bf354115008314ca0795559a",
-    "evaluation_date": "2026-11-18T04:28:02.903408+00:00"
+    "evaluation_date": "2026-11-18T04:28:02.903408+00:00",
+    "artifact_source_consistency_closure": {
+      "base_commit": "d532e393d2114467fd2720e21bed064854eecd70",
+      "experiment_rerun": false,
+      "predictive_metrics_changed": false,
+      "economic_metrics_changed": false,
+      "verdict_scope_refined": true
+    }
   },
   "verdicts": {
+    "S1_RESEARCH": "CLOSED_EXPLORATORY",
+    "S1_IMPLEMENTATION": "COMPLETED_EXPLORATORY",
+    "S1_ARTIFACT_NUMERICAL_CONSISTENCY": "VERIFIED",
+    "S1_HISTORICAL_PIT": "PARTIAL",
+    "S1_COVERAGE_SPLIT_COUNTS": "CORRECTED_VERIFIED",
     "NEWS_SOURCE_FEASIBILITY": "PARTIAL_BOUNDED",
     "NEWS_PIT_CORRECTNESS": "PARTIAL",
     "NEWS_HISTORICAL_PIT": "PARTIAL",
     "NEWS_INCREMENTAL_PREDICTIVE_VALUE": "NOT_SUPPORTED",
     "NEWS_INCREMENTAL_ECONOMIC_VALUE": "NOT_SUPPORTED",
     "S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY": "NOT_SUPPORTED",
+    "S1_DEFILLAMA_HACK_PROXY_24H": "NOT_SUPPORTED",
+    "S1_DEFILLAMA_HACK_PROXY_72H": "INCONCLUSIVE",
+    "S1_INCREMENTAL_ECONOMIC_VALUE": "NOT_SUPPORTED",
+    "S1_GDELT_ECONOMIC_EVALUATION": "NOT_PERFORMED",
+    "S1_R7_CANONICAL_PARITY": "FAILED",
+    "S1_BACKFILL_ACTUAL_IMPACT": "ZERO_EVALUATED_ROWS",
+    "S1_NO_BACKFILL_CLAIM": "VERIFIED_AFTER_REMOVAL",
     "GENERAL_NEWS_INFORMATION_VALUE": "NOT_ESTABLISHED",
     "NEWS_NEURAL_INPUT_AUTHORIZATION": "NOT_AUTHORIZED",
+    "UNIFIED_NEURAL_ALPHA": "NOT_ESTABLISHED",
+    "PRODUCTION_PROMOTION": "NOT_AUTHORIZED",
     "S1_OVERALL_CONCLUSION": "NEWS_SHOCK_VALUE_NOT_SUPPORTED",
     "RECOMMENDATION_FOR_UNIFIED_NEURAL_INPUTS": "EXCLUDE",
     "evidence_summary": {
@@ -232,7 +254,7 @@
           "unbacked_leverage_detected": false
         }
       },
-      "R7_Weekly_Vol_Target": {
+      "S1_30D_VOL40_WEEKLY_SIGNAL_DAILY_REBALANCE": {
         "full_horizon": {
           "net_return_pct": 433.25947405652556,
           "sharpe_ratio": 1.672904856401474,
@@ -426,7 +448,7 @@
           "unbacked_leverage_detected": false
         }
       },
-      "R7_Weekly_Vol_Target": {
+      "S1_30D_VOL40_WEEKLY_SIGNAL_DAILY_REBALANCE": {
         "full_horizon": {
           "net_return_pct": 423.62831752376155,
           "sharpe_ratio": 1.6569544934000335,

@@ -29,17 +29,19 @@
         "W6_VAL_BYBIT (2025-02-20 to 2025-02-25)"
       ],
       "total_parsed_events": 868,
-      "temporal_granularity": "15-minute batches (YYYYMMDDHHMMSS)",
+      "source_archive_granularity": "15-minute batches (YYYYMMDDHHMMSS)",
+      "collection_sampling_interval_hours": 2,
       "enforced_ingestion_lag_hours": 1.0,
       "pit_safety_status": "VERIFIED_CAUSAL",
-      "notes": "Global media monitoring with CAMEO event codes, Goldstein conflict scale, and average tone."
+      "predictive_or_economic_model_usage": "NOT_USED",
+      "notes": "One archive was sampled every 2 hours within bounded windows; this is not complete 15-minute coverage."
     }
   ],
   "coverage_by_split": {
     "train_split": {
       "period": "2023-01-01 to 2024-12-31",
       "total_calendar_days": 731,
-      "defillama_events_count": 860,
+      "defillama_events_count": 414,
       "gdelt_windows_sampled_days": 25,
       "gdelt_events_count": 644,
       "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)"
@@ -47,11 +49,15 @@
     "validation_split": {
       "period": "2025-01-01 to 2025-10-31",
       "total_calendar_days": 304,
-      "defillama_events_count": 502,
+      "defillama_events_count": 120,
       "gdelt_windows_sampled_days": 9,
       "gdelt_events_count": 224,
       "continuous_model_feature_source": "DeFiLlama Hacks (Continuous daily series)"
     }
+  },
+  "excluded_outside_research_window": {
+    "defillama_before_2023_count": 446,
+    "defillama_after_2025_10_31_count": 382
   },
   "coverage_mask_policy": "GDELT archives were sampled across 6 discrete bounded regimes (34 total days) and were not merged into the continuous daily model feature vector to avoid creating artificial zero-news observations on un-crawled days.",
   "feasibility_assessment": {

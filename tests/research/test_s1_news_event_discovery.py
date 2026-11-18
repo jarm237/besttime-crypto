@@ -23,6 +23,8 @@ SCORECARD_PATH = OUTPUT_DIR / "canonical_s1_scorecard.json"
 MANIFEST_PATH = OUTPUT_DIR / "source_coverage_manifest.json"
 PIT_MANIFEST_PATH = OUTPUT_DIR / "pit_event_manifest.json"
 REPORT_PATH = OUTPUT_DIR / "s1_scientific_report.md"
+ADDENDUM_PATH = OUTPUT_DIR / "s1_artifact_source_consistency_closure.md"
+S1_VOL_TARGET_POLICY_KEY = "S1_30D_VOL40_WEEKLY_SIGNAL_DAILY_REBALANCE"
 
 
 def test_artifacts_exist():
@@ -31,6 +33,7 @@ def test_artifacts_exist():
     assert MANIFEST_PATH.exists(), f"Missing {MANIFEST_PATH}"
     assert PIT_MANIFEST_PATH.exists(), f"Missing {PIT_MANIFEST_PATH}"
     assert REPORT_PATH.exists(), f"Missing {REPORT_PATH}"
+    assert ADDENDUM_PATH.exists(), f"Missing {ADDENDUM_PATH}"
 
 
 def test_scorecard_schema():
@@ -43,6 +46,10 @@ def test_scorecard_schema():
     assert "economic_evaluation" in scorecard
 
     verdicts = scorecard["verdicts"]
+    assert verdicts["S1_RESEARCH"] == "CLOSED_EXPLORATORY"
+    assert verdicts["S1_ARTIFACT_NUMERICAL_CONSISTENCY"] == "VERIFIED"
+    assert verdicts["S1_HISTORICAL_PIT"] == "PARTIAL"
+    assert verdicts["S1_COVERAGE_SPLIT_COUNTS"] == "CORRECTED_VERIFIED"
     assert verdicts["NEWS_SOURCE_FEASIBILITY"] in ["SUFFICIENT", "PARTIAL_BOUNDED", "INSUFFICIENT"]
     assert verdicts["NEWS_PIT_CORRECTNESS"] in ["PASS", "FAIL", "PARTIAL", "PARTIAL_ASSUMED_AVAILABILITY"]
     assert verdicts["NEWS_HISTORICAL_PIT"] in ["PARTIAL", "SUFFICIENT", "INSUFFICIENT"]
@@ -51,6 +58,13 @@ def test_scorecard_schema():
     assert verdicts["S1_RAW_HACK_AND_SAMPLED_EVENT_SHOCK_PROXY"] in ["SUPPORTED", "NOT_SUPPORTED", "INCONCLUSIVE"]
     assert verdicts["GENERAL_NEWS_INFORMATION_VALUE"] == "NOT_ESTABLISHED"
     assert verdicts["NEWS_NEURAL_INPUT_AUTHORIZATION"] == "NOT_AUTHORIZED"
+    assert verdicts["S1_DEFILLAMA_HACK_PROXY_24H"] == "NOT_SUPPORTED"
+    assert verdicts["S1_DEFILLAMA_HACK_PROXY_72H"] == "INCONCLUSIVE"
+    assert verdicts["S1_INCREMENTAL_ECONOMIC_VALUE"] == "NOT_SUPPORTED"
+    assert verdicts["S1_GDELT_ECONOMIC_EVALUATION"] == "NOT_PERFORMED"
+    assert verdicts["S1_R7_CANONICAL_PARITY"] == "FAILED"
+    assert verdicts["S1_NO_BACKFILL_CLAIM"] == "VERIFIED_AFTER_REMOVAL"
+    assert verdicts["PRODUCTION_PROMOTION"] == "NOT_AUTHORIZED"
     assert verdicts["S1_OVERALL_CONCLUSION"] in [
         "NEWS_SHOCK_VALUE_SUPPORTED",
         "NEWS_SHOCK_VALUE_NOT_SUPPORTED",
@@ -72,6 +86,13 @@ def test_pit_alignment_temporal_ordering():
     audit_meta = pit_data["audit_metadata"]
     assert audit_meta["pit_pass_ratio"] == 1.0, f"Expected 100% PIT pass ratio, got {audit_meta['pit_pass_ratio']}"
     assert audit_meta["zero_bfill_enforced"] is True
+    assert audit_meta["pit_check_unit"] == "decision_days_with_nonempty_24h_event_window"
+    assert audit_meta["total_pit_checks"] == 796
+    assert audit_meta["total_24h_event_memberships"] == 1097
+    assert audit_meta["total_72h_event_memberships"] == 3287
+    assert audit_meta["multi_event_24h_decision_days"] == 227
+    assert audit_meta["economic_replay_bfill_removed"] is True
+    assert audit_meta["economic_replay_bfill_observed_affected_rows_before_removal"] == 0
     assert audit_meta["publication_delay_hours"] >= 24.0
 
     sample_traces = pit_data.get("sample_audit_traces", [])
@@ -167,7 +188,7 @@ def test_economic_numbers_exact_reproduction():
     assert abs(comb_val_ret - 10.40) < 0.05, f"Expected Combined ~10.40%, got {comb_val_ret}"
 
     # Verify subperiod trades diagnostics
-    r7_diag = econ_12["R7_Weekly_Vol_Target"]["diagnostics"]
+    r7_diag = econ_12[S1_VOL_TARGET_POLICY_KEY]["diagnostics"]
     assert r7_diag["actual_trades_executed"] == 646
     assert r7_diag["val_trades_executed"] == 131
     assert r7_diag["train_trades_executed"] == 515
@@ -187,3 +208,25 @@ def test_predictive_scorecard_metrics_exact_reproduction():
     s72 = stat["secondary_target_72h_downside"]
     assert abs(s72["delta_pr_auc_val"] - 0.0103) < 0.001
     assert s72["permutation_test_100_runs"]["p_value"] > 0.20
+
+
+def test_corrected_coverage_split_counts():
+    """Coverage metadata must use the exact documented Train/Validation boundaries."""
+    with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    coverage = manifest["coverage_by_split"]
+    assert coverage["train_split"]["defillama_events_count"] == 414
+    assert coverage["validation_split"]["defillama_events_count"] == 120
+    assert manifest["excluded_outside_research_window"]["defillama_before_2023_count"] == 446
+    assert manifest["excluded_outside_research_window"]["defillama_after_2025_10_31_count"] == 382
+
+
+def test_economic_replay_has_no_backward_fill():
+    """The economic replay must fail closed on missing features, never import future values."""
+    import inspect
+    from scripts.run_s1_news_event_discovery import run_economic_replays
+
+    source = inspect.getsource(run_economic_replays)
+    assert ".bfill(" not in source
+    assert "requires complete warmed-up features" in source
