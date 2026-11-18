@@ -6,6 +6,8 @@
 **Audit Completion Date:** `2026-11-18T14:22:00+00:00`
 **Auditor Role:** Senior Quantitative Researcher & Financial Simulation Auditor
 
+> **Scientific status update:** The authoritative scoped interpretation is documented in `s2a_bounded_fidelity_addendum.md`. It supersedes earlier unqualified PIT, execution-fidelity, asset-contribution and buffer-calibration claims. Historical economic metrics remain unchanged.
+
 ---
 
 ## 1. Executive Closure Verdicts
