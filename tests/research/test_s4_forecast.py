@@ -7,6 +7,8 @@ import pytest
 import torch
 
 from btc_scraper.research.s4_dataset_audit import (
+    AUDIT_END,
+    AUDIT_START,
     FOLDS,
     UNIVERSE,
     feature_dependency_window,
@@ -20,8 +22,8 @@ from btc_scraper.research.s4_forecast import (
     LAST_SCREEN_DECISION,
     MAX_TRAINABLE_PARAMETERS,
     RIDGE_ALPHAS,
-    ChronologicalSplitter,
     CausalSigmaNormalizer,
+    ChronologicalSplitter,
     FeatureScaler,
     ForecastError,
     RidgeBaseline,
@@ -31,6 +33,7 @@ from btc_scraper.research.s4_forecast import (
     select_ridge_alpha,
     set_seed,
 )
+from scripts.run_s4_stage1_screen import run_preflight
 
 
 def _synthetic_panel(
@@ -118,8 +121,6 @@ def test_identical_eligible_dates_and_raw_information_parity() -> None:
     assert flat.shape == (batch_size, INPUT_HOURS * INPUT_ASSETS * INPUT_FEATURES)
 
     # Order must be time-major, asset-major, feature-major:
-    # First entry: b=0, t=0, a=0, f=0
-    # Next entry: b=0, t=0, a=0, f=1
     assert flat[0, 0] == tensor[0, 0, 0, 0]
     assert flat[0, 1] == tensor[0, 0, 0, 1]
     assert flat[0, INPUT_FEATURES] == tensor[0, 0, 1, 0]
@@ -184,9 +185,42 @@ def test_ewma_state_availability_only_completed_labels() -> None:
     assert latest_comp == test_decision - pd.Timedelta(days=1) + pd.Timedelta(hours=1)
 
 
+def test_historical_warmup_carries_into_2022_only_dataset() -> None:
+    """Verify that supplying a 2022-only decision calendar carries all 2021 warmup labels without discarding."""
+    dev_decisions = pd.date_range("2022-01-01", periods=10, freq="D", tz="UTC")
+    panels = _synthetic_panel("2021-10-01", 24 * 120)
+    partitions = build_causal_partitions(panels, dev_decisions, warmup_start=AUDIT_START)
+
+    normalizer = partitions.sigma_normalizer
+    first_dev = pd.Timestamp("2022-01-01", tz="UTC")
+    for symbol in UNIVERSE:
+        completed = normalizer.get_completed_count(symbol, first_dev)
+        # Exactly 60 daily decisions from 2021-11-01 to 2021-12-30 completed before 2022-01-01 00:00
+        assert completed == 60
+        latest_c = normalizer.get_latest_completion(symbol, first_dev)
+        assert latest_c <= first_dev
+        assert np.isfinite(normalizer.get_raw_sigma(symbol, first_dev))
+
+
+def test_validation_folds_respect_label_completion_boundaries() -> None:
+    """Verify each validation fold evaluates only decisions whose labels complete no later than validation end."""
+    for fold in FOLDS:
+        val_dates = ChronologicalSplitter.get_validation_dates(fold)
+        nominal_end = pd.Timestamp(fold.validation_end, tz="UTC")
+        val_end_cutoff = nominal_end + pd.Timedelta(days=1)
+
+        # The nominal last day completes at nominal_end + 1 day 01:00 UTC > val_end_cutoff, so must be excluded
+        assert nominal_end not in val_dates
+        assert all(d + pd.Timedelta(days=1, hours=1) <= val_end_cutoff for d in val_dates)
+
+    # Verify specific F1 example: 2022-06-15 excluded, 2022-06-14 included
+    f1_val = ChronologicalSplitter.get_validation_dates(FOLDS[0])
+    assert pd.Timestamp("2022-06-15", tz="UTC") not in f1_val
+    assert pd.Timestamp("2022-06-14", tz="UTC") in f1_val
+
+
 def test_fold_specific_scaling_and_sigma_floors() -> None:
     """Verify sigma floors and feature scaler are fitted strictly on fit partition."""
-    # Test FeatureScaler
     X_fit = np.ones((10, INPUT_HOURS, INPUT_ASSETS, INPUT_FEATURES)) * 2.0
     X_fit[0] = 4.0
     scaler = FeatureScaler().fit(X_fit)
@@ -219,7 +253,6 @@ def test_purging_at_each_2022_validation_boundary() -> None:
         val_start = pd.Timestamp(fold.validation_start, tz="UTC")
         nominal_fit_end = pd.Timestamp(fold.fit_end, tz="UTC")
 
-        # The last nominal day's label completes on validation_start at 01:00 UTC > validation_start 00:00 UTC
         assert nominal_fit_end not in purged
         assert all(d + pd.Timedelta(days=1, hours=1) <= val_start for d in purged)
 
@@ -229,7 +262,7 @@ def test_exclusion_of_2022_12_31_from_final_fitting() -> None:
     full_dev = ChronologicalSplitter.get_full_dev_dates()
     assert pd.Timestamp("2022-12-30", tz="UTC") in full_dev
     assert pd.Timestamp("2022-12-31", tz="UTC") not in full_dev
-    assert max(full_dev) == LAST_2022_DEV_DEV_DECISION if "LAST_2022_DEV_DEV_DECISION" in globals() else pd.Timestamp("2022-12-30", tz="UTC")
+    assert max(full_dev) == LAST_2022_DEV_DECISION
 
 
 def test_exclusion_of_2023_12_31_from_future_screening() -> None:
@@ -240,33 +273,85 @@ def test_exclusion_of_2023_12_31_from_future_screening() -> None:
     assert max(screen_dates) == LAST_SCREEN_DECISION
 
 
-def test_ridge_alpha_selection_and_tie_breaking() -> None:
-    """Verify Ridge alpha selection over 4 folds breaks ties by choosing the largest alpha."""
+def test_select_ridge_alpha_executes_all_registered_alphas_and_folds() -> None:
+    """Verify select_ridge_alpha evaluates all 8 registered alphas and all 4 folds."""
     panels = _synthetic_panel("2021-11-01", 24 * 420)
-    dev_dates = ChronologicalSplitter.get_full_dev_dates()[:120]
+    dev_dates = ChronologicalSplitter.get_full_dev_dates()
     partitions = build_causal_partitions(panels, dev_dates)
 
-    # Synthetic tie test on tie-breaking logic
-    test_mean_mses = {0.001: 0.12, 1.0: 0.05, 10.0: 0.05, 100.0: 0.08}
-    alphas = [0.001, 1.0, 10.0, 100.0]
-    best_alpha = min(alphas, key=lambda a: (test_mean_mses[a], -a))
-    assert best_alpha == 10.0  # picks larger alpha on tie
+    best_alpha, mean_mses, fold_mses = select_ridge_alpha(
+        partitions.features,
+        partitions.raw_labels,
+        partitions.sigma_normalizer,
+    )
+    assert set(mean_mses.keys()) == set(RIDGE_ALPHAS)
+    assert set(fold_mses.keys()) == {"F1", "F2", "F3", "F4"}
+    for f in fold_mses:
+        assert set(fold_mses[f].keys()) == set(RIDGE_ALPHAS)
+        assert all(np.isfinite(fold_mses[f][a]) for a in RIDGE_ALPHAS)
+    assert best_alpha in RIDGE_ALPHAS
+
+
+def test_no_access_to_2024_2026() -> None:
+    """Verify decisions or labels extending past authorized 2023-12-31 are rejected fail-closed."""
+    panels = _synthetic_panel("2023-12-01", 24 * 40)
+    forbidden_decision = pd.Timestamp("2023-12-31", tz="UTC")
+    res = label_contract(panels["BTCUSDT"], forbidden_decision, authorized_end=AUDIT_END)
+    assert res["valid"] is False
+    assert res["reason"] == "EXIT_AFTER_AUTHORIZED_WINDOW"
 
 
 def test_no_dependency_on_s3_portfolio_policy_or_gate() -> None:
     """Verify model and pipeline do not contain S3 portfolio gates, cash heads, or hold policies."""
     model = build_neural_forecaster()
-    # Check that model attributes only consist of gru, attention, layer_norm, fc
     named_modules = dict(model.named_modules())
     assert "gru" in named_modules
     assert "attention" in named_modules
     assert "layer_norm" in named_modules
     assert "fc" in named_modules
 
-    # No portfolio, gate, cash, or policy modules
     for name in named_modules:
         assert "gate" not in name.lower()
         assert "portfolio" not in name.lower()
         assert "cash" not in name.lower()
         assert "hold" not in name.lower()
         assert "allocator" not in name.lower()
+
+
+def test_cli_development_mode_respects_authorization(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify development-2022 fails closed when --authorize-development flag is omitted."""
+    import sys
+    from scripts.run_s4_stage1_screen import main
+    monkeypatch.setattr(sys, "argv", ["run_s4_stage1_screen.py", "--mode", "development-2022"])
+    assert main() == 2
+
+
+def test_cli_screen_mode_fails_closed_and_protects_evidence(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """Verify screen-2023 fails closed without authorization and refuses to overwrite existing evidence."""
+    import sys
+    from scripts.run_s4_stage1_screen import main
+
+    # Without authorization flag -> fails closed
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["run_s4_stage1_screen.py", "--mode", "screen-2023", "--output-dir", str(tmp_path)],
+    )
+    assert main() == 2
+
+    # With authorization flag, if evidence already exists -> fails closed (immutable)
+    evidence_file = tmp_path / "s4_stage1_2023_screen_evidence.json"
+    evidence_file.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_s4_stage1_screen.py",
+            "--mode",
+            "screen-2023",
+            "--authorize-one-shot-2023-screen",
+            "--output-dir",
+            str(tmp_path),
+        ],
+    )
+    assert main() == 2

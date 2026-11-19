@@ -1,0 +1,155 @@
+{
+  "preregistration_commit": "7b5a97becbd6da1249a484ed588133761cc57bd0",
+  "generated_at_utc": "2026-11-19T02:11:10.075945+00:00",
+  "status": "COMPLETED",
+  "verdict": "FROZEN_MODELS_READY",
+  "data_provenance": {
+    "canonical_source": "monthly Binance Spot archives with verified SHA-256 sidecars",
+    "archives_count": 104,
+    "universe": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT",
+      "BNBUSDT"
+    ],
+    "authorized_window": "2021-11-01 00:00 UTC through 2023-12-31 23:00 UTC"
+  },
+  "warmup": {
+    "start": "2021-11-01 00:00:00+00:00",
+    "completed_labels_at_2022_01_01": 60,
+    "min_required": 30,
+    "warmup_valid": true
+  },
+  "dataset_2022": {
+    "nominal_decisions": 364,
+    "eligible_decisions": 364,
+    "excluded_decisions": 0,
+    "start_decision": "2022-01-01 00:00:00+00:00",
+    "end_decision": "2022-12-30 00:00:00+00:00"
+  },
+  "ridge_selection": {
+    "folds": [
+      "F1",
+      "F2",
+      "F3",
+      "F4"
+    ],
+    "alphas": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+    ],
+    "fold_mses": {
+      "F1": {
+        "0.001": 3.3195600372707292,
+        "0.01": 3.319521615038043,
+        "0.1": 3.3191374967809053,
+        "1.0": 3.315306692537282,
+        "10.0": 3.278008619050882,
+        "100.0": 2.9842505895442217,
+        "1000.0": 2.173027978768092,
+        "10000.0": 1.7491287785910263
+      },
+      "F2": {
+        "0.001": 2.086419291740875,
+        "0.01": 2.086388009028316,
+        "0.1": 2.086075284383812,
+        "1.0": 2.0829582492772944,
+        "10.0": 2.0527736259942837,
+        "100.0": 1.8238195348412043,
+        "1000.0": 1.2316290934339174,
+        "10000.0": 0.9542794316487757
+      },
+      "F3": {
+        "0.001": 1.562777470434114,
+        "0.01": 1.5627510068361639,
+        "0.1": 1.5624865052951737,
+        "1.0": 1.5598548605534612,
+        "10.0": 1.534806170684657,
+        "100.0": 1.3665518582446594,
+        "1000.0": 1.0212831857039435,
+        "10000.0": 0.8199492504134004
+      },
+      "F4": {
+        "0.001": 2.6204786959421598,
+        "0.01": 2.620409691826204,
+        "0.1": 2.6197200511361167,
+        "1.0": 2.612863441192237,
+        "10.0": 2.548042267992346,
+        "100.0": 2.131402492052691,
+        "1000.0": 1.3840456209040246,
+        "10000.0": 1.0968667798845408
+      }
+    },
+    "mean_mses": {
+      "0.001": 2.3973088738469692,
+      "0.01": 2.3972675806821817,
+      "0.1": 2.3968548343990017,
+      "1.0": 2.3927458108900685,
+      "10.0": 2.353407670930542,
+      "100.0": 2.0765061186706943,
+      "1000.0": 1.4524964697024945,
+      "10000.0": 1.1550560601344357
+    },
+    "selected_alpha": 10000.0,
+    "tie_breaking_applied": false,
+    "in_sample_mse": 0.8164297606460716
+  },
+  "neural_training": {
+    "architecture": "Shared GRU(6, 16) + Cross-asset MHA(16, 2) + LayerNorm + Linear(16, 1)",
+    "trainable_parameters": 2289,
+    "parameter_budget": 5000,
+    "seed": 42,
+    "device": "cpu",
+    "epochs": 30,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "weight_decay": 0.001,
+    "initial_loss": 1.4049058530356857,
+    "final_loss": 1.0008393966562146,
+    "in_sample_mse": 0.997523615745248
+  },
+  "artifacts": {
+    "neural_forecaster.pt": {
+      "path": "D:\\Workspaces\\besttime-crypto\\research\\s4_forecast_information_screening\\stage1_evidence\\neural_forecaster.pt",
+      "sha256": "9eb90134e9bec5b2c2cede72cebf3d815a4cfc088d48d5d51bad16c9c352280a",
+      "size_bytes": 14003
+    },
+    "ridge_baseline.joblib": {
+      "path": "D:\\Workspaces\\besttime-crypto\\research\\s4_forecast_information_screening\\stage1_evidence\\ridge_baseline.joblib",
+      "sha256": "647f718d2b6d2bf3b56faf0dfdd430a488f228ded7c7ffe4bf931e2afe371fe1",
+      "size_bytes": 129607
+    },
+    "feature_scaler.json": {
+      "path": "D:\\Workspaces\\besttime-crypto\\research\\s4_forecast_information_screening\\stage1_evidence\\feature_scaler.json",
+      "sha256": "97066d059fee3b50bffdbd8629fd2f7a7d2b0a025907ef040041edb9adec0c09",
+      "size_bytes": 362
+    },
+    "sigma_floors.json": {
+      "path": "D:\\Workspaces\\besttime-crypto\\research\\s4_forecast_information_screening\\stage1_evidence\\sigma_floors.json",
+      "sha256": "d001797d07d3738592ab47f877ba5c892d37a69cab6fbed5936a79e29394d697",
+      "size_bytes": 149
+    },
+    "training_trace.json": {
+      "path": "D:\\Workspaces\\besttime-crypto\\research\\s4_forecast_information_screening\\stage1_evidence\\training_trace.json",
+      "sha256": "d463b5c4a394f37d41ffa2b7746b73929697dc51c687a4884f26bf45d753534f",
+      "size_bytes": 4141
+    }
+  },
+  "reload_verification": {
+    "status": "PASS",
+    "sample_predictions_finite": true,
+    "reloaded_exact_match": true
+  },
+  "boundary_protections": {
+    "s4_2023_screen": "NOT_PERFORMED",
+    "s4_2024_2026_access": "NOT_AUTHORIZED",
+    "s4_stage2_allocator": "NOT_AUTHORIZED",
+    "production_promotion": "NOT_AUTHORIZED"
+  }
+}

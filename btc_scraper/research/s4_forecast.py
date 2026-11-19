@@ -202,6 +202,12 @@ class CausalSigmaNormalizer:
             raise ForecastError(f"Non-finite raw sigma for {symbol} at {decision}")
         return max(raw, self.floors[symbol])
 
+    def get_completed_count(self, symbol: str, decision: pd.Timestamp) -> int:
+        key = (symbol, pd.Timestamp(decision))
+        if key not in self.raw_sigma_df.index:
+            raise ForecastError(f"Missing sigma record for {symbol} at {decision}")
+        return int(self.raw_sigma_df.at[key, "completed_count"])
+
     def standardize_target(
         self,
         y: float,
@@ -250,11 +256,11 @@ class ChronologicalSplitter:
 
     @staticmethod
     def get_validation_dates(fold: Fold) -> list[pd.Timestamp]:
-        """Return validation dates for fold whose label completes within authorized window."""
+        """Return validation dates for fold whose label completes no later than registered end of validation window."""
         nominal = _decision_range(fold.validation_start, fold.validation_end)
-        authorized_end = pd.Timestamp("2023-12-31 23:00:00", tz="UTC")
+        validation_end_cutoff = pd.Timestamp(fold.validation_end, tz="UTC") + pd.Timedelta(days=1)
         completion = nominal + pd.Timedelta(days=1, hours=1)
-        eligible = nominal[completion <= authorized_end]
+        eligible = nominal[completion <= validation_end_cutoff]
         return list(eligible)
 
     @staticmethod
@@ -455,23 +461,33 @@ class DatasetPartitions:
 def build_causal_partitions(
     panels: Mapping[str, pd.DataFrame],
     decisions: Iterable[pd.Timestamp],
+    warmup_start: pd.Timestamp = AUDIT_START,
     authorized_end: pd.Timestamp = AUDIT_END,
 ) -> DatasetPartitions:
     """Extract complete-case feature tensors, labels, and causal sigma states.
 
     Fails closed on any missing bar or anomaly.
+    Ensures sigma estimator has access to all authentic completed labels starting from warmup_start.
     """
     sorted_decisions = sorted(pd.Timestamp(d) for d in decisions)
+    if not sorted_decisions:
+        raise ForecastError("Cannot build partitions from empty decisions list")
     features: dict[pd.Timestamp, np.ndarray] = {}
     raw_labels: dict[pd.Timestamp, np.ndarray] = {}
     excluded: dict[pd.Timestamp, str] = {}
 
-    labels_by_symbol: dict[str, list[dict[str, object]]] = {s: [] for s in UNIVERSE}
+    warmup_ts = pd.Timestamp(warmup_start)
+    if warmup_ts.tzinfo is None:
+        warmup_ts = warmup_ts.tz_localize("UTC")
+    else:
+        warmup_ts = warmup_ts.tz_convert("UTC")
+    start_date = min(warmup_ts, sorted_decisions[0])
     all_label_decisions = _decision_range(
-        sorted_decisions[0].strftime("%Y-%m-%d"),
+        start_date.strftime("%Y-%m-%d"),
         sorted_decisions[-1].strftime("%Y-%m-%d"),
     )
 
+    labels_by_symbol: dict[str, list[dict[str, object]]] = {s: [] for s in UNIVERSE}
     for symbol in UNIVERSE:
         for d in all_label_decisions:
             res = label_contract(panels[symbol], d, authorized_end=authorized_end)
