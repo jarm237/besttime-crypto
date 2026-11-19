@@ -1,0 +1,745 @@
+{
+  "ablation_results": {
+    "TRAIN": {
+      "B1_TRAINED": {
+        "net_pnl": 3191.257372346814,
+        "cagr": 0.14865002457126764,
+        "cum_return": 0.3191257372346814,
+        "max_drawdown": -0.288359448293459,
+        "calmar": 0.5155025280114588,
+        "sharpe": 0.6305163637312377,
+        "annualized_turnover": 6.397047280541885,
+        "total_traded_notional": 110806.73159114158,
+        "total_fees": 332.4201947734249,
+        "avg_btc_exposure": 0.5062316667278698,
+        "avg_cash_exposure": 0.4937683332721302,
+        "num_trades": 88,
+        "worst_month_net_return": -0.1268146983665852,
+        "final_equity": 13191.257372346814
+      },
+      "B1_UNTRAINED": {
+        "net_pnl": 3191.279321050546,
+        "cagr": 0.14865098088938122,
+        "cum_return": 0.31912793210505463,
+        "max_drawdown": -0.28841585024850125,
+        "calmar": 0.515405033257716,
+        "sharpe": 0.6304914497230115,
+        "annualized_turnover": 6.3978898444545464,
+        "total_traded_notional": 110815.52670017185,
+        "total_fees": 332.4465801005155,
+        "avg_btc_exposure": 0.5062869254690463,
+        "avg_cash_exposure": 0.4937130745309537,
+        "num_trades": 88,
+        "worst_month_net_return": -0.12683285935042632,
+        "final_equity": 13191.279321050546
+      },
+      "TRACK_A_V1": {
+        "net_pnl": 2758.1104419739495,
+        "cagr": 0.12962014343849027,
+        "cum_return": 0.2758110441973949,
+        "max_drawdown": -0.2812408287945883,
+        "calmar": 0.4608866500431265,
+        "sharpe": 0.5795433542830226,
+        "annualized_turnover": 3.9731230066773775,
+        "total_traded_notional": 70388.76425619819,
+        "total_fees": 211.16629276859464,
+        "avg_btc_exposure": 0.49883325008948176,
+        "avg_cash_exposure": 0.5011667499105182,
+        "num_trades": 23,
+        "worst_month_net_return": -0.0990299540250058,
+        "final_equity": 12758.11044197395
+      },
+      "delta_pnl_trained_vs_untrained": -0.02194870373205049,
+      "delta_pnl_trained_vs_track_a": 433.1469303728645,
+      "multiplier_stats_trained": {
+        "mean": 1.0177409627666212,
+        "std": 0.3532995563861569,
+        "min": 0.5019053816795349,
+        "p25": 0.6305037438869476,
+        "median": 1.0417449474334717,
+        "p75": 1.3781636953353882,
+        "max": 1.4827773571014404
+      },
+      "multiplier_stats_untrained": {
+        "mean": 1.0178738596504682,
+        "std": 0.3533367704178659,
+        "min": 0.5019062757492065,
+        "p25": 0.6306361556053162,
+        "median": 1.0421675443649292,
+        "p75": 1.3783442080020905,
+        "max": 1.482796549797058
+      }
+    },
+    "VALIDATION": {
+      "B1_TRAINED": {
+        "net_pnl": 7283.196170589254,
+        "cagr": 0.7264902272717668,
+        "cum_return": 0.7283196170589255,
+        "max_drawdown": -0.3311480239974896,
+        "calmar": 2.193853426941404,
+        "sharpe": 1.4418215458217698,
+        "annualized_turnover": 10.378834977890756,
+        "total_traded_notional": 126876.31456933735,
+        "total_fees": 380.6289437080121,
+        "avg_btc_exposure": 0.7960085214398935,
+        "avg_cash_exposure": 0.20399147856010647,
+        "num_trades": 62,
+        "worst_month_net_return": -0.14534224893386682,
+        "final_equity": 17283.196170589254
+      },
+      "B1_UNTRAINED": {
+        "net_pnl": 7283.074237576326,
+        "cagr": 0.7264780704525953,
+        "cum_return": 0.7283074237576326,
+        "max_drawdown": -0.33116230582656964,
+        "calmar": 2.1937221044506594,
+        "sharpe": 1.4417945433404178,
+        "annualized_turnover": 10.38144276349399,
+        "total_traded_notional": 126909.3118400507,
+        "total_fees": 380.7279355201521,
+        "avg_btc_exposure": 0.7960358218401418,
+        "avg_cash_exposure": 0.20396417815985823,
+        "num_trades": 62,
+        "worst_month_net_return": -0.1453263025719641,
+        "final_equity": 17283.074237576326
+      },
+      "TRACK_A_V1": {
+        "net_pnl": 7825.099509132324,
+        "cagr": 0.7805168017954112,
+        "cum_return": 0.7825099509132323,
+        "max_drawdown": -0.30687384587778177,
+        "calmar": 2.5434451722753413,
+        "sharpe": 1.5329103783416713,
+        "annualized_turnover": 4.785087393097407,
+        "total_traded_notional": 57493.66305044634,
+        "total_fees": 172.48098915133903,
+        "avg_btc_exposure": 0.7649482532924271,
+        "avg_cash_exposure": 0.2350517467075729,
+        "num_trades": 12,
+        "worst_month_net_return": -0.14882166823489495,
+        "final_equity": 17825.099509132324
+      },
+      "delta_pnl_trained_vs_untrained": 0.12193301292791148,
+      "delta_pnl_trained_vs_track_a": -541.9033385430703,
+      "multiplier_stats_trained": {
+        "mean": 1.227833546738807,
+        "std": 0.27023872947847316,
+        "min": 0.6200395226478577,
+        "p25": 1.0197366774082184,
+        "median": 1.3471155166625977,
+        "p75": 1.4418813586235046,
+        "max": 1.490451693534851
+      },
+      "multiplier_stats_untrained": {
+        "mean": 1.2279131132396843,
+        "std": 0.2702352200452772,
+        "min": 0.6200525164604187,
+        "p25": 1.0199396014213562,
+        "median": 1.347343921661377,
+        "p75": 1.441944271326065,
+        "max": 1.4904670715332031
+      }
+    },
+    "REUSED_TEST": {
+      "B1_TRAINED": {
+        "net_pnl": -2645.7795949717474,
+        "cagr": -0.15074395162858467,
+        "cum_return": -0.2645779594971748,
+        "max_drawdown": -0.3864477439379944,
+        "calmar": -0.3900759002820613,
+        "sharpe": -0.4577583048610293,
+        "annualized_turnover": 7.873252420835913,
+        "total_traded_notional": 130733.56011772701,
+        "total_fees": 392.200680353181,
+        "avg_btc_exposure": 0.5859775895564313,
+        "avg_cash_exposure": 0.4140224104435687,
+        "num_trades": 82,
+        "worst_month_net_return": -0.1625913735248642,
+        "final_equity": 7354.220405028253
+      },
+      "B1_UNTRAINED": {
+        "net_pnl": -2645.707058672411,
+        "cagr": -0.15073949797711428,
+        "cum_return": -0.2645707058672411,
+        "max_drawdown": -0.38646924305333,
+        "calmar": -0.39004267658193253,
+        "sharpe": -0.4576941616097039,
+        "annualized_turnover": 7.873280985928293,
+        "total_traded_notional": 130732.7610855276,
+        "total_fees": 392.19828325658284,
+        "avg_btc_exposure": 0.5860261952190433,
+        "avg_cash_exposure": 0.4139738047809567,
+        "num_trades": 82,
+        "worst_month_net_return": -0.16260359334212526,
+        "final_equity": 7354.292941327589
+      },
+      "TRACK_A_V1": {
+        "net_pnl": -3348.9990752100166,
+        "cagr": -0.19493582034049262,
+        "cum_return": -0.3348999075210016,
+        "max_drawdown": -0.42084280476425817,
+        "calmar": -0.46320340548459427,
+        "sharpe": -0.6889758555100183,
+        "annualized_turnover": 6.400580292432393,
+        "total_traded_notional": 103832.36689786681,
+        "total_fees": 311.49710069360043,
+        "avg_btc_exposure": 0.5456286379716077,
+        "avg_cash_exposure": 0.45437136202839234,
+        "num_trades": 30,
+        "worst_month_net_return": -0.17515849077160917,
+        "final_equity": 6651.000924789983
+      },
+      "delta_pnl_trained_vs_untrained": -0.07253629933620687,
+      "delta_pnl_trained_vs_track_a": 703.2194802382692,
+      "multiplier_stats_trained": {
+        "mean": 1.1097330216757595,
+        "std": 0.317833772480234,
+        "min": 0.5147117376327515,
+        "p25": 0.7788071036338806,
+        "median": 1.2025079727172852,
+        "p75": 1.4162537455558777,
+        "max": 1.4808435440063477
+      },
+      "multiplier_stats_untrained": {
+        "mean": 1.109882830185314,
+        "std": 0.3178539349824895,
+        "min": 0.5147143006324768,
+        "p25": 0.7789463698863983,
+        "median": 1.2026278972625732,
+        "p75": 1.4163858890533447,
+        "max": 1.4808769226074219
+      }
+    },
+    "FULL_DIAGNOSTIC": {
+      "B1_TRAINED": {
+        "net_pnl": 7119.377317061801,
+        "cagr": 0.11642987139708261,
+        "cum_return": 0.7119377317061801,
+        "max_drawdown": -0.3864477439379944,
+        "calmar": 0.3012823162341033,
+        "sharpe": 0.5035684163201223,
+        "annualized_turnover": 7.368375949254222,
+        "total_traded_notional": 547174.8017911626,
+        "total_fees": 1641.5244053734882,
+        "avg_btc_exposure": 0.5961427014260692,
+        "avg_cash_exposure": 0.4038572985739308,
+        "num_trades": 230,
+        "worst_month_net_return": -0.1625913735248643,
+        "final_equity": 17119.3773170618
+      },
+      "B1_UNTRAINED": {
+        "net_pnl": 7119.39009762471,
+        "cagr": 0.1164300421398703,
+        "cum_return": 0.7119390097624709,
+        "max_drawdown": -0.3864692430533297,
+        "calmar": 0.3012659978320807,
+        "sharpe": 0.5035597029002509,
+        "annualized_turnover": 7.369281636984321,
+        "total_traded_notional": 547223.6645019539,
+        "total_fees": 1641.6709935058607,
+        "avg_btc_exposure": 0.5961905071034825,
+        "avg_cash_exposure": 0.40380949289651746,
+        "num_trades": 230,
+        "worst_month_net_return": -0.16260359334212549,
+        "final_equity": 17119.39009762471
+      },
+      "TRACK_A_V1": {
+        "net_pnl": 5419.983161933924,
+        "cagr": 0.09277347717925921,
+        "cum_return": 0.5419983161933923,
+        "max_drawdown": -0.42084280476425767,
+        "calmar": 0.22044686550178247,
+        "sharpe": 0.44015465008150134,
+        "annualized_turnover": 4.666387102260674,
+        "total_traded_notional": 349091.96575807745,
+        "total_fees": 1047.2758972742326,
+        "avg_btc_exposure": 0.5715381773764151,
+        "avg_cash_exposure": 0.4284618226235849,
+        "num_trades": 63,
+        "worst_month_net_return": -0.17515849077160917,
+        "final_equity": 15419.983161933924
+      },
+      "delta_pnl_trained_vs_untrained": -0.012780562909028959,
+      "delta_pnl_trained_vs_track_a": 1699.3941551278767,
+      "multiplier_stats_trained": {
+        "mean": 1.0963121518885495,
+        "std": 0.3334153147171021,
+        "min": 0.5019053816795349,
+        "p25": 0.7949263751506805,
+        "median": 1.188783884048462,
+        "p75": 1.4191142320632935,
+        "max": 1.490451693534851
+      },
+      "multiplier_stats_untrained": {
+        "mean": 1.0964406176824886,
+        "std": 0.3334342269471141,
+        "min": 0.5019062757492065,
+        "p25": 0.7951897978782654,
+        "median": 1.1890417337417603,
+        "p75": 1.4191941022872925,
+        "max": 1.4904670715332031
+      }
+    }
+  },
+  "timing_attributions": {
+    "TRAIN": {
+      "total_days_evaluated": 729,
+      "total_dollar_excess": 429.4606471682928,
+      "group_summary": {
+        "B1_REDUCED_EXPOSURE": {
+          "day_count": 166,
+          "avg_btc_fwd_ret": 0.0006246720652023921,
+          "avg_delta_w": -0.0826659414722737,
+          "avg_delta_ret_pre": -3.495103231896201e-05,
+          "cum_dollar_excess": 8.078038508655482,
+          "mean_dollar_excess": 0.04866288258226194
+        },
+        "B1_INCREASED_EXPOSURE": {
+          "day_count": 161,
+          "avg_btc_fwd_ret": 0.0010749425378855078,
+          "avg_delta_w": 0.13293434392591447,
+          "avg_delta_ret_pre": 0.00045090088592830994,
+          "cum_dollar_excess": 333.5027135164419,
+          "mean_dollar_excess": 2.071445425567962
+        },
+        "IDENTICAL_EXPOSURE": {
+          "day_count": 402,
+          "avg_btc_fwd_ret": -0.00017539410827291464,
+          "avg_delta_w": 5.8892453290147814e-06,
+          "avg_delta_ret_pre": 6.50695149981833e-07,
+          "cum_dollar_excess": 87.87989514319543,
+          "mean_dollar_excess": 0.21860670433630702
+        }
+      },
+      "concentration": {
+        "top_5_pos_sum": 865.799067480315,
+        "top_5_pos_fraction_of_total": 2.0160149089074375,
+        "top_10_pos_sum": 1168.529826676997,
+        "top_10_pos_fraction_of_total": 2.720924104180109,
+        "top_5_neg_sum": -575.4388350815743,
+        "top_5_pos_days": [
+          {
+            "ts": "2023-10-23",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.29875232776006067,
+            "btc_fwd_ret": 0.11284890011656698,
+            "dollar_excess": 299.6638730456634
+          },
+          {
+            "ts": "2023-02-15",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.20470364888509118,
+            "btc_fwd_ret": 0.10989466917017954,
+            "dollar_excess": 182.4713037321435
+          },
+          {
+            "ts": "2023-01-20",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.3089491923650106,
+            "btc_fwd_ret": 0.07233012982793785,
+            "dollar_excess": 154.37161705407198
+          },
+          {
+            "ts": "2023-03-13",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.21934588750203454,
+            "btc_fwd_ret": 0.07645785085017254,
+            "dollar_excess": 120.53959916187705
+          },
+          {
+            "ts": "2022-02-17",
+            "group": "B1_REDUCED_EXPOSURE",
+            "delta_w": -0.13590308030446369,
+            "btc_fwd_ret": -0.07936405984918542,
+            "dollar_excess": 108.75267448655904
+          }
+        ],
+        "top_5_neg_days": [
+          {
+            "ts": "2023-02-16",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.30964209636052453,
+            "btc_fwd_ret": -0.0354301915035552,
+            "dollar_excess": -88.17047191183883
+          },
+          {
+            "ts": "2022-11-08",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.10105095307032269,
+            "btc_fwd_ret": -0.10629823578815815,
+            "dollar_excess": -108.08868279195758
+          },
+          {
+            "ts": "2022-04-06",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2534212668736776,
+            "btc_fwd_ret": -0.04691786939839849,
+            "dollar_excess": -113.05215014870555
+          },
+          {
+            "ts": "2022-02-28",
+            "group": "B1_REDUCED_EXPOSURE",
+            "delta_w": -0.12136976917584735,
+            "btc_fwd_ret": 0.1593042260035925,
+            "dollar_excess": -118.41629071587522
+          },
+          {
+            "ts": "2022-04-11",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2489206393559774,
+            "btc_fwd_ret": -0.065218141580578,
+            "dollar_excess": -147.71123951319714
+          }
+        ]
+      }
+    },
+    "VALIDATION": {
+      "total_days_evaluated": 365,
+      "total_dollar_excess": -535.3826157167096,
+      "group_summary": {
+        "B1_REDUCED_EXPOSURE": {
+          "day_count": 82,
+          "avg_btc_fwd_ret": 0.0017258231444663744,
+          "avg_delta_w": -0.09524942534725839,
+          "avg_delta_ret_pre": -6.529773289210285e-05,
+          "cum_dollar_excess": -119.10974778526543,
+          "mean_dollar_excess": -1.4525578998203101
+        },
+        "B1_INCREASED_EXPOSURE": {
+          "day_count": 99,
+          "avg_btc_fwd_ret": 0.0004491152694613844,
+          "avg_delta_w": 0.18611118016820968,
+          "avg_delta_ret_pre": -4.151627469007981e-06,
+          "cum_dollar_excess": -236.0179971749676,
+          "mean_dollar_excess": -2.3840201734845214
+        },
+        "IDENTICAL_EXPOSURE": {
+          "day_count": 184,
+          "avg_btc_fwd_ret": 0.003942378086428673,
+          "avg_delta_w": -8.112489097360141e-05,
+          "avg_delta_ret_pre": -2.733962704565478e-06,
+          "cum_dollar_excess": -180.25487075647652,
+          "mean_dollar_excess": -0.9796460367199811
+        }
+      },
+      "concentration": {
+        "top_5_pos_sum": 825.0833715157551,
+        "top_5_pos_fraction_of_total": -1.5411097545840688,
+        "top_10_pos_sum": 1220.4846398139507,
+        "top_10_pos_fraction_of_total": -2.2796493647446963,
+        "top_5_neg_sum": -582.9412797324458,
+        "top_5_pos_days": [
+          {
+            "ts": "2024-05-20",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2861492236455282,
+            "btc_fwd_ret": 0.07301129596919893,
+            "dollar_excess": 293.6709786678857
+          },
+          {
+            "ts": "2024-08-27",
+            "group": "B1_REDUCED_EXPOSURE",
+            "delta_w": -0.22104675571123755,
+            "btc_fwd_ret": -0.057923216734160225,
+            "dollar_excess": 172.98761364056554
+          },
+          {
+            "ts": "2024-10-14",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.26185007890065515,
+            "btc_fwd_ret": 0.054539341611085916,
+            "dollar_excess": 153.02493631652032
+          },
+          {
+            "ts": "2024-06-04",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.28275700410207116,
+            "btc_fwd_ret": 0.025718173834154253,
+            "dollar_excess": 107.40110050929252
+          },
+          {
+            "ts": "2024-09-03",
+            "group": "B1_REDUCED_EXPOSURE",
+            "delta_w": -0.24067826072374976,
+            "btc_fwd_ret": -0.03574167201053028,
+            "dollar_excess": 97.99874238149096
+          }
+        ],
+        "top_5_neg_days": [
+          {
+            "ts": "2024-06-13",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.26574542125066125,
+            "btc_fwd_ret": -0.023449283345738932,
+            "dollar_excess": -96.97322160895237
+          },
+          {
+            "ts": "2024-05-23",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.29097374280293786,
+            "btc_fwd_ret": -0.023709705105668527,
+            "dollar_excess": -99.72877196491572
+          },
+          {
+            "ts": "2024-10-01",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2565388878186544,
+            "btc_fwd_ret": -0.03912563747402888,
+            "dollar_excess": -112.05689700925905
+          },
+          {
+            "ts": "2024-06-11",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.27880307038625085,
+            "btc_fwd_ret": -0.03185193210399634,
+            "dollar_excess": -133.8054824398714
+          },
+          {
+            "ts": "2024-08-04",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.13367338975270593,
+            "btc_fwd_ret": -0.07527927305052098,
+            "dollar_excess": -140.3769067094472
+          }
+        ]
+      }
+    },
+    "REUSED_TEST": {
+      "total_days_evaluated": 686,
+      "total_dollar_excess": 698.3969901847522,
+      "group_summary": {
+        "B1_REDUCED_EXPOSURE": {
+          "day_count": 81,
+          "avg_btc_fwd_ret": -0.00173505945386646,
+          "avg_delta_w": -0.06548301440207553,
+          "avg_delta_ret_pre": 0.00028582031340754075,
+          "cum_dollar_excess": 139.40213699164178,
+          "mean_dollar_excess": 1.7210140369338491
+        },
+        "B1_INCREASED_EXPOSURE": {
+          "day_count": 193,
+          "avg_btc_fwd_ret": 0.0017973587436151545,
+          "avg_delta_w": 0.17513396491864397,
+          "avg_delta_ret_pre": 0.00047873616423891295,
+          "cum_dollar_excess": 840.8391105606142,
+          "mean_dollar_excess": 4.356679329329608
+        },
+        "IDENTICAL_EXPOSURE": {
+          "day_count": 412,
+          "avg_btc_fwd_ret": -0.0009957450567456723,
+          "avg_delta_w": -4.9332608875718414e-05,
+          "avg_delta_ret_pre": 6.457443131979691e-07,
+          "cum_dollar_excess": -281.8442573675038,
+          "mean_dollar_excess": -0.6840880033191841
+        }
+      },
+      "concentration": {
+        "top_5_pos_sum": 774.3535434517553,
+        "top_5_pos_fraction_of_total": 1.1087584201170593,
+        "top_10_pos_sum": 1254.0439955125212,
+        "top_10_pos_fraction_of_total": 1.7956033790763897,
+        "top_5_neg_sum": -667.4412463233475,
+        "top_5_pos_days": [
+          {
+            "ts": "2026-09-18",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2992838223775228,
+            "btc_fwd_ret": 0.06631414888551362,
+            "dollar_excess": 193.6499508798206
+          },
+          {
+            "ts": "2026-09-21",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.30447341998418176,
+            "btc_fwd_ret": 0.05248277981543903,
+            "dollar_excess": 163.300401578711
+          },
+          {
+            "ts": "2025-07-10",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.29671861728032434,
+            "btc_fwd_ret": 0.042139566770221855,
+            "dollar_excess": 149.674785729605
+          },
+          {
+            "ts": "2026-08-21",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2808094223340353,
+            "btc_fwd_ret": 0.057598773101687116,
+            "dollar_excess": 135.2299351482543
+          },
+          {
+            "ts": "2025-08-13",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.30727012952168786,
+            "btc_fwd_ret": 0.03453779821588586,
+            "dollar_excess": 132.4984701153644
+          }
+        ],
+        "top_5_neg_days": [
+          {
+            "ts": "2026-06-02",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.12966605027516687,
+            "btc_fwd_ret": -0.06103627980884647,
+            "dollar_excess": -110.33321882199743
+          },
+          {
+            "ts": "2025-06-12",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2827208240826925,
+            "btc_fwd_ret": -0.04515104962007619,
+            "dollar_excess": -118.88925871394531
+          },
+          {
+            "ts": "2025-08-29",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2759640415509542,
+            "btc_fwd_ret": -0.034761206100412397,
+            "dollar_excess": -130.5795682444441
+          },
+          {
+            "ts": "2026-01-20",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2677207191785177,
+            "btc_fwd_ret": -0.04078921114477355,
+            "dollar_excess": -135.98982139847612
+          },
+          {
+            "ts": "2025-08-14",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.30913968880971276,
+            "btc_fwd_ret": -0.045748403161234574,
+            "dollar_excess": -171.64937914448456
+          }
+        ]
+      }
+    },
+    "FULL_DIAGNOSTIC": {
+      "total_days_evaluated": 1782,
+      "total_dollar_excess": 1684.845586857913,
+      "group_summary": {
+        "B1_REDUCED_EXPOSURE": {
+          "day_count": 329,
+          "avg_btc_fwd_ret": 0.000318155759594701,
+          "avg_delta_w": -0.08157180343295059,
+          "avg_delta_ret_pre": 3.6459452656263456e-05,
+          "cum_dollar_excess": 121.46671950861219,
+          "mean_dollar_excess": 0.3691997553453258
+        },
+        "B1_INCREASED_EXPOSURE": {
+          "day_count": 453,
+          "avg_btc_fwd_ret": 0.0012459567280220056,
+          "avg_delta_w": 0.16253485968658563,
+          "avg_delta_ret_pre": 0.0003633115037817578,
+          "cum_dollar_excess": 1989.3467040742707,
+          "mean_dollar_excess": 4.391493827978523
+        },
+        "IDENTICAL_EXPOSURE": {
+          "day_count": 1000,
+          "avg_btc_fwd_ret": 0.00026828087393462847,
+          "avg_delta_w": -3.2884538173674704e-05,
+          "avg_delta_ret_pre": 2.4576969690212135e-08,
+          "cum_dollar_excess": -425.96783672496986,
+          "mean_dollar_excess": -0.42596783672496985
+        }
+      },
+      "concentration": {
+        "top_5_pos_sum": 1926.9060729697412,
+        "top_5_pos_fraction_of_total": 1.1436692406710394,
+        "top_10_pos_sum": 3299.669301182139,
+        "top_10_pos_fraction_of_total": 1.9584401840264354,
+        "top_5_neg_sum": -1566.710406051865,
+        "top_5_pos_days": [
+          {
+            "ts": "2026-09-18",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2992838223775228,
+            "btc_fwd_ret": 0.06631414888551362,
+            "dollar_excess": 453.8534211021288
+          },
+          {
+            "ts": "2024-05-20",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2861492236455282,
+            "btc_fwd_ret": 0.07301129596919893,
+            "dollar_excess": 421.931519693102
+          },
+          {
+            "ts": "2026-09-21",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.30447341998418176,
+            "btc_fwd_ret": 0.05248277981543903,
+            "dollar_excess": 382.72380440646157
+          },
+          {
+            "ts": "2025-07-10",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.29671861728032434,
+            "btc_fwd_ret": 0.042139566770221855,
+            "dollar_excess": 350.9939502075831
+          },
+          {
+            "ts": "2026-08-21",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2808094223340353,
+            "btc_fwd_ret": 0.057598773101687116,
+            "dollar_excess": 317.40337756046574
+          }
+        ],
+        "top_5_neg_days": [
+          {
+            "ts": "2026-06-02",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.12966605027516687,
+            "btc_fwd_ret": -0.06103627980884647,
+            "dollar_excess": -259.6219965158998
+          },
+          {
+            "ts": "2025-06-12",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2827208240826925,
+            "btc_fwd_ret": -0.04515104962007619,
+            "dollar_excess": -279.553174657256
+          },
+          {
+            "ts": "2025-08-29",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2759640415509542,
+            "btc_fwd_ret": -0.034761206100412397,
+            "dollar_excess": -306.0803258220658
+          },
+          {
+            "ts": "2026-01-20",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.2677207191785177,
+            "btc_fwd_ret": -0.04078921114477355,
+            "dollar_excess": -318.66923334926105
+          },
+          {
+            "ts": "2025-08-14",
+            "group": "B1_INCREASED_EXPOSURE",
+            "delta_w": 0.30913968880971276,
+            "btc_fwd_ret": -0.045748403161234574,
+            "dollar_excess": -402.7856757073823
+          }
+        ]
+      }
+    }
+  },
+  "parameters": {
+    "trained": {
+      "bias": -0.0009999996982514858,
+      "raw_trend_coef": 0.5423247814178467,
+      "raw_risk_coef": 0.5403248071670532,
+      "raw_breadth_coef": 0.5403248071670532
+    },
+    "untrained": {
+      "bias": 0.0,
+      "raw_trend_coef": 0.5413248538970947,
+      "raw_risk_coef": 0.5413248538970947,
+      "raw_breadth_coef": 0.5413248538970947
+    }
+  },
+  "verdict": "B1_CONDITIONAL_RULE_EFFECT / TRAINING_VALUE_NOT_DEMONSTRATED"
+}
