@@ -1,23 +1,37 @@
 {
   "metadata": {
-    "generated_at_utc": "2026-11-19T07:58:56.946715+00:00",
+    "evidence_version": "CORRECTED_TECHNICAL_REPLAY",
+    "replay_phase": "S5-P0B",
+    "generated_at_utc": "2026-11-19T09:05:55.480576+00:00",
     "pre_registration_commit": "b894fc53de0e2b50720828c1ab72d2d774d5fcbb",
+    "pre_execution_erratum_commit": "cf329798e6c9aaab26ad97d8a95ff3ebd1894aa7",
     "base_closure_tag": "s4-stage1-closure",
     "full_window": "2022-01-01T00:00:00+00:00 to 2023-12-31T23:00:00+00:00",
     "primary_configuration": {
       "initial_capital_usd": 10000.0,
       "primary_cost_bps": 12.0,
       "primary_no_trade_band": 0.05,
-      "primary_cadence": "WEEKLY_SUNDAY_UTC"
+      "primary_cadence": "WEEKLY_SUNDAY_00UTC_DECISION_01UTC_EXECUTION"
+    },
+    "timeline_audit": {
+      "expected_hours": 17520,
+      "actual_common_hours": 17519,
+      "missing_hours_count": 1,
+      "missing_timestamps": [
+        "2023-03-24T13:00:00+00:00"
+      ],
+      "weekly_rebalances_affected": [],
+      "valuation_limitations": "Market prices are unavailable during missing hours; portfolio state is carried over without mark-to-market revaluation or execution.",
+      "synthetic_price_policy": "STRICT_ZERO_SYNTHETIC_PRICES (no forward-fill or interpolated bars)"
     }
   },
   "verdict": {
     "status": "S5_P0_NO_DEMONSTRATED_OPPORTUNITY",
     "qualifying_policies": [],
     "btc_baseline": {
-      "cagr": -0.04410457700443049,
-      "max_drawdown": -0.6737711687834668,
-      "calmar": -0.06545928209434054,
+      "cagr": -0.048617842712518566,
+      "max_drawdown": -0.6737711687834669,
+      "calmar": -0.07215779624453346,
       "is_btc_cagr_positive": false
     },
     "policy_checks": {
@@ -112,11 +126,11 @@
     }
   },
   "factorial_attribution": {
-    "base_ew4_cagr": -0.072198982640586,
-    "cash_timing_effect_cagr": -0.09511141349864005,
-    "rotation_effect_cagr": -0.12698364374744964,
-    "joint_combined_effect_cagr": -0.20291907086183736,
-    "non_linear_interaction_cagr": 0.01917598638425233
+    "base_ew4_cagr": -0.07755958730118884,
+    "cash_timing_effect_cagr": -0.08975080883803721,
+    "rotation_effect_cagr": -0.1257541164556697,
+    "joint_combined_effect_cagr": -0.19755846620123452,
+    "non_linear_interaction_cagr": 0.01794645909247239
   },
   "primary_scorecards": {
     "CASH_100": {
@@ -125,56 +139,122 @@
       "max_drawdown": 0.0,
       "calmar": 0.0,
       "sharpe": 0.0,
-      "excess_vs_btc": 0.04410457700443049,
+      "excess_vs_btc": 0.048617842712518566,
       "avg_cash_pct": 100.0,
       "annualized_turnover": 0.0,
+      "cumulative_turnover_ratio": 0.0,
+      "total_traded_notional_usd": 0.0,
       "total_fees_usd": 0.0,
       "terminal_wealth_usd": 10000.0,
       "breakeven_cost": {}
     },
     "BTC_BH": {
-      "cagr": -0.04410457700443049,
-      "cum_return": -0.08620281530216856,
-      "max_drawdown": -0.6737711687834668,
-      "calmar": -0.06545928209434054,
-      "sharpe": -0.0907948987487014,
+      "cagr": -0.048617842712518566,
+      "cum_return": -0.09480508847545566,
+      "max_drawdown": -0.6737711687834669,
+      "calmar": -0.07215779624453346,
+      "sharpe": -0.09102578338978322,
       "excess_vs_btc": 0.0,
-      "avg_cash_pct": 0.0,
+      "avg_cash_pct": 0.005708088361207832,
       "annualized_turnover": 0.4997713001832586,
+      "cumulative_turnover_ratio": 0.9988014382740712,
+      "total_traded_notional_usd": 9988.014382740712,
       "total_fees_usd": 11.985617259288853,
-      "terminal_wealth_usd": 9137.971846978315,
+      "terminal_wealth_usd": 9051.949115245443,
       "breakeven_cost": {}
     },
     "EW4": {
-      "cagr": -0.072198982640586,
-      "cum_return": -0.13908960175191964,
-      "max_drawdown": -0.7520248923178522,
-      "calmar": -0.09600610748143991,
-      "sharpe": -0.1198279278371597,
-      "excess_vs_btc": -0.028094405636155506,
-      "avg_cash_pct": 0.0,
-      "annualized_turnover": 1.0154421140266614,
-      "total_fees_usd": 24.35253989819723,
-      "terminal_wealth_usd": 8609.103982480803,
+      "cagr": -0.07755958730118884,
+      "cum_return": -0.14900180408546826,
+      "max_drawdown": -0.7519704187413394,
+      "calmar": -0.10314180633728832,
+      "sharpe": -0.1186508738142079,
+      "excess_vs_btc": -0.02894174458867027,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 1.5608218750366973,
+      "cumulative_turnover_ratio": 3.119329047315526,
+      "total_traded_notional_usd": 20184.829017761316,
+      "total_fees_usd": 24.221794821313573,
+      "terminal_wealth_usd": 8509.981959145318,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.05919539093199923,
+            -0.06131614646556474,
+            -0.06343678731687787,
+            -0.06555731539405174,
+            -0.06767773260603083,
+            -0.06979804086259396,
+            -0.07191824207436512,
+            -0.0740383381528282,
+            -0.07615833101033329,
+            -0.07827822256010973,
+            -0.08039801471627482
+          ],
+          "roots_found": []
+        }
       }
     },
     "EW4_BUY_AND_HOLD": {
-      "cagr": -0.17243658687293828,
-      "cum_return": -0.3149465384946101,
-      "max_drawdown": -0.7208767597279324,
-      "calmar": -0.23920397563935605,
-      "sharpe": -0.31407166123275826,
-      "excess_vs_btc": -0.1283320098685078,
-      "avg_cash_pct": 0.0,
+      "cagr": -0.17719638562500173,
+      "cum_return": -0.3227983657198755,
+      "max_drawdown": -0.720741915196213,
+      "calmar": -0.24585275518042018,
+      "sharpe": -0.31310160379343427,
+      "excess_vs_btc": -0.12857854291248316,
+      "avg_cash_pct": 0.005708088361207832,
       "annualized_turnover": 0.4997713001832586,
+      "cumulative_turnover_ratio": 0.9988014382740712,
+      "total_traded_notional_usd": 9988.014382740712,
       "total_fees_usd": 11.985617259288853,
-      "terminal_wealth_usd": 6850.534615053899,
+      "terminal_wealth_usd": 6772.016342801245,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.290181228814794,
+            -0.2901812288147939,
+            -0.290181228814794,
+            -0.2901812288147942,
+            -0.290181228814794,
+            -0.2901812288147942,
+            -0.290181228814794,
+            -0.29018122881479436,
+            -0.2901812288147942,
+            -0.2901812288147942,
+            -0.290181228814794
+          ],
+          "roots_found": []
+        }
       }
     },
     "TREND_GATE_BTC": {
@@ -182,15 +262,46 @@
       "cum_return": -0.16169261521648337,
       "max_drawdown": -0.43924710048604615,
       "calmar": -0.1923032305297881,
-      "sharpe": -0.25527888076830896,
-      "excess_vs_btc": -0.04036405941987864,
+      "sharpe": -0.25390648605679367,
+      "excess_vs_btc": -0.03585079371179056,
       "avg_cash_pct": 53.84439751127348,
-      "annualized_turnover": 19.34409013711829,
+      "annualized_turnover": 25.503329448351682,
+      "cumulative_turnover_ratio": 50.968837395125846,
+      "total_traded_notional_usd": 386594.9294001544,
       "total_fees_usd": 463.91391528018517,
       "terminal_wealth_usd": 8383.073847835167,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.016765422718862492,
+            -0.06676543938553914,
+            -0.11676555605251532,
+            -0.16676587272129276,
+            -0.2167664893957687,
+            -0.26676750608344724,
+            -0.3167690227966256,
+            -0.36677113955360624,
+            -0.4167739563798914,
+            -0.466777573309387,
+            -0.5167820903856017
+          ],
+          "roots_found": []
+        }
       }
     },
     "TREND_GATE_EW4": {
@@ -198,63 +309,189 @@
       "cum_return": -0.3064397272159719,
       "max_drawdown": -0.5618525854110854,
       "calmar": -0.2977834408589784,
-      "sharpe": -0.4140117096740467,
-      "excess_vs_btc": -0.12320581913479556,
+      "sharpe": -0.41102618883978403,
+      "excess_vs_btc": -0.11869255342670748,
       "avg_cash_pct": 53.84439751127348,
-      "annualized_turnover": 16.4785912899122,
+      "annualized_turnover": 25.79121591308209,
+      "cumulative_turnover_ratio": 51.54418338823696,
+      "total_traded_notional_usd": 329327.447875852,
       "total_fees_usd": 395.1929374510223,
       "terminal_wealth_usd": 6935.602727840281,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.2056216380491389,
+            -0.2561971022044636,
+            -0.3067721793539063,
+            -0.3573469701250863,
+            -0.407921575146911,
+            -0.4584960950508211,
+            -0.5090706304719771,
+            -0.5596452820504518,
+            -0.6102201504324497,
+            -0.6607953362715024,
+            -0.7113709402296745
+          ],
+          "roots_found": []
+        }
       }
     },
     "VOL_TARGET_BTC": {
-      "cagr": 0.04012733166172677,
-      "cum_return": 0.08180174545044294,
-      "max_drawdown": -0.49535689287170215,
-      "calmar": 0.08100691085390788,
-      "sharpe": 0.1025694692599374,
-      "excess_vs_btc": 0.08423190866615726,
-      "avg_cash_pct": 28.65637322055166,
-      "annualized_turnover": 5.576958880483401,
-      "total_fees_usd": 133.74776540340685,
-      "terminal_wealth_usd": 10818.017454504428,
+      "cagr": 0.03639305008652749,
+      "cum_return": 0.07405361492549667,
+      "max_drawdown": -0.4952428327749954,
+      "calmar": 0.07348526354759385,
+      "sharpe": 0.10219860124209215,
+      "excess_vs_btc": 0.08501089279904606,
+      "avg_cash_pct": 28.662646177053812,
+      "annualized_turnover": 7.493967488530951,
+      "cumulative_turnover_ratio": 14.976821404468827,
+      "total_traded_notional_usd": 110698.09312133658,
+      "total_fees_usd": 132.83771174560388,
+      "terminal_wealth_usd": 10740.536149254967,
       "breakeven_cost": {
-        "breakeven_bps": 100.0,
-        "status": "NO_CROSSING_IN_RANGE"
+        "breakeven_bps": null,
+        "status": "NO_CROSSING_IN_RANGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            0.1878206631770305,
+            0.1738409048145454,
+            0.15986071048084122,
+            0.1458800356898243,
+            0.13189883595019913,
+            0.11791706676485925,
+            0.10393468363032603,
+            0.08995164203617492,
+            0.07596789746444284,
+            0.06198340538906391,
+            0.047998121275275966
+          ],
+          "roots_found": []
+        }
       }
     },
     "VOL_TARGET_EW4": {
-      "cagr": 0.04513815171811353,
-      "cum_return": 0.09224224124596914,
-      "max_drawdown": -0.5943654125441482,
-      "calmar": 0.07594343608404495,
-      "sharpe": 0.09212235170806307,
-      "excess_vs_btc": 0.08924272872254402,
-      "avg_cash_pct": 28.796129967695457,
-      "annualized_turnover": 5.116925990610268,
-      "total_fees_usd": 122.71516280561434,
-      "terminal_wealth_usd": 10922.422412459691,
+      "cagr": 0.04053079441762186,
+      "cum_return": 0.08264054186236436,
+      "max_drawdown": -0.5941906628858434,
+      "calmar": 0.06821176593515184,
+      "sharpe": 0.09302236408221544,
+      "excess_vs_btc": 0.08914863713014043,
+      "avg_cash_pct": 28.802864533171064,
+      "annualized_turnover": 7.629610727116517,
+      "cumulative_turnover_ratio": 15.247906722376714,
+      "total_traded_notional_usd": 101412.63712060427,
+      "total_fees_usd": 121.69516454472512,
+      "terminal_wealth_usd": 10826.405418623643,
       "breakeven_cost": {
-        "breakeven_bps": 100.0,
-        "status": "NO_CROSSING_IN_RANGE"
+        "breakeven_bps": null,
+        "status": "NO_CROSSING_IN_RANGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            0.19610908192221344,
+            0.1818582084309261,
+            0.16760695787610125,
+            0.15335528578680596,
+            0.13910314768563717,
+            0.12485049908814608,
+            0.1105972955022648,
+            0.09634349242771725,
+            0.08208904535547608,
+            0.06783390976716733,
+            0.05357804113449367
+          ],
+          "roots_found": []
+        }
       }
     },
     "MOMENTUM_TOP1": {
-      "cagr": -0.06705533610567593,
-      "cum_return": -0.1295246569530789,
-      "max_drawdown": -0.7833692670401753,
-      "calmar": -0.08559863008033602,
-      "sharpe": -0.09119295994745598,
-      "excess_vs_btc": -0.022950759101245444,
-      "avg_cash_pct": 0.0,
-      "annualized_turnover": 34.520346749153404,
-      "total_fees_usd": 827.8739968493065,
-      "terminal_wealth_usd": 8704.75343046921,
+      "cagr": -0.0723040769607074,
+      "cum_return": -0.13928448101971536,
+      "max_drawdown": -0.7833692670401751,
+      "calmar": -0.09229884296316067,
+      "sharpe": -0.09134579264286752,
+      "excess_vs_btc": -0.02368623424818883,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 72.46683852657249,
+      "cumulative_turnover_ratio": 144.8262085497403,
+      "total_traded_notional_usd": 682271.8376965732,
+      "total_fees_usd": 818.7262052358877,
+      "terminal_wealth_usd": 8607.155189802847,
       "breakeven_cost": {
-        "breakeven_bps": 8.63037109375,
-        "status": "ROOT_FOUND"
+        "breakeven_bps": 8.5009765625,
+        "status": "ROOT_FOUND",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            0.12241383272568909,
+            -0.021586215274344914,
+            -0.1655865512752358,
+            -0.30958746328130965,
+            -0.453589239303806,
+            -0.5975921673643182,
+            -0.7415965354982703,
+            -0.8856026317583778,
+            -1.0296107442180713,
+            -1.173621160975022,
+            -1.3176341701545178
+          ],
+          "roots_found": [
+            8.5009765625
+          ]
+        }
       }
     },
     "MOMENTUM_TOP1_TREND_GATE": {
@@ -262,31 +499,95 @@
       "cum_return": -0.02487509171310176,
       "max_drawdown": -0.576278934897971,
       "calmar": -0.02173443727180402,
-      "sharpe": -0.019331667652432886,
-      "excess_vs_btc": 0.03157947864282851,
+      "sharpe": -0.018602574045028814,
+      "excess_vs_btc": 0.036092744350916584,
       "avg_cash_pct": 53.84439751127348,
-      "annualized_turnover": 27.205878750286402,
+      "annualized_turnover": 37.497840652749886,
+      "cumulative_turnover_ratio": 74.94007191370355,
+      "total_traded_notional_usd": 543714.1111410763,
       "total_fees_usd": 652.4569333692916,
       "terminal_wealth_usd": 9751.249082868982,
       "breakeven_cost": {
-        "breakeven_bps": 20.78857421875,
-        "status": "ROOT_FOUND"
+        "breakeven_bps": 22.056884765625,
+        "status": "ROOT_FOUND",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            0.16321532411878495,
+            0.08921529945210416,
+            0.015215126784977197,
+            -0.058785341884812554,
+            -0.13278625456303617,
+            -0.206787759260799,
+            -0.2807900039963036,
+            -0.35479313679663377,
+            -0.42879730569953706,
+            -0.5028026587551919,
+            -0.5768093440279893
+          ],
+          "roots_found": [
+            22.056884765625
+          ]
+        }
       }
     },
     "MOMENTUM_TOP2": {
-      "cagr": -0.19918262638803563,
-      "cum_return": -0.3584802471769941,
-      "max_drawdown": -0.797513182453903,
-      "calmar": -0.24975465079481438,
-      "sharpe": -0.32230246126773743,
-      "excess_vs_btc": -0.15507804938360514,
-      "avg_cash_pct": 0.0,
-      "annualized_turnover": 23.06788559636354,
-      "total_fees_usd": 553.2187375259314,
-      "terminal_wealth_usd": 6415.197528230059,
+      "cagr": -0.20331370375685853,
+      "cum_return": -0.3650769628619258,
+      "max_drawdown": -0.7975066415301485,
+      "calmar": -0.2549366903914023,
+      "sharpe": -0.32225661472669515,
+      "excess_vs_btc": -0.15469586104433997,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 55.64859157616066,
+      "cumulative_turnover_ratio": 111.21465615135281,
+      "total_traded_notional_usd": 456377.7202429522,
+      "total_fees_usd": 547.6532642915427,
+      "terminal_wealth_usd": 6349.230371380741,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.22228088204291055,
+            -0.33257874608403076,
+            -0.4429448629001456,
+            -0.5533794531151109,
+            -0.6638827377660366,
+            -0.774455729528099,
+            -0.8851032262759706,
+            -0.9958237367486473,
+            -1.1066224134904108,
+            -1.2174948968476116,
+            -1.3284414105973827
+          ],
+          "roots_found": []
+        }
       }
     },
     "MOMENTUM_TOP2_TREND_GATE": {
@@ -294,31 +595,93 @@
       "cum_return": -0.47429538308651975,
       "max_drawdown": -0.6789091995147444,
       "calmar": -0.40523541837268684,
-      "sharpe": -0.6100878414616995,
-      "excess_vs_btc": -0.23101347649799286,
+      "sharpe": -0.6089205372534104,
+      "excess_vs_btc": -0.2265002107899048,
       "avg_cash_pct": 53.84439751127348,
-      "annualized_turnover": 19.651005687819925,
+      "annualized_turnover": 36.56073843118242,
+      "cumulative_turnover_ratio": 73.06725719551504,
+      "total_traded_notional_usd": 392728.68884886755,
       "total_fees_usd": 471.27442661864103,
       "terminal_wealth_usd": 5257.046169134803,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.45687106233076824,
+            -0.528986100461797,
+            -0.6011152943105642,
+            -0.6732587880077681,
+            -0.745416725771532,
+            -0.8175892519092071,
+            -0.8897765108190504,
+            -0.9619786469919842,
+            -1.034195805013347,
+            -1.1064281295645935,
+            -1.1786757654250912
+          ],
+          "roots_found": []
+        }
       }
     },
     "INVERSE_VOL4": {
-      "cagr": -0.151612860664593,
-      "cum_return": -0.28006373926143546,
-      "max_drawdown": -0.7098676293050036,
-      "calmar": -0.21357905953963513,
-      "sharpe": -0.27270355947404235,
-      "excess_vs_btc": -0.10750828366016252,
-      "avg_cash_pct": 1.99283977860644e-15,
-      "annualized_turnover": 3.0661808371932104,
-      "total_fees_usd": 73.53377424611617,
-      "terminal_wealth_usd": 7199.362607385645,
+      "cagr": -0.15651351221784293,
+      "cum_return": -0.2883509303458872,
+      "max_drawdown": -0.7098542750905031,
+      "calmar": -0.22048682061946895,
+      "sharpe": -0.27151856413894687,
+      "excess_vs_btc": -0.10789566950532437,
+      "avg_cash_pct": 0.005708088361209825,
+      "annualized_turnover": 5.788806355583279,
+      "cumulative_turnover_ratio": 11.569027896813083,
+      "total_traded_notional_usd": 60689.440792221096,
+      "total_fees_usd": 72.8273289506653,
+      "terminal_wealth_usd": 7116.490696541128,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.2278796352036209,
+            -0.23845123999521442,
+            -0.24902135685932847,
+            -0.2595901923914575,
+            -0.2701579275155775,
+            -0.28072459705901187,
+            -0.29129012118595127,
+            -0.3018545078905074,
+            -0.31241776516427094,
+            -0.32297990099635054,
+            -0.333540923373411
+          ],
+          "roots_found": []
+        }
       }
     },
     "INVERSE_VOL4_TREND_GATE": {
@@ -326,342 +689,1011 @@
       "cum_return": -0.35359149933322365,
       "max_drawdown": -0.552671844566517,
       "calmar": -0.35488475087404714,
-      "sharpe": -0.5441941596842161,
-      "excess_vs_btc": -0.152030232869658,
+      "sharpe": -0.5409460199266738,
+      "excess_vs_btc": -0.14751696716156992,
       "avg_cash_pct": 53.84439751127348,
-      "annualized_turnover": 17.622086701418787,
+      "annualized_turnover": 27.052731897111943,
+      "cumulative_turnover_ratio": 54.065344524926324,
+      "total_traded_notional_usd": 352180.39804033283,
       "total_fees_usd": 422.6164776483994,
       "terminal_wealth_usd": 6464.085006667764,
       "breakeven_cost": {
         "breakeven_bps": null,
-        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE",
+        "diagnostics": {
+          "grid_points": [
+            0.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            60.0,
+            70.0,
+            80.0,
+            90.0,
+            100.0
+          ],
+          "g_values": [
+            -0.27300229733802583,
+            -0.32609925167722775,
+            -0.3791961658321764,
+            -0.43229314187548484,
+            -0.4853902818815569,
+            -0.5384876879278357,
+            -0.5915854620960171,
+            -0.644683706473224,
+            -0.6977825231532764,
+            -0.7508820142378548,
+            -0.8039822818377516
+          ],
+          "roots_found": []
+        }
       }
     }
   },
-  "subwindow_2022": {
-    "CASH_100": {
-      "cagr": 0.0,
-      "cum_return": 0.0,
-      "max_drawdown": 0.0,
-      "calmar": 0.0,
-      "sharpe": 0.0,
-      "terminal_wealth_usd": 10000.0
+  "subwindow_independent_restart": {
+    "2022": {
+      "CASH_100": {
+        "cagr": 0.0,
+        "cum_return": 0.0,
+        "max_drawdown": 0.0,
+        "calmar": 0.0,
+        "sharpe": 0.0,
+        "terminal_wealth_usd": 10000.0
+      },
+      "BTC_BH": {
+        "cagr": -0.6461586549411732,
+        "cum_return": -0.6458649834190099,
+        "max_drawdown": -0.6737711687834669,
+        "calmar": -0.9590179646716708,
+        "sharpe": -1.6282427352271607,
+        "terminal_wealth_usd": 3541.3501658099012
+      },
+      "EW4": {
+        "cagr": -0.7366891351612097,
+        "cum_return": -0.7364084048616708,
+        "max_drawdown": -0.7519704187413394,
+        "calmar": -0.9796783447868763,
+        "sharpe": -1.6817894881321305,
+        "terminal_wealth_usd": 2635.9159513832924
+      },
+      "EW4_BUY_AND_HOLD": {
+        "cagr": -0.6982002388415701,
+        "cum_return": -0.6979113857900138,
+        "max_drawdown": -0.720741915196213,
+        "calmar": -0.9687243437916245,
+        "sharpe": -1.5876775413677933,
+        "terminal_wealth_usd": 3020.8861420998624
+      },
+      "TREND_GATE_BTC": {
+        "cagr": -0.37367716548981245,
+        "cum_return": -0.3734431098576384,
+        "max_drawdown": -0.43924710048604615,
+        "calmar": -0.8507219855892556,
+        "sharpe": -1.2631623483286396,
+        "terminal_wealth_usd": 6265.568901423616
+      },
+      "TREND_GATE_EW4": {
+        "cagr": -0.5029522405932574,
+        "cum_return": -0.5026746938961435,
+        "max_drawdown": -0.5212313605906708,
+        "calmar": -0.9649308898514872,
+        "sharpe": -1.463696360570992,
+        "terminal_wealth_usd": 4973.253061038566
+      },
+      "VOL_TARGET_BTC": {
+        "cagr": -0.4781215547780139,
+        "cum_return": -0.47785046933095165,
+        "max_drawdown": -0.4952428327749954,
+        "calmar": -0.9654285193769573,
+        "sharpe": -1.8042517964381208,
+        "terminal_wealth_usd": 5221.495306690484
+      },
+      "VOL_TARGET_EW4": {
+        "cagr": -0.5693079255568931,
+        "cum_return": -0.569018118979653,
+        "max_drawdown": -0.5941906628858434,
+        "calmar": -0.9581233114500644,
+        "sharpe": -1.8690750712156339,
+        "terminal_wealth_usd": 4309.818810203469
+      },
+      "MOMENTUM_TOP1": {
+        "cagr": -0.7737169897014844,
+        "cum_return": -0.7734483217232061,
+        "max_drawdown": -0.7810772540861843,
+        "calmar": -0.9905767779740161,
+        "sharpe": -1.744635361945897,
+        "terminal_wealth_usd": 2265.5167827679393
+      },
+      "MOMENTUM_TOP1_TREND_GATE": {
+        "cagr": -0.5581603297447695,
+        "cum_return": -0.5578720441037752,
+        "max_drawdown": -0.576278934897971,
+        "calmar": -0.9685593138045044,
+        "sharpe": -1.393943828641686,
+        "terminal_wealth_usd": 4421.279558962247
+      },
+      "MOMENTUM_TOP2": {
+        "cagr": -0.7870807672746818,
+        "cum_return": -0.7868176036993897,
+        "max_drawdown": -0.7975066415301485,
+        "calmar": -0.9869269123132781,
+        "sharpe": -1.894439515672449,
+        "terminal_wealth_usd": 2131.8239630061034
+      },
+      "MOMENTUM_TOP2_TREND_GATE": {
+        "cagr": -0.6431725153021008,
+        "cum_return": -0.6428787619901795,
+        "max_drawdown": -0.654277231230661,
+        "calmar": -0.9830275066921208,
+        "sharpe": -1.8148828275792754,
+        "terminal_wealth_usd": 3571.212380098205
+      },
+      "INVERSE_VOL4": {
+        "cagr": -0.6946564028892177,
+        "cum_return": -0.6943670071816921,
+        "max_drawdown": -0.7098542750905031,
+        "calmar": -0.9785901519021665,
+        "sharpe": -1.5788151007544933,
+        "terminal_wealth_usd": 3056.3299281830787
+      },
+      "INVERSE_VOL4_TREND_GATE": {
+        "cagr": -0.45164025939465313,
+        "cum_return": -0.4513771033122316,
+        "max_drawdown": -0.47131412289538027,
+        "calmar": -0.958257428443123,
+        "sharpe": -1.3510669033491942,
+        "terminal_wealth_usd": 5486.228966877685
+      }
     },
-    "BTC_BH": {
-      "cagr": -0.6427933200583764,
-      "cum_return": -0.6424995577918093,
-      "max_drawdown": -0.6737711687834668,
-      "calmar": -0.9540231904238012,
-      "sharpe": -1.6263510821719347,
-      "terminal_wealth_usd": 3575.0044220819073
-    },
-    "EW4": {
-      "cagr": -0.7336196944279969,
-      "cum_return": -0.7333381595462545,
-      "max_drawdown": -0.7520248923178522,
-      "calmar": -0.9755258129380163,
-      "sharpe": -1.6805048834784155,
-      "terminal_wealth_usd": 2666.6184045374553
-    },
-    "EW4_BUY_AND_HOLD": {
-      "cagr": -0.6947890973641109,
-      "cum_return": -0.6944997213812996,
-      "max_drawdown": -0.7208767597279324,
-      "calmar": -0.9638112034938298,
-      "sharpe": -1.58638980520953,
-      "terminal_wealth_usd": 3055.002786187004
-    },
-    "TREND_GATE_BTC": {
-      "cagr": -0.37367716548981245,
-      "cum_return": -0.3734431098576384,
-      "max_drawdown": -0.43924710048604615,
-      "calmar": -0.8507219855892556,
-      "sharpe": -1.2631623483286396,
-      "terminal_wealth_usd": 6265.568901423616
-    },
-    "TREND_GATE_EW4": {
-      "cagr": -0.5029522405932574,
-      "cum_return": -0.5026746938961435,
-      "max_drawdown": -0.5212313605906708,
-      "calmar": -0.9649308898514872,
-      "sharpe": -1.463696360570992,
-      "terminal_wealth_usd": 4973.253061038566
-    },
-    "VOL_TARGET_BTC": {
-      "cagr": -0.4743537489302454,
-      "cum_return": -0.47408372746542304,
-      "max_drawdown": -0.49535689287170215,
-      "calmar": -0.9575999764135783,
-      "sharpe": -1.8020242062075278,
-      "terminal_wealth_usd": 5259.162725345769
-    },
-    "VOL_TARGET_EW4": {
-      "cagr": -0.565485146720516,
-      "cum_return": -0.5651958360507139,
-      "max_drawdown": -0.5943654125441482,
-      "calmar": -0.9514099151563818,
-      "sharpe": -1.8676614127840985,
-      "terminal_wealth_usd": 4348.041639492862
-    },
-    "MOMENTUM_TOP1": {
-      "cagr": -0.7711490595682371,
-      "cum_return": -0.7708794072872232,
-      "max_drawdown": -0.7810772540861846,
-      "calmar": -0.9872891004494007,
-      "sharpe": -1.743227993666725,
-      "terminal_wealth_usd": 2291.2059271277685
-    },
-    "MOMENTUM_TOP1_TREND_GATE": {
-      "cagr": -0.5581603297447695,
-      "cum_return": -0.5578720441037752,
-      "max_drawdown": -0.576278934897971,
-      "calmar": -0.9685593138045044,
-      "sharpe": -1.393943828641686,
-      "terminal_wealth_usd": 4421.279558962247
-    },
-    "MOMENTUM_TOP2": {
-      "cagr": -0.7848668045180976,
-      "cum_return": -0.7846026838190736,
-      "max_drawdown": -0.797513182453903,
-      "calmar": -0.9841427349239631,
-      "sharpe": -1.8930031317929719,
-      "terminal_wealth_usd": 2153.9731618092637
-    },
-    "MOMENTUM_TOP2_TREND_GATE": {
-      "cagr": -0.6431725153021008,
-      "cum_return": -0.6428787619901795,
-      "max_drawdown": -0.654277231230661,
-      "calmar": -0.9830275066921208,
-      "sharpe": -1.8148828275792754,
-      "terminal_wealth_usd": 3571.212380098205
-    },
-    "INVERSE_VOL4": {
-      "cagr": -0.6910978023726141,
-      "cum_return": -0.6908078948028489,
-      "max_drawdown": -0.7098676293050036,
-      "calmar": -0.9735586943853658,
-      "sharpe": -1.577272392935397,
-      "terminal_wealth_usd": 3091.9210519715116
-    },
-    "INVERSE_VOL4_TREND_GATE": {
-      "cagr": -0.45164025939465313,
-      "cum_return": -0.4513771033122316,
-      "max_drawdown": -0.47131412289538027,
-      "calmar": -0.958257428443123,
-      "sharpe": -1.3510669033491942,
-      "terminal_wealth_usd": 5486.228966877685
+    "2023": {
+      "CASH_100": {
+        "cagr": 0.0,
+        "cum_return": 0.0,
+        "max_drawdown": 0.0,
+        "calmar": 0.0,
+        "sharpe": 0.0,
+        "terminal_wealth_usd": 10000.0
+      },
+      "BTC_BH": {
+        "cagr": 1.5569038915092515,
+        "cum_return": 1.5549877836883281,
+        "max_drawdown": -0.2174084371548782,
+        "calmar": 7.161193520747029,
+        "sharpe": 2.209461952451391,
+        "terminal_wealth_usd": 25549.877836883283
+      },
+      "EW4": {
+        "cagr": 2.2305843991169088,
+        "cum_return": 2.227560637282057,
+        "max_drawdown": -0.2974153568683701,
+        "calmar": 7.499896517126112,
+        "sharpe": 2.274306230161443,
+        "terminal_wealth_usd": 32275.60637282057
+      },
+      "EW4_BUY_AND_HOLD": {
+        "cagr": 2.9795456986546043,
+        "cum_return": 2.975159008101409,
+        "max_drawdown": -0.3074000662956617,
+        "calmar": 9.692729525272242,
+        "sharpe": 2.3354673085733784,
+        "terminal_wealth_usd": 39751.59008101409
+      },
+      "TREND_GATE_BTC": {
+        "cagr": 0.33827027588746095,
+        "cum_return": 0.33795892754932866,
+        "max_drawdown": -0.2705319393846914,
+        "calmar": 1.2503894240984497,
+        "sharpe": 0.916242276513999,
+        "terminal_wealth_usd": 13379.589275493287
+      },
+      "TREND_GATE_EW4": {
+        "cagr": 0.39495142963787866,
+        "cum_return": 0.3945806985321456,
+        "max_drawdown": -0.3880871122340478,
+        "calmar": 1.0176875685572653,
+        "sharpe": 0.8311023483457269,
+        "terminal_wealth_usd": 13945.806985321457
+      },
+      "VOL_TARGET_BTC": {
+        "cagr": 1.057761207289576,
+        "cum_return": 1.056575782119002,
+        "max_drawdown": -0.2382511510261216,
+        "calmar": 4.439689809404547,
+        "sharpe": 2.1021766980784435,
+        "terminal_wealth_usd": 20565.75782119002
+      },
+      "VOL_TARGET_EW4": {
+        "cagr": 1.513220469950161,
+        "cum_return": 1.5113716554534533,
+        "max_drawdown": -0.30079422198352057,
+        "calmar": 5.030749792903485,
+        "sharpe": 2.2131816040862424,
+        "terminal_wealth_usd": 25113.716554534534
+      },
+      "MOMENTUM_TOP1": {
+        "cagr": 2.814340193640665,
+        "cum_return": 2.8102646166574057,
+        "max_drawdown": -0.49457471169885525,
+        "calmar": 5.6904247772261884,
+        "sharpe": 1.7192489010854846,
+        "terminal_wealth_usd": 38102.64616657406
+      },
+      "MOMENTUM_TOP1_TREND_GATE": {
+        "cagr": 1.206921070770433,
+        "cum_return": 1.2055264664507637,
+        "max_drawdown": -0.4977661756289543,
+        "calmar": 2.4246747365777184,
+        "sharpe": 1.1133686115932666,
+        "terminal_wealth_usd": 22055.264664507635
+      },
+      "MOMENTUM_TOP2": {
+        "cagr": 1.9865002760054526,
+        "cum_return": 1.9838921574430688,
+        "max_drawdown": -0.38540379455259266,
+        "calmar": 5.154335022340764,
+        "sharpe": 1.9287129235929692,
+        "terminal_wealth_usd": 29838.921574430686
+      },
+      "MOMENTUM_TOP2_TREND_GATE": {
+        "cagr": 0.47251699384745294,
+        "cum_return": 0.4720620365317614,
+        "max_drawdown": -0.4455591513563638,
+        "calmar": 1.0605033976050644,
+        "sharpe": 0.8029326990201558,
+        "terminal_wealth_usd": 14720.620365317614
+      },
+      "INVERSE_VOL4": {
+        "cagr": 1.3298527911167515,
+        "cum_return": 1.3282797187848931,
+        "max_drawdown": -0.28590649092517156,
+        "calmar": 4.6513557170858535,
+        "sharpe": 1.8554729947063355,
+        "terminal_wealth_usd": 23282.797187848933
+      },
+      "INVERSE_VOL4_TREND_GATE": {
+        "cagr": 0.17839273986924575,
+        "cum_return": 0.17823828456554636,
+        "max_drawdown": -0.38446785093527575,
+        "calmar": 0.46399910794954285,
+        "sharpe": 0.47346568661139576,
+        "terminal_wealth_usd": 11782.382845655464
+      }
     }
   },
-  "subwindow_2023": {
+  "subwindow_continuous_breakdown": {
+    "CASH_100": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 10000.0,
+        "period_return": 0.0,
+        "max_drawdown": 0.0
+      },
+      "year_2023": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 10000.0,
+        "period_return": 0.0,
+        "max_drawdown": 0.0
+      }
+    },
+    "BTC_BH": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 3541.3501658099012,
+        "period_return": -0.6458649834190099,
+        "max_drawdown": -0.6737711687834669
+      },
+      "year_2023": {
+        "start_equity_usd": 3541.3501658099012,
+        "terminal_equity_usd": 9051.949115245443,
+        "period_return": 1.5560728793887222,
+        "max_drawdown": -0.2174084371548781
+      }
+    },
+    "EW4": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 2635.9159513832924,
+        "period_return": -0.7364084048616708,
+        "max_drawdown": -0.7519704187413394
+      },
+      "year_2023": {
+        "start_equity_usd": 2635.9159513832924,
+        "terminal_equity_usd": 8509.981959145318,
+        "period_return": 2.2284724232877746,
+        "max_drawdown": -0.2974153568683702
+      }
+    },
+    "EW4_BUY_AND_HOLD": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 3020.8861420998624,
+        "period_return": -0.6979113857900138,
+        "max_drawdown": -0.720741915196213
+      },
+      "year_2023": {
+        "start_equity_usd": 3020.8861420998624,
+        "terminal_equity_usd": 6772.016342801245,
+        "period_return": 1.241731738387835,
+        "max_drawdown": -0.2921866306422364
+      }
+    },
+    "TREND_GATE_BTC": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 6265.568901423616,
+        "period_return": -0.3734431098576384,
+        "max_drawdown": -0.43924710048604615
+      },
+      "year_2023": {
+        "start_equity_usd": 6265.568901423616,
+        "terminal_equity_usd": 8383.073847835167,
+        "period_return": 0.33795892754932866,
+        "max_drawdown": -0.27053193938469144
+      }
+    },
+    "TREND_GATE_EW4": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 4973.253061038566,
+        "period_return": -0.5026746938961435,
+        "max_drawdown": -0.5212313605906708
+      },
+      "year_2023": {
+        "start_equity_usd": 4973.253061038566,
+        "terminal_equity_usd": 6935.602727840281,
+        "period_return": 0.39458069853214295,
+        "max_drawdown": -0.38808711223404857
+      }
+    },
+    "VOL_TARGET_BTC": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 5221.495306690484,
+        "period_return": -0.47785046933095165,
+        "max_drawdown": -0.4952428327749954
+      },
+      "year_2023": {
+        "start_equity_usd": 5221.495306690484,
+        "terminal_equity_usd": 10740.536149254967,
+        "period_return": 1.0569847368229452,
+        "max_drawdown": -0.23825115102612124
+      }
+    },
+    "VOL_TARGET_EW4": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 4309.818810203469,
+        "period_return": -0.569018118979653,
+        "max_drawdown": -0.5941906628858434
+      },
+      "year_2023": {
+        "start_equity_usd": 4309.818810203469,
+        "terminal_equity_usd": 10826.405418623643,
+        "period_return": 1.5120326156153467,
+        "max_drawdown": -0.30079422198352057
+      }
+    },
+    "MOMENTUM_TOP1": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 2265.5167827679393,
+        "period_return": -0.7734483217232061,
+        "max_drawdown": -0.7810772540861843
+      },
+      "year_2023": {
+        "start_equity_usd": 2265.5167827679393,
+        "terminal_equity_usd": 8607.155189802847,
+        "period_return": 2.7992016899944954,
+        "max_drawdown": -0.49457471169885514
+      }
+    },
+    "MOMENTUM_TOP1_TREND_GATE": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 4421.279558962247,
+        "period_return": -0.5578720441037752,
+        "max_drawdown": -0.576278934897971
+      },
+      "year_2023": {
+        "start_equity_usd": 4421.279558962247,
+        "terminal_equity_usd": 9751.249082868982,
+        "period_return": 1.2055264664507606,
+        "max_drawdown": -0.4977661756289545
+      }
+    },
+    "MOMENTUM_TOP2": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 2131.8239630061034,
+        "period_return": -0.7868176036993897,
+        "max_drawdown": -0.7975066415301485
+      },
+      "year_2023": {
+        "start_equity_usd": 2131.8239630061034,
+        "terminal_equity_usd": 6349.230371380741,
+        "period_return": 1.978308941807576,
+        "max_drawdown": -0.3854037945525919
+      }
+    },
+    "MOMENTUM_TOP2_TREND_GATE": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 3571.212380098205,
+        "period_return": -0.6428787619901795,
+        "max_drawdown": -0.654277231230661
+      },
+      "year_2023": {
+        "start_equity_usd": 3571.212380098205,
+        "terminal_equity_usd": 5257.046169134803,
+        "period_return": 0.4720620365317616,
+        "max_drawdown": -0.4455591513563639
+      }
+    },
+    "INVERSE_VOL4": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 3056.3299281830787,
+        "period_return": -0.6943670071816921,
+        "max_drawdown": -0.7098542750905031
+      },
+      "year_2023": {
+        "start_equity_usd": 3056.3299281830787,
+        "terminal_equity_usd": 7116.490696541128,
+        "period_return": 1.3284432190773745,
+        "max_drawdown": -0.2859064909251717
+      }
+    },
+    "INVERSE_VOL4_TREND_GATE": {
+      "year_2022": {
+        "start_equity_usd": 10000.0,
+        "terminal_equity_usd": 5486.228966877685,
+        "period_return": -0.4513771033122316,
+        "max_drawdown": -0.47131412289538027
+      },
+      "year_2023": {
+        "start_equity_usd": 5486.228966877685,
+        "terminal_equity_usd": 6464.085006667764,
+        "period_return": 0.1782382845655448,
+        "max_drawdown": -0.38446785093527636
+      }
+    }
+  },
+  "daily_diagnostic_scorecard": {
     "CASH_100": {
       "cagr": 0.0,
       "cum_return": 0.0,
       "max_drawdown": 0.0,
       "calmar": 0.0,
       "sharpe": 0.0,
+      "avg_cash_pct": 100.0,
+      "annualized_turnover": 0.0,
+      "total_fees_usd": 0.0,
       "terminal_wealth_usd": 10000.0
     },
     "BTC_BH": {
-      "cagr": 1.555019693560816,
-      "cum_return": 1.55310650065723,
-      "max_drawdown": -0.21740843715487818,
-      "calmar": 7.1525268932090516,
-      "sharpe": 2.209994484405117,
-      "terminal_wealth_usd": 25531.065006572302
+      "cagr": -0.048617842712518566,
+      "cum_return": -0.09480508847545566,
+      "max_drawdown": -0.6737711687834669,
+      "calmar": -0.07215779624453346,
+      "sharpe": -0.09102578338978322,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 0.4997713001832586,
+      "total_fees_usd": 11.985617259288853,
+      "terminal_wealth_usd": 9051.949115245443
     },
     "EW4": {
-      "cagr": 2.2300964064570072,
-      "cum_return": 2.227073490660893,
-      "max_drawdown": -0.2974153568683704,
-      "calmar": 7.498255738838663,
-      "sharpe": 2.2724285431241773,
-      "terminal_wealth_usd": 32270.73490660893
+      "cagr": -0.10822098473929531,
+      "cum_return": -0.20459509310098767,
+      "max_drawdown": -0.7579203104153844,
+      "calmar": -0.1427867590459265,
+      "sharpe": -0.16917228133648582,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 1.5661702568226201,
+      "total_fees_usd": 23.932139557290355,
+      "terminal_wealth_usd": 7954.0490689901235
     },
     "EW4_BUY_AND_HOLD": {
-      "cagr": 2.9827248840508287,
-      "cum_return": 2.9783321521322113,
-      "max_drawdown": -0.30753616215076857,
-      "calmar": 9.69877774109881,
-      "sharpe": 2.3335528147757243,
-      "terminal_wealth_usd": 39783.32152132211
+      "cagr": -0.17719638562500173,
+      "cum_return": -0.3227983657198755,
+      "max_drawdown": -0.720741915196213,
+      "calmar": -0.24585275518042018,
+      "sharpe": -0.31310160379343427,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 0.4997713001832586,
+      "total_fees_usd": 11.985617259288853,
+      "terminal_wealth_usd": 6772.016342801245
     },
     "TREND_GATE_BTC": {
-      "cagr": 0.33827027588746095,
-      "cum_return": 0.33795892754932866,
-      "max_drawdown": -0.2705319393846914,
-      "calmar": 1.2503894240984497,
-      "sharpe": 0.9132380798474771,
-      "terminal_wealth_usd": 13379.589275493287
+      "cagr": 0.19113589265054087,
+      "cum_return": 0.4184367414432464,
+      "max_drawdown": -0.3386134752463012,
+      "calmar": 0.5644662915777706,
+      "sharpe": 0.5072674819866739,
+      "avg_cash_pct": 49.46058564986586,
+      "annualized_turnover": 67.50930713727463,
+      "total_fees_usd": 1548.1546926195872,
+      "terminal_wealth_usd": 14184.367414432463
     },
     "TREND_GATE_EW4": {
-      "cagr": 0.39495142963787866,
-      "cum_return": 0.3945806985321456,
-      "max_drawdown": -0.3880871122340478,
-      "calmar": 1.0176875685572653,
-      "sharpe": 0.8244087863091404,
-      "terminal_wealth_usd": 13945.806985321457
+      "cagr": 0.32100611983522964,
+      "cum_return": 0.7443368556716428,
+      "max_drawdown": -0.44253073173217355,
+      "calmar": 0.7253871806342876,
+      "sharpe": 0.6694240994268276,
+      "avg_cash_pct": 49.46058564986586,
+      "annualized_turnover": 67.87644401984353,
+      "total_fees_usd": 1481.6757214033423,
+      "terminal_wealth_usd": 17443.36855671643
     },
     "VOL_TARGET_BTC": {
-      "cagr": 1.056384289813943,
-      "cum_return": 1.0552007563739352,
-      "max_drawdown": -0.23825115102612154,
-      "calmar": 4.433910540470474,
-      "sharpe": 2.1038946294715317,
-      "terminal_wealth_usd": 20552.007563739353
+      "cagr": 0.050883375583432366,
+      "cum_return": 0.1042745880796061,
+      "max_drawdown": -0.4604135042386828,
+      "calmar": 0.11051668796633282,
+      "sharpe": 0.1467042329098473,
+      "avg_cash_pct": 28.70705698414286,
+      "annualized_turnover": 9.402620127905054,
+      "total_fees_usd": 169.8255040683972,
+      "terminal_wealth_usd": 11042.745880796061
     },
     "VOL_TARGET_EW4": {
-      "cagr": 1.5121191243959102,
-      "cum_return": 1.5102719987170925,
-      "max_drawdown": -0.3007942219835206,
-      "calmar": 5.027088334425365,
-      "sharpe": 2.2129619666769575,
-      "terminal_wealth_usd": 25102.719987170924
+      "cagr": 0.054968285855540255,
+      "cum_return": 0.11286976719504671,
+      "max_drawdown": -0.5590198036780527,
+      "calmar": 0.09832976487394221,
+      "sharpe": 0.13139906266199933,
+      "avg_cash_pct": 28.765319330544404,
+      "annualized_turnover": 9.572370211962332,
+      "total_fees_usd": 153.71728339609382,
+      "terminal_wealth_usd": 11128.697671950467
     },
     "MOMENTUM_TOP1": {
-      "cagr": 2.806590730726198,
-      "cum_return": 2.802529609315427,
-      "max_drawdown": -0.4945747116988554,
-      "calmar": 5.674755834332104,
-      "sharpe": 1.7200861606729017,
-      "terminal_wealth_usd": 38025.29609315427
+      "cagr": 0.20730557566229924,
+      "cum_return": 0.4571795828419949,
+      "max_drawdown": -0.7489864000164732,
+      "calmar": 0.27678149517499884,
+      "sharpe": 0.2305768136982979,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 179.41789676578983,
+      "total_fees_usd": 2462.7501878083904,
+      "terminal_wealth_usd": 14571.795828419949
     },
     "MOMENTUM_TOP1_TREND_GATE": {
-      "cagr": 1.206921070770433,
-      "cum_return": 1.2055264664507637,
-      "max_drawdown": -0.4977661756289543,
-      "calmar": 2.4246747365777184,
-      "sharpe": 1.1120268739791355,
-      "terminal_wealth_usd": 22055.264664507635
+      "cagr": 0.7928363171259358,
+      "cum_return": 2.2114804358209956,
+      "max_drawdown": -0.5848616896105634,
+      "calmar": 1.3555962567044777,
+      "sharpe": 0.9088047884797175,
+      "avg_cash_pct": 49.46058564986586,
+      "annualized_turnover": 119.48552235633352,
+      "total_fees_usd": 3312.520944523389,
+      "terminal_wealth_usd": 32114.804358209956
     },
     "MOMENTUM_TOP2": {
-      "cagr": 1.982332535068192,
-      "cum_return": 1.9797313790861466,
-      "max_drawdown": -0.38540379455259227,
-      "calmar": 5.143521063069561,
-      "sharpe": 1.9289573907051707,
-      "terminal_wealth_usd": 29797.313790861466
+      "cagr": 0.05936350971741122,
+      "cum_return": 0.12215507246649326,
+      "max_drawdown": -0.7160716238608454,
+      "calmar": 0.08290163684652216,
+      "sharpe": 0.08586904183988167,
+      "avg_cash_pct": 0.005708088361207832,
+      "annualized_turnover": 130.5912828554533,
+      "total_fees_usd": 1705.6207716897652,
+      "terminal_wealth_usd": 11221.550724664932
     },
     "MOMENTUM_TOP2_TREND_GATE": {
-      "cagr": 0.47251699384745294,
-      "cum_return": 0.4720620365317614,
-      "max_drawdown": -0.4455591513563638,
-      "calmar": 1.0605033976050644,
-      "sharpe": 0.8003600617266129,
-      "terminal_wealth_usd": 14720.620365317614
+      "cagr": 0.48353024256826527,
+      "cum_return": 1.199575001145758,
+      "max_drawdown": -0.5158214535170158,
+      "calmar": 0.9373984724199043,
+      "sharpe": 0.7952892627468563,
+      "avg_cash_pct": 49.46058564986586,
+      "annualized_turnover": 114.41576105301323,
+      "total_fees_usd": 2723.483178837114,
+      "terminal_wealth_usd": 21995.750011457578
     },
     "INVERSE_VOL4": {
-      "cagr": 1.327005922261396,
-      "cum_return": 1.3254370424970738,
-      "max_drawdown": -0.2859064909251714,
-      "calmar": 4.64139837457802,
-      "sharpe": 1.8524582979534625,
-      "terminal_wealth_usd": 23254.370424970737
+      "cagr": -0.1582488703280056,
+      "cum_return": -0.291273994817257,
+      "max_drawdown": -0.7185550429025747,
+      "calmar": -0.2202320781004689,
+      "sharpe": -0.275065228373206,
+      "avg_cash_pct": 0.005708088361210284,
+      "annualized_turnover": 7.341821576740635,
+      "total_fees_usd": 89.19028696354658,
+      "terminal_wealth_usd": 7087.260051827429
     },
     "INVERSE_VOL4_TREND_GATE": {
-      "cagr": 0.17839273986924575,
-      "cum_return": 0.17823828456554636,
-      "max_drawdown": -0.38446785093527575,
-      "calmar": 0.46399910794954285,
-      "sharpe": 0.46591361742218185,
-      "terminal_wealth_usd": 11782.382845655464
+      "cagr": 0.2296350267612297,
+      "cum_return": 0.5115388469937625,
+      "max_drawdown": -0.38916357837461135,
+      "calmar": 0.5900732738668097,
+      "sharpe": 0.5461957091721408,
+      "avg_cash_pct": 49.46058564986586,
+      "annualized_turnover": 70.83651848813437,
+      "total_fees_usd": 1554.5840020964943,
+      "terminal_wealth_usd": 15115.388469937625
     }
   },
   "sensitivity": {
     "cost_10bps": {
       "CASH_100": 0.0,
-      "BTC_BH": -0.04400901686413228,
-      "EW4": -0.07190941647515403,
-      "EW4_BUY_AND_HOLD": -0.17235385598631436,
+      "BTC_BH": -0.048522733759969405,
+      "EW4": -0.0772715654393068,
+      "EW4_BUY_AND_HOLD": -0.17711413057184822,
       "TREND_GATE_BTC": -0.07978411280192643,
       "TREND_GATE_EW4": -0.16300157641254498,
-      "VOL_TARGET_BTC": 0.041687834789902345,
-      "VOL_TARGET_EW4": 0.0467346177019774,
-      "MOMENTUM_TOP1": -0.05341898953247437,
+      "VOL_TARGET_BTC": 0.03794777126593929,
+      "VOL_TARGET_EW4": 0.04211999308481729,
+      "MOMENTUM_TOP1": -0.05874444838820181,
       "MOMENTUM_TOP1_TREND_GATE": -0.005085757699864524,
-      "MOMENTUM_TOP2": -0.19021000138831423,
+      "MOMENTUM_TOP2": -0.19438736472607043,
       "MOMENTUM_TOP2_TREND_GATE": -0.26979415327355427,
-      "INVERSE_VOL4": -0.1506300282364038,
+      "INVERSE_VOL4": -0.1555363413397216,
       "INVERSE_VOL4_TREND_GATE": -0.1917712080071744
     },
     "cost_20bps": {
       "CASH_100": 0.0,
-      "BTC_BH": -0.044486531343826075,
-      "EW4": -0.07335613799611373,
-      "EW4_BUY_AND_HOLD": -0.17276726262382558,
+      "BTC_BH": -0.04899799365231561,
+      "EW4": -0.07871057110799218,
+      "EW4_BUY_AND_HOLD": -0.17752515946722391,
       "TREND_GATE_BTC": -0.10296931386306529,
       "TREND_GATE_EW4": -0.184324779033336,
-      "VOL_TARGET_BTC": 0.03390877322498875,
-      "VOL_TARGET_EW4": 0.038776724311867516,
-      "MOMENTUM_TOP1": -0.1196642762090615,
+      "VOL_TARGET_BTC": 0.030197530423208274,
+      "VOL_TARGET_EW4": 0.03419832225947017,
+      "MOMENTUM_TOP1": -0.12461703949549208,
       "MOMENTUM_TOP1_TREND_GATE": -0.04173018644044757,
-      "MOMENTUM_TOP2": -0.23410022100017935,
+      "MOMENTUM_TOP2": -0.23805117329975656,
       "MOMENTUM_TOP2_TREND_GATE": -0.2960301730010486,
-      "INVERSE_VOL4": -0.15553241138485707,
+      "INVERSE_VOL4": -0.1604104843915798,
       "INVERSE_VOL4_TREND_GATE": -0.21335473945327887
     },
     "cost_30bps": {
       "CASH_100": 0.0,
-      "BTC_BH": -0.044963331339519574,
-      "EW4": -0.074800090892428,
-      "EW4_BUY_AND_HOLD": -0.17318005069909292,
+      "BTC_BH": -0.04947254243410182,
+      "EW4": -0.08014682229197378,
+      "EW4_BUY_AND_HOLD": -0.17793557335806687,
       "TREND_GATE_BTC": -0.1255700063822146,
       "TREND_GATE_EW4": -0.20510424599361698,
-      "VOL_TARGET_BTC": 0.026188067098708245,
-      "VOL_TARGET_EW4": 0.030879626134878713,
-      "MOMENTUM_TOP1": -0.18127329738903686,
+      "VOL_TARGET_BTC": 0.022505423543447645,
+      "VOL_TARGET_EW4": 0.026337163004974018,
+      "MOMENTUM_TOP1": -0.18587944870691187,
       "MOMENTUM_TOP1_TREND_GATE": -0.07702461360095969,
-      "MOMENTUM_TOP2": -0.2756360699377943,
+      "MOMENTUM_TOP2": -0.27937275639949677,
       "MOMENTUM_TOP2_TREND_GATE": -0.3213280603038082,
-      "INVERSE_VOL4": -0.16040554234674842,
+      "INVERSE_VOL4": -0.1652555432686701,
       "INVERSE_VOL4_TREND_GATE": -0.2343615306596557
     },
     "cadence_daily": {
       "CASH_100": 0.0,
-      "BTC_BH": -0.04410457700443049,
-      "EW4": -0.10302814011568096,
-      "EW4_BUY_AND_HOLD": -0.17243658687293828,
+      "BTC_BH": -0.048617842712518566,
+      "EW4": -0.10822098473929531,
+      "EW4_BUY_AND_HOLD": -0.17719638562500173,
       "TREND_GATE_BTC": 0.19113589265054087,
       "TREND_GATE_EW4": 0.32100611983522964,
-      "VOL_TARGET_BTC": 0.05469158902578197,
-      "VOL_TARGET_EW4": 0.059693532103942015,
-      "MOMENTUM_TOP1": 0.21413629890049757,
+      "VOL_TARGET_BTC": 0.050883375583432366,
+      "VOL_TARGET_EW4": 0.054968285855540255,
+      "MOMENTUM_TOP1": 0.20730557566229924,
       "MOMENTUM_TOP1_TREND_GATE": 0.7928363171259358,
-      "MOMENTUM_TOP2": 0.06487596231793646,
+      "MOMENTUM_TOP2": 0.05936350971741122,
       "MOMENTUM_TOP2_TREND_GATE": 0.48353024256826527,
-      "INVERSE_VOL4": -0.1533658073046107,
+      "INVERSE_VOL4": -0.1582488703280056,
       "INVERSE_VOL4_TREND_GATE": 0.2296350267612297
     },
     "band_0pct": {
       "CASH_100": 0.0,
-      "BTC_BH": -0.04410457700443049,
-      "EW4": -0.09863370950147121,
-      "EW4_BUY_AND_HOLD": -0.17243658687293828,
+      "BTC_BH": -0.048617842712518566,
+      "EW4": -0.10393990897829886,
+      "EW4_BUY_AND_HOLD": -0.17719638562500173,
       "TREND_GATE_BTC": -0.08446863642430913,
       "TREND_GATE_EW4": -0.17043782155485188,
-      "VOL_TARGET_BTC": 0.04251568907191272,
-      "VOL_TARGET_EW4": 0.04500822801109838,
-      "MOMENTUM_TOP1": -0.06705533610567593,
+      "VOL_TARGET_BTC": 0.038659293812297824,
+      "VOL_TARGET_EW4": 0.04018632054176985,
+      "MOMENTUM_TOP1": -0.0723040769607074,
       "MOMENTUM_TOP1_TREND_GATE": -0.012525098361601983,
-      "MOMENTUM_TOP2": -0.2004663322645307,
+      "MOMENTUM_TOP2": -0.2046027260921941,
       "MOMENTUM_TOP2_TREND_GATE": -0.2765856366729349,
-      "INVERSE_VOL4": -0.15625976489904592,
+      "INVERSE_VOL4": -0.16115314478067821,
       "INVERSE_VOL4_TREND_GATE": -0.19852712246266058
     },
     "band_10pct": {
       "CASH_100": 0.0,
-      "BTC_BH": -0.04410457700443049,
-      "EW4": -0.06830701767366931,
-      "EW4_BUY_AND_HOLD": -0.17243658687293828,
+      "BTC_BH": -0.048617842712518566,
+      "EW4": -0.07362568138598158,
+      "EW4_BUY_AND_HOLD": -0.17719638562500173,
       "TREND_GATE_BTC": -0.08446863642430913,
       "TREND_GATE_EW4": -0.16595701666389995,
-      "VOL_TARGET_BTC": 0.04584671075521807,
-      "VOL_TARGET_EW4": 0.060709803574075405,
-      "MOMENTUM_TOP1": -0.06705533610567593,
+      "VOL_TARGET_BTC": 0.042091895374860355,
+      "VOL_TARGET_EW4": 0.056033800646456466,
+      "MOMENTUM_TOP1": -0.0723040769607074,
       "MOMENTUM_TOP1_TREND_GATE": -0.012525098361601983,
-      "MOMENTUM_TOP2": -0.20802209504047042,
+      "MOMENTUM_TOP2": -0.21210757333751395,
       "MOMENTUM_TOP2_TREND_GATE": -0.2773831014635839,
-      "INVERSE_VOL4": -0.14915884882573982,
+      "INVERSE_VOL4": -0.15394023801571988,
       "INVERSE_VOL4_TREND_GATE": -0.18653950089527427
     }
-  }
+  },
+  "before_after_comparison": [
+    {
+      "policy": "CASH_100",
+      "cagr_before": 0.0,
+      "cagr_after": 0.0,
+      "cagr_delta": 0.0,
+      "maxdd_before": 0.0,
+      "maxdd_after": 0.0,
+      "maxdd_delta": 0.0,
+      "calmar_before": 0.0,
+      "calmar_after": 0.0,
+      "sharpe_before": 0.0,
+      "sharpe_after": 0.0,
+      "turnover_before": 0.0,
+      "turnover_after": 0.0,
+      "turnover_delta": 0.0,
+      "fees_before": 0.0,
+      "fees_after": 0.0,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "BTC_BH",
+      "cagr_before": -0.04410457700443049,
+      "cagr_after": -0.048617842712518566,
+      "cagr_delta": -0.004513265708088077,
+      "maxdd_before": -0.6737711687834668,
+      "maxdd_after": -0.6737711687834669,
+      "maxdd_delta": -1.1102230246251565e-16,
+      "calmar_before": -0.06545928209434054,
+      "calmar_after": -0.07215779624453346,
+      "sharpe_before": -0.0907948987487014,
+      "sharpe_after": -0.09102578338978322,
+      "turnover_before": 0.4997713001832586,
+      "turnover_after": 0.4997713001832586,
+      "turnover_delta": 0.0,
+      "fees_before": 11.985617259288853,
+      "fees_after": 11.985617259288853,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "EW4",
+      "cagr_before": -0.072198982640586,
+      "cagr_after": -0.07755958730118884,
+      "cagr_delta": -0.005360604660602841,
+      "maxdd_before": -0.7520248923178522,
+      "maxdd_after": -0.7519704187413394,
+      "maxdd_delta": 5.4473576512781285e-05,
+      "calmar_before": -0.09600610748143991,
+      "calmar_after": -0.10314180633728832,
+      "sharpe_before": -0.1198279278371597,
+      "sharpe_after": -0.1186508738142079,
+      "turnover_before": 1.0154421140266614,
+      "turnover_after": 1.5608218750366973,
+      "turnover_delta": 0.5453797610100359,
+      "fees_before": 24.35253989819723,
+      "fees_after": 24.221794821313573,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "EW4_BUY_AND_HOLD",
+      "cagr_before": -0.17243658687293828,
+      "cagr_after": -0.17719638562500173,
+      "cagr_delta": -0.004759798752063449,
+      "maxdd_before": -0.7208767597279324,
+      "maxdd_after": -0.720741915196213,
+      "maxdd_delta": 0.00013484453171941357,
+      "calmar_before": -0.23920397563935605,
+      "calmar_after": -0.24585275518042018,
+      "sharpe_before": -0.31407166123275826,
+      "sharpe_after": -0.31310160379343427,
+      "turnover_before": 0.4997713001832586,
+      "turnover_after": 0.4997713001832586,
+      "turnover_delta": 0.0,
+      "fees_before": 11.985617259288853,
+      "fees_after": 11.985617259288853,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "TREND_GATE_BTC",
+      "cagr_before": -0.08446863642430913,
+      "cagr_after": -0.08446863642430913,
+      "cagr_delta": 0.0,
+      "maxdd_before": -0.43924710048604615,
+      "maxdd_after": -0.43924710048604615,
+      "maxdd_delta": 0.0,
+      "calmar_before": -0.1923032305297881,
+      "calmar_after": -0.1923032305297881,
+      "sharpe_before": -0.25527888076830896,
+      "sharpe_after": -0.25390648605679367,
+      "turnover_before": 19.34409013711829,
+      "turnover_after": 25.503329448351682,
+      "turnover_delta": 6.159239311233392,
+      "fees_before": 463.91391528018517,
+      "fees_after": 463.91391528018517,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "TREND_GATE_EW4",
+      "cagr_before": -0.16731039613922605,
+      "cagr_after": -0.16731039613922605,
+      "cagr_delta": 0.0,
+      "maxdd_before": -0.5618525854110854,
+      "maxdd_after": -0.5618525854110854,
+      "maxdd_delta": 0.0,
+      "calmar_before": -0.2977834408589784,
+      "calmar_after": -0.2977834408589784,
+      "sharpe_before": -0.4140117096740467,
+      "sharpe_after": -0.41102618883978403,
+      "turnover_before": 16.4785912899122,
+      "turnover_after": 25.79121591308209,
+      "turnover_delta": 9.312624623169892,
+      "fees_before": 395.1929374510223,
+      "fees_after": 395.1929374510223,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "VOL_TARGET_BTC",
+      "cagr_before": 0.04012733166172677,
+      "cagr_after": 0.03639305008652749,
+      "cagr_delta": -0.003734281575199283,
+      "maxdd_before": -0.49535689287170215,
+      "maxdd_after": -0.4952428327749954,
+      "maxdd_delta": 0.00011406009670672512,
+      "calmar_before": 0.08100691085390788,
+      "calmar_after": 0.07348526354759385,
+      "sharpe_before": 0.1025694692599374,
+      "sharpe_after": 0.10219860124209215,
+      "turnover_before": 5.576958880483401,
+      "turnover_after": 7.493967488530951,
+      "turnover_delta": 1.9170086080475501,
+      "fees_before": 133.74776540340685,
+      "fees_after": 132.83771174560388,
+      "breakeven_before": 100.0,
+      "breakeven_after": null
+    },
+    {
+      "policy": "VOL_TARGET_EW4",
+      "cagr_before": 0.04513815171811353,
+      "cagr_after": 0.04053079441762186,
+      "cagr_delta": -0.004607357300491666,
+      "maxdd_before": -0.5943654125441482,
+      "maxdd_after": -0.5941906628858434,
+      "maxdd_delta": 0.00017474965830477363,
+      "calmar_before": 0.07594343608404495,
+      "calmar_after": 0.06821176593515184,
+      "sharpe_before": 0.09212235170806307,
+      "sharpe_after": 0.09302236408221544,
+      "turnover_before": 5.116925990610268,
+      "turnover_after": 7.629610727116517,
+      "turnover_delta": 2.512684736506249,
+      "fees_before": 122.71516280561434,
+      "fees_after": 121.69516454472512,
+      "breakeven_before": 100.0,
+      "breakeven_after": null
+    },
+    {
+      "policy": "MOMENTUM_TOP1",
+      "cagr_before": -0.06705533610567593,
+      "cagr_after": -0.0723040769607074,
+      "cagr_delta": -0.005248740855031464,
+      "maxdd_before": -0.7833692670401753,
+      "maxdd_after": -0.7833692670401751,
+      "maxdd_delta": 2.220446049250313e-16,
+      "calmar_before": -0.08559863008033602,
+      "calmar_after": -0.09229884296316067,
+      "sharpe_before": -0.09119295994745598,
+      "sharpe_after": -0.09134579264286752,
+      "turnover_before": 34.520346749153404,
+      "turnover_after": 72.46683852657249,
+      "turnover_delta": 37.946491777419084,
+      "fees_before": 827.8739968493065,
+      "fees_after": 818.7262052358877,
+      "breakeven_before": 8.63037109375,
+      "breakeven_after": 8.5009765625
+    },
+    {
+      "policy": "MOMENTUM_TOP1_TREND_GATE",
+      "cagr_before": -0.012525098361601983,
+      "cagr_after": -0.012525098361601983,
+      "cagr_delta": 0.0,
+      "maxdd_before": -0.576278934897971,
+      "maxdd_after": -0.576278934897971,
+      "maxdd_delta": 0.0,
+      "calmar_before": -0.02173443727180402,
+      "calmar_after": -0.02173443727180402,
+      "sharpe_before": -0.019331667652432886,
+      "sharpe_after": -0.018602574045028814,
+      "turnover_before": 27.205878750286402,
+      "turnover_after": 37.497840652749886,
+      "turnover_delta": 10.291961902463484,
+      "fees_before": 652.4569333692916,
+      "fees_after": 652.4569333692916,
+      "breakeven_before": 20.78857421875,
+      "breakeven_after": 22.056884765625
+    },
+    {
+      "policy": "MOMENTUM_TOP2",
+      "cagr_before": -0.19918262638803563,
+      "cagr_after": -0.20331370375685853,
+      "cagr_delta": -0.0041310773688229,
+      "maxdd_before": -0.797513182453903,
+      "maxdd_after": -0.7975066415301485,
+      "maxdd_delta": 6.540923754516648e-06,
+      "calmar_before": -0.24975465079481438,
+      "calmar_after": -0.2549366903914023,
+      "sharpe_before": -0.32230246126773743,
+      "sharpe_after": -0.32225661472669515,
+      "turnover_before": 23.06788559636354,
+      "turnover_after": 55.64859157616066,
+      "turnover_delta": 32.58070597979712,
+      "fees_before": 553.2187375259314,
+      "fees_after": 547.6532642915427,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "MOMENTUM_TOP2_TREND_GATE",
+      "cagr_before": -0.27511805350242335,
+      "cagr_after": -0.27511805350242335,
+      "cagr_delta": 0.0,
+      "maxdd_before": -0.6789091995147444,
+      "maxdd_after": -0.6789091995147444,
+      "maxdd_delta": 0.0,
+      "calmar_before": -0.40523541837268684,
+      "calmar_after": -0.40523541837268684,
+      "sharpe_before": -0.6100878414616995,
+      "sharpe_after": -0.6089205372534104,
+      "turnover_before": 19.651005687819925,
+      "turnover_after": 36.56073843118242,
+      "turnover_delta": 16.909732743362497,
+      "fees_before": 471.27442661864103,
+      "fees_after": 471.27442661864103,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "INVERSE_VOL4",
+      "cagr_before": -0.151612860664593,
+      "cagr_after": -0.15651351221784293,
+      "cagr_delta": -0.004900651553249924,
+      "maxdd_before": -0.7098676293050036,
+      "maxdd_after": -0.7098542750905031,
+      "maxdd_delta": 1.3354214500438388e-05,
+      "calmar_before": -0.21357905953963513,
+      "calmar_after": -0.22048682061946895,
+      "sharpe_before": -0.27270355947404235,
+      "sharpe_after": -0.27151856413894687,
+      "turnover_before": 3.0661808371932104,
+      "turnover_after": 5.788806355583279,
+      "turnover_delta": 2.722625518390069,
+      "fees_before": 73.53377424611617,
+      "fees_after": 72.8273289506653,
+      "breakeven_before": null,
+      "breakeven_after": null
+    },
+    {
+      "policy": "INVERSE_VOL4_TREND_GATE",
+      "cagr_before": -0.1961348098740885,
+      "cagr_after": -0.1961348098740885,
+      "cagr_delta": 0.0,
+      "maxdd_before": -0.552671844566517,
+      "maxdd_after": -0.552671844566517,
+      "maxdd_delta": 0.0,
+      "calmar_before": -0.35488475087404714,
+      "calmar_after": -0.35488475087404714,
+      "sharpe_before": -0.5441941596842161,
+      "sharpe_after": -0.5409460199266738,
+      "turnover_before": 17.622086701418787,
+      "turnover_after": 27.052731897111943,
+      "turnover_delta": 9.430645195693156,
+      "fees_before": 422.6164776483994,
+      "fees_after": 422.6164776483994,
+      "breakeven_before": null,
+      "breakeven_after": null
+    }
+  ]
 }

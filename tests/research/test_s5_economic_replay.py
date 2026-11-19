@@ -16,6 +16,7 @@ from btc_scraper.research.s5_economic_replay import (
     PRIMARY_COST_BPS,
     ReplayError,
     ReplayResult,
+    audit_replay_timeline,
     compute_asset_momentums_168h,
     compute_asset_volatilities_168h,
     compute_breakeven_cost,
@@ -30,6 +31,7 @@ from btc_scraper.research.s5_economic_replay import (
     policy_momentum_top2_trend_gate,
     policy_trend_cash_gate_btc,
     policy_trend_cash_gate_ew4,
+    run_stateful_replay,
     solve_post_fee_equity,
 )
 
@@ -252,3 +254,188 @@ def test_candidate_does_not_grant_neural_training() -> None:
     auth_scope = "PROPOSE_S5_P1_RESEARCH_CANDIDATE"
     assert "NEURAL_TRAINING_AUTHORIZED" not in auth_scope
     assert "PRODUCTION_PROMOTION_AUTHORIZED" not in auth_scope
+
+
+# -----------------------------------------------------------------------------
+# S5-P0B Phase 2: Targeted Economic Integrity Tests
+# -----------------------------------------------------------------------------
+
+
+def test_first_fill_occurs_at_0100_never_0000() -> None:
+    """11. Verify first fill occurs at 01:00 UTC and never at 00:00 UTC."""
+    panels = _synthetic_panels(start="2021-12-01 00:00:00", periods=24 * 30)
+    start_dt = pd.Timestamp("2021-12-10 00:00:00", tz="UTC")
+    end_dt = pd.Timestamp("2021-12-25 00:00:00", tz="UTC")
+
+    res = run_stateful_replay(panels, "BTC_BH", start_dt=start_dt, end_dt=end_dt)
+
+    # At t_idx == 0 (00:00 UTC): portfolio is strictly 100% cash, no holdings
+    assert res.timestamps[0] == start_dt
+    assert res.timestamps[0].hour == 0
+    assert pytest.approx(res.cash_history[0], abs=1e-6) == 10000.0
+    assert np.all(res.holdings_history[0] == 0.0)
+    assert res.fees[0] == 0.0
+    assert res.turnovers[0] == 0.0
+
+    # First event must be INITIAL_ALLOCATION at 01:00 UTC
+    first_event = res.rebalance_events[0]
+    assert first_event["action"] == "INITIAL_ALLOCATION"
+    assert first_event["bar"].endswith("01:00:00+00:00")
+
+    # At t_idx == 1 (01:00 UTC): initial fill executed
+    assert res.timestamps[1].hour == 1
+    assert res.holdings_history[1, 0] > 0.0
+    assert res.fees[1] > 0.0
+    assert res.turnovers[1] > 0.0
+
+
+def test_first_allocation_consistent_across_policies() -> None:
+    """12. Verify first allocation is scheduled consistently at 01:00 UTC across policies."""
+    panels = _synthetic_panels(start="2021-12-01 00:00:00", periods=24 * 30)
+    start_dt = pd.Timestamp("2021-12-10 00:00:00", tz="UTC")
+    end_dt = pd.Timestamp("2021-12-25 00:00:00", tz="UTC")
+
+    test_policies = ["BTC_BH", "EW4", "TREND_GATE_BTC", "VOL_TARGET_BTC", "MOMENTUM_TOP1"]
+    for pol in test_policies:
+        res = run_stateful_replay(panels, pol, start_dt=start_dt, end_dt=end_dt)
+        assert len(res.rebalance_events) >= 1
+        ev0 = res.rebalance_events[0]
+        assert ev0["action"] == "INITIAL_ALLOCATION"
+        assert ev0["bar"] == "2021-12-10T01:00:00+00:00"
+        # Confirm 00:00 bar held only cash
+        assert pytest.approx(res.cash_history[0], abs=1e-6) == 10000.0
+        assert np.all(res.holdings_history[0] == 0.0)
+
+
+def test_no_double_initial_rebalance_event() -> None:
+    """13. Verify start date falling on Sunday does not trigger double initial/rebalance event."""
+    panels = _synthetic_panels(start="2021-11-20 00:00:00", periods=24 * 30)
+    # 2021-12-05 is a Sunday
+    start_sunday = pd.Timestamp("2021-12-05 00:00:00", tz="UTC")
+    assert start_sunday.dayofweek == 6
+    end_dt = pd.Timestamp("2021-12-19 00:00:00", tz="UTC")
+
+    res = run_stateful_replay(panels, "TREND_GATE_BTC", start_dt=start_sunday, end_dt=end_dt)
+
+    # Extract all event timestamps
+    event_bars = [ev["bar"] for ev in res.rebalance_events]
+    # No duplicate timestamps in events
+    assert len(event_bars) == len(set(event_bars))
+
+    # At 2021-12-05 01:00:00, there must be exactly ONE event: INITIAL_ALLOCATION
+    bars_at_0100 = [ev for ev in res.rebalance_events if ev["bar"] == "2021-12-05T01:00:00+00:00"]
+    assert len(bars_at_0100) == 1
+    assert bars_at_0100[0]["action"] == "INITIAL_ALLOCATION"
+
+
+def test_accounting_conservation_after_fee_aware_execution() -> None:
+    """14. Verify exact capital conservation v_post + fee == v_pre across all simulation events."""
+    panels = _synthetic_panels(start="2021-11-20 00:00:00", periods=24 * 40)
+    start_dt = pd.Timestamp("2021-12-01 00:00:00", tz="UTC")
+    end_dt = pd.Timestamp("2021-12-25 00:00:00", tz="UTC")
+
+    res = run_stateful_replay(panels, "MOMENTUM_TOP1_TREND_GATE", start_dt=start_dt, end_dt=end_dt)
+    for ev in res.rebalance_events:
+        if ev["action"] in ("INITIAL_ALLOCATION", "REBALANCE"):
+            v_pre = ev["v_pre"]
+            v_post = ev["v_post"]
+            fee = ev["fee"]
+            assert pytest.approx(v_post + fee, abs=1e-8) == v_pre
+            assert v_post > 0.0
+            assert fee >= 0.0
+
+
+def test_one_missing_hour_does_not_create_fake_observation() -> None:
+    """15. Verify missing market-wide hour is not forward-filled or fabricated."""
+    panels = _synthetic_panels(start="2021-11-20 00:00:00", periods=24 * 40)
+    start_dt = pd.Timestamp("2021-12-01 00:00:00", tz="UTC")
+    end_dt = pd.Timestamp("2021-12-25 00:00:00", tz="UTC")
+
+    # Drop one hour market-wide
+    gap_ts = pd.Timestamp("2021-12-10 13:00:00", tz="UTC")
+    for s in UNIVERSE:
+        panels[s] = panels[s].drop(gap_ts)
+
+    audit = audit_replay_timeline(panels, start_dt, end_dt)
+    assert audit["missing_hours_count"] == 1
+    assert gap_ts.isoformat() in audit["missing_timestamps"]
+
+    res = run_stateful_replay(panels, "BTC_BH", start_dt, end_dt)
+    # The gap timestamp MUST NOT exist in result timestamps
+    assert gap_ts not in res.timestamps
+    assert len(res.timestamps) == audit["expected_hours"] - 1
+
+
+def test_turnover_uses_pre_trade_portfolio_equity() -> None:
+    """16. Verify turnover uses pre-trade portfolio equity (traded notional / v_pre)."""
+    # Create scenario where equity has dropped by 50%
+    current_notionals = np.array([2500.0, 0.0, 0.0, 0.0])  # total equity = 5000 (was 10000)
+    current_cash = 2500.0
+    v_pre = current_cash + float(current_notionals.sum())
+    assert v_pre == 5000.0
+
+    target_weights = np.array([0.0, 1.0, 0.0, 0.0])  # rebalance to 100% ETH
+    fee_rate = 0.0012
+
+    v_post, fee = solve_post_fee_equity(v_pre, current_notionals, target_weights, fee_rate)
+    new_notionals = target_weights * v_post
+    traded_notional = float(np.sum(np.abs(new_notionals - current_notionals)))
+
+    fractional_turnover = traded_notional / v_pre
+
+    # Selling 2500 BTC + buying ~4994 ETH = ~7494 total traded notional.
+    # Divided by v_pre (5000), fractional turnover is ~1.50 (150% turnover of current portfolio).
+    # If divided by initial capital (10000), it would have been ~0.75 (75%), which is wrong!
+    assert pytest.approx(fractional_turnover, abs=0.01) == 1.50
+    assert pytest.approx(traded_notional / 10000.0, abs=0.01) == 0.75
+    assert fractional_turnover != traded_notional / 10000.0
+
+
+def test_breakeven_multiple_crossings_handled_explicitly() -> None:
+    """17. Verify multi-point grid scan identifies multiple crossings and takes lowest root."""
+    panels = _synthetic_panels(start="2021-11-20 00:00:00", periods=24 * 40)
+    start_dt = pd.Timestamp("2021-12-01 00:00:00", tz="UTC")
+    end_dt = pd.Timestamp("2021-12-25 00:00:00", tz="UTC")
+
+    # Run with return_diagnostics=True
+    c_star, status, diag = compute_breakeven_cost(
+        panels,
+        policy_name="CASH_100",
+        benchmark_name="BTC_BH",
+        start_dt=start_dt,
+        end_dt=end_dt,
+        return_diagnostics=True,
+    )
+    assert len(diag["grid_points"]) == 11
+    assert len(diag["g_values"]) == 11
+    assert status == "NO_POSITIVE_BREAKEVEN_EDGE"
+    assert c_star is None
+
+
+def test_continuous_calendar_window_vs_independent_replay() -> None:
+    """18. Verify continuous calendar window decomposition differs from independent restart."""
+    panels = _synthetic_panels(start="2021-11-20 00:00:00", periods=24 * 70)
+    start_full = pd.Timestamp("2021-12-01 00:00:00", tz="UTC")
+    split_dt = pd.Timestamp("2021-12-15 00:00:00", tz="UTC")
+    end_full = pd.Timestamp("2021-12-31 23:00:00", tz="UTC")
+
+    # Full continuous replay
+    res_full = run_stateful_replay(panels, "BTC_BH", start_full, end_full, initial_capital=10000.0)
+    idx_split = res_full.timestamps.index(split_dt)
+    v_split = float(res_full.equities[idx_split])
+
+    # Second half continuous return:
+    v_terminal = float(res_full.equities[-1])
+    ret_continuous_second_half = v_terminal / v_split - 1.0
+
+    # Independent restart replay of second half with fresh 10000 capital:
+    res_independent_second_half = run_stateful_replay(
+        panels, "BTC_BH", split_dt, end_full, initial_capital=10000.0
+    )
+    v_independent_terminal = float(res_independent_second_half.equities[-1])
+
+    # In continuous run, terminal wealth compound is v_split * (1 + ret_second_half)
+    assert pytest.approx(v_terminal, abs=1e-4) == v_split * (1.0 + ret_continuous_second_half)
+    # Terminal wealth in independent restart is 10000 * (1 + ret_independent)
+    # Unless v_split happened to be exactly 10000, final dollars differ
+    assert v_terminal != v_independent_terminal

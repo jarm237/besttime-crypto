@@ -413,7 +413,7 @@ class ReplayResult:
     cash_history: np.ndarray
     holdings_history: np.ndarray
     weights_history: np.ndarray
-    turnovers: np.ndarray
+    turnovers: np.ndarray  # Fractional turnover: sum(|w_target*v_post - n_pre|) / v_pre
     fees: np.ndarray
     rebalance_events: list[dict[str, object]]
     cagr: float
@@ -424,6 +424,42 @@ class ReplayResult:
     avg_cash: float
     annualized_turnover: float
     total_fees: float
+    total_traded_notional: float = 0.0
+    cumulative_turnover_ratio: float = 0.0
+
+
+def audit_replay_timeline(
+    panels: Mapping[str, pd.DataFrame],
+    start_dt: pd.Timestamp = pd.Timestamp("2022-01-01 00:00:00", tz="UTC"),
+    end_dt: pd.Timestamp = pd.Timestamp("2023-12-31 23:00:00", tz="UTC"),
+) -> dict[str, object]:
+    """Audit hourly timeline integrity, market gaps, and rebalance impact."""
+    expected_timeline = pd.date_range(start_dt, end_dt, freq="h", tz="UTC")
+    common_timeline = panels["BTCUSDT"].loc[start_dt:end_dt].index
+    for s in UNIVERSE:
+        common_timeline = common_timeline.intersection(panels[s].loc[start_dt:end_dt].index)
+
+    missing_timeline = expected_timeline.difference(common_timeline)
+    missing_list = [ts.isoformat() for ts in missing_timeline]
+
+    # Weekly Sunday decision (00:00 UTC) and execution (01:00 UTC) checks
+    weekly_sundays_affected = [
+        ts.isoformat() for ts in missing_timeline
+        if ts.dayofweek == 6 and ts.hour in (0, 1)
+    ]
+
+    return {
+        "expected_hours": len(expected_timeline),
+        "actual_common_hours": len(common_timeline),
+        "missing_hours_count": len(missing_timeline),
+        "missing_timestamps": missing_list,
+        "weekly_rebalances_affected": weekly_sundays_affected,
+        "valuation_limitations": (
+            "Market prices are unavailable during missing hours; portfolio state is carried over "
+            "without mark-to-market revaluation or execution."
+        ),
+        "synthetic_price_policy": "STRICT_ZERO_SYNTHETIC_PRICES (no forward-fill or interpolated bars)",
+    }
 
 
 def run_stateful_replay(
@@ -483,7 +519,8 @@ def run_stateful_replay(
     cash_hist = np.empty(n_bars, dtype=float)
     holdings_hist = np.empty((n_bars, 4), dtype=float)
     weights_hist = np.empty((n_bars, 4), dtype=float)
-    turnover_hist = np.zeros(n_bars, dtype=float)
+    turnover_hist = np.zeros(n_bars, dtype=float)  # Fractional turnover (traded notional / v_pre)
+    traded_notionals_hist = np.zeros(n_bars, dtype=float)  # Traded notional in USD
     fees_hist = np.zeros(n_bars, dtype=float)
     events: list[dict[str, object]] = []
 
@@ -491,24 +528,27 @@ def run_stateful_replay(
     has_initialized = False
 
     for t_idx, t_bar in enumerate(timeline):
-        # Current open prices for all 4 assets from pre-extracted array
         p_open = opens_arr[t_idx]
-
-        # Check if this bar is an execution bar:
-        # Execution is at 01:00 UTC if 00:00 UTC was a decision date
-        is_exec_bar = False
         decision_dt = t_bar - pd.Timedelta(hours=1)
-        if decision_dt in decision_set and t_bar.hour == 1:
-            is_exec_bar = True
 
-        # Handle initial allocation at first execution bar or inception
-        if not has_initialized and (is_exec_bar or t_idx == 0):
-            # Compute target weights
-            target_w, reason = _get_target_weights(decision_dt if is_exec_bar else t_bar)
+        # Inception allocation check:
+        # Initial allocation MUST execute at the first 01:00 UTC bar (or first available execution bar if start_dt > 00:00).
+        # NEVER execute at 00:00 UTC (t_idx == 0 has portfolio strictly in 100% cash).
+        is_inception_exec = False
+        if not has_initialized and t_bar.hour == 1 and decision_dt >= start_dt:
+            is_inception_exec = True
+
+        # Scheduled rebalance check:
+        # Scheduled rebalances occur at 01:00 UTC when decision_dt (00:00 UTC) is in decision_set.
+        # Only active after inception has already occurred (prevents double allocation at inception).
+        is_scheduled_rebalance = has_initialized and (decision_dt in decision_set) and (t_bar.hour == 1)
+
+        if is_inception_exec:
+            target_w, reason = _get_target_weights(decision_dt)
             if np.isnan(target_w).any():
                 target_w = np.zeros(4, dtype=float)
 
-            current_notionals = holdings * p_open
+            current_notionals = holdings * p_open  # zeros at inception
             v_pre = cash + float(np.sum(current_notionals))
 
             v_post, fee = solve_post_fee_equity(v_pre, current_notionals, target_w, fee_rate)
@@ -516,10 +556,14 @@ def run_stateful_replay(
             holdings = new_notionals / p_open
             cash = max(0.0, (1.0 - float(np.sum(target_w))) * v_post)
 
-            turnover = float(np.sum(np.abs(new_notionals - current_notionals)))
-            turnover_hist[t_idx] = turnover
+            traded_notional = float(np.sum(np.abs(new_notionals - current_notionals)))
+            fractional_turnover = traded_notional / v_pre if v_pre > 0 else 0.0
+
+            turnover_hist[t_idx] = fractional_turnover
+            traded_notionals_hist[t_idx] = traded_notional
             fees_hist[t_idx] = fee
             has_initialized = True
+
             events.append({
                 "bar": t_bar.isoformat(),
                 "action": "INITIAL_ALLOCATION",
@@ -527,13 +571,14 @@ def run_stateful_replay(
                 "v_pre": v_pre,
                 "v_post": v_post,
                 "fee": fee,
+                "traded_notional_usd": traded_notional,
+                "turnover_fraction": fractional_turnover,
                 "target_weights": target_w.tolist(),
             })
 
-        elif is_exec_bar and not is_buy_and_hold:
+        elif is_scheduled_rebalance and not is_buy_and_hold:
             target_w, reason = _get_target_weights(decision_dt)
             if np.isnan(target_w).any():
-                # Data gap / invalid: HOLD existing position
                 events.append({
                     "bar": t_bar.isoformat(),
                     "action": "HOLD_DATA_GAP",
@@ -543,7 +588,6 @@ def run_stateful_replay(
                 current_notionals = holdings * p_open
                 v_pre = cash + float(np.sum(current_notionals))
 
-                # Check no-trade band
                 dev = compute_one_way_deviation(current_notionals, cash, target_w)
                 if dev > no_trade_band:
                     v_post, fee = solve_post_fee_equity(v_pre, current_notionals, target_w, fee_rate)
@@ -551,8 +595,11 @@ def run_stateful_replay(
                     holdings = new_notionals / p_open
                     cash = max(0.0, (1.0 - float(np.sum(target_w))) * v_post)
 
-                    turnover = float(np.sum(np.abs(new_notionals - current_notionals)))
-                    turnover_hist[t_idx] = turnover
+                    traded_notional = float(np.sum(np.abs(new_notionals - current_notionals)))
+                    fractional_turnover = traded_notional / v_pre if v_pre > 0 else 0.0
+
+                    turnover_hist[t_idx] = fractional_turnover
+                    traded_notionals_hist[t_idx] = traded_notional
                     fees_hist[t_idx] = fee
                     events.append({
                         "bar": t_bar.isoformat(),
@@ -562,6 +609,8 @@ def run_stateful_replay(
                         "v_pre": v_pre,
                         "v_post": v_post,
                         "fee": fee,
+                        "traded_notional_usd": traded_notional,
+                        "turnover_fraction": fractional_turnover,
                         "target_weights": target_w.tolist(),
                     })
                 else:
@@ -581,7 +630,8 @@ def run_stateful_replay(
         weights_hist[t_idx] = (holdings * p_close) / max(current_eq, 1e-12)
 
     # Compute summary performance metrics
-    total_days = (timeline[-1] - timeline[0]).total_seconds() / 86400.0
+    total_seconds = (timeline[-1] - timeline[0]).total_seconds()
+    total_days = total_seconds / 86400.0
     cum_ret = float(equities[-1] / initial_capital - 1.0)
     cagr = float((equities[-1] / initial_capital) ** (365.25 / total_days) - 1.0) if equities[-1] > 0 else -1.0
 
@@ -592,16 +642,22 @@ def run_stateful_replay(
 
     calmar = float(cagr / abs(max_dd)) if abs(max_dd) > 1e-6 else 0.0
 
-    # Sharpe ratio from hourly log returns
-    hourly_rets = np.diff(np.log(equities))
-    if len(hourly_rets) > 1 and np.std(hourly_rets) > 1e-12:
-        sharpe = float(np.mean(hourly_rets) / np.std(hourly_rets) * math.sqrt(8760))
+    # Sharpe ratio from hourly log returns with actual bar delta normalization
+    log_eq = np.log(np.maximum(equities, 1e-12))
+    hourly_rets = np.diff(log_eq)
+    bar_deltas = np.array(
+        [(timeline[i] - timeline[i - 1]).total_seconds() / 3600.0 for i in range(1, len(timeline))]
+    )
+    norm_rets = hourly_rets / np.sqrt(np.maximum(bar_deltas, 1e-6))
+    if len(norm_rets) > 1 and np.std(norm_rets) > 1e-12:
+        sharpe = float(np.mean(norm_rets) / np.std(norm_rets) * math.sqrt(8760))
     else:
         sharpe = 0.0
 
     avg_cash = float(np.mean(cash_hist / equities))
-    total_turnover = float(np.sum(turnover_hist))
-    ann_turnover = float(total_turnover / initial_capital * (365.25 / total_days))
+    total_traded_notional = float(np.sum(traded_notionals_hist))
+    cumulative_turnover_ratio = float(np.sum(turnover_hist))
+    ann_turnover = float(cumulative_turnover_ratio * (365.25 / total_days))
     total_fees = float(np.sum(fees_hist))
 
     return ReplayResult(
@@ -625,6 +681,8 @@ def run_stateful_replay(
         avg_cash=avg_cash,
         annualized_turnover=ann_turnover,
         total_fees=total_fees,
+        total_traded_notional=total_traded_notional,
+        cumulative_turnover_ratio=cumulative_turnover_ratio,
     )
 
 
@@ -637,12 +695,16 @@ def compute_breakeven_cost(
     no_trade_band: float = PRIMARY_NO_TRADE_BAND,
     rebalance_freq: str = "WEEKLY",
     target_weights_cache: dict[tuple[str, pd.Timestamp], tuple[np.ndarray, str]] | None = None,
-) -> tuple[float | None, str]:
-    """Find the one-way fee rate c* in [0, 100 bps] where terminal excess log-wealth = 0."""
+    return_diagnostics: bool = False,
+) -> tuple[float | None, str] | tuple[float | None, str, dict[str, object]]:
+    """Find the one-way fee rate c* in [0, 100 bps] where terminal excess log-wealth = 0.
+
+    Performs a robust multi-point grid scan to detect multiple crossings before bisection.
+    """
     # Pre-extract BTC benchmark ratio for closed-form instantaneous evaluation
-    sub_btc = panels["BTCUSDT"].loc[start_dt:end_dt]
-    p_btc_0 = float(sub_btc.iloc[0]["open"])
-    p_btc_T = float(sub_btc.iloc[-1]["close"])
+    # Inception fill is at start_dt + 1h open
+    p_btc_0 = float(panels["BTCUSDT"].loc[start_dt + pd.Timedelta(hours=1), "open"])
+    p_btc_T = float(panels["BTCUSDT"].loc[end_dt, "close"])
     btc_ratio = p_btc_T / p_btc_0
 
     def diff_log_wealth(c_bps: float) -> float:
@@ -662,28 +724,75 @@ def compute_breakeven_cost(
             v_bm = float(r_bm.equities[-1])
         return float(np.log(r_pol.equities[-1] / v_bm))
 
-    diff_0 = diff_log_wealth(0.0)
-    if diff_0 <= 0:
-        return None, "NO_POSITIVE_BREAKEVEN_EDGE"
+    grid_points = np.linspace(0.0, 100.0, 11)  # 0, 10, 20, ..., 100 bps
+    g_grid = [diff_log_wealth(float(c)) for c in grid_points]
 
-    diff_100 = diff_log_wealth(100.0)
-    if diff_100 > 0:
-        return 100.0, "NO_CROSSING_IN_RANGE"
+    diagnostics: dict[str, object] = {
+        "grid_points": grid_points.tolist(),
+        "g_values": g_grid,
+        "roots_found": [],
+    }
 
-    # Bracketed between 0 and 100 bps
-    low = 0.0
-    high = 100.0
-    for _ in range(12):  # 100 / 2^12 = 0.024 bps precision (< 0.1 bps tolerance)
-        mid = 0.5 * (low + high)
-        d_mid = diff_log_wealth(mid)
-        if abs(d_mid) < 1e-5:
-            return float(mid), "ROOT_FOUND"
-        if d_mid > 0:
-            low = mid
+    # Case 1: No positive edge at 0 bps
+    if g_grid[0] <= 0:
+        status = "NO_POSITIVE_BREAKEVEN_EDGE"
+        return (None, status, diagnostics) if return_diagnostics else (None, status)
+
+    # Check for sign changes across intervals
+    crossing_brackets: list[tuple[float, float, float, float]] = []
+    for j in range(len(grid_points) - 1):
+        c_left, c_right = grid_points[j], grid_points[j + 1]
+        g_left, g_right = g_grid[j], g_grid[j + 1]
+        if g_left * g_right <= 0:
+            crossing_brackets.append((c_left, c_right, g_left, g_right))
+
+    # Case 2: All points in [0, 100] are strictly positive
+    if not crossing_brackets:
+        if abs(g_grid[-1]) <= 1e-5:
+            status = "EXACT_BOUNDARY_100BPS"
+            c_star = 100.0
         else:
-            high = mid
+            status = "NO_CROSSING_IN_RANGE"
+            c_star = None  # Breakeven > 100 bps
+        return (c_star, status, diagnostics) if return_diagnostics else (c_star, status)
 
-    return float(0.5 * (low + high)), "ROOT_FOUND"
+    # Case 3: Bisect roots in each identified bracket
+    roots: list[float] = []
+    for c_left, c_right, g_left, g_right in crossing_brackets:
+        if abs(g_left) <= 1e-6:
+            roots.append(float(c_left))
+            continue
+        if abs(g_right) <= 1e-6:
+            roots.append(float(c_right))
+            continue
+
+        low = float(c_left)
+        high = float(c_right)
+        f_low = g_left
+        for _ in range(12):  # 10 / 2^12 = 0.0024 bps precision
+            mid = 0.5 * (low + high)
+            f_mid = diff_log_wealth(mid)
+            if abs(f_mid) < 1e-6:
+                low = high = mid
+                break
+            if f_low * f_mid <= 0:
+                high = mid
+            else:
+                low = mid
+                f_low = f_mid
+        roots.append(float(0.5 * (low + high)))
+
+    diagnostics["roots_found"] = roots
+
+    if len(roots) == 1:
+        status = "ROOT_FOUND"
+        c_star = float(roots[0])
+    else:
+        # Erratum A6: choose minimum root where economic superiority is first exhausted
+        status = "MULTIPLE_CROSSINGS_DETECTED"
+        c_star = float(min(roots))
+
+    return (c_star, status, diagnostics) if return_diagnostics else (c_star, status)
 
 
 @dataclass

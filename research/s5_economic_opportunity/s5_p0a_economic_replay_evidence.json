@@ -1,0 +1,667 @@
+{
+  "metadata": {
+    "generated_at_utc": "2026-11-19T07:58:56.946715+00:00",
+    "pre_registration_commit": "b894fc53de0e2b50720828c1ab72d2d774d5fcbb",
+    "base_closure_tag": "s4-stage1-closure",
+    "full_window": "2022-01-01T00:00:00+00:00 to 2023-12-31T23:00:00+00:00",
+    "primary_configuration": {
+      "initial_capital_usd": 10000.0,
+      "primary_cost_bps": 12.0,
+      "primary_no_trade_band": 0.05,
+      "primary_cadence": "WEEKLY_SUNDAY_UTC"
+    }
+  },
+  "verdict": {
+    "status": "S5_P0_NO_DEMONSTRATED_OPPORTUNITY",
+    "qualifying_policies": [],
+    "btc_baseline": {
+      "cagr": -0.04410457700443049,
+      "max_drawdown": -0.6737711687834668,
+      "calmar": -0.06545928209434054,
+      "is_btc_cagr_positive": false
+    },
+    "policy_checks": {
+      "EW4": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "TREND_GATE_BTC": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "TREND_GATE_EW4": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "VOL_TARGET_BTC": {
+        "not_applicable": true,
+        "capital_preservation": true,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": true,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "VOL_TARGET_EW4": {
+        "not_applicable": true,
+        "capital_preservation": true,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": true,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "MOMENTUM_TOP1": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "MOMENTUM_TOP1_TREND_GATE": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": true,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "MOMENTUM_TOP2": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "MOMENTUM_TOP2_TREND_GATE": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "INVERSE_VOL4": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      },
+      "INVERSE_VOL4_TREND_GATE": {
+        "not_applicable": true,
+        "capital_preservation": false,
+        "drawdown_compression_lte_65pct": false,
+        "calmar_superiority": false,
+        "active_crypto_participation": true,
+        "stress_20bps_survival": false
+      }
+    }
+  },
+  "factorial_attribution": {
+    "base_ew4_cagr": -0.072198982640586,
+    "cash_timing_effect_cagr": -0.09511141349864005,
+    "rotation_effect_cagr": -0.12698364374744964,
+    "joint_combined_effect_cagr": -0.20291907086183736,
+    "non_linear_interaction_cagr": 0.01917598638425233
+  },
+  "primary_scorecards": {
+    "CASH_100": {
+      "cagr": 0.0,
+      "cum_return": 0.0,
+      "max_drawdown": 0.0,
+      "calmar": 0.0,
+      "sharpe": 0.0,
+      "excess_vs_btc": 0.04410457700443049,
+      "avg_cash_pct": 100.0,
+      "annualized_turnover": 0.0,
+      "total_fees_usd": 0.0,
+      "terminal_wealth_usd": 10000.0,
+      "breakeven_cost": {}
+    },
+    "BTC_BH": {
+      "cagr": -0.04410457700443049,
+      "cum_return": -0.08620281530216856,
+      "max_drawdown": -0.6737711687834668,
+      "calmar": -0.06545928209434054,
+      "sharpe": -0.0907948987487014,
+      "excess_vs_btc": 0.0,
+      "avg_cash_pct": 0.0,
+      "annualized_turnover": 0.4997713001832586,
+      "total_fees_usd": 11.985617259288853,
+      "terminal_wealth_usd": 9137.971846978315,
+      "breakeven_cost": {}
+    },
+    "EW4": {
+      "cagr": -0.072198982640586,
+      "cum_return": -0.13908960175191964,
+      "max_drawdown": -0.7520248923178522,
+      "calmar": -0.09600610748143991,
+      "sharpe": -0.1198279278371597,
+      "excess_vs_btc": -0.028094405636155506,
+      "avg_cash_pct": 0.0,
+      "annualized_turnover": 1.0154421140266614,
+      "total_fees_usd": 24.35253989819723,
+      "terminal_wealth_usd": 8609.103982480803,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "EW4_BUY_AND_HOLD": {
+      "cagr": -0.17243658687293828,
+      "cum_return": -0.3149465384946101,
+      "max_drawdown": -0.7208767597279324,
+      "calmar": -0.23920397563935605,
+      "sharpe": -0.31407166123275826,
+      "excess_vs_btc": -0.1283320098685078,
+      "avg_cash_pct": 0.0,
+      "annualized_turnover": 0.4997713001832586,
+      "total_fees_usd": 11.985617259288853,
+      "terminal_wealth_usd": 6850.534615053899,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "TREND_GATE_BTC": {
+      "cagr": -0.08446863642430913,
+      "cum_return": -0.16169261521648337,
+      "max_drawdown": -0.43924710048604615,
+      "calmar": -0.1923032305297881,
+      "sharpe": -0.25527888076830896,
+      "excess_vs_btc": -0.04036405941987864,
+      "avg_cash_pct": 53.84439751127348,
+      "annualized_turnover": 19.34409013711829,
+      "total_fees_usd": 463.91391528018517,
+      "terminal_wealth_usd": 8383.073847835167,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "TREND_GATE_EW4": {
+      "cagr": -0.16731039613922605,
+      "cum_return": -0.3064397272159719,
+      "max_drawdown": -0.5618525854110854,
+      "calmar": -0.2977834408589784,
+      "sharpe": -0.4140117096740467,
+      "excess_vs_btc": -0.12320581913479556,
+      "avg_cash_pct": 53.84439751127348,
+      "annualized_turnover": 16.4785912899122,
+      "total_fees_usd": 395.1929374510223,
+      "terminal_wealth_usd": 6935.602727840281,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "VOL_TARGET_BTC": {
+      "cagr": 0.04012733166172677,
+      "cum_return": 0.08180174545044294,
+      "max_drawdown": -0.49535689287170215,
+      "calmar": 0.08100691085390788,
+      "sharpe": 0.1025694692599374,
+      "excess_vs_btc": 0.08423190866615726,
+      "avg_cash_pct": 28.65637322055166,
+      "annualized_turnover": 5.576958880483401,
+      "total_fees_usd": 133.74776540340685,
+      "terminal_wealth_usd": 10818.017454504428,
+      "breakeven_cost": {
+        "breakeven_bps": 100.0,
+        "status": "NO_CROSSING_IN_RANGE"
+      }
+    },
+    "VOL_TARGET_EW4": {
+      "cagr": 0.04513815171811353,
+      "cum_return": 0.09224224124596914,
+      "max_drawdown": -0.5943654125441482,
+      "calmar": 0.07594343608404495,
+      "sharpe": 0.09212235170806307,
+      "excess_vs_btc": 0.08924272872254402,
+      "avg_cash_pct": 28.796129967695457,
+      "annualized_turnover": 5.116925990610268,
+      "total_fees_usd": 122.71516280561434,
+      "terminal_wealth_usd": 10922.422412459691,
+      "breakeven_cost": {
+        "breakeven_bps": 100.0,
+        "status": "NO_CROSSING_IN_RANGE"
+      }
+    },
+    "MOMENTUM_TOP1": {
+      "cagr": -0.06705533610567593,
+      "cum_return": -0.1295246569530789,
+      "max_drawdown": -0.7833692670401753,
+      "calmar": -0.08559863008033602,
+      "sharpe": -0.09119295994745598,
+      "excess_vs_btc": -0.022950759101245444,
+      "avg_cash_pct": 0.0,
+      "annualized_turnover": 34.520346749153404,
+      "total_fees_usd": 827.8739968493065,
+      "terminal_wealth_usd": 8704.75343046921,
+      "breakeven_cost": {
+        "breakeven_bps": 8.63037109375,
+        "status": "ROOT_FOUND"
+      }
+    },
+    "MOMENTUM_TOP1_TREND_GATE": {
+      "cagr": -0.012525098361601983,
+      "cum_return": -0.02487509171310176,
+      "max_drawdown": -0.576278934897971,
+      "calmar": -0.02173443727180402,
+      "sharpe": -0.019331667652432886,
+      "excess_vs_btc": 0.03157947864282851,
+      "avg_cash_pct": 53.84439751127348,
+      "annualized_turnover": 27.205878750286402,
+      "total_fees_usd": 652.4569333692916,
+      "terminal_wealth_usd": 9751.249082868982,
+      "breakeven_cost": {
+        "breakeven_bps": 20.78857421875,
+        "status": "ROOT_FOUND"
+      }
+    },
+    "MOMENTUM_TOP2": {
+      "cagr": -0.19918262638803563,
+      "cum_return": -0.3584802471769941,
+      "max_drawdown": -0.797513182453903,
+      "calmar": -0.24975465079481438,
+      "sharpe": -0.32230246126773743,
+      "excess_vs_btc": -0.15507804938360514,
+      "avg_cash_pct": 0.0,
+      "annualized_turnover": 23.06788559636354,
+      "total_fees_usd": 553.2187375259314,
+      "terminal_wealth_usd": 6415.197528230059,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "MOMENTUM_TOP2_TREND_GATE": {
+      "cagr": -0.27511805350242335,
+      "cum_return": -0.47429538308651975,
+      "max_drawdown": -0.6789091995147444,
+      "calmar": -0.40523541837268684,
+      "sharpe": -0.6100878414616995,
+      "excess_vs_btc": -0.23101347649799286,
+      "avg_cash_pct": 53.84439751127348,
+      "annualized_turnover": 19.651005687819925,
+      "total_fees_usd": 471.27442661864103,
+      "terminal_wealth_usd": 5257.046169134803,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "INVERSE_VOL4": {
+      "cagr": -0.151612860664593,
+      "cum_return": -0.28006373926143546,
+      "max_drawdown": -0.7098676293050036,
+      "calmar": -0.21357905953963513,
+      "sharpe": -0.27270355947404235,
+      "excess_vs_btc": -0.10750828366016252,
+      "avg_cash_pct": 1.99283977860644e-15,
+      "annualized_turnover": 3.0661808371932104,
+      "total_fees_usd": 73.53377424611617,
+      "terminal_wealth_usd": 7199.362607385645,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    },
+    "INVERSE_VOL4_TREND_GATE": {
+      "cagr": -0.1961348098740885,
+      "cum_return": -0.35359149933322365,
+      "max_drawdown": -0.552671844566517,
+      "calmar": -0.35488475087404714,
+      "sharpe": -0.5441941596842161,
+      "excess_vs_btc": -0.152030232869658,
+      "avg_cash_pct": 53.84439751127348,
+      "annualized_turnover": 17.622086701418787,
+      "total_fees_usd": 422.6164776483994,
+      "terminal_wealth_usd": 6464.085006667764,
+      "breakeven_cost": {
+        "breakeven_bps": null,
+        "status": "NO_POSITIVE_BREAKEVEN_EDGE"
+      }
+    }
+  },
+  "subwindow_2022": {
+    "CASH_100": {
+      "cagr": 0.0,
+      "cum_return": 0.0,
+      "max_drawdown": 0.0,
+      "calmar": 0.0,
+      "sharpe": 0.0,
+      "terminal_wealth_usd": 10000.0
+    },
+    "BTC_BH": {
+      "cagr": -0.6427933200583764,
+      "cum_return": -0.6424995577918093,
+      "max_drawdown": -0.6737711687834668,
+      "calmar": -0.9540231904238012,
+      "sharpe": -1.6263510821719347,
+      "terminal_wealth_usd": 3575.0044220819073
+    },
+    "EW4": {
+      "cagr": -0.7336196944279969,
+      "cum_return": -0.7333381595462545,
+      "max_drawdown": -0.7520248923178522,
+      "calmar": -0.9755258129380163,
+      "sharpe": -1.6805048834784155,
+      "terminal_wealth_usd": 2666.6184045374553
+    },
+    "EW4_BUY_AND_HOLD": {
+      "cagr": -0.6947890973641109,
+      "cum_return": -0.6944997213812996,
+      "max_drawdown": -0.7208767597279324,
+      "calmar": -0.9638112034938298,
+      "sharpe": -1.58638980520953,
+      "terminal_wealth_usd": 3055.002786187004
+    },
+    "TREND_GATE_BTC": {
+      "cagr": -0.37367716548981245,
+      "cum_return": -0.3734431098576384,
+      "max_drawdown": -0.43924710048604615,
+      "calmar": -0.8507219855892556,
+      "sharpe": -1.2631623483286396,
+      "terminal_wealth_usd": 6265.568901423616
+    },
+    "TREND_GATE_EW4": {
+      "cagr": -0.5029522405932574,
+      "cum_return": -0.5026746938961435,
+      "max_drawdown": -0.5212313605906708,
+      "calmar": -0.9649308898514872,
+      "sharpe": -1.463696360570992,
+      "terminal_wealth_usd": 4973.253061038566
+    },
+    "VOL_TARGET_BTC": {
+      "cagr": -0.4743537489302454,
+      "cum_return": -0.47408372746542304,
+      "max_drawdown": -0.49535689287170215,
+      "calmar": -0.9575999764135783,
+      "sharpe": -1.8020242062075278,
+      "terminal_wealth_usd": 5259.162725345769
+    },
+    "VOL_TARGET_EW4": {
+      "cagr": -0.565485146720516,
+      "cum_return": -0.5651958360507139,
+      "max_drawdown": -0.5943654125441482,
+      "calmar": -0.9514099151563818,
+      "sharpe": -1.8676614127840985,
+      "terminal_wealth_usd": 4348.041639492862
+    },
+    "MOMENTUM_TOP1": {
+      "cagr": -0.7711490595682371,
+      "cum_return": -0.7708794072872232,
+      "max_drawdown": -0.7810772540861846,
+      "calmar": -0.9872891004494007,
+      "sharpe": -1.743227993666725,
+      "terminal_wealth_usd": 2291.2059271277685
+    },
+    "MOMENTUM_TOP1_TREND_GATE": {
+      "cagr": -0.5581603297447695,
+      "cum_return": -0.5578720441037752,
+      "max_drawdown": -0.576278934897971,
+      "calmar": -0.9685593138045044,
+      "sharpe": -1.393943828641686,
+      "terminal_wealth_usd": 4421.279558962247
+    },
+    "MOMENTUM_TOP2": {
+      "cagr": -0.7848668045180976,
+      "cum_return": -0.7846026838190736,
+      "max_drawdown": -0.797513182453903,
+      "calmar": -0.9841427349239631,
+      "sharpe": -1.8930031317929719,
+      "terminal_wealth_usd": 2153.9731618092637
+    },
+    "MOMENTUM_TOP2_TREND_GATE": {
+      "cagr": -0.6431725153021008,
+      "cum_return": -0.6428787619901795,
+      "max_drawdown": -0.654277231230661,
+      "calmar": -0.9830275066921208,
+      "sharpe": -1.8148828275792754,
+      "terminal_wealth_usd": 3571.212380098205
+    },
+    "INVERSE_VOL4": {
+      "cagr": -0.6910978023726141,
+      "cum_return": -0.6908078948028489,
+      "max_drawdown": -0.7098676293050036,
+      "calmar": -0.9735586943853658,
+      "sharpe": -1.577272392935397,
+      "terminal_wealth_usd": 3091.9210519715116
+    },
+    "INVERSE_VOL4_TREND_GATE": {
+      "cagr": -0.45164025939465313,
+      "cum_return": -0.4513771033122316,
+      "max_drawdown": -0.47131412289538027,
+      "calmar": -0.958257428443123,
+      "sharpe": -1.3510669033491942,
+      "terminal_wealth_usd": 5486.228966877685
+    }
+  },
+  "subwindow_2023": {
+    "CASH_100": {
+      "cagr": 0.0,
+      "cum_return": 0.0,
+      "max_drawdown": 0.0,
+      "calmar": 0.0,
+      "sharpe": 0.0,
+      "terminal_wealth_usd": 10000.0
+    },
+    "BTC_BH": {
+      "cagr": 1.555019693560816,
+      "cum_return": 1.55310650065723,
+      "max_drawdown": -0.21740843715487818,
+      "calmar": 7.1525268932090516,
+      "sharpe": 2.209994484405117,
+      "terminal_wealth_usd": 25531.065006572302
+    },
+    "EW4": {
+      "cagr": 2.2300964064570072,
+      "cum_return": 2.227073490660893,
+      "max_drawdown": -0.2974153568683704,
+      "calmar": 7.498255738838663,
+      "sharpe": 2.2724285431241773,
+      "terminal_wealth_usd": 32270.73490660893
+    },
+    "EW4_BUY_AND_HOLD": {
+      "cagr": 2.9827248840508287,
+      "cum_return": 2.9783321521322113,
+      "max_drawdown": -0.30753616215076857,
+      "calmar": 9.69877774109881,
+      "sharpe": 2.3335528147757243,
+      "terminal_wealth_usd": 39783.32152132211
+    },
+    "TREND_GATE_BTC": {
+      "cagr": 0.33827027588746095,
+      "cum_return": 0.33795892754932866,
+      "max_drawdown": -0.2705319393846914,
+      "calmar": 1.2503894240984497,
+      "sharpe": 0.9132380798474771,
+      "terminal_wealth_usd": 13379.589275493287
+    },
+    "TREND_GATE_EW4": {
+      "cagr": 0.39495142963787866,
+      "cum_return": 0.3945806985321456,
+      "max_drawdown": -0.3880871122340478,
+      "calmar": 1.0176875685572653,
+      "sharpe": 0.8244087863091404,
+      "terminal_wealth_usd": 13945.806985321457
+    },
+    "VOL_TARGET_BTC": {
+      "cagr": 1.056384289813943,
+      "cum_return": 1.0552007563739352,
+      "max_drawdown": -0.23825115102612154,
+      "calmar": 4.433910540470474,
+      "sharpe": 2.1038946294715317,
+      "terminal_wealth_usd": 20552.007563739353
+    },
+    "VOL_TARGET_EW4": {
+      "cagr": 1.5121191243959102,
+      "cum_return": 1.5102719987170925,
+      "max_drawdown": -0.3007942219835206,
+      "calmar": 5.027088334425365,
+      "sharpe": 2.2129619666769575,
+      "terminal_wealth_usd": 25102.719987170924
+    },
+    "MOMENTUM_TOP1": {
+      "cagr": 2.806590730726198,
+      "cum_return": 2.802529609315427,
+      "max_drawdown": -0.4945747116988554,
+      "calmar": 5.674755834332104,
+      "sharpe": 1.7200861606729017,
+      "terminal_wealth_usd": 38025.29609315427
+    },
+    "MOMENTUM_TOP1_TREND_GATE": {
+      "cagr": 1.206921070770433,
+      "cum_return": 1.2055264664507637,
+      "max_drawdown": -0.4977661756289543,
+      "calmar": 2.4246747365777184,
+      "sharpe": 1.1120268739791355,
+      "terminal_wealth_usd": 22055.264664507635
+    },
+    "MOMENTUM_TOP2": {
+      "cagr": 1.982332535068192,
+      "cum_return": 1.9797313790861466,
+      "max_drawdown": -0.38540379455259227,
+      "calmar": 5.143521063069561,
+      "sharpe": 1.9289573907051707,
+      "terminal_wealth_usd": 29797.313790861466
+    },
+    "MOMENTUM_TOP2_TREND_GATE": {
+      "cagr": 0.47251699384745294,
+      "cum_return": 0.4720620365317614,
+      "max_drawdown": -0.4455591513563638,
+      "calmar": 1.0605033976050644,
+      "sharpe": 0.8003600617266129,
+      "terminal_wealth_usd": 14720.620365317614
+    },
+    "INVERSE_VOL4": {
+      "cagr": 1.327005922261396,
+      "cum_return": 1.3254370424970738,
+      "max_drawdown": -0.2859064909251714,
+      "calmar": 4.64139837457802,
+      "sharpe": 1.8524582979534625,
+      "terminal_wealth_usd": 23254.370424970737
+    },
+    "INVERSE_VOL4_TREND_GATE": {
+      "cagr": 0.17839273986924575,
+      "cum_return": 0.17823828456554636,
+      "max_drawdown": -0.38446785093527575,
+      "calmar": 0.46399910794954285,
+      "sharpe": 0.46591361742218185,
+      "terminal_wealth_usd": 11782.382845655464
+    }
+  },
+  "sensitivity": {
+    "cost_10bps": {
+      "CASH_100": 0.0,
+      "BTC_BH": -0.04400901686413228,
+      "EW4": -0.07190941647515403,
+      "EW4_BUY_AND_HOLD": -0.17235385598631436,
+      "TREND_GATE_BTC": -0.07978411280192643,
+      "TREND_GATE_EW4": -0.16300157641254498,
+      "VOL_TARGET_BTC": 0.041687834789902345,
+      "VOL_TARGET_EW4": 0.0467346177019774,
+      "MOMENTUM_TOP1": -0.05341898953247437,
+      "MOMENTUM_TOP1_TREND_GATE": -0.005085757699864524,
+      "MOMENTUM_TOP2": -0.19021000138831423,
+      "MOMENTUM_TOP2_TREND_GATE": -0.26979415327355427,
+      "INVERSE_VOL4": -0.1506300282364038,
+      "INVERSE_VOL4_TREND_GATE": -0.1917712080071744
+    },
+    "cost_20bps": {
+      "CASH_100": 0.0,
+      "BTC_BH": -0.044486531343826075,
+      "EW4": -0.07335613799611373,
+      "EW4_BUY_AND_HOLD": -0.17276726262382558,
+      "TREND_GATE_BTC": -0.10296931386306529,
+      "TREND_GATE_EW4": -0.184324779033336,
+      "VOL_TARGET_BTC": 0.03390877322498875,
+      "VOL_TARGET_EW4": 0.038776724311867516,
+      "MOMENTUM_TOP1": -0.1196642762090615,
+      "MOMENTUM_TOP1_TREND_GATE": -0.04173018644044757,
+      "MOMENTUM_TOP2": -0.23410022100017935,
+      "MOMENTUM_TOP2_TREND_GATE": -0.2960301730010486,
+      "INVERSE_VOL4": -0.15553241138485707,
+      "INVERSE_VOL4_TREND_GATE": -0.21335473945327887
+    },
+    "cost_30bps": {
+      "CASH_100": 0.0,
+      "BTC_BH": -0.044963331339519574,
+      "EW4": -0.074800090892428,
+      "EW4_BUY_AND_HOLD": -0.17318005069909292,
+      "TREND_GATE_BTC": -0.1255700063822146,
+      "TREND_GATE_EW4": -0.20510424599361698,
+      "VOL_TARGET_BTC": 0.026188067098708245,
+      "VOL_TARGET_EW4": 0.030879626134878713,
+      "MOMENTUM_TOP1": -0.18127329738903686,
+      "MOMENTUM_TOP1_TREND_GATE": -0.07702461360095969,
+      "MOMENTUM_TOP2": -0.2756360699377943,
+      "MOMENTUM_TOP2_TREND_GATE": -0.3213280603038082,
+      "INVERSE_VOL4": -0.16040554234674842,
+      "INVERSE_VOL4_TREND_GATE": -0.2343615306596557
+    },
+    "cadence_daily": {
+      "CASH_100": 0.0,
+      "BTC_BH": -0.04410457700443049,
+      "EW4": -0.10302814011568096,
+      "EW4_BUY_AND_HOLD": -0.17243658687293828,
+      "TREND_GATE_BTC": 0.19113589265054087,
+      "TREND_GATE_EW4": 0.32100611983522964,
+      "VOL_TARGET_BTC": 0.05469158902578197,
+      "VOL_TARGET_EW4": 0.059693532103942015,
+      "MOMENTUM_TOP1": 0.21413629890049757,
+      "MOMENTUM_TOP1_TREND_GATE": 0.7928363171259358,
+      "MOMENTUM_TOP2": 0.06487596231793646,
+      "MOMENTUM_TOP2_TREND_GATE": 0.48353024256826527,
+      "INVERSE_VOL4": -0.1533658073046107,
+      "INVERSE_VOL4_TREND_GATE": 0.2296350267612297
+    },
+    "band_0pct": {
+      "CASH_100": 0.0,
+      "BTC_BH": -0.04410457700443049,
+      "EW4": -0.09863370950147121,
+      "EW4_BUY_AND_HOLD": -0.17243658687293828,
+      "TREND_GATE_BTC": -0.08446863642430913,
+      "TREND_GATE_EW4": -0.17043782155485188,
+      "VOL_TARGET_BTC": 0.04251568907191272,
+      "VOL_TARGET_EW4": 0.04500822801109838,
+      "MOMENTUM_TOP1": -0.06705533610567593,
+      "MOMENTUM_TOP1_TREND_GATE": -0.012525098361601983,
+      "MOMENTUM_TOP2": -0.2004663322645307,
+      "MOMENTUM_TOP2_TREND_GATE": -0.2765856366729349,
+      "INVERSE_VOL4": -0.15625976489904592,
+      "INVERSE_VOL4_TREND_GATE": -0.19852712246266058
+    },
+    "band_10pct": {
+      "CASH_100": 0.0,
+      "BTC_BH": -0.04410457700443049,
+      "EW4": -0.06830701767366931,
+      "EW4_BUY_AND_HOLD": -0.17243658687293828,
+      "TREND_GATE_BTC": -0.08446863642430913,
+      "TREND_GATE_EW4": -0.16595701666389995,
+      "VOL_TARGET_BTC": 0.04584671075521807,
+      "VOL_TARGET_EW4": 0.060709803574075405,
+      "MOMENTUM_TOP1": -0.06705533610567593,
+      "MOMENTUM_TOP1_TREND_GATE": -0.012525098361601983,
+      "MOMENTUM_TOP2": -0.20802209504047042,
+      "MOMENTUM_TOP2_TREND_GATE": -0.2773831014635839,
+      "INVERSE_VOL4": -0.14915884882573982,
+      "INVERSE_VOL4_TREND_GATE": -0.18653950089527427
+    }
+  }
+}
