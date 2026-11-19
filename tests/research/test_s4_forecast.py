@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
@@ -26,12 +27,29 @@ from btc_scraper.research.s4_forecast import (
     ChronologicalSplitter,
     FeatureScaler,
     ForecastError,
+    ProtocolViolationError,
     RidgeBaseline,
     UnifiedNeuralForecaster,
     build_causal_partitions,
     build_neural_forecaster,
     select_ridge_alpha,
     set_seed,
+)
+from btc_scraper.research.s4_evaluation import (
+    EXPECTED_FROZEN_HASHES,
+    EXPECTED_NEURAL_PARAMS,
+    EXPECTED_RIDGE_ALPHA,
+    SPREAD_THRESHOLD_BPS,
+    btc_relative_spread_diagnostics,
+    compute_pearson_ic,
+    compute_primary_statistics,
+    decompose_common_and_relative,
+    evaluate_scientific_verdict,
+    extreme_day_sensitivity,
+    fisher_z_aggregate,
+    mincer_zarnowitz_calibration,
+    paired_stationary_bootstrap,
+    verify_and_load_frozen_artifacts,
 )
 from scripts.run_s4_stage1_screen import run_preflight
 
@@ -355,3 +373,195 @@ def test_cli_screen_mode_fails_closed_and_protects_evidence(monkeypatch: pytest.
         ],
     )
     assert main() == 2
+
+
+def test_verify_and_load_frozen_artifacts() -> None:
+    """Verify loading real committed frozen artifacts matches all expected hashes and parameters."""
+    evidence_dir = Path("research/s4_forecast_information_screening/stage1_evidence")
+    frozen = verify_and_load_frozen_artifacts(evidence_dir)
+    assert frozen.neural_model.count_parameters() == EXPECTED_NEURAL_PARAMS
+    assert getattr(frozen.ridge_model.model, "alpha", None) == EXPECTED_RIDGE_ALPHA
+    assert set(frozen.sigma_floors.keys()) == set(UNIVERSE)
+    assert len(frozen.artifact_hashes) == 4
+
+    # Test tampering or non-existent path fails closed
+    with pytest.raises(ProtocolViolationError):
+        verify_and_load_frozen_artifacts(Path("non_existent_directory"))
+
+
+def test_compute_pearson_ic_and_fisher_z() -> None:
+    """Verify Pearson IC and Fisher-z aggregation against exact mathematical formulations."""
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    y = np.array([2.0, 4.0, 6.0, 8.0, 10.0])
+    assert pytest.approx(compute_pearson_ic(x, y), abs=1e-7) == 1.0
+
+    y_neg = np.array([-1.0, -2.0, -3.0, -4.0, -5.0])
+    assert pytest.approx(compute_pearson_ic(x, y_neg), abs=1e-7) == -1.0
+
+    # Zero variance fails closed
+    with pytest.raises(ForecastError, match="Zero variance"):
+        compute_pearson_ic(np.ones(5), y)
+
+    # Fisher-z aggregation
+    ics = [0.1, 0.2, 0.3, 0.4]
+    expected_s = np.tanh(np.mean([np.arctanh(ic) for ic in ics]))
+    assert pytest.approx(fisher_z_aggregate(ics), abs=1e-7) == expected_s
+
+
+def test_compute_primary_statistics() -> None:
+    """Verify compute_primary_statistics returns valid per-asset ICs, S_neural, S_ridge, and Delta_S."""
+    rng = np.random.default_rng(123)
+    n = 100
+    realized_z = rng.normal(0, 1, size=(n, 4))
+    # neural has positive signal, ridge has weaker signal
+    neural_zhat = realized_z * 0.2 + rng.normal(0, 1, size=(n, 4))
+    ridge_zhat = realized_z * 0.05 + rng.normal(0, 1, size=(n, 4))
+
+    stats = compute_primary_statistics(realized_z, neural_zhat, ridge_zhat)
+    assert len(stats.per_asset_neural_ic) == 4
+    assert len(stats.per_asset_ridge_ic) == 4
+    assert stats.s_neural > stats.s_ridge
+    assert pytest.approx(stats.delta_s, abs=1e-7) == (stats.s_neural - stats.s_ridge)
+
+
+def test_paired_stationary_bootstrap_determinism_and_bounds() -> None:
+    """Verify stationary bootstrap is deterministic given seed and produces valid 95% CIs."""
+    rng = np.random.default_rng(42)
+    n = 100
+    realized_z = rng.normal(0, 1, size=(n, 4))
+    neural_zhat = realized_z * 0.3 + rng.normal(0, 1, size=(n, 4))
+    ridge_zhat = realized_z * 0.1 + rng.normal(0, 1, size=(n, 4))
+
+    boot1 = paired_stationary_bootstrap(realized_z, neural_zhat, ridge_zhat, block_length=14.0, n_draws=100, seed=42)
+    boot2 = paired_stationary_bootstrap(realized_z, neural_zhat, ridge_zhat, block_length=14.0, n_draws=100, seed=42)
+
+    assert boot1.ci_lower_95 == boot2.ci_lower_95
+    assert boot1.ci_upper_95 == boot2.ci_upper_95
+    assert boot1.ci_lower_95 <= boot1.ci_upper_95
+    assert boot1.valid_draws_count == 100
+    assert boot1.invalid_draws_count == 0
+
+
+def test_decompose_common_and_relative() -> None:
+    """Verify decomposition separates market-wide signal from relative cross-asset signal."""
+    rng = np.random.default_rng(101)
+    n = 80
+    market_factor = rng.normal(0, 1, size=(n, 1))
+    asset_idiosyncratic = rng.normal(0, 0.5, size=(n, 4))
+    realized_z = market_factor + asset_idiosyncratic
+    neural_zhat = realized_z * 0.2 + rng.normal(0, 0.1, size=(n, 4))
+    ridge_zhat = realized_z * 0.1 + rng.normal(0, 0.1, size=(n, 4))
+
+    decomp = decompose_common_and_relative(realized_z, neural_zhat, ridge_zhat)
+    assert "common_market_ic_neural" in decomp
+    assert "common_market_ic_ridge" in decomp
+    assert "relative_delta_s" in decomp
+    assert len(decomp["per_asset_relative_ic_neural"]) == 4
+
+
+def test_mincer_zarnowitz_and_btc_relative_spread() -> None:
+    """Verify Mincer-Zarnowitz OLS regressions and BTC-relative spread diagnostics."""
+    n = 100
+    rng = np.random.default_rng(99)
+    y = rng.normal(0, 0.02, size=(n, 4))
+    yhat = y * 0.8 + rng.normal(0, 0.005, size=(n, 4))
+
+    mz = mincer_zarnowitz_calibration(y, yhat)
+    assert set(mz.keys()) == set(UNIVERSE)
+    for sym in UNIVERSE:
+        assert mz[sym]["beta"] > 0.5
+        assert mz[sym]["r_squared"] > 0.0
+
+    # Spread diagnostics
+    ridge_yhat = yhat * 0.5
+    spread_diag = btc_relative_spread_diagnostics(y, yhat, ridge_yhat)
+    assert "ETH-BTC" in spread_diag
+    assert "SOL-BTC" in spread_diag
+    assert "BNB-BTC" in spread_diag
+    for pair in ["ETH-BTC", "SOL-BTC", "BNB-BTC"]:
+        assert spread_diag[pair]["total_dates"] == n
+        assert "sign_accuracy_pct" in spread_diag[pair]["neural"]
+
+
+def test_extreme_day_sensitivity() -> None:
+    """Verify extreme day sensitivity excludes exactly ceil(0.05 * N) days."""
+    n = 100
+    rng = np.random.default_rng(77)
+    decisions = pd.date_range("2023-01-01", periods=n, freq="D", tz="UTC")
+    realized_y = rng.normal(0, 0.02, size=(n, 4))
+    # Make first 5 days extreme
+    for i in range(5):
+        realized_y[i, :] = (0.5 - i * 0.05)
+    realized_z = realized_y * 10.0
+    neural_zhat = realized_z * 0.1 + rng.normal(0, 0.01, size=(n, 4))
+    ridge_zhat = realized_z * 0.05 + rng.normal(0, 0.01, size=(n, 4))
+
+    sens = extreme_day_sensitivity(decisions, realized_y, realized_z, neural_zhat, ridge_zhat, drop_pct=0.05)
+    assert sens["dropped_count"] == 5
+    assert sens["kept_count"] == 95
+    assert decisions[0].isoformat() in sens["dropped_dates"]
+
+
+def test_scientific_verdict_engine() -> None:
+    """Verify frozen 3-state decision logic maps correctly to SUPPORTED, NOT_SUPPORTED, INCONCLUSIVE."""
+    # State 1: All criteria met -> SUPPORTED
+    verdict, checks = evaluate_scientific_verdict(
+        n_common=349,
+        s_neural=0.08,
+        ci_lower_14d=0.015,
+        ci_upper_14d=0.09,
+        mz_slopes=[0.5, 0.4, 0.6, 0.3],
+        extreme_excluded_delta_s=0.02,
+        protocol_valid=True,
+    )
+    assert verdict == "STAGE1_SIGNAL_SUPPORTED"
+    assert all(checks.values())
+
+    # State 2: S_neural <= 0 -> NOT_SUPPORTED
+    verdict, checks = evaluate_scientific_verdict(
+        n_common=349,
+        s_neural=-0.01,
+        ci_lower_14d=-0.05,
+        ci_upper_14d=0.02,
+        mz_slopes=[0.1, 0.2, 0.3, 0.4],
+        extreme_excluded_delta_s=0.01,
+        protocol_valid=True,
+    )
+    assert verdict == "STAGE1_SIGNAL_NOT_SUPPORTED"
+
+    # State 2b: CI upper <= 0 -> NOT_SUPPORTED
+    verdict, checks = evaluate_scientific_verdict(
+        n_common=349,
+        s_neural=0.02,
+        ci_lower_14d=-0.04,
+        ci_upper_14d=-0.001,
+        mz_slopes=[0.1, 0.2, 0.3, 0.4],
+        extreme_excluded_delta_s=0.01,
+        protocol_valid=True,
+    )
+    assert verdict == "STAGE1_SIGNAL_NOT_SUPPORTED"
+
+    # State 3: S_neural > 0, CI upper > 0, but CI lower <= 0 -> INCONCLUSIVE
+    verdict, checks = evaluate_scientific_verdict(
+        n_common=349,
+        s_neural=0.04,
+        ci_lower_14d=-0.01,
+        ci_upper_14d=0.06,
+        mz_slopes=[0.1, 0.2, 0.3, 0.4],
+        extreme_excluded_delta_s=0.01,
+        protocol_valid=True,
+    )
+    assert verdict == "STAGE1_SIGNAL_INCONCLUSIVE"
+
+    # Invalid protocol
+    verdict, checks = evaluate_scientific_verdict(
+        n_common=349,
+        s_neural=0.08,
+        ci_lower_14d=0.015,
+        ci_upper_14d=0.09,
+        mz_slopes=[0.5, 0.4, 0.6, 0.3],
+        extreme_excluded_delta_s=0.02,
+        protocol_valid=False,
+    )
+    assert verdict == "INVALID_PROTOCOL"
+

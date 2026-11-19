@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""S4-P1B Forecasting CLI: Preflight Verification, 2022 Development, and 2023 Screening.
+"""S4-P1C Forecasting CLI: Preflight Verification, 2022 Development, and One-Shot 2023 Screening.
 
 Pre-registration: research/s4_forecast_information_screening/s4_p0_executable_preregistration.md
 Frozen commit: 7b5a97becbd6da1249a484ed588133761cc57bd0
@@ -29,6 +29,22 @@ from btc_scraper.research.s4_dataset_audit import (
     indexed_panel,
     load_binance_archives,
     sha256_file,
+)
+from btc_scraper.research.s4_evaluation import (
+    EXPECTED_FROZEN_HASHES,
+    EXPECTED_NEURAL_PARAMS,
+    EXPECTED_RIDGE_ALPHA,
+    SPREAD_THRESHOLD_BPS,
+    btc_relative_spread_diagnostics,
+    compute_pearson_ic,
+    compute_primary_statistics,
+    decompose_common_and_relative,
+    evaluate_scientific_verdict,
+    extreme_day_sensitivity,
+    fisher_z_aggregate,
+    mincer_zarnowitz_calibration,
+    paired_stationary_bootstrap,
+    verify_and_load_frozen_artifacts,
 )
 from btc_scraper.research.s4_forecast import (
     INPUT_ASSETS,
@@ -177,7 +193,7 @@ def run_preflight(repo_root: Path, audit_json_path: Path) -> dict[str, object]:
     }
 
     results["verdict"] = "PASS"
-    results["next_step"] = "S4-P1B_2022_DEVELOPMENT_AND_FITTING (authorized)"
+    results["next_step"] = "S4-P1C_ONE_SHOT_2023_SCREENING (ready for authorized execution)"
     return results
 
 
@@ -198,6 +214,12 @@ def run_development_2022(
     8. Reload and verify finite predictions.
     9. Freeze SHA-256 identities and generate evidence report.
     """
+    if (output_dir / "neural_forecaster.pt").is_file():
+        raise ProtocolViolationError(
+            f"Frozen model artifacts already exist in {output_dir}. "
+            "Development overwrite is prohibited to preserve frozen checkpoint integrity."
+        )
+
     print("=== S4-P1B: 2022-ONLY DEVELOPMENT & FROZEN MODEL FITTING ===")
     print(f"Pre-registration commit: {S4_PREREGISTRATION_COMMIT}")
     set_seed(42)
@@ -469,11 +491,9 @@ def run_development_2022(
         },
     }
 
-    # Write evidence JSON
     evidence_json_path = output_dir / "s4_stage1_2022_development_evidence.json"
     evidence_json_path.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
 
-    # Write evidence Markdown
     evidence_md_path = output_dir / "s4_stage1_2022_development.md"
     evidence_md_path.write_text(render_development_markdown(evidence), encoding="utf-8")
 
@@ -577,6 +597,429 @@ def render_development_markdown(evidence: dict[str, object]) -> str:
     return "\n".join(lines)
 
 
+def run_screen_2023(
+    repo_root: Path,
+    audit_json_path: Path,
+    output_dir: Path,
+) -> dict[str, object]:
+    """Execute the pre-registered one-shot 2023 predictive screen on frozen models.
+
+    Strictly fail-closed: requires authentic 2023 data, exact frozen artifacts,
+    common date intersection across all 4 assets, and produces primary IC, bootstrap CI,
+    and preregistered diagnostics.
+    """
+    print("=== S4-P1C: ONE-SHOT 2023 FORECAST INFORMATION SCREENING ===")
+    print(f"Pre-registration commit: {S4_PREREGISTRATION_COMMIT}")
+
+    # 1. Verify and load frozen models
+    print(f"Verifying and loading frozen model artifacts from: {output_dir}")
+    frozen = verify_and_load_frozen_artifacts(output_dir)
+    print("  Frozen artifacts verified and loaded (SHA-256 hashes matched, parameters=2289, alpha=10000.0)")
+
+    # 2. Check audit artifact
+    if not audit_json_path.is_file():
+        raise ForecastError(f"Dataset audit artifact not found: {audit_json_path}")
+    audit_data = json.loads(audit_json_path.read_text(encoding="utf-8"))
+    if audit_data.get("verdict") != "DATASET_READY":
+        raise ForecastError(f"Dataset audit verdict is not DATASET_READY: {audit_data.get('verdict')}")
+
+    # 3. Load canonical Binance Spot archives
+    raw_root = repo_root / "data/historical/neural_n1/raw/binance_spot_klines_1h"
+    print(f"Loading canonical Binance Spot archives from: {raw_root}")
+    panels: dict[str, pd.DataFrame] = {}
+    sources_summary: list[dict[str, object]] = []
+    for symbol in UNIVERSE:
+        frame, sources = load_binance_archives(raw_root, symbol)
+        panels[symbol] = indexed_panel(frame)
+        sources_summary.extend(sources)
+        print(f"  [{symbol}] Loaded {len(frame)} hourly bars ({frame['timestamp'].min()} to {frame['timestamp'].max()})")
+
+    # 4. Build 2023 complete-case screen dataset
+    screen_decisions = ChronologicalSplitter.get_screen_dates()
+    print(f"Building 2023 complete-case screen partitions ({len(screen_decisions)} nominal decisions, warmup from {AUDIT_START})...")
+    partitions = build_causal_partitions(panels, screen_decisions, warmup_start=AUDIT_START)
+
+    common_dates = partitions.eligible_decisions
+    n_common = len(common_dates)
+    print(f"  2023 Common eligible decisions: {n_common} (expected from audit: 349)")
+    if n_common < 300:
+        raise ForecastError(f"INCONCLUSIVE / DATA_INSUFFICIENT: common dates {n_common} < 300")
+    if n_common != 349:
+        print(f"  WARNING: Common dates count {n_common} deviates from expected 349. Exclusions: {partitions.excluded_decisions}")
+
+    # 5. Paired Inference & Causal Volatility Normalization
+    print("Generating paired forecasts and causal realized targets across common 2023 dates...")
+    realized_y_list: list[np.ndarray] = []
+    realized_z_raw_list: list[np.ndarray] = []
+    realized_z_clipped_list: list[np.ndarray] = []
+    neural_zhat_list: list[np.ndarray] = []
+    ridge_zhat_list: list[np.ndarray] = []
+    neural_yhat_list: list[np.ndarray] = []
+    ridge_yhat_list: list[np.ndarray] = []
+    effective_sigmas_list: list[np.ndarray] = []
+    raw_sigmas_list: list[np.ndarray] = []
+    prediction_records: list[dict[str, object]] = []
+
+    # Apply frozen 2022 floors
+    frozen_floors = frozen.sigma_floors
+
+    for d in common_dates:
+        # Features
+        raw_x = partitions.features[d]  # [168, 4, 6]
+        norm_x = frozen.scaler.transform(raw_x[None, ...])[0]  # [168, 4, 6]
+        flat_x = RidgeBaseline.flatten_tensor(norm_x[None, ...])  # [1, 4032]
+        torch_x = torch.tensor(norm_x[None, ...], dtype=torch.float32)
+
+        # Predictions (standardized scale)
+        with torch.no_grad():
+            zn_hat = frozen.neural_model(torch_x).numpy()[0]  # [4]
+        zr_hat = frozen.ridge_model.predict(flat_x)[0]  # [4]
+
+        # Realized labels and causal volatility
+        y_raw = partitions.raw_labels[d]  # [4]
+        eff_sigmas = []
+        raw_sigmas = []
+        for symbol in UNIVERSE:
+            raw_sig = partitions.sigma_normalizer.get_raw_sigma(symbol, d)
+            raw_sigmas.append(raw_sig)
+            eff_sig = max(raw_sig, frozen_floors[symbol])
+            eff_sigmas.append(eff_sig)
+
+        eff_sigmas_arr = np.array(eff_sigmas, dtype=float)
+        raw_sigmas_arr = np.array(raw_sigmas, dtype=float)
+
+        z_raw = y_raw / eff_sigmas_arr
+        z_clipped = np.clip(z_raw, -4.0, 4.0)
+
+        # Return scale predictions
+        yn_hat = zn_hat * eff_sigmas_arr
+        yr_hat = zr_hat * eff_sigmas_arr
+
+        realized_y_list.append(y_raw)
+        realized_z_raw_list.append(z_raw)
+        realized_z_clipped_list.append(z_clipped)
+        neural_zhat_list.append(zn_hat)
+        ridge_zhat_list.append(zr_hat)
+        neural_yhat_list.append(yn_hat)
+        ridge_yhat_list.append(yr_hat)
+        effective_sigmas_list.append(eff_sigmas_arr)
+        raw_sigmas_list.append(raw_sigmas_arr)
+
+        record: dict[str, object] = {
+            "decision": d.isoformat(),
+            "execution_entry": (d + pd.Timedelta(hours=1)).isoformat(),
+            "label_exit": (d + pd.Timedelta(days=1, hours=1)).isoformat(),
+        }
+        for idx, sym in enumerate(UNIVERSE):
+            record[f"{sym}_realized_y"] = float(y_raw[idx])
+            record[f"{sym}_raw_sigma"] = float(raw_sigmas_arr[idx])
+            record[f"{sym}_effective_sigma"] = float(eff_sigmas_arr[idx])
+            record[f"{sym}_realized_z_raw"] = float(z_raw[idx])
+            record[f"{sym}_realized_z_clipped"] = float(z_clipped[idx])
+            record[f"{sym}_neural_zhat"] = float(zn_hat[idx])
+            record[f"{sym}_ridge_zhat"] = float(zr_hat[idx])
+            record[f"{sym}_neural_yhat"] = float(yn_hat[idx])
+            record[f"{sym}_ridge_yhat"] = float(yr_hat[idx])
+        prediction_records.append(record)
+
+    realized_y = np.stack(realized_y_list, axis=0)  # [N, 4]
+    realized_z = np.stack(realized_z_raw_list, axis=0)  # [N, 4] raw unclipped
+    realized_z_clipped = np.stack(realized_z_clipped_list, axis=0)  # [N, 4]
+    neural_zhat = np.stack(neural_zhat_list, axis=0)  # [N, 4]
+    ridge_zhat = np.stack(ridge_zhat_list, axis=0)  # [N, 4]
+    neural_yhat = np.stack(neural_yhat_list, axis=0)  # [N, 4]
+    ridge_yhat = np.stack(ridge_yhat_list, axis=0)  # [N, 4]
+
+    # 6. Primary Statistics
+    print("Computing primary statistics (Pearson IC and Fisher-z aggregate)...")
+    primary_stats = compute_primary_statistics(realized_z, neural_zhat, ridge_zhat)
+    print(f"  Per-asset Neural IC: {primary_stats.per_asset_neural_ic}")
+    print(f"  Per-asset Ridge IC:  {primary_stats.per_asset_ridge_ic}")
+    print(f"  S(Neural) = {primary_stats.s_neural:.6f}")
+    print(f"  S(Ridge)  = {primary_stats.s_ridge:.6f}")
+    print(f"  Delta S   = {primary_stats.delta_s:.6f}")
+
+    # Clipped target secondary IC
+    clipped_stats = compute_primary_statistics(realized_z_clipped, neural_zhat, ridge_zhat)
+
+    # 7. Paired Stationary Bootstrap
+    print("Executing paired stationary bootstrap (2,000 draws, seed=42)...")
+    boot_14d = paired_stationary_bootstrap(realized_z, neural_zhat, ridge_zhat, block_length=14.0, n_draws=2000, seed=42)
+    boot_7d = paired_stationary_bootstrap(realized_z, neural_zhat, ridge_zhat, block_length=7.0, n_draws=2000, seed=42)
+    boot_21d = paired_stationary_bootstrap(realized_z, neural_zhat, ridge_zhat, block_length=21.0, n_draws=2000, seed=42)
+    print(f"  Primary 14-day 95% CI: [{boot_14d.ci_lower_95:.6f}, {boot_14d.ci_upper_95:.6f}] (mean={boot_14d.mean_delta_s:.6f}, std={boot_14d.std_delta_s:.6f})")
+    print(f"  Sensitivity 7-day 95% CI: [{boot_7d.ci_lower_95:.6f}, {boot_7d.ci_upper_95:.6f}]")
+    print(f"  Sensitivity 21-day 95% CI: [{boot_21d.ci_lower_95:.6f}, {boot_21d.ci_upper_95:.6f}]")
+
+    # 8. Diagnostics
+    print("Computing preregistered secondary diagnostics...")
+    # Common/relative decomposition
+    common_rel = decompose_common_and_relative(realized_z, neural_zhat, ridge_zhat)
+
+    # Mincer-Zarnowitz calibration
+    mz_neural = mincer_zarnowitz_calibration(realized_y, neural_yhat)
+    mz_ridge = mincer_zarnowitz_calibration(realized_y, ridge_yhat)
+    mz_neural_slopes = [mz_neural[s]["beta"] for s in UNIVERSE]
+
+    # BTC-relative spread accuracy
+    spread_diag = btc_relative_spread_diagnostics(realized_y, neural_yhat, ridge_yhat, threshold=SPREAD_THRESHOLD_BPS)
+
+    # Extreme day sensitivity (drop top 5% = 18 days)
+    extreme_diag = extreme_day_sensitivity(common_dates, realized_y, realized_z, neural_zhat, ridge_zhat, drop_pct=0.05)
+
+    # First half vs Second half
+    h1_mask = [d < pd.Timestamp("2023-07-01", tz="UTC") for d in common_dates]
+    h2_mask = [d >= pd.Timestamp("2023-07-01", tz="UTC") for d in common_dates]
+
+    stats_h1 = compute_primary_statistics(realized_z[h1_mask], neural_zhat[h1_mask], ridge_zhat[h1_mask])
+    stats_h2 = compute_primary_statistics(realized_z[h2_mask], neural_zhat[h2_mask], ridge_zhat[h2_mask])
+
+    # 9. Evaluate Scientific Verdict
+    verdict, verdict_checks = evaluate_scientific_verdict(
+        n_common=n_common,
+        s_neural=primary_stats.s_neural,
+        ci_lower_14d=boot_14d.ci_lower_95,
+        ci_upper_14d=boot_14d.ci_upper_95,
+        mz_slopes=mz_neural_slopes,
+        extreme_excluded_delta_s=extreme_diag["delta_s"],
+        protocol_valid=True,
+    )
+    print(f"  VERDICT: {verdict}")
+    print(f"  Verdict checks: {verdict_checks}")
+
+    # 10. Save Evidence Artifacts
+    # Predictions JSON
+    pred_path = output_dir / "s4_stage1_2023_screen_paired_predictions.json"
+    pred_path.write_text(json.dumps(prediction_records, indent=2), encoding="utf-8")
+
+    # Structured Evidence JSON
+    evidence: dict[str, object] = {
+        "preregistration_commit": S4_PREREGISTRATION_COMMIT,
+        "evaluation_phase": "2023_REUSED_INTERNAL_SCREEN",
+        "generated_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "verdict": verdict,
+        "verdict_checks": verdict_checks,
+        "population": {
+            "authorized_window": "2023-01-01 through 2023-12-30",
+            "nominal_dates": len(screen_decisions),
+            "common_dates_count": n_common,
+            "min_required": 300,
+            "gap_excluded_dates_count": len(partitions.excluded_decisions),
+            "excluded_decisions": {d.isoformat(): r for d, r in partitions.excluded_decisions.items()},
+        },
+        "primary_statistics": {
+            "s_neural": primary_stats.s_neural,
+            "s_ridge": primary_stats.s_ridge,
+            "delta_s": primary_stats.delta_s,
+            "per_asset_neural_ic": primary_stats.per_asset_neural_ic,
+            "per_asset_ridge_ic": primary_stats.per_asset_ridge_ic,
+        },
+        "secondary_clipped_target_statistics": {
+            "s_neural": clipped_stats.s_neural,
+            "s_ridge": clipped_stats.s_ridge,
+            "delta_s": clipped_stats.delta_s,
+            "per_asset_neural_ic": clipped_stats.per_asset_neural_ic,
+            "per_asset_ridge_ic": clipped_stats.per_asset_ridge_ic,
+        },
+        "paired_stationary_bootstrap": {
+            "primary_14d": {
+                "block_length": boot_14d.block_length,
+                "n_draws": boot_14d.n_draws,
+                "valid_draws": boot_14d.valid_draws_count,
+                "mean_delta_s": boot_14d.mean_delta_s,
+                "std_delta_s": boot_14d.std_delta_s,
+                "ci_lower_95": boot_14d.ci_lower_95,
+                "ci_upper_95": boot_14d.ci_upper_95,
+            },
+            "sensitivity_7d": {
+                "block_length": boot_7d.block_length,
+                "n_draws": boot_7d.n_draws,
+                "ci_lower_95": boot_7d.ci_lower_95,
+                "ci_upper_95": boot_7d.ci_upper_95,
+            },
+            "sensitivity_21d": {
+                "block_length": boot_21d.block_length,
+                "n_draws": boot_21d.n_draws,
+                "ci_lower_95": boot_21d.ci_lower_95,
+                "ci_upper_95": boot_21d.ci_upper_95,
+            },
+        },
+        "diagnostics": {
+            "common_and_relative": common_rel,
+            "mincer_zarnowitz_neural": mz_neural,
+            "mincer_zarnowitz_ridge": mz_ridge,
+            "btc_relative_spread": spread_diag,
+            "extreme_day_sensitivity": extreme_diag,
+            "half_year_stability": {
+                "h1_count": int(sum(h1_mask)),
+                "h1_s_neural": stats_h1.s_neural,
+                "h1_s_ridge": stats_h1.s_ridge,
+                "h1_delta_s": stats_h1.delta_s,
+                "h2_count": int(sum(h2_mask)),
+                "h2_s_neural": stats_h2.s_neural,
+                "h2_s_ridge": stats_h2.s_ridge,
+                "h2_delta_s": stats_h2.delta_s,
+            },
+        },
+        "frozen_artifacts_verified": frozen.artifact_hashes,
+        "boundary_protections": {
+            "s4_2024_2026_access": "NOT_AUTHORIZED",
+            "s4_stage2_allocator": "NOT_AUTHORIZED",
+            "production_promotion": "NOT_AUTHORIZED",
+            "re_tuning_or_rerun": "PROHIBITED",
+        },
+    }
+
+    evidence_json_path = output_dir / "s4_stage1_2023_screen_evidence.json"
+    evidence_json_path.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
+
+    evidence_md_path = output_dir / "s4_stage1_2023_screen.md"
+    evidence_md_path.write_text(render_screen_markdown(evidence), encoding="utf-8")
+
+    print(f"Screen evidence saved to:")
+    print(f"  Predictions: {pred_path}")
+    print(f"  JSON:        {evidence_json_path}")
+    print(f"  Report MD:   {evidence_md_path}")
+    print("=== ONE-SHOT SCREEN COMPLETED ===")
+    return evidence
+
+
+def render_screen_markdown(evidence: dict[str, object]) -> str:
+    pop = evidence.get("population", {})
+    prim = evidence.get("primary_statistics", {})
+    boot = evidence.get("paired_stationary_bootstrap", {}).get("primary_14d", {})
+    boot7 = evidence.get("paired_stationary_bootstrap", {}).get("sensitivity_7d", {})
+    boot21 = evidence.get("paired_stationary_bootstrap", {}).get("sensitivity_21d", {})
+    diag = evidence.get("diagnostics", {})
+    mz_n = diag.get("mincer_zarnowitz_neural", {})
+    mz_r = diag.get("mincer_zarnowitz_ridge", {})
+    spread = diag.get("btc_relative_spread", {})
+    extreme = diag.get("extreme_day_sensitivity", {})
+    half = diag.get("half_year_stability", {})
+    com_rel = diag.get("common_and_relative", {})
+
+    lines = [
+        "# S4-P1C: One-Shot 2023 Forecast Information Screening Report",
+        "",
+        f"- **Pre-registration Commit:** `{evidence.get('preregistration_commit')}`",
+        f"- **Evaluation Phase:** `{evidence.get('evaluation_phase')}`",
+        f"- **Generated At (UTC):** `{evidence.get('generated_at_utc')}`",
+        f"- **Scientific Verdict:** **`{evidence.get('verdict')}`**",
+        "",
+        "## 1. Primary Screening Result",
+        "",
+        f"- **Eligible Common Dates:** {pop.get('common_dates_count')} (Nominal: {pop.get('nominal_dates')}, Excluded: {pop.get('gap_excluded_dates_count')})",
+        f"- **Fisher-z S(Neural):** `{prim.get('s_neural'):.6f}`",
+        f"- **Fisher-z S(Ridge):**  `{prim.get('s_ridge'):.6f}`",
+        f"- **Primary Delta S [S(Neural) - S(Ridge)]:** `{prim.get('delta_s'):.6f}`",
+        f"- **Primary 14-day Paired 95% Percentile CI:** `[{boot.get('ci_lower_95'):.6f}, {boot.get('ci_upper_95'):.6f}]` (Mean: `{boot.get('mean_delta_s'):.6f}`, Std: `{boot.get('std_delta_s'):.6f}`)",
+        f"- **Block-Length Sensitivity CIs:**",
+        f"  - 7-day:  `[{boot7.get('ci_lower_95'):.6f}, {boot7.get('ci_upper_95'):.6f}]`",
+        f"  - 21-day: `[{boot21.get('ci_lower_95'):.6f}, {boot21.get('ci_upper_95'):.6f}]`",
+        "",
+        "### Per-Asset Correlation (Raw Unclipped Standardized Target)",
+        "",
+        "| Asset | Neural IC | Ridge IC | Delta IC |",
+        "|---|---:|---:|---:|",
+    ]
+
+    for sym in UNIVERSE:
+        nic = prim.get("per_asset_neural_ic", {}).get(sym, 0.0)
+        ric = prim.get("per_asset_ridge_ic", {}).get(sym, 0.0)
+        lines.append(f"| `{sym}` | {nic:.6f} | {ric:.6f} | {(nic - ric):.6f} |")
+
+    lines.extend([
+        "",
+        "## 2. Verdict Decision Criteria Checks",
+        "",
+        f"- **(a) N_common >= 300:** `{evidence.get('verdict_checks', {}).get('n_common_gte_300')}` ({pop.get('common_dates_count')})",
+        f"- **(b) S(Neural) > 0:** `{evidence.get('verdict_checks', {}).get('s_neural_gt_zero')}` ({prim.get('s_neural'):.6f})",
+        f"- **(c) Primary 14d 95% CI Lower Bound > 0:** `{evidence.get('verdict_checks', {}).get('ci_lower_14d_gt_zero')}` ({boot.get('ci_lower_95'):.6f})",
+        f"- **(d) MZ Slopes Corroborated (>=3/4 > 0 and median > 0):** `{evidence.get('verdict_checks', {}).get('mz_slopes_corroborated')}`",
+        f"- **(e) Extreme-Day-Excluded Delta S > 0:** `{evidence.get('verdict_checks', {}).get('extreme_excluded_delta_s_gt_zero')}` ({extreme.get('delta_s'):.6f})",
+        f"- **(f) Protocol Integrity Valid:** `{evidence.get('verdict_checks', {}).get('protocol_integrity_valid')}`",
+        "",
+        "## 3. Preregistered Diagnostics",
+        "",
+        "### 3.1. Common Market vs. Relative Decomposition",
+        "",
+        f"- **Common Market IC (Neural):** `{com_rel.get('common_market_ic_neural'):.6f}`",
+        f"- **Common Market IC (Ridge):**  `{com_rel.get('common_market_ic_ridge'):.6f}`",
+        f"- **Common Market Delta IC:**     `{com_rel.get('common_market_delta_ic'):.6f}`",
+        f"- **Relative Fisher-z S (Neural):** `{com_rel.get('relative_s_neural'):.6f}`",
+        f"- **Relative Fisher-z S (Ridge):**  `{com_rel.get('relative_s_ridge'):.6f}`",
+        f"- **Relative Delta S:**              `{com_rel.get('relative_delta_s'):.6f}`",
+        "",
+        "### 3.2. Mincer-Zarnowitz Regression (Unclipped Return Scale)",
+        "",
+        "| Asset | Neural Alpha (bps) | Neural Beta | SE(Beta) | Neural R² | Ridge Beta | Ridge R² |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ])
+
+    for sym in UNIVERSE:
+        mn = mz_n.get(sym, {})
+        mr = mz_r.get(sym, {})
+        lines.append(
+            f"| `{sym}` | {mn.get('alpha', 0.0)*10000:.2f} | {mn.get('beta', 0.0):.4f} | {mn.get('se_beta', 0.0):.4f} | {mn.get('r_squared', 0.0):.4f} | {mr.get('beta', 0.0):.4f} | {mr.get('r_squared', 0.0):.4f} |"
+        )
+
+    lines.extend([
+        "",
+        "### 3.3. BTC-Relative Spread Sign Accuracy (|Spread| > 24 bps)",
+        "",
+        "| Pair | Total Dates | Neural Eligible | Neural Accuracy | Ridge Eligible | Ridge Accuracy |",
+        "|---|---:|---:|---:|---:|---:|",
+    ])
+
+    for pair, data in spread.items():
+        n_data = data.get("neural", {})
+        r_data = data.get("ridge", {})
+        n_acc_str = f"{n_data.get('sign_accuracy_pct'):.2f}%" if n_data.get("sign_accuracy_pct") is not None else "N/A"
+        r_acc_str = f"{r_data.get('sign_accuracy_pct'):.2f}%" if r_data.get("sign_accuracy_pct") is not None else "N/A"
+        lines.append(
+            f"| `{pair}` | {data.get('total_dates')} | {n_data.get('eligible_dates')} ({n_data.get('coverage_pct'):.1f}%) | {n_acc_str} | {r_data.get('eligible_dates')} ({r_data.get('coverage_pct'):.1f}%) | {r_acc_str} |"
+        )
+
+    lines.extend([
+        "",
+        "### 3.4. Extreme-Day Exclusion Sensitivity",
+        "",
+        f"- **Dropped Days Count:** {extreme.get('dropped_count')} days (top 5% absolute market moves)",
+        f"- **Kept Days Count:** {extreme.get('kept_count')} days",
+        f"- **S(Neural) on Kept Days:** `{extreme.get('s_neural'):.6f}`",
+        f"- **S(Ridge) on Kept Days:**  `{extreme.get('s_ridge'):.6f}`",
+        f"- **Delta S on Kept Days:**   `{extreme.get('delta_s'):.6f}`",
+        "",
+        "### 3.5. First Half vs. Second Half Stability",
+        "",
+        f"- **H1 (Jan-Jun):** N={half.get('h1_count')}, S(Neural)=`{half.get('h1_s_neural'):.6f}`, S(Ridge)=`{half.get('h1_s_ridge'):.6f}`, Delta S=`{half.get('h1_delta_s'):.6f}`",
+        f"- **H2 (Jul-Dec):** N={half.get('h2_count')}, S(Neural)=`{half.get('h2_s_neural'):.6f}`, S(Ridge)=`{half.get('h2_s_ridge'):.6f}`, Delta S=`{half.get('h2_delta_s'):.6f}`",
+        "",
+        "## 4. Frozen Artifact Integrity & Boundaries",
+        "",
+        "| Artifact File | Verified SHA-256 Digest |",
+        "|---|---|",
+    ])
+
+    for fname, sha in evidence.get("frozen_artifacts_verified", {}).items():
+        lines.append(f"| `{fname}` | `{sha}` |")
+
+    lines.extend([
+        "",
+        "```text",
+        "S4_DATASET_READINESS   = DATASET_READY",
+        f"S4_2023_SCREEN         = COMPLETED ({evidence.get('verdict')})",
+        "S4_2024_2026_ACCESS    = NOT_AUTHORIZED",
+        "S4_STAGE2_ALLOCATOR    = NOT_AUTHORIZED",
+        "PRODUCTION_PROMOTION   = NOT_AUTHORIZED",
+        "RE_TUNING_OR_RERUN     = PROHIBITED",
+        "```",
+        "",
+    ])
+
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -613,7 +1056,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.mode == "preflight":
-        print(f"=== S4-P1B PREFLIGHT VERIFICATION ===")
+        print(f"=== S4-P1C PREFLIGHT VERIFICATION ===")
         print(f"Pre-registration commit: {S4_PREREGISTRATION_COMMIT}")
         result = run_preflight(REPO_ROOT, args.audit_json)
         print(json.dumps(result, indent=2))
@@ -640,23 +1083,8 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
-        # Verify frozen model artifacts exist
-        required_artifacts = [
-            args.output_dir / "neural_forecaster.pt",
-            args.output_dir / "ridge_baseline.joblib",
-            args.output_dir / "feature_scaler.json",
-            args.output_dir / "sigma_floors.json",
-        ]
-        missing = [str(a) for a in required_artifacts if not a.is_file()]
-        if missing:
-            print(f"ERROR: Cannot run 2023 screen; missing frozen model artifacts: {missing}", file=sys.stderr)
-            return 2
-        print(
-            "ERROR: 2023 predictive screen is NOT authorized in task S4-P1B. "
-            "Screen execution requires explicit user authorization under S4-P1C.",
-            file=sys.stderr,
-        )
-        return 2
+        run_screen_2023(REPO_ROOT, args.audit_json, args.output_dir)
+        return 0
 
     return 1
 
