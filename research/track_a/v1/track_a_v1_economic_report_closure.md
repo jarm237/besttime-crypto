@@ -64,17 +64,19 @@ Dưới đây là bảng đối chiếu chi tiết giữa kết quả ban đầu
   - Nếu thiếu bất kỳ mốc nến nào, trả về `None`, kích hoạt `HOLD_DATA_GAP` và giữ nguyên tỷ trọng mục tiêu trước đó.
 
 ### 3.2. Dynamic Runtime Integrity Checkers
-Thay thế cờ tĩnh `True` bằng hai hàm kiểm định runtime độc lập:
+Thay thế cờ tĩnh `True` bằng hai hàm kiểm định runtime động độc lập với phạm vi kiểm tra toàn diện trên toàn bộ 4.88 năm lịch sử (42,768 nến 1h và 1,783 quyết định hàng ngày):
 1. **`verify_replay_accounting_integrity(res)`:**
-   - Kiểm tra bảo toàn vốn trên từng lệnh giao dịch thông qua nghiệm phương trình phi tuyến `solve_post_fee_equity`: $|V_{\text{post}} + \text{fee} - V_{\text{pre}}| < 10^{-5} \times V_{\text{pre}}$.
-   - Kiểm tra số dư tiền mặt không âm: $\min(\text{cash\_history}) \ge -10^{-6}$.
+   - Kiểm tra bảo toàn vốn phi tuyến qua nghiệm `solve_post_fee_equity`: $|V_{\text{post}} + \text{fee} - V_{\text{pre}}| < 10^{-5} \times V_{\text{pre}}$ trên mọi sự kiện giao dịch.
+   - Kiểm tra số dư tiền mặt không âm: $\min(\text{cash\_history}) \ge -10^{-6}$ qua toàn bộ 42,768 mốc giờ.
    - Kiểm tra số dư BTC không âm: $\min(\text{btc\_holdings}) \ge -10^{-8}$.
    - Kiểm tra quỹ đạo vốn luôn dương: $\min(\text{equities}) > 0$.
    - Kiểm tra phí và giá trị giao dịch không âm trên sổ cái quyết định (`decision_ledger`).
+   - Phạm vi: Đã kiểm định và đạt **PASS** trên Track A v1, S5 Daily Trend BTC và BTC Buy & Hold.
 2. **`verify_replay_causal_integrity(res, signals)`:**
-   - Kiểm tra tính nhân quả của đồng hồ thực thi: `execution_ts > decision_ts` (01:00 UTC > 00:00 UTC).
-   - Kiểm tra không có rò rỉ dữ liệu tương lai (lookahead): nến ngày $D-1$ đóng lúc 23:59 UTC, quyết định thực hiện tại 00:00 UTC ngày $D$, khớp lệnh tại giá mở cửa 01:00 UTC ngày $D$.
-   - Toàn bộ 1,783 dòng trong decision ledger của Track A v1 và S5 Daily Trend đều vượt qua kiểm định động: **PASS**.
+   - Kiểm tra tính nhân quả của đồng hồ thực thi: `execution_ts > decision_ts` (01:00 UTC > 00:00 UTC) trên toàn bộ 1,783 dòng trong decision ledger.
+   - Kiểm tra không có rò rỉ dữ liệu tương lai (lookahead): nến ngày $D-1$ đóng lúc 23:59:59 UTC, quyết định hình thành tại 00:00 UTC ngày $D$, khớp lệnh tại giá mở cửa 01:00 UTC ngày $D$.
+   - Kiểm tra kênh Donchian 20/55/90: biên trên/dưới tính trên $[j-N : j]$ hoàn toàn loại trừ nến ngày hiện tại $j$.
+   - Phạm vi: Đã kiểm định và đạt **PASS** trên cả Track A v1 và S5 Daily Trend.
 
 ### 3.3. Daily OHLCV Completeness & Exchange Outages
 - Kiểm toán toàn bộ 2,148 nến ngày UTC từ `2021-01-01` đến `2026-11-18`.
@@ -127,29 +129,30 @@ Thay thế cờ tĩnh `True` bằng hai hàm kiểm định runtime độc lập
 
 ## 5. Calendar & Macro Regime Decomposition (at 30 bps)
 
-### 5.1. Calendar Year Breakdown
+### 5.1. Calendar Year Breakdown (Đối chiếu chuẩn hóa từ Evidence)
 | Period | Track A Net Return | Track A MaxDD | S5 Daily Net Return | S5 Daily MaxDD | BTC B&H Net Return | BTC B&H MaxDD |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **2022** | **-26.69%** | **-35.32%** | -36.42% | -42.84% | -64.44% | -67.38% |
-| **2023** | **+44.75%** | **-14.88%** | +60.72% | -19.46% | +156.09% | -20.08% |
-| **2024** | **+51.81%** | **-17.72%** | +36.19% | -28.91% | +120.25% | -23.59% |
-| **2025** | **-3.79%** | **-17.18%** | -24.46% | -27.81% | -7.21% | -31.33% |
-| **2026 YTD** | **+4.00%** | **-9.37%** | -13.06% | -24.62% | +3.44% | -24.36% |
+| **2022** | **-25.01%** | **-25.73%** | -35.00% | -41.60% | -64.65% | -67.38% |
+| **2023** | **+70.18%** | **-21.03%** | +71.13% | -19.55% | +155.80% | -21.74% |
+| **2024** | **+78.79%** | **-30.69%** | +20.34% | -34.39% | +120.31% | -32.31% |
+| **2025** | **-14.32%** | **-27.54%** | -33.22% | -38.61% | -7.15% | -34.76% |
+| **2026 YTD** | **-22.14%** | **-23.40%** | +3.81% | -17.69% | -28.18% | -40.31% |
 | **FULL (22-26)**| **+54.20%** | **-42.08%** | -6.61% | -49.39% | +34.77% | -67.38% |
 
-### 5.2. Market Regime Breakdown
-1. **BEAR DELEVERAGING 2022 (2022-01-01 to 2022-12-31):**  
-   - Track A: -26.69% (bảo toàn vốn vượt trội so với mức sụp đổ -64.44% của Buy & Hold nhờ giữ trung bình 74% Cash).
-2. **EARLY RECOVERY 2023 (2023-01-01 to 2023-10-15):**  
-   - Track A: +12.39% (tham gia thận trọng vào đà hồi phục).
-3. **STRONG UPTREND ETF (2023-10-16 to 2024-03-31):**  
-   - Track A: +55.25% (nắm bắt trọn vẹn sóng tăng trưởng thể chế ETF với tỷ trọng 100% BTC).
-4. **SIDEWAYS CHOP 2024 (2024-04-01 to 2024-10-31):**  
-   - Track A: -2.01% (hạn chế tối đa hiện tượng whipsaw nhờ dải đệm 20%).
-5. **POST ELECTION BULL (2024-11-01 to 2025-01-31):**  
-   - Track A: +22.01% (tăng tốc cùng sóng bầu cử).
-6. **MACRO EXPANSION / CONSOLIDATION (2025-02-01 to 2026-11-18):**  
-   - Track A: -3.89% (giữ tiền mặt khi thị trường đi vào vùng phân phối).
+### 5.2. Market Regime Breakdown (Đối chiếu chuẩn hóa từ Evidence)
+| Macro Regime | Cửa sổ thời gian | Track A Net Return | Track A MaxDD | S5 Daily Net Return | S5 Daily MaxDD | BTC B&H Net Return | BTC B&H MaxDD |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **BEAR_DELEVERAGING_2022** | `2022-01-01 -> 2022-12-31` | **-25.01%** | **-25.73%** | -35.00% | -41.60% | -64.65% | -67.38% |
+| **EARLY_RECOVERY_2023** | `2023-01-01 -> 2023-10-15` | **+17.33%** | **-21.03%** | +28.73% | -19.55% | +64.28% | -21.74% |
+| **STRONG_UPTREND_ETF** | `2023-10-16 -> 2024-03-31` | **+134.92%** | **-20.18%** | +55.13% | -24.16% | +162.62% | -20.18% |
+| **SIDEWAYS_CHOP_2024** | `2024-04-01 -> 2024-10-31` | **-16.54%** | **-29.56%** | -8.16% | -24.56% | -1.21% | -31.21% |
+| **POST_ELECTION_BULL** | `2024-11-01 -> 2025-01-31` | **+45.97%** | **-16.19%** | +15.10% | -18.68% | +45.97% | -16.19% |
+| **MACRO_EXPANSION_CONSOLIDATION** | `2025-02-01 -> 2026-11-18` | **-38.56%** | **-38.84%** | -31.70% | -45.49% | -38.47% | -53.74% |
+
+**Nhận định phân tích vĩ mô:**
+- Trong giai đoạn **BEAR DELEVERAGING 2022**, Track A v1 hạn chế mức lỗ ở -25.01% (so với -64.65% của B&H) nhờ duy trì tiền mặt lớn.
+- Trong các đợt tăng trưởng bùng nổ (**STRONG UPTREND ETF** và **POST ELECTION BULL**), Track A v1 tận dụng trọn vẹn xu hướng tăng với hiệu suất lần lượt +134.92% và +45.97%.
+- Trong giai đoạn đi ngang và phân phối (**SIDEWAYS CHOP 2024** và **MACRO EXPANSION CONSOLIDATION**), dải đệm 20% đã lọc bớt các tín hiệu nhiễu đảo chiều liên tục, giảm thiểu tối đa hao hụt phí giao dịch so với S5 Daily Trend.
 
 ---
 

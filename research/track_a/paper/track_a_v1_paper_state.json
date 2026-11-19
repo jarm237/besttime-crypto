@@ -1,0 +1,35 @@
+{
+  "epoch_id": "EPOCH_20261119_161744",
+  "policy_version": "TRACK_A_V1_DONCHIAN_STEP",
+  "policy_parameters": {
+    "horizons": [
+      20,
+      55,
+      90
+    ],
+    "confirmation_days": 2,
+    "no_trade_band": 0.2,
+    "fee_bps": 30.0,
+    "universe": [
+      "BTCUSDT",
+      "USDT_CASH"
+    ]
+  },
+  "inception_utc": "2026-11-19T16:17:44.866382+00:00",
+  "last_updated_utc": "2026-11-19T16:17:55.253000+00:00",
+  "initial_capital": 10000.0,
+  "cash": 10000.0,
+  "btc_holdings": 0.0,
+  "current_equity": 10000.0,
+  "peak_equity": 10000.0,
+  "current_drawdown": 0.0,
+  "max_drawdown": 0.0,
+  "total_traded_notional": 0.0,
+  "total_fees": 0.0,
+  "num_trades": 0,
+  "last_processed_decision_date": "2026-11-19",
+  "last_approved_exposure": 0.3333333333333333,
+  "last_raw_exposure": 0.3333333333333333,
+  "last_event_id": null,
+  "broker_connected": false
+}
