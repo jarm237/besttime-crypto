@@ -1,0 +1,28 @@
+{
+  "model_name": "RegimeConditionedAllocationHead",
+  "parameters_count": 4,
+  "features": [
+    "trend_90d",
+    "downside_risk_30d",
+    "breadth_30d"
+  ],
+  "base_signal": "Track A v1 approved exposure",
+  "monotonicity_constraints": "positive_trend_coef >= 0, positive_risk_coef >= 0, positive_breadth_coef >= 0 (softplus parameterization)",
+  "multiplier_formula": "capital_multiplier = 0.5 + sigmoid(bias + c_tr*norm_trend - c_rk*norm_risk + c_br*norm_breadth)",
+  "epochs": 80,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "seeds": [
+    42,
+    123,
+    456
+  ],
+  "primary_seed": 42,
+  "learned_parameters": {
+    "bias": -0.0009999996982514858,
+    "positive_trend_coef": 1.0006321668624878,
+    "positive_risk_coef": 0.9993679523468018,
+    "positive_breadth_coef": 0.9993679523468018,
+    "constant_multiplier": 1.0177409648895264
+  }
+}

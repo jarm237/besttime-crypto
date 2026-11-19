@@ -1,0 +1,60 @@
+{
+  "manifest_version": "1.0_track_b1",
+  "created_at_utc": "2026-11-19T19:01:56.031794+00:00",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "splits": {
+    "WARMUP": {
+      "window": [
+        "2021-01-01",
+        "2021-12-31"
+      ],
+      "days": 365,
+      "purpose": "Lookback stabilization (90d trend, 30d risk, 30d breadth)"
+    },
+    "TRAIN": {
+      "window": [
+        "2022-01-01",
+        "2023-12-31"
+      ],
+      "days": 730,
+      "labeled_days": 729,
+      "purpose": "Model fitting, scaler fit, constant multiplier derivation"
+    },
+    "VALIDATION": {
+      "window": [
+        "2024-01-01",
+        "2024-12-31"
+      ],
+      "days": 366,
+      "labeled_days": 365,
+      "purpose": "Model selection & checkpoint freeze"
+    },
+    "REUSED_TEST": {
+      "window": [
+        "2025-01-01",
+        "2026-11-18"
+      ],
+      "days": 687,
+      "purpose": "Historical diagnostic (reused research diagnostic)"
+    },
+    "FULL_DIAGNOSTIC": {
+      "window": [
+        "2022-01-01",
+        "2026-11-18"
+      ],
+      "days": 1783,
+      "purpose": "Continuous cumulative economic replay"
+    }
+  },
+  "constant_multiplier_from_train": 1.0177409648895264,
+  "integrity_checks": {
+    "DATA_SPLIT_BOUNDARY": "PASS",
+    "CAUSAL_INTEGRITY": "PASS",
+    "ECONOMIC_ACCOUNTING": "PASS"
+  }
+}
