@@ -28,9 +28,12 @@ Commands:
 from __future__ import annotations
 
 import argparse
+import csv
 import json
+import logging
 import math
 import os
+import shutil
 import sys
 import time
 import urllib.error
@@ -39,7 +42,12 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
+
+# Ensure repository root is on sys.path for direct script invocation
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 import numpy as np
 import pandas as pd
@@ -54,7 +62,8 @@ from btc_scraper.research.track_a_strategy import (
     load_universe_panels,
 )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+logger = logging.getLogger("track_a_observer")
+
 PAPER_DIR = REPO_ROOT / "research/track_a/paper"
 WARMUP_CACHE_FILE = PAPER_DIR / "track_a_warmup_daily.csv"
 PAPER_STATE_FILE = PAPER_DIR / "track_a_v1_paper_state.json"
@@ -67,6 +76,46 @@ HTTP_TIMEOUT_SECONDS = 5.0
 MAX_QUOTE_AGE_SECONDS = 60.0
 MAX_CLOCK_DRIFT_MS = 10000.0
 LOCK_TIMEOUT_SECONDS = 10.0
+
+CANONICAL_LEDGER_COLUMNS: list[str] = [
+    "timestamp_utc",
+    "receipt_time_utc",
+    "epoch_id",
+    "decision_date",
+    "candle_date",
+    "status",
+    "exec_eligibility",
+    "close_price",
+    "state_20",
+    "state_55",
+    "state_90",
+    "raw_exposure",
+    "approved_exposure",
+    "confirmed",
+    "current_btc_weight",
+    "target_btc_weight",
+    "deviation",
+    "action",
+    "bid_price",
+    "ask_price",
+    "mid_price",
+    "spread_bps",
+    "exec_price",
+    "modeled_fee_bps",
+    "spread_cost_bps",
+    "effective_cost_bps",
+    "fill_type",
+    "trade_notional",
+    "fee",
+    "post_cash",
+    "post_btc_holdings",
+    "nav",
+    "peak_nav",
+    "drawdown",
+    "event_id",
+    "broker_connected",
+    "clock_drift_ms",
+]
 
 
 class DataUnavailableError(Exception):
@@ -207,12 +256,45 @@ class BinancePublicRestClient(MarketDataProvider):
         )
 
 
+def _is_pid_running(pid: int) -> bool:
+    """Check whether a process with the given PID is currently active."""
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.windll.kernel32
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        SYNCHRONIZE = 0x00100000
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE, False, wintypes.DWORD(pid))
+        if handle:
+            exit_code = wintypes.DWORD()
+            if kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                STILL_ACTIVE = 259
+                is_active = (exit_code.value == STILL_ACTIVE)
+                kernel32.CloseHandle(handle)
+                return is_active
+            kernel32.CloseHandle(handle)
+            return False
+        else:
+            ERROR_ACCESS_DENIED = 5
+            return kernel32.GetLastError() == ERROR_ACCESS_DENIED
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+
 class PaperObserverLock:
-    """Cross-platform advisory file lock with timeout and stale-lock recovery."""
+    """Cross-platform advisory file lock with OS-level locking, PID tracking, and bounded polling."""
 
     def __init__(self, lock_file: Path = PAPER_LOCK_FILE, timeout: float = LOCK_TIMEOUT_SECONDS):
         self.lock_file = lock_file
         self.timeout = timeout
+        self._fd: Optional[int] = None
         self._acquired = False
 
     def __enter__(self):
@@ -226,39 +308,88 @@ class PaperObserverLock:
         self.lock_file.parent.mkdir(parents=True, exist_ok=True)
         start_time = time.time()
         while True:
+            fd = None
             try:
-                fd = os.open(str(self.lock_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    f.write(f"pid={os.getpid()}\ntime={time.time()}\n")
+                fd = os.open(str(self.lock_file), os.O_RDWR | os.O_CREAT, 0o666)
+                if sys.platform == "win32":
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+                self._fd = fd
+                os.ftruncate(fd, 0)
+                os.lseek(fd, 0, os.SEEK_SET)
+                payload = f"pid={os.getpid()}\ntime={time.time()}\n"
+                os.write(fd, payload.encode("utf-8"))
                 self._acquired = True
                 return
-            except FileExistsError:
-                # Check for stale lock (> 30s)
+            except (OSError, IOError, PermissionError):
+                if fd is not None:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        pass
+
+                owner_pid = None
                 try:
-                    mtime = os.path.getmtime(self.lock_file)
-                    if time.time() - mtime > 30.0:
-                        try:
-                            os.remove(self.lock_file)
-                            continue
-                        except OSError:
-                            pass
-                except OSError:
+                    if self.lock_file.exists():
+                        with open(self.lock_file, "r", encoding="utf-8") as f:
+                            for line in f:
+                                if line.startswith("pid="):
+                                    owner_pid = int(line.strip().split("=")[1])
+                                    break
+                except Exception:
                     pass
 
-                if time.time() - start_time >= self.timeout:
-                    raise ConcurrentExecutionError(
-                        f"Could not acquire lockfile {self.lock_file} after {self.timeout}s: another instance is running."
+                # Stale lock recovery only if owner process is confirmed dead
+                if owner_pid is not None and not _is_pid_running(owner_pid):
+                    try:
+                        self.lock_file.unlink(missing_ok=True)
+                        continue
+                    except OSError:
+                        pass
+
+                elapsed = time.time() - start_time
+                if elapsed >= self.timeout:
+                    msg = (
+                        f"Could not acquire lockfile {self.lock_file} after {self.timeout}s: "
+                        f"another instance is running (process {owner_pid} is active)."
+                        if owner_pid is not None
+                        else f"Could not acquire lockfile {self.lock_file} after {self.timeout}s: another instance is running."
                     )
+                    raise ConcurrentExecutionError(msg)
                 time.sleep(0.1)
 
     def release(self) -> None:
-        if self._acquired:
+        if self._acquired and self._fd is not None:
             try:
-                if self.lock_file.exists():
-                    self.lock_file.unlink()
+                if sys.platform == "win32":
+                    import msvcrt
+                    try:
+                        os.lseek(self._fd, 0, os.SEEK_SET)
+                        msvcrt.locking(self._fd, msvcrt.LK_UNLCK, 1)
+                    except OSError:
+                        pass
+                else:
+                    import fcntl
+                    try:
+                        fcntl.flock(self._fd, fcntl.LOCK_UN)
+                    except OSError:
+                        pass
+                os.close(self._fd)
             except OSError:
                 pass
-            self._acquired = False
+            finally:
+                self._fd = None
+                self._acquired = False
+
+            try:
+                if self.lock_file.exists():
+                    self.lock_file.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def load_or_build_warmup_daily(repo_root: Path = REPO_ROOT) -> pd.DataFrame:
@@ -326,10 +457,120 @@ def save_paper_state_atomic(state: dict[str, Any], state_file: Path = PAPER_STAT
     os.replace(tmp_file, state_file)
 
 
+def migrate_ledger_schema(ledger_file: Path = PAPER_LEDGER_FILE) -> bool:
+    """Migrate legacy ledger schema to 37-column canonical schema.
+
+    - Reads columns by name (not positional).
+    - Preserves all original records and values.
+    - Fields missing in legacy schema are recorded as empty string/null and marked as legacy without fabricating numbers.
+    - Creates a backup (.legacy_backup) of the original file.
+    - Writes the migrated file via a temporary file with atomic replacement (os.replace).
+    - Fails closed with PaperRecoveryError if anything goes wrong.
+    """
+    if not ledger_file.exists():
+        return False
+
+    try:
+        with open(ledger_file, "r", encoding="utf-8") as f:
+            first_line = f.readline()
+            if not first_line:
+                raise PaperRecoveryError(f"Ledger file {ledger_file} is empty.")
+            existing_cols = [c.strip() for c in first_line.strip().split(",")]
+
+        # Check if already in canonical schema
+        if existing_cols == CANONICAL_LEDGER_COLUMNS:
+            return False
+
+        # Read all rows using DictReader to map by field name
+        with open(ledger_file, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            old_fieldnames = reader.fieldnames or []
+            if not old_fieldnames:
+                raise PaperRecoveryError(f"Ledger {ledger_file} has no header row.")
+
+            # Validate that critical minimum fields are present in legacy file
+            min_required = {"decision_date", "action", "post_cash", "post_btc_holdings", "nav"}
+            if not min_required.issubset(set(old_fieldnames)):
+                raise PaperRecoveryError(
+                    f"Ledger {ledger_file} missing required columns: {min_required - set(old_fieldnames)}"
+                )
+
+            rows = list(reader)
+
+        # Build migrated rows matching exactly CANONICAL_LEDGER_COLUMNS
+        migrated_rows = []
+        for r in rows:
+            new_row = {}
+            for col in CANONICAL_LEDGER_COLUMNS:
+                if col in r and r[col] is not None and r[col] != "":
+                    new_row[col] = r[col]
+                else:
+                    # Missing field in legacy record: record null (empty string in CSV)
+                    new_row[col] = ""
+            migrated_rows.append(new_row)
+
+        # 1. Create backup of original file
+        backup_file = ledger_file.with_name(f"{ledger_file.name}.legacy_backup")
+        shutil.copy2(ledger_file, backup_file)
+
+        # 2. Write migrated data to temporary file
+        tmp_file = ledger_file.with_suffix(".tmp")
+        with open(tmp_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=CANONICAL_LEDGER_COLUMNS)
+            writer.writeheader()
+            writer.writerows(migrated_rows)
+            f.flush()
+            os.fsync(f.fileno())
+
+        # 3. Atomic replacement
+        os.replace(tmp_file, ledger_file)
+
+        # 4. Verify migrated file integrity
+        with open(ledger_file, "r", encoding="utf-8") as f:
+            verify_header = [c.strip() for c in f.readline().strip().split(",")]
+            if verify_header != CANONICAL_LEDGER_COLUMNS:
+                raise PaperRecoveryError("Migration verification failed: header does not match canonical schema.")
+            verify_reader = list(csv.DictReader(f, fieldnames=verify_header))
+            if len(verify_reader) != len(rows):
+                raise PaperRecoveryError(
+                    f"Migration row count mismatch: expected {len(rows)}, got {len(verify_reader)}"
+                )
+
+        logger.info(
+            "Successfully migrated %s from %d columns to 37 canonical columns (%d rows).",
+            ledger_file,
+            len(old_fieldnames),
+            len(migrated_rows),
+        )
+        return True
+
+    except Exception as e:
+        if isinstance(e, PaperRecoveryError):
+            raise
+        raise PaperRecoveryError(f"Ledger migration failed for {ledger_file}: {e}") from e
+
+
 def append_paper_ledger_entry(entry: dict[str, Any], ledger_file: Path = PAPER_LEDGER_FILE) -> None:
-    """Append terminal decision and simulated fill record to CSV ledger with flush and fsync."""
+    """Append terminal decision and simulated fill record to CSV ledger with schema verification and fsync."""
     ledger_file.parent.mkdir(parents=True, exist_ok=True)
-    df_entry = pd.DataFrame([entry])
+
+    # 1. Ensure existing ledger matches canonical schema
+    if ledger_file.exists():
+        migrate_ledger_schema(ledger_file)
+        with open(ledger_file, "r", encoding="utf-8") as f:
+            header = [c.strip() for c in f.readline().strip().split(",")]
+        if header != CANONICAL_LEDGER_COLUMNS:
+            raise PaperRecoveryError(
+                f"Ledger schema mismatch in {ledger_file}: expected {len(CANONICAL_LEDGER_COLUMNS)} columns, got {len(header)}."
+            )
+
+    # 2. Format entry strictly into 37 canonical columns
+    formatted_entry = {}
+    for col in CANONICAL_LEDGER_COLUMNS:
+        val = entry.get(col)
+        formatted_entry[col] = "" if val is None else val
+
+    df_entry = pd.DataFrame([formatted_entry], columns=CANONICAL_LEDGER_COLUMNS)
     write_header = not ledger_file.exists()
     with open(ledger_file, "a", newline="", encoding="utf-8") as f:
         df_entry.to_csv(f, header=write_header, index=False)
@@ -345,6 +586,9 @@ def recover_state_from_ledger(
     if not ledger_file.exists():
         raise PaperRecoveryError(f"Ledger file {ledger_file} does not exist.")
 
+    # Migrate legacy schema first if necessary
+    migrate_ledger_schema(ledger_file)
+
     try:
         df = pd.read_csv(ledger_file)
     except Exception as e:
@@ -354,7 +598,7 @@ def recover_state_from_ledger(
         raise PaperRecoveryError(f"Ledger {ledger_file} is empty or lacks required schema columns.")
 
     required_cols = {"decision_date", "action", "post_cash", "post_btc_holdings", "nav"}
-    if not required_cols.issubset(df.columns):
+    if not required_cols.issubset(set(df.columns)):
         raise PaperRecoveryError(f"Ledger {ledger_file} missing required columns: {required_cols - set(df.columns)}")
 
     last_row = df.iloc[-1]
@@ -372,6 +616,9 @@ def recover_state_from_ledger(
     num_trades = len(rebalance_rows)
     total_fees = float(rebalance_rows["fee"].sum()) if num_trades > 0 else 0.0
     total_traded_notional = float(rebalance_rows["trade_notional"].sum()) if num_trades > 0 else 0.0
+
+    raw_event_id = last_row.get("event_id")
+    last_event_id = str(raw_event_id) if pd.notna(raw_event_id) and str(raw_event_id).strip() != "" and str(raw_event_id).lower() != "nan" else None
 
     return {
         "epoch_id": epoch_id,
@@ -397,9 +644,9 @@ def recover_state_from_ledger(
         "num_trades": num_trades,
         "last_processed_decision_date": str(last_row["decision_date"]),
         "last_terminal_action": str(last_row["action"]),
-        "last_approved_exposure": float(last_row.get("approved_exposure", 0.0)),
-        "last_raw_exposure": float(last_row.get("raw_exposure", 0.0)),
-        "last_event_id": str(last_row.get("event_id")) if pd.notna(last_row.get("event_id")) else None,
+        "last_approved_exposure": float(last_row.get("approved_exposure", 0.0)) if pd.notna(last_row.get("approved_exposure")) else 0.0,
+        "last_raw_exposure": float(last_row.get("raw_exposure", 0.0)) if pd.notna(last_row.get("raw_exposure")) else 0.0,
+        "last_event_id": last_event_id,
         "broker_connected": False,
     }
 
@@ -409,43 +656,74 @@ def load_paper_state(
     ledger_file: Path = PAPER_LEDGER_FILE,
     initial_capital: float = DEFAULT_INITIAL_CAPITAL,
 ) -> dict[str, Any]:
-    """Load paper state, reconciling with ledger if corrupted or missing. Fails closed on error."""
-    # Case 1: State file exists
+    """Load paper state, strictly reconciling with append-only ledger as single source of truth.
+
+    Fails closed on any corruption or validation error.
+    """
+    ledger_state: Optional[dict[str, Any]] = None
+
+    # 1. If ledger exists, it is the SOURCE OF TRUTH and MUST be valid.
+    if ledger_file.exists():
+        # Any parse error or corrupted line in ledger raises PaperRecoveryError.
+        # NEVER swallow exceptions here!
+        ledger_state = recover_state_from_ledger(ledger_file, initial_capital)
+
+    # 2. Check state file
     if state_file.exists():
         try:
             with open(state_file, "r", encoding="utf-8") as f:
                 state = json.load(f)
-            if isinstance(state, dict) and "current_equity" in state and "cash" in state:
-                # If ledger exists, check consistency
-                if ledger_file.exists():
-                    try:
-                        df = pd.read_csv(ledger_file)
-                        if not df.empty:
-                            last_ledger_date = str(df.iloc[-1]["decision_date"])
-                            state_date = state.get("last_processed_decision_date")
-                            if state_date != last_ledger_date:
-                                # State is lagging ledger checkpoint; recover from ledger
-                                recovered = recover_state_from_ledger(ledger_file, initial_capital)
-                                save_paper_state_atomic(recovered, state_file)
-                                return recovered
-                    except Exception:
-                        pass
-                return state
-        except Exception:
-            # Corrupted state JSON; try recovery from ledger
-            if ledger_file.exists():
-                recovered = recover_state_from_ledger(ledger_file, initial_capital)
-                save_paper_state_atomic(recovered, state_file)
-                return recovered
-            raise PaperRecoveryError(f"State file {state_file} corrupted and ledger unavailable.")
+        except Exception as e:
+            # Corrupted state JSON: if ledger is valid, recover controlled from ledger
+            if ledger_state is not None:
+                save_paper_state_atomic(ledger_state, state_file)
+                return ledger_state
+            raise PaperRecoveryError(f"State file {state_file} corrupted and ledger unavailable: {e}") from e
 
-    # Case 2: State file missing, but ledger exists
-    if ledger_file.exists():
-        recovered = recover_state_from_ledger(ledger_file, initial_capital)
-        save_paper_state_atomic(recovered, state_file)
-        return recovered
+        if not isinstance(state, dict) or "cash" not in state or "current_equity" not in state:
+            if ledger_state is not None:
+                save_paper_state_atomic(ledger_state, state_file)
+                return ledger_state
+            raise PaperRecoveryError(f"State file {state_file} lacks required fields.")
 
-    # Case 3: Neither exists -> Clean initial state for a fresh epoch
+        # Reconcile state with ledger
+        if ledger_state is not None:
+            # So khớp 6 trường:
+            # 1. Event ID
+            state_event = state.get("last_event_id")
+            ledger_event = ledger_state.get("last_event_id")
+            event_match = (state_event == ledger_event)
+
+            # 2. Terminal date
+            state_date = state.get("last_processed_decision_date")
+            ledger_date = ledger_state.get("last_processed_decision_date")
+            date_match = (state_date == ledger_date)
+
+            # 3. Cash
+            cash_match = abs(float(state.get("cash", 0.0)) - float(ledger_state["cash"])) <= 1e-4
+
+            # 4. BTC holdings
+            holdings_match = abs(float(state.get("btc_holdings", 0.0)) - float(ledger_state["btc_holdings"])) <= 1e-8
+
+            # 5. Fees
+            fees_match = abs(float(state.get("total_fees", 0.0)) - float(ledger_state["total_fees"])) <= 1e-4
+
+            # 6. Cumulative trades
+            trades_match = int(state.get("num_trades", 0)) == int(ledger_state["num_trades"])
+
+            if not (event_match and date_match and cash_match and holdings_match and fees_match and trades_match):
+                # Checkpoint differs from ledger; recover from ledger (source of truth)
+                save_paper_state_atomic(ledger_state, state_file)
+                return ledger_state
+
+        return state
+
+    # 3. State file does not exist, but ledger exists
+    if ledger_state is not None:
+        save_paper_state_atomic(ledger_state, state_file)
+        return ledger_state
+
+    # 4. Neither exists -> Clean initial state for a fresh epoch
     return {
         "epoch_id": f"EPOCH_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
         "policy_version": "TRACK_A_V1_DONCHIAN_STEP",

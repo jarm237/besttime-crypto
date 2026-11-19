@@ -25,6 +25,7 @@ import pandas as pd
 import pytest
 
 from scripts.run_track_a_v1_paper_observer import (
+    CANONICAL_LEDGER_COLUMNS,
     BookTickerSnapshot,
     ConcurrentExecutionError,
     DailyKline,
@@ -32,9 +33,11 @@ from scripts.run_track_a_v1_paper_observer import (
     MarketDataProvider,
     PaperObserverLock,
     PaperRecoveryError,
+    append_paper_ledger_entry,
     evaluate_observer,
     load_paper_state,
     merge_forward_daily_candles,
+    migrate_ledger_schema,
     recover_state_from_ledger,
     save_paper_state_atomic,
 )
@@ -539,3 +542,258 @@ def test_paper_isolation_no_broker_connection(test_env):
     assert res["broker_connected"] is False
     assert res["fill_type"] == "SIMULATED_FILL"
     assert res["event_id"].startswith("FILL-")
+
+
+def test_legacy_33col_to_37col_migration(test_env):
+    """Verify legacy 33-column ledger is migrated cleanly to canonical 37 columns."""
+    legacy_header = (
+        "timestamp_utc,epoch_id,decision_date,candle_date,status,exec_eligibility,close_price,"
+        "state_20,state_55,state_90,raw_exposure,approved_exposure,confirmed,current_btc_weight,"
+        "target_btc_weight,deviation,action,bid_price,ask_price,mid_price,spread_bps,exec_price,"
+        "fill_type,trade_notional,fee,post_cash,post_btc_holdings,nav,peak_nav,drawdown,event_id,"
+        "broker_connected,clock_drift_ms\n"
+    )
+    legacy_row = (
+        "2026-11-19T16:17:55.253000+00:00,EPOCH_20261119_161744,2026-11-19,2026-11-18,"
+        "MISSED_EXECUTION_WINDOW,MISSED_EXECUTION_WINDOW,63068.22,0,0,1,0.3333333333333333,"
+        "0.3333333333333333,True,0.0,0.3333333333333333,0.3333333333333333,MISSED_EXECUTION_WINDOW,"
+        "63134.56,63134.57,63134.565,0.0015839184133188003,63134.565,NONE,0.0,0.0,10000.0,0.0,"
+        "10000.0,10000.0,0.0,,False,66\n"
+    )
+    with open(test_env["ledger_file"], "w", encoding="utf-8") as f:
+        f.write(legacy_header + legacy_row)
+
+    migrated = migrate_ledger_schema(test_env["ledger_file"])
+    assert migrated is True
+
+    # Backup file must be created
+    backup_file = test_env["ledger_file"].with_name(f"{test_env['ledger_file'].name}.legacy_backup")
+    assert backup_file.exists()
+
+    # Verify 37 columns and intact row
+    with open(test_env["ledger_file"], "r", encoding="utf-8") as f:
+        header = [c.strip() for c in f.readline().strip().split(",")]
+    assert header == CANONICAL_LEDGER_COLUMNS
+    assert len(header) == 37
+
+    df = pd.read_csv(test_env["ledger_file"])
+    assert len(df) == 1
+    assert df.iloc[0]["epoch_id"] == "EPOCH_20261119_161744"
+    assert df.iloc[0]["action"] == "MISSED_EXECUTION_WINDOW"
+    assert df.iloc[0]["post_cash"] == 10000.0
+    # Missing fields in 33-col should be NaN/null in pandas
+    assert pd.isna(df.iloc[0]["receipt_time_utc"]) or df.iloc[0]["receipt_time_utc"] == ""
+    assert pd.isna(df.iloc[0]["modeled_fee_bps"]) or df.iloc[0]["modeled_fee_bps"] == ""
+
+
+def test_preserve_existing_epoch_and_missed_event(test_env):
+    """Verify loading legacy ledger preserves epoch ID and missed window terminal action."""
+    legacy_header = (
+        "timestamp_utc,epoch_id,decision_date,candle_date,status,exec_eligibility,close_price,"
+        "state_20,state_55,state_90,raw_exposure,approved_exposure,confirmed,current_btc_weight,"
+        "target_btc_weight,deviation,action,bid_price,ask_price,mid_price,spread_bps,exec_price,"
+        "fill_type,trade_notional,fee,post_cash,post_btc_holdings,nav,peak_nav,drawdown,event_id,"
+        "broker_connected,clock_drift_ms\n"
+    )
+    legacy_row = (
+        "2026-11-19T16:17:55.253000+00:00,EPOCH_20261119_161744,2026-11-19,2026-11-18,"
+        "MISSED_EXECUTION_WINDOW,MISSED_EXECUTION_WINDOW,63068.22,0,0,1,0.3333333333333333,"
+        "0.3333333333333333,True,0.0,0.3333333333333333,0.3333333333333333,MISSED_EXECUTION_WINDOW,"
+        "63134.56,63134.57,63134.565,0.0015839184133188003,63134.565,NONE,0.0,0.0,10000.0,0.0,"
+        "10000.0,10000.0,0.0,,False,66\n"
+    )
+    with open(test_env["ledger_file"], "w", encoding="utf-8") as f:
+        f.write(legacy_header + legacy_row)
+
+    state = load_paper_state(test_env["state_file"], test_env["ledger_file"])
+    assert state["epoch_id"] == "EPOCH_20261119_161744"
+    assert state["last_processed_decision_date"] == "2026-11-19"
+    assert state["last_terminal_action"] == "MISSED_EXECUTION_WINDOW"
+    assert state["cash"] == 10000.0
+    assert state["btc_holdings"] == 0.0
+    assert state["current_equity"] == 10000.0
+    assert state["num_trades"] == 0
+    assert state["total_fees"] == 0.0
+
+
+def test_append_new_fill_after_migration(test_env):
+    """Verify appending a new fill to a migrated ledger retains schema consistency and 2 rows."""
+    test_legacy_33col_to_37col_migration(test_env)
+
+    new_fill_entry = {col: "" for col in CANONICAL_LEDGER_COLUMNS}
+    new_fill_entry.update({
+        "timestamp_utc": "2026-11-20T01:30:00+00:00",
+        "receipt_time_utc": "2026-11-20T01:30:00.050+00:00",
+        "epoch_id": "EPOCH_20261119_161744",
+        "decision_date": "2026-11-20",
+        "candle_date": "2026-11-19",
+        "status": "EXECUTED",
+        "exec_eligibility": "WINDOW_ACTIVE",
+        "close_price": 64000.0,
+        "action": "REBALANCE",
+        "fill_type": "SIMULATED_FILL",
+        "trade_notional": 3333.33,
+        "fee": 10.0,
+        "post_cash": 6656.67,
+        "post_btc_holdings": 0.052,
+        "nav": 10000.0,
+        "peak_nav": 10000.0,
+        "drawdown": 0.0,
+        "event_id": "FILL-TEST-001",
+        "broker_connected": False,
+        "modeled_fee_bps": 30.0,
+    })
+
+    append_paper_ledger_entry(new_fill_entry, test_env["ledger_file"])
+
+    df = pd.read_csv(test_env["ledger_file"])
+    assert len(df) == 2
+    assert list(df.columns) == CANONICAL_LEDGER_COLUMNS
+    assert df.iloc[1]["action"] == "REBALANCE"
+    assert df.iloc[1]["event_id"] == "FILL-TEST-001"
+
+
+def test_crash_recovery_with_migrated_ledger(test_env):
+    """Verify full state recovery from migrated multi-row ledger when state file is absent."""
+    test_append_new_fill_after_migration(test_env)
+
+    # State file does not exist
+    if test_env["state_file"].exists():
+        test_env["state_file"].unlink()
+
+    recovered = load_paper_state(test_env["state_file"], test_env["ledger_file"])
+    assert recovered["epoch_id"] == "EPOCH_20261119_161744"
+    assert recovered["last_processed_decision_date"] == "2026-11-20"
+    assert recovered["num_trades"] == 1
+    assert abs(recovered["cash"] - 6656.67) < 1e-2
+    assert abs(recovered["btc_holdings"] - 0.052) < 1e-4
+    assert abs(recovered["total_fees"] - 10.0) < 1e-4
+    assert recovered["last_event_id"] == "FILL-TEST-001"
+    assert test_env["state_file"].exists()
+
+
+def test_malformed_ledger_with_valid_state_fails_closed(test_env):
+    """Verify that corrupt ledger fails closed even if state JSON is valid, preserving evidence."""
+    # Seed valid state file
+    valid_state = {
+        "epoch_id": "EPOCH_20261119_161744",
+        "policy_version": "TRACK_A_V1_DONCHIAN_STEP",
+        "policy_parameters": {
+            "horizons": [20, 55, 90],
+            "confirmation_days": 2,
+            "no_trade_band": 0.20,
+            "fee_bps": 30.0,
+            "universe": ["BTCUSDT", "USDT_CASH"],
+        },
+        "inception_utc": "2026-11-19T16:17:44.866382+00:00",
+        "last_updated_utc": "2026-11-19T16:17:55.253000+00:00",
+        "initial_capital": 10000.0,
+        "cash": 10000.0,
+        "btc_holdings": 0.0,
+        "current_equity": 10000.0,
+        "peak_equity": 10000.0,
+        "current_drawdown": 0.0,
+        "max_drawdown": 0.0,
+        "total_traded_notional": 0.0,
+        "total_fees": 0.0,
+        "num_trades": 0,
+        "last_processed_decision_date": "2026-11-19",
+        "last_terminal_action": "MISSED_EXECUTION_WINDOW",
+        "last_approved_exposure": 0.3333333333333333,
+        "last_raw_exposure": 0.3333333333333333,
+        "last_event_id": None,
+        "broker_connected": False,
+    }
+    save_paper_state_atomic(valid_state, test_env["state_file"])
+
+    # Write corrupt data into ledger
+    with open(test_env["ledger_file"], "w", encoding="utf-8") as f:
+        f.write("CORRUPT_HEADER_WITHOUT_REQUIRED_COLUMNS\nline1,line2\n")
+
+    # MUST fail closed with PaperRecoveryError
+    with pytest.raises(PaperRecoveryError):
+        load_paper_state(test_env["state_file"], test_env["ledger_file"])
+
+    # Verify state file was NOT overwritten or reset
+    with open(test_env["state_file"], "r", encoding="utf-8") as f:
+        unmodified = json.load(f)
+    assert unmodified["epoch_id"] == "EPOCH_20261119_161744"
+    assert unmodified["cash"] == 10000.0
+
+
+def test_long_running_lock_not_deleted_by_second_process(test_env):
+    """Verify that a lock held by an active process is not deleted even after timeout."""
+    with PaperObserverLock(lock_file=test_env["lock_file"]):
+        # Lock is held by current process. Modify mtime to simulate 10 minutes elapsed
+        past_time = time.time() - 600.0
+        os.utime(test_env["lock_file"], (past_time, past_time))
+
+        # Second process attempts to acquire lock
+        second_lock = PaperObserverLock(lock_file=test_env["lock_file"], timeout=0.2)
+        with pytest.raises(ConcurrentExecutionError, match="another instance is running"):
+            with second_lock:
+                pass
+
+        # Lock file must still exist and not have been removed
+        assert test_env["lock_file"].exists()
+
+
+def test_double_step_does_not_create_duplicate_event(test_env):
+    """Verify executing evaluate_observer twice on the same day is idempotent and creates 1 event."""
+    dt = pd.Timestamp("2026-11-19 01:30:00", tz="UTC")
+    ticker = BookTickerSnapshot(
+        symbol="BTCUSDT",
+        bid_price=70000.0,
+        bid_qty=1.0,
+        ask_price=70002.0,
+        ask_qty=1.0,
+        mid_price=70001.0,
+        spread_bps=0.28,
+        source_timestamp_utc=dt,
+        receipt_timestamp_utc=dt,
+    )
+    provider = MockMarketDataProvider(server_time_ms=int(dt.timestamp() * 1000), ticker=ticker)
+
+    # First step: executes rebalance
+    res1 = evaluate_observer(
+        provider=provider,
+        dry_run=False,
+        state_file=test_env["state_file"],
+        ledger_file=test_env["ledger_file"],
+        lock_file=test_env["lock_file"],
+        repo_root=test_env["tmp_path"],
+    )
+    assert res1["status"] == "EXECUTED"
+    assert test_env["ledger_file"].exists()
+    df1 = pd.read_csv(test_env["ledger_file"])
+    assert len(df1) == 1
+
+    # Second step 5 minutes later on the same day: idempotent ALREADY_PROCESSED
+    dt2 = pd.Timestamp("2026-11-19 01:35:00", tz="UTC")
+    ticker2 = BookTickerSnapshot(
+        symbol="BTCUSDT",
+        bid_price=70005.0,
+        bid_qty=1.0,
+        ask_price=70007.0,
+        ask_qty=1.0,
+        mid_price=70006.0,
+        spread_bps=0.28,
+        source_timestamp_utc=dt2,
+        receipt_timestamp_utc=dt2,
+    )
+    provider2 = MockMarketDataProvider(server_time_ms=int(dt2.timestamp() * 1000), ticker=ticker2)
+
+    res2 = evaluate_observer(
+        provider=provider2,
+        dry_run=False,
+        state_file=test_env["state_file"],
+        ledger_file=test_env["ledger_file"],
+        lock_file=test_env["lock_file"],
+        repo_root=test_env["tmp_path"],
+    )
+    assert res2["status"] == "ALREADY_PROCESSED"
+    df2 = pd.read_csv(test_env["ledger_file"])
+    assert len(df2) == 1  # No duplicate row!
+    state2 = load_paper_state(test_env["state_file"], test_env["ledger_file"])
+    assert state2["num_trades"] == 1  # No duplicate trade!
+
