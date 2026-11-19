@@ -1,0 +1,2900 @@
+{
+  "anomalies": [
+    {
+      "assets": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT",
+        "BNBUSDT"
+      ],
+      "category": "MISSING",
+      "classification": "market-wide",
+      "timestamp": "2023-03-24T13:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT",
+        "BNBUSDT"
+      ],
+      "category": "SOURCE_CONFLICT",
+      "detail": "canonical raw archives contain the bar; 2021-11..2023-12 derived Parquets omit it",
+      "timestamp": "2023-12-31T23:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT"
+      ],
+      "canonical_raw": 1237.77455,
+      "category": "SOURCE_CONFLICT",
+      "derived": 1260.66778,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-24T03:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT"
+      ],
+      "canonical_raw": 50951.47,
+      "category": "SOURCE_CONFLICT",
+      "derived": 50951.41,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+      "field": "close",
+      "timestamp": "2021-12-24T04:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT"
+      ],
+      "canonical_raw": 560.59259,
+      "category": "SOURCE_CONFLICT",
+      "derived": 560.6232,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-24T04:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT"
+      ],
+      "canonical_raw": 953.99767,
+      "category": "SOURCE_CONFLICT",
+      "derived": 966.63121,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-27T07:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT"
+      ],
+      "canonical_raw": 40187.89,
+      "category": "SOURCE_CONFLICT",
+      "derived": 40187.9,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+      "field": "close",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BTCUSDT"
+      ],
+      "canonical_raw": 762.56117,
+      "category": "SOURCE_CONFLICT",
+      "derived": 763.44194,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    },
+    {
+      "assets": [
+        "ETHUSDT"
+      ],
+      "canonical_raw": 9038.9806,
+      "category": "SOURCE_CONFLICT",
+      "derived": 9130.3395,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-24T03:00:00+00:00"
+    },
+    {
+      "assets": [
+        "ETHUSDT"
+      ],
+      "canonical_raw": 8518.8385,
+      "category": "SOURCE_CONFLICT",
+      "derived": 8542.0763,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-27T07:00:00+00:00"
+    },
+    {
+      "assets": [
+        "ETHUSDT"
+      ],
+      "canonical_raw": 3064.67,
+      "category": "SOURCE_CONFLICT",
+      "derived": 3064.66,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20211101_20231231.parquet",
+      "field": "close",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    },
+    {
+      "assets": [
+        "ETHUSDT"
+      ],
+      "canonical_raw": 11558.8204,
+      "category": "SOURCE_CONFLICT",
+      "derived": 11559.8858,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    },
+    {
+      "assets": [
+        "SOLUSDT"
+      ],
+      "canonical_raw": 52875.25,
+      "category": "SOURCE_CONFLICT",
+      "derived": 53296.87,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-24T03:00:00+00:00"
+    },
+    {
+      "assets": [
+        "SOLUSDT"
+      ],
+      "canonical_raw": 23280.37,
+      "category": "SOURCE_CONFLICT",
+      "derived": 23440.28,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-27T07:00:00+00:00"
+    },
+    {
+      "assets": [
+        "SOLUSDT"
+      ],
+      "canonical_raw": 104.63,
+      "category": "SOURCE_CONFLICT",
+      "derived": 104.62,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20211101_20231231.parquet",
+      "field": "close",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    },
+    {
+      "assets": [
+        "SOLUSDT"
+      ],
+      "canonical_raw": 52471.36,
+      "category": "SOURCE_CONFLICT",
+      "derived": 52498.74,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BNBUSDT"
+      ],
+      "canonical_raw": 547.6,
+      "category": "SOURCE_CONFLICT",
+      "derived": 547.7,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20211101_20231231.parquet",
+      "field": "high",
+      "timestamp": "2021-12-24T03:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BNBUSDT"
+      ],
+      "canonical_raw": 24770.838,
+      "category": "SOURCE_CONFLICT",
+      "derived": 25019.443,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-24T03:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BNBUSDT"
+      ],
+      "canonical_raw": 20203.022,
+      "category": "SOURCE_CONFLICT",
+      "derived": 20305.894,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2021-12-27T07:00:00+00:00"
+    },
+    {
+      "assets": [
+        "BNBUSDT"
+      ],
+      "canonical_raw": 17961.49,
+      "category": "SOURCE_CONFLICT",
+      "derived": 17976.157,
+      "derived_path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20211101_20231231.parquet",
+      "field": "volume",
+      "timestamp": "2022-04-13T05:00:00+00:00"
+    }
+  ],
+  "audit": "S4-P1A DATASET INTEGRITY & CAUSAL READINESS AUDIT",
+  "calendar": {
+    "asset_specific_missing": {
+      "BNBUSDT": [],
+      "BTCUSDT": [],
+      "ETHUSDT": [],
+      "SOLUSDT": []
+    },
+    "shared_missing": [
+      "2023-03-24T13:00:00+00:00"
+    ]
+  },
+  "content_access_log": [
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-01.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-01.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-02.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-02.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-03.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-03.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-04.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-04.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-05.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-05.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-06.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-06.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-07.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-07.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-08.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-08.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-09.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-09.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-10.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-10.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-11.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-11.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-12.zip",
+    "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-12.zip.sha256",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20220101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20211101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20220101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20211101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20220101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20211101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20220101_20231231.parquet",
+    "D:/Workspaces/besttime-crypto/data/historical_unified_replay/dataset_manifest.json"
+  ],
+  "effective_dataset": [
+    {
+      "actual_hourly_rows_per_asset": {
+        "BNBUSDT": 1464,
+        "BTCUSDT": 1464,
+        "ETHUSDT": 1464,
+        "SOLUSDT": 1464
+      },
+      "asset_specific_missing_hours": 0,
+      "common_aligned_hourly_rows": 1464,
+      "common_complete_case_decisions": 47,
+      "excluded_decisions": 14,
+      "expected_hourly_rows": 1464,
+      "feature_valid_decisions": 47,
+      "hourly_window": "2021-11-01T00:00:00+00:00..2021-12-31T23:00:00+00:00",
+      "invalid_rows": 0,
+      "label_valid_decisions": 61,
+      "market_wide_missing_hours": 0,
+      "nominal_decisions": 61,
+      "phase": "Warmup"
+    },
+    {
+      "actual_hourly_rows_per_asset": {
+        "BNBUSDT": 8760,
+        "BTCUSDT": 8760,
+        "ETHUSDT": 8760,
+        "SOLUSDT": 8760
+      },
+      "asset_specific_missing_hours": 0,
+      "common_aligned_hourly_rows": 8760,
+      "common_complete_case_decisions": 364,
+      "excluded_decisions": 0,
+      "expected_hourly_rows": 8760,
+      "feature_valid_decisions": 364,
+      "hourly_window": "2022-01-01T00:00:00+00:00..2022-12-31T23:00:00+00:00",
+      "invalid_rows": 0,
+      "label_valid_decisions": 364,
+      "market_wide_missing_hours": 0,
+      "nominal_decisions": 364,
+      "phase": "2022 Dev"
+    },
+    {
+      "actual_hourly_rows_per_asset": {
+        "BNBUSDT": 8759,
+        "BTCUSDT": 8759,
+        "ETHUSDT": 8759,
+        "SOLUSDT": 8759
+      },
+      "asset_specific_missing_hours": 0,
+      "common_aligned_hourly_rows": 8759,
+      "common_complete_case_decisions": 349,
+      "excluded_decisions": 15,
+      "expected_hourly_rows": 8760,
+      "feature_valid_decisions": 350,
+      "hourly_window": "2023-01-01T00:00:00+00:00..2023-12-31T23:00:00+00:00",
+      "invalid_rows": 0,
+      "label_valid_decisions": 363,
+      "market_wide_missing_hours": 1,
+      "nominal_decisions": 364,
+      "phase": "2023 Screen"
+    }
+  ],
+  "feature_contract": {
+    "channels": [
+      "log_return_1h",
+      "log_return_24h",
+      "log_return_72h",
+      "log_return_168h",
+      "realized_volatility_168h",
+      "volume_ratio_168h"
+    ],
+    "exclusion_groups": {
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-01T00:00:00+00:00": [
+        "2021-11-01T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-02T00:00:00+00:00": [
+        "2021-11-02T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-03T00:00:00+00:00": [
+        "2021-11-03T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-04T00:00:00+00:00": [
+        "2021-11-04T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-05T00:00:00+00:00": [
+        "2021-11-05T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-06T00:00:00+00:00": [
+        "2021-11-06T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-07T00:00:00+00:00": [
+        "2021-11-07T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-08T00:00:00+00:00": [
+        "2021-11-08T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-09T00:00:00+00:00": [
+        "2021-11-09T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-10T00:00:00+00:00": [
+        "2021-11-10T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-11T00:00:00+00:00": [
+        "2021-11-11T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-12T00:00:00+00:00": [
+        "2021-11-12T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-13T00:00:00+00:00": [
+        "2021-11-13T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2021-11-14T00:00:00+00:00": [
+        "2021-11-14T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-25T00:00:00+00:00": [
+        "2023-03-25T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-26T00:00:00+00:00": [
+        "2023-03-26T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-27T00:00:00+00:00": [
+        "2023-03-27T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-28T00:00:00+00:00": [
+        "2023-03-28T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-29T00:00:00+00:00": [
+        "2023-03-29T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-30T00:00:00+00:00": [
+        "2023-03-30T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-03-31T00:00:00+00:00": [
+        "2023-03-31T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-01T00:00:00+00:00": [
+        "2023-04-01T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-02T00:00:00+00:00": [
+        "2023-04-02T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-03T00:00:00+00:00": [
+        "2023-04-03T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-04T00:00:00+00:00": [
+        "2023-04-04T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-05T00:00:00+00:00": [
+        "2023-04-05T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-06T00:00:00+00:00": [
+        "2023-04-06T00:00:00+00:00"
+      ],
+      "MISSING_OR_INVALID_FEATURE_BAR:BTCUSDT:2023-04-07T00:00:00+00:00": [
+        "2023-04-07T00:00:00+00:00"
+      ]
+    },
+    "imputation": "none; fail-closed complete-case",
+    "last_eligible_bar_example": "cutoff 2022-06-01T00:00:00+00:00 -> 2022-05-31T23:00:00+00:00",
+    "raw_dependency_hours": 336,
+    "shape": [
+      168,
+      4,
+      6
+    ]
+  },
+  "fold_purging": [
+    {
+      "complete_case_fit_rows": 119,
+      "eligible_fit_rows_before_complete_case": 119,
+      "epsilon_by_asset": {
+        "BNBUSDT": 0.0037552176396385747,
+        "BTCUSDT": 0.003244723283874919,
+        "ETHUSDT": 0.003930668443769664,
+        "SOLUSDT": 0.005096750748664395
+      },
+      "floor_feasible": true,
+      "fold": "F1",
+      "max_kept_label_completion": "2022-04-30T01:00:00+00:00",
+      "nominal_fit_rows": 120,
+      "purged_rows": [
+        "2022-04-30T00:00:00+00:00"
+      ],
+      "rule": "label_completion <= validation_first_cutoff",
+      "validation_first_cutoff": "2022-05-01T00:00:00+00:00"
+    },
+    {
+      "complete_case_fit_rows": 165,
+      "eligible_fit_rows_before_complete_case": 165,
+      "epsilon_by_asset": {
+        "BNBUSDT": 0.0038567270941880652,
+        "BTCUSDT": 0.0032861735357778256,
+        "ETHUSDT": 0.003981323755946172,
+        "SOLUSDT": 0.0052042648459383785
+      },
+      "floor_feasible": true,
+      "fold": "F2",
+      "max_kept_label_completion": "2022-06-15T01:00:00+00:00",
+      "nominal_fit_rows": 166,
+      "purged_rows": [
+        "2022-06-15T00:00:00+00:00"
+      ],
+      "rule": "label_completion <= validation_first_cutoff",
+      "validation_first_cutoff": "2022-06-16T00:00:00+00:00"
+    },
+    {
+      "complete_case_fit_rows": 211,
+      "eligible_fit_rows_before_complete_case": 211,
+      "epsilon_by_asset": {
+        "BNBUSDT": 0.003951357442680167,
+        "BTCUSDT": 0.0033853427902594407,
+        "ETHUSDT": 0.004067276019241512,
+        "SOLUSDT": 0.005324041488523159
+      },
+      "floor_feasible": true,
+      "fold": "F3",
+      "max_kept_label_completion": "2022-07-31T01:00:00+00:00",
+      "nominal_fit_rows": 212,
+      "purged_rows": [
+        "2022-07-31T00:00:00+00:00"
+      ],
+      "rule": "label_completion <= validation_first_cutoff",
+      "validation_first_cutoff": "2022-08-01T00:00:00+00:00"
+    },
+    {
+      "complete_case_fit_rows": 272,
+      "eligible_fit_rows_before_complete_case": 272,
+      "epsilon_by_asset": {
+        "BNBUSDT": 0.0038476000522064376,
+        "BTCUSDT": 0.0033611877617890015,
+        "ETHUSDT": 0.0042444394858017894,
+        "SOLUSDT": 0.005289494386824554
+      },
+      "floor_feasible": true,
+      "fold": "F4",
+      "max_kept_label_completion": "2022-09-30T01:00:00+00:00",
+      "nominal_fit_rows": 273,
+      "purged_rows": [
+        "2022-09-30T00:00:00+00:00"
+      ],
+      "rule": "label_completion <= validation_first_cutoff",
+      "validation_first_cutoff": "2022-10-01T00:00:00+00:00"
+    }
+  ],
+  "gap_impact": [
+    {
+      "assets": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT",
+        "BNBUSDT"
+      ],
+      "classification": "market-wide",
+      "combined_excluded_count": 15,
+      "feature_dependency_excluded_decisions": [
+        "2023-03-25T00:00:00+00:00",
+        "2023-03-26T00:00:00+00:00",
+        "2023-03-27T00:00:00+00:00",
+        "2023-03-28T00:00:00+00:00",
+        "2023-03-29T00:00:00+00:00",
+        "2023-03-30T00:00:00+00:00",
+        "2023-03-31T00:00:00+00:00",
+        "2023-04-01T00:00:00+00:00",
+        "2023-04-02T00:00:00+00:00",
+        "2023-04-03T00:00:00+00:00",
+        "2023-04-04T00:00:00+00:00",
+        "2023-04-05T00:00:00+00:00",
+        "2023-04-06T00:00:00+00:00",
+        "2023-04-07T00:00:00+00:00"
+      ],
+      "first_excluded_decision": "2023-03-24T00:00:00+00:00",
+      "gap_timestamp": "2023-03-24T13:00:00+00:00",
+      "label_interval_excluded_decisions": [
+        "2023-03-24T00:00:00+00:00"
+      ],
+      "last_excluded_decision": "2023-04-07T00:00:00+00:00"
+    }
+  ],
+  "generated_at_utc": "2026-11-18T21:20:06.131500+00:00",
+  "label_contract": {
+    "decision": "t 00:05 UTC",
+    "entry": "t 01:00 UTC open",
+    "exclusions": [
+      {
+        "decision": "2023-03-24T00:00:00+00:00",
+        "reason": "MISSING_BAR_IN_LABEL_INTERVAL",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "decision": "2023-12-31T00:00:00+00:00",
+        "reason": "EXIT_AFTER_AUTHORIZED_WINDOW",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "decision": "2023-03-24T00:00:00+00:00",
+        "reason": "MISSING_BAR_IN_LABEL_INTERVAL",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "decision": "2023-12-31T00:00:00+00:00",
+        "reason": "EXIT_AFTER_AUTHORIZED_WINDOW",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "decision": "2023-03-24T00:00:00+00:00",
+        "reason": "MISSING_BAR_IN_LABEL_INTERVAL",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "decision": "2023-12-31T00:00:00+00:00",
+        "reason": "EXIT_AFTER_AUTHORIZED_WINDOW",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "decision": "2023-03-24T00:00:00+00:00",
+        "reason": "MISSING_BAR_IN_LABEL_INTERVAL",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "decision": "2023-12-31T00:00:00+00:00",
+        "reason": "EXIT_AFTER_AUTHORIZED_WINDOW",
+        "symbol": "BNBUSDT"
+      }
+    ],
+    "exit_and_completion": "t+1 day 01:00 UTC open",
+    "feature_cutoff": "t 00:00 UTC",
+    "formula": "ln(exit_open / entry_open)",
+    "latest_label_ordinary_at_cutoff": "t-2"
+  },
+  "next_step": "S4-P1A_FORECAST_IMPLEMENTATION",
+  "next_step_executed": false,
+  "preregistration_commit": "7b5a97becbd6da1249a484ed588133761cc57bd0",
+  "raw_integrity": {
+    "BNBUSDT": {
+      "anomaly_counts": {
+        "DUPLICATE": 0,
+        "INVALID_OHLC": 0,
+        "INVALID_VOLUME": 0,
+        "MISSING": 1,
+        "NONFINITE": 0,
+        "NONPOSITIVE_PRICE": 0,
+        "OUT_OF_ORDER": 0,
+        "TIMESTAMP_MISALIGNMENT": 0
+      },
+      "close_time_convention_valid": false,
+      "end": "2023-12-31T23:00:00+00:00",
+      "hour_aligned": true,
+      "incomplete_candles": 2,
+      "missing_timestamps": [
+        "2023-03-24T13:00:00+00:00"
+      ],
+      "rows": 18983,
+      "start": "2021-11-01T00:00:00+00:00",
+      "strictly_increasing": true,
+      "symbol": "BNBUSDT",
+      "utc_aware": true
+    },
+    "BTCUSDT": {
+      "anomaly_counts": {
+        "DUPLICATE": 0,
+        "INVALID_OHLC": 0,
+        "INVALID_VOLUME": 0,
+        "MISSING": 1,
+        "NONFINITE": 0,
+        "NONPOSITIVE_PRICE": 0,
+        "OUT_OF_ORDER": 0,
+        "TIMESTAMP_MISALIGNMENT": 0
+      },
+      "close_time_convention_valid": false,
+      "end": "2023-12-31T23:00:00+00:00",
+      "hour_aligned": true,
+      "incomplete_candles": 2,
+      "missing_timestamps": [
+        "2023-03-24T13:00:00+00:00"
+      ],
+      "rows": 18983,
+      "start": "2021-11-01T00:00:00+00:00",
+      "strictly_increasing": true,
+      "symbol": "BTCUSDT",
+      "utc_aware": true
+    },
+    "ETHUSDT": {
+      "anomaly_counts": {
+        "DUPLICATE": 0,
+        "INVALID_OHLC": 0,
+        "INVALID_VOLUME": 0,
+        "MISSING": 1,
+        "NONFINITE": 0,
+        "NONPOSITIVE_PRICE": 0,
+        "OUT_OF_ORDER": 0,
+        "TIMESTAMP_MISALIGNMENT": 0
+      },
+      "close_time_convention_valid": false,
+      "end": "2023-12-31T23:00:00+00:00",
+      "hour_aligned": true,
+      "incomplete_candles": 2,
+      "missing_timestamps": [
+        "2023-03-24T13:00:00+00:00"
+      ],
+      "rows": 18983,
+      "start": "2021-11-01T00:00:00+00:00",
+      "strictly_increasing": true,
+      "symbol": "ETHUSDT",
+      "utc_aware": true
+    },
+    "SOLUSDT": {
+      "anomaly_counts": {
+        "DUPLICATE": 0,
+        "INVALID_OHLC": 0,
+        "INVALID_VOLUME": 0,
+        "MISSING": 1,
+        "NONFINITE": 0,
+        "NONPOSITIVE_PRICE": 0,
+        "OUT_OF_ORDER": 0,
+        "TIMESTAMP_MISALIGNMENT": 0
+      },
+      "close_time_convention_valid": false,
+      "end": "2023-12-31T23:00:00+00:00",
+      "hour_aligned": true,
+      "incomplete_candles": 2,
+      "missing_timestamps": [
+        "2023-03-24T13:00:00+00:00"
+      ],
+      "rows": 18983,
+      "start": "2021-11-01T00:00:00+00:00",
+      "strictly_increasing": true,
+      "symbol": "SOLUSDT",
+      "utc_aware": true
+    }
+  },
+  "scope": {
+    "authorized_market_data_window": "2021-11-01T00:00:00+00:00..2023-12-31T23:00:00+00:00",
+    "predictive_screen_performed": false,
+    "source": "Binance Spot 1h",
+    "timestamp_convention": "UTC candle open time",
+    "training_performed": false,
+    "universe": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT",
+      "BNBUSDT"
+    ]
+  },
+  "sigma_readiness": {
+    "asof_violations": 0,
+    "final_2023_floor_readiness": {
+      "2022_12_31_excluded": true,
+      "eligible_2022_rows": 364,
+      "epsilon_by_asset": {
+        "BNBUSDT": 0.0037789328326736527,
+        "BTCUSDT": 0.0032796862227538466,
+        "ETHUSDT": 0.004168154034291357,
+        "SOLUSDT": 0.005312924630871118
+      },
+      "feasible": true,
+      "fit_cutoff": "2023-01-01T00:00:00+00:00"
+    },
+    "half_life_completed_labels": 20,
+    "initialization": "arithmetic mean of first 30 valid completed labels for first and second moments",
+    "lambda": 0.9659363289248456,
+    "minimum_history": 30,
+    "missing_update": "skip; never zero",
+    "screen_finite_raw_sigma_dates": {
+      "BNBUSDT": 364,
+      "BTCUSDT": 364,
+      "ETHUSDT": 364,
+      "SOLUSDT": 364
+    },
+    "warmup": {
+      "BNBUSDT": {
+        "completed_labels_at_2022_01_01_cutoff": 60,
+        "latest_completion_at_2022_01_01": "2021-12-31T01:00:00+00:00",
+        "raw_sigma_finite_at_2022_01_01": true
+      },
+      "BTCUSDT": {
+        "completed_labels_at_2022_01_01_cutoff": 60,
+        "latest_completion_at_2022_01_01": "2021-12-31T01:00:00+00:00",
+        "raw_sigma_finite_at_2022_01_01": true
+      },
+      "ETHUSDT": {
+        "completed_labels_at_2022_01_01_cutoff": 60,
+        "latest_completion_at_2022_01_01": "2021-12-31T01:00:00+00:00",
+        "raw_sigma_finite_at_2022_01_01": true
+      },
+      "SOLUSDT": {
+        "completed_labels_at_2022_01_01_cutoff": 60,
+        "latest_completion_at_2022_01_01": "2021-12-31T01:00:00+00:00",
+        "raw_sigma_finite_at_2022_01_01": true
+      }
+    }
+  },
+  "source_selection": {
+    "canonical": "monthly Binance Spot archives with verified Binance SHA-256 sidecars",
+    "canonical_schema": {
+      "close": "float64",
+      "close_time_ms": "int64 UTC epoch milliseconds",
+      "high": "float64",
+      "low": "float64",
+      "open": "float64",
+      "open_time_ms": "int64 UTC epoch milliseconds",
+      "timestamp": "datetime64[ms, UTC] derived from open_time_ms",
+      "volume": "float64 base-asset volume"
+    },
+    "derived_cross_checks": [
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 6,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 18982,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20211101_20231231.parquet",
+        "rows": 18982,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "c4219649ac373b451adc3ed8c1cda0fd7ced199d40f55be0152c9152bd139dd2",
+        "source_role": "derived_cross_check_only",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "BTCUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 1237.77455,
+            "derived": 1260.66778,
+            "field": "volume",
+            "timestamp": "2021-12-24T03:00:00+00:00"
+          },
+          {
+            "canonical_raw": 50951.47,
+            "derived": 50951.41,
+            "field": "close",
+            "timestamp": "2021-12-24T04:00:00+00:00"
+          },
+          {
+            "canonical_raw": 560.59259,
+            "derived": 560.6232,
+            "field": "volume",
+            "timestamp": "2021-12-24T04:00:00+00:00"
+          },
+          {
+            "canonical_raw": 953.99767,
+            "derived": 966.63121,
+            "field": "volume",
+            "timestamp": "2021-12-27T07:00:00+00:00"
+          },
+          {
+            "canonical_raw": 40187.89,
+            "derived": 40187.9,
+            "field": "close",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          },
+          {
+            "canonical_raw": 762.56117,
+            "derived": 763.44194,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 2,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 17518,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BTCUSDT_1h_20220101_20231231.parquet",
+        "rows": 17518,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "f8d31a0767fed08dc25d7560e352aed92bf50935061e4c597ec6a4cbb58c57bc",
+        "source_role": "derived_cross_check_only",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "BTCUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 40187.89,
+            "derived": 40187.9,
+            "field": "close",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          },
+          {
+            "canonical_raw": 762.56117,
+            "derived": 763.44194,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 4,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 18982,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20211101_20231231.parquet",
+        "rows": 18982,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "d5cb3db5564f1d2cc6977490ad93f0102831ae6d4c1e11234c248d85b681a1b0",
+        "source_role": "derived_cross_check_only",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "ETHUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 9038.9806,
+            "derived": 9130.3395,
+            "field": "volume",
+            "timestamp": "2021-12-24T03:00:00+00:00"
+          },
+          {
+            "canonical_raw": 8518.8385,
+            "derived": 8542.0763,
+            "field": "volume",
+            "timestamp": "2021-12-27T07:00:00+00:00"
+          },
+          {
+            "canonical_raw": 3064.67,
+            "derived": 3064.66,
+            "field": "close",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          },
+          {
+            "canonical_raw": 11558.8204,
+            "derived": 11559.8858,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 2,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 17518,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/ETHUSDT_1h_20220101_20231231.parquet",
+        "rows": 17518,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "10e2cd00ab8802ee23007195e5138638930974ac829c06d2aba193dda113d74e",
+        "source_role": "derived_cross_check_only",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "ETHUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 3064.67,
+            "derived": 3064.66,
+            "field": "close",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          },
+          {
+            "canonical_raw": 11558.8204,
+            "derived": 11559.8858,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 4,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 18982,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20211101_20231231.parquet",
+        "rows": 18982,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "7f4df2ec50dcc8fe023258b8c951d146e157b7ceab9ef60e972f42ca4441b199",
+        "source_role": "derived_cross_check_only",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "SOLUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 52875.25,
+            "derived": 53296.87,
+            "field": "volume",
+            "timestamp": "2021-12-24T03:00:00+00:00"
+          },
+          {
+            "canonical_raw": 23280.37,
+            "derived": 23440.28,
+            "field": "volume",
+            "timestamp": "2021-12-27T07:00:00+00:00"
+          },
+          {
+            "canonical_raw": 104.63,
+            "derived": 104.62,
+            "field": "close",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          },
+          {
+            "canonical_raw": 52471.36,
+            "derived": 52498.74,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 2,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 17518,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/SOLUSDT_1h_20220101_20231231.parquet",
+        "rows": 17518,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "ed4fdd9284843595e7d4a226fb1b501531038d7223a9bfe36dc530cfdf4fe399",
+        "source_role": "derived_cross_check_only",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "SOLUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 104.63,
+            "derived": 104.62,
+            "field": "close",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          },
+          {
+            "canonical_raw": 52471.36,
+            "derived": 52498.74,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 4,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 18982,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20211101_20231231.parquet",
+        "rows": 18982,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "61acef19eea03b418d9cc69c102b55c802c5d9a85a69142e8ec25b43c745ddd0",
+        "source_role": "derived_cross_check_only",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "BNBUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 547.6,
+            "derived": 547.7,
+            "field": "high",
+            "timestamp": "2021-12-24T03:00:00+00:00"
+          },
+          {
+            "canonical_raw": 24770.838,
+            "derived": 25019.443,
+            "field": "volume",
+            "timestamp": "2021-12-24T03:00:00+00:00"
+          },
+          {
+            "canonical_raw": 20203.022,
+            "derived": 20305.894,
+            "field": "volume",
+            "timestamp": "2021-12-27T07:00:00+00:00"
+          },
+          {
+            "canonical_raw": 17961.49,
+            "derived": 17976.157,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      },
+      {
+        "end": "2023-12-31T22:00:00+00:00",
+        "extra_in_derived": [],
+        "format": "parquet",
+        "mismatched_ohlcv_values": 1,
+        "missing_from_derived": [
+          "2023-12-31T23:00:00+00:00"
+        ],
+        "overlap_rows": 17518,
+        "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/BNBUSDT_1h_20220101_20231231.parquet",
+        "rows": 17518,
+        "schema": {
+          "close": "float64",
+          "close_time_ms": "int64",
+          "close_timestamp": "datetime64[ms, UTC]",
+          "high": "float64",
+          "low": "float64",
+          "open": "float64",
+          "open_time_ms": "int64",
+          "timestamp": "datetime64[ms, UTC]",
+          "volume": "float64"
+        },
+        "sha256": "da56da63ae3a907707aa45b5b06f9f20141465e3ec53ea7aa4975db82d5c59ca",
+        "source_role": "derived_cross_check_only",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "BNBUSDT",
+        "value_conflicts": [
+          {
+            "canonical_raw": 17961.49,
+            "derived": 17976.157,
+            "field": "volume",
+            "timestamp": "2022-04-13T05:00:00+00:00"
+          }
+        ]
+      }
+    ],
+    "derived_manifest": {
+      "path": "D:/Workspaces/besttime-crypto/data/historical_unified_replay/dataset_manifest.json",
+      "sha256": "71019e50f7b0bd096fbba9957ec8722c339b390044078d7f72ec289654044711"
+    },
+    "derived_overlap_values_match": false,
+    "derived_sources_are_cross_checks_only": true,
+    "discovered_roots": [
+      {
+        "content_access": "authorized 2021-11..2023-12 raw archives and metadata only",
+        "formats": [
+          "monthly ZIP CSV",
+          "SHA-256 sidecar",
+          "Parquet",
+          "JSON manifest"
+        ],
+        "path": "data/historical/"
+      },
+      {
+        "content_access": "pre-2024-only derivatives only",
+        "formats": [
+          "per-symbol Parquet",
+          "JSON manifest"
+        ],
+        "path": "data/historical_unified_replay/"
+      },
+      {
+        "content_access": false,
+        "formats": [
+          "Parquet",
+          "JSON metadata"
+        ],
+        "path": "data/neural_n1_2/",
+        "reason": "noncanonical enriched derivatives; mixed/irrelevant coverage"
+      },
+      {
+        "content_access": false,
+        "formats": [
+          "Parquet",
+          "ZIP",
+          "JSON metadata"
+        ],
+        "path": "data/neural_n1_4/",
+        "reason": "noncanonical term-structure derivatives"
+      },
+      {
+        "content_access": false,
+        "formats": [
+          "Parquet",
+          "ZIP",
+          "JSON metadata"
+        ],
+        "path": "data/neural_n1_5/",
+        "reason": "noncanonical coin-margined derivatives"
+      },
+      {
+        "content_access": false,
+        "formats": [
+          "Parquet",
+          "JSONL",
+          "JSON metadata"
+        ],
+        "path": "data/neural_n1_6/",
+        "reason": "noncanonical event/order data"
+      },
+      {
+        "content_access": false,
+        "formats": [
+          "Parquet",
+          "JSON checkpoint"
+        ],
+        "path": "data/neural_n1_7/",
+        "reason": "noncanonical order-intent data"
+      }
+    ],
+    "expected_derived_tail_conflict_confirmed": true,
+    "reason": "direct raw provenance, exact authorized-month isolation, full authorized open-time window",
+    "source_files": [
+      {
+        "end": "2021-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2021-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-11.zip",
+        "rows": 720,
+        "sha256": "64d376e949c3518c3b526cac41322114a2e7287395e9089f0da34e25079c2940",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2021-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2021-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-12.zip",
+        "rows": 744,
+        "sha256": "b01133a69b22aa7904742a06a892ff3811152377f61e23977051a937afe2fbaa",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2021-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-12-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-01.zip",
+        "rows": 744,
+        "sha256": "e04068d0aee5e3571dc7e9a1d220475047f544e1cf1bad800b7cbbf190281c40",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-02.zip",
+        "rows": 672,
+        "sha256": "4e479b38278726cccb9257f5564c5c78477144d3ffe69df6afaf3b55ace617be",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-02-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-03.zip",
+        "rows": 744,
+        "sha256": "1cfb082f6bc9a2937b5b846073ddf65f71b18f2502778ac667aab3421ef80085",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-03-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-04.zip",
+        "rows": 720,
+        "sha256": "7157a267e70bcd9ae04a8898527fad00d7733e941df9b95a1d5e0ae6dcd61c3e",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-04-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-05.zip",
+        "rows": 744,
+        "sha256": "ff0744eceba5e6d2f7145ecfdc9d3fac84f4576c15221dbeb71c6d6e59484300",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-05-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-06.zip",
+        "rows": 720,
+        "sha256": "b18f6f8edbb41960f81aec100c7836fdc0de6d640ee4309a3d0fad999ae0a2c8",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-06-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-07.zip",
+        "rows": 744,
+        "sha256": "9f0ba9663f9fada7692b3cfe645df3832599f9e785056ddd77bd464475553e9e",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-07-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-08.zip",
+        "rows": 744,
+        "sha256": "3cc22044f94cb303d12013293ba6db6d44abdf1490d38d00f1389e98717a3891",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-08-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-09.zip",
+        "rows": 720,
+        "sha256": "a65dcd73017d92ea8d86e82ea1aee3dac55881f8672594d2e85d1cf392e1e78a",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-09-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-10.zip",
+        "rows": 744,
+        "sha256": "2591cbbe022ce9d4559aee1fa41ea0033324c2c4debc776cfedc9588167d413b",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-10-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-11.zip",
+        "rows": 720,
+        "sha256": "5608adf8602a8ac616ee03c2c4461a37f4646631d67edf3d2f1a94e82e5c5065",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-11-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2022-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2022-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-12.zip",
+        "rows": 744,
+        "sha256": "69c5e5f01df947bfea48ab3c8e2f462b7358effa9e2700489a4ad0dbd29b24aa",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2022-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-12-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-01.zip",
+        "rows": 744,
+        "sha256": "ea8caf7fd56c7f7143723f56f8d12a2fc0b643badbcdae5c660db2d11454a11d",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-01-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-02.zip",
+        "rows": 672,
+        "sha256": "53525b700548a19488fcb8754778acdf7941c9ba0b6e7eb548a51a376ef8d86b",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-02-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-03.zip",
+        "rows": 743,
+        "sha256": "7f2afb8e0179a57ac31eab5205660298ba5eb77039ac2e21aef9b715ff3d06ce",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-03-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-04.zip",
+        "rows": 720,
+        "sha256": "1787dc83836deafaa77d4276cbe3b3ca1fe0083b3017079e3560605ff4f7a4ba",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-04-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-05.zip",
+        "rows": 744,
+        "sha256": "16b33557a4a4040fc56c711f4b1a750ebafb5a7f8dd46c060d9fc8c66cdc1982",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-05-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-06.zip",
+        "rows": 720,
+        "sha256": "05f87fb5f004ee0aff019adb7015afab8df0baaaf2b77154d75ae53e18d59b11",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-06-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-07.zip",
+        "rows": 744,
+        "sha256": "f49a738a793055a583784e78a54840a43861fd110118cbe1add14ef1afb63032",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-07-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-08.zip",
+        "rows": 744,
+        "sha256": "e983243d44536a06ff4707cf35df29f636fe788e6fb69c3b3feed2ef43d343d4",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-08-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-09.zip",
+        "rows": 720,
+        "sha256": "28e12ccaf15745bfe11f570b9079793750047fde3d340fe0231858b26bc0f9d9",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-09-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-10.zip",
+        "rows": 744,
+        "sha256": "165ec50601f914d6c41b776414096bc73974bf45fcd41aaddfedd1cf66cb6c6e",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-10-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-11.zip",
+        "rows": 720,
+        "sha256": "4f550d182d529839dd9cfc28ef0ecca8cd8003e991067e92a2af5b9e92762f49",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-11-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2023-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2023-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-12.zip",
+        "rows": 744,
+        "sha256": "6117d93e3eb6574df6b0087a45cf12e171afe91789b523b0bfcce00d8f1b6e37",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BTCUSDT/BTCUSDT-1h-2023-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-12-01T00:00:00+00:00",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "end": "2021-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2021-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-11.zip",
+        "rows": 720,
+        "sha256": "fc8093a34678bd6ce4436c411127a69f245b2d5cfa6208aee67ffda504a70664",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2021-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2021-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-12.zip",
+        "rows": 744,
+        "sha256": "7cec67435b94112e7d1a8ec45b4d0167735102d12cb8649699aedf5018b09a80",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2021-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-12-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-01.zip",
+        "rows": 744,
+        "sha256": "14a3875732b7e404be2522aec94b5f17fc43f81e77c0a68fdd72980ea644ef5a",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-02.zip",
+        "rows": 672,
+        "sha256": "2c155824e909de8c1f91a41bbdc2356c29f3c16944db3982a7c912ff58083eb3",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-02-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-03.zip",
+        "rows": 744,
+        "sha256": "9af5cd5120e2942f763f0a45cec35b0a98322015d52b29884655875f8bfe361d",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-03-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-04.zip",
+        "rows": 720,
+        "sha256": "d47fd9d00967d87564a52cc7025960de98513f863a83018e9f9dd0eb5875df39",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-04-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-05.zip",
+        "rows": 744,
+        "sha256": "382390f47d0660bb3dc16aaedf7901002a2293ca7a375045b08d956208c95615",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-05-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-06.zip",
+        "rows": 720,
+        "sha256": "9fd8dabf04723354423f643b62b74ac5f1046e28f855c0e15d9eb68b5e49f559",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-06-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-07.zip",
+        "rows": 744,
+        "sha256": "87c81755af5e05b5b24182eed98582284b6896048d231a245581d76df669d4b4",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-07-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-08.zip",
+        "rows": 744,
+        "sha256": "7792ffb44dbcd7a9964ea796ffc2dc2049b5437a5a317c07b64eb4be8aac1a13",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-08-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-09.zip",
+        "rows": 720,
+        "sha256": "e64c3e782b8421fa035843584bff1ddcdee84ee1bcb06d6e154915855d6917c4",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-09-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-10.zip",
+        "rows": 744,
+        "sha256": "e0e1d08f8e089a0273e2ad62ad052b690d4082c82bf56da6f7b2c37795e2ab6f",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-10-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-11.zip",
+        "rows": 720,
+        "sha256": "109c93bc5db33562650e146c9a9332ec4496dae5021cf942f5c75317c75d16eb",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-11-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2022-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2022-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-12.zip",
+        "rows": 744,
+        "sha256": "6f704c3ed1be5ce404b5ca53e733e42b005308714218ff9e21d15e7cfb128f01",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2022-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-12-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-01.zip",
+        "rows": 744,
+        "sha256": "6a646f674ecfa736db1e6fd0c4ebaf26594806efde851f2c7081aec533714e3d",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-01-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-02.zip",
+        "rows": 672,
+        "sha256": "c23f2ce377caba0279a932cfea93701bd02c996879293c5c395eaba06a943039",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-02-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-03.zip",
+        "rows": 743,
+        "sha256": "90d268be1e0d39f7411f88ca3c0f21fe110fee7ff3c1dd054555e1fea6e22d8d",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-03-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-04.zip",
+        "rows": 720,
+        "sha256": "36598c7b9ac93706b8c9f9e6da11bc2137f605c442dab139ac35e397efcd9473",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-04-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-05.zip",
+        "rows": 744,
+        "sha256": "e03f762cd90b9a4eb6bf3499a05f4df84a71fd23f18d8b1b9c2e88eb469b0f2e",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-05-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-06.zip",
+        "rows": 720,
+        "sha256": "7ca4b8f6f6ff04f6899fe49b68df2c7b60841dfadb4a334631491af2d192bfbf",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-06-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-07.zip",
+        "rows": 744,
+        "sha256": "b141e7b3ec07f24756b1c5c27b562acfe06d331678a49c493a5fa2cba44eb97a",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-07-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-08.zip",
+        "rows": 744,
+        "sha256": "25930d0ba8280ec82b879d130071582c3ee4d5a1fbe31dc34c016b2c314d3525",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-08-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-09.zip",
+        "rows": 720,
+        "sha256": "3453dc6570a7193ab358e5a4c592439b4073028b1ab09412610d9409cf330219",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-09-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-10.zip",
+        "rows": 744,
+        "sha256": "d91229dd47c4cf53b8e326b500295a4fb9f0316faca0e2149076065bc53ae049",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-10-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-11.zip",
+        "rows": 720,
+        "sha256": "2be46057e4a5b40b4b7c6bdf5b163aa22e353048e62907e730cd471fbf3a62b5",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-11-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2023-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1h/ETHUSDT-1h-2023-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-12.zip",
+        "rows": 744,
+        "sha256": "89ec0d0b4f4ee72f4f1c2fad52ec1d94435d525bb107ae23d6f9716c77dbc428",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/ETHUSDT/ETHUSDT-1h-2023-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-12-01T00:00:00+00:00",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "end": "2021-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2021-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-11.zip",
+        "rows": 720,
+        "sha256": "577c3127dde0f4869a2195662aeec896a135f686962a172aad42176d9655fba0",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2021-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2021-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-12.zip",
+        "rows": 744,
+        "sha256": "e6e88ff1edc3a6910df90bbe311e0ec071913bd8673307adb4d4ecf41db4ef5e",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2021-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-12-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-01.zip",
+        "rows": 744,
+        "sha256": "cd070a2f7daeaa33835ca00ab10c371a0bc89c353591c65977706635b7418ca0",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-02.zip",
+        "rows": 672,
+        "sha256": "f6eed394dcbfb8815120c328d1c1e22136e25febb9854ce6c0bbd566c92fb673",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-02-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-03.zip",
+        "rows": 744,
+        "sha256": "8d2e26a84944cf39f343c0b7669e7dabf03bcd7d7afc3e82f6ef2161452f6542",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-03-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-04.zip",
+        "rows": 720,
+        "sha256": "001350cb05168fadc8d1240ae89a37f878f986a78951232191a890f77bbb7bcc",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-04-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-05.zip",
+        "rows": 744,
+        "sha256": "f68c41a69d18b96d72c9449662cc5c563287369f56033d873f087091db9fb817",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-05-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-06.zip",
+        "rows": 720,
+        "sha256": "4e111c3b8d040f832accab28b4405c6a23b90f33883fa8857ba60ec1d073bfef",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-06-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-07.zip",
+        "rows": 744,
+        "sha256": "10a6858a4c66cd1e0ea3e4a4265a737d3114f73062094a75bd48e9c8afd14aee",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-07-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-08.zip",
+        "rows": 744,
+        "sha256": "a76d0f3bca32a91f4ea923c60c6c87256a673b2a73bdcc117449fc8e4f57ebe6",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-08-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-09.zip",
+        "rows": 720,
+        "sha256": "bcba92d96fd85adcf5894674551a3ac52334b1836fcd7b09745c6c2ec70e930a",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-09-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-10.zip",
+        "rows": 744,
+        "sha256": "c855d5b612c4b362110007383e27c965db324f54ab091ac82cf00b827cab8f6b",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-10-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-11.zip",
+        "rows": 720,
+        "sha256": "d61c2d3b3ba2e772d39fcc1181973359cd8b59fd1a9b8b29aa8e1dc394d889c9",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-11-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2022-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2022-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-12.zip",
+        "rows": 744,
+        "sha256": "9f2df163d62154fd641ab95228e6123e378cfc972effea348721317515ddc9d6",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2022-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-12-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-01.zip",
+        "rows": 744,
+        "sha256": "24e284cea68c9a42bd6a5bd6cdc2ce56ca00fea106728f36de3d171b215f6905",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-01-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-02.zip",
+        "rows": 672,
+        "sha256": "e6c07a992221248893cd519539d2937e241931e1f129206bd13d4197b1f3b6c9",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-02-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-03.zip",
+        "rows": 743,
+        "sha256": "7345fc8807e3e73e11595b5b371bf96d414048f77d1498964fa5c5f8fe3f02e7",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-03-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-04.zip",
+        "rows": 720,
+        "sha256": "89bb7df7673715efdaac4445bc5e7bb980e78469245f6f6baa978d4e7e2a8bc5",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-04-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-05.zip",
+        "rows": 744,
+        "sha256": "8578fd237c61fe3cf535eea93143f094989f26af41cc2d24c813f4836daaeb44",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-05-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-06.zip",
+        "rows": 720,
+        "sha256": "0e2e5c23418ff24a31cbcb4fe95e73db1c7fc90abcf960b86c37b53b3b19c77d",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-06-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-07.zip",
+        "rows": 744,
+        "sha256": "7eebf42589b01a086f3be7f2af9a39d1a5df6dbd16f062ae383717725ea008c8",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-07-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-08.zip",
+        "rows": 744,
+        "sha256": "25cb0c865a4bf34ac55dee9cfea5a39d7d9f765c0f7654158086202ff78a9c9f",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-08-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-09.zip",
+        "rows": 720,
+        "sha256": "47b3f1869eca8bf460a31570c38ae5ad9eb338773493cad95683cb3d933c05f5",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-09-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-10.zip",
+        "rows": 744,
+        "sha256": "2d4fdfa1fc9b7bcf69382883e472b4ce741cd6470ead4d4bce46c6d263988837",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-10-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-11.zip",
+        "rows": 720,
+        "sha256": "2fb358d1f7fc162236cadb344f21dca8b270e5ef6e88964c9f49a9c3f28b714c",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-11-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2023-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2023-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-12.zip",
+        "rows": 744,
+        "sha256": "8ed8a6482a5538cbcc683f861305f049c86ea09bf0f10cff19a525b55eada4b8",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/SOLUSDT/SOLUSDT-1h-2023-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-12-01T00:00:00+00:00",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "end": "2021-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2021-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-11.zip",
+        "rows": 720,
+        "sha256": "dc3f62a12d9f21818c9bd8b35511e3e255fc4f4bf114fc4e4506a32267f97e6f",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-11-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2021-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2021-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2021-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-12.zip",
+        "rows": 744,
+        "sha256": "8bbc6c5be0dd58d060085a2048d2d9a807183fce333234cee1cfb03447b14b36",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2021-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2021-12-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-01.zip",
+        "rows": 744,
+        "sha256": "663ea08387d4c5155b2421ebeaaaba14850e4362cc9e24ee7979bfefab03f625",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-01-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-02.zip",
+        "rows": 672,
+        "sha256": "00b3aab119398a6ef303a9b122f7ee819eb1c62c358d3d511ceae345b74ba6db",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-02-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-03.zip",
+        "rows": 744,
+        "sha256": "c6c3ae3b1332fc39d92749bd126fb675571fbe80576cd95d56d0a16a0ec77afd",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-03-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-04.zip",
+        "rows": 720,
+        "sha256": "496c543a2aac62b3d8ab6a71c89da4db9ad4fcd9bc640905edbeda7b4487004f",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-04-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-05.zip",
+        "rows": 744,
+        "sha256": "e183a9b786ba8c2ddcfb48cf974dcd8edad5c6816e865e3ec62d9d94eec08c7e",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-05-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-06.zip",
+        "rows": 720,
+        "sha256": "ea7faf8f2d22c27768b868ca431c56d2cbb83d955d3debe1e6dfb70f034de32a",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-06-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-07.zip",
+        "rows": 744,
+        "sha256": "829ef1e541a13599cba457ce963674c2f14447899c7f43b878299e5f59a2b7f5",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-07-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-08.zip",
+        "rows": 744,
+        "sha256": "927a92e9c381729b063cbe89a4a8bca10898aca61e1a6919a016ea7eb959304f",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-08-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-09.zip",
+        "rows": 720,
+        "sha256": "054d3296f060a815d7ad5c6485d4883430dad0fc08e78f0be10df66884620eed",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-09-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-10.zip",
+        "rows": 744,
+        "sha256": "dfc624a65e466abc9698c1d153843d78f1df449107bce97c5215525417fa3718",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-10-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-11.zip",
+        "rows": 720,
+        "sha256": "f9f9497753bd5d1df5a2a59ee5dfe07edd79f2be7aaa14a5371511a464fa2495",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-11-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2022-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2022-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2022-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-12.zip",
+        "rows": 744,
+        "sha256": "acc9f21b1ed51b5f4cc2978ee95a0e50ffea7891cd1037a01c8c88c4e71a7104",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2022-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2022-12-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-01-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-01",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-01.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-01.zip",
+        "rows": 744,
+        "sha256": "4d7ad8f2cc41682200d6e8d1ab6088219e302b3a356f9997c19395b0208497b5",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-01.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-01-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-02-28T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-02",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-02.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-02.zip",
+        "rows": 672,
+        "sha256": "0e15c412a2a14f40e67c12b5546ef736f88d045815e68341f1f5a567cc428ac6",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-02.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-02-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-03-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-03",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-03.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-03.zip",
+        "rows": 743,
+        "sha256": "55bba490654b69c26cc1989f17902737535682f70491132f66246fbea3b7017a",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-03.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-03-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-04-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-04",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-04.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-04.zip",
+        "rows": 720,
+        "sha256": "d45f37c1f4c7bce00774074ab01c5f385ba150e28e5cb0c84a73371d2042c313",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-04.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-04-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-05-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-05",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-05.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-05.zip",
+        "rows": 744,
+        "sha256": "882253ca7518d2b5cebdc388b6e8cf5a1c19d180e629f848d201c5bda54c46c3",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-05.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-05-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-06-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-06",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-06.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-06.zip",
+        "rows": 720,
+        "sha256": "27607d49c36f479d582801faa9b8eb698b79032ca4aac69d65c720eeca6cf122",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-06.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-06-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-07-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-07",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-07.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-07.zip",
+        "rows": 744,
+        "sha256": "7bfa51be86f9822859af309dc579134089c2e8040a9f66503be0d5cd96499060",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-07.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-07-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-08-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-08",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-08.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-08.zip",
+        "rows": 744,
+        "sha256": "5eebe4ec692c43e9bc8722632da94cd79187aa17b848da9361656ce0be430bd0",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-08.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-08-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-09-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-09",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-09.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-09.zip",
+        "rows": 720,
+        "sha256": "159a99069e8826ee23aca59b5dc7864a083fe5a4d8b13f888b68dfaa4317816b",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-09.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-09-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-10-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-10",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-10.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-10.zip",
+        "rows": 744,
+        "sha256": "65e6c269037fb53ed74b9cd03219a42d98dff1d48cffde8307e9d9c73dfce63b",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-10.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-10-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-11-30T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-11",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-11.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-11.zip",
+        "rows": 720,
+        "sha256": "486035abf6083f90e53e0c49e0fa829d0380d174a65ea6e8bb9066f76b139554",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-11.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-11-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      },
+      {
+        "end": "2023-12-31T23:00:00+00:00",
+        "format": "binance-vision-monthly-zip-csv",
+        "month": "2023-12",
+        "origin_url": "https://data.binance.vision/data/spot/monthly/klines/BNBUSDT/1h/BNBUSDT-1h-2023-12.zip",
+        "path": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-12.zip",
+        "rows": 744,
+        "sha256": "9153d4b7bf9e5cc6c49857b65ad7a3566faf525774deb0336aad1af9b44bd639",
+        "sidecar": "D:/Workspaces/besttime-crypto/data/historical/neural_n1/raw/binance_spot_klines_1h/BNBUSDT/BNBUSDT-1h-2023-12.zip.sha256",
+        "sidecar_verified": true,
+        "source": "Binance Spot public data archive",
+        "start": "2023-12-01T00:00:00+00:00",
+        "symbol": "BNBUSDT"
+      }
+    ]
+  },
+  "synthetic_negative_tests": {
+    "A": true,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true,
+    "F": true,
+    "G": true
+  },
+  "technical_readiness": {
+    "2023_COMMON_SAMPLE_COVERAGE": "PASS",
+    "FEATURE_CAUSALITY": "PASS",
+    "FEATURE_COMPLETENESS": "PASS",
+    "FOLD_PURGING": "PASS",
+    "LABEL_AVAILABILITY": "PASS",
+    "LABEL_FEASIBILITY": "PASS",
+    "NO_2024_2026_ACCESS": "PASS",
+    "OHLCV_INTEGRITY": "PASS",
+    "RAW_SOURCE_PROVENANCE": "PASS",
+    "SIGMA_WARMUP": "PASS",
+    "UTC_CALENDAR_ALIGNMENT": "PASS"
+  },
+  "verdict": "DATASET_READY"
+}
