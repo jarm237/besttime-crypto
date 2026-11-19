@@ -1,0 +1,25 @@
+{
+  "experiment_name": "TRACK_A_V1_DONCHIAN_STEP",
+  "universe": [
+    "BTCUSDT",
+    "CASH_USDT"
+  ],
+  "lookback_horizons": [
+    20,
+    55,
+    90
+  ],
+  "no_trade_band": 0.2,
+  "two_day_confirmation": true,
+  "initial_capital": 10000.0,
+  "start_timestamp_utc": "2022-01-01T00:00:00+00:00",
+  "end_timestamp_utc": "2026-11-18T23:00:00+00:00",
+  "cost_scenarios_bps": [
+    12.0,
+    20.0,
+    30.0,
+    50.0
+  ],
+  "primary_cost_bps": 30.0,
+  "execution_clock": "00:00 UTC decision, 01:00 UTC execution"
+}
