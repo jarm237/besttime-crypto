@@ -1,0 +1,60 @@
+{
+  "manifest_version": "1.0",
+  "created_at_utc": "2026-11-19T17:33:43.746536+00:00",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "data_source": "Binance Spot Audited Hourly Archives (Aggregated Causal Daily)",
+  "chronological_splits": {
+    "WARMUP": {
+      "window": [
+        "2021-01-01",
+        "2021-12-31"
+      ],
+      "purpose": "Feature initialization & lookback stabilization",
+      "days": 365
+    },
+    "TRAIN": {
+      "window": [
+        "2022-01-01",
+        "2023-12-31"
+      ],
+      "purpose": "Model fitting & feature scaling fit",
+      "days": 730
+    },
+    "VALIDATION": {
+      "window": [
+        "2024-01-01",
+        "2024-12-31"
+      ],
+      "purpose": "Hyperparameter check & checkpoint selection",
+      "days": 366
+    },
+    "REUSED_TEST": {
+      "window": [
+        "2025-01-01",
+        "2026-11-18"
+      ],
+      "purpose": "Final historical diagnostic (explicitly reused historical window)",
+      "days": 687
+    },
+    "FULL_DIAGNOSTIC": {
+      "window": [
+        "2022-01-01",
+        "2026-11-18"
+      ],
+      "purpose": "Continuous cumulative evaluation 2022-2026",
+      "days": 1783
+    }
+  },
+  "leakage_controls": [
+    "No random shuffle across time.",
+    "Feature scaling fit strictly on TRAIN (2022-2023).",
+    "Point-in-Time causal availability: Decision on Day D observes candles up to Day D-1.",
+    "Execution timestamp at 01:00 UTC on Day D.",
+    "Independent accounting starting at 10,000 USDT for each split window."
+  ]
+}
