@@ -5,12 +5,18 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from btc_scraper.research.s5_economic_replay import solve_post_fee_equity
+from btc_scraper.research.s5_economic_replay import solve_post_fee_equity, compute_market_trend_168h
+from btc_scraper.research.s4_dataset_audit import UNIVERSE
 from btc_scraper.research.track_a_strategy import (
+    DailySignalRecord,
     build_btc_daily_candles,
+    compute_performance_metrics,
     compute_track_a_signals,
     run_btc_buy_and_hold_replay,
+    run_s5_daily_trend_replay,
     run_track_a_replay,
+    verify_replay_accounting_integrity,
+    verify_replay_causal_integrity,
 )
 
 
@@ -151,3 +157,147 @@ def test_no_trade_buffer_and_execution_clock():
     # Deviation is 0.15 - 0.0 = 0.15 <= 0.20 -> No trade triggered!
     assert len(res.trade_events) == 0
     assert res.equities[-1] == 10000.0
+
+
+def test_standardized_turnover_formula():
+    """Verify annualized turnover matches sum(traded_notional / pre_equity) / years."""
+    equities = np.array([10000.0, 10000.0, 10500.0, 11000.0])
+    cash_history = np.array([10000.0, 0.0, 0.0, 0.0])
+    turnovers = np.array([0.0, 0.997, 0.0, 0.0])
+    fees = np.array([0.0, 30.0, 0.0, 0.0])
+    trade_events = [{"trade_notional": 9970.0, "fee": 30.0}]
+    start_dt = pd.Timestamp("2022-01-01 00:00:00", tz="UTC")
+    end_dt = pd.Timestamp("2023-01-01 00:00:00", tz="UTC")
+    timestamps = [
+        pd.Timestamp("2022-01-01 00:00:00", tz="UTC"),
+        pd.Timestamp("2022-01-01 01:00:00", tz="UTC"),
+        pd.Timestamp("2022-06-01 00:00:00", tz="UTC"),
+        pd.Timestamp("2023-01-01 00:00:00", tz="UTC"),
+    ]
+
+    metrics = compute_performance_metrics(
+        equities=equities,
+        cash_history=cash_history,
+        turnovers=turnovers,
+        fees=fees,
+        trade_events=trade_events,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        initial_capital=10000.0,
+        timestamps=timestamps,
+    )
+
+    total_days = (end_dt - start_dt).total_seconds() / 86400.0
+    expected_years = total_days / 365.25
+    expected_turnover = float(np.sum(turnovers)) / expected_years
+    assert abs(metrics.annualized_turnover - expected_turnover) < 1e-6
+    assert metrics.total_traded_notional == 9970.0
+
+
+def test_s5_daily_trend_calendar_lookback_and_gap_handling():
+    """Verify S5 baseline detects missing hours in 168h window and triggers HOLD_DATA_GAP."""
+    # Create 10 days of hourly data (240 hours) for all 4 assets
+    dates = pd.date_range("2022-01-01 00:00:00", periods=240, freq="h", tz="UTC")
+    # Simulate a 1-hour gap at hour 100
+    dates_with_gap = dates.delete(100)
+
+    panels = {}
+    for s in UNIVERSE:
+        panels[s] = pd.DataFrame({
+            "open": np.full(len(dates_with_gap), 100.0),
+            "high": np.full(len(dates_with_gap), 105.0),
+            "low": np.full(len(dates_with_gap), 95.0),
+            "close": np.full(len(dates_with_gap), 100.0),
+            "volume": np.full(len(dates_with_gap), 1000.0),
+            "open_time_ms": [int(d.timestamp() * 1000) for d in dates_with_gap],
+        }, index=dates_with_gap)
+
+    # Decision at hour 120 (day 5 00:00 UTC):
+    # Cutoff is hour 119. Lookback 168h starts at hour 119 - 168 = negative (before start).
+    # Decision at hour 192 (day 8 00:00 UTC):
+    # Cutoff is hour 191. Lookback 168h covers hour 23 to hour 191 (contains missing hour 100!).
+    d_ts_day8 = dates[192]
+    val = compute_market_trend_168h(panels, d_ts_day8)
+    assert val is None, "Expected None due to missing hour in calendar lookback window"
+
+    res = run_s5_daily_trend_replay(
+        panels=panels,
+        start_dt=dates[0],
+        end_dt=dates[-1],
+        initial_capital=10000.0,
+        fee_bps=30.0,
+    )
+    # Check that HOLD_DATA_GAP was logged in decision ledger when gap was active
+    gap_actions = [e for e in res.decision_ledger if e["action"] == "HOLD_DATA_GAP"]
+    assert len(gap_actions) > 0, "Expected at least one HOLD_DATA_GAP entry in decision ledger"
+
+
+def test_integrity_assertions_detect_violations():
+    """Verify that dynamic integrity checkers catch runtime accounting and causal violations."""
+    # Valid setup
+    dates = pd.date_range("2022-01-01 00:00:00", periods=48, freq="h", tz="UTC")
+    prices = np.full(48, 1000.0)
+    df_hourly = pd.DataFrame({
+        "open": prices,
+        "high": prices + 5,
+        "low": prices - 5,
+        "close": prices,
+        "volume": 100.0,
+        "open_time_ms": [int(d.timestamp() * 1000) for d in dates],
+    }, index=dates)
+
+    signals = {
+        dates[0]: DailySignalRecord(
+            decision_dt=dates[0],
+            candle_dt=dates[0] - pd.Timedelta(days=1),
+            close_price=1000.0,
+            state_20=1, state_55=1, state_90=1,
+            raw_exposure=1.0, approved_exposure=1.0, confirmed=True,
+        ),
+        dates[24]: DailySignalRecord(
+            decision_dt=dates[24],
+            candle_dt=dates[24] - pd.Timedelta(days=1),
+            close_price=1000.0,
+            state_20=1, state_55=1, state_90=1,
+            raw_exposure=1.0, approved_exposure=1.0, confirmed=True,
+        ),
+    }
+
+    res = run_track_a_replay(
+        btc_hourly=df_hourly,
+        signals=signals,
+        start_dt=dates[0],
+        end_dt=dates[-1],
+        initial_capital=10000.0,
+        fee_bps=30.0,
+        no_trade_band=0.20,
+    )
+
+    # Valid check
+    acc_pass, acc_msg = verify_replay_accounting_integrity(res)
+    assert acc_pass is True
+    assert acc_msg == "PASS"
+
+    causal_pass, causal_msg = verify_replay_causal_integrity(res)
+    assert causal_pass is True
+    assert causal_msg == "PASS"
+
+    # Test accounting violation: corrupted negative cash
+    res.cash_history[5] = -100.0
+    bad_acc_pass, bad_acc_msg = verify_replay_accounting_integrity(res)
+    assert bad_acc_pass is False
+    assert "Negative cash balance" in bad_acc_msg
+
+    # Restore cash, corrupt trade event fee
+    res.cash_history[5] = 0.0
+    res.trade_events[0]["fee"] = -5.0
+    bad_fee_pass, bad_fee_msg = verify_replay_accounting_integrity(res)
+    assert bad_fee_pass is False
+    assert "Negative fee" in bad_fee_msg
+
+    # Test causal violation: corrupt execution timestamp to precede decision
+    res.decision_ledger[0]["execution_timestamp"] = dates[0].isoformat()  # hour 0 instead of hour 1
+    bad_causal_pass, bad_causal_msg = verify_replay_causal_integrity(res)
+    assert bad_causal_pass is False
+    assert "strictly succeed" in bad_causal_msg or "Execution hour is 0" in bad_causal_msg
+

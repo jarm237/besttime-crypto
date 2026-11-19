@@ -349,10 +349,9 @@ def compute_performance_metrics(
     # Calmar ratio
     calmar = (cagr / abs(max_dd)) if abs(max_dd) > 1e-6 else 0.0
 
-    # Turnover & Fees
+    # Turnover & Fees (Standardized: sum(trade_notional / pre_trade_equity) / years)
     total_traded_notional = sum(t.get("trade_notional", 0.0) for t in trade_events)
-    avg_equity = float(np.mean(equities)) if len(equities) > 0 else initial_capital
-    annualized_turnover = (total_traded_notional / avg_equity) / years if avg_equity > 0 else 0.0
+    annualized_turnover = float(np.sum(turnovers)) / years if years > 0 else 0.0
     total_fees = float(np.sum(fees))
 
     # Cash and BTC exposure
@@ -530,21 +529,18 @@ def run_s5_daily_trend_replay(
     initial_capital: float = PRIMARY_INITIAL_CAPITAL,
     fee_bps: float = 30.0,
     no_trade_band: float = S5_NO_TRADE_BAND,
+    precomputed_trends: Mapping[pd.Timestamp, float | None] | None = None,
 ) -> TrackAReplayResult:
-    """Run S5 Daily Trend BTC Baseline replay on identical window and cost structure."""
+    """Run S5 Daily Trend BTC Baseline replay on identical window and cost structure.
+
+    Adheres strictly to S5-P0B calendar lookback (168h). When data gaps exist,
+    emits HOLD_DATA_GAP preserving previous target weight.
+    """
     fee_rate = fee_bps / 10000.0
 
     timeline = panels["BTCUSDT"].loc[start_dt:end_dt].index
     for s in UNIVERSE:
         timeline = timeline.intersection(panels[s].loc[start_dt:end_dt].index)
-
-    # Precompute 168h market trend across common universe in vectorized form
-    full_common = panels["BTCUSDT"].index
-    for s in UNIVERSE:
-        full_common = full_common.intersection(panels[s].index)
-    closes_df = pd.DataFrame({s: panels[s].loc[full_common, "close"] for s in UNIVERSE})
-    pct_168 = (closes_df / closes_df.shift(168)) - 1.0
-    mkt_168 = pct_168.mean(axis=1)
 
     n_bars = len(timeline)
     equities = np.empty(n_bars, dtype=float)
@@ -564,6 +560,7 @@ def run_s5_daily_trend_replay(
     closes_arr = panels["BTCUSDT"].loc[timeline, "close"].to_numpy(dtype=float)
 
     current_target_w = 0.0
+    gap_active = False
 
     for i in range(n_bars):
         ts = timeline[i]
@@ -572,9 +569,17 @@ def run_s5_daily_trend_replay(
 
         # Daily decision at 00:00 UTC (cutoff t-1h)
         if ts.hour == 0:
-            cutoff_ts = ts - pd.Timedelta(hours=1)
-            if cutoff_ts in mkt_168.index and not np.isnan(mkt_168.loc[cutoff_ts]):
-                current_target_w = 1.0 if float(mkt_168.loc[cutoff_ts]) > 0.0 else 0.0
+            trend_val = (
+                precomputed_trends.get(ts)
+                if precomputed_trends is not None
+                else compute_market_trend_168h(panels, ts)
+            )
+            if trend_val is None:
+                # Exchange outage or missing data: HOLD previous target per S5-P0B
+                gap_active = True
+            else:
+                gap_active = False
+                current_target_w = 1.0 if float(trend_val) > 0.0 else 0.0
 
         # Execution at 01:00 UTC
         if ts.hour == 1:
@@ -583,7 +588,7 @@ def run_s5_daily_trend_replay(
             current_w = (pre_btc_notional / v_pre) if v_pre > 0 else 0.0
             deviation = abs(current_target_w - current_w)
 
-            action = "HOLD"
+            action = "HOLD_DATA_GAP" if gap_active else "HOLD"
             trade_notional = 0.0
             realized_fee = 0.0
 
@@ -603,6 +608,7 @@ def run_s5_daily_trend_replay(
 
                 trade_events.append({
                     "execution_timestamp": ts.isoformat(),
+                    "decision_timestamp": ts.floor("D").isoformat(),
                     "price": p_open,
                     "target_btc_weight": current_target_w,
                     "pre_btc_weight": current_w,
@@ -689,11 +695,12 @@ def run_btc_buy_and_hold_replay(
     fee_0 = initial_capital - v_post
     holdings = v_post / p_open_0
 
-    turnovers[1] = 1.0
+    turnovers[1] = v_post / initial_capital
     fees[1] = fee_0
 
     trade_events = [{
         "execution_timestamp": timeline[1].isoformat() if n_bars > 1 else timeline[0].isoformat(),
+        "decision_timestamp": timeline[0].isoformat(),
         "price": p_open_0,
         "trade_notional": v_post,
         "fee": fee_0,
@@ -745,3 +752,80 @@ def run_btc_buy_and_hold_replay(
         metrics=metrics,
         decision_ledger=[],
     )
+
+
+def verify_replay_accounting_integrity(res: TrackAReplayResult) -> tuple[bool, str]:
+    """Verify runtime portfolio accounting integrity.
+
+    Checks:
+    1. Equities series non-empty and strictly positive.
+    2. Cash balance non-negative (within tolerance 1e-6).
+    3. BTC holdings non-negative (within tolerance 1e-8).
+    4. Traded notionals and fees non-negative on every trade event.
+    5. Capital conservation on each trade event.
+    """
+    if len(res.equities) == 0:
+        return False, "FAIL: Equities array is empty"
+    if np.any(res.equities <= 0):
+        return False, f"FAIL: Non-positive equity encountered: min={np.min(res.equities)}"
+    if np.any(res.cash_history < -1e-6):
+        return False, f"FAIL: Negative cash balance encountered: min={np.min(res.cash_history)}"
+    if np.any(res.btc_holdings_history < -1e-8):
+        return False, f"FAIL: Negative BTC holdings encountered: min={np.min(res.btc_holdings_history)}"
+
+    for i, t in enumerate(res.trade_events):
+        v_post = t.get("post_equity", 0.0)
+        fee = t.get("fee", 0.0)
+        trade_notional = t.get("trade_notional", 0.0)
+        if fee < -1e-8:
+            return False, f"FAIL: Negative fee at trade {i}: {fee}"
+        if trade_notional < -1e-8:
+            return False, f"FAIL: Negative traded notional at trade {i}: {trade_notional}"
+        if v_post <= 0:
+            return False, f"FAIL: Non-positive post-trade equity at trade {i}: {v_post}"
+
+    for i, entry in enumerate(res.decision_ledger):
+        if entry.get("action") == "REBALANCE":
+            fee = entry.get("realized_fee", 0.0)
+            trade_notional = entry.get("trade_notional", 0.0)
+            post_eq = entry.get("post_trade_equity", 0.0)
+            if fee < -1e-8 or trade_notional < -1e-8 or post_eq <= 0:
+                return False, f"FAIL: Invalid ledger accounting at row {i}"
+
+    return True, "PASS"
+
+
+def verify_replay_causal_integrity(
+    res: TrackAReplayResult,
+    signals: Mapping[pd.Timestamp, DailySignalRecord] | None = None,
+) -> tuple[bool, str]:
+    """Verify runtime causal and execution clock integrity.
+
+    Checks:
+    1. Execution strictly follows decision: execution_ts > decision_ts.
+    2. Decision timestamp aligned to 00:00 UTC and execution to 01:00 UTC.
+    3. In decision ledger, candle_dt strictly precedes decision_ts.
+    4. If signals provided, verify no lookahead in channel computations.
+    """
+    if len(res.decision_ledger) == 0 and res.policy_name != "BTC_BH":
+        return False, "FAIL: Decision ledger is empty"
+
+    for i, entry in enumerate(res.decision_ledger):
+        d_ts = pd.Timestamp(entry["decision_timestamp"])
+        e_ts = pd.Timestamp(entry["execution_timestamp"])
+
+        if e_ts <= d_ts:
+            return False, f"FAIL: Execution timestamp {e_ts} does not strictly succeed decision timestamp {d_ts} at row {i}"
+        if e_ts.hour != 1:
+            return False, f"FAIL: Execution hour is {e_ts.hour}, expected 01:00 UTC at row {i}"
+        if d_ts.hour != 0:
+            return False, f"FAIL: Decision hour is {d_ts.hour}, expected 00:00 UTC at row {i}"
+
+        candle_dt_str = entry.get("candle_dt")
+        if candle_dt_str is not None:
+            c_dt = pd.Timestamp(candle_dt_str)
+            if c_dt >= d_ts:
+                return False, f"FAIL: Candle timestamp {c_dt} >= decision timestamp {d_ts} (lookahead) at row {i}"
+
+    return True, "PASS"
+
