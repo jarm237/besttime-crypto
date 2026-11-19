@@ -249,24 +249,59 @@ def causal_differentiable_rollout(
     return loss, metrics
 
 
-def compute_holding_period_returns(btc_hourly: pd.DataFrame, daily_dates: Sequence[pd.Timestamp]) -> pd.Series:
-    """Compute exact holding period return from Day D execution (01:00 UTC) to Day D+1 execution (01:00 UTC)."""
-    returns = []
-    for i in range(len(daily_dates) - 1):
-        dt_curr = daily_dates[i]
-        dt_next = daily_dates[i + 1]
-        exec_curr_ts = dt_curr + pd.Timedelta(hours=1)
-        exec_next_ts = dt_next + pd.Timedelta(hours=1)
+def compute_holding_period_returns(
+    btc_hourly: pd.DataFrame,
+    daily_dates: Sequence[pd.Timestamp],
+    max_boundary_ts: pd.Timestamp | None = None,
+) -> pd.Series:
+    """Compute exact holding period return from Day D execution (01:00 UTC) to Day D+1 execution (01:00 UTC).
 
-        p_curr = btc_hourly.loc[exec_curr_ts, "open"] if exec_curr_ts in btc_hourly.index else btc_hourly.loc[dt_curr, "close"]
-        p_next = btc_hourly.loc[exec_next_ts, "open"] if exec_next_ts in btc_hourly.index else btc_hourly.loc[dt_next, "close"]
+    Strict Causal Integrity Rules:
+    1. Fails closed if execution prices at 01:00 UTC are missing within the active timeline.
+    2. Drops the terminal dataset date when Day D+1 01:00 UTC does not exist (no synthetic 0.0 padding).
+    3. Purges samples where next execution price exceeds max_boundary_ts.
+    """
+    valid_dates: list[pd.Timestamp] = []
+    returns: list[float] = []
+
+    dataset_max_ts = btc_hourly.index.max()
+
+    for i in range(len(daily_dates)):
+        dt_curr = daily_dates[i]
+        exec_curr_ts = dt_curr + pd.Timedelta(hours=1)
+        exec_next_ts = dt_curr + pd.Timedelta(days=1, hours=1)
+
+        # Purge if exceeding explicit boundary
+        if max_boundary_ts is not None and exec_next_ts > max_boundary_ts:
+            continue
+
+        # Terminal dataset boundary: if next execution does not exist in dataset, drop sample (no synthetic zero)
+        if exec_next_ts > dataset_max_ts:
+            continue
+
+        # Fail closed on missing execution prices within the series
+        if exec_curr_ts not in btc_hourly.index:
+            raise ValueError(
+                f"Missing execution price at {exec_curr_ts}. Strict execution convention fails closed; "
+                "silent fallback to daily close is prohibited."
+            )
+        if exec_next_ts not in btc_hourly.index:
+            raise ValueError(
+                f"Missing next execution price at {exec_next_ts}. Strict execution convention fails closed; "
+                "silent fallback to daily close is prohibited."
+            )
+
+        p_curr = float(btc_hourly.loc[exec_curr_ts, "open"])
+        p_next = float(btc_hourly.loc[exec_next_ts, "open"])
+
+        if p_curr <= 0.0 or p_next <= 0.0:
+            raise ValueError(f"Non-positive execution price detected: p_curr={p_curr}, p_next={p_next} at {dt_curr}")
 
         ret = (p_next - p_curr) / p_curr
+        valid_dates.append(dt_curr)
         returns.append(ret)
 
-    # For the last bar, return 0.0
-    returns.append(0.0)
-    return pd.Series(returns, index=daily_dates, dtype=float)
+    return pd.Series(returns, index=valid_dates, dtype=float)
 
 
 def train_learned_policy(
@@ -281,18 +316,52 @@ def train_learned_policy(
     epochs: int = 80,
     lr: float = 1e-3,
 ) -> tuple[CompactUnifiedPolicy, dict[str, Any]]:
-    """Train compact policy with early stopping on validation wealth/Calmar."""
+    """Train compact policy with early stopping on validation wealth/Calmar.
+
+    Boundary Purging:
+    - Training labels: next execution timestamp must not exceed train_end (2023-12-31 23:59:59 UTC).
+      Decisions on 2023-12-31 whose next execution is 2024-01-01 01:00 UTC are strictly purged.
+    - Validation selection labels: next execution timestamp must not exceed val_end (2024-12-31 23:59:59 UTC).
+      Decisions on 2024-12-31 whose next execution is 2025-01-01 01:00 UTC (reused test) are strictly purged.
+    """
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    train_mask = (features_df.index >= train_start) & (features_df.index <= train_end)
-    val_mask = (features_df.index >= val_start) & (features_df.index <= val_end)
+    # Filter features and forward returns to common valid dates
+    common_idx = features_df.index.intersection(fwd_returns_s.index)
+    idx_tz = common_idx.tz if hasattr(common_idx, "tz") else None
 
-    X_train = scaler.transform(features_df.loc[train_mask])
-    y_train = fwd_returns_s.loc[train_mask].to_numpy(dtype=np.float32)
+    def _to_bound(val: str, is_end: bool) -> pd.Timestamp:
+        s = f"{val} 23:59:59" if is_end else f"{val} 00:00:00"
+        ts = pd.Timestamp(s)
+        if idx_tz is not None and ts.tzinfo is None:
+            ts = ts.tz_localize(idx_tz)
+        elif idx_tz is None and ts.tzinfo is not None:
+            ts = ts.tz_localize(None)
+        return ts
 
-    X_val = scaler.transform(features_df.loc[val_mask])
-    y_val = fwd_returns_s.loc[val_mask].to_numpy(dtype=np.float32)
+    train_start_ts = _to_bound(train_start, False)
+    train_end_boundary = _to_bound(train_end, True)
+    val_start_ts = _to_bound(val_start, False)
+    val_end_boundary = _to_bound(val_end, True)
+
+    # Train mask with boundary purge
+    train_dates = [
+        d for d in common_idx
+        if (d >= train_start_ts) and (d <= train_end_boundary) and ((d + pd.Timedelta(days=1, hours=1)) <= train_end_boundary)
+    ]
+
+    # Validation selection mask with boundary purge (no reused test prices)
+    val_dates = [
+        d for d in common_idx
+        if (d >= val_start_ts) and (d <= val_end_boundary) and ((d + pd.Timedelta(days=1, hours=1)) <= val_end_boundary)
+    ]
+
+    X_train = scaler.transform(features_df.loc[train_dates])
+    y_train = fwd_returns_s.loc[train_dates].to_numpy(dtype=np.float32)
+
+    X_val = scaler.transform(features_df.loc[val_dates])
+    y_val = fwd_returns_s.loc[val_dates].to_numpy(dtype=np.float32)
 
     t_X_train = torch.tensor(X_train, dtype=torch.float32)
     t_y_train = torch.tensor(y_train, dtype=torch.float32)
@@ -344,6 +413,10 @@ def train_learned_policy(
         "best_val_growth": best_val_growth,
         "history": history,
         "seed": seed,
+        "train_samples_count": len(train_dates),
+        "val_samples_count": len(val_dates),
+        "train_last_date": str(train_dates[-1].date()) if train_dates else None,
+        "val_last_date": str(val_dates[-1].date()) if val_dates else None,
     }
     return policy, meta
 
@@ -432,10 +505,16 @@ def run_learned_policy_replay(
 
                 trade_events.append({
                     "ts": ts,
+                    "execution_timestamp": ts.isoformat(),
                     "action": action,
+                    "price": p_open,
                     "p_exec": p_open,
+                    "trade_notional": traded_notional,
                     "traded_notional": traded_notional,
                     "fee": realized_fee,
+                    "pre_cash": cash,
+                    "pre_holdings": holdings,
+                    "v_pre": v_pre,
                     "post_cash": cash,
                     "post_holdings": holdings,
                     "v_post": v_post,
@@ -444,11 +523,13 @@ def run_learned_policy_replay(
 
             decision_ledger.append({
                 "ts": ts,
+                "execution_timestamp": ts.isoformat(),
                 "p_open": p_open,
                 "current_w": current_w,
                 "target_w": target_w,
                 "deviation": deviation,
                 "action": action,
+                "trade_notional": traded_notional,
                 "traded_notional": traded_notional,
                 "fee": realized_fee,
                 "post_cash": cash,
@@ -499,4 +580,309 @@ def run_learned_policy_replay(
         trade_events=trade_events,
         metrics=metrics,
         decision_ledger=decision_ledger,
+    )
+
+
+def verify_trade_events_accounting(
+    trade_events: list[dict[str, Any]],
+    turnovers: np.ndarray,
+    fees: np.ndarray,
+    metrics: StrategyMetrics,
+    fee_bps: float = 30.0,
+    tolerance: float = 1e-4,
+) -> dict[str, Any]:
+    """Verify total notional, fees, and exact capital conservation from actual trade events."""
+    fee_rate = fee_bps / 10000.0
+    conservation_errors = []
+    fee_errors = []
+
+    total_event_notional = 0.0
+    total_event_fees = 0.0
+
+    for idx, event in enumerate(trade_events):
+        v_pre = event.get("v_pre", 0.0)
+        v_post = event.get("v_post", 0.0)
+        fee = event.get("fee", 0.0)
+        trade_notional = event.get("trade_notional", event.get("traded_notional", 0.0))
+        post_cash = event.get("post_cash", 0.0)
+
+        total_event_notional += trade_notional
+        total_event_fees += fee
+
+        # 1. Capital conservation: V_post == V_pre - fee
+        diff_conservation = abs(v_post - (v_pre - fee))
+        if diff_conservation > tolerance:
+            conservation_errors.append(
+                f"Event {idx} ({event.get('ts')}): V_post ({v_post:.4f}) != V_pre - fee ({v_pre - fee:.4f}), diff={diff_conservation:.6f}"
+            )
+
+        # 2. Fee formula: fee == fee_rate * trade_notional
+        expected_fee = trade_notional * fee_rate
+        diff_fee = abs(fee - expected_fee)
+        if diff_fee > tolerance:
+            fee_errors.append(
+                f"Event {idx} ({event.get('ts')}): fee ({fee:.4f}) != fee_rate * notional ({expected_fee:.4f}), diff={diff_fee:.6f}"
+            )
+
+        # 3. Solvency: post_cash >= -1e-6
+        if post_cash < -tolerance:
+            conservation_errors.append(f"Event {idx}: negative cash {post_cash}")
+
+    # Check aggregate reconciliation
+    sum_fees_arr = float(np.sum(fees))
+    diff_total_fees = abs(total_event_fees - sum_fees_arr)
+    diff_metrics_fees = abs(metrics.total_fees - total_event_fees)
+    diff_metrics_notional = abs(metrics.total_traded_notional - total_event_notional)
+
+    all_passed = bool(
+        len(conservation_errors) == 0
+        and len(fee_errors) == 0
+        and diff_total_fees <= tolerance
+        and diff_metrics_fees <= tolerance
+        and diff_metrics_notional <= tolerance
+    )
+
+    return {
+        "passed": all_passed,
+        "conservation_errors": conservation_errors,
+        "fee_errors": fee_errors,
+        "total_event_notional": total_event_notional,
+        "metrics_total_traded_notional": metrics.total_traded_notional,
+        "total_event_fees": total_event_fees,
+        "metrics_total_fees": metrics.total_fees,
+    }
+
+
+def run_static_50_50_replay(
+    btc_hourly: pd.DataFrame,
+    start_dt: pd.Timestamp,
+    end_dt: pd.Timestamp,
+    initial_capital: float = PRIMARY_INITIAL_CAPITAL,
+    fee_bps: float = 30.0,
+) -> TrackAReplayResult:
+    """Run BTC 50% / Cash 50% static benchmark (initial purchase at 01:00 UTC, never rebalanced)."""
+    fee_rate = fee_bps / 10000.0
+    timeline = btc_hourly.loc[start_dt:end_dt].index
+    n_bars = len(timeline)
+
+    equities = np.empty(n_bars, dtype=float)
+    cash_hist = np.empty(n_bars, dtype=float)
+    holdings_hist = np.empty(n_bars, dtype=float)
+    weights_hist = np.empty(n_bars, dtype=float)
+    turnovers = np.zeros(n_bars, dtype=float)
+    fees = np.zeros(n_bars, dtype=float)
+
+    cash = float(initial_capital)
+    holdings = 0.0
+    trade_events: list[dict[str, Any]] = []
+
+    opens_arr = btc_hourly.loc[timeline, "open"].to_numpy(dtype=float)
+    closes_arr = btc_hourly.loc[timeline, "close"].to_numpy(dtype=float)
+
+    incepted = False
+
+    for i in range(n_bars):
+        ts = timeline[i]
+        p_open = opens_arr[i]
+        p_close = closes_arr[i]
+
+        # Initial allocation at first 01:00 UTC bar
+        if not incepted and ts.hour == 1:
+            v_pre = cash
+            v_post, realized_fee = solve_post_fee_equity(
+                v_pre, np.array([0.0]), np.array([0.50]), fee_rate
+            )
+            target_btc_notional = 0.50 * v_post
+            traded_notional = target_btc_notional
+            holdings = target_btc_notional / p_open
+            cash = 0.50 * v_post
+
+            turnovers[i] = traded_notional / v_pre if v_pre > 0 else 0.0
+            fees[i] = realized_fee
+
+            trade_events.append({
+                "ts": ts,
+                "execution_timestamp": ts.isoformat(),
+                "action": "INITIAL_ALLOCATION",
+                "price": p_open,
+                "p_exec": p_open,
+                "trade_notional": traded_notional,
+                "traded_notional": traded_notional,
+                "fee": realized_fee,
+                "v_pre": v_pre,
+                "post_cash": cash,
+                "post_holdings": holdings,
+                "v_post": v_post,
+            })
+            incepted = True
+
+        eq = cash + holdings * p_close
+        equities[i] = eq
+        cash_hist[i] = cash
+        holdings_hist[i] = holdings
+        weights_hist[i] = (holdings * p_close) / eq if eq > 0 else 0.0
+
+    metrics = compute_performance_metrics(
+        equities=equities,
+        cash_history=cash_hist,
+        turnovers=turnovers,
+        fees=fees,
+        trade_events=trade_events,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        initial_capital=initial_capital,
+        timestamps=list(timeline),
+    )
+
+    return TrackAReplayResult(
+        policy_name="BTC_50_50_STATIC",
+        fee_bps=fee_bps,
+        no_trade_band=0.0,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        timestamps=list(timeline),
+        equities=equities,
+        cash_history=cash_hist,
+        btc_holdings_history=holdings_hist,
+        btc_weights_history=weights_hist,
+        turnovers=turnovers,
+        fees=fees,
+        trade_events=trade_events,
+        metrics=metrics,
+        decision_ledger=[],
+    )
+
+
+def run_rebalanced_50_50_replay(
+    btc_hourly: pd.DataFrame,
+    start_dt: pd.Timestamp,
+    end_dt: pd.Timestamp,
+    initial_capital: float = PRIMARY_INITIAL_CAPITAL,
+    fee_bps: float = 30.0,
+    rebalance_band: float = 0.05,
+) -> TrackAReplayResult:
+    """Run BTC 50% / Cash 50% periodic rebalanced benchmark (rebalance when |w - 0.50| > 0.05 at 01:00 UTC)."""
+    fee_rate = fee_bps / 10000.0
+    timeline = btc_hourly.loc[start_dt:end_dt].index
+    n_bars = len(timeline)
+
+    equities = np.empty(n_bars, dtype=float)
+    cash_hist = np.empty(n_bars, dtype=float)
+    holdings_hist = np.empty(n_bars, dtype=float)
+    weights_hist = np.empty(n_bars, dtype=float)
+    turnovers = np.zeros(n_bars, dtype=float)
+    fees = np.zeros(n_bars, dtype=float)
+
+    cash = float(initial_capital)
+    holdings = 0.0
+    trade_events: list[dict[str, Any]] = []
+
+    opens_arr = btc_hourly.loc[timeline, "open"].to_numpy(dtype=float)
+    closes_arr = btc_hourly.loc[timeline, "close"].to_numpy(dtype=float)
+
+    incepted = False
+
+    for i in range(n_bars):
+        ts = timeline[i]
+        p_open = opens_arr[i]
+        p_close = closes_arr[i]
+
+        if ts.hour == 1:
+            if not incepted:
+                # Inception allocation to 50% BTC
+                v_pre = cash
+                v_post, realized_fee = solve_post_fee_equity(
+                    v_pre, np.array([0.0]), np.array([0.50]), fee_rate
+                )
+                target_btc_notional = 0.50 * v_post
+                traded_notional = target_btc_notional
+                holdings = target_btc_notional / p_open
+                cash = 0.50 * v_post
+
+                turnovers[i] = traded_notional / v_pre if v_pre > 0 else 0.0
+                fees[i] = realized_fee
+
+                trade_events.append({
+                    "ts": ts,
+                    "execution_timestamp": ts.isoformat(),
+                    "action": "INITIAL_ALLOCATION",
+                    "price": p_open,
+                    "p_exec": p_open,
+                    "trade_notional": traded_notional,
+                    "traded_notional": traded_notional,
+                    "fee": realized_fee,
+                    "v_pre": v_pre,
+                    "post_cash": cash,
+                    "post_holdings": holdings,
+                    "v_post": v_post,
+                })
+                incepted = True
+            else:
+                # Check rebalance condition
+                pre_btc_notional = holdings * p_open
+                v_pre = cash + pre_btc_notional
+                current_w = pre_btc_notional / v_pre if v_pre > 0 else 0.0
+                deviation = abs(0.50 - current_w)
+
+                if deviation > rebalance_band:
+                    v_post, realized_fee = solve_post_fee_equity(
+                        v_pre, np.array([pre_btc_notional]), np.array([0.50]), fee_rate
+                    )
+                    target_btc_notional = 0.50 * v_post
+                    traded_notional = abs(target_btc_notional - pre_btc_notional)
+                    holdings = target_btc_notional / p_open
+                    cash = 0.50 * v_post
+
+                    turnovers[i] = traded_notional / v_pre if v_pre > 0 else 0.0
+                    fees[i] = realized_fee
+
+                    trade_events.append({
+                        "ts": ts,
+                        "execution_timestamp": ts.isoformat(),
+                        "action": "REBALANCE_50_50",
+                        "price": p_open,
+                        "p_exec": p_open,
+                        "trade_notional": traded_notional,
+                        "traded_notional": traded_notional,
+                        "fee": realized_fee,
+                        "v_pre": v_pre,
+                        "post_cash": cash,
+                        "post_holdings": holdings,
+                        "v_post": v_post,
+                    })
+
+        eq = cash + holdings * p_close
+        equities[i] = eq
+        cash_hist[i] = cash
+        holdings_hist[i] = holdings
+        weights_hist[i] = (holdings * p_close) / eq if eq > 0 else 0.0
+
+    metrics = compute_performance_metrics(
+        equities=equities,
+        cash_history=cash_hist,
+        turnovers=turnovers,
+        fees=fees,
+        trade_events=trade_events,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        initial_capital=initial_capital,
+        timestamps=list(timeline),
+    )
+
+    return TrackAReplayResult(
+        policy_name="BTC_50_50_REBALANCED",
+        fee_bps=fee_bps,
+        no_trade_band=rebalance_band,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        timestamps=list(timeline),
+        equities=equities,
+        cash_history=cash_hist,
+        btc_holdings_history=holdings_hist,
+        btc_weights_history=weights_hist,
+        turnovers=turnovers,
+        fees=fees,
+        trade_events=trade_events,
+        metrics=metrics,
+        decision_ledger=[],
     )

@@ -19,8 +19,13 @@ from btc_scraper.research.learned_policy_v1 import (
     CompactUnifiedPolicy,
     TrainFittedScaler,
     build_daily_candles,
+    compute_holding_period_returns,
     extract_causal_features,
     run_learned_policy_replay,
+    run_rebalanced_50_50_replay,
+    run_static_50_50_replay,
+    train_learned_policy,
+    verify_trade_events_accounting,
 )
 from btc_scraper.research.track_a_strategy import PRIMARY_INITIAL_CAPITAL
 
@@ -136,3 +141,190 @@ def test_learned_replay_no_negative_cash_and_capital_conservation():
     assert "calmar" in scorecard
     assert "sharpe" in scorecard
     assert "annualized_turnover" in scorecard
+
+
+def test_purge_training_and_validation_boundary_labels():
+    """Verify that training and validation labels never cross into subsequent splits."""
+    # Create 4 years of daily dates spanning 2022 to 2025
+    daily_dates = pd.date_range("2022-01-01", "2025-01-10", freq="D", tz="UTC")
+    # Hourly panel covering same period
+    hourly_dates = pd.date_range("2022-01-01 00:00:00", "2025-01-10 23:00:00", freq="1h", tz="UTC")
+    closes = 40000.0 * np.cumprod(1.0 + np.random.normal(0.0001, 0.001, len(hourly_dates)))
+    btc_hourly = pd.DataFrame({
+        "open": closes * 0.999,
+        "high": closes * 1.001,
+        "low": closes * 0.998,
+        "close": closes,
+        "volume": 100.0,
+        "open_time_ms": hourly_dates.astype(np.int64) // 1000000,
+    }, index=hourly_dates)
+
+    fwd_returns = compute_holding_period_returns(btc_hourly, daily_dates)
+
+    # 1. Train window boundary check:
+    train_start_ts = pd.Timestamp("2022-01-01", tz="UTC")
+    train_end_boundary = pd.Timestamp("2023-12-31 23:59:59", tz="UTC")
+    train_dates = [
+        d for d in fwd_returns.index
+        if (d >= train_start_ts) and (d <= train_end_boundary) and ((d + pd.Timedelta(days=1, hours=1)) <= train_end_boundary)
+    ]
+    assert train_dates[-1] == pd.Timestamp("2023-12-30", tz="UTC"), (
+        f"Train last date must be 2023-12-30, got {train_dates[-1]}"
+    )
+    # Next execution for 2023-12-30 is 2023-12-31 01:00 UTC (strictly within Train)
+    assert train_dates[-1] + pd.Timedelta(days=1, hours=1) <= train_end_boundary
+
+    # Negative check: 2023-12-31 must be excluded from train
+    assert pd.Timestamp("2023-12-31", tz="UTC") not in train_dates
+
+    # 2. Validation selection boundary check:
+    val_start_ts = pd.Timestamp("2024-01-01", tz="UTC")
+    val_end_boundary = pd.Timestamp("2024-12-31 23:59:59", tz="UTC")
+    val_dates = [
+        d for d in fwd_returns.index
+        if (d >= val_start_ts) and (d <= val_end_boundary) and ((d + pd.Timedelta(days=1, hours=1)) <= val_end_boundary)
+    ]
+    assert val_dates[-1] == pd.Timestamp("2024-12-30", tz="UTC"), (
+        f"Validation selection last date must be 2024-12-30, got {val_dates[-1]}"
+    )
+    # Next execution for 2024-12-30 is 2024-12-31 01:00 UTC (strictly within Validation)
+    assert val_dates[-1] + pd.Timedelta(days=1, hours=1) <= val_end_boundary
+
+    # Negative check: 2024-12-31 must be excluded because next execution is 2025-01-01 (Reused Test)
+    assert pd.Timestamp("2024-12-31", tz="UTC") not in val_dates
+
+
+def test_terminal_boundary_no_synthetic_zero_padding():
+    """Verify that terminal dataset date without forward price is purged (no fake 0.0 return)."""
+    hourly_dates = pd.date_range("2024-01-01 00:00:00", "2024-01-05 23:00:00", freq="1h", tz="UTC")
+    btc_hourly = pd.DataFrame({
+        "open": 40000.0,
+        "high": 40100.0,
+        "low": 39900.0,
+        "close": 40000.0,
+        "volume": 10.0,
+        "open_time_ms": hourly_dates.astype(np.int64) // 1000000,
+    }, index=hourly_dates)
+
+    daily_dates = pd.date_range("2024-01-01", "2024-01-05", freq="D", tz="UTC")
+    fwd_returns = compute_holding_period_returns(btc_hourly, daily_dates)
+
+    # 2024-01-05 execution next would be 2024-01-06 01:00 UTC, which does not exist
+    # It must NOT be in fwd_returns and must NOT have synthetic 0.0
+    assert pd.Timestamp("2024-01-05", tz="UTC") not in fwd_returns.index
+    assert len(fwd_returns) == 4
+    assert pd.Timestamp("2024-01-04", tz="UTC") in fwd_returns.index
+
+
+def test_missing_execution_prices_fail_closed():
+    """Verify that missing execution prices at 01:00 UTC fail closed (raise ValueError)."""
+    hourly_dates = pd.date_range("2024-01-01 00:00:00", "2024-01-05 23:00:00", freq="1h", tz="UTC")
+    btc_hourly = pd.DataFrame({
+        "open": 40000.0,
+        "high": 40100.0,
+        "low": 39900.0,
+        "close": 40000.0,
+        "volume": 10.0,
+        "open_time_ms": hourly_dates.astype(np.int64) // 1000000,
+    }, index=hourly_dates)
+
+    # Negative case: Delete the 01:00 UTC execution candle on 2024-01-02
+    drop_ts = pd.Timestamp("2024-01-02 01:00:00", tz="UTC")
+    btc_corrupt = btc_hourly.drop(index=drop_ts)
+
+    daily_dates = pd.date_range("2024-01-01", "2024-01-03", freq="D", tz="UTC")
+    with pytest.raises(ValueError, match="Missing.*execution price"):
+        compute_holding_period_returns(btc_corrupt, daily_dates)
+
+
+def test_trade_notional_reconciliation_and_capital_conservation():
+    """Verify accounting integrity verification catches mismatches and passes on clean replay."""
+    panels = _create_mock_hourly_panels(days=120)
+    features_df = extract_causal_features(panels)
+    scaler = TrainFittedScaler().fit(features_df)
+    policy = CompactUnifiedPolicy(in_features=len(features_df.columns), hidden_dim=16)
+
+    res = run_learned_policy_replay(
+        btc_hourly=panels["BTCUSDT"],
+        features_df=features_df,
+        scaler=scaler,
+        policy=policy,
+        start_dt=features_df.index[5],
+        end_dt=features_df.index[-2],
+        initial_capital=PRIMARY_INITIAL_CAPITAL,
+        fee_bps=30.0,
+    )
+
+    # Positive test: actual clean replay passes integrity verification
+    check = verify_trade_events_accounting(
+        trade_events=res.trade_events,
+        turnovers=res.turnovers,
+        fees=res.fees,
+        metrics=res.metrics,
+        fee_bps=30.0,
+    )
+    assert check["passed"] is True
+    assert len(check["conservation_errors"]) == 0
+    assert len(check["fee_errors"]) == 0
+    assert abs(check["metrics_total_fees"] - check["total_event_fees"]) < 1e-4
+
+    # Negative test: corrupt a trade event (violate capital conservation)
+    if len(res.trade_events) > 0:
+        corrupted_events = [dict(e) for e in res.trade_events]
+        corrupted_events[0]["v_post"] += 100.0  # create unearned equity leak
+
+        corrupt_check = verify_trade_events_accounting(
+            trade_events=corrupted_events,
+            turnovers=res.turnovers,
+            fees=res.fees,
+            metrics=res.metrics,
+            fee_bps=30.0,
+        )
+        assert corrupt_check["passed"] is False
+        assert len(corrupt_check["conservation_errors"]) > 0
+
+
+def test_static_and_rebalanced_50_50_benchmarks():
+    """Verify execution of static and rebalanced 50/50 allocation baselines."""
+    panels = _create_mock_hourly_panels(days=60)
+    btc_hourly = panels["BTCUSDT"]
+    start_dt = btc_hourly.index[0]
+    end_dt = btc_hourly.index[-1]
+
+    # 1. Static 50/50: exactly 1 trade at inception
+    res_static = run_static_50_50_replay(
+        btc_hourly=btc_hourly,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        initial_capital=PRIMARY_INITIAL_CAPITAL,
+        fee_bps=30.0,
+    )
+    assert res_static.metrics.num_trades == 1
+    assert len(res_static.trade_events) == 1
+    assert abs(res_static.trade_events[0]["trade_notional"] - 5000.0) < 50.0
+    assert (res_static.cash_history > 0.0).all()
+    assert (res_static.equities > 0.0).all()
+
+    # 2. Rebalanced 50/50: trades whenever deviation > 5%
+    res_reb = run_rebalanced_50_50_replay(
+        btc_hourly=btc_hourly,
+        start_dt=start_dt,
+        end_dt=end_dt,
+        initial_capital=PRIMARY_INITIAL_CAPITAL,
+        fee_bps=30.0,
+        rebalance_band=0.05,
+    )
+    assert res_reb.metrics.num_trades >= 1
+    assert (res_reb.cash_history > 0.0).all()
+    assert (res_reb.equities > 0.0).all()
+
+    # Check accounting integrity of both benchmarks
+    chk_static = verify_trade_events_accounting(
+        res_static.trade_events, res_static.turnovers, res_static.fees, res_static.metrics
+    )
+    assert chk_static["passed"] is True
+
+    chk_reb = verify_trade_events_accounting(
+        res_reb.trade_events, res_reb.turnovers, res_reb.fees, res_reb.metrics
+    )
+    assert chk_reb["passed"] is True

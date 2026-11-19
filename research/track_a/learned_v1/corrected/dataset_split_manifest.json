@@ -1,0 +1,69 @@
+{
+  "manifest_version": "1.1_corrected",
+  "created_at_utc": "2026-11-19T18:05:27.464067+00:00",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "data_source": "Binance Spot Audited Hourly Archives (Aggregated Causal Daily)",
+  "chronological_splits": {
+    "WARMUP": {
+      "window": [
+        "2021-01-01",
+        "2021-12-31"
+      ],
+      "purpose": "Feature initialization & lookback stabilization",
+      "days": 365
+    },
+    "TRAIN": {
+      "window": [
+        "2022-01-01",
+        "2023-12-31"
+      ],
+      "purpose": "Model fitting & feature scaling fit (last training label: 2023-12-30)",
+      "days": 730,
+      "labeled_decision_days": 729
+    },
+    "VALIDATION": {
+      "window": [
+        "2024-01-01",
+        "2024-12-31"
+      ],
+      "purpose": "Model selection & checkpoint freeze (last selection label: 2024-12-30)",
+      "days": 366,
+      "labeled_decision_days": 365
+    },
+    "REUSED_TEST": {
+      "window": [
+        "2025-01-01",
+        "2026-11-18"
+      ],
+      "purpose": "Final historical diagnostic (explicitly reused historical window)",
+      "days": 687
+    },
+    "FULL_DIAGNOSTIC": {
+      "window": [
+        "2022-01-01",
+        "2026-11-18"
+      ],
+      "purpose": "Continuous cumulative evaluation 2022-2026",
+      "days": 1783
+    }
+  },
+  "boundary_and_label_integrity_controls": [
+    "Training labels purged at 2023-12-30; no forward execution prices from 2024 (Validation).",
+    "Validation selection labels purged at 2024-12-30; no forward execution prices from 2025 (Reused Test).",
+    "Terminal dataset date (2026-11-18) dropped cleanly; zero synthetic 0.0 return padding.",
+    "Missing execution prices at 01:00 UTC strictly fail closed; no silent fallback to daily close.",
+    "Feature scaling fit strictly on TRAIN (2022-2023).",
+    "Independent accounting starting at 10,000 USDT for each split window."
+  ],
+  "integrity_verification": {
+    "DATA_SPLIT_BOUNDARY": "PASS",
+    "LABEL_INTEGRITY": "PASS",
+    "TRADE_NOTIONAL_ACCOUNTING": "PASS",
+    "CAUSAL_REPLAY": "PASS"
+  }
+}
